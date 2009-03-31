@@ -11,6 +11,7 @@ import org.sakaiproject.kernel2.osgi.guiceuser.impl.ConcreteA;
 import org.sakaiproject.kernel2.osgi.guiceuser.impl.ConcreteB;
 import org.sakaiproject.kernel2.osgi.guiceuser.impl.ConcreteD;
 import org.sakaiproject.kernel2.osgi.guiceuser.impl.ConcreteE;
+import org.sakaiproject.kernel2.osgi.guiceuser.impl.FProvider;
 
 public class TestModule extends AbstractModule {
 
@@ -20,6 +21,7 @@ public class TestModule extends AbstractModule {
     bind(InterfaceB.class).to(ConcreteB.class).in(Scopes.SINGLETON);
     bind(InterfaceD.class).to(ConcreteD.class).in(Scopes.SINGLETON);
     bind(InterfaceE.class).to(ConcreteE.class).in(Scopes.SINGLETON);
+    bind(FProvider.class);
   }
 
 }
