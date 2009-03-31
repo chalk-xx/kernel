@@ -34,6 +34,12 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> com.google.common.*, com.google.inject.* </Export-Package>
+            <Import-Package> 
+            !com.google.inject.cglib.asm.util,
+            !org.aopalliance.intercept,
+            !org.apache.tools.ant.*,
+            * 
+            </Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>
