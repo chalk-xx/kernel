@@ -30,6 +30,7 @@
       </activation>
       <modules>
         <module>app</module>
+        <module>app-bundles</module>
         <module>bundles/uxloader</module>
         <module>bundles/guice</module>
         <module>bundles/guiceuser</module>

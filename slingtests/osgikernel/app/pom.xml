@@ -141,6 +141,12 @@
       <version>4-incubator-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.app-bundles</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
 
         <!-- HttpService: Embedded Jetty -->
     <dependency>
