@@ -33,7 +33,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> com.google.common.* </Export-Package>
+            <Export-Package> com.google.common.*, com.google.inject.* </Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>
@@ -81,6 +81,7 @@
     <dependency>
       <groupId>com.google.code.guice</groupId>
       <artifactId>guice</artifactId>
+      <scope>compile</scope>
     </dependency>
     
 <!--
