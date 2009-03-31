@@ -9,7 +9,6 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 public class Hello implements BundleActivator {
 
@@ -51,9 +50,7 @@ public class Hello implements BundleActivator {
     properties.put("eclipselink.ddl-generation.output-mode", "database");
     properties.put("eclipselink.classloader", this.getClass().getClassLoader());
     emf = new PersistenceProvider()
-        .createEntityManagerFactory("comics", properties);
-
-    emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+        .createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
     em = emf.createEntityManager();
   }
 
