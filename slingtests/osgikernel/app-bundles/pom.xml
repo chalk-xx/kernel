@@ -105,6 +105,38 @@
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    
+    <!--  OSGi bundles -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.core</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.jpa</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.asm</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.antlr</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <profiles>
     <profile>
@@ -119,21 +151,37 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
             <executions>
-        
-                            <!-- level 1 bundles -->
               <execution>
-                <id>copy-level-1-bundles</id>
+                <id>copy-level-10-bundles</id>
                 <goals>
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds> org.sakaiproject.kernel2.osgi.uxloader,
-                    org.sakaiproject.kernel2.osgi.guice,org.sakaiproject.kernel2.osgi.guiceuser,
-                    org.sakaiproject.kernel2.osgi.jpaexample,
-                    org.sakaiproject.kernel2.osgi.jpaprovider,
-                    org.sakaiproject.kernel2.osgi.jpahelloworld,
-                    org.sakaiproject.kernel2.osgi.jpaprovider,org.sakaiproject.kernel2.osgi.memory,
-                    org.sakaiproject.kernel2.osgi.utils </includeArtifactIds>
+                  <includeArtifactIds>javax.persistence,org.sakaiproject.kernel2.osgi.guice,org.sakaiproject.kernel2.osgi.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
+                  <excludeTransitive>true</excludeTransitive>
+                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
+                  </outputDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-level-15-bundles</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.memory,org.sakaiproject.kernel2.osgi.guiceuser,,org.sakaiproject.kernel2.osgi.jpaprovider</includeArtifactIds>
+                  <excludeTransitive>true</excludeTransitive>
+                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
+                  </outputDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-level-20-bundles</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.uxloader,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>

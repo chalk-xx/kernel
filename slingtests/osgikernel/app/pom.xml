@@ -78,6 +78,21 @@
             </configuration>
           </execution>
 
+
+                    <!-- Sakai Bundles -->
+          <execution>
+            <id>inline-sakai-bundles</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds> org.sakaiproject.kernel2.osgi.app-bundles </includeArtifactIds>
+              <includes> resources/** </includes>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+            </configuration>
+          </execution>
+
                     <!-- HttpService: Embedded Jetty, started at level 5 -->
           <execution>
             <id>copy-jetty-bundle</id>
