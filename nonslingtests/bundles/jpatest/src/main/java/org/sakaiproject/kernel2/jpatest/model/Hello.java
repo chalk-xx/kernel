@@ -1,11 +1,12 @@
 package org.sakaiproject.kernel2.jpatest.model;
 
+import org.eclipse.persistence.jpa.PersistenceProvider;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 public class Hello {
 
@@ -44,7 +45,7 @@ public class Hello {
     properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
     properties.put("eclipselink.ddl-generation.output-mode", "database");
     properties.put("eclipselink.classloader", this.getClass().getClassLoader());
-    emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
+    emf = new PersistenceProvider().createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
     em = emf.createEntityManager();
   }
 
