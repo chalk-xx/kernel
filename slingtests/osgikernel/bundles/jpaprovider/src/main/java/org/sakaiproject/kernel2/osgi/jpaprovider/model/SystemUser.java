@@ -1,19 +1,16 @@
 package org.sakaiproject.kernel2.osgi.jpaprovider.model;
 
+import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Transient;
 
 @Entity
-public class User {
-
-  @Transient
-  @PersistenceContext(unitName = "user")
+public class SystemUser {
 
   @Id
   private long id;
 
+  @Basic
   private String name;
   
   public long getId()

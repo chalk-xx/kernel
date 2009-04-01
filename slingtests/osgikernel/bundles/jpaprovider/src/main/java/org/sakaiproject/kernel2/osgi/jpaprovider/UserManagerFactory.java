@@ -15,8 +15,7 @@ public class UserManagerFactory {
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
     properties.put("eclipselink.ddl-generation.output-mode", "database");
-    properties.put("eclipselink.classloader", EntityManager.class.getClassLoader());
-    EntityManagerFactory factory = new PersistenceProvider().createEntityManagerFactory("user", properties);
+    EntityManagerFactory factory = new PersistenceProvider().createEntityManagerFactory("systemuser", properties);
     return factory.createEntityManager();
   }
 }
