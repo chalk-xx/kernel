@@ -40,6 +40,7 @@ org.xml.sax,
 org.xml.sax.ext,
 org.xml.sax.helpers,
 *</Import-Package>
+            <JPA-PersistenceUnits>greetingPU</JPA-PersistenceUnits>
          </instructions>
          </configuration>
       </plugin>
