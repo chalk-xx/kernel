@@ -44,13 +44,13 @@
     	<groupId>org.apache.felix</groupId>
     	<artifactId>org.osgi.core</artifactId>
     	<version>1.2.0</version>
-    	<scope>compile</scope>
+    	<scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.persistence</groupId>
       <artifactId>persistence-api</artifactId>
       <version>1.0</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
