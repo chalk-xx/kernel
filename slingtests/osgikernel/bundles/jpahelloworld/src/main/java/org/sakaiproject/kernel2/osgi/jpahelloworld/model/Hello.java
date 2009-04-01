@@ -1,5 +1,6 @@
 package org.sakaiproject.kernel2.osgi.jpahelloworld.model;
 
+import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.jpa.osgi.PersistenceProvider;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -46,9 +47,9 @@ public class Hello implements BundleActivator {
 
   private void initEntityManager() {
     Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
-    properties.put("eclipselink.ddl-generation.output-mode", "database");
-    properties.put("eclipselink.classloader", this.getClass().getClassLoader());
+    properties.put(PersistenceUnitProperties.DDL_GENERATION, PersistenceUnitProperties.DROP_AND_CREATE);
+    properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE, PersistenceUnitProperties.DDL_DATABASE_GENERATION);
+    //properties.put(PersistenceUnitProperties.CLASSLOADER, this.getClass().getClassLoader());
     emf = new PersistenceProvider()
         .createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
     em = emf.createEntityManager();
