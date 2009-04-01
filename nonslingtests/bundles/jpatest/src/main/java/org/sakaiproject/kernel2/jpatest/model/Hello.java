@@ -21,8 +21,6 @@ public class Hello {
     em.persist(g);
     em.getTransaction().commit();
 
-    // g should be written to database now.
-    // Read it from db (no transaction context needed for em.find method)
     Greeting g2 = em.find(Greeting.class, g.getId());
     System.out.println("Greeting " + g.getId() + " from db: " + g2);
   }
@@ -43,10 +41,9 @@ public class Hello {
 
   private void initEntityManager() {
     Map<String, Object> properties = new HashMap<String, Object>();
-//    properties.put("javax.persistence.provider", "org.hibernate.ejb.HibernatePersistence");
-//    properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
-//    properties.put("eclipselink.ddl-generation.output-mode", "database");
-//    properties.put("eclipselink.classloader", this.getClass().getClassLoader());
+    properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
+    properties.put("eclipselink.ddl-generation.output-mode", "database");
+    properties.put("eclipselink.classloader", this.getClass().getClassLoader());
     emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
     em = emf.createEntityManager();
   }
