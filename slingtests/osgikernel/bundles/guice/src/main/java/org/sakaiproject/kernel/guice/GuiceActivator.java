@@ -1,0 +1,112 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.kernel.guice;
+
+import com.google.common.collect.Sets;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.Module;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * The Guice Activator activates a guice based bundle and exports the the services listed
+ * in the list annotated with the SerivceExportList annotation. Services in the list may
+ * optionally be annotated with the ServiceExportDescription annotation to give more
+ * precise control over how the service is exported to OSGi.
+ */
+public abstract class GuiceActivator implements BundleActivator {
+
+  private Injector injector;
+  private List<?> services;
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+   */
+  public void start(BundleContext bundleContext) throws Exception {
+    injector = Guice.createInjector(getModule());
+
+    services = injector.getInstance(Key.get(List.class, ServiceExportList.class));
+    for (Object o : services) {
+      if (o.getClass().isAnnotationPresent(ServiceExportDescription.class)) {
+        ServiceExportDescription ks = o.getClass().getAnnotation(
+            ServiceExportDescription.class);
+        Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
+        Class<?>[] serviceClasses = ks.serviceClasses();
+        String[] serviceClassNames = new String[serviceClasses.length];
+        int i = 0;
+        for (Class<?> c : serviceClasses) {
+          serviceClassNames[i++] = c.getName();
+        }
+        dictionary.put(Constants.OBJECTCLASS, serviceClassNames);
+        dictionary.put(Constants.SERVICE_DESCRIPTION, ks.serviceDescription());
+        dictionary.put(Constants.SERVICE_VENDOR, ks.seviceVendor());
+        bundleContext.registerService(serviceClassNames, o, dictionary);
+      } else {
+        Class<?>[] implementedInterfaces = o.getClass().getInterfaces();
+        o.getClass().isInterface();
+        Set<Class<?>> interfaces = Sets.newHashSet();
+        if (o.getClass().isInterface()) {
+          interfaces.add(o.getClass());
+        }
+        for (Class<?> c : implementedInterfaces) {
+          interfaces.add(c);
+        }
+        Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
+        String[] serviceClassNames = new String[interfaces.size()];
+        int i = 0;
+        for (Class<?> c : interfaces) {
+          serviceClassNames[i++] = c.getName();
+        }
+        dictionary.put(Constants.OBJECTCLASS, serviceClassNames);
+        dictionary.put(Constants.SERVICE_DESCRIPTION, o.getClass().getName());
+        dictionary.put(Constants.SERVICE_VENDOR, "The Sakai Foundation");
+        bundleContext.registerService(serviceClassNames, o, dictionary);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+   */
+  public void stop(BundleContext bundleContext) throws Exception {
+    for (Object o : services) {
+      if (o instanceof RequiresStop) {
+        ((RequiresStop) o).stop();
+      }
+    }
+  }
+
+  /**
+   * @return
+   */
+  protected abstract Module getModule();
+
+}
