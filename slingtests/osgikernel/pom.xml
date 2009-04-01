@@ -37,6 +37,8 @@
         <module>bundles/jpaexample</module>
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
+        <module>bundles/db</module>
+        <module>bundles/kernel</module>
         <module>bundles/memory</module>
         <module>libraries/utils</module>
       </modules>
