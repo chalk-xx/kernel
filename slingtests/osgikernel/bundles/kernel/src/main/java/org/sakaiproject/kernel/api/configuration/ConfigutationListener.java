@@ -15,26 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.persistence;
+package org.sakaiproject.kernel.api.configuration;
 
-
-import com.google.inject.Module;
-
-import org.osgi.framework.BundleContext;
-import org.sakaiproject.kernel.guice.GuiceActivator;
+import java.util.Map;
 
 /**
- * Activate the guice module.
+ * Listens for configuration changes.
  */
-public class Activator extends GuiceActivator {
-
+public interface ConfigutationListener {
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule()
+   * @param config the new configuration
    */
-  @Override
-  protected Module getModule(BundleContext bundleContext) {
-    return new ActivatorModule(bundleContext);
-  }
-
+  void update(Map<String, String> config);
 }

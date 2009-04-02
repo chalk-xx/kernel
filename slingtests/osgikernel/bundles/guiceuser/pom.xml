@@ -53,7 +53,7 @@
       <groupId>com.google.code.guice</groupId>
       <artifactId>guice</artifactId>
       <scope>provided</scope>
-    </dependency>
+    </dependency>    
     <dependency>
     	<groupId>org.apache.felix</groupId>
     	<artifactId>org.osgi.core</artifactId>

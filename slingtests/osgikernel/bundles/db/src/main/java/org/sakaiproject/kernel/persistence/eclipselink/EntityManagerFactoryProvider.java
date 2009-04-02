@@ -32,7 +32,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.TargetServer;
-import org.sakaiproject.kernel.KernelConstants;
+import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -49,7 +49,7 @@ public abstract class GuiceActivator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
    */
   public void start(BundleContext bundleContext) throws Exception {
-    injector = Guice.createInjector(getModule());
+    injector = Guice.createInjector(getModule(bundleContext));
 
     services = injector.getInstance(Key.get(List.class, ServiceExportList.class));
     for (Object o : services) {
@@ -107,6 +107,6 @@ public abstract class GuiceActivator implements BundleActivator {
   /**
    * @return
    */
-  protected abstract Module getModule();
+  protected abstract Module getModule(BundleContext bundleContext);
 
 }

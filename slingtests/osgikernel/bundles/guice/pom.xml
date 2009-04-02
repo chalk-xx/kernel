@@ -34,7 +34,8 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> com.google.common.*, com.google.inject.*, org.sakaiproject.kernel.guice </Export-Package>
+            <Export-Package> com.google.common.*, com.google.inject.*, org.sakaiproject.kernel.guice 
+            </Export-Package>
             <Import-Package> !com.google.inject.cglib.asm.util, !org.aopalliance.intercept,
               !org.apache.tools.ant.*, * </Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
@@ -71,6 +72,12 @@
       <groupId>com.google.code.guice</groupId>
       <artifactId>guice</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>

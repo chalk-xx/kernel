@@ -36,10 +36,11 @@
           
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Bundle-Activator>org.sakaiproject.kernel.persistence.Activator</Bundle-Activator>
-            <Export-Package> org.sakaiproject.kernel.api.persistence </Export-Package>
-            <Import-Package> * </Import-Package>
+            <Export-Package> org.sakaiproject.kernel.api.persistence, javax.transaction;version=1.1.1, javax.transaction.xa;version=1.1.1 </Export-Package>
+            <Import-Package> !org.objectweb.howl.log.*,*, com.google.inject.cglib.reflect </Import-Package>
+            <Private-Package>org.sakaiproject.kernel.persistence.*</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>commons-dbcp,geronimo-transaction 
+            <Embed-Dependency>commons-dbcp,geronimo-transaction,commons-pool,geronimo-j2ee-connector_1.5_spec
             </Embed-Dependency>
           </instructions>
         </configuration>
@@ -54,7 +55,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>commons-dbcp,geronimo-transaction</includeArtifactIds>
+              <includeArtifactIds>commons-dbcp,geronimo-transaction,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
             </configuration>

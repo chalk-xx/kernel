@@ -22,7 +22,7 @@ import com.google.inject.name.Named;
 import com.google.inject.util.ReferenceMap;
 import com.google.inject.util.ReferenceType;
 
-import org.sakaiproject.kernel.KernelConstants;
+import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
