@@ -15,41 +15,41 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.persistence;
+package org.sakaiproject.kernel.guice;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.sql.DataSource;
-import javax.transaction.TransactionManager;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 /**
- * Contains a list of service objects to be exportes.
+ * Create a generic Guice provider that binds to a service in OSGi
  */
-public class ServiceExportProvider implements Provider<List<Object>> {
+public class OsgiServiceProvider<T> implements
+    Provider<T> {
 
-  private List<Object> exports;
+  private BundleContext bundleContext;
+  private ServiceReference serviceReference;
 
   /**
-   * 
+   * @param the interface representing the service
+   * @param bundleContext the bundle context of this bundle
    */
-  @Inject
-  public ServiceExportProvider(DataSource dataSource,
-      EntityManager entityManager, TransactionManager transactionManager) {
-    exports = Lists.immutableList(dataSource, entityManager, transactionManager);
+  public OsgiServiceProvider(Class<T> serviceClass,
+      BundleContext bundleContext) {
+    this.bundleContext = bundleContext;
+    // convert the service class into a reference, since the provision of the service class 
+    // may change.
+    this.serviceReference = bundleContext.getServiceReference(serviceClass.getName());
   }
 
   /**
    * {@inheritDoc}
-   * 
    * @see com.google.inject.Provider#get()
    */
-  public List<Object> get() {
-    return exports;
+  @SuppressWarnings("unchecked")
+  public T get() {
+    return (T) bundleContext.getService(serviceReference);
   }
 
 }

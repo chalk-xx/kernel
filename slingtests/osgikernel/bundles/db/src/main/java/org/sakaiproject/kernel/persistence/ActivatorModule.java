@@ -22,7 +22,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
+import org.osgi.framework.BundleContext;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
+import org.sakaiproject.kernel.guice.OsgiServiceProvider;
 import org.sakaiproject.kernel.guice.ServiceExportList;
 import org.sakaiproject.kernel.persistence.dbcp.DataSourceServiceImpl;
 import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
@@ -46,7 +49,10 @@ public class ActivatorModule extends AbstractModule {
 
   private Properties properties;
 
-  public ActivatorModule() {
+  private BundleContext bundleContext;
+
+  public ActivatorModule(BundleContext bundleContext) {
+    this.bundleContext = bundleContext;
   }
 
   /**
@@ -60,6 +66,8 @@ public class ActivatorModule extends AbstractModule {
       LOGGER.info("Loading supplied properties");
       Names.bindProperties(this.binder(), properties);
     }
+    
+    
 
     // bind the EntityManagerFactory to EclipseLink
     bind(EntityManagerFactory.class).toProvider(
@@ -77,6 +85,8 @@ public class ActivatorModule extends AbstractModule {
     // bind the services
     bind(DataSourceService.class).to(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
+    
+    bind(CacheManagerService.class).toProvider(new OsgiServiceProvider(CacheManagerService.class,bundleContext));
     
     bind(List.class).annotatedWith(ServiceExportList.class).toProvider(ServiceExportProvider.class);
   }
