@@ -1,7 +1,5 @@
 package org.sakaiproject.kernel2.osgi.jpaprovider;
 
-import org.eclipse.persistence.jpa.osgi.PersistenceProvider;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +13,7 @@ public class UserManagerFactory {
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
     properties.put("eclipselink.ddl-generation.output-mode", "database");
-    EntityManagerFactory factory = new PersistenceProvider().createEntityManagerFactory("systemuser", properties);
+    EntityManagerFactory factory = new SakaiPersistenceProvider().createEntityManagerFactory("sakaiPU", properties);
     return factory.createEntityManager();
   }
 }

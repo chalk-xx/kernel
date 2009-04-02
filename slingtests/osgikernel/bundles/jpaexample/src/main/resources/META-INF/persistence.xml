@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
 	version="1.0" xmlns="http://java.sun.com/xml/ns/persistence">
   <persistence-unit name="sakaiPU">
-  <class>org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser</class>
+  <class>org.sakaiproject.kernel2.osgi.jpaexample.jpa.model.ExampleModel</class>
     <properties>
       <property name="eclipselink.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver"/>
       <property name="eclipselink.jdbc.url" value="jdbc:derby:testdb;create=true"/> 

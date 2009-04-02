@@ -33,13 +33,25 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <JPA-PersistenceUnits>systemuser</JPA-PersistenceUnits>
+            <Bundle-Activator>org.sakaiproject.kernel2.osgi.jpaprovider.PersistenceBundleMonitor</Bundle-Activator>
+            <JPA-PersistenceUnits>sakaiPU</JPA-PersistenceUnits>
             <Import-Package>sun.io;resolution:=optional,
+sun.misc;resolution:=optional,
+sun.reflect;resolution:=optional,
 javax.xml.parsers,
 org.w3c.dom,
 org.xml.sax,
 org.xml.sax.ext,
 org.xml.sax.helpers,
+!org.apache.commons.pool.impl,
+!org.codehaus.jettison,
+!org.codehaus.jettison.*,
+!org.dom4j.*,
+!nu.xom,
+!net.sf.cglib.proxy,
+!org.joda.time.*,
+!org.jdom.*,
+!org.xmlpull.*,
 *</Import-Package>
           <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
           </instructions>
@@ -55,7 +67,7 @@ org.xml.sax.helpers,
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>derby,derbynet,xalan,serializer,xercesImpl,xml-resolver</includeArtifactIds>
+              <includeArtifactIds>derby,derbynet,xalan,serializer,xercesImpl,xml-resolver,commons-pool,xstream</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration> 
@@ -70,6 +82,11 @@ org.xml.sax.helpers,
       <artifactId>derby</artifactId>
       <version>10.4.2.0</version>
       <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <version>1.3.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.derby</groupId>
@@ -102,6 +119,12 @@ org.xml.sax.helpers,
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.4</version>
+      <scope>runtime</scope>
+    </dependency> 
+    <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>javax.persistence</artifactId>
       <version>1.1.0</version>
@@ -125,5 +148,16 @@ org.xml.sax.helpers,
       <version>1.2.0</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.2</version>
+      <scope>test</scope>
+    </dependency> 
   </dependencies>
 </project>

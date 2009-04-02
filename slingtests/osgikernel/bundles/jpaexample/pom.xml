@@ -34,6 +34,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Bundle-Activator>org.sakaiproject.kernel2.osgi.jpaexample.JpaExample</Bundle-Activator>
+            <JPA-PersistenceUnits>sakaiPU</JPA-PersistenceUnits>
           </instructions>
         </configuration>
       </plugin>
