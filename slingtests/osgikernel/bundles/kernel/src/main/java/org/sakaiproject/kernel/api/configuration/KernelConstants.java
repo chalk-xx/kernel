@@ -27,10 +27,13 @@ import com.google.common.collect.ImmutableMap.Builder;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Holds the configuration properties that are used in the kernel. This is an OSGi Managed
@@ -243,6 +246,7 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   /**
    */
   public static final String MESSAGES = "messages";
+  private static final String DEFAULT_SETTINGS = "default.properties";
 
   /**
    * The configuration map
@@ -251,6 +255,23 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   private Map<String, ConfigurationListener> listeners = new ReferenceMap<String, ConfigurationListener>(
       ReferenceType.STRONG, ReferenceType.WEAK);
 
+  /**
+   * @throws IOException 
+   * 
+   */
+  public KernelConstants() throws IOException {
+    InputStream in = this.getClass().getResourceAsStream(DEFAULT_SETTINGS);
+    Properties p = new Properties();
+    p.load(in);
+    in.close();
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
+      String k = (String) e.nextElement();
+      builder.put(k, (String) p.get(k));
+    }
+    configMap = builder.build();
+    
+  }
   /**
    * {@inheritDoc}
    * 

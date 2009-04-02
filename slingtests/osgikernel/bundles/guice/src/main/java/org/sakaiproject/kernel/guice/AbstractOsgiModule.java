@@ -22,6 +22,8 @@ import com.google.inject.name.Names;
 
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -30,6 +32,8 @@ import java.util.Map;
  */
 public abstract class AbstractOsgiModule extends AbstractModule {
   
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractOsgiModule.class);
+
   /**
    * {@inheritDoc}
    * @see com.google.inject.AbstractModule#configure()
@@ -41,6 +45,8 @@ public abstract class AbstractOsgiModule extends AbstractModule {
     Map<String, String> config = configurationService.getProperties();
     if (config != null) {
       Names.bindProperties(this.binder(), config);
+    } else {
+      LOGGER.warn("No Configuration Properties found");
     }
   }
 
