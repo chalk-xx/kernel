@@ -21,7 +21,7 @@ import javax.transaction.TransactionManager;
 import javax.transaction.xa.XAException;
 
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
-import org.sakaiproject.kernel.KernelConstants;
+import org.sakaiproject.kernel.api.configuration.KernelConstants;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;

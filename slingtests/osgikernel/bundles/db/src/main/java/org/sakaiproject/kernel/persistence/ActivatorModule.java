@@ -18,23 +18,19 @@
 
 package org.sakaiproject.kernel.persistence;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
-import com.google.inject.name.Names;
 
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
+import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.guice.OsgiServiceProvider;
 import org.sakaiproject.kernel.guice.ServiceExportList;
 import org.sakaiproject.kernel.persistence.dbcp.DataSourceServiceImpl;
 import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
 import org.sakaiproject.kernel.persistence.geronimo.TransactionManagerProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Properties;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -44,15 +40,13 @@ import javax.transaction.TransactionManager;
 /**
  * Configuration module for persistence bindings.
  */
-public class ActivatorModule extends AbstractModule {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ActivatorModule.class);
-
-  private Properties properties;
+public class ActivatorModule extends AbstractOsgiModule {
 
   private BundleContext bundleContext;
 
   public ActivatorModule(BundleContext bundleContext) {
     this.bundleContext = bundleContext;
+    
   }
 
   /**
@@ -62,10 +56,7 @@ public class ActivatorModule extends AbstractModule {
    */
   @Override
   protected void configure() {
-    if (properties != null) {
-      LOGGER.info("Loading supplied properties");
-      Names.bindProperties(this.binder(), properties);
-    }
+    super.configure();
     
     
 
@@ -78,7 +69,7 @@ public class ActivatorModule extends AbstractModule {
     // Bind in the datasource
     bind(DataSource.class).toProvider(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
-    // and the transaction manager via a probider.
+    // and the transaction manager via a provider.
     bind(TransactionManager.class).toProvider(TransactionManagerProvider.class)
         .in(Scopes.SINGLETON);
 
@@ -86,8 +77,17 @@ public class ActivatorModule extends AbstractModule {
     bind(DataSourceService.class).to(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
     
-    bind(CacheManagerService.class).toProvider(new OsgiServiceProvider(CacheManagerService.class,bundleContext));
+    bind(CacheManagerService.class).toProvider(new OsgiServiceProvider<CacheManagerService>(CacheManagerService.class,bundleContext));
     
     bind(List.class).annotatedWith(ServiceExportList.class).toProvider(ServiceExportProvider.class);
+  }
+  
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.guice.AbstractOsgiModule#getBundleContext()
+   */
+  @Override
+  protected BundleContext getBundleContext() {
+    return bundleContext;
   }
 }
