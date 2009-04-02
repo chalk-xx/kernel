@@ -6,9 +6,12 @@ import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceA;
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceB;
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceD;
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConcreteE implements InterfaceE {
   
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConcreteE.class);
   private InterfaceD d;
   
   @Inject
@@ -24,7 +27,7 @@ public class ConcreteE implements InterfaceE {
   
   public void doPrint(InterfaceA a, InterfaceB b)
   {
-    System.err.println("Printing from e");
+    LOGGER.info("Printing from e");
     b.printString(a.getHelloWorld());
   }
 
