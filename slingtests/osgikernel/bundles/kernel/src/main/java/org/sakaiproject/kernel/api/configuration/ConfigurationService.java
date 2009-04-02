@@ -45,10 +45,10 @@ public interface ConfigurationService {
   /**
    * @param listener the listener to add.
    */
-  void addListener(ConfigutationListener listener);
+  void addListener(ConfigurationListener listener);
   
   /**
    * @param listener the listener to remove.
    */
-  void removeListener(ConfigutationListener listener);
+  void removeListener(ConfigurationListener listener);
 }

@@ -18,7 +18,10 @@
 
 package org.sakaiproject.kernel.api.configuration;
 
+import com.google.common.base.ReferenceType;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ReferenceMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
 import org.osgi.service.cm.ConfigurationException;
@@ -26,6 +29,7 @@ import org.osgi.service.cm.ManagedService;
 
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,43 +46,52 @@ import java.util.Map;
  */
 public class KernelConstants implements ConfigurationService, ManagedService {
 
-
   /**
    * 
-   * @scr.property value="/userenv" type="String" 
-   *     name="JCR User Environment Base Path" 
-   *     description="The location of system private data in the repo, read only, one time configuration per repository."
+   * @scr.property value="/userenv" type="String" name="JCR User Environment Base Path"
+   *               description="The location of system private data in the repo, read only, one time configuration per repository."
    */
   public static final String JCR_USERENV_BASE = "jcruserenv.base";
   /**
    * list of templates in the form type=path;type=path;
-   * @scr.property value="jcruserenv.templates=student=/configuration/defaults/usertypes/userenv-student.json;researcher=/configuration/defaults/usertypes/userenv-researcher.json;" 
-   *     type="String"
+   * 
+   * @scr.property value="jcruserenv.templates=student=/configuration/defaults/usertypes/userenv-student.json;researcher=/configuration/defaults/usertypes/userenv-researcher.json;"
+   *               type="String"
    */
   public static final String JCR_USERENV_TEMPLATES = "jcruserenv.templates";
   /**
    * The default template for a user
-   * @scr.property value="/configuration/defaults/usertypes/userenv-default.json" type="String"
+   * 
+   * @scr.property value="/configuration/defaults/usertypes/userenv-default.json"
+   *               type="String"
    */
   public static final String JCR_DEFAULT_TEMPLATE = "jcruserenv.templates.default";
   /**
    * list of profile templates in the form type=path;type=path;
-   * @scr.property value="/configuration/defaults/usertypes/profile-student.json;researcher=/configuration/defaults/usertypes/profile-researcher.json;" type="String"
+   * 
+   * @scr.property value="/configuration/defaults/usertypes/profile-student.json;researcher=/configuration/defaults/usertypes/profile-researcher.json;"
+   *               type="String"
    */
   public static final String JCR_PROFILE_TEMPLATES = "jcrprofile.templates";
   /**
    * The default template for a user
-   * @scr.property value="/configuration/defaults/usertypes/profile-default.json" type="String"
+   * 
+   * @scr.property value="/configuration/defaults/usertypes/profile-default.json"
+   *               type="String"
    */
   public static final String JCR_PROFILE_DEFAUT_TEMPLATES = "jcrprofile.templates.default";
   /**
    * The template locations for site creation.
-   * @scr.property value="project=/configuration/defaults/sitetypes/project-site.json;course=/configuration/defaults/sitetypes/course-site.json;" type="String"
+   * 
+   * @scr.property value="project=/configuration/defaults/sitetypes/project-site.json;course=/configuration/defaults/sitetypes/course-site.json;"
+   *               type="String"
    */
   public static final String JCR_SITE_TEMPLATES = "jcrsite.templates";
   /**
    * Default site template.
-   * @scr.property value="/configuration/defaults/sitetypes/default-site.json" type="String"
+   * 
+   * @scr.property value="/configuration/defaults/sitetypes/default-site.json"
+   *               type="String"
    */
   public static final String JCR_SITE_DEFAULT_TEMPLATE = "jcrsite.templates.default";
 
@@ -97,19 +110,24 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   /**
    * Setting: The time to live of User Env objects the local cache, this should be set in
    * the kernel properties file.
+   * 
    * @scr.property value="600000" type="String"
    */
   public static final String TTL = "userenvironment.ttl";
 
   /**
-   *  This controls whether anonymous account creation is enabled. I also enables the ability to 
-   *  to check for the existence of eids in the system anonymously....without being superuser.
+   * This controls whether anonymous account creation is enabled. I also enables the
+   * ability to to check for the existence of eids in the system anonymously....without
+   * being superuser.
+   * 
    * @scr.property value="true" type="String"
    */
   public static final String PROP_ANON_ACCOUNTING = "rest.user.anonymous.account.creation";
   /**
-   * Control over the JPA Entity Manager scope, can be THREAD if its really stable 
-   * although this means the filter must commit, or REQUEST, then the standard filter manages commits
+   * Control over the JPA Entity Manager scope, can be THREAD if its really stable
+   * although this means the filter must commit, or REQUEST, then the standard filter
+   * manages commits
+   * 
    * @scr.property value="REQUEST" type="String"
    */
   public static final String ENTITY_MANAGER_SCOPE = "jpa.entitymanager.scope";
@@ -167,13 +185,13 @@ public class KernelConstants implements ConfigurationService, ManagedService {
    */
   public static final String SESSION_COOKIE = "http.global.cookiename";
 
-
   /**
    * @scr.property value="" type="String"
    */
   public static final String SUBJECT_PROVIDER_REGISTRY = "subjectstatement.provider";
   /**
    * The name of the registry used for this type of service.
+   * 
    * @scr.property value="" type="String"
    */
   public static final String AUTHENTICATION_PROVIDER_REGISTRY = "authentication.provider.registry";
@@ -183,14 +201,10 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   public static final String MANAGER_PROVIDER_REGISTRY = "authentication.manager.provider.registry";
   /**
    * The name of the registry used for this type of service.
+   * 
    * @scr.property value="" type="String"
    */
   public static final String USER_PROVIDER_REGISTRY = "user.provider.registry";
-
-  
-  
-  
-  
 
   // constant properties
   /**
@@ -230,11 +244,12 @@ public class KernelConstants implements ConfigurationService, ManagedService {
    */
   public static final String MESSAGES = "messages";
 
-  
   /**
    * The configuration map
    */
   private ImmutableMap<String, String> configMap;
+  private Map<String, ConfigurationListener> listeners = new ReferenceMap<String, ConfigurationListener>(
+      ReferenceType.STRONG, ReferenceType.WEAK);
 
   /**
    * {@inheritDoc}
@@ -246,9 +261,20 @@ public class KernelConstants implements ConfigurationService, ManagedService {
     Builder<String, String> builder = ImmutableMap.builder();
     for (Enumeration<?> e = config.keys(); e.hasMoreElements();) {
       String k = (String) e.nextElement();
-      builder.put(k, (String)config.get(k));
+      builder.put(k, (String) config.get(k));
     }
     configMap = builder.build();
+    notifyUpdate(configMap);
+  }
+
+  /**
+   * @param configMap2
+   */
+  private void notifyUpdate(Map<String, String> configMapLocal) {
+    List<ConfigurationListener> savedListners = Lists.immutableList(listeners.values());
+    for ( ConfigurationListener listener : savedListners ) {
+      listener.update(configMapLocal);
+    }
   }
 
   public Map<String, String> getProperties() {
@@ -257,6 +283,7 @@ public class KernelConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.configuration.ConfigurationService#getProperty()
    */
   public String getProperty(String key) {
@@ -265,20 +292,20 @@ public class KernelConstants implements ConfigurationService, ManagedService {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.configuration.ConfigurationService#addListener(org.sakaiproject.kernel.api.configuration.ConfigutationListener)
    */
-  public void addListener(ConfigutationListener listener) {
-    // TODO Auto-generated method stub
-    
+  public void addListener(ConfigurationListener listener) {
+    listeners.put(String.valueOf(listener), listener);
   }
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.configuration.ConfigurationService#removeListener(org.sakaiproject.kernel.api.configuration.ConfigutationListener)
    */
-  public void removeListener(ConfigutationListener listener) {
-    // TODO Auto-generated method stub
-    
+  public void removeListener(ConfigurationListener listener) {
+    listeners.remove(String.valueOf(listener));
   }
 
 }
