@@ -15,20 +15,20 @@ public class TestParsing {
 
   @Test
   public void testProviderXmlParse() {
-    PersistenceSettings settings = PersistenceBundleMonitor.parsePersistenceXml(this.getClass().getClassLoader().getResourceAsStream("persistence.xml"));
+    PersistenceSettings settings = PersistenceBundleMonitor.parsePersistenceXml(this.getClass().getClassLoader().getResourceAsStream("persistence1.xml"));
     List<PersistenceUnit> units = settings.getPersistenceUnits();
     assertEquals("Expected there to be one unit", 1, units.size());
     PersistenceUnit unit = units.get(0);
-    assertEquals("Expected name to be set", "sakaiPU", unit.getName());
+    assertEquals("Expected name to be set", "default", unit.getName());
     List<String> persistedClasses = unit.getClasses();
-    assertEquals("Expected there to be one class", 1, persistedClasses.size());
+    assertEquals("Expected there to be two classes", 2, persistedClasses.size());
     Map<String,String> properties = unit.getProperties();
-    assertEquals("Expected eclipselink user to be set", "sa", properties.get("eclipselink.jdbc.user"));
+    assertEquals("Expected testproperty to be set", "testvalue", properties.get("testproperty"));
   }
 
   @Test
   public void testOrmXmlParse() {
-    OrmSettings settings = PersistenceBundleMonitor.parseOrmXml(this.getClass().getClassLoader().getResourceAsStream("orm.xml"));
+    OrmSettings settings = PersistenceBundleMonitor.parseOrmXml(this.getClass().getClassLoader().getResourceAsStream(AmalgamatingClassloader.ORM_XML));
     List<OrmEntity> entities = settings.getEntities();
     assertEquals("Expected there to be one entity", 1, entities.size());
     assertEquals("Expected class value to be recorded", "org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser", entities.get(0).getClassName());

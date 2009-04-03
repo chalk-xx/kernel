@@ -63,18 +63,16 @@ public class AmalgamatingClassloader extends ClassLoader {
       ormClasses.add(entity);
     }
   }
-
-  public Enumeration<URL> getResources(final String name) throws IOException {
-    Enumeration<URL> retEnum = null;
+  
+  private URL getResourceWithOverride(String name) throws IOException
+  {
     if (PERSISTENCE_XML.equals(name)) {
       if (persistenceXMLurl == null) {
         persistenceXMLurl = constructUrl(PersistenceBundleMonitor.getPersistenceSettingsXStream(),
             baseSettings, PERSISTENCE_XML);
       }
-      retEnum = new UrlEnumeration(persistenceXMLurl);
+      return persistenceXMLurl;
     }
-    // make sure subsequent lookups for orm.xml get the merged copy of the
-    // file
     else if (ORM_XML.equals(name)) {
       if (ormXMLurl == null) {
         OrmSettings settings = new OrmSettings();
@@ -82,11 +80,34 @@ public class AmalgamatingClassloader extends ClassLoader {
         ormXMLurl = constructUrl(PersistenceBundleMonitor.getOrmSettingsXStream(), settings,
             ORM_XML);
       }
-      retEnum = new UrlEnumeration(ormXMLurl);
-    } else {
-      retEnum = super.getResources(name);
+      return ormXMLurl;
     }
-    return retEnum;
+    return null;
+  }
+  
+  @Override
+  public URL getResource(String name)
+  {
+    try
+    {
+      return getResourceWithOverride(name);
+    }
+    catch (IOException ioe)
+    {
+      return super.getResource(name);
+    }
+  }
+
+  public Enumeration<URL> getResources(final String name) throws IOException {
+    URL overriddenURL = getResourceWithOverride(name);
+    if (overriddenURL != null)
+    {
+      return new UrlEnumeration(overriddenURL);
+    }
+    else
+    {
+      return super.getResources(name); 
+    }
   }
 
   /**
@@ -119,27 +140,6 @@ public class AmalgamatingClassloader extends ClassLoader {
     }
     LOG.debug("URL: " + url);
     return url;
-  }
-
-  /**
-   * Enumeration for handling the return from getResources of new temp URLs.
-   */
-  private static class UrlEnumeration implements Enumeration<URL> {
-    private URL url;
-
-    UrlEnumeration(URL url) {
-      this.url = url;
-    }
-
-    public boolean hasMoreElements() {
-      return url != null;
-    }
-
-    public URL nextElement() {
-      final URL url2 = url;
-      url = null;
-      return url2;
-    }
   }
 
 }

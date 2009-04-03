@@ -10,10 +10,8 @@ public class PropertyConverter implements Converter {
 
   public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
     Property property = (Property) value;
-    writer.startNode("property");
     writer.addAttribute("name", property.getName());
     writer.addAttribute("value", property.getValue());
-    writer.endNode();
   }
 
   public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
