@@ -48,7 +48,7 @@ public class FileServlet extends HttpServlet {
    */
   
   private static final long serialVersionUID = -1304876073995688329L;
-  private static final String MIME_TYPES = "mimetypes.properties";
+  private static final String MIME_TYPES = "org/sakaiproject/kernel2/uxloader/mimetypes.properties";
   public static final String BASE_FILE = "base-location";
   public static final String WELCOME_FILE = "welcome-file";
   public static final String MAX_CACHE_SIZE = "max-cache-file";
