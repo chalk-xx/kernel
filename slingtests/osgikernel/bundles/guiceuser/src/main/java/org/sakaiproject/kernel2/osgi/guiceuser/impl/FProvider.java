@@ -5,9 +5,12 @@ import com.google.inject.Provider;
 
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceE;
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceF;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FProvider implements Provider<InterfaceF> {
 
+  protected static final Logger LOGGER = LoggerFactory.getLogger(FProvider.class);
   private InterfaceE e;
 
   @Inject
@@ -21,7 +24,7 @@ public class FProvider implements Provider<InterfaceF> {
     {
 
       public void printViaE() {
-        System.err.println("Provided F printing via e via d");
+        LOGGER.info("Provided F printing via e via d");
         FProvider.this.getE().printHelloViaD();
       }
     };

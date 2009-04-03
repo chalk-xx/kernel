@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Listens for configuration changes.
  */
-public interface ConfigutationListener {
+public interface ConfigurationListener {
   /**
    * @param config the new configuration
    */

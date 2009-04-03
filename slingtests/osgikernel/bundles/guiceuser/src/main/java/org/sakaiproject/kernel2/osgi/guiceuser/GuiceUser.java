@@ -11,27 +11,31 @@ import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceE;
 import org.sakaiproject.kernel2.osgi.guiceuser.api.InterfaceF;
 import org.sakaiproject.kernel2.osgi.guiceuser.impl.FProvider;
 import org.sakaiproject.kernel2.osgi.guiceuser.impl.InjectableC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GuiceUser implements BundleActivator {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(GuiceUser.class);
+
   public void start(BundleContext arg0) throws Exception {
-    System.out.println("Fetching injector");
+    LOGGER.info("Fetching injector");
     Injector injector = Guice.createInjector(new TestModule());
-    System.err.println("Fetching Injectable instance");
+    LOGGER.info("Fetching Injectable instance");
     injector.getInstance(InjectableC.class);
-    System.err.println("Print test 1");
+    LOGGER.info("Print test 1");
     InterfaceD d = injector.getInstance(InterfaceD.class);
     d.printHello();
     InterfaceE e = injector.getInstance(InterfaceE.class);
-    System.err.println("Print test 2");
+    LOGGER.info("Print test 2");
     e.printHelloViaD();
     Provider<InterfaceF> fprovider = injector.getInstance(FProvider.class);
-    System.err.println("Print test 3");
+    LOGGER.info("Print test 3");
     fprovider.get().printViaE();
   }
 
   public void stop(BundleContext arg0) throws Exception {
-    System.out.println("Stopping");
+    LOGGER.info("Stopping");
   }
 
 }
