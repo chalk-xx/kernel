@@ -17,6 +17,12 @@ import java.util.Dictionary;
 
 public class DummyBundleContext implements BundleContext {
 
+  private Bundle bundle;
+
+  public DummyBundleContext(Bundle bundle) {
+    this.bundle = bundle;
+  }
+
   public void addBundleListener(BundleListener arg0) {
 
   }
@@ -40,7 +46,7 @@ public class DummyBundleContext implements BundleContext {
   }
 
   public Bundle getBundle() {
-    return null;
+    return bundle;
   }
 
   public Bundle getBundle(long arg0) {

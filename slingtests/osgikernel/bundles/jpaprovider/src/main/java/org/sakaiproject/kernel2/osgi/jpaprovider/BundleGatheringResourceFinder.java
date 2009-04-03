@@ -1,16 +1,20 @@
 package org.sakaiproject.kernel2.osgi.jpaprovider;
 
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 public class BundleGatheringResourceFinder {
 
-  private List<Bundle> bundles;
+  private static final Logger LOG = LoggerFactory.getLogger(BundleGatheringResourceFinder.class);
+  private Collection<Bundle> bundles;
 
-  public BundleGatheringResourceFinder(List<Bundle> bundles) {
+  public BundleGatheringResourceFinder(Collection<Bundle> bundles) {
     this.bundles = bundles;
   }
 
@@ -23,6 +27,21 @@ public class BundleGatheringResourceFinder {
       }
     }
     return result;
+  }
+  
+  public Class<?> loadClass(String name) {
+    for (Bundle bundle : bundles) {
+      try
+      {
+        return bundle.loadClass(name);
+      }
+      catch (Exception e)
+      {
+        /* Try another bundle */
+      }
+    }
+    LOG.warn("Unable to find class '" + name + "' in bundles");
+    return null;
   }
 
 }

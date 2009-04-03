@@ -17,9 +17,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class AmalgamatingClassloader extends ClassLoader {
 
@@ -27,86 +25,87 @@ public class AmalgamatingClassloader extends ClassLoader {
 
   public static final String KERNEL_PERSISTENCE_XML = "META-INF/kernel-persistence.xml";
   public static final String PERSISTENCE_XML = "META-INF/persistence.xml";
+  public static final String KERNEL_ORM_XML = "META-INF/kernel-orm.xml";
   public static final String ORM_XML = "META-INF/orm.xml";
 
   private Map<String, PersistenceUnit> settingsMap = new HashMap<String, PersistenceUnit>();
-  private PersistenceSettings baseSettings;
-  private Set<OrmEntity> ormClasses = new HashSet<OrmEntity>();
+  private PersistenceSettings basePersistenceSettings;
+  private OrmSettings baseOrmSettings;
   private URL persistenceXMLurl;
   private URL ormXMLurl;
 
   public AmalgamatingClassloader(ClassLoader classLoader) {
     super(classLoader);
-    baseSettings = PersistenceBundleMonitor.parsePersistenceXml(classLoader
+    basePersistenceSettings = PersistenceSettings.parse(classLoader
         .getResourceAsStream(KERNEL_PERSISTENCE_XML));
-    for (PersistenceUnit unit : baseSettings.getPersistenceUnits()) {
+    for (PersistenceUnit unit : basePersistenceSettings.getPersistenceUnits()) {
       settingsMap.put(unit.getName(), unit);
     }
+    baseOrmSettings = OrmSettings.parse(classLoader.getResourceAsStream(KERNEL_ORM_XML));
+  }
+
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    BundleGatheringResourceFinder finder = PersistenceBundleMonitor.getBundleResourceFinder();
+    Class<?> result = finder.loadClass(name);
+    if (result == null)
+    {
+      return super.loadClass(name);
+    }
+    return result;
   }
 
   public void importPersistenceXml(URL persistence) throws IOException {
-    PersistenceSettings newSettings = PersistenceBundleMonitor.parsePersistenceXml(persistence
-        .openStream());
+    PersistenceSettings newSettings = PersistenceSettings.parse(persistence.openStream());
     for (PersistenceUnit unit : newSettings.getPersistenceUnits()) {
       PersistenceUnit existingUnit = settingsMap.get(unit.getName());
       if (existingUnit == null) {
         settingsMap.put(unit.getName(), unit);
       } else {
+        existingUnit.addClasses(unit.getClasses());
         existingUnit.addProperties(unit.getPropertiesList());
       }
     }
   }
 
   public void importOrmXml(URL orm) throws IOException {
-    OrmSettings settings = PersistenceBundleMonitor.parseOrmXml(orm.openStream());
+    OrmSettings settings = OrmSettings.parse(orm.openStream());
     for (OrmEntity entity : settings.getEntities()) {
-      ormClasses.add(entity);
+      baseOrmSettings.addEntity(entity);
     }
   }
-  
-  private URL getResourceWithOverride(String name) throws IOException
-  {
+
+  private URL getResourceWithOverride(String name) throws IOException {
     if (PERSISTENCE_XML.equals(name)) {
       if (persistenceXMLurl == null) {
-        persistenceXMLurl = constructUrl(PersistenceBundleMonitor.getPersistenceSettingsXStream(),
-            baseSettings, PERSISTENCE_XML);
+        persistenceXMLurl = constructUrl(PersistenceSettings.getXStream(), basePersistenceSettings,
+            PERSISTENCE_XML);
       }
       return persistenceXMLurl;
-    }
-    else if (ORM_XML.equals(name)) {
+    } else if (ORM_XML.equals(name)) {
       if (ormXMLurl == null) {
-        OrmSettings settings = new OrmSettings();
-        settings.setEntities(ormClasses);
-        ormXMLurl = constructUrl(PersistenceBundleMonitor.getOrmSettingsXStream(), settings,
-            ORM_XML);
+        ormXMLurl = constructUrl(OrmSettings.getXStream(), baseOrmSettings, ORM_XML);
       }
       return ormXMLurl;
     }
     return null;
   }
-  
+
   @Override
-  public URL getResource(String name)
-  {
-    try
-    {
+  public URL getResource(String name) {
+    try {
       return getResourceWithOverride(name);
-    }
-    catch (IOException ioe)
-    {
+    } catch (IOException ioe) {
       return super.getResource(name);
     }
   }
 
   public Enumeration<URL> getResources(final String name) throws IOException {
     URL overriddenURL = getResourceWithOverride(name);
-    if (overriddenURL != null)
-    {
+    if (overriddenURL != null) {
       return new UrlEnumeration(overriddenURL);
-    }
-    else
-    {
-      return super.getResources(name); 
+    } else {
+      return super.getResources(name);
     }
   }
 
@@ -126,7 +125,7 @@ public class AmalgamatingClassloader extends ClassLoader {
 
     // The base directory must be empty since JPA will scan it searching for
     // classes.
-    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai/" + filename);
+    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai" + System.currentTimeMillis() + "/" + filename);
     if (file.getParentFile().mkdirs()) {
       LOG.debug("Created " + file);
     }

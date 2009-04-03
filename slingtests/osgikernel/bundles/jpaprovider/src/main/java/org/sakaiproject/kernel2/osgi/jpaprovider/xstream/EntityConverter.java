@@ -10,9 +10,7 @@ public class EntityConverter implements Converter {
 
   public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
     OrmEntity entity = (OrmEntity) value;
-    writer.startNode("entity");
     writer.addAttribute("class", entity.getClassName());
-    writer.endNode();
   }
 
   public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {

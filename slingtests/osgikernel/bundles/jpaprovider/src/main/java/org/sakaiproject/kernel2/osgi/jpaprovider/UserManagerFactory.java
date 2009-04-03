@@ -13,7 +13,7 @@ public class UserManagerFactory {
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put("eclipselink.ddl-generation", "drop-and-create-tables");
     properties.put("eclipselink.ddl-generation.output-mode", "database");
-    EntityManagerFactory factory = new SakaiPersistenceProvider().createEntityManagerFactory("sakaiPU", properties);
+    EntityManagerFactory factory = new SakaiPersistenceProvider().createEntityManagerFactory("default", properties);
     return factory.createEntityManager();
   }
 }

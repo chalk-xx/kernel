@@ -40,6 +40,14 @@ public class PersistenceUnit {
   }
 
   public void addProperties(List<Property> propertiesList) {
+    if (propertiesList == null)
+    {
+      return;
+    }
+    if (properties == null)
+    {
+      properties = new ArrayList<Property>();
+    }
     for (Property prop : propertiesList)
     {
       if (!properties.contains(prop))
@@ -47,6 +55,18 @@ public class PersistenceUnit {
         properties.add(prop);
       }
     }
+  }
+
+  public void addClasses(List<String> newClasses) {
+    if (newClasses == null)
+    {
+      return;
+    }
+    if (classes == null)
+    {
+      classes = new ArrayList<String>();
+    }
+    classes.addAll(newClasses);
   }
   
 }

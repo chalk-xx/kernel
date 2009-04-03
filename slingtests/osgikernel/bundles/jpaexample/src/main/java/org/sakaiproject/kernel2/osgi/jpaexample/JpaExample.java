@@ -14,16 +14,6 @@ public class JpaExample implements BundleActivator {
     System.err.println("Doing some JPA");
     EntityManager em = UserManagerFactory.getUserManager();
     System.err.println("EM: " + em);
-    SystemUser u = new SystemUser();
-    u.setName("Some user");
-    em.getTransaction().begin();
-    em.persist(u);
-    em.getTransaction().commit();
-
-    // u should be written to database now.
-    // Read it from db (no transaction context needed for em.find method)
-    SystemUser u2 = em.find(SystemUser.class, u.getId());
-    System.out.println("User " + u.getId() + " from db: " + u2);
 
     System.out.println("Creating example model");
     ExampleModel model = new ExampleModel();
@@ -36,6 +26,18 @@ public class JpaExample implements BundleActivator {
     // model should be written to database now.
     ExampleModel model2 = em.find(ExampleModel.class, model.getId());
     System.out.println("Model " + model.getId() + " from db: " + model2);
+    
+    SystemUser u = new SystemUser();
+    u.setName("Some user");
+    em.getTransaction().begin();
+    em.persist(u);
+    em.getTransaction().commit();
+
+    // u should be written to database now.
+    // Read it from db (no transaction context needed for em.find method)
+    SystemUser u2 = em.find(SystemUser.class, u.getId());
+    System.out.println("User " + u.getId() + " from db: " + u2);
+
   }
 
   public void stop(BundleContext arg0) throws Exception {

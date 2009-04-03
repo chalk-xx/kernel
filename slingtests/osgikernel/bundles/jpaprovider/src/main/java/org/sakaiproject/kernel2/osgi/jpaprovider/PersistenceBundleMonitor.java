@@ -1,7 +1,6 @@
 package org.sakaiproject.kernel2.osgi.jpaprovider;
 
-import com.thoughtworks.xstream.XStream;
-
+import org.eclipse.persistence.internal.jpa.deployment.osgi.BundleProxyClassLoader;
 import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLog;
 import org.osgi.framework.Bundle;
@@ -9,30 +8,29 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.SynchronousBundleListener;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.EntityConverter;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.OrmSettings;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.PersistenceSettings;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.PersistenceUnit;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.PropertyConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PersistenceBundleMonitor implements BundleActivator, SynchronousBundleListener {
   
   private static final Logger LOG = LoggerFactory.getLogger(PersistenceBundleMonitor.class);
   
+  public static final String SAKAI_JPA_PERSISTENCE_UNITS_BUNDLE_HEADER = "Sakai-JPA-PersistenceUnits";
+  
   // these maps are used to retrieve the classloader used for different bundles
   private static Map<String, List<Bundle>> puToBundle = Collections.synchronizedMap(new HashMap<String,List<Bundle>>());
   private static Map<Bundle, String[]> bundleToPUs = Collections.synchronizedMap(new HashMap<Bundle, String[]>());
+  private static Set<Bundle> allPuBundles = Collections.synchronizedSet(new HashSet<Bundle>());
 
   private static ClassLoader contextClassLoader;
   
@@ -54,6 +52,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
           list.add(bundle);
       }
       bundleToPUs.put(bundle, persistenceUnitNames);
+      allPuBundles.add(bundle);
   }
 
   /**
@@ -77,6 +76,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
               }
           }
       }
+      allPuBundles.remove(bundle);
   }
   
   /**
@@ -101,7 +101,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    */
   public void start(BundleContext context) throws Exception {
     LOG.info("Starting to monitor for persistence bundles");
-    PersistenceBundleMonitor.contextClassLoader = Thread.currentThread().getContextClassLoader();
+    PersistenceBundleMonitor.contextClassLoader = new BundleProxyClassLoader(context.getBundle());
     context.addBundleListener(this);
     Bundle bundles[] = context.getBundles();
     for (int i = 0; i < bundles.length; i++) {
@@ -130,7 +130,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
   }
 
   private String[] getPersistenceUnitNames(Bundle bundle) {
-    String names = (String) bundle.getHeaders().get("JPA-PersistenceUnits");
+    String names = (String) bundle.getHeaders().get(SAKAI_JPA_PERSISTENCE_UNITS_BUNDLE_HEADER);
     if (names != null) {
       return names.split(",");
     } else {
@@ -146,21 +146,20 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     context.removeBundleListener(this);
   }
 
-  public static BundleGatheringResourceFinder getBundleResourceFinder(String emName) {
-    List<Bundle> bundles = puToBundle.get(emName);
-    if (bundles == null || bundles.size() == 0)
+  public static BundleGatheringResourceFinder getBundleResourceFinder() {
+    if (allPuBundles.size() == 0)
     {
-      LOG.warn("No bundles found to match " + emName);
-      return null;
+      LOG.warn("No bundles found");
+      return null;      
     }
-    return new BundleGatheringResourceFinder(bundles);
+    return new BundleGatheringResourceFinder(allPuBundles);
   }
 
-  public static ClassLoader getAmalgamatedClassloader(String emName) throws IOException {
-    BundleGatheringResourceFinder currentLoader = PersistenceBundleMonitor.getBundleResourceFinder(emName);
+  public static ClassLoader getAmalgamatedClassloader() throws IOException {
+    BundleGatheringResourceFinder currentLoader = PersistenceBundleMonitor.getBundleResourceFinder();
     if (currentLoader == null)
     {
-      LOG.warn("No persistence xmls found for " + emName);
+      LOG.warn("No persistence xmls");
       return null;
     }
 
@@ -179,32 +178,4 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     return loader;
   }
   
-  public static XStream getPersistenceSettingsXStream()
-  {
-    XStream xstream = new XStream();
-    xstream.processAnnotations(PersistenceSettings.getPersistenceClasses());
-    xstream.useAttributeFor(PersistenceUnit.class, "name");
-    xstream.registerConverter(new PropertyConverter());
-    return xstream;
-  }
-  
-  public static PersistenceSettings parsePersistenceXml(InputStream is)
-  {
-    return (PersistenceSettings) getPersistenceSettingsXStream().fromXML(is);
-  }
-
-  public static XStream getOrmSettingsXStream()
-  {
-    XStream xstream = new XStream();
-    xstream.processAnnotations(OrmSettings.getOrmClasses());
-    xstream.aliasSystemAttribute("type", "class");
-    xstream.registerConverter(new EntityConverter());
-    return xstream;
-  }
-  
-  public static OrmSettings parseOrmXml(InputStream is)
-  {
-    return (OrmSettings) getOrmSettingsXStream().fromXML(is);
-  }
-
 }
