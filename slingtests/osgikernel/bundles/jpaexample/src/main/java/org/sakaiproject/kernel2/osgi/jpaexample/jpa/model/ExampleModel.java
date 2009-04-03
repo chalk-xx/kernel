@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel2.osgi.jpaprovider.model;
+package org.sakaiproject.kernel2.osgi.jpaexample.jpa.model;
 
 import java.io.Serializable;
 
@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Entity
-public class SystemUser implements Serializable {
+public class ExampleModel implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -15,21 +15,19 @@ public class SystemUser implements Serializable {
   private long id;
 
   @Basic
-  private String name;
+  private String property;
   
   public long getId()
   {
       return id;
   }
 
-  public String getName()
-  {
-      return name;
+  public void setProperty(String property) {
+    this.property = property;
   }
 
-  public void setName(String name)
-  {
-      this.name = name;
+  public String getProperty() {
+    return property;
   }
 
 }
