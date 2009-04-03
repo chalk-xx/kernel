@@ -24,13 +24,9 @@ import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
-import org.sakaiproject.kernel.guice.OsgiServiceProvider;
-import org.sakaiproject.kernel.guice.ServiceExportList;
 import org.sakaiproject.kernel.persistence.dbcp.DataSourceServiceImpl;
 import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
 import org.sakaiproject.kernel.persistence.geronimo.TransactionManagerProvider;
-
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -64,24 +60,24 @@ public class ActivatorModule extends AbstractOsgiModule {
     bind(EntityManagerFactory.class).toProvider(
         EntityManagerFactoryProvider.class).in(Scopes.SINGLETON);
     // bind the EntityManager to a ScopedEntityManger
-    bind(EntityManager.class).to(ScopedEntityManager.class)
+    bind(export(EntityManager.class)).to(ScopedEntityManager.class)
         .in(Scopes.SINGLETON);
     // Bind in the datasource
-    bind(DataSource.class).toProvider(DataSourceServiceImpl.class).in(
+    bind(export(DataSource.class)).toProvider(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
     // and the transaction manager via a provider.
-    bind(TransactionManager.class).toProvider(TransactionManagerProvider.class)
+    bind(export(TransactionManager.class)).toProvider(TransactionManagerProvider.class)
         .in(Scopes.SINGLETON);
 
     // bind the services
     bind(DataSourceService.class).to(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
     
-    bind(CacheManagerService.class).toProvider(new OsgiServiceProvider<CacheManagerService>(CacheManagerService.class,bundleContext));
+    bind(CacheManagerService.class).toProvider(importService(CacheManagerService.class).asSingleton());
     
-    bind(List.class).annotatedWith(ServiceExportList.class).toProvider(ServiceExportProvider.class);
   }
   
+
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.guice.AbstractOsgiModule#getBundleContext()

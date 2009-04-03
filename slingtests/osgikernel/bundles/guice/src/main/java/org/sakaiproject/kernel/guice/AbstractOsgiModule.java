@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.guice;
 
+import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides configuration support.
@@ -33,6 +35,7 @@ import java.util.Map;
 public abstract class AbstractOsgiModule extends AbstractModule {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractOsgiModule.class);
+  private Set<Class<?>> exports = Sets.newHashSet();
 
   /**
    * {@inheritDoc}
@@ -54,5 +57,32 @@ public abstract class AbstractOsgiModule extends AbstractModule {
    * @return the current bundle context
    */
   protected abstract BundleContext getBundleContext();
+
+  
+  /**
+   * @param class1
+   * @return
+   */
+  protected <T> Class<T> export(Class<T> clazz) {
+    exports.add(clazz);
+    return clazz;
+  }
+  
+  /**
+   * @param class1
+   * @return
+   */
+  protected <T> OsgiServiceProvider<T> importService(Class<T> class1) {
+    return new OsgiServiceProvider<T>(class1,getBundleContext());
+  }
+
+
+  
+  /**
+   * @return the exports
+   */
+  public Set<Class<?>> getExports() {
+    return exports;
+  }
 
 }
