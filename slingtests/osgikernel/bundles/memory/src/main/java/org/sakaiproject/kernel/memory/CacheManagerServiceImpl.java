@@ -48,7 +48,7 @@ import javax.management.MBeanServer;
  */
 public class CacheManagerServiceImpl implements CacheManagerService {
 
-  private static final String CONFIG_PATH = "res://org.sakaiproject.kernel.memory.ehcacheConfig.xml";
+  private static final String CONFIG_PATH = "res://org/sakaiproject/kernel/memory/ehcacheConfig.xml";
   private static final Logger logger = LoggerFactory.getLogger(CacheManagerServiceImpl.class);
   private CacheManager cacheManager;
   private Map<String, Cache<?>> caches = new HashMap<String, Cache<?>>();

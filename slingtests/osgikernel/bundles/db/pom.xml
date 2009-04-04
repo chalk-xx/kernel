@@ -55,7 +55,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>commons-dbcp,geronimo-transaction,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
+              <includeArtifactIds>commons-dbcp,commons-pool,geronimo-transaction,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
             </configuration>
@@ -115,6 +115,12 @@
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>
       <version>1.2.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.4</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

@@ -20,8 +20,6 @@ package org.sakaiproject.kernel.guice;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.Module;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -29,7 +27,6 @@ import org.osgi.framework.Constants;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,7 +38,7 @@ import java.util.Set;
 public abstract class GuiceActivator implements BundleActivator {
 
   private Injector injector;
-  private List<?> services;
+  private Set<Class<?>> services;
 
   /**
    * {@inheritDoc}
@@ -49,12 +46,14 @@ public abstract class GuiceActivator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
    */
   public void start(BundleContext bundleContext) throws Exception {
-    injector = Guice.createInjector(getModule(bundleContext));
+    AbstractOsgiModule module = getModule(bundleContext);
+    injector = Guice.createInjector(module);
 
-    services = injector.getInstance(Key.get(List.class, ServiceExportList.class));
-    for (Object o : services) {
-      if (o.getClass().isAnnotationPresent(ServiceExportDescription.class)) {
-        ServiceExportDescription ks = o.getClass().getAnnotation(
+    services = module.getExports();
+    for (Class<?> serviceClass : services) {
+      Object service = injector.getInstance(serviceClass);
+      if (serviceClass.isAnnotationPresent(ServiceExportDescription.class)) {
+        ServiceExportDescription ks = serviceClass.getAnnotation(
             ServiceExportDescription.class);
         Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
         Class<?>[] serviceClasses = ks.serviceClasses();
@@ -66,13 +65,13 @@ public abstract class GuiceActivator implements BundleActivator {
         dictionary.put(Constants.OBJECTCLASS, serviceClassNames);
         dictionary.put(Constants.SERVICE_DESCRIPTION, ks.serviceDescription());
         dictionary.put(Constants.SERVICE_VENDOR, ks.seviceVendor());
-        bundleContext.registerService(serviceClassNames, o, dictionary);
+        bundleContext.registerService(serviceClassNames, service, dictionary);
       } else {
-        Class<?>[] implementedInterfaces = o.getClass().getInterfaces();
-        o.getClass().isInterface();
+        Class<?>[] implementedInterfaces = serviceClass.getInterfaces();
+        serviceClass.isInterface();
         Set<Class<?>> interfaces = Sets.newHashSet();
-        if (o.getClass().isInterface()) {
-          interfaces.add(o.getClass());
+        if (serviceClass.isInterface()) {
+          interfaces.add(serviceClass);
         }
         for (Class<?> c : implementedInterfaces) {
           interfaces.add(c);
@@ -84,9 +83,9 @@ public abstract class GuiceActivator implements BundleActivator {
           serviceClassNames[i++] = c.getName();
         }
         dictionary.put(Constants.OBJECTCLASS, serviceClassNames);
-        dictionary.put(Constants.SERVICE_DESCRIPTION, o.getClass().getName());
+        dictionary.put(Constants.SERVICE_DESCRIPTION, serviceClass.getName());
         dictionary.put(Constants.SERVICE_VENDOR, "The Sakai Foundation");
-        bundleContext.registerService(serviceClassNames, o, dictionary);
+        bundleContext.registerService(serviceClassNames, service, dictionary);
       }
     }
   }
@@ -107,6 +106,6 @@ public abstract class GuiceActivator implements BundleActivator {
   /**
    * @return
    */
-  protected abstract Module getModule(BundleContext bundleContext);
+  protected abstract AbstractOsgiModule getModule(BundleContext bundleContext);
 
 }

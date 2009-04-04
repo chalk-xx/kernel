@@ -18,9 +18,8 @@
 package org.sakaiproject.kernel.persistence;
 
 
-import com.google.inject.Module;
-
 import org.osgi.framework.BundleContext;
+import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.guice.GuiceActivator;
 
 /**
@@ -33,7 +32,7 @@ public class Activator extends GuiceActivator {
    * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule()
    */
   @Override
-  protected Module getModule(BundleContext bundleContext) {
+  protected AbstractOsgiModule getModule(BundleContext bundleContext) {
     return new ActivatorModule(bundleContext);
   }
 
