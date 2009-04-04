@@ -1,4 +1,6 @@
 .classpath
-.settings
-target
 .project
+.settings
+target/
+m2-target/
+bin/
