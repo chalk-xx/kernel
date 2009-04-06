@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel2.uxloader;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -53,7 +55,6 @@ public class FileServlet extends HttpServlet {
   public static final String WELCOME_FILE = "welcome-file";
   public static final String MAX_CACHE_SIZE = "max-cache-file";
   private File baseFile;
-  private String baseFilePath;
   private Map<String, String> mimeTypes;
   private String welcomeFile;
   private Cache<FileCache> cache;
@@ -67,6 +68,34 @@ public class FileServlet extends HttpServlet {
     cache = cacheManagerService.getCache("file-servlet-cache", CacheScope.INSTANCE);
   }
 
+  private void loadMIMETypesFromFile() throws IOException {
+      InputStream mimeTypeStream = this.getClass().getClassLoader().getResourceAsStream(MIME_TYPES);
+	  Properties p = new Properties();
+	  p.load(mimeTypeStream);
+	  mimeTypeStream.close();
+	  mimeTypes = new HashMap<String, String>();
+	  for (Entry<?,?> m : p.entrySet()) {
+		  String[] keys = StringUtils.split((String) m.getValue(), ' ');
+		  for (String k : keys) {
+			  mimeTypes.put(k, (String) m.getKey());
+		  }
+	  }
+  }
+
+  private String getContentTypeFromExtension(File welcome) {
+	  String welcomeFile = welcome.getName();
+	  int dot = welcomeFile.lastIndexOf('.');
+	  String type = "application/octet-stream";
+	  if (dot > 0) {
+		  String ext = welcomeFile.substring(dot + 1);
+		  String ptype = mimeTypes.get(ext);
+		  if (ptype != null) {
+			  type = ptype;
+		  }
+	  }
+	  return type;
+  }
+  
   /**
    * {@inheritDoc}
    * 
@@ -77,29 +106,35 @@ public class FileServlet extends HttpServlet {
     super.init(config);
     try {
       baseFile = new File(config.getInitParameter(BASE_FILE));
-      baseFilePath = baseFile.getCanonicalPath();
-
-      InputStream mimeTypeStream = this.getClass().getClassLoader().getResourceAsStream(
-          MIME_TYPES);
-      Properties p = new Properties();
-      p.load(mimeTypeStream);
-      mimeTypeStream.close();
-      mimeTypes = new HashMap<String, String>();
-      for (Entry<?, ?> m : p.entrySet()) {
-        String[] keys = StringUtils.split((String) m.getValue(), ' ');
-        for (String k : keys) {
-          mimeTypes.put(k, (String) m.getKey());
-        }
-      }
-
       welcomeFile = config.getInitParameter(WELCOME_FILE);
       maxCacheSize = Integer.parseInt(config.getInitParameter(MAX_CACHE_SIZE));
+      loadMIMETypesFromFile();
     } catch (IOException e) {
       throw new ServletException(e);
     }
-
   }
-
+  
+  private boolean in_our_path(File candidate) throws IOException {
+	  return candidate.getCanonicalPath().equals(baseFile.getCanonicalPath());
+  }
+  
+  private File computeFileToSendForDirectory(File dir) {
+	  if(welcomeFile!=null) {
+		  File index=new File(dir,welcomeFile);
+		  if(index.exists())
+			  return index;
+	  }
+	  return dir;
+  }
+  
+  private File computeFileToSend(File candidate) throws IOException {
+	  if(!in_our_path(candidate))
+		  return null;
+	  if(candidate.isDirectory())
+		  return computeFileToSendForDirectory(candidate);
+	  return candidate;
+  }
+  
   /**
    * {@inheritDoc}
    * 
@@ -107,41 +142,28 @@ public class FileServlet extends HttpServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws ServletException, IOException {
-    File f = new File(baseFile, req.getPathInfo());
-    String cannonicalPath = f.getCanonicalPath();
-    if (!cannonicalPath.startsWith(baseFilePath)) {
-      resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-    }
-    if (f.isDirectory()) {
-      if (welcomeFile != null) {
-        File welcome = new File(f, welcomeFile);
-        if (welcome.exists()) {
-          sendFile(welcome, resp);
-        } else {
-          sendDirectory(f, resp);
-        }
-      } else {
-        sendDirectory(f, resp);
-      }
-    } else {
-      sendFile(f, resp);
-    }
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	  File to_send=computeFileToSend(new File(baseFile, req.getPathInfo()));
+	  if(to_send==null) {
+		  resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+		  return;
+	  }
+	  if(to_send.isDirectory())
+		  sendDirectory(to_send,resp);
+	  else
+		  sendFile(to_send,resp);
   }
-
-  /**
-   * @param f
-   * @param resp
-   * @throws IOException
-   */
+  
   private void sendDirectory(File f, HttpServletResponse resp) throws IOException {
     resp.setContentType("text/html; charset=UTF-8");
     StringBuilder sb = new StringBuilder();
     sb.append("<html><head></head><body><ul>");
     for (File list : f.listFiles()) {
-      sb.append("<li><a href=\"").append(list.getName()).append("\" >").append(
-          list.getName()).append("</a></li>");
+      sb.append("<li><a href=\"");
+      sb.append(StringEscapeUtils.escapeXml(list.getName()));
+      sb.append("\" >");
+      sb.append(StringEscapeUtils.escapeXml(list.getName()));
+      sb.append("</a></li>");
     }
     sb.append("</ul></body></html>");
     byte[] b = sb.toString().getBytes("UTF-8");
@@ -149,80 +171,46 @@ public class FileServlet extends HttpServlet {
     resp.getOutputStream().write(b);
   }
 
-  /**
-   * @param welcome
-   * @param resp
-   * @throws IOException
-   */
-  private void sendFile(File welcome, HttpServletResponse resp) throws IOException {
-    long size = welcome.length();
-    if ( size < maxCacheSize ) {
-      String path = welcome.getAbsolutePath();
-      FileCache fc = cache.get(path);
-      if ( fc != null ) {
-        if ( fc.getLastModified() == welcome.lastModified() ) {
-          fc = null;
-        }
-      }
-      if ( fc == null ) {
-        fc = new FileCache(welcome,getContentType(welcome));
-        cache.put(path, fc);
-      }
-      resp.setContentType(fc.getContentType());
-      resp.setContentLength(fc.getContentLength());
-      resp.getOutputStream().write(fc.getContent());
-      return;
-
-    }
-    resp.setContentType(getContentType(welcome));
-    FileInputStream fin = new FileInputStream(welcome);
-    try {
-      stream(fin, resp.getOutputStream());
-    } finally {
-      fin.close();
-    }
+  private boolean candidateForCache(File file) {
+	  return file.length() < maxCacheSize;
+  } 
+  
+  private FileCache getNonExpiredFileCache(File file) {
+	  if(!candidateForCache(file))
+		  return null;
+	  String path = file.getAbsolutePath();
+	  FileCache fc = cache.get(path);
+	  if(fc==null)
+		  return null;
+	  if ( fc.getLastModified() != file.lastModified() )
+		  return null;
+	  return fc;
   }
-
-  /**
-   * @param welcome
-   * @return
-   */
-  private String getContentType(File welcome) {
-    String welcomeFile = welcome.getName();
-    int dot = welcomeFile.lastIndexOf('.');
-    String type = "application/octet-stream";
-    if (dot > 0) {
-      String ext = welcomeFile.substring(dot + 1);
-      String ptype = mimeTypes.get(ext);
-      if (ptype != null) {
-        type = ptype;
-      }
-    }
-    return type;
+  
+  private void sendFile(File file, HttpServletResponse resp) throws IOException {
+	  if(candidateForCache(file)) {
+		  // Cacheable
+		  FileCache cache_entry=getNonExpiredFileCache(file);
+		  if(cache_entry==null) {
+			  cache_entry = new FileCache(file,getContentTypeFromExtension(file));
+			  cache.put(file.getAbsolutePath(),cache_entry);
+		  }
+		  resp.setContentType(cache_entry.getContentType());
+		  resp.setContentLength(cache_entry.getContentLength());
+		  resp.getOutputStream().write(cache_entry.getContent());
+		  return;
+	  } else {
+		  // Not cacheable
+		  resp.setContentType(getContentTypeFromExtension(file));
+		  FileInputStream fin = new FileInputStream(file);
+		  try {
+			  IOUtils.copy(fin, resp.getOutputStream());
+		  } finally {
+			  fin.close();
+		  }
+	  }
   }
-
-  /**
-   * @param in
-   * @param outputStream
-   * @throws IOException
-   */
-  public static void stream(InputStream from, OutputStream to) throws IOException {
-    byte[] b = new byte[4096];
-    for (int i = from.read(b, 0, 4096); i >= 0; i = from.read(b, 0, 4096)) {
-      if (i == 0) {
-        Thread.yield();
-      } else {
-        to.write(b, 0, i);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see javax.servlet.http.HttpServlet#doTrace(javax.servlet.http.HttpServletRequest,
-   *      javax.servlet.http.HttpServletResponse)
-   */
+  
   @Override
   protected void doTrace(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
