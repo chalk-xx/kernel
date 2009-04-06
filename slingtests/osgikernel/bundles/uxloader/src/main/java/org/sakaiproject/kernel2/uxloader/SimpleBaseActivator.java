@@ -28,11 +28,11 @@ public abstract class SimpleBaseActivator implements BundleActivator {
 			for(Class<?> svc : startup_services) {
 				Object out=getService(bc,svc);
 				if(out==null) {
-					logger.info("Cannot start yet : "+svc.getCanonicalName());
+					logger.info("Cannot start "+outer.getCanonicalName()+" yet : "+svc.getCanonicalName());
 					return false;
 				}
 			}
-			logger.info("All services ready");
+			logger.info("All services ready: starting "+outer.getCanonicalName());
 			return true;
 		}
 		
