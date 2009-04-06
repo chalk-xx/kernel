@@ -65,6 +65,7 @@ public abstract class SimpleBaseActivator implements BundleActivator {
 	
 	public abstract void go(BundleContext bc) throws Exception;
 	
+	// XXX all accesses through Resolver, and thread safety
 	protected Object getService(BundleContext bc,Class<?> klass) {
 	    ServiceReference ref=services.get(klass);
 	    if(ref==null) {
@@ -80,21 +81,7 @@ public abstract class SimpleBaseActivator implements BundleActivator {
 	    logger.info("Got "+out);
 	    return out;
 	}
-	
-	protected Object[] getServices(BundleContext bc,Class<?> klass) throws InvalidSyntaxException {
-	    ServiceReference[] refs=mservices.get(klass);
-	    if(refs==null) {
-	    	logger.info("Getting service reference for "+klass.getName());
-	    	refs=bc.getServiceReferences(klass.getName(),"");
-	    	mservices.put(klass,refs);
-	    }
-	    Object[] out=new Object[refs.length];
-	    for(int i=0;i<out.length;i++)
-	    	out[i]=bc.getService(refs[i]);
-	    logger.info("Got "+out);
-	    return out;
-	}
-	
+		
 	public void start(BundleContext bc) throws Exception {
 		Thread t=new Thread(new GoInvoker(this.getClass(),bc));
 		t.start();
