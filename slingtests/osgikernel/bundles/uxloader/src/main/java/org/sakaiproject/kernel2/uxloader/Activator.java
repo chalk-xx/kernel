@@ -27,18 +27,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 
-/**
+/* Load config from (decreasing priority)
+ * 1. OSGI service config parameter/url
+ * 2. config service parameter /url
+ * 3. cwd/url 
  * 
+ * if parameter then has format url:path;url:path;...
  */
+
 public class Activator extends SimpleBaseActivator implements BundleActivator {
-  public void go(BundleContext bc) throws Exception {
-	  HttpService http=(HttpService)getService(bc,HttpService.class);
-	  CacheManagerService cache=(CacheManagerService)getService(bc,CacheManagerService.class);
-	  ActivationProcess activation=new ActivationProcess(http,cache);
-	  activation.map("/dev","/tmp/dev");
-	  activation.map("/devwidgets","/tmp/devwidgets");
-  }
+	
+	private List<URLFileMapping> loadMappings(BundleContext bc) {
+		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
+		out.add(new URLFileMapping("/dev","/tmp/dev"));
+		out.add(new URLFileMapping("/devwidgets","/tmp/devwidgets"));
+		return out;
+	}
+	
+	public void go(BundleContext bc) throws Exception {
+		HttpService http=(HttpService)getService(bc,HttpService.class);
+		CacheManagerService cache=(CacheManagerService)getService(bc,CacheManagerService.class);
+		ActivationProcess activation=new ActivationProcess(http,cache);
+		for(URLFileMapping m : loadMappings(bc))
+			activation.map(m.getURL(),m.getFileSystem());
+	}
 }

@@ -150,13 +150,13 @@ public class FileServlet extends HttpServlet {
    */
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	  logger.warn("Looking for "+baseFile+req.getPathInfo());
+	  logger.debug("Looking for "+baseFile+req.getPathInfo());
 	  File to_send=computeFileToSend(new File(baseFile+req.getPathInfo()));
 	  if(to_send==null) {
 		  resp.sendError(HttpServletResponse.SC_FORBIDDEN);
 		  return;
 	  }
-	  logger.warn("Sending "+to_send.getAbsolutePath());
+	  logger.debug("Sending "+to_send.getAbsolutePath());
 	  if(to_send.isDirectory())
 		  sendDirectory(to_send,resp);
 	  else
