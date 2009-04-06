@@ -18,12 +18,12 @@ public class ActivationProcess {
 	
 	private HttpService http;
 	private HttpContext context;
-	private CacheManagerService cache;
+	private ServiceResolver resolver;
 	
-	public ActivationProcess(HttpService http,CacheManagerService cache) {
+	public ActivationProcess(ServiceResolver resolver,HttpService http) {
 		this.http=http;
 		this.context=http.createDefaultHttpContext();
-		this.cache=cache;
+		this.resolver=resolver;
 	}
 	
 	public void map(String url,String filesystem) throws ServletException, NamespaceException {
@@ -32,6 +32,6 @@ public class ActivationProcess {
         uxLoaderParams.put(FileServlet.BASE_FILE,filesystem);
         uxLoaderParams.put(FileServlet.MAX_CACHE_SIZE, "102400");
         uxLoaderParams.put(FileServlet.WELCOME_FILE, "index.html");
-        http.registerServlet(url, new FileServlet(cache),uxLoaderParams,context);
+        http.registerServlet(url,new FileServlet(resolver),uxLoaderParams,context);
 	}
 }

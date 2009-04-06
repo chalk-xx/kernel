@@ -1,6 +1,8 @@
 package org.sakaiproject.kernel2.uxloader;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.BundleActivator;
@@ -11,10 +13,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class SimpleBaseActivator implements BundleActivator {
+	protected static final Logger logger = LoggerFactory.getLogger(Activator.class);	
+	
+	private class GoInvoker implements Runnable {
+		private BundleContext bc;
+		private Class<?> outer;
+		
+		private GoInvoker(Class<?> outer,BundleContext bc) {
+			this.bc=bc;
+			this.outer=outer;
+		}
+		
+		private boolean is_good() {
+			for(Class<?> svc : startup_services) {
+				Object out=getService(bc,svc);
+				if(out==null) {
+					logger.info("Cannot start yet : "+svc.getCanonicalName());
+					return false;
+				}
+			}
+			logger.info("All services ready");
+			return true;
+		}
+		
+		public synchronized void run() {
+			int f1=1000,f2=1000;
+			
+			try {
+				while(!is_good()) {
+					Thread.sleep(f1);
+					// Fibionacci backoff: exponential with base of golden-mean: slower than 2.
+					int t=f1+f2;
+					f1=f2;
+					f2=t;
+				}
+				go(bc);
+			} catch (Exception x) {
+				logger.error("Could not start service ",x);
+			}
+		}
+		
+	}
+	
 	private Map<Class<?>,ServiceReference> services=new HashMap<Class<?>,ServiceReference>();
 	private Map<Class<?>,ServiceReference[]> mservices=new HashMap<Class<?>,ServiceReference[]>();
-	protected static final Logger logger = LoggerFactory.getLogger(Activator.class);
-
+	private List<Class<?>> startup_services=new ArrayList<Class<?>>();
+	
+	protected void registerStartupService(Class svc) {
+		startup_services.add(svc);
+	}
 	
 	public abstract void go(BundleContext bc) throws Exception;
 	
@@ -25,11 +72,15 @@ public abstract class SimpleBaseActivator implements BundleActivator {
 	    	ref=bc.getServiceReference(klass.getName());
 	    	services.put(klass,ref);
 	    }
+	    if(ref==null) {
+	    	logger.error("Cannot find service for "+klass.getName());
+	    	return null;
+	    }
 	    Object out=bc.getService(ref);
 	    logger.info("Got "+out);
 	    return out;
 	}
-
+	
 	protected Object[] getServices(BundleContext bc,Class<?> klass) throws InvalidSyntaxException {
 	    ServiceReference[] refs=mservices.get(klass);
 	    if(refs==null) {
@@ -45,7 +96,8 @@ public abstract class SimpleBaseActivator implements BundleActivator {
 	}
 	
 	public void start(BundleContext bc) throws Exception {
-		go(bc);
+		Thread t=new Thread(new GoInvoker(this.getClass(),bc));
+		t.start();
 	}
 
 	public void stop(BundleContext bc) throws Exception {

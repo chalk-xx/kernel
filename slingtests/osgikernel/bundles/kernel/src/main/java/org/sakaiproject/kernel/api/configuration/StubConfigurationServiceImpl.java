@@ -40,6 +40,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+/* XXX PROBLEM. I've renamed this the StubConfigurationServiceImpl from KernelConstants. It does contain
+ * some kernel constants, but also is a stub configuration service. Really, the kernel constants should
+ * be moved into a separate file, for things like annotations, etc, to use. However, I'm not sure I
+ * understand what the scr plugin is doing here enough, yet, to do that refactor. This is something which
+ * is high on my todo-list. -- dan
+ */
+
 /**
  * Holds the configuration properties that are used in the kernel. This is an OSGi Managed
  * service that collects together all the configuation properties.

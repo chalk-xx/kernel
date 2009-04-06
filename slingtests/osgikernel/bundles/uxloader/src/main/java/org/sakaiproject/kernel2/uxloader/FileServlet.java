@@ -62,15 +62,14 @@ public class FileServlet extends HttpServlet {
   private File baseFile;
   private Map<String, String> mimeTypes;
   private String welcomeFile;
-  private Cache<FileCache> cache;
   private long maxCacheSize;
-  
+  private ServiceResolver resolver;
 
   /**
    * @param cacheManagerService
    */
-  public FileServlet(CacheManagerService cacheManagerService) {
-    cache = cacheManagerService.getCache("file-servlet-cache", CacheScope.INSTANCE);
+  public FileServlet(ServiceResolver resolver) {
+    this.resolver=resolver;
   }
 
   private void loadMIMETypesFromFile() throws IOException {
@@ -157,10 +156,14 @@ public class FileServlet extends HttpServlet {
 		  return;
 	  }
 	  logger.debug("Sending "+to_send.getAbsolutePath());
+	  try {
 	  if(to_send.isDirectory())
 		  sendDirectory(to_send,resp);
 	  else
 		  sendFile(to_send,resp);
+	  } catch(ServiceDisappearedException x) {
+		  throw new ServletException("No service available",x);
+	  }
   }
   
   private void sendDirectory(File f, HttpServletResponse resp) throws IOException {
@@ -184,7 +187,7 @@ public class FileServlet extends HttpServlet {
 	  return file.length() < maxCacheSize;
   } 
   
-  private FileCache getNonExpiredFileCache(File file) {
+  private FileCache getNonExpiredFileCache(Cache<FileCache> cache,File file) {
 	  if(!candidateForCache(file))
 		  return null;
 	  String path = file.getAbsolutePath();
@@ -196,14 +199,16 @@ public class FileServlet extends HttpServlet {
 	  return fc;
   }
   
-  private void sendFile(File file, HttpServletResponse resp) throws IOException {
+  private void sendFile(File file, HttpServletResponse resp) throws IOException, ServiceDisappearedException {
+	  CacheManagerService cache_service=(CacheManagerService)resolver.getService(CacheManagerService.class);
+	  Cache<FileCache> cache=cache_service.getCache("file-servlet-cache", CacheScope.INSTANCE);
 	  if(!file.exists()) {
 		  resp.sendError(HttpServletResponse.SC_NOT_FOUND);
 		  return;
 	  }	  
 	  if(candidateForCache(file)) {
 		  // Cacheable
-		  FileCache cache_entry=getNonExpiredFileCache(file);
+		  FileCache cache_entry=getNonExpiredFileCache(cache,file);
 		  if(cache_entry==null) {
 			  cache_entry = new FileCache(file,getContentTypeFromExtension(file));
 			  cache.put(file.getAbsolutePath(),cache_entry);

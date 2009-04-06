@@ -35,11 +35,8 @@
           <instructions>
             <Bundle-Category> sakaiux </Bundle-Category>
             <Bundle-Activator> org.sakaiproject.kernel2.uxloader.Activator </Bundle-Activator>
-            <Export-Package>
-                            <!-- Nothing to Export -->
-            </Export-Package>
+            <Export-Package>org.sakaiproject.kernel2.uxloader</Export-Package>
             <Import-Package> * </Import-Package>
-            <Private-Package>org.sakaiproject.kernel2.uxloader</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>

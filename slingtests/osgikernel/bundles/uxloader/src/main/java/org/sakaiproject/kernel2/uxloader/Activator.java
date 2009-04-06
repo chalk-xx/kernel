@@ -42,6 +42,12 @@ import java.util.List;
  */
 
 public class Activator extends SimpleBaseActivator implements BundleActivator {	
+	
+	public Activator() {
+		registerStartupService(ConfigurationService.class);
+		registerStartupService(HttpService.class);
+	}
+	
 	private URLFileMapping[] createMapping(String raw) {
 		logger.info("raw ux config is "+raw);
 		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
@@ -65,9 +71,8 @@ public class Activator extends SimpleBaseActivator implements BundleActivator {
 	
 	public void go(BundleContext bc) throws Exception {
 		HttpService http=(HttpService)getService(bc,HttpService.class);
-		CacheManagerService cache=(CacheManagerService)getService(bc,CacheManagerService.class);
 		ConfigurationService config=(ConfigurationService)getService(bc,ConfigurationService.class);
-		ActivationProcess activation=new ActivationProcess(http,cache);
+		ActivationProcess activation=new ActivationProcess(new ServiceResolver(bc),http);
 		for(URLFileMapping m : loadMappings(bc,config))
 			activation.map(m.getURL(),m.getFileSystem());
 	}
