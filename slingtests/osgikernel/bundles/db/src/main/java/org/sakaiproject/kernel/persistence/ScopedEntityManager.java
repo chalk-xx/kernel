@@ -22,7 +22,7 @@ import com.google.inject.name.Named;
 import com.google.inject.util.ReferenceMap;
 import com.google.inject.util.ReferenceType;
 
-import org.sakaiproject.kernel.api.configuration.KernelConstants;
+import org.sakaiproject.kernel.api.configuration.StubConfigurationServiceImpl;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -58,7 +58,7 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
   @Inject
   public ScopedEntityManager(EntityManagerFactory entityManagerFactory,
       CacheManagerService cacheManagerService,
-      @Named(KernelConstants.ENTITY_MANAGER_SCOPE) String entityManagerScope) {
+      @Named(StubConfigurationServiceImpl.ENTITY_MANAGER_SCOPE) String entityManagerScope) {
     this.entityManagerFactory = entityManagerFactory;
     this.cacheManagerService = cacheManagerService;
     this.scope = CacheScope.valueOf(entityManagerScope);

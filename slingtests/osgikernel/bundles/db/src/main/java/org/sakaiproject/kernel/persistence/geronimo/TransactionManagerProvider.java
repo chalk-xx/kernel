@@ -21,7 +21,7 @@ import javax.transaction.TransactionManager;
 import javax.transaction.xa.XAException;
 
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
-import org.sakaiproject.kernel.api.configuration.KernelConstants;
+import org.sakaiproject.kernel.api.configuration.StubConfigurationServiceImpl;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -32,7 +32,7 @@ public class TransactionManagerProvider implements Provider<TransactionManager> 
 
   @Inject
   public TransactionManagerProvider(
-      @Named(KernelConstants.TRANSACTION_TIMEOUT_SECONDS) int defaultTransactionTimeoutSeconds)
+      @Named(StubConfigurationServiceImpl.TRANSACTION_TIMEOUT_SECONDS) int defaultTransactionTimeoutSeconds)
       throws XAException {
     transMgr = new GeronimoTransactionManager(defaultTransactionTimeoutSeconds);
   }
