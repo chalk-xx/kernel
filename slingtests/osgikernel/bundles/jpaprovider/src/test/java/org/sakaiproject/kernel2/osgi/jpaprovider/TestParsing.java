@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package org.sakaiproject.kernel2.osgi.jpaprovider;
 
 import static org.junit.Assert.assertEquals;
@@ -12,22 +30,20 @@ import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.XStreamWritable;
 
 import java.util.List;
 import java.util.Map;
-/*xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
-  version="1.0" xmlns="http://java.sun.com/xml/ns/persistence"*/
+
 public class TestParsing {
 
-  private void checkNamespaceAppears(XStreamWritable xstreamObject)
-  {
+  private void checkNamespaceAppears(XStreamWritable xstreamObject) {
     assertNotNull("Expected xsi ref", xstreamObject.getXsiLocation());
     assertNotNull("Expected schemaLocation", xstreamObject.getSchemaLocation());
     assertNotNull("Expected version", xstreamObject.getVersion());
-    assertNotNull("Expected namespace", xstreamObject.getNamespace());    
+    assertNotNull("Expected namespace", xstreamObject.getNamespace());
   }
-  
+
   @Test
   public void testProviderXmlParse() {
-    PersistenceSettings settings = PersistenceSettings.parse(this.getClass().getClassLoader().getResourceAsStream("persistence1.xml"));
+    PersistenceSettings settings = PersistenceSettings.parse(this.getClass().getClassLoader()
+        .getResourceAsStream("persistence1.xml"));
     List<PersistenceUnit> units = settings.getPersistenceUnits();
     checkNamespaceAppears(settings);
     assertEquals("Expected there to be one unit", 1, units.size());
@@ -35,16 +51,19 @@ public class TestParsing {
     assertEquals("Expected name to be set", "default", unit.getName());
     List<String> persistedClasses = unit.getClasses();
     assertEquals("Expected there to be two classes", 2, persistedClasses.size());
-    Map<String,String> properties = unit.getProperties();
+    Map<String, String> properties = unit.getProperties();
     assertEquals("Expected testproperty to be set", "testvalue", properties.get("testproperty"));
   }
 
   @Test
   public void testOrmXmlParse() {
-    OrmSettings settings = OrmSettings.parse(this.getClass().getClassLoader().getResourceAsStream("orm1.xml"));
+    OrmSettings settings = OrmSettings.parse(this.getClass().getClassLoader().getResourceAsStream(
+        "orm1.xml"));
     checkNamespaceAppears(settings);
     List<OrmEntity> entities = settings.getEntities();
     assertEquals("Expected there to be two entities", 2, entities.size());
-    assertEquals("Expected class value to be recorded", "org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser", entities.get(0).getClassName());
+    assertEquals("Expected class value to be recorded",
+        "org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser", entities.get(0)
+            .getClassName());
   }
 }

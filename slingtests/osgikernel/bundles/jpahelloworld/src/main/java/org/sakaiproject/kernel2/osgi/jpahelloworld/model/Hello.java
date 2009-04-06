@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package org.sakaiproject.kernel2.osgi.jpahelloworld.model;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
@@ -41,17 +59,16 @@ public class Hello implements BundleActivator {
 
     System.out.println("Persisted " + g + ", but the transaction was rolled back.");
     Greeting g2 = em.find(Greeting.class, g.getId());
-    System.out.println("Greeting " + g.getId() + " from db: " + g2); // should
-                                                                     // be null
+    System.out.println("Greeting " + g.getId() + " from db: " + g2);
   }
 
   private void initEntityManager() {
     Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put(PersistenceUnitProperties.DDL_GENERATION, PersistenceUnitProperties.DROP_AND_CREATE);
-    properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE, PersistenceUnitProperties.DDL_DATABASE_GENERATION);
-    //properties.put(PersistenceUnitProperties.CLASSLOADER, this.getClass().getClassLoader());
-    emf = new PersistenceProvider()
-        .createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
+    properties.put(PersistenceUnitProperties.DDL_GENERATION,
+        PersistenceUnitProperties.DROP_AND_CREATE);
+    properties.put(PersistenceUnitProperties.DDL_GENERATION_MODE,
+        PersistenceUnitProperties.DDL_DATABASE_GENERATION);
+    emf = new PersistenceProvider().createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
     em = emf.createEntityManager();
   }
 
@@ -62,7 +79,5 @@ public class Hello implements BundleActivator {
   }
 
   public void stop(BundleContext arg0) throws Exception {
-    // TODO Auto-generated method stub
-
   }
 }

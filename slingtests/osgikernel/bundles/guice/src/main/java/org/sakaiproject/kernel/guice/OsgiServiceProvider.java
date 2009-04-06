@@ -25,31 +25,55 @@ import org.osgi.framework.ServiceReference;
 /**
  * Create a generic Guice provider that binds to a service in OSGi
  */
-public class OsgiServiceProvider<T> implements
-    Provider<T> {
+public class OsgiServiceProvider<T> implements Provider<T> {
 
   private BundleContext bundleContext;
   private ServiceReference serviceReference;
+  private boolean singleton = false;
+  private T service;
+  private Object serviceLock = new Object();;
 
   /**
-   * @param the interface representing the service
-   * @param bundleContext the bundle context of this bundle
+   * @param the
+   *          interface representing the service
+   * @param bundleContext
+   *          the bundle context of this bundle
    */
-  public OsgiServiceProvider(Class<T> serviceClass,
-      BundleContext bundleContext) {
+  public OsgiServiceProvider(Class<T> serviceClass, BundleContext bundleContext) {
     this.bundleContext = bundleContext;
-    // convert the service class into a reference, since the provision of the service class 
+    // convert the service class into a reference, since the provision of the service
+    // class
     // may change.
     this.serviceReference = bundleContext.getServiceReference(serviceClass.getName());
   }
 
   /**
    * {@inheritDoc}
+   * 
    * @see com.google.inject.Provider#get()
    */
   @SuppressWarnings("unchecked")
   public T get() {
-    return (T) bundleContext.getService(serviceReference);
+    if (singleton) {
+      if (service == null) {
+        synchronized (serviceLock) {
+          if (service == null) {
+            service = (T) bundleContext.getService(serviceReference);
+          }
+        }
+      }
+      return service;
+    } else {
+      return (T) bundleContext.getService(serviceReference);
+    }
+  }
+
+  /**
+   * @return
+   */
+  public OsgiServiceProvider<T> asSingleton() {
+    singleton = true;
+    return this;
   }
 
 }
