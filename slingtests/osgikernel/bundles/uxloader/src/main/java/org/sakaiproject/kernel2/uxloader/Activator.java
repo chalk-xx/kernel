@@ -22,6 +22,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
+import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,20 +41,34 @@ import java.util.List;
  * if parameter then has format url:path;url:path;...
  */
 
-public class Activator extends SimpleBaseActivator implements BundleActivator {
-	
-	private List<URLFileMapping> loadMappings(BundleContext bc) {
+public class Activator extends SimpleBaseActivator implements BundleActivator {	
+	private URLFileMapping[] createMapping(String raw) {
+		logger.info("raw ux config is "+raw);
 		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
-		out.add(new URLFileMapping("/dev","/tmp/dev"));
-		out.add(new URLFileMapping("/devwidgets","/tmp/devwidgets"));
+		for(String part : raw.split(";")) {
+			String[] parts=part.split(":");
+			if(parts.length!=2)
+				continue;
+			out.add(new URLFileMapping(parts[0].trim(),parts[1].trim()));
+		}
+		return out.toArray(new URLFileMapping[0]);
+	}
+	
+	private List<URLFileMapping> loadMappings(BundleContext bc,ConfigurationService config) {
+		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
+		String raw_config=config.getProperty("uxloader.config");
+		for(URLFileMapping mapping : createMapping(raw_config)) {
+			out.add(new URLFileMapping(mapping.getURL(),mapping.getFileSystem()));
+		}
 		return out;
 	}
 	
 	public void go(BundleContext bc) throws Exception {
 		HttpService http=(HttpService)getService(bc,HttpService.class);
 		CacheManagerService cache=(CacheManagerService)getService(bc,CacheManagerService.class);
+		ConfigurationService config=(ConfigurationService)getService(bc,ConfigurationService.class);
 		ActivationProcess activation=new ActivationProcess(http,cache);
-		for(URLFileMapping m : loadMappings(bc))
+		for(URLFileMapping m : loadMappings(bc,config))
 			activation.map(m.getURL(),m.getFileSystem());
 	}
 }

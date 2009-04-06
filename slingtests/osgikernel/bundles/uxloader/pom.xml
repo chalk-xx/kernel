@@ -38,6 +38,7 @@
             <Export-Package>
                             <!-- Nothing to Export -->
             </Export-Package>
+            <Import-Package> * </Import-Package>
             <Private-Package>org.sakaiproject.kernel2.uxloader</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
@@ -86,6 +87,11 @@
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.memory</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>

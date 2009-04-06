@@ -26,11 +26,16 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -47,8 +52,8 @@ import java.util.Properties;
  * @scr.service interface="org.sakaiproject.kernel.api.configuration.ConfigurationService"
  * 
  */
-public class KernelConstants implements ConfigurationService, ManagedService {
-
+public class StubConfigurationServiceImpl implements ConfigurationService, ManagedService {
+	
   /**
    * 
    * @scr.property value="/userenv" type="String" name="JCR User Environment Base Path"
@@ -246,8 +251,11 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   /**
    */
   public static final String MESSAGES = "messages";
+  private static final String OVERRIDE_SETTINGS = "override.properties";
   private static final String DEFAULT_SETTINGS = "default.properties";
-
+  
+  private static final Logger logger = LoggerFactory.getLogger(Object.class);
+  
   /**
    * The configuration map
    */
@@ -257,20 +265,49 @@ public class KernelConstants implements ConfigurationService, ManagedService {
 
   /**
    * @throws IOException 
+ * @throws IOException 
    * 
    */
-  public KernelConstants() throws IOException {
-    InputStream in = this.getClass().getResourceAsStream(DEFAULT_SETTINGS);
-    Properties p = new Properties();
-    p.load(in);
-    in.close();
-    Builder<String, String> builder = ImmutableMap.builder();
-    for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
-      String k = (String) e.nextElement();
-      builder.put(k, (String) p.get(k));
-    }
-    configMap = builder.build();
-    
+  
+  private void loadPropertiesFromStream(Map<String,String> map,InputStream in) throws IOException {
+	  if(in==null)
+		  return;
+	  Properties p = new Properties();
+	  p.load(in);
+	  in.close();
+	  for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
+		  String k = (String) e.nextElement();
+		  if(!map.containsKey(k))
+			  map.put(k, (String) p.get(k));
+	  }
+  }
+  
+  private InputStream findInputStreamInPathToRoot(File dir,String filename) throws IOException {
+	  while(dir!=null) {
+		  File file=new File(dir,filename);
+		  logger.info("Trying "+file.getCanonicalPath());
+		  if(file.exists() && file.isFile()) {
+			  logger.info("Found "+filename+" at "+file.getCanonicalPath());
+			  return new FileInputStream(file);
+		  }
+		  dir=dir.getParentFile();
+	  }
+	  return null;
+  }
+
+  public StubConfigurationServiceImpl() throws IOException {
+	  Map<String,String> constants=new HashMap<String,String>();
+	  File cwd=new File(new File(".").getCanonicalPath()); // Need to use full path to cwd for getParentFile to work.
+	  InputStream file=findInputStreamInPathToRoot(cwd,OVERRIDE_SETTINGS);
+	  if(file!=null) {
+		  loadPropertiesFromStream(constants,file);
+	  }
+	  loadPropertiesFromStream(constants,getClass().getResourceAsStream(OVERRIDE_SETTINGS));
+	  loadPropertiesFromStream(constants,getClass().getResourceAsStream(DEFAULT_SETTINGS));
+	  Builder<String, String> builder = ImmutableMap.builder();
+	  for(Map.Entry<String,String> e : constants.entrySet())
+		  builder.put(e.getKey(),e.getValue());
+	  configMap = builder.build();
   }
   /**
    * {@inheritDoc}
