@@ -23,6 +23,8 @@ import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +47,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FileServlet extends HttpServlet {
 
+	private static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
+
+	
   /**
    *
    */
@@ -115,7 +120,7 @@ public class FileServlet extends HttpServlet {
   }
   
   private boolean in_our_path(File candidate) throws IOException {
-	  return candidate.getCanonicalPath().equals(baseFile.getCanonicalPath());
+	  return candidate.getCanonicalPath().startsWith(baseFile.getCanonicalPath());
   }
   
   private File computeFileToSendForDirectory(File dir) {
@@ -128,8 +133,10 @@ public class FileServlet extends HttpServlet {
   }
   
   private File computeFileToSend(File candidate) throws IOException {
-	  if(!in_our_path(candidate))
+	  if(!in_our_path(candidate)) {
+		  logger.warn("Not in our path!");
 		  return null;
+	  }
 	  if(candidate.isDirectory())
 		  return computeFileToSendForDirectory(candidate);
 	  return candidate;
@@ -143,11 +150,13 @@ public class FileServlet extends HttpServlet {
    */
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	  File to_send=computeFileToSend(new File(baseFile, req.getPathInfo()));
+	  logger.warn("Looking for "+baseFile+req.getPathInfo());
+	  File to_send=computeFileToSend(new File(baseFile+req.getPathInfo()));
 	  if(to_send==null) {
 		  resp.sendError(HttpServletResponse.SC_FORBIDDEN);
 		  return;
 	  }
+	  logger.warn("Sending "+to_send.getAbsolutePath());
 	  if(to_send.isDirectory())
 		  sendDirectory(to_send,resp);
 	  else
@@ -188,6 +197,10 @@ public class FileServlet extends HttpServlet {
   }
   
   private void sendFile(File file, HttpServletResponse resp) throws IOException {
+	  if(!file.exists()) {
+		  resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+		  return;
+	  }	  
 	  if(candidateForCache(file)) {
 		  // Cacheable
 		  FileCache cache_entry=getNonExpiredFileCache(file);
