@@ -19,61 +19,29 @@ package org.sakaiproject.kernel2.uxloader;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
-import org.sakaiproject.kernel.api.memory.CacheManagerService;
+import org.sakaiproject.kernel2.osgi.simple.ActivatorHelper;
+import org.sakaiproject.kernel2.osgi.simple.DelayedActivation;
+import org.sakaiproject.kernel2.osgi.simple.ServiceResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.List;
+public class Activator implements BundleActivator,DelayedActivation {	
+	protected static final Logger logger = LoggerFactory.getLogger(Activator.class);
+		
+	public void go(BundleContext bc,ServiceResolver bundle_resolver,ServiceResolver startup_resolver) throws Exception {
+		HttpService http=(HttpService)bundle_resolver.getService(HttpService.class);
+		ConfigurationService config=(ConfigurationService)startup_resolver.getService(ConfigurationService.class);
+		ActivationProcess activation=new ActivationProcess(bundle_resolver,http);
+		activation.loadMappings(bc,config);
+	}
 
-/* Load config from (decreasing priority)
- * 1. OSGI service config parameter/url
- * 2. config service parameter /url
- * 3. cwd/url 
- * 
- * if parameter then has format url:path;url:path;...
- */
+	public void start(BundleContext bc) throws Exception {
+		ActivatorHelper.startServices(new Class<?>[]{ConfigurationService.class,HttpService.class},bc,this);
+	}
 
-public class Activator extends SimpleBaseActivator implements BundleActivator {	
-	
-	public Activator() {
-		registerStartupService(ConfigurationService.class);
-		registerStartupService(HttpService.class);
-	}
-	
-	private URLFileMapping[] createMapping(String raw) {
-		logger.info("raw ux config is "+raw);
-		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
-		for(String part : raw.split(";")) {
-			String[] parts=part.split(":");
-			if(parts.length!=2)
-				continue;
-			out.add(new URLFileMapping(parts[0].trim(),parts[1].trim()));
-		}
-		return out.toArray(new URLFileMapping[0]);
-	}
-	
-	private List<URLFileMapping> loadMappings(BundleContext bc,ConfigurationService config) {
-		List<URLFileMapping> out=new ArrayList<URLFileMapping>();
-		String raw_config=config.getProperty("uxloader.config");
-		for(URLFileMapping mapping : createMapping(raw_config)) {
-			out.add(new URLFileMapping(mapping.getURL(),mapping.getFileSystem()));
-		}
-		return out;
-	}
-	
-	public void go(BundleContext bc) throws Exception {
-		HttpService http=(HttpService)getService(bc,HttpService.class);
-		ConfigurationService config=(ConfigurationService)getService(bc,ConfigurationService.class);
-		ActivationProcess activation=new ActivationProcess(new ServiceResolver(bc),http);
-		for(URLFileMapping m : loadMappings(bc,config))
-			activation.map(m.getURL(),m.getFileSystem());
+	public void stop(BundleContext bc) throws Exception {
+		ActivatorHelper.stopServices(bc);
 	}
 }

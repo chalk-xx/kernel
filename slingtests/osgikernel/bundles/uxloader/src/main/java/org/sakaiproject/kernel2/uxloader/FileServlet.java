@@ -23,6 +23,8 @@ import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.util.StringUtils;
+import org.sakaiproject.kernel2.osgi.simple.ServiceDisappearedException;
+import org.sakaiproject.kernel2.osgi.simple.ServiceResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +32,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -63,13 +64,13 @@ public class FileServlet extends HttpServlet {
   private Map<String, String> mimeTypes;
   private String welcomeFile;
   private long maxCacheSize;
-  private ServiceResolver resolver;
+  private ServiceResolver bundle_resolver;
 
   /**
    * @param cacheManagerService
    */
   public FileServlet(ServiceResolver resolver) {
-    this.resolver=resolver;
+    this.bundle_resolver=resolver;
   }
 
   private void loadMIMETypesFromFile() throws IOException {
@@ -200,32 +201,37 @@ public class FileServlet extends HttpServlet {
   }
   
   private void sendFile(File file, HttpServletResponse resp) throws IOException, ServiceDisappearedException {
-	  CacheManagerService cache_service=(CacheManagerService)resolver.getService(CacheManagerService.class);
-	  Cache<FileCache> cache=cache_service.getCache("file-servlet-cache", CacheScope.INSTANCE);
-	  if(!file.exists()) {
-		  resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-		  return;
-	  }	  
-	  if(candidateForCache(file)) {
-		  // Cacheable
-		  FileCache cache_entry=getNonExpiredFileCache(cache,file);
-		  if(cache_entry==null) {
-			  cache_entry = new FileCache(file,getContentTypeFromExtension(file));
-			  cache.put(file.getAbsolutePath(),cache_entry);
+	  ServiceResolver request_resolver=new ServiceResolver(bundle_resolver);  
+	  try {
+		  CacheManagerService cache_service=(CacheManagerService)request_resolver.getService(CacheManagerService.class);
+		  Cache<FileCache> cache=cache_service.getCache("file-servlet-cache", CacheScope.INSTANCE);
+		  if(!file.exists()) {
+			  resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+			  return;
+		  }	  
+		  if(candidateForCache(file)) {
+			  // Cacheable
+			  FileCache cache_entry=getNonExpiredFileCache(cache,file);
+			  if(cache_entry==null) {
+				  cache_entry = new FileCache(file,getContentTypeFromExtension(file));
+				  cache.put(file.getAbsolutePath(),cache_entry);
+			  }
+			  resp.setContentType(cache_entry.getContentType());
+			  resp.setContentLength(cache_entry.getContentLength());
+			  resp.getOutputStream().write(cache_entry.getContent());
+			  return;
+		  } else {
+			  // Not cacheable
+			  resp.setContentType(getContentTypeFromExtension(file));
+			  FileInputStream fin = new FileInputStream(file);
+			  try {
+				  IOUtils.copy(fin, resp.getOutputStream());
+			  } finally {
+				  fin.close();
+			  }
 		  }
-		  resp.setContentType(cache_entry.getContentType());
-		  resp.setContentLength(cache_entry.getContentLength());
-		  resp.getOutputStream().write(cache_entry.getContent());
-		  return;
-	  } else {
-		  // Not cacheable
-		  resp.setContentType(getContentTypeFromExtension(file));
-		  FileInputStream fin = new FileInputStream(file);
-		  try {
-			  IOUtils.copy(fin, resp.getOutputStream());
-		  } finally {
-			  fin.close();
-		  }
+	  } finally {
+		  request_resolver.stop();
 	  }
   }
   
