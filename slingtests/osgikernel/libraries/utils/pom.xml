@@ -34,7 +34,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakaiux </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.util.* </Export-Package>
+            <Export-Package> org.sakaiproject.kernel.util.*,org.sakaiproject.kernel2.osgi.simple</Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>
@@ -54,11 +54,16 @@
   </build>
   <dependencies>
           <!-- OSGi Libraries -->
-    <!--
-      <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.osgi.core</artifactId>
-      </dependency> <dependency> <groupId>org.apache.felix</groupId>
-      <artifactId>org.osgi.compendium</artifactId> </dependency>
-    -->
+
+	<dependency>
+		<groupId>org.apache.felix</groupId>
+		<artifactId>org.osgi.core</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.felix</groupId>
+		<artifactId>org.osgi.compendium</artifactId>
+	</dependency>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>

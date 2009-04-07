@@ -40,6 +40,7 @@
         <module>bundles/db</module>
         <module>bundles/kernel</module>
         <module>bundles/memory</module>
+        <module>bundles/uxloader</module>
         <module>libraries/utils</module>
       </modules>
     </profile>

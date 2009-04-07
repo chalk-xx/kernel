@@ -1,0 +1,40 @@
+This is simple infrastructure designed to make writing OSGi simpler.
+
+At the moment in concentrates on importing services and activators. See uxloader for a simple example of
+it in use. The purpose of this is to make it easy to hang onto services for the absolutely minimum time, this
+allows dependent service reloading during development without crashing.
+
+1. You can delay initialisation of your activator until services you absolutely must have at startup are around.
+----------------------------------------------------------------------------------------------------------------
+
+Implement DelayedActivation as well as BundleActivator. This requires a method "go", which is similar to 
+"start". The main difference is that it doesn't get called until all your service dependencies are satisfied.
+
+In your start() method call startServices(). This takes a list of classes which must be present as services
+before go is called, the bundle context, and the implementor of DelayedActivation (this, most likely).
+
+In your end() method call endServices() to ensure a clean tidy-up.
+
+See uxloader.Activator for an example.
+
+You will also notice that go gives you two ServiceResolvers....
+
+2. Easy service retrieval, with monitored loading/unloading.
+------------------------------------------------------------
+
+ServiceResolver is a utility class which allows you to resolve services in your methods, remembers how
+many references you have, and hands them back at the end.
+
+If a service goes away, you just get an exception, so you needn't handle that explicitly every time.
+
+When you call stop() on your ServiceResolver, all outstanding references retrieved via ServiceResolver 
+will be given up, meaning that OSGi can correctly count references, but you don't have to.
+
+You'll have noticed that you get two ServiceResolvers on go(). The first one is special: the contents of this 
+resolver live until endServices() is called in your end() method on bundle unloading. Use this one for services
+which you want to live as long as the bundle. The second one is just for your convenience: its services are
+tided immediately after go() is called. Use this one for things only needed during startup.
+
+Don't worry about creating and destroying all these ServiceResolvers per-request: it takes very little time.
+
+See uxloader.FileServlet for an example.

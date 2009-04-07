@@ -46,18 +46,18 @@ public class FileCache implements Serializable {
    * @throws IOException 
    */
   public FileCache(File welcome, String contentType) throws IOException {
-    lastModified = welcome.lastModified();
-    this.contentType = contentType;
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    InputStream in = new FileInputStream(welcome);
-    try {
-    IOUtils.stream(in, baos);
-    content = baos.toByteArray();
-    } finally {
-      baos.close();
-      in.close();
-    }
-    contentLength = content.length;
+	  lastModified = welcome.lastModified();
+	  this.contentType = contentType;
+	  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	  InputStream in = new FileInputStream(welcome);
+	  try {
+		  IOUtils.stream(in, baos);
+		  content = baos.toByteArray();
+	  } finally {
+		  baos.close();
+		  in.close();
+	  }
+	  contentLength = content.length;
   }
 
   /**
