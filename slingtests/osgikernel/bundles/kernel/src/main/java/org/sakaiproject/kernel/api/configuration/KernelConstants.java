@@ -45,6 +45,13 @@ import java.util.Properties;
  * be moved into a separate file, for things like annotations, etc, to use. However, I'm not sure I
  * understand what the scr plugin is doing here enough, yet, to do that refactor. This is something which
  * is high on my todo-list. -- dan
+ * 
+ * ieb: Please leave as KernelConstants. OSGi forces the constant declaration and the ManagedService
+ * to be in the same class *if* you want the standard OSGi configuration tools to work. We are therefore
+ * forced to bind the API to the impl (yuck!) to avoid writing the constants names in multiple places.
+ * We *could* unbind but then we would have to reference then API twice and its possible that this would 
+ * break the scr plugin. I have tried to make this cleaner, but OSGi will not let us. 
+ * 
  */
 
 /**
@@ -59,7 +66,7 @@ import java.util.Properties;
  * @scr.service interface="org.sakaiproject.kernel.api.configuration.ConfigurationService"
  * 
  */
-public class StubConfigurationServiceImpl implements ConfigurationService, ManagedService {
+public class KernelConstants implements ConfigurationService, ManagedService {
 	
   /**
    * 
@@ -302,7 +309,7 @@ public class StubConfigurationServiceImpl implements ConfigurationService, Manag
 	  return null;
   }
 
-  public StubConfigurationServiceImpl() throws IOException {
+  public KernelConstants() throws IOException {
 	  Map<String,String> constants=new HashMap<String,String>();
 	  File cwd=new File(new File(".").getCanonicalPath()); // Need to use full path to cwd for getParentFile to work.
 	  InputStream file=findInputStreamInPathToRoot(cwd,OVERRIDE_SETTINGS);

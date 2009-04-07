@@ -32,7 +32,7 @@ import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.TargetServer;
-import org.sakaiproject.kernel.api.configuration.StubConfigurationServiceImpl;
+import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +67,12 @@ public class EntityManagerFactoryProvider implements Provider<EntityManagerFacto
   @Inject
   @SuppressWarnings(value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"}, justification="Expected to only ever be executed from a privalaged environment")
   public EntityManagerFactoryProvider(DataSourceService dataSourceService,
-      @Named(StubConfigurationServiceImpl.DB_MIN_NUM_READ) String minRead,
-      @Named(StubConfigurationServiceImpl.DB_MIN_WRITE) String minWrite,
-      @Named(StubConfigurationServiceImpl.DB_UNITNAME) String unitName,
-      @Named(StubConfigurationServiceImpl.JDBC_DRIVER_NAME) String driverClassName,
-      @Named(StubConfigurationServiceImpl.JDBC_URL) String url, @Named(StubConfigurationServiceImpl.JDBC_USERNAME) String username,
-      @Named(StubConfigurationServiceImpl.JDBC_PASSWORD) String password) {
+      @Named(KernelConstants.DB_MIN_NUM_READ) String minRead,
+      @Named(KernelConstants.DB_MIN_WRITE) String minWrite,
+      @Named(KernelConstants.DB_UNITNAME) String unitName,
+      @Named(KernelConstants.JDBC_DRIVER_NAME) String driverClassName,
+      @Named(KernelConstants.JDBC_URL) String url, @Named(KernelConstants.JDBC_USERNAME) String username,
+      @Named(KernelConstants.JDBC_PASSWORD) String password) {
 
     Map<String, Object> properties = new HashMap<String, Object>();
 

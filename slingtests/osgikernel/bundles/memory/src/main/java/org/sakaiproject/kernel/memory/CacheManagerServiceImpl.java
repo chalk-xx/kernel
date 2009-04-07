@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.memory;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.management.ManagementService;
 
-import org.apache.commons.collections.map.CaseInsensitiveMap;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
