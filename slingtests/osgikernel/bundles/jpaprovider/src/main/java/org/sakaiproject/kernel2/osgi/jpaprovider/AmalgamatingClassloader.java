@@ -64,12 +64,19 @@ public class AmalgamatingClassloader extends ClassLoader {
 
   @Override
   public Class<?> loadClass(String name) throws ClassNotFoundException {
-    BundleGatheringResourceFinder finder = PersistenceBundleMonitor.getBundleResourceFinder();
-    Class<?> result = finder.loadClass(name);
-    if (result == null) {
+    try
+    {
       return super.loadClass(name);
     }
-    return result;
+    catch (ClassNotFoundException cnfe)
+    {
+      BundleGatheringResourceFinder finder = PersistenceBundleMonitor.getBundleResourceFinder();
+      Class<?> result = finder.loadClass(name);
+      if (result != null) {
+        return result;
+      }
+      throw cnfe;
+    }
   }
 
   public void importPersistenceXml(URL persistence) throws IOException {
@@ -142,7 +149,7 @@ public class AmalgamatingClassloader extends ClassLoader {
 
     // The base directory must be empty since JPA will scan it searching for
     // classes.
-    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai"
+    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai/"
         + System.currentTimeMillis() + "/" + filename);
     if (file.getParentFile().mkdirs()) {
       LOG.debug("Created " + file);
