@@ -25,11 +25,9 @@ import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.persistence.dbcp.DataSourceServiceImpl;
-import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
 import org.sakaiproject.kernel.persistence.geronimo.TransactionManagerProvider;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import javax.transaction.TransactionManager;
 
@@ -41,8 +39,7 @@ public class ActivatorModule extends AbstractOsgiModule {
   private BundleContext bundleContext;
 
   public ActivatorModule(BundleContext bundleContext) {
-    this.bundleContext = bundleContext;
-    
+    this.bundleContext = bundleContext;    
   }
 
   /**
@@ -53,12 +50,7 @@ public class ActivatorModule extends AbstractOsgiModule {
   @Override
   protected void configure() {
     super.configure();
-    
-    
 
-    // bind the EntityManagerFactory to EclipseLink
-    bind(EntityManagerFactory.class).toProvider(
-        EntityManagerFactoryProvider.class).in(Scopes.SINGLETON);
     // bind the EntityManager to a ScopedEntityManger
     bind(export(EntityManager.class)).to(ScopedEntityManager.class)
         .in(Scopes.SINGLETON);
