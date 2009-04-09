@@ -25,7 +25,7 @@ public class UrlEnumeration implements Enumeration<URL> {
 
   private URL url;
 
-  UrlEnumeration(URL url) {
+  public UrlEnumeration(URL url) {
     this.url = url;
   }
 
