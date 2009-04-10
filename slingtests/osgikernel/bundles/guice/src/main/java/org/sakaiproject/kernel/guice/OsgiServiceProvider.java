@@ -75,7 +75,7 @@ public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
       }
       c = ciall;
     }
-    service = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), c, this);
+    service = (T) Proxy.newProxyInstance(serviceClass.getClassLoader(), c, this);
     serviceName = serviceClass.getName();
     try {
       ServiceReference serviceReference = bundleContext.getServiceReference(serviceName);
