@@ -28,6 +28,7 @@ import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.guice.RequiresStop;
 import org.sakaiproject.kernel.guice.ServiceExportDescription;
+import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
 
 import java.util.Map.Entry;
 
@@ -48,20 +49,30 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
 
   private static final String JPA_CACHE = "jpa.cache";
   private static final String ENTITY_MANAGER = "em";
-  private EntityManagerFactory entityManagerFactory;
   private CacheManagerService cacheManagerService;
   private ReferenceMap<String, EntityManagerHolder> entityManagerReferenceMap = new ReferenceMap<String, EntityManagerHolder>(
       ReferenceType.STRONG, ReferenceType.WEAK);
   private CacheScope scope;
   private long nextReport = 0;
+  private EntityManagerFactoryProvider entityManagerFactoryProvider;
+  private EntityManagerFactory entityManagerFactory;
 
   @Inject
-  public ScopedEntityManager(EntityManagerFactory entityManagerFactory,
+  public ScopedEntityManager(EntityManagerFactoryProvider entityManagerFactoryProvider,
       CacheManagerService cacheManagerService,
       @Named(KernelConstants.ENTITY_MANAGER_SCOPE) String entityManagerScope) {
-    this.entityManagerFactory = entityManagerFactory;
+    this.entityManagerFactoryProvider = entityManagerFactoryProvider;
     this.cacheManagerService = cacheManagerService;
     this.scope = CacheScope.valueOf(entityManagerScope);
+  }
+  
+  private EntityManagerFactory getEntityManagerFactory()
+  {
+    if (entityManagerFactory == null)
+    {
+      entityManagerFactory = entityManagerFactoryProvider.get();
+    }
+    return entityManagerFactory;
   }
 
   /**
@@ -77,8 +88,8 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
       }
     }
     try {
-      if (entityManagerFactory.isOpen()) {
-        entityManagerFactory.close();
+      if (getEntityManagerFactory().isOpen()) {
+        getEntityManagerFactory().close();
       }
     } catch (Exception ex) {
       // not logging a shutdown failure
@@ -92,7 +103,7 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
     Cache<EntityManagerHolder> cache = cacheManagerService.getCache(JPA_CACHE, scope);
     EntityManagerHolder entityManagerHolder = cache.get(ENTITY_MANAGER);
     if (entityManagerHolder == null) {
-      entityManagerHolder = new EntityManagerHolder(entityManagerFactory
+      entityManagerHolder = new EntityManagerHolder(getEntityManagerFactory()
           .createEntityManager());
       cache.put(ENTITY_MANAGER, entityManagerHolder);
       entityManagerReferenceMap.put(String.valueOf(entityManagerHolder),

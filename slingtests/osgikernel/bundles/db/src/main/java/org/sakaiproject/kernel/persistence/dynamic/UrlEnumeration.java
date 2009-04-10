@@ -16,38 +16,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.osgi.jpaprovider.model;
+package org.sakaiproject.kernel.persistence.dynamic;
 
-import java.io.Serializable;
+import java.net.URL;
+import java.util.Enumeration;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+public class UrlEnumeration implements Enumeration<URL> {
 
-@Entity
-public class SystemUser implements Serializable {
+  private URL url;
 
-  private static final long serialVersionUID = 1L;
-
-  @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
-  private long id;
-
-  @Basic
-  private String name;
-
-  public long getId() {
-    return id;
+  public UrlEnumeration(URL url) {
+    this.url = url;
   }
 
-  public String getName() {
-    return name;
+  public boolean hasMoreElements() {
+    return url != null;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public URL nextElement() {
+    URL url2 = url;
+    url = null;
+    return url2;
   }
 
 }

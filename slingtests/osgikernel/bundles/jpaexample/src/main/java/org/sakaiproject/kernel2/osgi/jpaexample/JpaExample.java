@@ -18,47 +18,40 @@
 
 package org.sakaiproject.kernel2.osgi.jpaexample;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel2.osgi.jpaexample.jpa.model.ExampleModel;
-import org.sakaiproject.kernel2.osgi.jpaprovider.UserManagerFactory;
-import org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 
-public class JpaExample implements BundleActivator {
+public class JpaExample {
 
-  public void start(BundleContext arg0) throws Exception {
-    System.err.println("Doing some JPA");
-    EntityManager em = UserManagerFactory.getUserManager();
-    System.err.println("EM: " + em);
+  private static final Logger LOG = LoggerFactory.getLogger(JpaExample.class);
+  
+  private EntityManager entityManager;
 
-    System.out.println("Creating example model");
+  public JpaExample(EntityManager entityManager)
+  {
+    this.entityManager = entityManager;
+  }
+  
+  public void exercise()
+  {
+    LOG.info("Doing some JPA");
+    LOG.info("EM: " + entityManager);
+
+    LOG.info("Creating example model");
     ExampleModel model = new ExampleModel();
     model.setProperty("Some property");
-    em.getTransaction().begin();
-    em.persist(model);
-    em.getTransaction().commit();
+//    entityManager.getTransaction().begin();
+    entityManager.persist(model);
+//    entityManager.getTransaction().commit();
 
-    System.out.println("Attempting to read back model from database");
+    LOG.info("Attempting to read back model from database");
+
     // model should be written to database now.
-    ExampleModel model2 = em.find(ExampleModel.class, model.getId());
-    System.out.println("Model " + model.getId() + " from db: " + model2);
-
-    SystemUser u = new SystemUser();
-    u.setName("Some user");
-    em.getTransaction().begin();
-    em.persist(u);
-    em.getTransaction().commit();
-
-    // u should be written to database now.
-    // Read it from db (no transaction context needed for em.find method)
-    SystemUser u2 = em.find(SystemUser.class, u.getId());
-    System.out.println("User " + u.getId() + " from db: " + u2);
-
-  }
-
-  public void stop(BundleContext arg0) throws Exception {
+    ExampleModel model2 = entityManager.find(ExampleModel.class, model.getId());
+    LOG.info("Model " + model.getId() + " from db: " + model2);
   }
 
 }

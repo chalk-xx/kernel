@@ -16,15 +16,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.osgi.jpaprovider;
+package org.sakaiproject.kernel.persistence.dynamic;
 
 import com.thoughtworks.xstream.XStream;
 
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.OrmEntity;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.OrmSettings;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.PersistenceSettings;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.PersistenceUnit;
-import org.sakaiproject.kernel2.osgi.jpaprovider.xstream.XStreamWritable;
+import org.sakaiproject.kernel.persistence.dynamic.xstream.OrmEntity;
+import org.sakaiproject.kernel.persistence.dynamic.xstream.OrmSettings;
+import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceSettings;
+import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceUnit;
+import org.sakaiproject.kernel.persistence.dynamic.xstream.XStreamWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

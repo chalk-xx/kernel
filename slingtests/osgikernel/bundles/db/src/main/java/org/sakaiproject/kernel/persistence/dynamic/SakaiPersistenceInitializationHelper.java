@@ -16,38 +16,29 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.osgi.jpaprovider.model;
+package org.sakaiproject.kernel.persistence.dynamic;
 
-import java.io.Serializable;
+import org.eclipse.persistence.config.PersistenceUnitProperties;
+import org.eclipse.persistence.internal.jpa.deployment.PersistenceInitializationHelper;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import java.util.Map;
 
-@Entity
-public class SystemUser implements Serializable {
+public class SakaiPersistenceInitializationHelper extends PersistenceInitializationHelper {
 
-  private static final long serialVersionUID = 1L;
+  private ClassLoader amalgamatedClassloader;
 
-  @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
-  private long id;
-
-  @Basic
-  private String name;
-
-  public long getId() {
-    return id;
+  public SakaiPersistenceInitializationHelper(ClassLoader amalgamatedClassloader) {
+    this.amalgamatedClassloader = amalgamatedClassloader;
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
+  @SuppressWarnings("unchecked")
+  @Override
+  public ClassLoader getClassLoader(String emName, Map properties) {
+    if (properties != null) {
+      return (ClassLoader) properties.get(PersistenceUnitProperties.CLASSLOADER);
+    } else {
+      return amalgamatedClassloader;
+    }
   }
 
 }

@@ -33,15 +33,50 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
+            <Sakai-JPA-PersistenceUnits>default</Sakai-JPA-PersistenceUnits>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Bundle-Activator>org.sakaiproject.kernel.persistence.Activator</Bundle-Activator>
             <Export-Package> org.sakaiproject.kernel.api.persistence,
               javax.transaction;version=1.1.1, javax.transaction.xa;version=1.1.1 </Export-Package>
-            <Import-Package> !org.apache.xalan.*,!org.apache.xpath.*,!org.apache.derby.impl.drda.*,!org.objectweb.howl.log.*,*, com.google.inject.cglib.reflect 
+            <Import-Package>
+!org.apache.commons.pool.impl,
+!org.apache.derby.impl.drda.*,
+!org.apache.xalan.*,
+!org.apache.xpath.*,
+!org.codehaus.jettison.*,
+!org.dom4j.*,
+!org.joda.time.*,
+!org.jdom.*,
+!org.objectweb.howl.log.*,
+!org.xmlpull.*, 
+!net.sf.cglib.proxy,
+!nu.xom,
+*,
+com.google.inject.cglib.reflect,
+sun.io;resolution:=optional,
+sun.misc;resolution:=optional,
+sun.reflect;resolution:=optional,
+javax.xml.parsers,
+org.w3c.dom,
+org.xml.sax,
+org.xml.sax.ext,
+org.xml.sax.helpers
             </Import-Package>
             <Private-Package>org.sakaiproject.kernel.persistence.*</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>commons-dbcp,geronimo-transaction,commons-pool,geronimo-j2ee-connector_1.5_spec,derby 
+            <Embed-Dependency>
+commons-dbcp,
+commons-pool,
+derby,
+derbynet,
+geronimo-transaction,
+geronimo-j2ee-connector_1.5_spec,
+serializer,
+xalan,
+xercesImpl,
+xml-resolver,
+xpp3,
+xstream
             </Embed-Dependency>
           </instructions>
         </configuration>
@@ -56,7 +91,18 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>commons-dbcp,commons-pool,geronimo-transaction,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
+              <includeArtifactIds>
+commons-dbcp,
+commons-pool,
+geronimo-transaction,
+geronimo-j2ee-connector_1.5_spec,
+serializer,
+xalan,
+xercesImpl,
+xml-resolver,
+xpp3,
+xstream
+              </includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
             </configuration>
@@ -134,7 +180,48 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    
+
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3</artifactId>
+      <version>1.1.4c</version>
+      <scope>runtime</scope>
+    </dependency> 
+    <dependency>
+      <groupId>xalan</groupId>
+      <artifactId>xalan</artifactId>
+      <version>2.7.1</version>
+      <scope>runtime</scope>
+    </dependency> 
+    <dependency>
+      <groupId>xalan</groupId>
+      <artifactId>serializer</artifactId>
+      <version>2.7.1</version>
+      <scope>runtime</scope>
+    </dependency> 
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.9.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>xml-resolver</groupId>
+      <artifactId>xml-resolver</artifactId>
+      <version>1.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.2</version>
+      <scope>test</scope>
+    </dependency> 
     
 <!-- OSGi Libraries -->
     <dependency>

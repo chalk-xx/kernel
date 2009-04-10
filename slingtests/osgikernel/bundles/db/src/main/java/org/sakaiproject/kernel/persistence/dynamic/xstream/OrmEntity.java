@@ -16,38 +16,37 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.osgi.jpaprovider.model;
+package org.sakaiproject.kernel.persistence.dynamic.xstream;
 
-import java.io.Serializable;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-import javax.persistence.Basic;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+@XStreamAlias("entity")
+public class OrmEntity {
 
-@Entity
-public class SystemUser implements Serializable {
-
-  private static final long serialVersionUID = 1L;
-
-  @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
-  private long id;
-
-  @Basic
-  private String name;
-
-  public long getId() {
-    return id;
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof OrmEntity)) {
+      return false;
+    }
+    OrmEntity other = (OrmEntity) obj;
+    return other.getClassName().equals(getClassName());
   }
 
-  public String getName() {
-    return name;
+  @Override
+  public int hashCode() {
+    return getClassName().hashCode();
   }
 
-  public void setName(String name) {
-    this.name = name;
+  private String className;
+
+  public void setClassName(String className) {
+    this.className = className;
   }
 
+  public String getClassName() {
+    return (className != null ? className : "");
+  }
 }

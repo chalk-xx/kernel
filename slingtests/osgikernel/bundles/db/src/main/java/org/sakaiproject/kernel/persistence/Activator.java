@@ -21,11 +21,21 @@ package org.sakaiproject.kernel.persistence;
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.guice.GuiceActivator;
+import org.sakaiproject.kernel.persistence.dynamic.PersistenceBundleMonitor;
 
 /**
  * Activate the guice module.
  */
 public class Activator extends GuiceActivator {
+
+  private PersistenceBundleMonitor monitor;
+  
+  @Override
+  public void start(BundleContext bundleContext) throws Exception {
+    super.start(bundleContext);
+    monitor = new PersistenceBundleMonitor();
+    monitor.start(bundleContext);
+  }
 
   /**
    * {@inheritDoc}
@@ -35,5 +45,11 @@ public class Activator extends GuiceActivator {
   protected AbstractOsgiModule getModule(BundleContext bundleContext) {
     return new ActivatorModule(bundleContext);
   }
+
+  @Override
+  public void stop(BundleContext bundleContext) throws Exception {
+    super.stop(bundleContext);
+    monitor.stop(bundleContext);
+  }  
 
 }
