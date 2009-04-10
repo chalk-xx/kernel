@@ -65,7 +65,7 @@ public class ActivatorModule extends AbstractOsgiModule {
     bind(DataSourceService.class).to(DataSourceServiceImpl.class).in(
         Scopes.SINGLETON);
     
-    bind(CacheManagerService.class).toProvider(importService(CacheManagerService.class).asSingleton());
+    bind(CacheManagerService.class).toProvider(importService(CacheManagerService.class));
     
   }
   
