@@ -24,6 +24,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -35,6 +37,7 @@ import java.lang.reflect.Proxy;
 public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
     InvocationHandler {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(OsgiServiceProvider.class);
   private BundleContext bundleContext;
   private T service;
   private String serviceName;
@@ -56,14 +59,30 @@ public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
     // class
     // may change.
     try {
-      bundleContext.addServiceListener(this, "((PID = "
-          + serviceClass.getName() + ")");
+      bundleContext.addServiceListener(this, "(&(objectclass="
+          + serviceClass.getName() + "))");
     } catch (InvalidSyntaxException e) {
       throw new RuntimeException("Listener syntax was wrong " + e.getMessage(), e);
     }
-    service = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), serviceClass
-        .getInterfaces(), this);
+    
+    Class[] c = serviceClass.getInterfaces();
+    if ( serviceClass.isInterface() ) {
+      Class[] ciall = new Class[c.length+1];
+      ciall[0] = serviceClass;
+      int i = 1;
+      for ( Class ci : c ) {
+        ciall[i++] = ci;
+      }
+      c = ciall;
+    }
+    service = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), c, this);
     serviceName = serviceClass.getName();
+    try {
+      ServiceReference serviceReference = bundleContext.getServiceReference(serviceName);
+      osgiService = (T) bundleContext.getService(serviceReference);      
+    } catch ( Exception e) {
+      LOGGER.info("Service "+serviceName+"not yet available, will register when it is");
+    }
   }
 
   /**
@@ -103,7 +122,7 @@ public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
    */
   public Object invoke(Object object, Method method, Object[] args) throws Throwable {
     if (osgiService == null) {
-      throw new IllegalStateException("Service is not yet available, last Event was  :"
+      throw new IllegalStateException("Service "+serviceName+" is not yet available, last Event was  :"
           + lastEvent);
     }
     return method.invoke(osgiService, args);
