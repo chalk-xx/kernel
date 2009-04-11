@@ -73,6 +73,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.lifecycle</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.db</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -201,6 +206,18 @@
                   <includeArtifactIds>org.sakaiproject.kernel2.osgi.uxloader,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
+                  </outputDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-level-99-bundles</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.lifecycle</includeArtifactIds>
+                  <excludeTransitive>true</excludeTransitive>
+                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/99
                   </outputDirectory>
                 </configuration>
               </execution>

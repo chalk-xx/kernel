@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.lifeccyle;
+package org.sakaiproject.kernel.lifecycle;
 
 import com.google.inject.Scopes;
 

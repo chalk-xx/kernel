@@ -34,7 +34,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.registry </Export-Package>
+            <Export-Package> org.sakaiproject.kernel.api.registry, org.sakaiproject.kernel.api.registry.utils </Export-Package>
             <!--
               WARNING, these had to be excluded from the imports to get the bundle to activate there
               may be classcast exceptions

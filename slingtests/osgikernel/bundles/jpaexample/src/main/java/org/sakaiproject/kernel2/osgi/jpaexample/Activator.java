@@ -24,7 +24,6 @@ import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.api.registry.utils.RegistryServiceUtil;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.guice.GuiceActivator;
-import org.sakaiproject.kernel.persistence.ActivatorModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

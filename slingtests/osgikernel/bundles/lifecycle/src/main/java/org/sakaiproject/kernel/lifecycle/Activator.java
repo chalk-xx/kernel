@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.lifeccyle;
+package org.sakaiproject.kernel.lifecycle;
 
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.api.registry.ComponentLifecycle;
@@ -54,6 +54,7 @@ public class Activator extends GuiceActivator {
     Registry<String, ComponentLifecycle> components = RegistryServiceUtil
         .getLifecycleRegistry(injector.getInstance(RegistryService.class));
     for (ComponentLifecycle component : components.getList()) {
+      LOGGER.info("Init for "+component);
       component.init();
     }
   }
@@ -69,6 +70,7 @@ public class Activator extends GuiceActivator {
         .getLifecycleRegistry(injector.getInstance(RegistryService.class));
     List<ComponentLifecycle> componentList = components.getList();
     for (int i = componentList.size() - 1; i >= 0; i--) {
+      LOGGER.info("Destroy for "+componentList.get(i));
       componentList.get(i).destroy();
     }
     super.stop(bundleContext);

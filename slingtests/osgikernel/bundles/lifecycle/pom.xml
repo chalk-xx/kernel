@@ -34,47 +34,25 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Export-Package></Export-Package>
             <Bundle-Activator>org.sakaiproject.kernel.lifecycle.Activator</Bundle-Activator>
-            <!--
-              WARNING, these had to be excluded from the imports to get the bundle to activate there
-              may be classcast exceptions
-            -->
-            <Import-Package>!sun.misc.*, * </Import-Package>
-            <Private-Package>org.sakaiproject.kernel.lifeccyle.*</Private-Package>
+            <Import-Package> *,com.google.inject.cglib.reflect </Import-Package>
+            <Private-Package>org.sakaiproject.kernel.lifecycle.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency></Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>embed-dependencies</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds></includeArtifactIds>
-              <excludeTransitive>false</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--
+        <plugin> <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId> <executions> <execution>
+        <id>embed-dependencies</id> <goals> <goal>copy-dependencies</goal> </goals> <configuration>
+        <includeArtifactIds></includeArtifactIds> <excludeTransitive>false</excludeTransitive>
+        <outputDirectory> ${project.build.outputDirectory} </outputDirectory> </configuration>
+        </execution> </executions> </plugin>
+      -->
     </plugins>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>com.google.collections</groupId>
-      <artifactId>google-collections</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.guice</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>
@@ -85,16 +63,19 @@
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.registry</artifactId>
       <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.guice</artifactId>
       <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

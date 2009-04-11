@@ -23,6 +23,7 @@ import com.google.inject.Scopes;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.http.HttpService;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 
@@ -56,6 +57,9 @@ public class ActivatorModule extends AbstractOsgiModule {
     // get the http service
     bind(HttpService.class).toProvider(importService(HttpService.class)).in(
         Scopes.SINGLETON);
+
+    bind(CacheManagerService.class).toProvider(importService(CacheManagerService.class))
+        .in(Scopes.SINGLETON);
 
   }
 
