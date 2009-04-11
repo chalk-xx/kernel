@@ -42,9 +42,7 @@ import javax.persistence.Query;
 /**
  *
  */
-@ServiceExportDescription(serviceClasses={EntityManager.class},
-    serviceDescription="A Scoped entity manager service",
-    seviceVendor="The Sakai Foundation")
+@ServiceExportDescription(serviceClasses = {EntityManager.class}, serviceDescription = "A Scoped entity manager service", seviceVendor = "The Sakai Foundation")
 public class ScopedEntityManager implements EntityManager, RequiresStop {
 
   private static final String JPA_CACHE = "jpa.cache";
@@ -65,11 +63,9 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
     this.cacheManagerService = cacheManagerService;
     this.scope = CacheScope.valueOf(entityManagerScope);
   }
-  
-  private EntityManagerFactory getEntityManagerFactory()
-  {
-    if (entityManagerFactory == null)
-    {
+
+  private EntityManagerFactory getEntityManagerFactory() {
+    if (entityManagerFactory == null) {
       entityManagerFactory = entityManagerFactoryProvider.get();
     }
     return entityManagerFactory;

@@ -15,26 +15,27 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel2.osgi.jpaexample;
-
+package org.sakaiproject.kernel.lifeccyle;
 
 import org.osgi.framework.BundleContext;
 import org.sakaiproject.kernel.api.registry.ComponentLifecycle;
+import org.sakaiproject.kernel.api.registry.Registry;
 import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.api.registry.utils.RegistryServiceUtil;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 import org.sakaiproject.kernel.guice.GuiceActivator;
-import org.sakaiproject.kernel.persistence.ActivatorModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Activator extends GuiceActivator implements ComponentLifecycle {
+import java.util.List;
+
+public class Activator extends GuiceActivator {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
-  
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule()
    */
   @Override
@@ -44,61 +45,33 @@ public class Activator extends GuiceActivator implements ComponentLifecycle {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.guice.GuiceActivator#start(org.osgi.framework.BundleContext)
    */
   @Override
   public void start(BundleContext bundleContext) throws Exception {
     super.start(bundleContext);
-    RegistryServiceUtil.addComponentLifecycle(injector.getInstance(RegistryService.class),this);    
+    Registry<String, ComponentLifecycle> components = RegistryServiceUtil
+        .getLifecycleRegistry(injector.getInstance(RegistryService.class));
+    for (ComponentLifecycle component : components.getList()) {
+      component.init();
+    }
   }
-  
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.guice.GuiceActivator#stop(org.osgi.framework.BundleContext)
    */
   @Override
   public void stop(BundleContext bundleContext) throws Exception {
-    RegistryServiceUtil.removeComponentLifecycle(injector.getInstance(RegistryService.class),this);    
+    Registry<String, ComponentLifecycle> components = RegistryServiceUtil
+        .getLifecycleRegistry(injector.getInstance(RegistryService.class));
+    List<ComponentLifecycle> componentList = components.getList();
+    for (int i = componentList.size() - 1; i >= 0; i--) {
+      componentList.get(i).destroy();
+    }
     super.stop(bundleContext);
   }
-  
-  
-  
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.registry.Provider#getKey()
-   */
-  public String getKey() {
-    return this.getClass().getName();
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.registry.Provider#getPriority()
-   */
-  public int getPriority() {
-    // we dont care when this is started, last will do.
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.registry.ComponentLifecycle#init()
-   */
-  public void init() {
-    LOGGER.info("Starting JPA Example");
-    JpaExample example = injector.getInstance(JpaExample.class);
-    example.exercise();
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.registry.ComponentLifecycle#destroy()
-   */
-  public void destroy() {
-    
-  }
-
 
 }

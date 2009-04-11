@@ -17,10 +17,10 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.uxloader</artifactId>
+  <artifactId>org.sakaiproject.kernel2.osgi.lifecycle</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>UX Project loader</name>
+  <name>Sakai Kernel Initialization Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -33,62 +33,57 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakaiux </Bundle-Category>
-            <Bundle-Activator> org.sakaiproject.kernel2.uxloader.Activator </Bundle-Activator>
-            <Export-Package>org.sakaiproject.kernel2.uxloader</Export-Package>
-            <Import-Package> * </Import-Package>
+            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Activator>org.sakaiproject.kernel.lifecycle.Activator</Bundle-Activator>
+            <!--
+              WARNING, these had to be excluded from the imports to get the bundle to activate there
+              may be classcast exceptions
+            -->
+            <Import-Package>!sun.misc.*, * </Import-Package>
+            <Private-Package>org.sakaiproject.kernel.lifeccyle.*</Private-Package>
+            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>
-            </Embed-Dependency>
+            <Embed-Dependency></Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
-	<plugin>
-		<groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-dependency-plugin</artifactId>
-		<executions>
-			<execution>
-				<id>embed-dependencies</id>
-				<goals>
-					<goal>copy-dependencies</goal>
-				</goals>
-				<configuration>
-					<includeArtifactIds>commons-io,commons-lang</includeArtifactIds>
-					<excludeTransitive>false</excludeTransitive>
-					<outputDirectory>${project.build.outputDirectory}</outputDirectory>
-				</configuration>
-			</execution>
-		</executions>
-	</plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds></includeArtifactIds>
+              <excludeTransitive>false</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <dependencies>
-          <!-- OSGi Libraries -->
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.guice</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.osgi.compendium</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+      <version>1.2.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.memory</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.guice</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -98,22 +93,12 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
+      <artifactId>org.sakaiproject.kernel2.osgi.guice</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>1.4</version>
-    </dependency>    
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
-    </dependency>    
   </dependencies>
 </project>

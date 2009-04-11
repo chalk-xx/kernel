@@ -105,10 +105,12 @@ public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
     switch (event.getType()) {
     case ServiceEvent.MODIFIED:
     case ServiceEvent.REGISTERED:
+      LOGGER.info("Registered "+event.getServiceReference());
       ServiceReference serviceReference = bundleContext.getServiceReference(serviceName);
       osgiService = (T) bundleContext.getService(serviceReference);
       break;
     case ServiceEvent.UNREGISTERING:
+      LOGGER.info("UnRegistered "+event.getServiceReference());
       osgiService = null;
       break;
     }
