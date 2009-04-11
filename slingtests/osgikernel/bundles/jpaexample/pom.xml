@@ -34,6 +34,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Bundle-Activator>org.sakaiproject.kernel2.osgi.jpaexample.Activator</Bundle-Activator>
+            <Import-Package> *,com.google.inject.cglib.reflect </Import-Package>
             <Sakai-JPA-PersistenceUnits>default</Sakai-JPA-PersistenceUnits>
           </instructions>
         </configuration>
