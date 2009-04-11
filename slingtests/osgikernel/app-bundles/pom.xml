@@ -210,14 +210,14 @@
                 </configuration>
               </execution>
               <execution>
-                <id>copy-level-99-bundles</id>
+                <id>copy-level-30-bundles</id>
                 <goals>
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
                   <includeArtifactIds>org.sakaiproject.kernel2.osgi.lifecycle</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
-                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/99
+                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>
                 </configuration>
               </execution>

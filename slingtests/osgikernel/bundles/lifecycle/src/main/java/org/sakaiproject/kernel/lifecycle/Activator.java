@@ -53,9 +53,10 @@ public class Activator extends GuiceActivator {
     super.start(bundleContext);
     Registry<String, ComponentLifecycle> components = RegistryServiceUtil
         .getLifecycleRegistry(injector.getInstance(RegistryService.class));
-    for (ComponentLifecycle component : components.getList()) {
-      LOGGER.info("Init for "+component);
-      component.init();
+    List<ComponentLifecycle> componentList = components.getList();
+    for (int i = componentList.size() - 1; i >= 0; i--) {
+      LOGGER.info("Init for "+componentList.get(i));
+      componentList.get(i).init();
     }
   }
 
@@ -68,10 +69,9 @@ public class Activator extends GuiceActivator {
   public void stop(BundleContext bundleContext) throws Exception {
     Registry<String, ComponentLifecycle> components = RegistryServiceUtil
         .getLifecycleRegistry(injector.getInstance(RegistryService.class));
-    List<ComponentLifecycle> componentList = components.getList();
-    for (int i = componentList.size() - 1; i >= 0; i--) {
-      LOGGER.info("Destroy for "+componentList.get(i));
-      componentList.get(i).destroy();
+    for (ComponentLifecycle component : components.getList()) {
+      LOGGER.info("Destroy for "+component);
+      component.destroy();
     }
     super.stop(bundleContext);
   }
