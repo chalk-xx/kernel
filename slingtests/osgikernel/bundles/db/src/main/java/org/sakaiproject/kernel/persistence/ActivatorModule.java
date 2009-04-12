@@ -51,6 +51,9 @@ public class ActivatorModule extends AbstractOsgiModule {
   @Override
   protected void configure() {
     super.configure();
+    
+    // bind in the current context
+    bind(BundleContext.class).toInstance(bundleContext);
 
     // bind the EntityManager to a ScopedEntityManger
     bind(export(EntityManager.class)).to(ScopedEntityManager.class)

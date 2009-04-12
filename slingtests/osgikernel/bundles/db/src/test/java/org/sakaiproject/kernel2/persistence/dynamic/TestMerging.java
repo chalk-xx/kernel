@@ -51,13 +51,12 @@ public class TestMerging {
 
   @Test
   public void testMergePersistences() throws Exception {
-    PersistenceBundleMonitor monitor = new PersistenceBundleMonitor();
-    monitor.start(new DummyBundleContext(new DummyBundle()));
+    PersistenceBundleMonitor monitor = new PersistenceBundleMonitor(new DummyBundleContext(new DummyBundle()));
     Bundle fakeBundle = createDummyBundle("default", "persistence1.xml", "orm1.xml");
     monitor.bundleChanged(new BundleEvent(BundleEvent.STARTING, fakeBundle));
     fakeBundle = createDummyBundle("default", "persistence2.xml", "orm2.xml");
     monitor.bundleChanged(new BundleEvent(BundleEvent.STARTING, fakeBundle));
-    ClassLoader amalgamatingClassloader = PersistenceBundleMonitor.getAmalgamatedClassloader();
+    ClassLoader amalgamatingClassloader = monitor.getAmalgamatedClassloader();
     PersistenceSettings settings = PersistenceSettings.parse(amalgamatingClassloader
         .getResourceAsStream("META-INF/persistence.xml"));
     assertEquals("Expected one persistence unit", 1, settings.getPersistenceUnits().size());

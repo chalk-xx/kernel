@@ -18,6 +18,9 @@
 
 package org.sakaiproject.kernel.persistence.dynamic;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import org.eclipse.persistence.internal.jpa.deployment.osgi.BundleProxyClassLoader;
 import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLog;
@@ -39,6 +42,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Monitors the bundles, but must be a singleton 
+ */
+@Singleton
 public class PersistenceBundleMonitor implements BundleActivator, SynchronousBundleListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(PersistenceBundleMonitor.class);
@@ -53,6 +60,21 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
   private Set<Bundle> allPuBundles = Collections.synchronizedSet(new HashSet<Bundle>());
 
   private ClassLoader contextClassLoader;
+  
+  /**
+   * 
+   */
+  @Inject
+  public PersistenceBundleMonitor(BundleContext bundleContext) {
+    LOG.info("Starting to monitor for persistence bundles");
+    contextClassLoader = new BundleProxyClassLoader(bundleContext.getBundle());
+    bundleContext.addBundleListener(this);
+    Bundle bundles[] = bundleContext.getBundles();
+    for (int i = 0; i < bundles.length; i++) {
+      Bundle bundle = bundles[i];
+      registerBundle(bundle);
+    }
+  }
 
   /**
    * Add a bundle to the list of bundles managed by this persistence provider
@@ -119,14 +141,6 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * our JPA server
    */
   public void start(BundleContext context) throws Exception {
-    LOG.info("Starting to monitor for persistence bundles");
-    contextClassLoader = new BundleProxyClassLoader(context.getBundle());
-    context.addBundleListener(this);
-    Bundle bundles[] = context.getBundles();
-    for (int i = 0; i < bundles.length; i++) {
-      Bundle bundle = bundles[i];
-      registerBundle(bundle);
-    }
   }
 
   /**

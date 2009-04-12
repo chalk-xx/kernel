@@ -33,7 +33,7 @@ public class Activator extends GuiceActivator {
   @Override
   public void start(BundleContext bundleContext) throws Exception {
     super.start(bundleContext);
-    monitor = new PersistenceBundleMonitor();
+    monitor = injector.getInstance(PersistenceBundleMonitor.class);
     monitor.start(bundleContext);
   }
 
