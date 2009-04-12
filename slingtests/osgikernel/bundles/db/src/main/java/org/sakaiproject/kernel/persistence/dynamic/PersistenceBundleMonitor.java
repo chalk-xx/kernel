@@ -46,13 +46,13 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
   public static final String SAKAI_JPA_PERSISTENCE_UNITS_BUNDLE_HEADER = "Sakai-JPA-PersistenceUnits";
 
   // these maps are used to retrieve the classloader used for different bundles
-  private static Map<String, List<Bundle>> puToBundle = Collections
+  private Map<String, List<Bundle>> puToBundle = Collections
       .synchronizedMap(new HashMap<String, List<Bundle>>());
-  private static Map<Bundle, String[]> bundleToPUs = Collections
+  private Map<Bundle, String[]> bundleToPUs = Collections
       .synchronizedMap(new HashMap<Bundle, String[]>());
-  private static Set<Bundle> allPuBundles = Collections.synchronizedSet(new HashSet<Bundle>());
+  private Set<Bundle> allPuBundles = Collections.synchronizedSet(new HashSet<Bundle>());
 
-  private static ClassLoader contextClassLoader;
+  private ClassLoader contextClassLoader;
 
   /**
    * Add a bundle to the list of bundles managed by this persistence provider
@@ -61,7 +61,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * @param bundle
    * @param persistenceUnitNames
    */
-  public static void addBundle(Bundle bundle, String[] persistenceUnitNames) {
+  public void addBundle(Bundle bundle, String[] persistenceUnitNames) {
     for (int i = 0; i < persistenceUnitNames.length; i++) {
       String name = persistenceUnitNames[i];
       List<Bundle> list = puToBundle.get(name);
@@ -81,7 +81,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * 
    * @param bundle
    */
-  public static void removeBundle(Bundle bundle) {
+  public void removeBundle(Bundle bundle) {
     String[] persistenceUnitNames = bundleToPUs.remove(bundle);
     if (persistenceUnitNames != null) {
       for (int i = 0; i < persistenceUnitNames.length; i++) {
@@ -120,7 +120,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    */
   public void start(BundleContext context) throws Exception {
     LOG.info("Starting to monitor for persistence bundles");
-    PersistenceBundleMonitor.contextClassLoader = new BundleProxyClassLoader(context.getBundle());
+    contextClassLoader = new BundleProxyClassLoader(context.getBundle());
     context.addBundleListener(this);
     Bundle bundles[] = context.getBundles();
     for (int i = 0; i < bundles.length; i++) {
@@ -140,7 +140,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
       try {
         String[] persistenceUnitNames = getPersistenceUnitNames(bundle);
         if (persistenceUnitNames != null) {
-          PersistenceBundleMonitor.addBundle(bundle, persistenceUnitNames);
+          addBundle(bundle, persistenceUnitNames);
         }
       } catch (Exception e) {
         AbstractSessionLog.getLog().logThrowable(SessionLog.WARNING, e);
@@ -158,14 +158,14 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
   }
 
   private void deregisterBundle(Bundle bundle) {
-    PersistenceBundleMonitor.removeBundle(bundle);
+    removeBundle(bundle);
   }
 
   public void stop(BundleContext context) throws Exception {
     context.removeBundleListener(this);
   }
 
-  public static BundleGatheringResourceFinder getBundleResourceFinder() {
+  public BundleGatheringResourceFinder getBundleResourceFinder() {
     if (allPuBundles.size() == 0) {
       LOG.warn("No bundles found");
       return null;
@@ -173,9 +173,8 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     return new BundleGatheringResourceFinder(allPuBundles);
   }
 
-  public static ClassLoader getAmalgamatedClassloader() throws IOException {
-    BundleGatheringResourceFinder currentLoader = PersistenceBundleMonitor
-        .getBundleResourceFinder();
+  public ClassLoader getAmalgamatedClassloader() throws IOException {
+    BundleGatheringResourceFinder currentLoader = getBundleResourceFinder();
     if (currentLoader == null) {
       LOG.warn("No persistence xmls");
       return null;
@@ -184,7 +183,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     LOG.debug("Looking for persistence.xmls");
     List<URL> persistences = currentLoader.getResources("META-INF/persistence.xml");
     List<URL> orms = currentLoader.getResources("META-INF/orm.xml");
-    AmalgamatingClassloader loader = new AmalgamatingClassloader(contextClassLoader);
+    AmalgamatingClassloader loader = new AmalgamatingClassloader(contextClassLoader,this);
     for (URL persistence : persistences) {
       loader.importPersistenceXml(persistence);
     }

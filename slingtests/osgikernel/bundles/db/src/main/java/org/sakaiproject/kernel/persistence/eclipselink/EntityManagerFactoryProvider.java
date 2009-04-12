@@ -37,6 +37,7 @@ import org.sakaiproject.kernel.api.persistence.DataSourceService;
 import org.sakaiproject.kernel.api.registry.ComponentLifecycle;
 import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.api.registry.utils.RegistryServiceUtil;
+import org.sakaiproject.kernel.persistence.dynamic.PersistenceBundleMonitor;
 import org.sakaiproject.kernel.persistence.dynamic.SakaiPersistenceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class EntityManagerFactoryProvider implements Provider<EntityManagerFacto
   private String unitName;
   private DataSourceService dataSourceService;
   private boolean initialized;
+  private PersistenceBundleMonitor persistenceBundleMonitor;
 
   /**
    * Construct an EclipseLink entity manager provider.
@@ -80,9 +82,11 @@ public class EntityManagerFactoryProvider implements Provider<EntityManagerFacto
       @Named(KernelConstants.JDBC_URL) String url,
       @Named(KernelConstants.JDBC_USERNAME) String username,
       @Named(KernelConstants.JDBC_PASSWORD) String password,
-      RegistryService registryService) {
+      RegistryService registryService,
+      PersistenceBundleMonitor persistenceBundleMonitor) {
     this.unitName = unitName;
     this.dataSourceService = dataSourceService;
+    this.persistenceBundleMonitor = persistenceBundleMonitor;
     RegistryServiceUtil.addComponentLifecycle(registryService, this);
   }
 
@@ -115,7 +119,7 @@ public class EntityManagerFactoryProvider implements Provider<EntityManagerFacto
 
       LOGGER.info("Starting connection manager with properties " + properties);
 
-      entityManagerFactory = new SakaiPersistenceProvider().createEntityManagerFactory(
+      entityManagerFactory = new SakaiPersistenceProvider(persistenceBundleMonitor).createEntityManagerFactory(
           unitName, properties);
       initialized = true;
     }
