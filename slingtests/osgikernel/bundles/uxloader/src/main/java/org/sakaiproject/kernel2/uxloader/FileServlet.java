@@ -17,14 +17,14 @@
  */
 package org.sakaiproject.kernel2.uxloader;
 
+import com.google.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.util.StringUtils;
-import org.sakaiproject.kernel2.osgi.simple.ServiceDisappearedException;
-import org.sakaiproject.kernel2.osgi.simple.ServiceResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +48,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FileServlet extends HttpServlet {
 
-	private static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
+  private static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
 
-	
   /**
    *
    */
-  
+
   private static final long serialVersionUID = -1304876073995688329L;
   private static final String MIME_TYPES = "org/sakaiproject/kernel2/uxloader/mimetypes.properties";
   public static final String BASE_FILE = "base-location";
@@ -64,43 +63,46 @@ public class FileServlet extends HttpServlet {
   private Map<String, String> mimeTypes;
   private String welcomeFile;
   private long maxCacheSize;
-  private ServiceResolver bundle_resolver;
+
+  private CacheManagerService cacheManagerService;
 
   /**
    * @param cacheManagerService
    */
-  public FileServlet(ServiceResolver resolver) {
-    this.bundle_resolver=resolver;
+  @Inject
+  public FileServlet(CacheManagerService cacheManagerService) {
+    this.cacheManagerService = cacheManagerService;
   }
 
   private void loadMIMETypesFromFile() throws IOException {
-      InputStream mimeTypeStream = this.getClass().getClassLoader().getResourceAsStream(MIME_TYPES);
-	  Properties p = new Properties();
-	  p.load(mimeTypeStream);
-	  mimeTypeStream.close();
-	  mimeTypes = new HashMap<String, String>();
-	  for (Entry<?,?> m : p.entrySet()) {
-		  String[] keys = StringUtils.split((String) m.getValue(), ' ');
-		  for (String k : keys) {
-			  mimeTypes.put(k, (String) m.getKey());
-		  }
-	  }
+    InputStream mimeTypeStream = this.getClass().getClassLoader().getResourceAsStream(
+        MIME_TYPES);
+    Properties p = new Properties();
+    p.load(mimeTypeStream);
+    mimeTypeStream.close();
+    mimeTypes = new HashMap<String, String>();
+    for (Entry<?, ?> m : p.entrySet()) {
+      String[] keys = StringUtils.split((String) m.getValue(), ' ');
+      for (String k : keys) {
+        mimeTypes.put(k, (String) m.getKey());
+      }
+    }
   }
 
   private String getContentTypeFromExtension(File welcome) {
-	  String welcomeFile = welcome.getName();
-	  int dot = welcomeFile.lastIndexOf('.');
-	  String type = "application/octet-stream";
-	  if (dot > 0) {
-		  String ext = welcomeFile.substring(dot + 1);
-		  String ptype = mimeTypes.get(ext);
-		  if (ptype != null) {
-			  type = ptype;
-		  }
-	  }
-	  return type;
+    String welcomeFile = welcome.getName();
+    int dot = welcomeFile.lastIndexOf('.');
+    String type = "application/octet-stream";
+    if (dot > 0) {
+      String ext = welcomeFile.substring(dot + 1);
+      String ptype = mimeTypes.get(ext);
+      if (ptype != null) {
+        type = ptype;
+      }
+    }
+    return type;
   }
-  
+
   /**
    * {@inheritDoc}
    * 
@@ -118,30 +120,30 @@ public class FileServlet extends HttpServlet {
       throw new ServletException(e);
     }
   }
-  
+
   private boolean in_our_path(File candidate) throws IOException {
-	  return candidate.getCanonicalPath().startsWith(baseFile.getCanonicalPath());
+    return candidate.getCanonicalPath().startsWith(baseFile.getCanonicalPath());
   }
-  
+
   private File computeFileToSendForDirectory(File dir) {
-	  if(welcomeFile!=null) {
-		  File index=new File(dir,welcomeFile);
-		  if(index.exists())
-			  return index;
-	  }
-	  return dir;
+    if (welcomeFile != null) {
+      File index = new File(dir, welcomeFile);
+      if (index.exists())
+        return index;
+    }
+    return dir;
   }
-  
+
   private File computeFileToSend(File candidate) throws IOException {
-	  if(!in_our_path(candidate)) {
-		  logger.warn("Not in our path!");
-		  return null;
-	  }
-	  if(candidate.isDirectory())
-		  return computeFileToSendForDirectory(candidate);
-	  return candidate;
+    if (!in_our_path(candidate)) {
+      logger.warn("Not in our path!");
+      return null;
+    }
+    if (candidate.isDirectory())
+      return computeFileToSendForDirectory(candidate);
+    return candidate;
   }
-  
+
   /**
    * {@inheritDoc}
    * 
@@ -149,24 +151,21 @@ public class FileServlet extends HttpServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	  logger.debug("Looking for "+baseFile+req.getPathInfo());
-	  File to_send=computeFileToSend(new File(baseFile+req.getPathInfo()));
-	  if(to_send==null) {
-		  resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-		  return;
-	  }
-	  logger.debug("Sending "+to_send.getAbsolutePath());
-	  try {
-	  if(to_send.isDirectory())
-		  sendDirectory(to_send,resp);
-	  else
-		  sendFile(to_send,resp);
-	  } catch(ServiceDisappearedException x) {
-		  throw new ServletException("No service available",x);
-	  }
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException {
+    logger.debug("Looking for " + baseFile + req.getPathInfo());
+    File to_send = computeFileToSend(new File(baseFile + req.getPathInfo()));
+    if (to_send == null) {
+      resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+      return;
+    }
+    logger.debug("Sending " + to_send.getAbsolutePath());
+    if (to_send.isDirectory())
+      sendDirectory(to_send, resp);
+    else
+      sendFile(to_send, resp);
   }
-  
+
   private void sendDirectory(File f, HttpServletResponse resp) throws IOException {
     resp.setContentType("text/html; charset=UTF-8");
     StringBuilder sb = new StringBuilder();
@@ -185,56 +184,51 @@ public class FileServlet extends HttpServlet {
   }
 
   private boolean candidateForCache(File file) {
-	  return file.length() < maxCacheSize;
-  } 
-  
-  private FileCache getNonExpiredFileCache(Cache<FileCache> cache,File file) {
-	  if(!candidateForCache(file))
-		  return null;
-	  String path = file.getAbsolutePath();
-	  FileCache fc = cache.get(path);
-	  if(fc==null)
-		  return null;
-	  if ( fc.getLastModified() != file.lastModified() )
-		  return null;
-	  return fc;
+    return file.length() < maxCacheSize;
   }
-  
-  private void sendFile(File file, HttpServletResponse resp) throws IOException, ServiceDisappearedException {
-	  ServiceResolver request_resolver=new ServiceResolver(bundle_resolver);  
-	  try {
-		  CacheManagerService cache_service=(CacheManagerService)request_resolver.getService(CacheManagerService.class);
-		  Cache<FileCache> cache=cache_service.getCache("file-servlet-cache", CacheScope.INSTANCE);
-		  if(!file.exists()) {
-			  resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-			  return;
-		  }	  
-		  if(candidateForCache(file)) {
-			  // Cacheable
-			  FileCache cache_entry=getNonExpiredFileCache(cache,file);
-			  if(cache_entry==null) {
-				  cache_entry = new FileCache(file,getContentTypeFromExtension(file));
-				  cache.put(file.getAbsolutePath(),cache_entry);
-			  }
-			  resp.setContentType(cache_entry.getContentType());
-			  resp.setContentLength(cache_entry.getContentLength());
-			  resp.getOutputStream().write(cache_entry.getContent());
-			  return;
-		  } else {
-			  // Not cacheable
-			  resp.setContentType(getContentTypeFromExtension(file));
-			  FileInputStream fin = new FileInputStream(file);
-			  try {
-				  IOUtils.copy(fin, resp.getOutputStream());
-			  } finally {
-				  fin.close();
-			  }
-		  }
-	  } finally {
-		  request_resolver.stop();
-	  }
+
+  private FileCache getNonExpiredFileCache(Cache<FileCache> cache, File file) {
+    if (!candidateForCache(file))
+      return null;
+    String path = file.getAbsolutePath();
+    FileCache fc = cache.get(path);
+    if (fc == null)
+      return null;
+    if (fc.getLastModified() != file.lastModified())
+      return null;
+    return fc;
   }
-  
+
+  private void sendFile(File file, HttpServletResponse resp) throws IOException {
+    Cache<FileCache> cache = cacheManagerService.getCache("file-servlet-cache",
+        CacheScope.INSTANCE);
+    if (!file.exists()) {
+      resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    if (candidateForCache(file)) {
+      // Cacheable
+      FileCache cache_entry = getNonExpiredFileCache(cache, file);
+      if (cache_entry == null) {
+        cache_entry = new FileCache(file, getContentTypeFromExtension(file));
+        cache.put(file.getAbsolutePath(), cache_entry);
+      }
+      resp.setContentType(cache_entry.getContentType());
+      resp.setContentLength(cache_entry.getContentLength());
+      resp.getOutputStream().write(cache_entry.getContent());
+      return;
+    } else {
+      // Not cacheable
+      resp.setContentType(getContentTypeFromExtension(file));
+      FileInputStream fin = new FileInputStream(file);
+      try {
+        IOUtils.copy(fin, resp.getOutputStream());
+      } finally {
+        fin.close();
+      }
+    }
+  }
+
   @Override
   protected void doTrace(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {

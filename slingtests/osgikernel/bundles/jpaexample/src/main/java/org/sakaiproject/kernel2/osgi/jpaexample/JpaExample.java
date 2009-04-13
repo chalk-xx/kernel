@@ -18,6 +18,8 @@
 
 package org.sakaiproject.kernel2.osgi.jpaexample;
 
+import com.google.inject.Inject;
+
 import org.sakaiproject.kernel2.osgi.jpaexample.jpa.model.ExampleModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +29,15 @@ import javax.persistence.EntityManager;
 public class JpaExample {
 
   private static final Logger LOG = LoggerFactory.getLogger(JpaExample.class);
-  
+
   private EntityManager entityManager;
 
-  public JpaExample(EntityManager entityManager)
-  {
+  @Inject
+  public JpaExample(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
-  
-  public void exercise()
-  {
+
+  public void exercise() {
     LOG.info("Doing some JPA");
     LOG.info("EM: " + entityManager);
 

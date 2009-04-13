@@ -51,6 +51,7 @@ public abstract class AbstractOsgiModule extends AbstractModule {
     } else {
       LOGGER.warn("No Configuration Properties found");
     }
+    
   }
 
   /**

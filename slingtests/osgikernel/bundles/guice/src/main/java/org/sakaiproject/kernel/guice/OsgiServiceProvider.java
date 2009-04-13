@@ -20,31 +20,69 @@ package org.sakaiproject.kernel.guice;
 import com.google.inject.Provider;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * Create a generic Guice provider that binds to a service in OSGi
  */
-public class OsgiServiceProvider<T> implements Provider<T> {
+public class OsgiServiceProvider<T> implements Provider<T>, ServiceListener,
+    InvocationHandler {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(OsgiServiceProvider.class);
   private BundleContext bundleContext;
-  private ServiceReference serviceReference;
-  private boolean singleton = false;
   private T service;
-  private Object serviceLock = new Object();;
+  private String serviceName;
+  private T osgiService;
+  private ServiceEvent lastEvent;
 
   /**
    * @param the
    *          interface representing the service
    * @param bundleContext
    *          the bundle context of this bundle
+   * @throws InvalidSyntaxException
    */
+  @SuppressWarnings("unchecked")
   public OsgiServiceProvider(Class<T> serviceClass, BundleContext bundleContext) {
     this.bundleContext = bundleContext;
+
     // convert the service class into a reference, since the provision of the service
     // class
     // may change.
-    this.serviceReference = bundleContext.getServiceReference(serviceClass.getName());
+    try {
+      bundleContext.addServiceListener(this, "(&(objectclass="
+          + serviceClass.getName() + "))");
+    } catch (InvalidSyntaxException e) {
+      throw new RuntimeException("Listener syntax was wrong " + e.getMessage(), e);
+    }
+    
+    Class[] c = serviceClass.getInterfaces();
+    if ( serviceClass.isInterface() ) {
+      Class[] ciall = new Class[c.length+1];
+      ciall[0] = serviceClass;
+      int i = 1;
+      for ( Class ci : c ) {
+        ciall[i++] = ci;
+      }
+      c = ciall;
+    }
+    service = (T) Proxy.newProxyInstance(serviceClass.getClassLoader(), c, this);
+    serviceName = serviceClass.getName();
+    try {
+      ServiceReference serviceReference = bundleContext.getServiceReference(serviceName);
+      osgiService = (T) bundleContext.getService(serviceReference);      
+    } catch ( Exception e) {
+      LOGGER.info("Service "+serviceName+"not yet available, will register when it is");
+    }
   }
 
   /**
@@ -52,28 +90,43 @@ public class OsgiServiceProvider<T> implements Provider<T> {
    * 
    * @see com.google.inject.Provider#get()
    */
-  @SuppressWarnings("unchecked")
   public T get() {
-    if (singleton) {
-      if (service == null) {
-        synchronized (serviceLock) {
-          if (service == null) {
-            service = (T) bundleContext.getService(serviceReference);
-          }
-        }
-      }
-      return service;
-    } else {
-      return (T) bundleContext.getService(serviceReference);
+    return service;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework.ServiceEvent)
+   */
+  @SuppressWarnings("unchecked")
+  public void serviceChanged(ServiceEvent event) {
+    lastEvent = event;
+    switch (event.getType()) {
+    case ServiceEvent.MODIFIED:
+    case ServiceEvent.REGISTERED:
+      LOGGER.info("Registered "+event.getServiceReference());
+      ServiceReference serviceReference = bundleContext.getServiceReference(serviceName);
+      osgiService = (T) bundleContext.getService(serviceReference);
+      break;
+    case ServiceEvent.UNREGISTERING:
+      LOGGER.info("UnRegistered "+event.getServiceReference());
+      osgiService = null;
+      break;
     }
   }
 
   /**
-   * @return
+   * {@inheritDoc}
+   * 
+   * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object,
+   *      java.lang.reflect.Method, java.lang.Object[])
    */
-  public OsgiServiceProvider<T> asSingleton() {
-    singleton = true;
-    return this;
+  public Object invoke(Object object, Method method, Object[] args) throws Throwable {
+    if (osgiService == null) {
+      throw new IllegalStateException("Service "+serviceName+" is not yet available, last Event was  :"
+          + lastEvent);
+    }
+    return method.invoke(osgiService, args);
   }
-
 }

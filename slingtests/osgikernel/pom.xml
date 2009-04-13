@@ -41,6 +41,10 @@
         <module>bundles/kernel</module>
         <module>bundles/memory</module>
         <module>bundles/uxloader</module>
+        <module>bundles/jsr173</module>
+        <module>bundles/jaxp-api</module>
+        <module>bundles/registry</module>
+        <module>bundles/lifecycle</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
@@ -110,7 +114,7 @@
     <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.0</version>
+                    <version>2.1</version>
                 </plugin>
 
       <plugin>

@@ -17,31 +17,93 @@
  */
 package org.sakaiproject.kernel2.uxloader;
 
-import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
-import org.sakaiproject.kernel2.osgi.simple.ActivatorHelper;
-import org.sakaiproject.kernel2.osgi.simple.DelayedActivation;
-import org.sakaiproject.kernel2.osgi.simple.ServiceResolver;
+import org.sakaiproject.kernel.guice.AbstractOsgiModule;
+import org.sakaiproject.kernel.guice.GuiceActivator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Activator implements BundleActivator,DelayedActivation {	
-	protected static final Logger logger = LoggerFactory.getLogger(Activator.class);
-		
-	public void go(BundleContext bc,ServiceResolver bundle_resolver,ServiceResolver startup_resolver) throws Exception {
-		HttpService http=(HttpService)bundle_resolver.getService(HttpService.class);
-		ConfigurationService config=(ConfigurationService)startup_resolver.getService(ConfigurationService.class);
-		ActivationProcess activation=new ActivationProcess(bundle_resolver,http);
-		activation.loadMappings(bc,config);
-	}
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
 
-	public void start(BundleContext bc) throws Exception {
-		ActivatorHelper.startServices(new Class<?>[]{ConfigurationService.class,HttpService.class},bc,this);
-	}
+import javax.servlet.ServletException;
 
-	public void stop(BundleContext bc) throws Exception {
-		ActivatorHelper.stopServices(bc);
-	}
+public class Activator extends GuiceActivator {
+  protected static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
+
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.guice.GuiceActivator#start(org.osgi.framework.BundleContext)
+   */
+  @Override
+  public void start(BundleContext bundleContext) throws Exception {
+    super.start(bundleContext);
+    init(); //this could be delayed if required by making this a lifecycle component
+
+  }
+
+  /**
+   * 
+   */
+  private void init() {
+    ConfigurationService config = injector.getInstance(ConfigurationService.class);
+    HttpService httpService = injector.getInstance(HttpService.class);
+    HttpContext httpContext = httpService.createDefaultHttpContext();
+    List<URLFileMapping> out = new ArrayList<URLFileMapping>();
+    String raw_config = config.getProperty("uxloader.config");
+    for (URLFileMapping mapping : createMapping(raw_config)) {
+      out.add(new URLFileMapping(mapping.getURL(), mapping.getFileSystem()));
+    }
+    for (URLFileMapping m : out) {
+      try {
+        map(httpService, httpContext, m.getURL(), m.getFileSystem());
+      } catch (ServletException e) {
+        LOGGER.error("Failed to register mapping for servlet "+m+" cause:"+e.getMessage(),e);
+      } catch (NamespaceException e) {
+        LOGGER.error("Failed to register mapping for servlet "+m+" cause:"+e.getMessage(),e);
+      }
+    }
+  }
+
+  private void map(HttpService httpService, HttpContext httpContext, String url,
+      String filesystem) throws ServletException, NamespaceException {
+    LOGGER.info("Mapping url=" + url + " to filesystem=" + filesystem);
+    Dictionary<String, String> uxLoaderParams = new Hashtable<String, String>();
+    uxLoaderParams.put(FileServlet.BASE_FILE, filesystem);
+    uxLoaderParams.put(FileServlet.MAX_CACHE_SIZE, "102400");
+    uxLoaderParams.put(FileServlet.WELCOME_FILE, "index.html");
+
+    httpService.registerServlet(url, injector.getInstance(FileServlet.class),
+        uxLoaderParams, httpContext);
+  }
+
+  private URLFileMapping[] createMapping(String raw) {
+    LOGGER.info("raw ux config is " + raw);
+    List<URLFileMapping> out = new ArrayList<URLFileMapping>();
+    for (String part : raw.split(";")) {
+      String[] parts = part.split(":");
+      if (parts.length != 2)
+        continue;
+      out.add(new URLFileMapping(parts[0].trim(), parts[1].trim()));
+    }
+    return out.toArray(new URLFileMapping[0]);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule(org.osgi.framework.BundleContext)
+   */
+  @Override
+  protected AbstractOsgiModule getModule(BundleContext bundleContext) {
+    return new ActivatorModule(bundleContext);
+  }
 }

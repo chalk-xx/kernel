@@ -52,8 +52,11 @@ public class AmalgamatingClassloader extends ClassLoader {
   private URL persistenceXMLurl;
   private URL ormXMLurl;
 
-  public AmalgamatingClassloader(ClassLoader classLoader) {
+  private PersistenceBundleMonitor persistenceBundleMonitor;
+
+  public AmalgamatingClassloader(ClassLoader classLoader, PersistenceBundleMonitor persistenceBundleMonitor) {
     super(classLoader);
+    this.persistenceBundleMonitor = persistenceBundleMonitor;
     basePersistenceSettings = PersistenceSettings.parse(classLoader
         .getResourceAsStream(KERNEL_PERSISTENCE_XML));
     for (PersistenceUnit unit : basePersistenceSettings.getPersistenceUnits()) {
@@ -70,7 +73,7 @@ public class AmalgamatingClassloader extends ClassLoader {
     }
     catch (ClassNotFoundException cnfe)
     {
-      BundleGatheringResourceFinder finder = PersistenceBundleMonitor.getBundleResourceFinder();
+      BundleGatheringResourceFinder finder = persistenceBundleMonitor.getBundleResourceFinder();
       Class<?> result = finder.loadClass(name);
       if (result != null) {
         return result;

@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public abstract class GuiceActivator implements BundleActivator {
 
-  private Injector injector;
+  protected Injector injector;
   private Set<Class<?>> services;
 
   /**

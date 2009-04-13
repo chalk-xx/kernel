@@ -15,41 +15,47 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.persistence;
 
+package org.sakaiproject.kernel.lifecycle;
+
+import com.google.inject.Scopes;
 
 import org.osgi.framework.BundleContext;
+import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
-import org.sakaiproject.kernel.guice.GuiceActivator;
-import org.sakaiproject.kernel.persistence.dynamic.PersistenceBundleMonitor;
 
 /**
- * Activate the guice module.
+ * Configuration module for persistence bindings.
  */
-public class Activator extends GuiceActivator {
+public class ActivatorModule extends AbstractOsgiModule {
 
-  private PersistenceBundleMonitor monitor;
-  
-  @Override
-  public void start(BundleContext bundleContext) throws Exception {
-    super.start(bundleContext);
-    monitor = injector.getInstance(PersistenceBundleMonitor.class);
-    monitor.start(bundleContext);
+  private BundleContext bundleContext;
+
+  public ActivatorModule(BundleContext bundleContext) {
+    this.bundleContext = bundleContext;    
   }
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule()
+   *
+   * @see com.google.inject.AbstractModule#configure()
    */
   @Override
-  protected AbstractOsgiModule getModule(BundleContext bundleContext) {
-    return new ActivatorModule(bundleContext);
+  protected void configure() {
+    super.configure();
+
+    // we need the registry service.
+    bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
+    
   }
+  
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.guice.AbstractOsgiModule#getBundleContext()
+   */
   @Override
-  public void stop(BundleContext bundleContext) throws Exception {
-    super.stop(bundleContext);
-    monitor.stop(bundleContext);
-  }  
-
+  protected BundleContext getBundleContext() {
+    return bundleContext;
+  }
 }

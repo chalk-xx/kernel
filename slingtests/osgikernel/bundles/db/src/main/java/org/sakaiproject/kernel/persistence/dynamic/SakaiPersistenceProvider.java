@@ -35,19 +35,20 @@ public class SakaiPersistenceProvider extends PersistenceProvider {
 
   private ClassLoader amalgamatedClassloader;
 
-  public SakaiPersistenceProvider() {
+  public SakaiPersistenceProvider(PersistenceBundleMonitor persistenceBundleMonitor) {
     try {
-      amalgamatedClassloader = PersistenceBundleMonitor.getAmalgamatedClassloader();
+      amalgamatedClassloader = persistenceBundleMonitor.getAmalgamatedClassloader();
     } catch (IOException e) {
       LOG.error("Unable to create amalgamated classloader", e);
     }
-    initializationHelper = new SakaiPersistenceInitializationHelper(amalgamatedClassloader);
+    initializationHelper = new SakaiPersistenceInitializationHelper(
+        amalgamatedClassloader);
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  protected EntityManagerFactory createEntityManagerFactory(String emName, Map properties,
-      ClassLoader classLoader) {
+  protected EntityManagerFactory createEntityManagerFactory(String emName,
+      Map properties, ClassLoader classLoader) {
     LOG.info("Creating entity manager factory");
     Map nonNullProperties = (properties == null) ? new HashMap() : properties;
     String name = emName;
@@ -59,10 +60,18 @@ public class SakaiPersistenceProvider extends PersistenceProvider {
 
     ClassLoader saved = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(amalgamatedClassloader);
-    EntityManagerFactory result = super.createEntityManagerFactory(emName, properties,
-        amalgamatedClassloader);
-    Thread.currentThread().setContextClassLoader(saved);
-    return result;
+    try {
+      EntityManagerFactory result = super.createEntityManagerFactory(emName, properties,
+          amalgamatedClassloader);
+      return result;
+    } catch (Throwable ex) {
+      LOG.error("Error creating Entity Manager with a a custom classloader of "
+          + amalgamatedClassloader + " cause:" + ex.getMessage(), ex);
+      throw new RuntimeException("Error creating Entity Manager with a a custom classloader of "
+          + amalgamatedClassloader + " cause:" + ex.getMessage(), ex);
+    } finally {
+      Thread.currentThread().setContextClassLoader(saved);
+    }
   }
 
 }
