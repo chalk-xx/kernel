@@ -128,7 +128,7 @@ public class DataSourceServiceImpl implements DataSourceService,
     poolableConnectionFactory = new PoolableConnectionFactory(
         connectionFactory, connectionPool, statementPoolFactory,
         validationQuery, defaultReadOnly, defaultAutoCommit);
-    dataSource = new PoolingDataSource(connectionPool);
+    dataSource = new DataSourceWrapper(new PoolingDataSource(connectionPool));
   }
 
   /**

@@ -18,9 +18,10 @@ public class ServiceResolver {
 	public ServiceResolver(BundleContext bc) { this.bc=bc; }
 	public ServiceResolver(ServiceResolver in) { this.bc=in.bc; }
 	
-	public Object getService(Class<?> klass) throws ServiceDisappearedException {
+	@SuppressWarnings("unchecked")
+  public <T> T getService(Class<T> klass) throws ServiceDisappearedException {
 		// Concurrency OK: if it's not null it won't change until shutdown.
-		Object out=services.get(klass.getCanonicalName());
+		T out = (T)services.get(klass.getCanonicalName());
 		if(out!=null) {
 			logger.info("Getting cached service: "+klass.getCanonicalName());			
 			return out;
@@ -33,7 +34,7 @@ public class ServiceResolver {
 		    	logger.warn("Service disappeared: "+klass.getCanonicalName());
 		    	throw new ServiceDisappearedException("Service disappeared: "+klass.getCanonicalName());
 		    }
-		    out=bc.getService(ref);
+		    out=(T) bc.getService(ref);
 		    services.put(klass.getCanonicalName(),out);
 		    service_refs.put(klass.getCanonicalName(),ref);
 		    logger.info("Got "+out);

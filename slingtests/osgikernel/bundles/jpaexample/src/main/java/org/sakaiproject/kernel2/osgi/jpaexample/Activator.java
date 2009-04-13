@@ -34,7 +34,7 @@ public class Activator implements BundleActivator, DelayedActivation {
   
   public void go(BundleContext bc, ServiceResolver bundleResolver, ServiceResolver startupResolver) throws Exception {
     LOG.info("Going");
-    EntityManager em = (EntityManager) startupResolver.getService(EntityManager.class);
+    EntityManager em = startupResolver.getService(EntityManager.class);
     JpaExample example = new JpaExample(em);
     example.exercise();
   }

@@ -43,9 +43,9 @@ public class JpaExample {
     LOG.info("Creating example model");
     ExampleModel model = new ExampleModel();
     model.setProperty("Some property");
-//    entityManager.getTransaction().begin();
+    entityManager.getTransaction().begin();
     entityManager.persist(model);
-//    entityManager.getTransaction().commit();
+    entityManager.getTransaction().commit();
 
     LOG.info("Attempting to read back model from database");
 
