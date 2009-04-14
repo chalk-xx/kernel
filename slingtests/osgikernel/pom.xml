@@ -45,6 +45,8 @@
         <module>bundles/jaxp-api</module>
         <module>bundles/registry</module>
         <module>bundles/lifecycle</module>
+        <module>bundles/jpa</module>
+        <module>bundles/jpacore</module>
         <module>libraries/utils</module>
       </modules>
     </profile>

@@ -94,13 +94,13 @@
     
     <!--  OSGi bundles -->
     <dependency>
-      <groupId>org.eclipse.persistence</groupId>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.eclipse.persistence.core</artifactId>
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.persistence</groupId>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
       <version>1.1.0</version>
       <scope>provided</scope>
