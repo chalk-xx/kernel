@@ -47,6 +47,7 @@
         <module>bundles/lifecycle</module>
         <module>bundles/jpa</module>
         <module>bundles/jpacore</module>
+        <module>bundles/jetty-config</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
