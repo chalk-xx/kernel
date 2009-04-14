@@ -42,9 +42,13 @@
         <module>bundles/memory</module>
         <module>bundles/uxloader</module>
         <module>bundles/jsr173</module>
+        <module>bundles/jsr311</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/registry</module>
         <module>bundles/lifecycle</module>
+        <module>bundles/jpa</module>
+        <module>bundles/jpacore</module>
+        <module>bundles/jetty-config</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
@@ -472,6 +476,12 @@
       </dependency>
       <dependency>
         <groupId>org.apache.felix</groupId>
+        <artifactId>org.osgi.foundation</artifactId>
+        <version>1.2.0</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.felix</groupId>
         <artifactId>org.osgi.compendium</artifactId>
         <version>1.2.0</version>
         <scope>provided</scope>
@@ -521,6 +531,15 @@
         <version>6.1.9</version>
         <scope>provided</scope>
       </dependency>
+
+<!-- JAX-RS, for utilities -->
+      <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>jaxrs-api</artifactId>
+        <version>1.0.2.GA</version>
+        <scope>provided</scope>
+      </dependency>
+
 <!-- Basic Logging -->
       <dependency>
         <groupId>org.slf4j</groupId>

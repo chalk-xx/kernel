@@ -17,9 +17,13 @@
  */
 package org.sakaiproject.kernel.guice;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Annotation to give precise control over how a service is exported.
  */
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceExportDescription {
 
   /**

@@ -17,37 +17,48 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.apache.xmlbeans.jsr173</artifactId>
-  <packaging>bundle</packaging>
-  <version>1.0</version>
-  <name>JSR 173 Bundle</name>
+  <artifactId>org.sakaiproject.kernel2.osgi.jetty-config</artifactId>
+  <packaging>jar</packaging>
+  <version>0.1-SNAPSHOT</version>
+  <name>Jetty Configuration</name>
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.xml.stream.* 
-            </Export-Package>
-          </instructions>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+
+                    <!-- Fixed Launcher Classes -->
+          <execution>
+            <id>inline-pax-web</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds> pax-web-service </includeArtifactIds>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-<!-- OSGi Libraries -->
     <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jsr173_api</artifactId>
-      <version>1.0</version>
-      <scope>compile</scope>
+      <groupId>org.ops4j.pax.web</groupId>
+      <artifactId>pax-web-service</artifactId>
+      <version>0.6.0</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

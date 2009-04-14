@@ -94,7 +94,7 @@
           </execution>
 
                     <!-- HttpService: Embedded Jetty, started at level 5 -->
-          <execution>
+           <execution>
             <id>copy-jetty-bundle</id>
             <goals>
               <goal>copy-dependencies</goal>
@@ -106,6 +106,20 @@
               </outputDirectory>
             </configuration>
           </execution>
+          <!-- 
+          <execution>
+            <id>copy-jetty-config</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds> org.sakaiproject.kernel2.osgi.jetty-config </includeArtifactIds>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory}/resources/bundles/5
+              </outputDirectory>
+            </configuration>
+          </execution>
+           -->
         </executions>
       </plugin>
       <plugin>
@@ -167,19 +181,24 @@
     <dependency>
       <groupId>org.ops4j.pax.web</groupId>
       <artifactId>pax-web-service</artifactId>
-      <version>0.2.3</version>
+      <version>0.6.0</version>
       <scope>provided</scope>
     </dependency>
-    
-    <!--  UX loader bundle -->
-<!-- 
+ <!-- 
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.uxloader</artifactId>
+      <artifactId>org.sakaiproject.kernel2.osgi.jetty-config</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
- -->
+  -->
+    
+    <!--  UX loader bundle -->
+    <!--
+      <dependency> <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.uxloader</artifactId>
+      <version>0.1-SNAPSHOT</version> <scope>provided</scope> </dependency>
+    -->
   </dependencies>
   <profiles>
     <profile>
