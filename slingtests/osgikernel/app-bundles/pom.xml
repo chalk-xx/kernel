@@ -91,6 +91,11 @@
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.jaxrs</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
@@ -107,8 +112,20 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.apache.xmlbeans.jsr173</artifactId>
+      <artifactId>javax.xml.bind.jsr173</artifactId>
       <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>javax.xml.bind.jaxb</artifactId>
+      <version>2.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>javax.activation</artifactId>
+      <version>1.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -156,7 +173,6 @@
       <version>0.9.0-incubator-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
- 
   </dependencies>
   <profiles>
     <profile>
@@ -177,7 +193,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.xmlbeans.jsr173,org.sakaiproject.kernel2.osgi.jaxp-api</includeArtifactIds>
+                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel2.osgi.jaxp-api</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
@@ -225,7 +241,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.uxloader,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.jaxrs,org.sakaiproject.kernel2.osgi.uxloader,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
