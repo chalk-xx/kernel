@@ -31,7 +31,6 @@
       <modules>
         <module>app</module>
         <module>app-bundles</module>
-        <module>bundles/uxloader</module>
         <module>bundles/guice</module>
         <module>bundles/guiceuser</module>
         <module>bundles/jpaexample</module>
@@ -40,7 +39,6 @@
         <module>bundles/db</module>
         <module>bundles/kernel</module>
         <module>bundles/memory</module>
-        <module>bundles/uxloader</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxrs</module>

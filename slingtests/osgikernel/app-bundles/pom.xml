@@ -83,11 +83,6 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.uxloader</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -241,7 +236,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.jaxrs,org.sakaiproject.kernel2.osgi.uxloader,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.jaxrs,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
