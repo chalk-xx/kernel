@@ -4,3 +4,6 @@
 target/
 m2-target/
 bin/
+derby.log
+create.sql
+drop.sql
