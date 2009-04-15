@@ -49,6 +49,7 @@
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
         <module>bundles/activation</module>
+        <module>bundles/presence</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
