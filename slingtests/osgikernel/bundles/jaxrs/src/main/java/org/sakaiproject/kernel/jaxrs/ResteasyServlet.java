@@ -24,18 +24,30 @@ import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.jboss.resteasy.spi.Registry;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.util.tracker.ServiceTracker;
+import org.sakaiproject.kernel.api.jaxrs.JaxRestService;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
 /**
- * 
+ * The <code>ResteasyServlet</code> TODO
+ *
+ * @scr.service interface="javax.servlet.Servlet"
+ * @scr.component immediate="true"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.property name="service.description" value="JAX-RS servlet based on Rest Easy"
+ * @scr.property name="sling.servlet.paths" value="/system/jaxrs"
  */
-/**
- * 
- */
-public class ResteasyServlet extends HttpServletDispatcher {
+
+public class ResteasyServlet extends HttpServletDispatcher  {
+  
+  
   /**
    *
    */
@@ -68,6 +80,11 @@ public class ResteasyServlet extends HttpServletDispatcher {
   private ResteasyProviderFactory factory = new ResteasyProviderFactory();
 
   /**
+   * Tracks JAXRS beans while alive.
+   */
+  private ServiceTracker jaxRsResourceTracker;
+
+  /**
    * {@inheritDoc}
    * @see org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher#init(javax.servlet.ServletConfig)
    */
@@ -77,12 +94,82 @@ public class ResteasyServlet extends HttpServletDispatcher {
     this.servletConfig = new ServletConfigWrapper(servletConfig);
     this.servletContext = this.servletConfig.getServletContext();
 
-    // Handle the bootstrapping that Resteasy normally handles in its context listener
-    bootstrap();
     
     super.init(this.servletConfig);
   }
 
+  
+  public ServletConfig getServletConfig() {
+    return servletConfig;
+  }
+  
+  /**
+   * {@inheritDoc}
+   * @see javax.servlet.GenericServlet#getServletContext()
+   */
+  public ServletContext getServletContext() {
+    return servletContext;
+  }
+  
+  
+  /**
+   * Component Activation
+   * @param context
+   */
+  protected void activate(ComponentContext componentContext) {
+    bootstrap();
+    BundleContext context= componentContext.getBundleContext();
+    ServiceReference[] jaxRsRefs = null;
+    try {
+      jaxRsRefs = context.getAllServiceReferences(JaxRestService.class.getName(), null);
+    } catch (InvalidSyntaxException e) {
+      e.printStackTrace();
+    }
+    if (jaxRsRefs != null) {
+      for (ServiceReference jaxRsRef : jaxRsRefs) {
+        registry.addSingletonResource(context.getService(jaxRsRef));
+      }
+    }
+
+
+    // Track JAX-RS Resources that are added and removed
+    jaxRsResourceTracker = new ServiceTracker(componentContext.getBundleContext(),
+        JaxRestService.class.getName(), null) {
+      /**
+       * {@inheritDoc}
+       * @see org.osgi.util.tracker.ServiceTracker#addingService(org.osgi.framework.ServiceReference)
+       */
+      @Override
+      public Object addingService(ServiceReference reference) {
+        JaxRestService jaxRsResource = (JaxRestService)context.getService(reference);
+        registry.addSingletonResource(jaxRsResource);
+        return super.addingService(reference);
+      }
+
+      /**
+       * {@inheritDoc}
+       * @see org.osgi.util.tracker.ServiceTracker#removedService(org.osgi.framework.ServiceReference, java.lang.Object)
+       */
+      @Override
+      public void removedService(ServiceReference reference, Object service) {
+        registry.removeRegistrations(context.getService(reference).getClass());
+        super.removedService(reference, service);
+      }
+    };
+    jaxRsResourceTracker.open();
+
+  }
+  
+  /**
+   * Deactivate this component
+   * @param context
+   */
+  protected void deactivate(ComponentContext context) {
+    jaxRsResourceTracker.close();
+    
+  }
+  
+  
   /**
    * 
    */
@@ -99,25 +186,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
     // Can't seem to get the resteasy input stream provider to work
     factory.addMessageBodyWriter(new InputStreamProvider());
   }
-  
-  public ServletConfig getServletConfig() {
-    return servletConfig;
-  }
-  
-  /**
-   * {@inheritDoc}
-   * @see javax.servlet.GenericServlet#getServletContext()
-   */
-  public ServletContext getServletContext() {
-    return servletContext;
-  }
-  
-  /**
-   * @return
-   */
-  public Registry getRegistry() {
-    return registry;
-  }
+
 }
 
 
