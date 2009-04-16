@@ -37,9 +37,8 @@
             <Export-Package> org.sakaiproject.kernel.api.presence </Export-Package>
             <Import-Package>org.sakaiproject.kernel.api.memory</Import-Package>
             <Private-Package>org.sakaiproject.kernel.presence.*</Private-Package>
-            <DynamicImport-Package>com.google.common.collect, com.google.inject, org.apache.commons.lang</DynamicImport-Package>
+            <DynamicImport-Package>com.google.common.collect, org.apache.commons.lang</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency></Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -80,13 +79,17 @@
       <artifactId>google-collections</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.guice</groupId>
-      <artifactId>guice</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi_R4_core</artifactId>
+      <version>1.0</version></dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>osgi_R4_compendium</artifactId>
+      <version>1.0</version></dependency>
   </dependencies>
 </project>
