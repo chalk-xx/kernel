@@ -101,6 +101,11 @@
       <artifactId>org.sakaiproject.kernel2.osgi.session</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.locking</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
@@ -234,7 +239,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.db</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.db,org.sakaiproject.kernel2.osgi.locking</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
