@@ -52,7 +52,6 @@
             <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>>
             <Embed-Transitive> true </Embed-Transitive>
             <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.* </Export-Package>
-            <Bundle-Activator> org.sakaiproject.kernel.jaxrs.OsgiActivator </Bundle-Activator>
           </instructions>
         </configuration>
       </plugin>
@@ -84,6 +83,12 @@
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>jaxrs-api</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.api</artifactId>
+      <scope>provided</scope>
+      <version>2.0.3-incubator-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
