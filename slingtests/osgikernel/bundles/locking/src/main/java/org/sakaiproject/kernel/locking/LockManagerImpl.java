@@ -18,14 +18,14 @@
 package org.sakaiproject.kernel.locking;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.kernel.api.locking.Lock;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -34,7 +34,7 @@ import java.security.SecureRandom;
  * A lock manager that uses a cluster replicated cache to manage the locks
  * 
  * @scr.component immediate="true" metatype="no"
- * @scr.property name="service.description" value="In JVM Lock Manager Filter"
+ * @scr.property name="service.description" value="In JVM Lock Manager"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.locking.LockManager"
  * @scr.reference name="cacheManagerService"
@@ -53,12 +53,33 @@ public class LockManagerImpl implements LockManager {
    *
    */
   private static final String REQUEST_LOCKS = "lockmanager.requestmap";
-  private static final Log LOG = LogFactory.getLog(LockManagerImpl.class);
-  private static final boolean debug = LOG.isDebugEnabled();
+  /**
+   * The Logger
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(LockManagerImpl.class);
+  /**
+   * debug flag set at service creation.
+   */
+  private static final boolean debug = LOGGER.isDebugEnabled();
+  /**
+   * Service dependency, the Cache Manager
+   */
   private CacheManagerService cacheManagerService;
+  /**
+   * container for Locks.
+   */
   private Cache<LockImpl> lockMap;
+  /**
+   * The id of this instance of this class.
+   */
   private long instanceId;
+  /**
+   *
+   */
   private SecureRandom random;
+  /**
+   *
+   */
   private ThreadLocal<Long> threadId = new ThreadLocal<Long>() {
     /**
      * {@inheritDoc}
@@ -124,7 +145,7 @@ public class LockManagerImpl implements LockManager {
   protected void unlock(LockImpl lock) {
     if (lock.isOwner() && lock.isLocked()) {
       if (debug) {
-        LOG.debug(Thread.currentThread() + " unlocked " + lock.getLocked());
+        LOGGER.debug(Thread.currentThread() + " unlocked " + lock.getLocked());
       }
       lock.setLocked(false);
       synchronized (monitor) {
@@ -156,13 +177,13 @@ public class LockManagerImpl implements LockManager {
     long sleepTime = 100;
     int tries = 0;
     if (debug) {
-      LOG.debug(Thread.currentThread() + " locking " + id);
+      LOGGER.debug(Thread.currentThread() + " locking " + id);
     }
     while (tries++ < 300) {
       Lock lock = getLock(id);
       if (lock != null && lock.isOwner()) {
         if (debug) {
-          LOG.debug(Thread.currentThread() + " lock Granted " + lock.getLocked());
+          LOGGER.debug(Thread.currentThread() + " lock Granted " + lock.getLocked());
         }
         return lock;
       }
@@ -172,10 +193,10 @@ public class LockManagerImpl implements LockManager {
       try {
         
         if (debug && tries % 5 == 0) {
-          LOG.debug(Thread.currentThread() + " locking " + id);
+          LOGGER.debug(Thread.currentThread() + " locking " + id);
         }
         if (tries % 100 == 0) {
-          LOG.warn(Thread.currentThread() + " Waiting for " + sleepTime
+          LOGGER.warn(Thread.currentThread() + " Waiting for " + sleepTime
               + " ms " + tries);
         }
         Thread.sleep(sleepTime);
