@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.webapp.filter;
 
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
+import org.sakaiproject.kernel.api.session.SessionManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,9 @@ import javax.transaction.TransactionManager;
  * @scr.reference name="cacheManagerService"
  *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  *                bind="bindCacheManagerService" unbind="unbindCacheManagerService"
+ * @scr.reference name="sessionManagerService"
+ *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
+ *                bind="bindSessionManagerService" unbind="unbindSessionManagerService"
  */
 public class SakaiRequestFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiRequestFilter.class);
@@ -69,6 +73,8 @@ public class SakaiRequestFilter implements Filter {
   private TransactionManager transactionManager;
 
   private CacheManagerService cacheManagerService;
+  
+  private SessionManagerService sessionManagerService;
 
   /**
    * {@inheritDoc}
@@ -98,6 +104,7 @@ public class SakaiRequestFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest hrequest = (HttpServletRequest) request;
     HttpServletResponse hresponse = (HttpServletResponse) response;
+    sessionManagerService.bindRequest(hrequest);
     String requestedSessionID = hrequest.getRequestedSessionId();
     try {
       begin();
@@ -226,6 +233,20 @@ public class SakaiRequestFilter implements Filter {
    */
   protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
     this.cacheManagerService = null;
+  }
+
+  /**
+   * @param sessionManagerService
+   */
+  protected void bindSessionManagerService(SessionManagerService sessionManagerService) {
+    this.sessionManagerService = sessionManagerService;
+  }
+
+  /**
+   * @param sessionManagerService
+   */
+  protected void unbindSessionManagerService(SessionManagerService sessionManagerService) {
+    this.sessionManagerService = null;
   }
 
 }
