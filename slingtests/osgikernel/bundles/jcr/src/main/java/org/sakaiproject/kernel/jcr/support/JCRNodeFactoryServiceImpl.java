@@ -40,20 +40,38 @@ import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 /**
- * @author ieb This is a support service to make it easier to treat a JCR service as a
+ * This is a support service to make it easier to treat a JCR service as a
  *         Filing System.
- *
- **/
+ *         
+ * @scr.component immediate="true" metatype="no"
+ * @scr.property name="service.description" value="The JCR Node Factory Service"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.service interface="org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService"
+ * @scr.reference name="jcrService"
+ *                interface="org.sakaiproject.kernel.api.jcr.JCRService"
+ *                bind="bindJcrService" unbind="unbindJcrService"
+ */
 public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
 
+  /**
+   *
+   */
   private static final Logger LOGGER = LoggerFactory.getLogger(JCRNodeFactoryServiceImpl.class);
 
+  /**
+   *
+   */
   private static final boolean debug = LOGGER.isDebugEnabled();
 
+  /**
+   * Service Dependency, managed.
+   */
   private JCRService jcrService;
 
-  public JCRNodeFactoryServiceImpl(JCRService jcrService) {
-    this.jcrService = jcrService;
+  /**
+   * 
+   */
+  public JCRNodeFactoryServiceImpl() {
   }
 
   private void populateFile(Node node, String mimeType) throws RepositoryException {
@@ -359,4 +377,11 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
     node.setProperty(JCRConstants.ACL_OWNER, uuid);
   }
 
+  
+  protected void bindJcrService(JCRService jcService) {
+    this.jcrService = jcService;
+  }
+  protected void unbindJcrService(JCRService jcService) {
+    this.jcrService = null;
+  }
 }
