@@ -51,7 +51,7 @@ import javax.transaction.TransactionManager;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="filter.scope" value="request" private="true"
  * @scr.property name="filter.order" value="10" type="Integer" private="true"
- * @scr.service interface="javax.servlet.Filter"cd bu 
+ * @scr.service interface="javax.servlet.Filter" 
  * @scr.reference name="transactionManager"
  *                interface="javax.transaction.TransactionManager"
  *                bind="bindTransactionManager" unbind="unbindTransactionManager"
