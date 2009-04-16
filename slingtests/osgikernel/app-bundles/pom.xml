@@ -96,6 +96,11 @@
       <artifactId>org.sakaiproject.kernel2.osgi.filters</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.session</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
@@ -217,7 +222,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.registry,org.sakaiproject.kernel2.osgi.memory,org.sakaiproject.kernel2.osgi.guiceuser,org.sakaiproject.kernel2.osgi.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.registry,org.sakaiproject.kernel2.osgi.memory,org.sakaiproject.kernel2.osgi.session,org.sakaiproject.kernel2.osgi.guiceuser,org.sakaiproject.kernel2.osgi.jpaprovider</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
