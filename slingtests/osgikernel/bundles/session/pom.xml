@@ -42,25 +42,6 @@
           </instructions>
         </configuration>
       </plugin>
-<!--
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>embed-dependencies</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>ehcache,backport-util-concurrent,jsr107cache</includeArtifactIds>
-              <excludeTransitive>false</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
--->
     </plugins>
   </build>
   <dependencies>
