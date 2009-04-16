@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.kernel.registry;
 
-import com.google.inject.Singleton;
-
 import org.sakaiproject.kernel.api.registry.Provider;
 import org.sakaiproject.kernel.api.registry.Registry;
 import org.sakaiproject.kernel.api.registry.RegistryService;
