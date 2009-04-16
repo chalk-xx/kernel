@@ -94,6 +94,7 @@
           </execution>
 
                     <!-- HttpService: Embedded Jetty, started at level 5 -->
+          <!-- 
            <execution>
             <id>copy-jetty-bundle</id>
             <goals>
@@ -106,7 +107,7 @@
               </outputDirectory>
             </configuration>
           </execution>
-          <!-- 
+           -->
           <execution>
             <id>copy-jetty-config</id>
             <goals>
@@ -119,7 +120,6 @@
               </outputDirectory>
             </configuration>
           </execution>
-           -->
         </executions>
       </plugin>
       <plugin>
@@ -178,20 +178,20 @@
     </dependency>
 
         <!-- HttpService: Embedded Jetty -->
+ <!-- 
     <dependency>
       <groupId>org.ops4j.pax.web</groupId>
       <artifactId>pax-web-service</artifactId>
       <version>0.6.0</version>
       <scope>provided</scope>
     </dependency>
- <!-- 
+  -->
     <dependency>
       <groupId>org.sakaiproject.kernel2.osgi</groupId>
       <artifactId>org.sakaiproject.kernel2.osgi.jetty-config</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
-  -->
     
     <!--  UX loader bundle -->
     <!--
