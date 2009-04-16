@@ -17,10 +17,10 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>javax.xml.bind.jsr173</artifactId>
+  <artifactId>javax.activation</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0</version>
-  <name>JSR 173 Bundle</name>
+  <version>1.1</version>
+  <name>Javax Activation Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -34,7 +34,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.xml.stream.* 
+            <Export-Package> javax.activation.* , com.sun.activation.*
             </Export-Package>
           </instructions>
         </configuration>
@@ -44,9 +44,9 @@
   <dependencies>
 <!-- OSGi Libraries -->
     <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jsr173_api</artifactId>
-      <version>1.0</version>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

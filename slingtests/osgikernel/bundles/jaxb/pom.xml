@@ -17,10 +17,10 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>javax.xml.bind.jsr173</artifactId>
+  <artifactId>javax.xml.bind.jaxb</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0</version>
-  <name>JSR 173 Bundle</name>
+  <version>2.1</version>
+  <name>Jaxb Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -34,7 +34,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.xml.stream.* 
+            <Export-Package> javax.xml.bind.* 
             </Export-Package>
           </instructions>
         </configuration>
@@ -45,8 +45,8 @@
 <!-- OSGi Libraries -->
     <dependency>
       <groupId>javax.xml.bind</groupId>
-      <artifactId>jsr173_api</artifactId>
-      <version>1.0</version>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.1</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

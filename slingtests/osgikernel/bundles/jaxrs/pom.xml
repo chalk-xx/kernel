@@ -17,10 +17,10 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.jsr311</artifactId>
+  <artifactId>org.sakaiproject.kernel2.osgi.jaxrs</artifactId>
   <packaging>bundle</packaging>
-  <version>1.0</version>
-  <name>JSR 311 Bundle</name>
+  <version>0.1-SNAPSHOT</version>
+  <name>JAX-RS 311 Bundle</name>
   <repositories>
     <repository>
       <id>jboss</id>
@@ -41,15 +41,18 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Import-Package> !Acme.Serve, !com.sun.*, !org.apache.commons.httpclient.*,
+            <Import-Package> !Acme.Serve, com.sun.*;resolution:=optional, !org.apache.log.*, org.apache.oro.*;resolution:=optional, !org.apache.commons.httpclient.*,
               !org.codehaus.groovy.*, !org.junit.*, !org.scannotation.*, !groovy.lang,
-              !junit.framework.*, !nu.xom, net.sf.ezmorph.*, org.apache.commons.*,
-              org.jboss.resteasy.*, org.codehaus.jettison.*, org.scannotation.*,
+              !junit.framework.*, !nu.xom, net.sf.ezmorph.*, !org.apache.commons.*, !org.apache.avalon.*,
+              org.jboss.resteasy.*, org.codehaus.jettison.*;resolution:=optional, org.scannotation.*,
               javassist.bytecode.*, * </Import-Package>
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
-              scannotation, javassist, jaxrs-api </Embed-Dependency>
-            <Export-Package> org.opencastproject.rest, javax.ws.rs.* </Export-Package>
-            <Bundle-Activator> org.opencastproject.rest.OsgiActivator </Bundle-Activator>
+              scannotation, javassist,  commons-beanutils, commons-logging, commons-lang, 
+              commons-collections, commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
+            <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>>
+            <Embed-Transitive> true </Embed-Transitive>
+            <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.* </Export-Package>
+            <Bundle-Activator> org.sakaiproject.kernel.jaxrs.OsgiActivator </Bundle-Activator>
           </instructions>
         </configuration>
       </plugin>
@@ -80,6 +83,7 @@
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
       <artifactId>jaxrs-api</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
