@@ -55,7 +55,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
   /**
    *
    */
-  public static final String SERVLET_PATH = "/_rest";
+  public static final String SERVLET_PATH = "/system/jaxrs";
   /**
    *
    */

@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.api.jaxrs;
 
 /**
  * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/_rest/*" URL space.
+ * the global "/system/jaxrs/*" URL space.
  */
 public interface JaxRestService {
 }
