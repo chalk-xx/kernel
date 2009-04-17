@@ -15,11 +15,40 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
+package org.sakaiproject.kernel.api.session;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
+ * The session manager service manages sessions
  */
-public interface JaxRestService {
+public interface SessionManagerService {
+
+  /**
+   *
+   * @return the current session bound to the thread.
+   */
+  HttpSession getCurrentSession();
+
+  /**
+   * @return the current request bound to the thread.
+   */
+  HttpServletRequest getCurrentRequest();
+  
+  /**
+   * @param request
+   *          bind the current request to the thread
+   */
+  void bindRequest(HttpServletRequest request);
+
+
+  /**
+   * Get the current user, but don't create a session, if there isn't one there
+   * already.
+   *
+   * @return
+   */
+  String getCurrentUserId();
+
 }

@@ -15,11 +15,38 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
+package org.sakaiproject.kernel.api.locking;
 
 /**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
+ * Lock manager provides a mechanism for locking uniquely identified objects across the
+ * cluster.
  */
-public interface JaxRestService {
+public interface LockManager {
+
+  /**
+   * @param id
+   * @return
+   */
+  Lock getLock(String id);
+
+  /**
+   * @param id
+   * @param create
+   * @return
+   */
+  Lock getLock(String id, boolean create);
+
+  /**
+   * @param id
+   * @return
+   * @throws LockTimeoutException
+   *           indicates that a lock was not achieved within the a timeout (30s)
+   */
+  Lock waitForLock(String id) throws LockTimeoutException;
+
+  /**
+   * clear the locks associated with this request.
+   */
+  void clearLocks();
+
 }

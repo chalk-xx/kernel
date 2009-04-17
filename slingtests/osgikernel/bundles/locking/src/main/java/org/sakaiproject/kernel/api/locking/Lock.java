@@ -15,11 +15,43 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
+package org.sakaiproject.kernel.api.locking;
+
+import java.io.Serializable;
 
 /**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
+ * The Lock on the object.
  */
-public interface JaxRestService {
+public interface Lock extends Serializable {
+  /**
+   * @return true if the lock is held by this thread
+   */
+  boolean isOwner();
+
+  /**
+   * @return true if the lock is from this node in the cluster.
+   */
+  boolean isLocal();
+  /**
+   * @return the owner of the lock
+   */
+  String getOwner();
+  /**
+   * @return the ID of the object that has been locked.
+   */
+  String getLocked();
+  /**
+   * Unlock the item and dispose of the lock.
+   */
+  void unlock();
+
+  /**
+   * @return true if the lock is locked.
+   */
+  boolean isLocked();
+
+  /**
+   * @return the id of the lock.
+   */
+  long getLockId();
 }

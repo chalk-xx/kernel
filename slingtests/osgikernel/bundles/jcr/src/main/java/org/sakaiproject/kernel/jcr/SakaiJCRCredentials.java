@@ -15,11 +15,17 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
 
-/**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
- */
-public interface JaxRestService {
+package org.sakaiproject.kernel.jcr;
+
+import javax.jcr.Credentials;
+
+public class SakaiJCRCredentials implements Credentials
+{
+
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = -8183389204992412560L;
+
 }

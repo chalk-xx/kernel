@@ -49,6 +49,10 @@
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
         <module>bundles/activation</module>
+        <module>bundles/filters</module>
+        <module>bundles/session</module>
+        <module>bundles/jcr</module>
+        <module>bundles/locking</module>
         <module>bundles/presence</module>
         <module>libraries/utils</module>
       </modules>

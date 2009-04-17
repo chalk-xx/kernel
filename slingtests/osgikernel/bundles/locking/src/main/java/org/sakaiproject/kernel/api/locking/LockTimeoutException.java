@@ -15,11 +15,44 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
+package org.sakaiproject.kernel.api.locking;
 
 /**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
+ * 
  */
-public interface JaxRestService {
+public class LockTimeoutException extends Exception {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 544960393235970199L;
+
+  /**
+   * 
+   */
+  public LockTimeoutException() {
+  }
+
+  /**
+   * @param message
+   */
+  public LockTimeoutException(String message) {
+    super(message);
+  }
+
+  /**
+   * @param cause
+   */
+  public LockTimeoutException(Throwable cause) {
+    super(cause);
+  }
+
+  /**
+   * @param message
+   * @param cause
+   */
+  public LockTimeoutException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

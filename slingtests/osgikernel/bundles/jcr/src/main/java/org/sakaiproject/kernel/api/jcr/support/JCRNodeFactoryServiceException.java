@@ -15,11 +15,44 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.jaxrs;
+package org.sakaiproject.kernel.api.jcr.support;
 
 /**
- * A marker interface indicating that this JAX-RS resource should participate in
- * the global "/system/jaxrs/*" URL space.
+ * Failed to perform action inside the JCRNodeFactoryService.
  */
-public interface JaxRestService {
+public class JCRNodeFactoryServiceException extends Exception {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
+  /**
+	 *
+	 */
+  public JCRNodeFactoryServiceException() {
+  }
+
+  /**
+   * @param arg0
+   */
+  public JCRNodeFactoryServiceException(String arg0) {
+    super(arg0);
+  }
+
+  /**
+   * @param arg0
+   */
+  public JCRNodeFactoryServiceException(Throwable arg0) {
+    super(arg0);
+  }
+
+  /**
+   * @param arg0
+   * @param arg1
+   */
+  public JCRNodeFactoryServiceException(String arg0, Throwable arg1) {
+    super(arg0, arg1);
+  }
+
 }
