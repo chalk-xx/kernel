@@ -19,13 +19,14 @@
 package org.sakaiproject.kernel.messaging;
 
 import org.sakaiproject.kernel.api.jcr.JCRService;
-import org.sakaiproject.kernel.api.messaging.DateUtils;
 import org.sakaiproject.kernel.api.messaging.EmailMessage;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageConverter;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 import org.sakaiproject.kernel.api.messaging.MessagingException;
 import org.sakaiproject.kernel.api.messaging.MessagingService;
+import org.sakaiproject.kernel.util.DateUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -62,19 +63,12 @@ public class JcrMessagingService implements MessagingService {
     msg.setHeader(Message.Field.DATE, date);
 
     try {
-      // convert message to the storage format (json)
-      // String json = messageConverter.toString(msg);
-
-      // create an input stream to the content and write to JCR
-      // ByteArrayInputStream bais = new
-      // ByteArrayInputStream(json.getBytes("UTF-8"));
-
       // get the path for the outbox
-      String path = userFactory.getMessagesPath(msg.getFrom()) + "/"
-          + MessagingConstants.FOLDER_OUTBOX + "/";
+      String path = userFactory.getUserPrivatePath(msg.getFrom()) + "/"
+          + MessagingConstants.FOLDER_MESSAGES + "/" + MessagingConstants.FOLDER_OUTBOX + "/";
 
       // create a sha-1 hash of the content to use as the message name
-      String msgName = org.sakaiproject.kernel.util.StringUtils.sha1Hash(path + new Date());
+      String msgName = StringUtils.sha1Hash(path + new Date());
 
       Session session = jcr.getSession();
       Node root = session.getRootNode();
