@@ -29,7 +29,11 @@ import org.sakaiproject.kernel.api.messaging.MessagingService;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 /**
  * @scr.component
@@ -115,5 +119,33 @@ public class JsonMessageConverter implements MessageConverter {
       }
     }
     return msg;
+  }
+
+  /**
+   * Convert a message to JCR nodes. The conversion traverses all parts of all
+   * messages and sets up a similar node structure.
+   *
+   * @param node
+   * @param msg
+   * @throws ConversionException
+   */
+  public void toNode(Node node, Message msg) throws ConversionException {
+    if (node != null) {
+      try {
+        node.setProperty(Message.Field.BODY_TEXT.toString(), msg.getText());
+        node.setProperty(Message.Field.BODY_URL.toString(), msg.getBody().toExternalForm());
+        for (Entry<String, String> header : msg.getHeaders().entrySet()) {
+          node.setProperty(header.getKey(), header.getValue());
+        }
+
+        List<Message> parts = msg.getParts();
+        for (int i = 0; i < parts.size(); i++) {
+          Node next = node.addNode("parts[" + i + "]");
+          toNode(next, parts.get(i));
+        }
+      } catch (RepositoryException e) {
+        throw new ConversionException(e.getMessage(), e);
+      }
+    }
   }
 }

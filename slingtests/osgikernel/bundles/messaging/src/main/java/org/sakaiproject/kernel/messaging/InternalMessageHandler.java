@@ -19,17 +19,16 @@
 package org.sakaiproject.kernel.messaging;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.osgi.service.log.LogService;
-import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
-import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryServiceException;
+import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 
-import java.io.InputStream;
+import java.util.Date;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -42,84 +41,75 @@ import javax.jcr.Workspace;
  */
 public class InternalMessageHandler implements MessageHandler {
   private static final String TYPE = Message.Type.INTERNAL.toString();
+  private static final FastDateFormat dateStruct;
 
-  /** @scr.resource */
-  private Session session;
+  static {
+    dateStruct = FastDateFormat.getInstance("yyyy/MM/");
+  }
 
-  /** @scr.resource */
+  /** @scr.reference */
+  private JCRService jcr;
+
+  /** @scr.reference */
   private LogService log;
 
-  /** @scr.resource */
+  /** @scr.reference */
   private final UserFactoryService userFactory;
 
-  /** @scr.resource */
-  private final JCRNodeFactoryService nodeFactory;
-
-  // public InternalMessageHandler(RegistryService registryService,
-  // JCRService jcr, UserFactoryService userFactory,
-  // JCRNodeFactoryService nodeFactory) {
-  // Registry<String, MessageHandler> registry = registryService
-  // .getRegistry(MessageHandler.REGISTRY);
-  // registry.add(this);
-  // this.jcr = jcr;
-  // this.userFactory = userFactory;
-  // this.nodeFactory = nodeFactory;
-  // }
-
   public void handle(String userID, String filePath, String fileName, Node node) {
+    Session session = jcr.getSession();
+    Workspace workspace = session.getWorkspace();
+
     try {
-      Property prop = node.getProperty(MessagingConstants.JCR_MESSAGE_RCPTS);
-      String rcptsVal = prop.getString();
-      String[] rcpts = StringUtils.split(rcptsVal, ",");
+      Property toProp = node.getProperty(Message.Field.TO.toString());
+      String toVal = toProp.getString();
+      String[] rcpts = StringUtils.split(toVal, ",");
 
       if (rcpts != null) {
         for (String rcpt : rcpts) {
-          /** set message path for the user. */
-          String msgPath = userFactory.getNewMessagePath(rcpt) + "/" + fileName;
+          String msgPath = buildMessagesPath(rcpt) + fileName;
           log.log(LogService.LOG_DEBUG, "Writing " + filePath + " to " + msgPath);
-          InputStream in = nodeFactory.getInputStream(filePath);
-          Node n = nodeFactory.setInputStream(msgPath, in, "UTF-8");
+          workspace.copy(filePath, msgPath);
+          Node n = (Node) session.getItem(msgPath);
           n.setProperty(MessagingConstants.JCR_LABELS, "inbox");
-//          JcrUtils.addNodeLabel(jcr, n, "inbox");
-          /** TODO remove any properties that are associated to the sender */
         }
       }
+
       // move the original node to the common message store for the sender and
       // label it as "sent". create the parent if it doesn't exist.
-      Property fromProp = node.getProperty(MessagingConstants.JCR_MESSAGE_FROM);
+      Property fromProp = node.getProperty(Message.Field.FROM.toString());
       String from = fromProp.getString();
-      String sentPath = userFactory.getNewMessagePath(from);
-      Node targetNode = null;
-      try {
-        targetNode = nodeFactory.getNode(sentPath);
-      } catch (PathNotFoundException e) {
-        // will handle null node after this
-      }
-      if (targetNode == null) {
-        targetNode = nodeFactory.createFolder(sentPath);
-        // the node *must* be saved to make it available to the move.
-        // call to the parent-parent so that "messages" is used as the saving
-        // node rather than the parent (year) as it may not exist yet.
-        targetNode.getParent().getParent().save();
-      }
+
+      String sentPath = buildMessagesPath(from);
+      // if (!session.itemExists(sentPath)) {
+      // Node root = session.getRootNode();
+      // Node targetNode = root.addNode(sentPath);
+      // // the node *must* be saved to make it available to the move.
+      // // call to the parent-parent so that "messages" is used as the saving
+      // // node rather than the parent (year) as it may not exist yet.
+      // targetNode.getParent().getParent().save();
+      // }
       String sentMsgPath = sentPath + "/" + fileName;
       log.log(LogService.LOG_DEBUG, "Moving message " + filePath + " to " + sentMsgPath);
-      Workspace workspace = session.getWorkspace();
       workspace.move(filePath, sentMsgPath);
-      Node movedNode = nodeFactory.getNode(sentMsgPath);
+      Node movedNode = (Node) session.getItem(sentMsgPath);
       movedNode.setProperty(MessagingConstants.JCR_LABELS, "sent");
-//      JcrUtils.addNodeLabel(jcr, nodeFactory.getNode(sentMsgPath), "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      log.log(LogService.LOG_ERROR, e.getMessage(), e);
-    } catch (JCRNodeFactoryServiceException e) {
-      log.log(LogService.LOG_ERROR, e.getMessage(), e);
-    } catch (LockTimeoutException e) {
       log.log(LogService.LOG_ERROR, e.getMessage(), e);
     }
   }
 
   public String getType() {
     return TYPE;
+  }
+
+  private String buildMessagesPath(String user) {
+    Date now = new Date();
+    String msgStructPath = dateStruct.format(now);
+    String path = userFactory.getUserPrivatePath(user);
+    path += MessagingConstants.FOLDER_MESSAGES;
+    path += msgStructPath;
+    return path;
   }
 }

@@ -31,14 +31,9 @@ import java.util.Map;
  * Base implementation for messages
  */
 public class MessageImpl implements Message {
-
-  /**
-   *
-   */
   private static final long serialVersionUID = -5961927759010420137L;
   public static final String TEXT_PLAIN = "text/plain";
   public static final String TEXT_HTML = "text/html";
-
 
   private transient final MessagingService messagingService;
   private final HashMap<String, String> headers;

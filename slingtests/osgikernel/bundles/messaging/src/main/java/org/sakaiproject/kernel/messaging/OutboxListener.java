@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.messaging;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
+import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 
@@ -46,7 +47,9 @@ public class OutboxListener implements EventListener {
   private JCRService jcr;
 
   /**
-   * @scr.reference policy="dynamic" cardinality="0..n" bind="addHandler"
+   * @scr.reference
+   *                interface="org.sakaiproject.kernel.api.messaging.MessageHandler"
+   *                policy="dynamic" cardinality="0..n" bind="addHandler"
    *                unbind="removeHandler"
    */
   private List<MessageHandler> handlers;
@@ -156,7 +159,7 @@ public class OutboxListener implements EventListener {
           // message type
           Session session = jcr.getSession();
           Node n = (Node) session.getItem(filePath);
-          Property msgTypeProp = n.getProperty(MessagingConstants.JCR_MESSAGE_TYPE);
+          Property msgTypeProp = n.getProperty(Message.Field.TYPE.toString());
           String msgType = msgTypeProp.getString();
           boolean handled = false;
           if (msgType != null && handlers != null) {

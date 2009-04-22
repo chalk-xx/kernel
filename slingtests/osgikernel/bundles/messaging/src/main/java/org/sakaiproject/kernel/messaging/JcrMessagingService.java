@@ -18,6 +18,7 @@
 
 package org.sakaiproject.kernel.messaging;
 
+import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.DateUtils;
 import org.sakaiproject.kernel.api.messaging.EmailMessage;
 import org.sakaiproject.kernel.api.messaging.Message;
@@ -26,9 +27,9 @@ import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 import org.sakaiproject.kernel.api.messaging.MessagingException;
 import org.sakaiproject.kernel.api.messaging.MessagingService;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -48,7 +49,7 @@ public class JcrMessagingService implements MessagingService {
   private UserFactoryService userFactory;
 
   /** @scr.reference */
-  private Session session;
+  private JCRService jcr;
 
   /**
    * {@inheritDoc}
@@ -62,26 +63,25 @@ public class JcrMessagingService implements MessagingService {
 
     try {
       // convert message to the storage format (json)
-      String json = messageConverter.toString(msg);
+      // String json = messageConverter.toString(msg);
 
       // create an input stream to the content and write to JCR
-      ByteArrayInputStream bais = new ByteArrayInputStream(json.getBytes("UTF-8"));
+      // ByteArrayInputStream bais = new
+      // ByteArrayInputStream(json.getBytes("UTF-8"));
 
       // get the path for the outbox
       String path = userFactory.getMessagesPath(msg.getFrom()) + "/"
           + MessagingConstants.FOLDER_OUTBOX + "/";
 
       // create a sha-1 hash of the content to use as the message name
-      String msgName = org.sakaiproject.kernel.util.StringUtils.sha1Hash(json);
+      String msgName = org.sakaiproject.kernel.util.StringUtils.sha1Hash(path + new Date());
+
+      Session session = jcr.getSession();
+      Node root = session.getRootNode();
 
       // write the data to the node
-      Node n = jcrNodeFactory.setInputStream(path + msgName, bais, "application/json");
-
-      // set the type, recipients and date as node properties
-      n.setProperty(MessagingConstants.JCR_MESSAGE_TYPE, msg.getType());
-      n.setProperty(MessagingConstants.JCR_MESSAGE_FROM, msg.getFrom());
-      n.setProperty(MessagingConstants.JCR_MESSAGE_RCPTS, msg.getTo());
-      n.setProperty(MessagingConstants.JCR_MESSAGE_DATE, date);
+      Node n = root.addNode(path + msgName);
+      messageConverter.toNode(n, msg);
     } catch (RepositoryException e) {
       throw new MessagingException(e.getMessage(), e);
     } catch (IOException e) {

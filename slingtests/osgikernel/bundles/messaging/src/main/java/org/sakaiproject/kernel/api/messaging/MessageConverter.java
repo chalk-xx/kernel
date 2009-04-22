@@ -17,6 +17,12 @@
  */
 package org.sakaiproject.kernel.api.messaging;
 
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
 /**
  *
  */
@@ -24,4 +30,14 @@ public interface MessageConverter {
   String toString(Message msg) throws ConversionException;
 
   Message toMessage(String json) throws ConversionException;
+
+  /**
+   * Convert a message to JCR nodes. The conversion traverses all parts of all
+   * messages and sets up a similar node structure.
+   *
+   * @param node
+   * @param msg
+   * @throws ConversionException
+   */
+  public void toNode(Node node, Message msg) throws ConversionException;
 }
