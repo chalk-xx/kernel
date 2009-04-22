@@ -289,11 +289,7 @@ public class JCRServiceImpl implements JCRService {
       LOGGER.error("Failed to get ObservationManager from workspace");
       e.printStackTrace();
     } finally {
-      try {
-        s.logout();
-      } catch (Exception ex) {
-      }
-      ;
+      // no session logout or else the observation manager will not work.
     }
     return observationManager;
   }
