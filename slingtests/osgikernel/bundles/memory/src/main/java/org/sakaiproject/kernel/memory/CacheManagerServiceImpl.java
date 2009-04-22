@@ -38,7 +38,8 @@ import javax.management.MBeanServer;
 /**
  * The <code>CacheManagerServiceImpl</code>
  *
- * @scr.component immediate="true" label="CacheManagerServiceImpl" description="Implementation of the Cache Manager Service"
+ * @scr.component immediate="true" label="CacheManagerServiceImpl"
+ * description="Implementation of the Cache Manager Service"
  *          name="org.sakaiproject.kernel.api.memory.CacheManagerService"
  * @scr.service interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
