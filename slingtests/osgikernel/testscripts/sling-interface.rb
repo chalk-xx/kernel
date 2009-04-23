@@ -18,12 +18,14 @@ def execute_post(path, post_params)
   req = Net::HTTP::Post.new(uri.path)
   req.basic_auth('admin', 'admin')
   req.set_form_data(post_params)
-  return Net::HTTP.new(uri.host, uri.port).start{|http| http.request(req)}
+  return Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
 end
 
 def execute_get(path)
   uri = URI.parse(path)
-  return Net::HTTP.start(uri.host, uri.port) { |http| http.get(uri.path) }
+  req = Net::HTTP::Get.new(uri.path)
+  req.basic_auth('admin', 'admin')
+  return Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
 end
 
 def create_user(id)
@@ -32,6 +34,7 @@ def create_user(id)
   result = execute_post($USER_URI, 
                         { ":name" => username, "pwd" => "testuser", "pwdConfirm" => "testuser" })
   dump_response(result)
+  return username
 end
 
 def create_group(id)
@@ -54,9 +57,18 @@ def get_node_acl_json(path)
   return execute_get("#{$BASE}#{path}.acl.json").body
 end
 
+def set_node_acl_entry(path, principal, priv, state)
+  res = execute_post("#{$BASE}#{path}.modifyAce.html", {
+          "principalId" => principal,
+          "privilege@#{priv}" => state })
+  dump_response(res)
+end
+
 create_group(10)
-create_user(10)
+user = create_user(10)
 create_node("fish", { "foo" => "bar", "baz" => "jim" })
 puts get_node_props_json("fish")
 puts get_node_acl_json("fish")
 
+set_node_acl_entry("fish", user, "jcr:write", "granted")
+puts get_node_acl_json("fish")
