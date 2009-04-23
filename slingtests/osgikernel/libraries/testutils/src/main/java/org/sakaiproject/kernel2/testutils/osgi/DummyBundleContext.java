@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.persistence.dynamic;
+package org.sakaiproject.kernel2.testutils.osgi;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;

@@ -16,35 +16,27 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.lifecycle;
+package org.sakaiproject.kernel.util;
 
-import com.google.inject.Scopes;
+import java.net.URL;
+import java.util.Enumeration;
 
-import org.osgi.framework.BundleContext;
-import org.sakaiproject.kernel.api.registry.RegistryService;
-import org.sakaiproject.kernel.guice.AbstractOsgiModule;
+public class UrlEnumeration implements Enumeration<URL> {
 
-/**
- * Configuration module for persistence bindings.
- */
-public class ActivatorModule extends AbstractOsgiModule {
+  private URL url;
 
-  public ActivatorModule(BundleContext bundleContext) {
-    super(bundleContext);
+  public UrlEnumeration(URL url) {
+    this.url = url;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see com.google.inject.AbstractModule#configure()
-   */
-  @Override
-  protected void configure() {
-    super.configure();
-
-    // we need the registry service.
-    bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
-    
+  public boolean hasMoreElements() {
+    return url != null;
   }
-  
+
+  public URL nextElement() {
+    URL url2 = url;
+    url = null;
+    return url2;
+  }
+
 }

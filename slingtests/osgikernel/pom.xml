@@ -54,6 +54,7 @@
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
         <module>libraries/utils</module>
+        <module>libraries/testutils</module>
       </modules>
     </profile>
     <profile>

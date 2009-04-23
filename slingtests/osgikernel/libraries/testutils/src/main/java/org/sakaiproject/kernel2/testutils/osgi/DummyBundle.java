@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel2.persistence.dynamic;
+package org.sakaiproject.kernel2.testutils.osgi;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.sakaiproject.kernel.persistence.dynamic.UrlEnumeration;
+import org.sakaiproject.kernel.util.UrlEnumeration;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -33,17 +33,24 @@ import java.util.Set;
  * Provides configuration support.
  */
 public abstract class AbstractOsgiModule extends AbstractModule {
-  
+
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractOsgiModule.class);
   private Set<Class<?>> exports = Sets.newHashSet();
+  protected BundleContext bundleContext;
+
+  public AbstractOsgiModule(BundleContext bundleContext) {
+    this.bundleContext = bundleContext;
+  }
 
   /**
    * {@inheritDoc}
+   * 
    * @see com.google.inject.AbstractModule#configure()
    */
   @Override
   protected void configure() {
-    OsgiServiceProvider<ConfigurationService> configurationServiceProvider = new OsgiServiceProvider<ConfigurationService>(ConfigurationService.class,getBundleContext());
+    OsgiServiceProvider<ConfigurationService> configurationServiceProvider = new OsgiServiceProvider<ConfigurationService>(
+        ConfigurationService.class, getBundleContext());
     ConfigurationService configurationService = configurationServiceProvider.get();
     Map<String, String> config = configurationService.getProperties();
     if (config != null) {
@@ -51,15 +58,16 @@ public abstract class AbstractOsgiModule extends AbstractModule {
     } else {
       LOGGER.warn("No Configuration Properties found");
     }
-    
+
   }
 
   /**
    * @return the current bundle context
    */
-  protected abstract BundleContext getBundleContext();
+  protected BundleContext getBundleContext() {
+    return bundleContext;
+  }
 
-  
   /**
    * @param class1
    * @return
@@ -68,17 +76,15 @@ public abstract class AbstractOsgiModule extends AbstractModule {
     exports.add(clazz);
     return clazz;
   }
-  
+
   /**
    * @param class1
    * @return
    */
   protected <T> OsgiServiceProvider<T> importService(Class<T> class1) {
-    return new OsgiServiceProvider<T>(class1,getBundleContext());
+    return new OsgiServiceProvider<T>(class1, getBundleContext());
   }
 
-
-  
   /**
    * @return the exports
    */

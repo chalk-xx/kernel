@@ -26,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -39,6 +40,7 @@ public abstract class GuiceActivator implements BundleActivator {
 
   protected Injector injector;
   private Set<Class<?>> services;
+  private Set<RequiresStop> stoppers;
 
   /**
    * {@inheritDoc}
@@ -50,8 +52,13 @@ public abstract class GuiceActivator implements BundleActivator {
     injector = Guice.createInjector(module);
 
     services = module.getExports();
+    stoppers = new HashSet<RequiresStop>();
     for (Class<?> serviceClass : services) {
       Object service = injector.getInstance(serviceClass);
+      if (service instanceof RequiresStop)
+      {
+        stoppers.add((RequiresStop) service);
+      }
       if (serviceClass.isAnnotationPresent(ServiceExportDescription.class)) {
         ServiceExportDescription ks = serviceClass.getAnnotation(
             ServiceExportDescription.class);
@@ -68,7 +75,6 @@ public abstract class GuiceActivator implements BundleActivator {
         bundleContext.registerService(serviceClassNames, service, dictionary);
       } else {
         Class<?>[] implementedInterfaces = serviceClass.getInterfaces();
-        serviceClass.isInterface();
         Set<Class<?>> interfaces = Sets.newHashSet();
         if (serviceClass.isInterface()) {
           interfaces.add(serviceClass);
@@ -96,11 +102,10 @@ public abstract class GuiceActivator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
    */
   public void stop(BundleContext bundleContext) throws Exception {
-    for (Object o : services) {
-      if (o instanceof RequiresStop) {
-        ((RequiresStop) o).stop();
-      }
+    for (RequiresStop o : stoppers) {
+      o.stop();
     }
+    stoppers = null;
   }
 
   /**

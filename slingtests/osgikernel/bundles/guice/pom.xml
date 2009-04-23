@@ -87,6 +87,30 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <artifactId>org.sakaiproject.kernel2.osgi.testutils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.2</version>
+      <scope>test</scope>
+    </dependency>
+
     <!--
       <dependency> <groupId>javax.jcr</groupId> <artifactId>jcr</artifactId> </dependency>
       <dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> </dependency>

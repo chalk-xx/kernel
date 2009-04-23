@@ -15,41 +15,19 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
-package org.sakaiproject.kernel2.osgi.jpaexample;
-
-import com.google.inject.Scopes;
+package org.sakaiproject.kernel2.guice;
 
 import org.osgi.framework.BundleContext;
-import org.sakaiproject.kernel.api.registry.RegistryService;
 import org.sakaiproject.kernel.guice.AbstractOsgiModule;
 
-import javax.persistence.EntityManager;
+import java.util.Set;
 
-/**
- * Configuration module for persistence bindings.
- */
-public class ActivatorModule extends AbstractOsgiModule {
+public class DummyOsgiModule extends AbstractOsgiModule {
 
-  public ActivatorModule(BundleContext bundleContext) {
-    super(bundleContext);
+  public DummyOsgiModule(BundleContext context, Set<Class<?>> exports) {
+    super(context);
+    for (Class<?> export : exports) {
+      export(export);
+    }
   }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see com.google.inject.AbstractModule#configure()
-   */
-  @Override
-  protected void configure() {
-    super.configure();
-
-    // bind the EntityManager to the entity manager service.
-    bind(EntityManager.class).toProvider(importService(EntityManager.class))
-        .in(Scopes.SINGLETON);
-    // we also need the registry service.
-    bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
-    
-  }
-  
 }
