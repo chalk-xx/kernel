@@ -20,11 +20,13 @@ package org.sakaiproject.kernel.presence;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.api.presence.PresenceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,8 +47,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PresenceServiceImpl implements PresenceService {
 
-	/** @scr.reference bind="bindLog" unbind="unbindLog" */
-	private LogService log;
+	/** @scr.reference bind="bindLog" unbind="unbindLog" policy="dynamic" */
+	private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
 
 	// private static final Logger logger = LoggerFactory
 	// .getLogger(PresenceServiceImpl.class);
@@ -70,7 +72,6 @@ public class PresenceServiceImpl implements PresenceService {
 				CacheScope.CLUSTERREPLICATED);
 		userStatusCache = cacheManagerService.getCache(USER_STATUS_CACHE,
 				CacheScope.CLUSTERREPLICATED);
-		log.log(LogService.LOG_DEBUG, "Bound to CacheManagerService");
 	}
 
 	protected void unbindCacheManagerService(
@@ -79,18 +80,22 @@ public class PresenceServiceImpl implements PresenceService {
 			locationCache = null;
 			userStatusCache = null;
 			this.cacheManagerService = null;
-			log.log(LogService.LOG_DEBUG, "UnBound from CacheManagerService");
 		}
 	}
 
-	protected void bindLog(LogService log) {
-		this.log = log;
+	protected void bindLog(Logger logger) {
+		this.logger = logger;
 	}
 
-	protected void unbindLog(LogService log) {
-		if (this.log == log) {
-			this.log = null;
-		}
+	protected void unbindLog(Logger logger) {
+		this.logger = logger;
+	}
+
+	public PresenceServiceImpl(CacheManagerService cacheManager) {
+		bindCacheManagerService(cacheManager);
+	}
+
+	public PresenceServiceImpl() {
 	}
 
 	/**
@@ -140,8 +145,7 @@ public class PresenceServiceImpl implements PresenceService {
 				}
 			}
 		} else {
-			log.log(LogService.LOG_WARNING,
-					"User status cache is null, check the cacheManager");
+			logger.warn("User status cache is null, check the cacheManager");
 		}
 		return result;
 	}
@@ -184,8 +188,7 @@ public class PresenceServiceImpl implements PresenceService {
 				return onlineMap;
 			}
 		} else {
-			log.log(LogService.LOG_WARNING,
-					"Location cache is null, check the cacheManager");
+			logger.warn("Location cache is null, check the cacheManager");
 		}
 		return ImmutableMap.of();
 	}
@@ -289,8 +292,7 @@ public class PresenceServiceImpl implements PresenceService {
 				}
 			}
 		} else {
-			log.log(LogService.LOG_WARNING,
-					"User status cache is null, check the cacheManager");
+			logger.warn("User status cache is null, check the cacheManager");
 		}
 		return update;
 	}
