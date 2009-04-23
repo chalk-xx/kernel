@@ -35,7 +35,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> org.sakaiproject.kernel.api.presence </Export-Package>
-            <Import-Package>org.sakaiproject.kernel.api.memory, org.slf4j</Import-Package>
+            <Import-Package>org.sakaiproject.kernel.api.memory, org.osgi.service.log</Import-Package>
             <Private-Package>org.sakaiproject.kernel.presence.*</Private-Package>
             <DynamicImport-Package>com.google.common.collect, org.apache.commons.lang</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
