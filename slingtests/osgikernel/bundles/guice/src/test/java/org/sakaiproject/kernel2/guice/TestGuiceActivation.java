@@ -61,13 +61,12 @@ public class TestGuiceActivation {
     ServiceReference serviceReference = createMock(ServiceReference.class);
     expect(
         mockContext.registerService(aryEq(expectedServiceClassNames),
-            isA(DummyServiceWithExport.class), eqDictionary(expectedParams)))
-        .andReturn(null);
+            isA(DummyServiceWithExport.class), eqDictionary(expectedParams))).andReturn(null);
     mockContext.addServiceListener(isA(OsgiServiceProvider.class), isA(String.class));
     expect(mockContext.getServiceReference(ConfigurationService.class.getName())).andReturn(
         serviceReference);
     expect(mockContext.getService(serviceReference)).andReturn(configService);
-    expect(configService.getProperties()).andReturn(new HashMap<String,String>());
+    expect(configService.getProperties()).andReturn(new HashMap<String, String>());
     replay(mockContext, configService, serviceReference);
     activator.start(mockContext);
     activator.stop(mockContext);
@@ -85,29 +84,31 @@ public class TestGuiceActivation {
         mockContext, exports));
 
     Dictionary<String, Object> expectedParams = new Hashtable<String, Object>();
-    expectedParams.put(Constants.OBJECTCLASS, new String[] { DummyServiceInterfaceA.class.getName() });
+    expectedParams.put(Constants.OBJECTCLASS,
+        new String[] { DummyServiceInterfaceA.class.getName() });
     expectedParams.put(Constants.SERVICE_DESCRIPTION, DummyServiceInterfaceA.class.getName());
     expectedParams.put(Constants.SERVICE_VENDOR, "The Sakai Foundation");
     expect(
         mockContext.registerService(aryEq(new String[] { DummyServiceInterfaceA.class.getName() }),
-            isA(DummyServiceWithoutExport.class), eqDictionary(expectedParams)))
-        .andReturn(null);
+            isA(DummyServiceWithoutExport.class), eqDictionary(expectedParams))).andReturn(null);
 
     Dictionary<String, Object> expectedParams2 = new Hashtable<String, Object>();
-    expectedParams2.put(Constants.OBJECTCLASS, new String[] { DummyServiceInterfaceB.class.getName() });
+    expectedParams2.put(Constants.OBJECTCLASS, new String[] { DummyServiceInterfaceB.class
+        .getName() });
     expectedParams2.put(Constants.SERVICE_DESCRIPTION, DummyServiceInterfaceB.class.getName());
     expectedParams2.put(Constants.SERVICE_VENDOR, "The Sakai Foundation");
     expect(
         mockContext.registerService(aryEq(new String[] { DummyServiceInterfaceB.class.getName() }),
-            isA(DummyServiceWithoutExport.class), eqDictionary(expectedParams2)))
-        .andReturn(null);
+            isA(DummyServiceWithoutExport.class), eqDictionary(expectedParams2))).andReturn(null);
 
     Dictionary<String, Object> expectedParams3 = new Hashtable<String, Object>();
-    expectedParams3.put(Constants.OBJECTCLASS, new String[] { DummyServiceInterfaceA.class.getName(), DummyServiceInterfaceB.class.getName() });
+    expectedParams3.put(Constants.OBJECTCLASS, new String[] {
+        DummyServiceInterfaceA.class.getName(), DummyServiceInterfaceB.class.getName() });
     expectedParams3.put(Constants.SERVICE_DESCRIPTION, DummyServiceWithoutExport.class.getName());
     expectedParams3.put(Constants.SERVICE_VENDOR, "The Sakai Foundation");
     expect(
-        mockContext.registerService(aryUnorderedEq(new String[] { DummyServiceInterfaceA.class.getName(), DummyServiceInterfaceB.class.getName() }),
+        mockContext.registerService(aryUnorderedEq(new String[] {
+            DummyServiceInterfaceA.class.getName(), DummyServiceInterfaceB.class.getName() }),
             isA(DummyServiceWithoutExport.class), eqDictionaryUnorderedSubkeys(expectedParams3)))
         .andReturn(null);
 

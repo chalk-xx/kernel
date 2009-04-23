@@ -17,7 +17,5 @@
  */
 package org.sakaiproject.kernel2.guice;
 
-
-public class DummyServiceWithoutExport implements DummyServiceInterfaceA, DummyServiceInterfaceB
-{
+public class DummyServiceWithoutExport implements DummyServiceInterfaceA, DummyServiceInterfaceB {
 }

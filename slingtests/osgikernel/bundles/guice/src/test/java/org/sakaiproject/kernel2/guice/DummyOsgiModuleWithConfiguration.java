@@ -37,5 +37,5 @@ public class DummyOsgiModuleWithConfiguration extends AbstractOsgiModule {
     bind(DummyServiceInterfaceA.class).to(DummyServiceWithoutExport.class);
     bind(DummyServiceInterfaceB.class).to(DummyServiceWithoutExport.class);
   }
-  
+
 }

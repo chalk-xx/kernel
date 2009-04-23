@@ -20,13 +20,12 @@ package org.sakaiproject.kernel2.guice;
 import org.sakaiproject.kernel.guice.RequiresStop;
 import org.sakaiproject.kernel.guice.ServiceExportDescription;
 
-@ServiceExportDescription(serviceClasses={DummyServiceWithExport.class},
-    serviceDescription=TestGuiceActivation.testServiceDescription,
-    seviceVendor=TestGuiceActivation.testVendor)
-public class DummyServiceWithExport implements RequiresStop
-{
+@ServiceExportDescription(serviceClasses = { DummyServiceWithExport.class }, 
+    serviceDescription = TestGuiceActivation.testServiceDescription, 
+    seviceVendor = TestGuiceActivation.testVendor)
+public class DummyServiceWithExport implements RequiresStop {
   int counter;
-  
+
   public void stop() {
     counter++;
   }

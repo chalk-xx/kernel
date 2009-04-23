@@ -31,10 +31,11 @@ import java.util.Hashtable;
 import java.util.Set;
 
 /**
- * The Guice Activator activates a guice based bundle and exports the the services listed
- * in the list annotated with the SerivceExportList annotation. Services in the list may
- * optionally be annotated with the ServiceExportDescription annotation to give more
- * precise control over how the service is exported to OSGi.
+ * The Guice Activator activates a guice based bundle and exports the the
+ * services listed in the list annotated with the SerivceExportList annotation.
+ * Services in the list may optionally be annotated with the
+ * ServiceExportDescription annotation to give more precise control over how the
+ * service is exported to OSGi.
  */
 public abstract class GuiceActivator implements BundleActivator {
 
@@ -55,13 +56,11 @@ public abstract class GuiceActivator implements BundleActivator {
     stoppers = new HashSet<RequiresStop>();
     for (Class<?> serviceClass : services) {
       Object service = injector.getInstance(serviceClass);
-      if (service instanceof RequiresStop)
-      {
+      if (service instanceof RequiresStop) {
         stoppers.add((RequiresStop) service);
       }
       if (serviceClass.isAnnotationPresent(ServiceExportDescription.class)) {
-        ServiceExportDescription ks = serviceClass.getAnnotation(
-            ServiceExportDescription.class);
+        ServiceExportDescription ks = serviceClass.getAnnotation(ServiceExportDescription.class);
         Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
         Class<?>[] serviceClasses = ks.serviceClasses();
         String[] serviceClassNames = new String[serviceClasses.length];

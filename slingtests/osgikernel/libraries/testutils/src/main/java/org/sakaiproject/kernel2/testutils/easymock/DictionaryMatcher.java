@@ -26,7 +26,7 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
     reportMatcher(new DictionaryMatcher<T, U>(arg, false));
     return null;
   }
-  
+
   public static <T, U> Dictionary<T, U> eqDictionaryUnorderedSubkeys(Dictionary<T, U> arg) {
     reportMatcher(new DictionaryMatcher<T, U>(arg, true));
     return null;
@@ -40,8 +40,7 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
     buffer.append("\")");
   }
 
-  private static <K> boolean deepEquals(K key, Object a, Object b, boolean allowUnordered)
-  {
+  private static <K> boolean deepEquals(K key, Object a, Object b, boolean allowUnordered) {
     if (a instanceof Object[]) {
       if (!(b instanceof Object[])) {
         LOG.info("Other element was not an array for key: " + key);
@@ -53,16 +52,13 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
         LOG.info("Array length mismatch. Expected: " + as.length + " got " + bs.length);
         return false;
       }
-      if (!allowUnordered)
-      {
+      if (!allowUnordered) {
         for (int i = 0; i < as.length; i++) {
           if (!deepEquals(key, as[i], bs[i], allowUnordered)) {
             return false;
           }
         }
-      }
-      else
-      {
+      } else {
         return UnorderedArrayMatcher.unorderedArrayEquals(as, bs);
       }
     } else {
@@ -73,7 +69,7 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
     }
     return true;
   }
-  
+
   public boolean matches(Object matchable) {
     if (matchable == null || !(matchable instanceof Dictionary)) {
       LOG.info("Other object was not a dictionary");
@@ -82,7 +78,8 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
     Dictionary<?, ?> other = (Dictionary<?, ?>) matchable;
     try {
       if (other.size() != expected.size()) {
-        LOG.info("Dictionaries different sizes. Expected " + expected.size() + " got " + other.size());
+        LOG.info("Dictionaries different sizes. Expected " + expected.size() + " got "
+            + other.size());
         return false;
       }
       Enumeration<K> keys = expected.keys();
@@ -95,8 +92,7 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
           LOG.info("Submitting dictionary missing key: " + key);
           return false;
         }
-        if (!deepEquals(key, expected.get(key), other.get(key), allowUnorderedSubkeys))
-        {
+        if (!deepEquals(key, expected.get(key), other.get(key), allowUnorderedSubkeys)) {
           return false;
         }
       }
