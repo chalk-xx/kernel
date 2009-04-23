@@ -19,14 +19,14 @@ import java.io.IOException;
 public class TestCache {
 
   private CacheManagerServiceImpl cacheManagerService;
-  
+
   @Before
-  public void setUp() throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+  public void setUp() throws IOException, InstantiationException, IllegalAccessException,
+      ClassNotFoundException {
     cacheManagerService = new CacheManagerServiceImpl();
   }
 
-  private void exerciseCache(String cacheName, CacheScope scope)
-  {
+  private void exerciseCache(String cacheName, CacheScope scope) {
     Cache<String> cache = cacheManagerService.getCache(cacheName, scope);
     cache.put("fish", "cat");
     assertTrue("Expected element to be in cache", cache.containsKey("fish"));
@@ -42,27 +42,24 @@ public class TestCache {
     assertNull("Expected cache to be empty", cache.get("foo"));
     cacheManagerService.unbind(scope);
   }
-  
+
   @Test
   public void testCacheStorage() {
-    for (CacheScope scope : CacheScope.values())
-    {
+    for (CacheScope scope : CacheScope.values()) {
       exerciseCache("TestCache", scope);
     }
   }
 
   @Test
   public void testNullCacheNames() {
-    for (CacheScope scope : CacheScope.values())
-    {
+    for (CacheScope scope : CacheScope.values()) {
       exerciseCache(null, scope);
     }
   }
-  
+
   @Test
   public void testCacheWithChildKeys() {
-    for (CacheScope scope : CacheScope.values())
-    {
+    for (CacheScope scope : CacheScope.values()) {
       String cacheName = "SomeTestCache";
       Cache<String> cache = cacheManagerService.getCache(cacheName, scope);
       cache.put("fish", "cat");
@@ -75,17 +72,17 @@ public class TestCache {
       sameCache.removeChildren("fish");
       assertNull("Expected key to be removed", cache.get("fish"));
       assertNull("Expected key to be removed", cache.get("fish/child"));
-    }    
+    }
   }
-  
+
   @Test
-  public void testThreadUnbinding()
-  {
+  public void testThreadUnbinding() {
     ThreadBound testItem = createMock(ThreadBound.class);
     testItem.unbind();
     testItem.unbind();
     replay(testItem);
-    Cache<ThreadBound> threadBoundCache = cacheManagerService.getCache("testCache", CacheScope.THREAD);
+    Cache<ThreadBound> threadBoundCache = cacheManagerService.getCache("testCache",
+        CacheScope.THREAD);
     threadBoundCache.put("testItem", testItem);
     threadBoundCache.remove("testItem");
     threadBoundCache.put("testItem", testItem);
