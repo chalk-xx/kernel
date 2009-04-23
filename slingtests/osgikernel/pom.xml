@@ -31,6 +31,7 @@
       <modules>
         <module>app</module>
         <module>app-bundles</module>
+        <module>libraries/utils</module>
         <module>bundles/guice</module>
         <module>bundles/guiceuser</module>
         <module>bundles/jpaexample</module>
@@ -53,7 +54,7 @@
         <module>bundles/session</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
-        <module>libraries/utils</module>
+		<module>bundles/messaging</module>
       </modules>
     </profile>
     <profile>

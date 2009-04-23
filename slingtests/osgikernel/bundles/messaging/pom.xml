@@ -35,9 +35,8 @@
 				<configuration>
 					<instructions>
 						<Bundle-Category>sakai-kernel</Bundle-Category>
-						<Bundle-Activator>org.sakaiproject.kernel.messaging.Activator</Bundle-Activator>
 						<Export-Package>org.sakaiproject.kernel.api.messaging</Export-Package>
-						<Import-Package>org.apache.sling.jcr.api,org.apache.sling.commons.json,org.osgi.framework</Import-Package>
+						<Import-Package>javax.jcr, javax.jcr.observation, org.apache.commons.lang, org.apache.commons.lang.time, org.osgi.service.component, org.osgi.service.log, org.sakaiproject.kernel.api.jcr, org.sakaiproject.kernel.api.jcr.support, org.sakaiproject.kernel.api.locking, org.sakaiproject.kernel.util, org.apache.sling.commons.json</Import-Package>
 						<Private-Package>org.sakaiproject.kernel.messaging</Private-Package>
 					</instructions>
 				</configuration>

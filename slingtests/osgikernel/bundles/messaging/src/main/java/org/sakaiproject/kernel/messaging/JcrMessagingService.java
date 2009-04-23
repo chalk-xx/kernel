@@ -53,6 +53,26 @@ public class JcrMessagingService implements MessagingService {
   private JCRService jcr;
 
   /**
+   * Default constructor.
+   */
+  public JcrMessagingService() {
+  }
+
+  /**
+   * Constructor for all required fields.
+   *
+   * @param messageConverter
+   * @param userFactory
+   * @param jcr
+   */
+  public JcrMessagingService(MessageConverter messageConverter, UserFactoryService userFactory,
+      JCRService jcr) {
+    this.messageConverter = messageConverter;
+    this.userFactory = userFactory;
+    this.jcr = jcr;
+  }
+
+  /**
    * {@inheritDoc}
    *
    * @see org.sakaiproject.kernel.api.messaging.MessagingService#send(javax.jms.Message)

@@ -44,6 +44,21 @@ public class JsonMessageConverter implements MessageConverter {
   private MessagingService messagingService;
 
   /**
+   * Default constructor.
+   */
+  public JsonMessageConverter() {
+  }
+
+  /**
+   * Constructor for all required fields.
+   * 
+   * @param messagingService
+   */
+  public JsonMessageConverter(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  /**
    * {@inheritDoc}
    *
    * @see org.sakaiproject.kernel.api.messaging.MessageConverter#toString(org.sakaiproject.kernel.api.messaging.Message)

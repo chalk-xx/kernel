@@ -24,6 +24,7 @@ import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,12 +53,16 @@ public class OutboxListener implements EventListener {
    *                policy="dynamic" cardinality="0..n" bind="addHandler"
    *                unbind="removeHandler"
    */
-  private List<MessageHandler> handlers;
+  private List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 
   /**
    * Default constructor
    */
   public OutboxListener() {
+  }
+
+  public OutboxListener(JCRService jcr) {
+    this.jcr = jcr;
   }
 
   /**
