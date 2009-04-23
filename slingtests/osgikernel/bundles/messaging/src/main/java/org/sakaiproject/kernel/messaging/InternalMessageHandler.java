@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
+import org.sakaiproject.kernel.api.jcr.support.JcrUtils;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
@@ -56,6 +57,32 @@ public class InternalMessageHandler implements MessageHandler {
   /** @scr.reference */
   private final UserFactoryService userFactory;
 
+  /**
+   * Default constructor
+   */
+  public InternalMessageHandler() {
+  }
+
+  /**
+   * Constructor for required parameters.
+   *
+   * @param jcr
+   */
+  public InternalMessageHandler(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  /**
+   * Constructor for all parameters.
+   *
+   * @param jcr
+   * @param log
+   */
+  public InternalMessageHandler(JCRService jcr, LogService log) {
+    this.jcr = jcr;
+    this.log = log;
+  }
+
   public void handle(String userID, String filePath, String fileName, Node node) {
     Session session = jcr.getSession();
     Workspace workspace = session.getWorkspace();
@@ -71,7 +98,7 @@ public class InternalMessageHandler implements MessageHandler {
           log.log(LogService.LOG_DEBUG, "Writing " + filePath + " to " + msgPath);
           workspace.copy(filePath, msgPath);
           Node n = (Node) session.getItem(msgPath);
-          n.setProperty(MessagingConstants.JCR_LABELS, "inbox");
+          JcrUtils.addNodeLabel(jcr, n, "inbox");
         }
       }
 
@@ -93,7 +120,7 @@ public class InternalMessageHandler implements MessageHandler {
       log.log(LogService.LOG_DEBUG, "Moving message " + filePath + " to " + sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
-      movedNode.setProperty(MessagingConstants.JCR_LABELS, "sent");
+      JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
       log.log(LogService.LOG_ERROR, e.getMessage(), e);

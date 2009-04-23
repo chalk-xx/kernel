@@ -17,11 +17,7 @@
  */
 package org.sakaiproject.kernel.api.messaging;
 
-import java.util.List;
-import java.util.Map.Entry;
-
 import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 
 /**
  *
