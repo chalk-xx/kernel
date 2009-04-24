@@ -25,6 +25,7 @@ import org.sakaiproject.kernel.persistence.dynamic.xstream.OrmSettings;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceSettings;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceUnit;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.XStreamWritable;
+import org.sakaiproject.kernel.util.UrlEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

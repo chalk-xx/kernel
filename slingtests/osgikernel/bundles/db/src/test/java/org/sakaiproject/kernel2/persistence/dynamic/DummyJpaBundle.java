@@ -21,6 +21,7 @@ package org.sakaiproject.kernel2.persistence.dynamic;
 import org.sakaiproject.kernel.persistence.dynamic.AmalgamatingClassloader;
 import org.sakaiproject.kernel.persistence.dynamic.PersistenceBundleMonitor;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceSettings;
+import org.sakaiproject.kernel2.testutils.osgi.DummyBundle;
 
 import java.io.IOException;
 import java.net.URL;

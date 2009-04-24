@@ -15,36 +15,18 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel2.guice;
 
-package org.sakaiproject.kernel.lifecycle;
+import org.sakaiproject.kernel.guice.RequiresStop;
+import org.sakaiproject.kernel.guice.ServiceExportDescription;
 
-import com.google.inject.Scopes;
+@ServiceExportDescription(serviceClasses = { DummyServiceWithExport.class }, 
+    serviceDescription = TestGuiceActivation.testServiceDescription, 
+    seviceVendor = TestGuiceActivation.testVendor)
+public class DummyServiceWithExport implements RequiresStop {
+  int counter;
 
-import org.osgi.framework.BundleContext;
-import org.sakaiproject.kernel.api.registry.RegistryService;
-import org.sakaiproject.kernel.guice.AbstractOsgiModule;
-
-/**
- * Configuration module for persistence bindings.
- */
-public class ActivatorModule extends AbstractOsgiModule {
-
-  public ActivatorModule(BundleContext bundleContext) {
-    super(bundleContext);
+  public void stop() {
+    counter++;
   }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see com.google.inject.AbstractModule#configure()
-   */
-  @Override
-  protected void configure() {
-    super.configure();
-
-    // we need the registry service.
-    bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
-    
-  }
-  
 }

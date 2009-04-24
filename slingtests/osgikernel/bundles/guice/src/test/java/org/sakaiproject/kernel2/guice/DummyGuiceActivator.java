@@ -15,28 +15,21 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel2.guice;
 
-package org.sakaiproject.kernel.persistence.dynamic;
+import org.osgi.framework.BundleContext;
+import org.sakaiproject.kernel.guice.AbstractOsgiModule;
+import org.sakaiproject.kernel.guice.GuiceActivator;
 
-import java.net.URL;
-import java.util.Enumeration;
+public class DummyGuiceActivator extends GuiceActivator {
+  private AbstractOsgiModule module;
 
-public class UrlEnumeration implements Enumeration<URL> {
-
-  private URL url;
-
-  public UrlEnumeration(URL url) {
-    this.url = url;
+  public DummyGuiceActivator(AbstractOsgiModule module) {
+    this.module = module;
   }
 
-  public boolean hasMoreElements() {
-    return url != null;
+  @Override
+  protected AbstractOsgiModule getModule(BundleContext bundleContext) {
+    return module;
   }
-
-  public URL nextElement() {
-    URL url2 = url;
-    url = null;
-    return url2;
-  }
-
 }

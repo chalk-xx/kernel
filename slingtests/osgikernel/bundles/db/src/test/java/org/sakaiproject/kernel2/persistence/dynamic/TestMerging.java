@@ -32,6 +32,8 @@ import org.sakaiproject.kernel.persistence.dynamic.xstream.OrmSettings;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceSettings;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.PersistenceUnit;
 import org.sakaiproject.kernel.persistence.dynamic.xstream.Property;
+import org.sakaiproject.kernel2.testutils.osgi.DummyBundle;
+import org.sakaiproject.kernel2.testutils.osgi.DummyBundleContext;
 
 import java.io.IOException;
 import java.util.ArrayList;

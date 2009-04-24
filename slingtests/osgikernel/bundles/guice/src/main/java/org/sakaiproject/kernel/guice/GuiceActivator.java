@@ -26,19 +26,22 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
 /**
- * The Guice Activator activates a guice based bundle and exports the the services listed
- * in the list annotated with the SerivceExportList annotation. Services in the list may
- * optionally be annotated with the ServiceExportDescription annotation to give more
- * precise control over how the service is exported to OSGi.
+ * The Guice Activator activates a guice based bundle and exports the the
+ * services listed in the list annotated with the SerivceExportList annotation.
+ * Services in the list may optionally be annotated with the
+ * ServiceExportDescription annotation to give more precise control over how the
+ * service is exported to OSGi.
  */
 public abstract class GuiceActivator implements BundleActivator {
 
   protected Injector injector;
   private Set<Class<?>> services;
+  private Set<RequiresStop> stoppers;
 
   /**
    * {@inheritDoc}
@@ -50,11 +53,14 @@ public abstract class GuiceActivator implements BundleActivator {
     injector = Guice.createInjector(module);
 
     services = module.getExports();
+    stoppers = new HashSet<RequiresStop>();
     for (Class<?> serviceClass : services) {
       Object service = injector.getInstance(serviceClass);
+      if (service instanceof RequiresStop) {
+        stoppers.add((RequiresStop) service);
+      }
       if (serviceClass.isAnnotationPresent(ServiceExportDescription.class)) {
-        ServiceExportDescription ks = serviceClass.getAnnotation(
-            ServiceExportDescription.class);
+        ServiceExportDescription ks = serviceClass.getAnnotation(ServiceExportDescription.class);
         Dictionary<String, Object> dictionary = new Hashtable<String, Object>();
         Class<?>[] serviceClasses = ks.serviceClasses();
         String[] serviceClassNames = new String[serviceClasses.length];
@@ -68,7 +74,6 @@ public abstract class GuiceActivator implements BundleActivator {
         bundleContext.registerService(serviceClassNames, service, dictionary);
       } else {
         Class<?>[] implementedInterfaces = serviceClass.getInterfaces();
-        serviceClass.isInterface();
         Set<Class<?>> interfaces = Sets.newHashSet();
         if (serviceClass.isInterface()) {
           interfaces.add(serviceClass);
@@ -96,11 +101,10 @@ public abstract class GuiceActivator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
    */
   public void stop(BundleContext bundleContext) throws Exception {
-    for (Object o : services) {
-      if (o instanceof RequiresStop) {
-        ((RequiresStop) o).stop();
-      }
+    for (RequiresStop o : stoppers) {
+      o.stop();
     }
+    stoppers = null;
   }
 
   /**

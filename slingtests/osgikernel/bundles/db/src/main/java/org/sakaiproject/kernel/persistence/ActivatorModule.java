@@ -37,10 +37,8 @@ import javax.transaction.TransactionManager;
  */
 public class ActivatorModule extends AbstractOsgiModule {
 
-  private BundleContext bundleContext;
-
   public ActivatorModule(BundleContext bundleContext) {
-    this.bundleContext = bundleContext;    
+    super(bundleContext);
   }
 
   /**
@@ -75,13 +73,4 @@ public class ActivatorModule extends AbstractOsgiModule {
     
   }
   
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.guice.AbstractOsgiModule#getBundleContext()
-   */
-  @Override
-  protected BundleContext getBundleContext() {
-    return bundleContext;
-  }
 }
