@@ -3,6 +3,6 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
 	version="1.0" xmlns="http://java.sun.com/xml/ns/persistence">
   <persistence-unit name="default">
-    <class>org.sakaiproject.kernel2.osgi.jpaexample.jpa.model.ExampleModel</class>
+    <class>org.sakaiproject.kernel.jpaexample.jpa.model.ExampleModel</class>
   </persistence-unit>
 </persistence>

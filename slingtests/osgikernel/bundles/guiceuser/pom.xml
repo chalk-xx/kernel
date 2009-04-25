@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel2.osgi</groupId>
+    <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.guiceuser</artifactId>
+  <artifactId>org.sakaiproject.kernel.guiceuser</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Guice User Bundle</name>
@@ -34,7 +34,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Bundle-Activator>org.sakaiproject.kernel2.osgi.guiceuser.GuiceUser</Bundle-Activator>
+            <Bundle-Activator>org.sakaiproject.kernel.guiceuser.GuiceUser</Bundle-Activator>
             <Import-Package> com.google.inject.cglib.reflect, * </Import-Package>
           </instructions>
         </configuration>

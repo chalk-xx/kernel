@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel2.osgi</groupId>
+    <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.guice</artifactId>
+  <artifactId>org.sakaiproject.kernel.guice</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Guice Bundle</name>
@@ -74,8 +74,8 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -99,8 +99,8 @@
       <version>4.4</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.testutils</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel2.osgi</groupId>
+    <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.memory</artifactId>
+  <artifactId>org.sakaiproject.kernel.memory</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Memory Bundle</name>
@@ -91,8 +91,8 @@
       <version>1.0</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>

@@ -2,7 +2,7 @@
 <persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
   <persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
-    <class>org.sakaiproject.kernel2.osgi.jpaprovider.model.SystemUser</class>
+    <class>org.sakaiproject.kernel.jpaprovider.model.SystemUser</class>
     <properties>
       <property name="eclipselink.jdbc.driver" value="org.apache.derby.jdbc.EmbeddedDriver"/>
       <property name="eclipselink.jdbc.url" value="jdbc:derby:testdb;create=true"/> 
