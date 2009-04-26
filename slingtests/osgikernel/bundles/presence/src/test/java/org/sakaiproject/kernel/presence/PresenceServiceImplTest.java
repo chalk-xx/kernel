@@ -38,102 +38,95 @@ import java.util.Map;
  */
 public class PresenceServiceImplTest {
 
-	private CacheManagerService cacheManagerService;
-	private PresenceServiceImpl presenceService;
-	private Cache<Object> presenceLocationCache;
-	private Cache<Object> presenceStatusCache;
+  private CacheManagerService cacheManagerService;
+  private PresenceServiceImpl presenceService;
+  private Cache<Object> presenceLocationCache;
+  private Cache<Object> presenceStatusCache;
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@Before
-	public void setUp() throws Exception {
+  /**
+   * @throws java.lang.Exception
+   */
+  @Before
+  public void setUp() throws Exception {
 
-		presenceLocationCache = new MapCacheImpl<Object>();
-		presenceStatusCache = new MapCacheImpl<Object>();
+    presenceLocationCache = new MapCacheImpl<Object>();
+    presenceStatusCache = new MapCacheImpl<Object>();
 
-		cacheManagerService = createMock(CacheManagerService.class);
-		expect(
-				cacheManagerService.getCache("presence.location",
-						CacheScope.CLUSTERREPLICATED)).andReturn(
-				presenceLocationCache).anyTimes();
-		expect(
-				cacheManagerService.getCache("presence.status",
-						CacheScope.CLUSTERREPLICATED)).andReturn(
-				presenceStatusCache).anyTimes();
-		replay(cacheManagerService);
-		presenceService = new PresenceServiceImpl(cacheManagerService);
-	}
+    cacheManagerService = createMock(CacheManagerService.class);
+    expect(
+        cacheManagerService.getCache("presence.location", CacheScope.CLUSTERREPLICATED))
+        .andReturn(presenceLocationCache).anyTimes();
+    expect(cacheManagerService.getCache("presence.status", CacheScope.CLUSTERREPLICATED))
+        .andReturn(presenceStatusCache).anyTimes();
+    replay(cacheManagerService);
+    presenceService = new PresenceServiceImpl(cacheManagerService);
+  }
 
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
-		verify(cacheManagerService);
-	}
+  /**
+   * @throws java.lang.Exception
+   */
+  @After
+  public void tearDown() throws Exception {
+    verify(cacheManagerService);
+  }
 
-	/**
-	 * Test method for
-	 * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#online(java.util.List)}
-	 * .
-	 */
-	@Test
-	public void testOnlineFriends() {
-		for (int j = 0; j < 100; j++) {
-			for (int i = 0; i < 100; i++) {
-				if (i == 50) {
-					Map<String, String> onlineLocations = presenceService
-							.online("location" + j);
-					assertEquals(50, onlineLocations.size());
-				}
-				presenceService.ping("user" + i, "location" + j);
-				if (i % 7 == 0) {
-					presenceService.setStatus("user" + i, "drinking beer");
-				} else {
-					presenceService
-							.setStatus("user" + i, "user" + i + "at" + j);
-				}
-			}
-			Map<String, String> onlineLocations = presenceService
-					.online("location" + j);
-			assertEquals(100, onlineLocations.size());
-		}
-		List<String> friends = Lists.newArrayList();
-		for (int i = 0; i < 50; i++) {
-			friends.add("user" + i);
-		}
-		for (int i = 0; i < 50; i++) {
-			friends.add("otheruser" + i);
-		}
-		Map<String, String> online = presenceService.online(friends);
-		assertEquals(100, online.size());
-		for (int i = 0; i < 50; i++) {
-			String status = online.get("otheruser" + i);
-			assertEquals("offline", status);
-		}
-		for (int i = 0; i < 50; i++) {
-			String status = online.get("user" + i);
-			if (i % 7 == 0) {
-				assertEquals("drinking beer", status);
-			} else {
-				assertEquals("user" + i + "at99", status);
-			}
-		}
-	}
+  /**
+   * Test method for
+   * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#online(java.util.List)} .
+   */
+  @Test
+  public void testOnlineFriends() {
+    for (int j = 0; j < 100; j++) {
+      for (int i = 0; i < 100; i++) {
+        if (i == 50) {
+          Map<String, String> onlineLocations = presenceService.online("location" + j);
+          assertEquals(50, onlineLocations.size());
+        }
+        presenceService.ping("user" + i, "location" + j);
+        if (i % 7 == 0) {
+          presenceService.setStatus("user" + i, "drinking beer");
+        } else {
+          presenceService.setStatus("user" + i, "user" + i + "at" + j);
+        }
+      }
+      Map<String, String> onlineLocations = presenceService.online("location" + j);
+      assertEquals(100, onlineLocations.size());
+    }
+    List<String> friends = Lists.newArrayList();
+    for (int i = 0; i < 50; i++) {
+      friends.add("user" + i);
+    }
+    for (int i = 0; i < 50; i++) {
+      friends.add("otheruser" + i);
+    }
+    Map<String, String> online = presenceService.online(friends);
+    assertEquals(100, online.size());
+    for (int i = 0; i < 50; i++) {
+      String status = online.get("otheruser" + i);
+      assertEquals("offline", status);
+    }
+    for (int i = 0; i < 50; i++) {
+      String status = online.get("user" + i);
+      if (i % 7 == 0) {
+        assertEquals("drinking beer", status);
+      } else {
+        assertEquals("user" + i + "at99", status);
+      }
+    }
+  }
 
-	/**
-	 * Test method for
-	 * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#ping(java.lang.String, java.lang.String)}
-	 * .
-	 */
-	@Test
-	public void testPing() {
-		presenceService.ping(null, null);
-		presenceService.ping(null, "locationA");
-		for (int i = 0; i < 100; i++) {
-			presenceService.ping("user" + i, null);
-		}
-	}
+  /**
+   * Test method for
+   * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#ping(java.lang.String, java.lang.String)}
+   * .
+   */
+  @Test
+  public void testPing() {
+    presenceService.ping(null, null);
+    presenceService.ping(null, "locationA");
+    for (int i = 0; i < 100; i++) {
+      presenceService.ping("user" + i, null);
+    }
+  }
 
 }

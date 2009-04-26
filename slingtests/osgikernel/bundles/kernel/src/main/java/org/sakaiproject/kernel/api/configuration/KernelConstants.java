@@ -67,7 +67,7 @@ import java.util.Properties;
  * 
  */
 public class KernelConstants implements ConfigurationService, ManagedService {
-	
+
   /**
    * 
    * @scr.property value="/userenv" type="String" name="JCR User Environment Base Path"
@@ -267,9 +267,9 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   public static final String MESSAGES = "messages";
   private static final String OVERRIDE_SETTINGS = "override.properties";
   private static final String DEFAULT_SETTINGS = "default.properties";
-  
+
   private static final Logger logger = LoggerFactory.getLogger(Object.class);
-  
+
   /**
    * The configuration map
    */
@@ -278,51 +278,55 @@ public class KernelConstants implements ConfigurationService, ManagedService {
       ReferenceType.STRONG, ReferenceType.WEAK);
 
   /**
-   * @throws IOException 
- * @throws IOException 
+   * @throws IOException
+   * @throws IOException
    * 
    */
-  
-  private void loadPropertiesFromStream(Map<String,String> map,InputStream in) throws IOException {
-	  if(in==null)
-		  return;
-	  Properties p = new Properties();
-	  p.load(in);
-	  in.close();
-	  for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
-		  String k = (String) e.nextElement();
-		  if(!map.containsKey(k))
-			  map.put(k, (String) p.get(k));
-	  }
+
+  private void loadPropertiesFromStream(Map<String, String> map, InputStream in)
+      throws IOException {
+    if (in == null)
+      return;
+    Properties p = new Properties();
+    p.load(in);
+    in.close();
+    for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
+      String k = (String) e.nextElement();
+      if (!map.containsKey(k))
+        map.put(k, (String) p.get(k));
+    }
   }
-  
-  private InputStream findInputStreamInPathToRoot(File dir,String filename) throws IOException {
-	  while(dir!=null) {
-		  File file=new File(dir,filename);
-		  logger.info("Trying "+file.getCanonicalPath());
-		  if(file.exists() && file.isFile()) {
-			  logger.info("Found "+filename+" at "+file.getCanonicalPath());
-			  return new FileInputStream(file);
-		  }
-		  dir=dir.getParentFile();
-	  }
-	  return null;
+
+  private InputStream findInputStreamInPathToRoot(File dir, String filename)
+      throws IOException {
+    while (dir != null) {
+      File file = new File(dir, filename);
+      logger.info("Trying " + file.getCanonicalPath());
+      if (file.exists() && file.isFile()) {
+        logger.info("Found " + filename + " at " + file.getCanonicalPath());
+        return new FileInputStream(file);
+      }
+      dir = dir.getParentFile();
+    }
+    return null;
   }
 
   public KernelConstants() throws IOException {
-	  Map<String,String> constants=new HashMap<String,String>();
-	  File cwd=new File(new File(".").getCanonicalPath()); // Need to use full path to cwd for getParentFile to work.
-	  InputStream file=findInputStreamInPathToRoot(cwd,OVERRIDE_SETTINGS);
-	  if(file!=null) {
-		  loadPropertiesFromStream(constants,file);
-	  }
-	  loadPropertiesFromStream(constants,getClass().getResourceAsStream(OVERRIDE_SETTINGS));
-	  loadPropertiesFromStream(constants,getClass().getResourceAsStream(DEFAULT_SETTINGS));
-	  Builder<String, String> builder = ImmutableMap.builder();
-	  for(Map.Entry<String,String> e : constants.entrySet())
-		  builder.put(e.getKey(),e.getValue());
-	  configMap = builder.build();
+    Map<String, String> constants = new HashMap<String, String>();
+    File cwd = new File(new File(".").getCanonicalPath()); // Need to use full path to cwd
+                                                           // for getParentFile to work.
+    InputStream file = findInputStreamInPathToRoot(cwd, OVERRIDE_SETTINGS);
+    if (file != null) {
+      loadPropertiesFromStream(constants, file);
+    }
+    loadPropertiesFromStream(constants, getClass().getResourceAsStream(OVERRIDE_SETTINGS));
+    loadPropertiesFromStream(constants, getClass().getResourceAsStream(DEFAULT_SETTINGS));
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (Map.Entry<String, String> e : constants.entrySet())
+      builder.put(e.getKey(), e.getValue());
+    configMap = builder.build();
   }
+
   /**
    * {@inheritDoc}
    * 
@@ -344,7 +348,7 @@ public class KernelConstants implements ConfigurationService, ManagedService {
    */
   private void notifyUpdate(Map<String, String> configMapLocal) {
     List<ConfigurationListener> savedListners = Lists.immutableList(listeners.values());
-    for ( ConfigurationListener listener : savedListners ) {
+    for (ConfigurationListener listener : savedListners) {
       listener.update(configMapLocal);
     }
   }

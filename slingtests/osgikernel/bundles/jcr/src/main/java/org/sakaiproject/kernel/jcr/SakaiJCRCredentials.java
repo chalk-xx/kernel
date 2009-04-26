@@ -20,12 +20,11 @@ package org.sakaiproject.kernel.jcr;
 
 import javax.jcr.Credentials;
 
-public class SakaiJCRCredentials implements Credentials
-{
+public class SakaiJCRCredentials implements Credentials {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -8183389204992412560L;
+  /**
+   *
+   */
+  private static final long serialVersionUID = -8183389204992412560L;
 
 }

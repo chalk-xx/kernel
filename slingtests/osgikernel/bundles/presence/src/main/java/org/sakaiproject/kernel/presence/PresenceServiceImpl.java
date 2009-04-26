@@ -40,270 +40,259 @@ import java.util.concurrent.ConcurrentHashMap;
  *                name="org.sakaiproject.kernel.api.presence.PresenceService"
  * @scr.service
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="service.description"
- *               value="Presence Service Implementation"
+ * @scr.property name="service.description" value="Presence Service Implementation"
  * @scr.reference name="cacheManagerService"
  *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  */
 public class PresenceServiceImpl implements PresenceService {
 
-	/** @scr.reference bind="bindLog" unbind="unbindLog" policy="dynamic" */
-	private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
+  /** @scr.reference bind="bindLog" unbind="unbindLog" policy="dynamic" */
+  private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
 
-	// private static final Logger logger = LoggerFactory
-	// .getLogger(PresenceServiceImpl.class);
-	private static final String LOCATION_CACHE = "presence.location";
-	private static final String USER_STATUS_CACHE = "presence.status";
-	private static final long PRESENCE_TTL = 5L * 60L * 1000L; // 5 minutes
-	// private static final int USER_ELEMENT = 0;
-	private static final int TIMESTAMP_ELEMENT = 1;
-	private static final int LOCATION_ELEMENT = 2;
-	private static final int STATUS_ELEMENT = 3;
-	private static final int STATUS_SIZE = 4;
-	private CacheManagerService cacheManagerService;
-	private Cache<String> userStatusCache;
-	private Cache<Map<String, String>> locationCache;
+  // private static final Logger logger = LoggerFactory
+  // .getLogger(PresenceServiceImpl.class);
+  private static final String LOCATION_CACHE = "presence.location";
+  private static final String USER_STATUS_CACHE = "presence.status";
+  private static final long PRESENCE_TTL = 5L * 60L * 1000L; // 5 minutes
+  // private static final int USER_ELEMENT = 0;
+  private static final int TIMESTAMP_ELEMENT = 1;
+  private static final int LOCATION_ELEMENT = 2;
+  private static final int STATUS_ELEMENT = 3;
+  private static final int STATUS_SIZE = 4;
+  private CacheManagerService cacheManagerService;
+  private Cache<String> userStatusCache;
+  private Cache<Map<String, String>> locationCache;
 
-	protected void bindCacheManagerService(
-			CacheManagerService cacheManagerService) {
-		this.cacheManagerService = cacheManagerService;
-		// the caches must be replicating in the cluster.
-		locationCache = cacheManagerService.getCache(LOCATION_CACHE,
-				CacheScope.CLUSTERREPLICATED);
-		userStatusCache = cacheManagerService.getCache(USER_STATUS_CACHE,
-				CacheScope.CLUSTERREPLICATED);
-	}
+  protected void bindCacheManagerService(CacheManagerService cacheManagerService) {
+    this.cacheManagerService = cacheManagerService;
+    // the caches must be replicating in the cluster.
+    locationCache = cacheManagerService.getCache(LOCATION_CACHE,
+        CacheScope.CLUSTERREPLICATED);
+    userStatusCache = cacheManagerService.getCache(USER_STATUS_CACHE,
+        CacheScope.CLUSTERREPLICATED);
+  }
 
-	protected void unbindCacheManagerService(
-			CacheManagerService cacheManagerService) {
-		if (this.cacheManagerService == cacheManagerService) {
-			locationCache = null;
-			userStatusCache = null;
-			this.cacheManagerService = null;
-		}
-	}
+  protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
+    if (this.cacheManagerService == cacheManagerService) {
+      locationCache = null;
+      userStatusCache = null;
+      this.cacheManagerService = null;
+    }
+  }
 
-	protected void bindLog(Logger logger) {
-		this.logger = logger;
-	}
+  protected void bindLog(Logger logger) {
+    this.logger = logger;
+  }
 
-	protected void unbindLog(Logger logger) {
-		this.logger = logger;
-	}
+  protected void unbindLog(Logger logger) {
+    this.logger = logger;
+  }
 
-	public PresenceServiceImpl(CacheManagerService cacheManager) {
-		bindCacheManagerService(cacheManager);
-	}
+  public PresenceServiceImpl(CacheManagerService cacheManager) {
+    bindCacheManagerService(cacheManager);
+  }
 
-	public PresenceServiceImpl() {
-	}
+  public PresenceServiceImpl() {
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.sakaiproject.kernel.api.presence.PresenceService#setStatus(java.lang.String,
-	 *      java.lang.String)
-	 */
-	public void setStatus(String uuid, String status) {
-		updateLocationCache(uuid, getTimeStamp(), null, status);
-	}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#setStatus(java.lang.String,
+   *      java.lang.String)
+   */
+  public void setStatus(String uuid, String status) {
+    updateLocationCache(uuid, getTimeStamp(), null, status);
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.sakaiproject.kernel.api.presence.PresenceService#getStatus(java.lang.String)
-	 */
-	public String getStatus(String uuid) {
-		String result = "offline";
-		String[] currentStatus = getCurrentStatus(uuid);
-		if (currentStatus != null) {
-			if (currentStatus.length > STATUS_ELEMENT) {
-				result = currentStatus[STATUS_ELEMENT];
-			} else {
-				result = "online";
-			}
-		}
-		return result;
-	}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#getStatus(java.lang.String)
+   */
+  public String getStatus(String uuid) {
+    String result = "offline";
+    String[] currentStatus = getCurrentStatus(uuid);
+    if (currentStatus != null) {
+      if (currentStatus.length > STATUS_ELEMENT) {
+        result = currentStatus[STATUS_ELEMENT];
+      } else {
+        result = "online";
+      }
+    }
+    return result;
+  }
 
-	private String[] getCurrentStatus(String uuid) {
-		String[] result = null;
-		if (userStatusCache != null) {
-			String currentStatus = userStatusCache.get(uuid);
-			long timeout = getTimeStamp() - PRESENCE_TTL;
-			// load the current status or the defaults.
-			if (currentStatus != null) {
-				String[] locationStatus = StringUtils.split(currentStatus, ":",
-						STATUS_SIZE);
-				if (locationStatus.length > TIMESTAMP_ELEMENT) {
-					// timed out ?
-					long lastTs = Long
-							.parseLong(locationStatus[TIMESTAMP_ELEMENT]);
-					if (lastTs > timeout) {
-						result = locationStatus;
-					}
-				}
-			}
-		} else {
-			logger.warn("User status cache is null, check the cacheManager");
-		}
-		return result;
-	}
+  private String[] getCurrentStatus(String uuid) {
+    String[] result = null;
+    if (userStatusCache != null) {
+      String currentStatus = userStatusCache.get(uuid);
+      long timeout = getTimeStamp() - PRESENCE_TTL;
+      // load the current status or the defaults.
+      if (currentStatus != null) {
+        String[] locationStatus = StringUtils.split(currentStatus, ":", STATUS_SIZE);
+        if (locationStatus.length > TIMESTAMP_ELEMENT) {
+          // timed out ?
+          long lastTs = Long.parseLong(locationStatus[TIMESTAMP_ELEMENT]);
+          if (lastTs > timeout) {
+            result = locationStatus;
+          }
+        }
+      }
+    } else {
+      logger.warn("User status cache is null, check the cacheManager");
+    }
+    return result;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.sakaiproject.kernel.api.presence.PresenceService#online(java.lang.String,
-	 *      java.util.List)
-	 */
-	public Map<String, String> online(List<String> connections) {
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#online(java.lang.String,
+   *      java.util.List)
+   */
+  public Map<String, String> online(List<String> connections) {
 
-		Map<String, String> online = Maps.newHashMap();
-		for (String uuid : connections) {
+    Map<String, String> online = Maps.newHashMap();
+    for (String uuid : connections) {
 
-			online.put(uuid, getStatus(uuid));
-		}
-		return online;
-	}
+      online.put(uuid, getStatus(uuid));
+    }
+    return online;
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.sakaiproject.kernel.api.presence.PresenceService#online(java.lang.String)
-	 */
-	public Map<String, String> online(String location) {
-		if (locationCache != null) {
-			Map<String, String> locationInstanceCache = locationCache
-					.get(location);
-			if (locationInstanceCache != null) {
-				Map<String, String> onlineMap = Maps.newHashMap();
-				for (Entry<String, String> e : locationInstanceCache.entrySet()) {
-					String[] currentStatus = getCurrentStatus(e.getKey());
-					if (currentStatus != null
-							&& location.equals(currentStatus[LOCATION_ELEMENT])) {
-						onlineMap
-								.put(e.getKey(), currentStatus[STATUS_ELEMENT]);
-					}
-				}
-				return onlineMap;
-			}
-		} else {
-			logger.warn("Location cache is null, check the cacheManager");
-		}
-		return ImmutableMap.of();
-	}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#online(java.lang.String)
+   */
+  public Map<String, String> online(String location) {
+    if (locationCache != null) {
+      Map<String, String> locationInstanceCache = locationCache.get(location);
+      if (locationInstanceCache != null) {
+        Map<String, String> onlineMap = Maps.newHashMap();
+        for (Entry<String, String> e : locationInstanceCache.entrySet()) {
+          String[] currentStatus = getCurrentStatus(e.getKey());
+          if (currentStatus != null && location.equals(currentStatus[LOCATION_ELEMENT])) {
+            onlineMap.put(e.getKey(), currentStatus[STATUS_ELEMENT]);
+          }
+        }
+        return onlineMap;
+      }
+    } else {
+      logger.warn("Location cache is null, check the cacheManager");
+    }
+    return ImmutableMap.of();
+  }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @see org.sakaiproject.kernel.api.presence.PresenceService#ping(java.lang.String,
-	 *      java.lang.String)
-	 */
-	public void ping(String uuid, String location) {
-		long now = getTimeStamp();
-		if (StringUtils.isEmpty(location)) {
-			location = "none";
-		}
-		if (StringUtils.isEmpty(uuid)) {
-			uuid = "none";
-		}
-		if (updateLocationCache(uuid, now, location, null)) {
-			// need to update
-			if (!"none".equals(location) && locationCache != null) {
-				Map<String, String> locationInstanceCache = locationCache
-						.get(location);
-				if (locationInstanceCache == null) {
-					synchronized (locationCache) {
-						locationInstanceCache = locationCache.get(location);
-						if (locationInstanceCache == null) {
-							locationInstanceCache = new ConcurrentHashMap<String, String>();
-							locationCache.put(location, locationInstanceCache);
-						}
-					}
-				}
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#ping(java.lang.String,
+   *      java.lang.String)
+   */
+  public void ping(String uuid, String location) {
+    long now = getTimeStamp();
+    if (StringUtils.isEmpty(location)) {
+      location = "none";
+    }
+    if (StringUtils.isEmpty(uuid)) {
+      uuid = "none";
+    }
+    if (updateLocationCache(uuid, now, location, null)) {
+      // need to update
+      if (!"none".equals(location) && locationCache != null) {
+        Map<String, String> locationInstanceCache = locationCache.get(location);
+        if (locationInstanceCache == null) {
+          synchronized (locationCache) {
+            locationInstanceCache = locationCache.get(location);
+            if (locationInstanceCache == null) {
+              locationInstanceCache = new ConcurrentHashMap<String, String>();
+              locationCache.put(location, locationInstanceCache);
+            }
+          }
+        }
 
-				String userKey = getLocationKey(uuid, location);
-				if (!locationInstanceCache.containsKey(uuid)) {
-					locationInstanceCache.put(uuid, userKey);
-				}
-			}
-		}
-	}
+        String userKey = getLocationKey(uuid, location);
+        if (!locationInstanceCache.containsKey(uuid)) {
+          locationInstanceCache.put(uuid, userKey);
+        }
+      }
+    }
+  }
 
-	/**
-	 * @return
-	 */
-	private long getTimeStamp() {
-		long now = System.currentTimeMillis();
-		// make now slow changing, 20s resolution
-		return now / 20000;
-	}
+  /**
+   * @return
+   */
+  private long getTimeStamp() {
+    long now = System.currentTimeMillis();
+    // make now slow changing, 20s resolution
+    return now / 20000;
+  }
 
-	/**
-	 * Update the users location cache.
-	 * 
-	 * @param uuid
-	 *            the user id
-	 * @param now
-	 *            the timestamp
-	 * @param location
-	 *            the location, null if not provided in this update
-	 * @param status
-	 *            the status, null if not provided in this update
-	 * @return true if an update was performed.
-	 */
-	private boolean updateLocationCache(String uuid, long now, String location,
-			String status) {
-		boolean update = false;
-		if (userStatusCache != null) {
-			String currentStatus = userStatusCache.get(uuid);
-			// load the current status or the defaults.
-			String[] locationStatus = new String[] { uuid,
-					String.valueOf(now - 1), "none", "online" };
-			if (currentStatus != null) {
-				locationStatus = StringUtils.split(currentStatus, ":",
-						STATUS_SIZE);
+  /**
+   * Update the users location cache.
+   * 
+   * @param uuid
+   *          the user id
+   * @param now
+   *          the timestamp
+   * @param location
+   *          the location, null if not provided in this update
+   * @param status
+   *          the status, null if not provided in this update
+   * @return true if an update was performed.
+   */
+  private boolean updateLocationCache(String uuid, long now, String location,
+      String status) {
+    boolean update = false;
+    if (userStatusCache != null) {
+      String currentStatus = userStatusCache.get(uuid);
+      // load the current status or the defaults.
+      String[] locationStatus = new String[] {uuid, String.valueOf(now - 1), "none",
+          "online"};
+      if (currentStatus != null) {
+        locationStatus = StringUtils.split(currentStatus, ":", STATUS_SIZE);
 
-			}
-			// compare with non null current versions.
-			String[] ls = new String[] { uuid, String.valueOf(now), location,
-					status };
+      }
+      // compare with non null current versions.
+      String[] ls = new String[] {uuid, String.valueOf(now), location, status};
 
-			for (int i = 0; i < locationStatus.length; i++) {
-				if (ls[i] != null) {
-					if (!locationStatus[i].equals(ls[i])) {
-						update = true;
-					}
-				}
-			}
+      for (int i = 0; i < locationStatus.length; i++) {
+        if (ls[i] != null) {
+          if (!locationStatus[i].equals(ls[i])) {
+            update = true;
+          }
+        }
+      }
 
-			if (update) {
-				// set any null values to what they were previously
-				for (int i = 0; i < locationStatus.length; i++) {
-					if (ls[i] == null) {
-						ls[i] = locationStatus[i];
-					}
-				}
-				String newStatus = ':' + StringUtils.join(ls, ':');
-				if (!newStatus.equals(currentStatus)) {
-					userStatusCache.put(uuid, newStatus);
-				} else {
-					update = false;
-				}
-			}
-		} else {
-			logger.warn("User status cache is null, check the cacheManager");
-		}
-		return update;
-	}
+      if (update) {
+        // set any null values to what they were previously
+        for (int i = 0; i < locationStatus.length; i++) {
+          if (ls[i] == null) {
+            ls[i] = locationStatus[i];
+          }
+        }
+        String newStatus = ':' + StringUtils.join(ls, ':');
+        if (!newStatus.equals(currentStatus)) {
+          userStatusCache.put(uuid, newStatus);
+        } else {
+          update = false;
+        }
+      }
+    } else {
+      logger.warn("User status cache is null, check the cacheManager");
+    }
+    return update;
+  }
 
-	/**
-	 * @param uuid
-	 * @param location
-	 * @return
-	 */
-	private String getLocationKey(String uuid, String location) {
-		return uuid + ":" + location;
-	}
+  /**
+   * @param uuid
+   * @param location
+   * @return
+   */
+  private String getLocationKey(String uuid, String location) {
+    return uuid + ":" + location;
+  }
 
 }
