@@ -67,7 +67,7 @@ public class InternalMessageHandler implements MessageHandler {
 
   /**
    * Constructor for required parameters.
-   * 
+   *
    * @param jcr
    * @param userFactory
    */

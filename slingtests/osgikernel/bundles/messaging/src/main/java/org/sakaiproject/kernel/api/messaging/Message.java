@@ -23,14 +23,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base interface for all message objects. Can be used as a simple message
- * itself or extended.
+ * Base interface for all message objects. Can be used as a simple message itself or
+ * extended.
  */
 public interface Message extends Serializable {
 
   /**
-   * An enumeration of field names in a message. The list is by no means
-   * exhaustive.
+   * An enumeration of field names in a message. The list is by no means exhaustive.
    */
   public static enum Field {
     /** field name for the sender. */
@@ -132,8 +131,8 @@ public interface Message extends Serializable {
   /**
    * Retrieves all fields stored on the message.
    *
-   * @return {@link java.util.Map}<String, Object> of fields with non-null keys
-   *         and values.
+   * @return {@link java.util.Map}<String, Object> of fields with non-null keys and
+   *         values.
    */
   Map<String, String> getHeaders();
 
@@ -199,8 +198,8 @@ public interface Message extends Serializable {
   boolean isBodyText();
 
   /**
-   * Gets the body of the message as a URI. Return null if the body is not set
-   * or set to text.
+   * Gets the body of the message as a URI. Return null if the body is not set or set to
+   * text.
    *
    * @return the body of the message. null if not set of text.
    */
@@ -222,8 +221,8 @@ public interface Message extends Serializable {
   String getText();
 
   /**
-   * Sets the body to a String. Defaults the mime type to "text/plain" if mime
-   * type is not set.
+   * Sets the body to a String. Defaults the mime type to "text/plain" if mime type is not
+   * set.
    *
    * @param text
    */
@@ -237,8 +236,8 @@ public interface Message extends Serializable {
   String getSubject();
 
   /**
-   * Sets the title of the message. HTML attributes are allowed and are
-   * sanitized by the container.
+   * Sets the title of the message. HTML attributes are allowed and are sanitized by the
+   * container.
    *
    * @param newTitle
    *          the title of the message
@@ -277,17 +276,16 @@ public interface Message extends Serializable {
   void setMimeType(String mimeType);
 
   /**
-   * Send the message. The implementation by which this is sent depends on how
-   * the class was created. The implementation shouldn't be a concern.
+   * Send the message. The implementation by which this is sent depends on how the class
+   * was created. The implementation shouldn't be a concern.
    *
    * @throws MessagingException
    */
   void send() throws MessagingException;
 
   /**
-   * Add an attachment to the message. Convenience method for adding a part to
-   * the message. This constructs a new message and adds it to the message being
-   * called.
+   * Add an attachment to the message. Convenience method for adding a part to the
+   * message. This constructs a new message and adds it to the message being called.
    *
    * @param mimeType
    * @param attachment
@@ -304,8 +302,7 @@ public interface Message extends Serializable {
   /**
    * Get all parts added to the message.
    *
-   * @return all parts added to the message. Empty non-null list if no parts
-   *         found.
+   * @return all parts added to the message. Empty non-null list if no parts found.
    */
   List<Message> getParts();
 }

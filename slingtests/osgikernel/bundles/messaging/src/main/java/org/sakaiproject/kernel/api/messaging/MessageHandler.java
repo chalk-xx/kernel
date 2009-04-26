@@ -20,12 +20,28 @@ package org.sakaiproject.kernel.api.messaging;
 import javax.jcr.Node;
 
 /**
- *
+ * TODO: Javadoc
  */
 public interface MessageHandler {
-  String REGISTRY = "outgoing.message";
+  /**
+   * TODO: Javadoc
+   */
+  public static final String REGISTRY = "outgoing.message";
 
+  /**
+   * TODO: Javadoc
+   *
+   * @return
+   */
   String getType();
 
+  /**
+   * TODO: Javadoc
+   *
+   * @param userID
+   * @param filePath
+   * @param fileName
+   * @param node
+   */
   void handle(String userID, String filePath, String fileName, Node node);
 }

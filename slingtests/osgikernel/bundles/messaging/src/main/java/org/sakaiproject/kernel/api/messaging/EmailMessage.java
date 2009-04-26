@@ -91,8 +91,7 @@ public interface EmailMessage extends Message {
   /**
    * Get reply recipients.
    *
-   * @return {@link java.util.List} of {@link java.lang.String} of reply
-   *         recipients.
+   * @return {@link java.util.List} of {@link java.lang.String} of reply recipients.
    */
   String getReplyTo();
 }

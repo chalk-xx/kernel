@@ -51,7 +51,7 @@ public class JsonMessageConverter implements MessageConverter {
 
   /**
    * Constructor for all required fields.
-   * 
+   *
    * @param messagingService
    */
   public JsonMessageConverter(MessagingService messagingService) {

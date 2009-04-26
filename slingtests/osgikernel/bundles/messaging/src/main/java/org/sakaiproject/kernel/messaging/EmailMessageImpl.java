@@ -25,10 +25,13 @@ import org.sakaiproject.kernel.api.messaging.MessagingService;
 /**
  * Implementation of Email messages.
  */
-public class EmailMessageImpl extends MessageImpl implements
-    EmailMessage {
+public class EmailMessageImpl extends MessageImpl implements EmailMessage {
 
-  private static final long serialVersionUID = 1L;
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = -2707649422066994745L;
 
   public EmailMessageImpl(MessagingService messagingService) {
     super(messagingService, Message.Type.EMAIL.toString());

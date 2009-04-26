@@ -28,8 +28,8 @@ public interface MessageConverter {
   Message toMessage(String json) throws ConversionException;
 
   /**
-   * Convert a message to JCR nodes. The conversion traverses all parts of all
-   * messages and sets up a similar node structure.
+   * Convert a message to JCR nodes. The conversion traverses all parts of all messages
+   * and sets up a similar node structure.
    *
    * @param node
    * @param msg
