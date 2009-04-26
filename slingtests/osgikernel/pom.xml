@@ -56,6 +56,8 @@
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
         <module>bundles/messaging</module>
+        <module>bundles/presence</module>
+        <module>libraries/utils</module>
       </modules>
     </profile>
     <profile>
