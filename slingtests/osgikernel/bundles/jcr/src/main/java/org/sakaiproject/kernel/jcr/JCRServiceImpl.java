@@ -39,7 +39,7 @@ import javax.jcr.query.QueryManager;
 
 /**
  * A lock manager that uses a cluster replicated cache to manage the locks
- * 
+ *
  * @scr.component immediate="true" metatype="no"
  * @scr.property name="service.description" value="The JCR Service"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -94,14 +94,14 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * @throws RepositoryException
-   * 
+   *
    */
   public JCRServiceImpl() {
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#getSession()
    */
   public Session getSession() throws LoginException, RepositoryException {
@@ -110,7 +110,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#save()
    */
   public void save() throws RepositoryException {
@@ -121,7 +121,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#login()
    */
   public Session login() throws LoginException, RepositoryException {
@@ -141,7 +141,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#loginSystem()
    */
   public Session loginSystem() throws LoginException, RepositoryException {
@@ -174,7 +174,7 @@ public class JCRServiceImpl implements JCRService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#logout()
    */
   public void logout() throws LoginException, RepositoryException {
@@ -218,7 +218,7 @@ public class JCRServiceImpl implements JCRService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#getRepository()
    */
   public Repository getRepository() {
@@ -227,7 +227,7 @@ public class JCRServiceImpl implements JCRService {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#setCurrentSession(javax.jcr. Session)
    */
   public Session setSession(Session session) {
@@ -266,7 +266,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#getDefaultWorkspace()
    */
   public String getDefaultWorkspace() {
@@ -275,7 +275,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#getObservationManager()
    */
   public ObservationManager getObservationManager() {
@@ -296,7 +296,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.jcr.JCRService#getQueryManager()
    */
   public QueryManager getQueryManager() throws RepositoryException {
@@ -306,7 +306,7 @@ public class JCRServiceImpl implements JCRService {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @throws RepositoryException
    * @throws LockTimeoutException
    * @see org.sakaiproject.kernel.api.jcr.JCRService#lock(javax.jcr.Node)
@@ -326,35 +326,35 @@ public class JCRServiceImpl implements JCRService {
     return lock;
   }
 
-  public void bindLockManager(LockManager lockManager) {
+  protected void bindLockManager(LockManager lockManager) {
     this.lockManager = lockManager;
   }
 
-  public void unbindLockManager(LockManager lockManager) {
+  protected void unbindLockManager(LockManager lockManager) {
     this.lockManager = null;
   }
 
-  public void bindRepository(Repository repository) {
+  protected void bindRepository(Repository repository) {
     this.repository = repository;
   }
 
-  public void unbindRepository(Repository repository) {
+  protected void unbindRepository(Repository repository) {
     this.repository = null;
   }
 
-  public void bindCacheManagerService(CacheManagerService cacheManagerService) {
+  protected void bindCacheManagerService(CacheManagerService cacheManagerService) {
     this.cacheManager = cacheManagerService;
   }
 
-  public void unbindCacheManagerService(CacheManagerService cacheManagerService) {
+  protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
     this.cacheManager = null;
   }
 
-  public void bindSessionManagerService(SessionManagerService sessionManagerService) {
+  protected void bindSessionManagerService(SessionManagerService sessionManagerService) {
     this.sessionManagerService = sessionManagerService;
   }
 
-  public void unbindSessionManagerService(SessionManagerService sessionManagerService) {
+  protected void unbindSessionManagerService(SessionManagerService sessionManagerService) {
     this.sessionManagerService = null;
   }
 }
