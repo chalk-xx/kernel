@@ -18,15 +18,15 @@
 package org.sakaiproject.kernel.messaging;
 
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -41,8 +41,8 @@ import javax.jcr.observation.ObservationManager;
  * @scr.component
  */
 public class OutboxListener implements EventListener {
-  /** @scr.reference policy="dynamic" */
-  private final AtomicReference<LogService> logRef = new AtomicReference<LogService>();
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(OutboxListener.class);
 
   /** @scr.reference */
   private JCRService jcr;
@@ -59,21 +59,6 @@ public class OutboxListener implements EventListener {
    * Default constructor
    */
   public OutboxListener() {
-  }
-
-  public OutboxListener(JCRService jcr) {
-    this.jcr = jcr;
-  }
-
-  /**
-   * Constructor for testing to inject dependencies.
-   *
-   * @param log
-   * @param session
-   */
-  public OutboxListener(LogService log, JCRService jcr) {
-    this.jcr = jcr;
-    logRef.set(log);
   }
 
   /**
@@ -94,23 +79,6 @@ public class OutboxListener implements EventListener {
     handlers.remove(handler);
   }
 
-  /**
-   * Binder for log service.
-   *
-   * @param log
-   */
-  protected void bindLog(LogService log) {
-    this.logRef.set(log);
-  }
-
-  /**
-   * Unbinder for log service.
-   *
-   * @param log
-   */
-  protected void unbindLog(LogService log) {
-    logRef.compareAndSet(log, null);
-  }
 
   /**
    * Component activation.
@@ -147,7 +115,6 @@ public class OutboxListener implements EventListener {
    *      java.lang.String, java.lang.String, java.lang.String)
    */
   public void onEvent(EventIterator events) {
-    LogService log = logRef.get();
 
     while (events.hasNext()) {
       try {
@@ -157,9 +124,7 @@ public class OutboxListener implements EventListener {
         // make sure we deal only with outbox items
         if (filePath.contains(MessagingConstants.FOLDER_MESSAGES + "/"
             + MessagingConstants.FOLDER_OUTBOX)) {
-          if (log != null) {
-            log.log(LogService.LOG_DEBUG, "Handling outbox message [" + filePath + "]");
-          }
+          LOGGER.debug("Handling outbox message [{0}]",filePath );
           // get the node, call up the appropriate handler and pass off based on
           // message type
           Session session = jcr.getSession();
@@ -170,26 +135,18 @@ public class OutboxListener implements EventListener {
           if (msgType != null && handlers != null) {
             for (MessageHandler handler : handlers) {
               if (msgType.equalsIgnoreCase(handler.getType())) {
-                if (log != null) {
-                  log.log(LogService.LOG_DEBUG, "Handling with " + msgType + ": " + handler);
-                }
+                LOGGER.debug("Handling with {0} : {1} ",msgType,handler);
                 handler.handle(userID, filePath, null, n);
                 handled = true;
               }
             }
           }
           if (!handled) {
-            if (log != null) {
-              log
-                  .log(LogService.LOG_WARNING, "No handler found for message type [" + msgType
-                      + "]");
-            }
+            LOGGER.warn("No handler found for message type [{0}]",msgType);
           }
         }
       } catch (RepositoryException e) {
-        if (log != null) {
-          log.log(LogService.LOG_ERROR, e.getMessage(), e);
-        }
+         LOGGER.error(e.getMessage(), e);
       }
     }
   }

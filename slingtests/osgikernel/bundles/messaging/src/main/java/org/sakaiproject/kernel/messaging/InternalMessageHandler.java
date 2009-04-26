@@ -20,16 +20,16 @@ package org.sakaiproject.kernel.messaging;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.FastDateFormat;
-import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.jcr.support.JcrUtils;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -38,23 +38,23 @@ import javax.jcr.Session;
 import javax.jcr.Workspace;
 
 /**
- *
+ * 
  * @scr.component description="Handler for internally delivered messages."
  * @scr.property name="type" value="internal"
  */
 public class InternalMessageHandler implements MessageHandler {
   private static final String TYPE = Message.Type.INTERNAL.toString();
   private static final FastDateFormat dateStruct;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(InternalMessageHandler.class);
 
   static {
     dateStruct = FastDateFormat.getInstance("yyyy/MM/");
   }
 
+  // TODO: these need explicit setters to make the whole thing thread safe
   /** @scr.reference */
   private JCRService jcr;
-
-  /** @scr.reference policy="dynamic" */
-  private AtomicReference<LogService> logRef = new AtomicReference<LogService>();
 
   /** @scr.reference */
   private UserFactoryService userFactory;
@@ -65,32 +65,7 @@ public class InternalMessageHandler implements MessageHandler {
   public InternalMessageHandler() {
   }
 
-  /**
-   * Constructor for required parameters.
-   *
-   * @param jcr
-   * @param userFactory
-   */
-  public InternalMessageHandler(JCRService jcr, UserFactoryService userFactory) {
-    this.jcr = jcr;
-    this.userFactory = userFactory;
-  }
-
-  /**
-   * Constructor for all parameters.
-   *
-   * @param jcr
-   * @param userFactory
-   * @param log
-   */
-  public InternalMessageHandler(JCRService jcr, UserFactoryService userFactory, LogService log) {
-    this.jcr = jcr;
-    this.userFactory = userFactory;
-    this.logRef.set(log);
-  }
-
   public void handle(String userID, String filePath, String fileName, Node node) {
-    LogService log = logRef.get();
     try {
       Session session = jcr.getSession();
       Workspace workspace = session.getWorkspace();
@@ -102,9 +77,7 @@ public class InternalMessageHandler implements MessageHandler {
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           String msgPath = buildMessagesPath(rcpt) + fileName;
-          if (log != null) {
-            log.log(LogService.LOG_DEBUG, "Writing " + filePath + " to " + msgPath);
-          }
+          LOGGER.debug("Writing {0} to {1}", filePath, msgPath);
           workspace.copy(filePath, msgPath);
           Node n = (Node) session.getItem(msgPath);
           JcrUtils.addNodeLabel(jcr, n, "inbox");
@@ -126,17 +99,15 @@ public class InternalMessageHandler implements MessageHandler {
       // targetNode.getParent().getParent().save();
       // }
       String sentMsgPath = sentPath + "/" + fileName;
-      if (log != null) {
-        log.log(LogService.LOG_DEBUG, "Moving message " + filePath + " to " + sentMsgPath);
-      }
+      LOGGER.debug("Moving message {0} to {1} ", filePath, sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
       JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      log.log(LogService.LOG_ERROR, e.getMessage(), e);
+      LOGGER.error(e.getMessage(), e);
     } catch (LockTimeoutException e) {
-      log.log(LogService.LOG_ERROR, e.getMessage(), e);
+      LOGGER.error(e.getMessage(), e);
     }
   }
 

@@ -58,19 +58,6 @@ public class JcrMessagingService implements MessagingService {
   public JcrMessagingService() {
   }
 
-  /**
-   * Constructor for all required fields.
-   *
-   * @param messageConverter
-   * @param userFactory
-   * @param jcr
-   */
-  public JcrMessagingService(MessageConverter messageConverter, UserFactoryService userFactory,
-      JCRService jcr) {
-    this.messageConverter = messageConverter;
-    this.userFactory = userFactory;
-    this.jcr = jcr;
-  }
 
   /**
    * {@inheritDoc}
