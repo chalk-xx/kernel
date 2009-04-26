@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel2.osgi</groupId>
+    <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.app-bundles</artifactId>
+  <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai K2 Bundles Collection</name>
@@ -41,29 +41,29 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.guice</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.guice</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.guiceuser</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.guiceuser</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.jpaexample</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jpaexample</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.memory</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.memory</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -72,85 +72,85 @@
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.registry</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.registry</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.lifecycle</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.lifecycle</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.db</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.persistence</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.jaxrs</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jaxrs</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.filters</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.filters</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.session</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.session</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.locking</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.locking</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.jcr</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jcr</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.eclipse.persistence.core</artifactId>
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>javax.xml.bind.jsr173</artifactId>
       <version>1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>javax.xml.bind.jaxb</artifactId>
       <version>2.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>javax.activation</artifactId>
       <version>1.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.jaxp-api</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jaxp-api</artifactId>
       <version>1.3.0</version>
       <scope>provided</scope>
     </dependency>
@@ -213,7 +213,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel2.osgi.jaxp-api</includeArtifactIds>
+                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
@@ -225,7 +225,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.kernel,javax.persistence,org.sakaiproject.kernel2.osgi.guice,org.sakaiproject.kernel2.osgi.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>
@@ -237,7 +237,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.registry,org.sakaiproject.kernel2.osgi.memory,org.sakaiproject.kernel2.osgi.session,org.sakaiproject.kernel2.osgi.guiceuser,org.sakaiproject.kernel2.osgi.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.guiceuser,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
@@ -249,7 +249,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.jcr,org.sakaiproject.kernel2.osgi.db,org.sakaiproject.kernel2.osgi.locking,org.sakaiproject.kernel2.osgi.presence</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel2.osgi.presence</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
@@ -261,7 +261,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.filters,org.sakaiproject.kernel2.osgi.jaxrs,org.sakaiproject.kernel2.osgi.jpaexample,org.sakaiproject.kernel2.osgi.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
@@ -273,7 +273,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel2.osgi.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel2.osgi</groupId>
+    <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.osgi.app</artifactId>
+  <artifactId>org.sakaiproject.kernel.app</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai K2 Launchpad Standalone Java Application</name>
@@ -86,7 +86,7 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds> org.sakaiproject.kernel2.osgi.app-bundles </includeArtifactIds>
+              <includeArtifactIds> org.sakaiproject.kernel.app-bundles </includeArtifactIds>
               <includes> resources/** </includes>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
@@ -114,7 +114,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds> org.sakaiproject.kernel2.osgi.jetty-config </includeArtifactIds>
+              <includeArtifactIds> org.sakaiproject.kernel.jetty-config </includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory}/resources/bundles/5
               </outputDirectory>
@@ -171,8 +171,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.app-bundles</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -187,18 +187,12 @@
     </dependency>
   -->
     <dependency>
-      <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.jetty-config</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     
-    <!--  UX loader bundle -->
-    <!--
-      <dependency> <groupId>org.sakaiproject.kernel2.osgi</groupId>
-      <artifactId>org.sakaiproject.kernel2.osgi.uxloader</artifactId>
-      <version>0.1-SNAPSHOT</version> <scope>provided</scope> </dependency>
-    -->
   </dependencies>
   <profiles>
     <profile>

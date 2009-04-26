@@ -16,7 +16,7 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel2.jpatest</artifactId>
+  <artifactId>org.sakaiproject.kernel.jpatest</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai JPA Mysql Hello World</name>

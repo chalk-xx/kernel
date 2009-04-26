@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel2.osgi</groupId>
+  <groupId>org.sakaiproject.kernel</groupId>
   <artifactId>base</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -38,7 +38,7 @@
         <module>bundles/jpaexample</module>
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
-        <module>bundles/db</module>
+        <module>bundles/persistence</module>
         <module>bundles/kernel</module>
         <module>bundles/memory</module>
         <module>bundles/jsr173</module>
