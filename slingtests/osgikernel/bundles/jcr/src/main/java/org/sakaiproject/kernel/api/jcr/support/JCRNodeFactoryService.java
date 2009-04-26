@@ -97,7 +97,7 @@ public interface JCRNodeFactoryService {
 
   /**
    * Set the owner of the a node.
-   * 
+   *
    * @param userPrivatePath
    * @param uuid
    * @throws JCRNodeFactoryServiceException

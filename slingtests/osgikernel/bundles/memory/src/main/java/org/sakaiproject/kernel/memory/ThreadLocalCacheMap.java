@@ -37,9 +37,4 @@ public class ThreadLocalCacheMap extends ThreadLocal<Map<String,Cache<?>>> {
   protected Map<String, Cache<?>> initialValue() {
     return new HashMap<String, Cache<?>>();
   }
-
-
-
-
-
 }

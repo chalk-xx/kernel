@@ -32,7 +32,7 @@ import java.security.SecureRandom;
 
 /**
  * A lock manager that uses a cluster replicated cache to manage the locks
- * 
+ *
  * @scr.component immediate="true" metatype="no"
  * @scr.property name="service.description" value="In JVM Lock Manager"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -83,7 +83,7 @@ public class LockManagerImpl implements LockManager {
   private ThreadLocal<Long> threadId = new ThreadLocal<Long>() {
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see java.lang.ThreadLocal#initialValue()
      */
     @Override
@@ -95,7 +95,7 @@ public class LockManagerImpl implements LockManager {
 
   /**
    * @throws NoSuchAlgorithmException
-   * 
+   *
    */
   public LockManagerImpl()
       throws NoSuchAlgorithmException {
@@ -139,7 +139,7 @@ public class LockManagerImpl implements LockManager {
 
   /**
    * Unlock only if the current thread is the owner.
-   * 
+   *
    * @param lock
    */
   protected void unlock(LockImpl lock) {
@@ -170,7 +170,7 @@ public class LockManagerImpl implements LockManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.locking.LockManager#lock(java.lang.String)
    */
   public Lock waitForLock(String id) throws LockTimeoutException {
@@ -191,7 +191,7 @@ public class LockManagerImpl implements LockManager {
         sleepTime = sleepTime + 10;
       }
       try {
-        
+       
         if (debug && tries % 5 == 0) {
           LOGGER.debug(Thread.currentThread() + " locking " + id);
         }
@@ -208,7 +208,7 @@ public class LockManagerImpl implements LockManager {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.locking.LockManager#clearLocks()
    */
   public void clearLocks() {
@@ -217,7 +217,7 @@ public class LockManagerImpl implements LockManager {
     requestLocks.clear();
   }
 
-  
+ 
   /**
    * @param cacheManagerService
    */
@@ -232,6 +232,6 @@ public class LockManagerImpl implements LockManager {
     cacheManagerService = null;
     lockMap = null;
   }
-  
-  
+ 
+ 
 }

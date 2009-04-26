@@ -37,7 +37,7 @@ import javax.servlet.ServletException;
 
 /**
  * The <code>ResteasyServlet</code> TODO
- * 
+ *
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.component immediate="true"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -87,7 +87,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher#init(javax.servlet.ServletConfig)
    */
   public void init(ServletConfig servletConfig) throws ServletException {
@@ -99,7 +99,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
     bootstrap(componentContext);
 
-    
+   
     super.init(this.servletConfig);
   }
 
@@ -109,7 +109,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.GenericServlet#getServletContext()
    */
   public ServletContext getServletContext() {
@@ -118,18 +118,18 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
   /**
    * Component Activation
-   * 
+   *
    * @param context
    */
   protected void activate(ComponentContext componentContext) {
     this.componentContext = componentContext;
-    
+   
 
   }
 
   /**
    * Deactivate this component
-   * 
+   *
    * @param context
    */
   protected void deactivate(ComponentContext context) {
@@ -139,7 +139,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
   /**
    * @param componentContext
-   * 
+   *
    */
   private void bootstrap(ComponentContext componentContext) {
     ClassLoader bundleClassloader = this.getClass().getClassLoader();
@@ -162,10 +162,10 @@ public class ResteasyServlet extends HttpServletDispatcher {
     RegisterBuiltin.register(factory);
     // Can't seem to get the resteasy input stream provider to work
     factory.addMessageBodyWriter(new InputStreamProvider());
-    
+   
 
     // add in the trackers and register any outstanding beans
-    
+   
     BundleContext context = componentContext.getBundleContext();
     ServiceReference[] jaxRsRefs = null;
     try {
@@ -184,7 +184,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
         JaxRestService.class.getName(), null) {
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see org.osgi.util.tracker.ServiceTracker#addingService(org.osgi.framework.ServiceReference)
        */
       @Override
@@ -196,7 +196,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
 
       /**
        * {@inheritDoc}
-       * 
+       *
        * @see org.osgi.util.tracker.ServiceTracker#removedService(org.osgi.framework.ServiceReference,
        *      java.lang.Object)
        */
@@ -208,7 +208,7 @@ public class ResteasyServlet extends HttpServletDispatcher {
     };
     jaxRsResourceTracker.open();
 
-    
+   
   }
 
 }

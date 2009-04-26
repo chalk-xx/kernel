@@ -35,7 +35,7 @@ public class Activator extends GuiceActivator {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.guice.GuiceActivator#getModule()
    */
   @Override
@@ -45,7 +45,7 @@ public class Activator extends GuiceActivator {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.guice.GuiceActivator#start(org.osgi.framework.BundleContext)
    */
   @Override
@@ -62,7 +62,7 @@ public class Activator extends GuiceActivator {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.guice.GuiceActivator#stop(org.osgi.framework.BundleContext)
    */
   @Override

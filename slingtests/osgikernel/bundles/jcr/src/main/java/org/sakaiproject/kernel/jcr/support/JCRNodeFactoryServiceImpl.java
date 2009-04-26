@@ -42,7 +42,7 @@ import javax.jcr.ValueFactory;
 /**
  * This is a support service to make it easier to treat a JCR service as a
  *         Filing System.
- *         
+ *        
  * @scr.component immediate="true" metatype="no"
  * @scr.property name="service.description" value="The JCR Node Factory Service"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -69,7 +69,7 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
   private JCRService jcrService;
 
   /**
-   * 
+   *
    */
   public JCRNodeFactoryServiceImpl() {
   }
@@ -377,7 +377,7 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
     node.setProperty(JCRConstants.ACL_OWNER, uuid);
   }
 
-  
+ 
   protected void bindJcrService(JCRService jcService) {
     this.jcrService = jcService;
   }

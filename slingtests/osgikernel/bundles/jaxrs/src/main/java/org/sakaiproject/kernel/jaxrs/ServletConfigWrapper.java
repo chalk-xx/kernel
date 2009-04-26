@@ -23,7 +23,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
 /**
- * 
+ *
  */
 public class ServletConfigWrapper implements ServletConfig {
   /**

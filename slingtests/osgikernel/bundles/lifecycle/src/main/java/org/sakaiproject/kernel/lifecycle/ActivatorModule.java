@@ -44,7 +44,7 @@ public class ActivatorModule extends AbstractOsgiModule {
 
     // we need the registry service.
     bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
-    
+   
   }
-  
+ 
 }

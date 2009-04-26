@@ -18,7 +18,7 @@
 package org.sakaiproject.kernel.api.locking;
 
 /**
- * 
+ *
  */
 public class LockTimeoutException extends Exception {
 
@@ -28,7 +28,7 @@ public class LockTimeoutException extends Exception {
   private static final long serialVersionUID = 544960393235970199L;
 
   /**
-   * 
+   *
    */
   public LockTimeoutException() {
   }

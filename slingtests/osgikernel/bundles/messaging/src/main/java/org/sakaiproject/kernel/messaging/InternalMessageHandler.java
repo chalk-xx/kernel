@@ -38,7 +38,7 @@ import javax.jcr.Session;
 import javax.jcr.Workspace;
 
 /**
- * 
+ *
  * @scr.component description="Handler for internally delivered messages."
  * @scr.property name="type" value="internal"
  */
