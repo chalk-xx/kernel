@@ -50,6 +50,15 @@ public class JsonMessageConverter implements MessageConverter {
   }
 
   /**
+   * Constructor for all required fields.
+   *
+   * @param messagingService
+   */
+  public JsonMessageConverter(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  /**
    * {@inheritDoc}
    *
    * @see org.sakaiproject.kernel.api.messaging.MessageConverter#toString(org.sakaiproject.kernel.api.messaging.Message)
@@ -118,7 +127,10 @@ public class JsonMessageConverter implements MessageConverter {
       } else if (Message.Field.PARTS.toString().equals(key)) {
         JSONArray array = (JSONArray) value;
         for (int i = 0; i < array.length(); i++) {
-          msg.addPart(toMessage(array.getJSONObject(i)));
+          String s = (String) array.get(i);
+          JSONTokener tok = new JSONTokener(s);
+          JSONObject jObj = new JSONObject(tok);
+          msg.addPart(toMessage(jObj));
         }
       } else {
         msg.setHeader(key, (String) value);

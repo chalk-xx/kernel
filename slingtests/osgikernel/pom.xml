@@ -475,6 +475,13 @@
   </dependencies>
   <dependencyManagement>
     <dependencies>
+<!-- testing libraries -->
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>2.4</version>
+        <scope>test</scope>
+      </dependency>
 <!-- OSGi Libraries -->
       <dependency>
         <groupId>org.apache.felix</groupId>
@@ -565,6 +572,18 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email</artifactId>
         <version>1.1</version>
+      </dependency>
+
+<!-- JMS -->
+      <dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+				<version>1.0.1</version>
+			</dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-core</artifactId>
+        <version>5.2.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

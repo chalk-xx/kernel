@@ -41,8 +41,7 @@ import javax.jcr.observation.ObservationManager;
  * @scr.component
  */
 public class OutboxListener implements EventListener {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(OutboxListener.class);
+  private static final Logger log = LoggerFactory.getLogger(OutboxListener.class);
 
   /** @scr.reference */
   private JCRService jcr;
@@ -62,6 +61,16 @@ public class OutboxListener implements EventListener {
   }
 
   /**
+   * Constructor for testing to inject dependencies.
+   *
+   * @param log
+   * @param session
+   */
+  public OutboxListener(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  /**
    * Binder for adding message handlers.
    *
    * @param handler
@@ -78,7 +87,6 @@ public class OutboxListener implements EventListener {
   protected void removeHandler(MessageHandler handler) {
     handlers.remove(handler);
   }
-
 
   /**
    * Component activation.
@@ -115,16 +123,14 @@ public class OutboxListener implements EventListener {
    *      java.lang.String, java.lang.String, java.lang.String)
    */
   public void onEvent(EventIterator events) {
-
     while (events.hasNext()) {
       try {
         Event event = events.nextEvent();
-        String userID = event.getUserID();
         String filePath = event.getPath();
         // make sure we deal only with outbox items
         if (filePath.contains(MessagingConstants.FOLDER_MESSAGES + "/"
             + MessagingConstants.FOLDER_OUTBOX)) {
-          LOGGER.debug("Handling outbox message [{0}]",filePath );
+          log.debug("Handling outbox message [{}]", filePath);
           // get the node, call up the appropriate handler and pass off based on
           // message type
           Session session = jcr.getSession();
@@ -135,18 +141,18 @@ public class OutboxListener implements EventListener {
           if (msgType != null && handlers != null) {
             for (MessageHandler handler : handlers) {
               if (msgType.equalsIgnoreCase(handler.getType())) {
-                LOGGER.debug("Handling with {0} : {1} ",msgType,handler);
-                handler.handle(userID, filePath, null, n);
+                log.debug("Handling with {}: {}", msgType, handler);
+                handler.handle(event, n);
                 handled = true;
               }
             }
           }
           if (!handled) {
-            LOGGER.warn("No handler found for message type [{0}]",msgType);
+            log.warn("No handler found for message type [{}]", msgType);
           }
         }
       } catch (RepositoryException e) {
-         LOGGER.error(e.getMessage(), e);
+        log.error(e.getMessage(), e);
       }
     }
   }

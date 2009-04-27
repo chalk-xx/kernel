@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.api.messaging;
 
 import javax.jcr.Node;
+import javax.jcr.observation.Event;
 
 /**
  * TODO: Javadoc
@@ -43,5 +44,5 @@ public interface MessageHandler {
    * @param fileName
    * @param node
    */
-  void handle(String userID, String filePath, String fileName, Node node);
+  void handle(Event event, Node node);
 }
