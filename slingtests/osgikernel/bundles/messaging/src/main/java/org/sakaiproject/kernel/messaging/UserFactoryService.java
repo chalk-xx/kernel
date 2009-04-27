@@ -27,4 +27,12 @@ public class UserFactoryService {
   public String getUserPrivatePath(String user) {
     return null;
   }
+
+  public String getMessagesPath(String user) {
+    return null;
+  }
+
+  public String getNewMessagePath(String user) {
+    return null;
+  }
 }

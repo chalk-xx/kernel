@@ -23,6 +23,7 @@ import org.apache.commons.mail.Email;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.MessageConverter;
+import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 import org.sakaiproject.kernel.api.messaging.MessagingException;
 import org.sakaiproject.kernel.api.messaging.email.CommonsEmailHandler;
 import org.sakaiproject.kernel.messaging.JcrMessagingService;
@@ -52,13 +53,13 @@ public class EmailMessagingService extends JcrMessagingService implements Common
   private Long clientId = Long.valueOf(1L);
 
   /** @scr.property value="vm://localhost?broker.persistent=true" */
-  private static final String JMS_BROKER_URL = "jms.brokerurl";
+  private static final String JMS_BROKER_URL = MessagingConstants.JMS_BROKER_URL;
 
   /** @scr.property value="kernel.jms.email;" */
-  private static final String JMS_EMAIL_TYPE = "jms.email.type";
+  private static final String JMS_EMAIL_TYPE = MessagingConstants.JMS_EMAIL_TYPE;
 
   /** @scr.property value="kernel.email;" */
-  private static final String JMS_EMAIL_QUEUE = "jms.email.queue";
+  private static final String JMS_EMAIL_QUEUE = MessagingConstants.JMS_EMAIL_TYPE;
 
   private String emailJmsType;
   private String emailQueueName;

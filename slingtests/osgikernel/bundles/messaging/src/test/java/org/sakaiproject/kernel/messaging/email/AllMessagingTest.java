@@ -26,6 +26,7 @@ import org.junit.runners.Suite.SuiteClasses;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses( { EmailMessageListenerT.class, MailSessionProviderT.class })
+// @SuiteClasses( { EmailMessageListenerT.class, MailSessionProviderT.class })
+@SuiteClasses( { MailSessionProviderT.class })
 public class AllMessagingTest {
 }

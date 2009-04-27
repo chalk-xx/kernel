@@ -20,12 +20,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.sakaiproject.kernel2.osgi</groupId>
+		<groupId>org.sakaiproject.kernel</groupId>
 		<artifactId>base</artifactId>
 		<version>0.1-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	<artifactId>org.sakaiproject.kernel2.osgi.messaging</artifactId>
+	<artifactId>org.sakaiproject.kernel.messaging</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.1-SNAPSHOT</version>
 	<name>Sakai Messaging Bundle</name>
@@ -43,7 +43,7 @@
 					<instructions>
 						<Bundle-Category>sakai-kernel</Bundle-Category>
 						<Export-Package>org.sakaiproject.kernel.api.messaging</Export-Package>
-						<Import-Package>javax.jcr, javax.jcr.observation, org.apache.commons.lang, org.apache.commons.lang.time, org.apache.sling.commons.json, org.osgi.service.component, org.sakaiproject.kernel.api.jcr, org.sakaiproject.kernel.api.jcr.support, org.sakaiproject.kernel.api.locking, org.sakaiproject.kernel.util</Import-Package>
+						<Import-Package>javax.jcr, javax.jcr.observation, org.apache.commons.lang, org.apache.commons.lang.time, org.apache.sling.commons.json, org.osgi.service.component, org.sakaiproject.kernel.api.jcr, org.sakaiproject.kernel.api.jcr.support, org.sakaiproject.kernel.api.locking, org.sakaiproject.kernel.util, org.slf4j</Import-Package>
 						<Private-Package>org.sakaiproject.kernel.messaging</Private-Package>
 					</instructions>
 				</configuration>
@@ -53,20 +53,20 @@
 	<dependencies>
 <!-- kernel packages -->
 		<dependency>
-			<groupId>org.sakaiproject.kernel2.osgi</groupId>
-			<artifactId>org.sakaiproject.kernel2.osgi.kernel</artifactId>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>org.sakaiproject.kernel.configuration</artifactId>
 			<version>0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel2.osgi</groupId>
-			<artifactId>org.sakaiproject.kernel2.osgi.jcr</artifactId>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>org.sakaiproject.kernel.jcr</artifactId>
 			<version>0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel2.osgi</groupId>
-			<artifactId>org.sakaiproject.kernel2.osgi.utils</artifactId>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>org.sakaiproject.kernel.utils</artifactId>
 			<version>0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
@@ -115,6 +115,12 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+		<dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
 <!-- jms -->
 		<dependency>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -128,6 +134,10 @@
 		<dependency>
 		  <groupId>org.easymock</groupId>
 		  <artifactId>easymock</artifactId>
+		</dependency>
+		<dependency>
+		  <groupId>org.subethamail</groupId>
+		  <artifactId>subethasmtp-wiser</artifactId>
 		</dependency>
 	</dependencies>
 </project>

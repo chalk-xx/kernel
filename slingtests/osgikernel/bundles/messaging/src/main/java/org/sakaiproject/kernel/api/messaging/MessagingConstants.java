@@ -22,24 +22,38 @@ package org.sakaiproject.kernel.api.messaging;
  * TODO: Javadoc
  */
 public interface MessagingConstants {
+  /**
+   * TODO: Javadoc
+   */
+  String JCR_LABELS = "sakaijcr:labels";
 
   /**
    * TODO: Javadoc
    */
-  public static final String JCR_LABELS = "sakaijcr:labels";
+  String LABEL_INBOX = "inbox";
 
   /**
    * TODO: Javadoc
    */
-  public static final String LABEL_INBOX = "inbox";
+  String FOLDER_OUTBOX = "outbox";
 
   /**
    * TODO: Javadoc
    */
-  public static final String FOLDER_OUTBOX = "outbox";
+  String FOLDER_MESSAGES = "messages";
 
   /**
    * TODO: Javadoc
    */
-  public static final String FOLDER_MESSAGES = "messages";
+  String JMS_BROKER_URL = "jms.brokerurl";
+
+  /**
+   * TODO: Javadoc
+   */
+  String JMS_EMAIL_TYPE = "jms.email.type";
+
+  /**
+   * TODO: Javadoc
+   */
+  String JMS_EMAIL_QUEUE = "jms.email.queue";
 }

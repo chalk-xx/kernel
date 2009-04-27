@@ -35,12 +35,12 @@ public class MailSessionProviderImpl implements MailSessionProvider, ManagedServ
   }
 
   @SuppressWarnings("unchecked")
-  public void activate(ComponentContext ctx) {
+  protected void activate(ComponentContext ctx) {
     Dictionary dict = ctx.getProperties();
     session = createSession(dict);
   }
 
-  public void deactivate(ComponentContext ctx) {
+  protected void deactivate(ComponentContext ctx) {
     session = null;
   }
 

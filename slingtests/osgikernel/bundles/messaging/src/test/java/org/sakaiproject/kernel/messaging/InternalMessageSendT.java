@@ -20,16 +20,11 @@ package org.sakaiproject.kernel.messaging;
 import static junit.framework.Assert.assertEquals;
 
 import org.apache.jackrabbit.util.ISO9075;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessagingService;
-import org.sakaiproject.kernel.messaging.UserFactoryService;
 
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
@@ -39,30 +34,30 @@ import javax.jcr.query.QueryResult;
  */
 public class InternalMessageSendT {
   private static boolean shutdown;
-  private static KernelManager km;
+  // private static KernelManager km;
   private static MessagingService msgServ;
   private static UserFactoryService userFactory;
   private static JCRService jcr;
   private Message msg;
 
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    shutdown = KernelIntegrationBase.beforeClass();
+  // @BeforeClass
+  // public static void beforeClass() throws Exception {
+  // shutdown = KernelIntegrationBase.beforeClass();
+  //
+  // km = new KernelManager();
+  // msgServ = km.getService(MessagingService.class);
+  // userFactory = km.getService(UserFactoryService.class);
+  // jcr = km.getService(JCRService.class);
+  // jcr.loginSystem();
+  // }
 
-    km = new KernelManager();
-    msgServ = km.getService(MessagingService.class);
-    userFactory = km.getService(UserFactoryService.class);
-    jcr = km.getService(JCRService.class);
-    jcr.loginSystem();
-  }
+  // @AfterClass
+  // public static void afterClass() throws Exception {
+  // jcr.logout();
+  // KernelIntegrationBase.afterClass(shutdown);
+  // }
 
-  @AfterClass
-  public static void afterClass() throws Exception {
-    jcr.logout();
-    KernelIntegrationBase.afterClass(shutdown);
-  }
-
-  @Before
+  // @Before
   public void setUp() throws Exception {
     msg = msgServ.createMessage();
   }
@@ -80,7 +75,7 @@ public class InternalMessageSendT {
    *
    * @throws Exception
    */
-  @Test
+  // @Test
   public void sendSimpleInternalMessage() throws Exception {
     msg.setFrom("carl");
     msg.addTo("stuart");

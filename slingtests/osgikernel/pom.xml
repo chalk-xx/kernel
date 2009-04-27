@@ -482,6 +482,11 @@
         <version>2.4</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.subethamail</groupId>
+        <artifactId>subethasmtp-wiser</artifactId>
+        <version>1.2</version>
+      </dependency>
 <!-- OSGi Libraries -->
       <dependency>
         <groupId>org.apache.felix</groupId>

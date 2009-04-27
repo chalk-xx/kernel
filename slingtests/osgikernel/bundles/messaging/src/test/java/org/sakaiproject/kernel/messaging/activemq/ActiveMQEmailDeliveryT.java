@@ -16,21 +16,21 @@
  * specific language governing permissions and limitations under the License.
  */
 
-
 package org.sakaiproject.kernel.messaging.activemq;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.HtmlEmail;
-import org.apache.commons.mail.MultiPartEmail;
-import org.apache.commons.mail.SimpleEmail;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.sakaiproject.kernel.api.configuration.KernelConstants;
+import org.sakaiproject.kernel.messaging.email.EmailMessagingService;
+import org.sakaiproject.kernel.messaging.email.commons.HtmlEmail;
+import org.sakaiproject.kernel.messaging.email.commons.MultiPartEmail;
+import org.sakaiproject.kernel.messaging.email.commons.SimpleEmail;
+import org.subethamail.wiser.Wiser;
+import org.subethamail.wiser.WiserMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,6 +39,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.jms.Connection;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
@@ -46,8 +55,7 @@ import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
 public class ActiveMQEmailDeliveryT {
-  private static final Log LOG = LogFactory
-      .getLog(ActiveMQEmailDeliveryT.class);
+  private static final Log LOG = LogFactory.getLog(ActiveMQEmailDeliveryT.class);
 
   static Connection listenerConn = null;
   static Connection clientConn = null;
@@ -67,28 +75,26 @@ public class ActiveMQEmailDeliveryT {
   private static final String TEST_EMAIL_FROM_ADDRESS = "postmaster@sakaiproject.org";
   private static final String TEST_EMAIL_FROM_LABEL = "KernelEmailBrokerTest";
   private static String TEST_EMAIL_BODY_PREFIX = "This is a Commons ";
-  private static String TEST_EMAIL_BODY_SIMPLEEMAIL = TEST_EMAIL_BODY_PREFIX
-      + "SimpleEmail";
-  private static String TEST_EMAIL_BODY_HTMLEMAIL = TEST_EMAIL_BODY_PREFIX
-      + "HtmlEmail";
-  private static String TEST_EMAIL_BODY_MULTIPARTEMAIL = TEST_EMAIL_BODY_PREFIX
-      + "MultiPartEmail";
+  private static String TEST_EMAIL_BODY_SIMPLEEMAIL = TEST_EMAIL_BODY_PREFIX + "SimpleEmail";
+  private static String TEST_EMAIL_BODY_HTMLEMAIL = TEST_EMAIL_BODY_PREFIX + "HtmlEmail";
+  private static String TEST_EMAIL_BODY_MULTIPARTEMAIL = TEST_EMAIL_BODY_PREFIX + "MultiPartEmail";
   private static String TEST_EMAIL_SUBJECT = "Test message";
   private static Properties props = new Properties();
   private static Properties kernelProps;
   private static String emailQueueName;
   private static String emailType;
 
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    kernelProps = PropertiesLoader.load(ActiveMQEmailDeliveryT.class
-        .getClassLoader(), KernelModule.DEFAULT_PROPERTIES,
-        KernelModule.LOCAL_PROPERTIES, KernelModule.SYS_LOCAL_PROPERTIES);
-    emailQueueName = kernelProps.getProperty(KernelConstants.JMS_EMAIL_QUEUE);
-    emailType = kernelProps.getProperty(KernelConstants.JMS_EMAIL_TYPE);
-    props.put("mail.smtp.host", "localhost");
-    props.put("mail.smtp.port", "" + smtpTestPort);
-  }
+  // @BeforeClass
+  // public static void setUpBeforeClass() throws Exception {
+  // kernelProps = PropertiesLoader.load(ActiveMQEmailDeliveryT.class
+  // .getClassLoader(), KernelModule.DEFAULT_PROPERTIES,
+  // KernelModule.LOCAL_PROPERTIES, KernelModule.SYS_LOCAL_PROPERTIES);
+  // emailQueueName =
+  // kernelProps.getProperty(MessagingConstants.JMS_EMAIL_QUEUE);
+  // emailType = kernelProps.getProperty(MessagingConstants.JMS_EMAIL_TYPE);
+  // props.put("mail.smtp.host", "localhost");
+  // props.put("mail.smtp.port", "" + smtpTestPort);
+  // }
 
   /*
    * @Test public void testUrl() { Assert.assertEquals(fact.getBrokerURL(),
@@ -136,17 +142,16 @@ public class ActiveMQEmailDeliveryT {
     // occupy
     // the same varaible. SimpleEmail etc can each be used directly.
     List<Email> emails = new ArrayList<Email>();
-    EmailMessagingService messagingService = new EmailMessagingService(vmURL,
-        emailQueueName, emailType, null, null, null, null);
+    EmailMessagingService messagingService = null;
+    // EmailMessagingService messagingService = new EmailMessagingService(vmURL,
+    // emailQueueName, emailType, null, null, null, null);
     emails.add(new SimpleEmail(messagingService));
     emails.add(new MultiPartEmail(messagingService));
     emails.add(new HtmlEmail(messagingService));
     try {
 
-      listenerSession = listenerConn.createSession(false,
-          Session.AUTO_ACKNOWLEDGE);
-      emailQueue = listenerSession
-          .createQueue(emailQueueName);
+      listenerSession = listenerConn.createSession(false, Session.AUTO_ACKNOWLEDGE);
+      emailQueue = listenerSession.createQueue(emailQueueName);
 
       consumer = listenerSession.createConsumer(emailQueue);
 
@@ -167,8 +172,7 @@ public class ActiveMQEmailDeliveryT {
 
     try {
       clientSession = clientConn.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      emailQueue = clientSession
-          .createQueue(emailQueueName);
+      emailQueue = clientSession.createQueue(emailQueueName);
       producer = clientSession.createProducer(emailQueue);
 
       clientConn.start();
@@ -241,15 +245,13 @@ public class ActiveMQEmailDeliveryT {
     }
 
     long start = System.currentTimeMillis();
-    while (listenerMessagesProcessed < 3
-        && System.currentTimeMillis() - start < 10000L) {
+    while (listenerMessagesProcessed < 3 && System.currentTimeMillis() - start < 10000L) {
       // wait for transport
     }
     Assert.assertTrue(listenerMessagesProcessed == 3);
 
     List<WiserMessage> messages = smtpServer.getMessages();
-    Assert.assertTrue(messages.size() + " != expected value of 3", messages
-        .size() == 3);
+    Assert.assertTrue(messages.size() + " != expected value of 3", messages.size() == 3);
 
     for (WiserMessage wisermsg : messages) {
       String body = null;
@@ -339,7 +341,7 @@ public class ActiveMQEmailDeliveryT {
     listenerMessagesProcessed++;
   }
 
-  @AfterClass
+  // @AfterClass
   public static void tearDownAfterClass() throws Exception {
 
     if (clientConn != null) {
@@ -360,8 +362,7 @@ public class ActiveMQEmailDeliveryT {
       LOG.info("---> in consumer message listener...");
 
       try {
-        if (emailType.equals(message.getJMSType())
-            && message instanceof ObjectMessage) {
+        if (emailType.equals(message.getJMSType()) && message instanceof ObjectMessage) {
           // avoiding selectors
           ObjectMessage m = (ObjectMessage) message;
 
@@ -377,8 +378,7 @@ public class ActiveMQEmailDeliveryT {
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
             try {
 
-              javax.mail.Session session = javax.mail.Session
-                  .getDefaultInstance(props, null);
+              javax.mail.Session session = javax.mail.Session.getDefaultInstance(props, null);
               MimeMessage emailMessage = new MimeMessage(session, bis);
               LOG.info("Sending email to smtp server on port: " + smtpTestPort);
               Transport.send(emailMessage);
