@@ -80,6 +80,7 @@ public class EmailMessagingService extends JcrMessagingService implements Common
     return "" + getClientId();
   }
 
+  @SuppressWarnings("unchecked")
   public void activate(ComponentContext ctx) {
     Dictionary dict = ctx.getProperties();
     String brokerUrl = (String) dict.get(JMS_BROKER_URL);

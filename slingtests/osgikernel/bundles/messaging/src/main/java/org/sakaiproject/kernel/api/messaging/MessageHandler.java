@@ -21,28 +21,26 @@ import javax.jcr.Node;
 import javax.jcr.observation.Event;
 
 /**
- * TODO: Javadoc
+ * Definition for handling messages that originate in the system. Messages are
+ * written to known areas of JCR. Events are triggered by JCR when this content
+ * appears and based on the type of message, all appropriate message handlers
+ * are dispatched with the event and node of content.
  */
 public interface MessageHandler {
   /**
-   * TODO: Javadoc
-   */
-  public static final String REGISTRY = "outgoing.message";
-
-  /**
-   * TODO: Javadoc
+   * The type of messages in which the handler is interested.
    *
    * @return
    */
   String getType();
 
   /**
-   * TODO: Javadoc
+   * The dispatch method called to handle a message.
    *
-   * @param userID
-   * @param filePath
-   * @param fileName
+   * @param event
+   *          The event fired by JCR.
    * @param node
+   *          The node that caused the event.
    */
   void handle(Event event, Node node);
 }

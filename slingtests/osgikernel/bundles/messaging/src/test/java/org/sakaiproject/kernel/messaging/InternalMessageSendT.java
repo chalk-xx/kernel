@@ -33,7 +33,6 @@ import javax.jcr.query.QueryResult;
  *
  */
 public class InternalMessageSendT {
-  private static boolean shutdown;
   // private static KernelManager km;
   private static MessagingService msgServ;
   private static UserFactoryService userFactory;

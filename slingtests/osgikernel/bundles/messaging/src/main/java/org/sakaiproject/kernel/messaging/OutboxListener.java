@@ -25,8 +25,8 @@ import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -52,7 +52,7 @@ public class OutboxListener implements EventListener {
    *                policy="dynamic" cardinality="0..n" bind="addHandler"
    *                unbind="removeHandler"
    */
-  private List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+  private Set<MessageHandler> handlers = new HashSet<MessageHandler>();
 
   /**
    * Default constructor

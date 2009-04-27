@@ -50,7 +50,6 @@ public class InternalMessageHandler implements MessageHandler {
     dateStruct = FastDateFormat.getInstance("yyyy/MM/");
   }
 
-  // TODO: these need explicit setters to make the whole thing thread safe
   /** @scr.reference */
   private JCRService jcr;
 
