@@ -40,7 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *                name="org.sakaiproject.kernel.api.presence.PresenceService"
  * @scr.service
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="service.description" value="Presence Service Implementation"
+ * @scr.property name="service.description"
+ *               value="Presence Service Implementation"
  * @scr.reference name="cacheManagerService"
  *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  */
@@ -72,7 +73,8 @@ public class PresenceServiceImpl implements PresenceService {
         CacheScope.CLUSTERREPLICATED);
   }
 
-  protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
+  protected void unbindCacheManagerService(
+      CacheManagerService cacheManagerService) {
     if (this.cacheManagerService == cacheManagerService) {
       locationCache = null;
       userStatusCache = null;
@@ -130,7 +132,8 @@ public class PresenceServiceImpl implements PresenceService {
       long timeout = getTimeStamp() - PRESENCE_TTL;
       // load the current status or the defaults.
       if (currentStatus != null) {
-        String[] locationStatus = StringUtils.split(currentStatus, ":", STATUS_SIZE);
+        String[] locationStatus = StringUtils.split(currentStatus, ":",
+            STATUS_SIZE);
         if (locationStatus.length > TIMESTAMP_ELEMENT) {
           // timed out ?
           long lastTs = Long.parseLong(locationStatus[TIMESTAMP_ELEMENT]);
@@ -173,7 +176,8 @@ public class PresenceServiceImpl implements PresenceService {
         Map<String, String> onlineMap = Maps.newHashMap();
         for (Entry<String, String> e : locationInstanceCache.entrySet()) {
           String[] currentStatus = getCurrentStatus(e.getKey());
-          if (currentStatus != null && location.equals(currentStatus[LOCATION_ELEMENT])) {
+          if (currentStatus != null
+              && location.equals(currentStatus[LOCATION_ELEMENT])) {
             onlineMap.put(e.getKey(), currentStatus[STATUS_ELEMENT]);
           }
         }
@@ -249,14 +253,14 @@ public class PresenceServiceImpl implements PresenceService {
     if (userStatusCache != null) {
       String currentStatus = userStatusCache.get(uuid);
       // load the current status or the defaults.
-      String[] locationStatus = new String[] {uuid, String.valueOf(now - 1), "none",
-          "online"};
+      String[] locationStatus = new String[] { uuid, String.valueOf(now - 1),
+          "none", "online" };
       if (currentStatus != null) {
         locationStatus = StringUtils.split(currentStatus, ":", STATUS_SIZE);
 
       }
       // compare with non null current versions.
-      String[] ls = new String[] {uuid, String.valueOf(now), location, status};
+      String[] ls = new String[] { uuid, String.valueOf(now), location, status };
 
       for (int i = 0; i < locationStatus.length; i++) {
         if (ls[i] != null) {
