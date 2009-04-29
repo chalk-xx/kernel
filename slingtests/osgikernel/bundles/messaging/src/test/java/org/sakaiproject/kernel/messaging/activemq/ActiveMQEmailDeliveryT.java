@@ -70,7 +70,7 @@ public class ActiveMQEmailDeliveryT {
 
   private static final String TEST_EMAIL_TO = "test@somewherez.org";
 
-  private static final int smtpTestPort = 8025;
+  private static final int SMTP_TEST_PORT = 8025;
 
   private static final String TEST_EMAIL_FROM_ADDRESS = "postmaster@sakaiproject.org";
   private static final String TEST_EMAIL_FROM_LABEL = "KernelEmailBrokerTest";
@@ -93,7 +93,7 @@ public class ActiveMQEmailDeliveryT {
   // kernelProps.getProperty(MessagingConstants.JMS_EMAIL_QUEUE);
   // emailType = kernelProps.getProperty(MessagingConstants.JMS_EMAIL_TYPE);
   // props.put("mail.smtp.host", "localhost");
-  // props.put("mail.smtp.port", "" + smtpTestPort);
+  // props.put("mail.smtp.port", "" + SMTP_TEST_PORT);
   // }
 
   /*
@@ -167,7 +167,7 @@ public class ActiveMQEmailDeliveryT {
     }
 
     Wiser smtpServer = new Wiser();
-    smtpServer.setPort(smtpTestPort);
+    smtpServer.setPort(SMTP_TEST_PORT);
     smtpServer.start();
 
     try {
@@ -193,7 +193,7 @@ public class ActiveMQEmailDeliveryT {
         // by
         // the listener
         em.setHostName("localhost");
-        em.setSmtpPort(smtpTestPort);
+        em.setSmtpPort(SMTP_TEST_PORT);
         em.setSubject(TEST_EMAIL_SUBJECT);
         if (em instanceof HtmlEmail) {
           em.setMsg(TEST_EMAIL_BODY_HTMLEMAIL);
@@ -380,7 +380,7 @@ public class ActiveMQEmailDeliveryT {
 
               javax.mail.Session session = javax.mail.Session.getDefaultInstance(props, null);
               MimeMessage emailMessage = new MimeMessage(session, bis);
-              LOG.info("Sending email to smtp server on port: " + smtpTestPort);
+              LOG.info("Sending email to smtp server on port: " + SMTP_TEST_PORT);
               Transport.send(emailMessage);
             } catch (MessagingException e1) {
               e1.printStackTrace();

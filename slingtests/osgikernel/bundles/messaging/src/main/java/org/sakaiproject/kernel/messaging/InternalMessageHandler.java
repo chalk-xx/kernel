@@ -47,12 +47,12 @@ import javax.jcr.observation.Event;
  *                immediate="true"
  */
 public class InternalMessageHandler implements MessageHandler {
-  private static final Logger log = LoggerFactory.getLogger(InternalMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = Message.Type.INTERNAL.toString();
-  public static final FastDateFormat dateStruct;
+  private static final FastDateFormat DATE_STRUCT;
 
   static {
-    dateStruct = FastDateFormat.getInstance("yyyy/MM/");
+    DATE_STRUCT = FastDateFormat.getInstance("yyyy/MM/");
   }
 
   private JCRService jcr;
@@ -98,7 +98,7 @@ public class InternalMessageHandler implements MessageHandler {
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           String msgPath = buildMessagesPath(rcpt) + fileName;
-          log.debug("Writing {} to {}", filePath, msgPath);
+          LOG.debug("Writing {} to {}", filePath, msgPath);
           workspace.copy(filePath, msgPath);
           Node n = (Node) session.getItem(msgPath);
           JcrUtils.addNodeLabel(jcr, n, "inbox");
@@ -120,15 +120,15 @@ public class InternalMessageHandler implements MessageHandler {
       // targetNode.getParent().getParent().save();
       // }
       String sentMsgPath = sentPath + "/" + fileName;
-      log.debug("Moving message {} to {}", filePath, sentMsgPath);
+      LOG.debug("Moving message {} to {}", filePath, sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
       JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      log.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     } catch (LockTimeoutException e) {
-      log.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     }
   }
 
@@ -138,7 +138,7 @@ public class InternalMessageHandler implements MessageHandler {
 
   private String buildMessagesPath(String user) {
     Date now = new Date();
-    String msgStructPath = dateStruct.format(now);
+    String msgStructPath = DATE_STRUCT.format(now);
     String path = userFactory.getUserPrivatePath(user);
     path += MessagingConstants.FOLDER_MESSAGES;
     path += msgStructPath;

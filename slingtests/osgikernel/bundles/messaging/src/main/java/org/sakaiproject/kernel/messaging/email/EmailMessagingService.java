@@ -49,7 +49,7 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 public class EmailMessagingService extends JcrMessagingService implements CommonsEmailHandler {
-  private static final Logger log = LoggerFactory.getLogger(EmailMessagingService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EmailMessagingService.class);
   private Long clientId = Long.valueOf(1L);
 
   /** @scr.property value="vm://localhost?broker.persistent=true" */
@@ -130,7 +130,7 @@ public class EmailMessagingService extends JcrMessagingService implements Common
         conn.start();
       } catch (JMSException e) {
         try {
-          log.error("Fail to start connection: {}", conn.getClientID());
+          LOG.error("Fail to start connection: {}", conn.getClientID());
         } catch (JMSException e1) {
           // TMI
         }
@@ -151,7 +151,7 @@ public class EmailMessagingService extends JcrMessagingService implements Common
           sessions.put(conn.getClientID(), sess);
         } catch (JMSException e) {
           try {
-            log.error("Fail to create connection[{}]: {}", i, conn.getClientID());
+            LOG.error("Fail to create connection[{}]: {}", i, conn.getClientID());
           } catch (JMSException e1) {
             // TMI
           }

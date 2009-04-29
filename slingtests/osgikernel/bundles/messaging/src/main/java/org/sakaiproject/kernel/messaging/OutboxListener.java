@@ -41,7 +41,7 @@ import javax.jcr.observation.ObservationManager;
  * @scr.component
  */
 public class OutboxListener implements EventListener {
-  private static final Logger log = LoggerFactory.getLogger(OutboxListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(OutboxListener.class);
 
   /** @scr.reference */
   private JCRService jcr;
@@ -89,7 +89,7 @@ public class OutboxListener implements EventListener {
   /**
    * Constructor for testing to inject dependencies.
    * 
-   * @param log
+   * @param LOG
    * @param session
    */
   public OutboxListener(JCRService jcr) {
@@ -138,7 +138,7 @@ public class OutboxListener implements EventListener {
         // make sure we deal only with outbox items
         if (filePath.contains(MessagingConstants.FOLDER_MESSAGES + "/"
             + MessagingConstants.FOLDER_OUTBOX)) {
-          log.debug("Handling outbox message [{}]", filePath);
+          LOG.debug("Handling outbox message [{}]", filePath);
           // get the node, call up the appropriate handler and pass off based on
           // message type
           Session session = jcr.getSession();
@@ -149,18 +149,18 @@ public class OutboxListener implements EventListener {
           if (msgType != null && handlers != null) {
             for (MessageHandler handler : handlers) {
               if (msgType.equalsIgnoreCase(handler.getType())) {
-                log.debug("Handling with {}: {}", msgType, handler);
+                LOG.debug("Handling with {}: {}", msgType, handler);
                 handler.handle(event, n);
                 handled = true;
               }
             }
           }
           if (!handled) {
-            log.warn("No handler found for message type [{}]", msgType);
+            LOG.warn("No handler found for message type [{}]", msgType);
           }
         }
       } catch (RepositoryException e) {
-        log.error(e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       }
     }
   }
