@@ -46,11 +46,35 @@ public class JcrMessagingService implements MessagingService {
   /** @scr.reference */
   private MessageConverter messageConverter;
 
+  protected void bindMessageConverter(MessageConverter messageConverter) {
+    this.messageConverter = messageConverter;
+  }
+
+  protected void unbindMessageConverter(MessageConverter messageConverter) {
+    this.messageConverter = null;
+  }
+
   /** @scr.reference */
   private UserFactoryService userFactory;
 
+  protected void bindUserFactory(UserFactoryService UserFactory) {
+    this.userFactory = UserFactory;
+  }
+
+  protected void unbindUserFactory(UserFactoryService UserFactory) {
+    this.userFactory = null;
+  }
+
   /** @scr.reference */
   private JCRService jcr;
+
+  protected void bindJcr(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  protected void unbindJcr(JCRService jcr) {
+    this.jcr = null;
+  }
 
   /**
    * Default constructor.

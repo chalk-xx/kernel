@@ -66,7 +66,7 @@ public class EmailMessageListenerT {
     email = new EmailMessageImpl(null);
   }
 
-  // @Test
+  @Test
   public void jmsSend() throws Exception {
     ObjectMessage msg = new TestObjMsg(email);
     // pass a null service because we're starting after when the service is used

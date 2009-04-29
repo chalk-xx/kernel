@@ -19,44 +19,52 @@ package org.sakaiproject.kernel.messaging;
 
 import static junit.framework.Assert.assertEquals;
 
+import org.apache.jackrabbit.commons.repository.EmptyRepository;
 import org.apache.jackrabbit.util.ISO9075;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
-import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.Message;
-import org.sakaiproject.kernel.api.messaging.MessagingService;
 
+import javax.jcr.Repository;
+import javax.jcr.Session;
+import javax.jcr.Workspace;
 import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 
 /**
  *
  */
 public class InternalMessageSendT {
-  // private static KernelManager km;
-  private static MessagingService msgServ;
+  private static JcrMessagingService msgServ;
   private static UserFactoryService userFactory;
-  private static JCRService jcr;
   private Message msg;
+  private static Repository repo;
+  private static Session session;
+  private static Workspace workspace;
+  private static QueryManager queryMgr;
 
-  // @BeforeClass
-  // public static void beforeClass() throws Exception {
-  // shutdown = KernelIntegrationBase.beforeClass();
-  //
-  // km = new KernelManager();
-  // msgServ = km.getService(MessagingService.class);
-  // userFactory = km.getService(UserFactoryService.class);
-  // jcr = km.getService(JCRService.class);
-  // jcr.loginSystem();
-  // }
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    repo = new EmptyRepository();
+    session = repo.login();
+    workspace = session.getWorkspace();
+    queryMgr = workspace.getQueryManager();
 
-  // @AfterClass
-  // public static void afterClass() throws Exception {
-  // jcr.logout();
-  // KernelIntegrationBase.afterClass(shutdown);
-  // }
+    msgServ = new JcrMessagingService();
+    userFactory = new UserFactoryService();
+  }
 
-  // @Before
+  @AfterClass
+  public static void afterClass() throws Exception {
+    // jcr.logout();
+  }
+
+  @Before
   public void setUp() throws Exception {
     msg = msgServ.createMessage();
   }
@@ -74,7 +82,7 @@ public class InternalMessageSendT {
    *
    * @throws Exception
    */
-  // @Test
+  @Test
   public void sendSimpleInternalMessage() throws Exception {
     msg.setFrom("carl");
     msg.addTo("stuart");
@@ -82,12 +90,12 @@ public class InternalMessageSendT {
     msg.setText("this is a simple message from a unit test.");
 
     msgServ.send(msg);
-    jcr.save();
+    session.save();
 
     // wait for delivery
     Thread.yield();
     Thread.sleep(1000);
-    jcr.save();
+    session.save();
 
     String inPath = userFactory.getNewMessagePath(msg.getTo());
     System.err.println("Looking for " + inPath);
@@ -97,26 +105,25 @@ public class InternalMessageSendT {
     // String queryString = "select * from " + JCRConstants.NT_BASE + " where "
     // + JCRConstants.JCR_PATH + " like '" + inPath + "/%' and "
     // + JCRConstants.JCR_LABELS + " = 'inbox'";
-    String queryString = "/" + ISO9075.encodePath(inPath) + "//element(*,"
-        + JCRConstants.NT_FILE + ")[@" + JCRConstants.JCR_LABELS + "='inbox']";
+    String queryString = "/" + ISO9075.encodePath(inPath) + "//element(*," + JCRConstants.NT_FILE
+        + ")[@" + JCRConstants.JCR_LABELS + "='inbox']";
     System.err.println(queryString);
-    Query query = jcr.getQueryManager().createQuery(queryString, Query.XPATH);
+    Query query = queryMgr.createQuery(queryString, Query.XPATH);
     QueryResult results = query.execute();
     assertEquals(1, results.getNodes().getSize());
 
     // verify message in common message store for sender and is labeled 'sent'
     String senderPath = "/" + userFactory.getMessagesPath(msg.getFrom());
-    queryString = ISO9075.encodePath(senderPath) + "//element(*,"
-        + JCRConstants.NT_FILE + ")[@" + JCRConstants.JCR_LABELS + "='sent']";
-    query = jcr.getQueryManager().createQuery(queryString, Query.XPATH);
+    queryString = ISO9075.encodePath(senderPath) + "//element(*," + JCRConstants.NT_FILE + ")[@"
+        + JCRConstants.JCR_LABELS + "='sent']";
+    query = queryMgr.createQuery(queryString, Query.XPATH);
     results = query.execute();
     assertEquals(1, results.getNodes().getSize());
 
     // verify message was removed from outbox
     String outPath = senderPath + "/" + KernelConstants.OUTBOX;
-    queryString = ISO9075.encodePath(outPath) + "//element(*,"
-        + JCRConstants.NT_FILE + ")";
-    query = jcr.getQueryManager().createQuery(queryString, Query.XPATH);
+    queryString = ISO9075.encodePath(outPath) + "//element(*," + JCRConstants.NT_FILE + ")";
+    query = queryMgr.createQuery(queryString, Query.XPATH);
     results = query.execute();
     assertEquals(0, results.getNodes().getSize());
   }

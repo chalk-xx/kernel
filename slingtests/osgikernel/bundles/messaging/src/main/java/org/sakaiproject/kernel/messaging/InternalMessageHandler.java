@@ -44,34 +44,37 @@ import javax.jcr.observation.Event;
 public class InternalMessageHandler implements MessageHandler {
   private static final Logger log = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = Message.Type.INTERNAL.toString();
-  private static final FastDateFormat dateStruct;
+  public static final FastDateFormat dateStruct;
 
   static {
     dateStruct = FastDateFormat.getInstance("yyyy/MM/");
   }
 
-  /** @scr.reference */
   private JCRService jcr;
+
+  protected void bindJcr(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  protected void unbindJcr(JCRService jcr) {
+    this.jcr = null;
+  }
 
   /** @scr.reference */
   private UserFactoryService userFactory;
+
+  protected void bindUserFactory(UserFactoryService userFactory) {
+    this.userFactory = userFactory;
+  }
+
+  protected void unbindUserFactory(UserFactoryService userFactory) {
+    this.userFactory = null;
+  }
 
   /**
    * Default constructor
    */
   public InternalMessageHandler() {
-  }
-
-  /**
-   * Constructor for all parameters.
-   *
-   * @param jcr
-   * @param userFactory
-   * @param log
-   */
-  public InternalMessageHandler(JCRService jcr, UserFactoryService userFactory) {
-    this.jcr = jcr;
-    this.userFactory = userFactory;
   }
 
   public void handle(Event event, Node node) {

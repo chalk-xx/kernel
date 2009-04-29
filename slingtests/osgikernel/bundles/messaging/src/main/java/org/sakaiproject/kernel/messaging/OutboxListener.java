@@ -46,6 +46,14 @@ public class OutboxListener implements EventListener {
   /** @scr.reference */
   private JCRService jcr;
 
+  protected void bindJcr(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  protected void unbindJcr(JCRService jcr) {
+    this.jcr = null;
+  }
+
   /**
    * @scr.reference
    *                interface="org.sakaiproject.kernel.api.messaging.MessageHandler"

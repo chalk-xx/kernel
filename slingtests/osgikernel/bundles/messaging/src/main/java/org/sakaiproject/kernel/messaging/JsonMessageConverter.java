@@ -43,6 +43,14 @@ public class JsonMessageConverter implements MessageConverter {
   /** @scr.reference */
   private MessagingService messagingService;
 
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
+
   /**
    * Default constructor.
    */

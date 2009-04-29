@@ -16,17 +16,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.messaging.email;
+package org.sakaiproject.kernel.messaging;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.sakaiproject.kernel.messaging.email.EmailMessageListenerT;
+import org.sakaiproject.kernel.messaging.email.MailSessionProviderT;
 
 /**
- *
+ * Suite controller for messaging tests.
  */
 @RunWith(Suite.class)
-// @SuiteClasses( { EmailMessageListenerT.class, MailSessionProviderT.class })
-@SuiteClasses( { MailSessionProviderT.class })
+@SuiteClasses( { EmailMessageListenerT.class, MailSessionProviderT.class })
 public class AllMessagingTest {
 }
