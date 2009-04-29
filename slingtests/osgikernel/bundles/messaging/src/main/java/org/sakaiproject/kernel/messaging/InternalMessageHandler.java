@@ -39,7 +39,12 @@ import javax.jcr.Workspace;
 import javax.jcr.observation.Event;
 
 /**
+ * Handler for messages that are sent locally and intended for local delivery.
+ * Needs to be started immediately to make sure it registers with JCR as soon as
+ * possible.
+ *
  * @scr.component description="Handler for internally delivered messages."
+ *                immediate="true"
  */
 public class InternalMessageHandler implements MessageHandler {
   private static final Logger log = LoggerFactory.getLogger(InternalMessageHandler.class);
