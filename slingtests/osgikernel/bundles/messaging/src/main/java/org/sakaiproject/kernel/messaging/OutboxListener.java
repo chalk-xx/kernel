@@ -63,24 +63,8 @@ public class OutboxListener implements EventListener {
   private Set<MessageHandler> handlers = new HashSet<MessageHandler>();
 
   /**
-   * Default constructor
-   */
-  public OutboxListener() {
-  }
-
-  /**
-   * Constructor for testing to inject dependencies.
-   *
-   * @param log
-   * @param session
-   */
-  public OutboxListener(JCRService jcr) {
-    this.jcr = jcr;
-  }
-
-  /**
    * Binder for adding message handlers.
-   *
+   * 
    * @param handler
    */
   protected void addHandler(MessageHandler handler) {
@@ -89,11 +73,27 @@ public class OutboxListener implements EventListener {
 
   /**
    * Unbinder for removing message handlers.
-   *
+   * 
    * @param handler
    */
   protected void removeHandler(MessageHandler handler) {
     handlers.remove(handler);
+  }
+
+  /**
+   * Default constructor
+   */
+  public OutboxListener() {
+  }
+
+  /**
+   * Constructor for testing to inject dependencies.
+   * 
+   * @param log
+   * @param session
+   */
+  public OutboxListener(JCRService jcr) {
+    this.jcr = jcr;
   }
 
   /**
