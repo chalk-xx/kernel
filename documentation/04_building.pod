@@ -12,13 +12,26 @@ maven 2.0.7, e.g. mvn -v should return something like: Maven version: 2.0.9.
 There are instructions about upgrading maven on Mac OS X here:
 http://steve-on-sakai.blogspot.com/2009/04/updating-maven-on-mac-os-x.html
 
-Currently the trunk version of Sling is required and the source will need to be
-fetched and built. Note, full details are available here:
-http://incubator.apache.org/sling/site/project-information.html
+=head2 Building sling
+
+First up you will need to build sling, for which further details are available
+here: http://incubator.apache.org/sling/site/project-information.html. The
+trunk version of sling can be obtained via:
 
 $ svn co http://svn.eu.apache.org/repos/asf/incubator/sling/trunk sling;
 
-$ pushd sling;
+For those who prefer git, there is also a git repo of the sling source at
+http://git.apache.org/sling.git
+
+However, a fork of sling is currently being maintained at
+http://github.com/ieb/k2-sling-fork/tree/master which contains some necessary
+customizations to facilitate the next generation sakai. It is hoped that these
+changes will wherever possible find their way back into the apache sling and
+jackrabbit code bases. This fork can be fetched with:
+
+git clone git://github.com/ieb/k2-sling-fork.git
+
+Then you can build sling with:
 
 $ mvn -s /dev/null clean install;
 
@@ -26,15 +39,14 @@ This build will populate the maven repo with some required files for the next
 generation sakai, so it is important that all builds are performed as the same
 user.
 
-For those who prefer git, there is also a git repo of the sling source at
-http://git.apache.org/sling.git
-
 The python and ruby scripting engines also need to be built to further populate
 the local maven repo:
 
 $ pushd contrib;
 
 $ mvn -s /dev/null clean install;
+
+=head2 Building the next generation sakai
 
 The code for the next generation sakai is hosted at github. You do not need an
 account, however, to clone it (git terminology for svn checkout in effect) and

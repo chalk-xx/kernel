@@ -50,6 +50,24 @@ Then either verbally contact the development lead to do a pull, or issue a pull
 request through the github interface. Subject to code review your changes will
 then be in!
 
+=head2 Following forks
+
+If you want to track changes from the open-experiments fork then add it as a
+remote source in git:
+
+$ git remote add ieb git://github.com/ieb/open-experiments.git
+
+And use pull to merge changes across:
+
+$ git pull ieb master
+
+Alternatively, if you don't want to automatically merge, you can fetch, review
+then merge:
+
+$ git fetch ieb
+
+$ git merge ieb/master
+
 =head2 Fetching other forks
 
 To fetch features from forks other than ieb master, such as those listed in the
