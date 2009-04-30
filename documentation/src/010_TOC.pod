@@ -1,0 +1,144 @@
+=head1 The Next Generation of Sakai. A reference guide:
+
+=head2 Table Of Contents
+
+=head3 Introduction ... Page 4
+
+=over
+
+=item The background to the next generation sakai.
+
+=item So why not just re-engineer the sakai content management engine?
+
+=item Enter JSR-170 (and JSR-283)
+
+=item Why is this such a good thing?
+
+=item Other intended benefits of the next generation sakai
+
+=item Scalability
+
+=item Easier and Quicker to use
+
+=item Flexible, User Centered Structure
+
+=item Offline friendly
+
+=item User privacy and presence
+
+=item Object focused permissions
+
+=item Upgrade Pathway
+
+=item Build quality
+
+=item Better transaction management
+
+=item Security
+
+=item Flexible partitioning of users and administrative control
+
+=back
+
+=head3 System Architecture ... Page 7
+
+=over
+
+=item Apache Sling
+
+=item Apache Jackrabbit
+
+=item Everything is Content!
+
+=item MySQL
+
+=item OSGi and Apache Felix
+
+=item Bundles
+
+=item Pax Web
+
+=item Jetty
+
+=item Apache HTTPd
+
+=back
+
+=head3 Building ... Page 9
+
+=over
+
+=item The build environment
+
+=item Appendix A: Build script used to build the next generation sakai:
+
+=back
+
+=head3 Deploying ... Page 12
+
+=over
+
+=item Accessing the next generation sakai directly via built in jetty
+
+=item Startup switches for the next generation sakai
+
+=item Load balancing behind apache httpd server
+
+=back
+
+=head3 Developing ... Page 14
+
+=over
+
+=item Using git
+
+=item github
+
+=item Forking
+
+=item Fetching other forks
+
+=item Git pre-commit hook
+
+=back
+
+=head3 Content ... Page 15
+
+=over
+
+=item Sling Content and processing of content
+
+=item Manipulating Content: The SlingPostServlet
+
+=back
+
+=head3 Authorization ... Page 16
+
+=over
+
+=item Building on Jackrabbit
+
+=item Sling Authz Implementation Plan
+
+=item Jackrabbit User manager
+
+=item New Bundle for a ResourceProvider and Sling Post Operations for interacting with the jackrabbit UserManager
+
+=item Jackrabbit 15/Sling UserManager Services
+
+=back
+
+=head3 REST ... Page 17
+
+=over
+
+=item RESTful web services
+
+=item JSON
+
+=item REST web services provided by Sakai
+
+=back
+
+=head3 User Interface ... Page 18
+

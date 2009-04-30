@@ -1,0 +1,5 @@
+=head1 The next generation of Sakai
+
+=head2 A reference guide:
+
+Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
