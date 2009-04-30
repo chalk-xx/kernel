@@ -21,42 +21,54 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Manages the presence of a user, and allows users to see who amongst their connections are online.
+ * Manages the presence of a user, and allows users to see who amongst their
+ * connections are online.
  */
 public interface PresenceService {
 
-
   /**
    * keep presence for this user alive.
-   * @param uuid the user id.
-   * @param location the location from which the user is pinging.
+   * 
+   * @param uuid
+   *          the user id.
+   * @param location
+   *          the location from which the user is pinging.
    */
   void ping(String uuid, String location);
 
   /**
    * Update the presence status of the user.
-   * @param presence the presence status
+   * 
+   * @param presence
+   *          the presence status
    */
   /**
    * Update the presence status of the user.
-   * @param uuid the user id of the user.
-   * @param status the presence status
+   * 
+   * @param uuid
+   *          the user id of the user.
+   * @param status
+   *          the presence status
    */
   void setStatus(String uuid, String status);
 
   /**
-   * @param uuid the user id.
+   * @param uuid
+   *          the user id.
    * @return the status for the user.
    */
   String getStatus(String uuid);
 
   /**
-   * @param connections a list of connections.
+   * @param connections
+   *          a list of connections.
    * @return a map of userid to online status.
    */
   Map<String, String> online(List<String> connections);
+
   /**
-   * @param location the location where the users might be online.
+   * @param location
+   *          the location where the users might be online.
    * @return a map of userid to online status.
    */
   Map<String, String> online(String location);

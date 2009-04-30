@@ -54,10 +54,13 @@ public class PresenceServiceImplTest {
 
     cacheManagerService = createMock(CacheManagerService.class);
     expect(
-        cacheManagerService.getCache("presence.location", CacheScope.CLUSTERREPLICATED))
-        .andReturn(presenceLocationCache).anyTimes();
-    expect(cacheManagerService.getCache("presence.status", CacheScope.CLUSTERREPLICATED))
-        .andReturn(presenceStatusCache).anyTimes();
+        cacheManagerService.getCache("presence.location",
+            CacheScope.CLUSTERREPLICATED)).andReturn(presenceLocationCache)
+        .anyTimes();
+    expect(
+        cacheManagerService.getCache("presence.status",
+            CacheScope.CLUSTERREPLICATED)).andReturn(presenceStatusCache)
+        .anyTimes();
     replay(cacheManagerService);
     presenceService = new PresenceServiceImpl(cacheManagerService);
   }
@@ -72,14 +75,16 @@ public class PresenceServiceImplTest {
 
   /**
    * Test method for
-   * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#online(java.util.List)} .
+   * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#online(java.util.List)}
+   * .
    */
   @Test
   public void testOnlineFriends() {
     for (int j = 0; j < 100; j++) {
       for (int i = 0; i < 100; i++) {
         if (i == 50) {
-          Map<String, String> onlineLocations = presenceService.online("location" + j);
+          Map<String, String> onlineLocations = presenceService
+              .online("location" + j);
           assertEquals(50, onlineLocations.size());
         }
         presenceService.ping("user" + i, "location" + j);
@@ -89,7 +94,8 @@ public class PresenceServiceImplTest {
           presenceService.setStatus("user" + i, "user" + i + "at" + j);
         }
       }
-      Map<String, String> onlineLocations = presenceService.online("location" + j);
+      Map<String, String> onlineLocations = presenceService.online("location"
+          + j);
       assertEquals(100, onlineLocations.size());
     }
     List<String> friends = Lists.newArrayList();
