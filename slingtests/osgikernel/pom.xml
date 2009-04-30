@@ -57,6 +57,7 @@
         <module>bundles/locking</module>
         <module>bundles/messaging</module>
         <module>bundles/presence</module>
+        <module>bundles/ownerprincipalmanager</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
