@@ -13,9 +13,6 @@ public class ArrayUtilsTest {
     ArrayUtils.copy(from, to);
     // We should have two different objects
     assertFalse(from == to);
-    // Every entry in both arrays should match
-    for (int i = 0; i < to.length; i++) {
-      assertTrue(from[i].equals(to[i]));
-    }
+    assertArrayEquals(from, to);
   }
 }

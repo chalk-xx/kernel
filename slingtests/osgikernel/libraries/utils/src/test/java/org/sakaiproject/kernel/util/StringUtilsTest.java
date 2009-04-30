@@ -15,11 +15,11 @@ public class StringUtilsTest {
     s = "/Lorem/ipsum/dolor/sit/amet./";
     result = StringUtils.split(s, '/');
     assertEquals(5, result.length);
-    assertEquals(result[0], "Lorem");
-    assertEquals(result[1], "ipsum");
-    assertEquals(result[2], "dolor");
-    assertEquals(result[3], "sit");
-    assertEquals(result[4], "amet.");
+    assertEquals("Lorem", result[0]);
+    assertEquals("ipsum", result[1]);
+    assertEquals("dolor", result[2]);
+    assertEquals("sit", result[3]);
+    assertEquals("amet.", result[4]);
 
     s = "";
     result = StringUtils.split(s, '/');
@@ -39,9 +39,9 @@ public class StringUtilsTest {
     s = "/Lorem/ipsum/dolor/sit/amet./";
     result = StringUtils.split(s, '/', 3);
     assertEquals(3, result.length);
-    assertEquals(result[0], "Lorem");
-    assertEquals(result[1], "ipsum");
-    assertEquals(result[2], "dolor");
+    assertEquals("Lorem", result[0]);
+    assertEquals("ipsum", result[1]);
+    assertEquals("dolor", result[2]);
 
     s = "";
     result = StringUtils.split(s, '/', 1);
@@ -55,7 +55,7 @@ public class StringUtilsTest {
   @Test
   public void testSha1Hash() throws Exception {
     String hash = StringUtils.sha1Hash("Lorem");
-    assertEquals(hash, "a246fbb4b1fb7f249c1c5496f46d3b54103ad85d");
+    assertEquals("a246fbb4b1fb7f249c1c5496f46d3b54103ad85d", hash);
   }
 
   @Test
@@ -97,9 +97,15 @@ public class StringUtilsTest {
   }
 
   @Test
+  public void testEscapeJCRSQL() {
+    String query = "'Lorem' \"ipsum\"";
+    assertEquals("''Lorem'' \\\"ipsum\\\"", StringUtils.escapeJCRSQL(query));
+  }
+
+  @Test
   public void testStripBlanks() {
-    assertEquals(StringUtils.stripBlanks(" Lorem ipsum dolor "),
-        "Loremipsumdolor");
-    assertEquals(StringUtils.stripBlanks("Lorem"), "Lorem");
+    assertEquals("Loremipsumdolor", StringUtils
+        .stripBlanks(" Lorem ipsum dolor "));
+    assertEquals("Lorem", StringUtils.stripBlanks("Lorem"));
   }
 }

@@ -156,7 +156,7 @@ public class PathUtils {
     char[] normalized = new char[source.length + 1];
     int i = 0;
     int j = 0;
-    if (source[i] != '/') {
+    if (source.length == 0 || source[i] != '/') {
       normalized[j++] = '/';
     }
     boolean slash = false;
