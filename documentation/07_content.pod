@@ -1,9 +1,0 @@
-=head1 Content
-
-=head2 Sling Content and processing of content
-
-http://groups.google.com/group/sakai-kernel/web/sling-content-and-processing-of-content
-
-=head2 Manipulating Content: The SlingPostServlet
-
-http://incubator.apache.org/sling/site/manipulating-content-the-slingpostservlet.html
