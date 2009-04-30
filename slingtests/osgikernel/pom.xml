@@ -57,6 +57,7 @@
         <module>bundles/locking</module>
         <module>bundles/messaging</module>
         <module>bundles/presence</module>
+        <module>bundles/ownerprincipalmanager</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
@@ -475,6 +476,18 @@
   </dependencies>
   <dependencyManagement>
     <dependencies>
+<!-- testing libraries -->
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>2.4</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.subethamail</groupId>
+        <artifactId>subethasmtp-wiser</artifactId>
+        <version>1.2</version>
+      </dependency>
 <!-- OSGi Libraries -->
       <dependency>
         <groupId>org.apache.felix</groupId>
@@ -552,7 +565,7 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.6</version>
         <scope>provided</scope>
       </dependency>
 
@@ -565,6 +578,18 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email</artifactId>
         <version>1.1</version>
+      </dependency>
+
+<!-- JMS -->
+      <dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+				<version>1.0.1</version>
+			</dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-core</artifactId>
+        <version>5.2.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

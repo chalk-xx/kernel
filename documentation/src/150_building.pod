@@ -1,0 +1,160 @@
+=head1 Building
+
+Building the next generation sakai differs from how building the current sakai
+works. This document details the required build environment and steps:
+
+=head2 The build environment
+
+To build the next generation sakai you will need to have a subversion client, a
+git client, java, and maven installed. In particular, JDK 5, e.g. java version
+"1.5.0_17" and maven 2.0.7 or above since sling specifies a prerequisite of
+maven 2.0.7, e.g. mvn -v should return something like: Maven version: 2.0.9.
+There are instructions about upgrading maven on Mac OS X here:
+http://steve-on-sakai.blogspot.com/2009/04/updating-maven-on-mac-os-x.html
+
+=head2 Building sling
+
+First up you will need to build sling, for which further details are available
+here: http://incubator.apache.org/sling/site/project-information.html. The
+trunk version of sling can be obtained via:
+
+$ svn co http://svn.eu.apache.org/repos/asf/incubator/sling/trunk sling;
+
+For those who prefer git, there is also a git repo of the sling source at
+http://git.apache.org/sling.git
+
+However, a fork of sling is currently being maintained at
+http://github.com/ieb/k2-sling-fork/tree/master which contains some necessary
+customizations to facilitate the next generation sakai. It is hoped that these
+changes will wherever possible find their way back into the apache sling and
+jackrabbit code bases. This fork can be fetched with:
+
+git clone git://github.com/ieb/k2-sling-fork.git
+
+Then you can build sling with:
+
+$ mvn -s /dev/null clean install;
+
+This build will populate the maven repo with some required files for the next
+generation sakai, so it is important that all builds are performed as the same
+user.
+
+The python and ruby scripting engines also need to be built to further populate
+the local maven repo:
+
+$ pushd contrib;
+
+$ mvn -s /dev/null clean install;
+
+=head2 Building the next generation sakai
+
+The code for the next generation sakai is hosted at github. You do not need an
+account, however, to clone it (git terminology for svn checkout in effect) and
+you can subsequently run git pull to keep your local version up to date:
+
+$ git clone git://github.com/ieb/open-experiments.git
+
+$ cd open-experiments/slingtests/osgikernel;
+
+$ mvn -s /dev/null clean install;
+
+If that completes successfully, then you now have the next generation sakai
+built! You should now be able to run:
+
+$ java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar
+
+Note: this will create a 'sling/' directory in the current working directory,
+which will contain configurations and run time data. If you make alterations or
+changes to the code you may well want to remove the sling directory and have it
+rebuilt to ensure a clean build.
+
+=head2 Appendix A: Build script used to build the next generation sakai:
+
+The following script is available from:
+https://saffron.caret.cam.ac.uk/svn/projects/sakaibuilds/trunk/scripts/build_sling.sh
+
+#!/bin/sh
+
+# Build return code: 0 denotes a success; anything else a failure.
+
+EXITCODE=0;
+
+pushd sling;
+
+echo "Starting maven build of sling.";
+
+mvn -s /dev/null clean install;
+
+EXITCODE=${?};
+
+if [ "${EXITCODE}" != "0" ] ; then
+
+echo "ERROR: Problem with build, exit code was ${EXITCODE}";
+
+exit ${EXITCODE};
+
+fi
+
+pushd contrib;
+
+echo "Starting maven build of sling contrib.";
+
+mvn -s /dev/null clean install;
+
+EXITCODE=${?};
+
+if [ "${EXITCODE}" != "0" ] ; then
+
+echo "ERROR: Problem with build, exit code was ${EXITCODE}";
+
+exit ${EXITCODE};
+
+fi
+
+popd;
+
+popd;
+
+if [ ! -d open-experiments ] ; then
+
+git clone git://github.com/ieb/open-experiments.git
+
+fi
+
+if [ ! -d open-experiments ] ; then
+
+echo "ERROR: git clone should have created directory open-experiments, aborting!";
+
+exit 1;
+
+fi
+
+pushd open-experiments;
+
+git pull;
+
+pushd slingtests;
+
+pushd osgikernel;
+
+echo "Starting maven build of open-experiments.";
+
+mvn -s /dev/null clean install;
+
+EXITCODE=${?};
+
+if [ "${EXITCODE}" != "0" ] ; then
+
+echo "ERROR: Problem with build, exit code was ${EXITCODE}";
+
+exit ${EXITCODE};
+
+fi
+
+popd;
+
+popd;
+
+popd;
+
+exit ${EXITCODE};

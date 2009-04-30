@@ -1,0 +1,88 @@
+=head1 Glossary
+
+AuthZ - AuthZ is an abbreviation of the word *Authorization*.  Authorization
+generally refers to the process of granting someone permission (or authority)
+to do some action. 
+
+DI - Dependency Injection (DI) is an Inversion of Control (IOC) design pattern
+for building software systems from components.
+(http://en.wikipedia.org/wiki/Dependency_injection)
+
+EclipseLink - EclipseLink is an Eclipse project implementation of the Java
+Persistence API (JPA) standard. (http://www.eclipse.org/eclipselink/)
+
+Felix - Felix is an Apache project implementation of the OSGi standard.
+(http://www.eclipse.org/eclipselink/)
+
+Git - Git is an open source distributed revision control system.  Git was
+originally developed for the Linux kernel development, but has been adopted a
+main revision control system by several other software projects.
+(http://git-scm.com/)
+
+Guice - Guice is a dependency injection (DI) container and Google project.
+(http://code.google.com/p/google-guice/)
+
+IOC - Inversion of Control (IOC) is a description of several types of design
+patterns where the *standard* way of doing something is fundamentally inverted
+and done in a contrary way. (http://en.wikipedia.org/wiki/Inversion_of_Control)
+
+Jackrabbit - Jackrabbit is an Apache project that implements the Java Content
+Repository (JCR) standards, JSR 170 and JSR 283. (http://jackrabbit.apache.org/)
+
+JCR - Java Content Repository (JCR) describes both the Java standards JSR 170 &
+JSR 283 as well as the basic idea of a content management repository built for
+Java. (http://en.wikipedia.org/wiki/Content_repository_API_for_Java)
+
+Jetty - Jetty is an Eclipse project that is that provides an HTTP server, HTTP
+client and Java Servlet container. (http://www.mortbay.org/jetty/)
+
+JPA - The Java Persistence API (JPA) was defined by the JSR 220 standard.  The
+JPA standard defines a common way to do object relational mapping (ORM) in a
+Java project. (http://en.wikipedia.org/wiki/Java_Persistence_API)
+(http://jcp.org/en/jsr/detail?id=220)
+
+JR - JR is an abbreviation use to describe the Apache Jackrabbit project.
+
+JR14 - JR14 is an abbreviation used to describe the version 1.4 release of the
+Apache Jackrabbit project. (http://jackrabbit.apache.org/)
+
+JR15 - JR15 is an abbreviation used to describe the version 1.5 release of the
+Apache Jackrabbit project. (http://jackrabbit.apache.org/)
+
+JSON - JavaScript Object Notation (JSON) is a lightweight data-interchange
+format.  JSON is programming language independent. (http://www.json.org/)
+
+JSR - The Java Specfication Request (JSR) prefix is used before any standard
+that has gone through the Java Community Process.
+(http://en.wikipedia.org/wiki/Java_Community_Process)
+
+JSR 170 - The JSR 170 standard is the first standard to define the Java Content
+Repository (JCR) and corresponding APIs. (http://jcp.org/en/jsr/detail?id=170)
+
+JSR 283 - The JSR 283 standard describes version 2.0 of the Java Content
+Repository (JCR) standard. (http://jcp.org/en/jsr/detail?id=283)
+
+OSGi - The OSGi specifications define an in-VM Service Oriented Architecture
+(SOA) for networked systems.  OSGi was formerly known as the Open Services
+Gateway initiative, however this is now an obsolete name.
+(http://www.osgi.org/)
+
+REST - Representational state transfer (REST) is a style of software
+architecture for distributed systems such as the World Wide Web.  REST refers
+in the strictest sense to a collection of network architecture principles which
+outline how resources are defined and addressed.
+(http://en.wikipedia.org/wiki/Representational_State_Transfer)
+
+SCR - The Service Component Runtime (SCR) describes a portion of the Apache
+Felix project that implents the OSGi Declarative Services Specification.
+(http://felix.apache.org/site/apache-felix-service-component-runtime.html)
+
+Sling - The Apache Sling project is a web framework built on REST based
+principles, using a Java Content Repository (JCR) and powered by OSGI.
+(http://incubator.apache.org/sling/site/index.html)
+
+Widget - A widget is anything that can be embedded in an HTML page that addds
+some content to the page possibly along with a user interface.  Widgets are
+different from HTML pages, because a widget may be used in a web page, but does
+not have to be the only content on a web page.  One web page may contain one or
+more widgets.

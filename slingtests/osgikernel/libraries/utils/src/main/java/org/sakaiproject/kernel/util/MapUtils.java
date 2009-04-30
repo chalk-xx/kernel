@@ -24,8 +24,7 @@ import java.util.Map;
 
 /**
  * A utility class containing static methods for manipulating maps. Uses Google
- * collections internally.cd
- * cd
+ * collections internally.
  */
 public class MapUtils {
   /**

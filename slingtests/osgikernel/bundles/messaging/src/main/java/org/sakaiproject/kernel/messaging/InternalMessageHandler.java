@@ -36,28 +36,45 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
+import javax.jcr.observation.Event;
 
 /**
+ * Handler for messages that are sent locally and intended for local delivery.
+ * Needs to be started immediately to make sure it registers with JCR as soon as
+ * possible.
  *
  * @scr.component description="Handler for internally delivered messages."
- * @scr.property name="type" value="internal"
+ *                immediate="true"
  */
 public class InternalMessageHandler implements MessageHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = Message.Type.INTERNAL.toString();
-  private static final FastDateFormat dateStruct;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(InternalMessageHandler.class);
+  private static final FastDateFormat DATE_STRUCT;
 
   static {
-    dateStruct = FastDateFormat.getInstance("yyyy/MM/");
+    DATE_STRUCT = FastDateFormat.getInstance("yyyy/MM/");
   }
 
-  // TODO: these need explicit setters to make the whole thing thread safe
-  /** @scr.reference */
   private JCRService jcr;
+
+  protected void bindJcr(JCRService jcr) {
+    this.jcr = jcr;
+  }
+
+  protected void unbindJcr(JCRService jcr) {
+    this.jcr = null;
+  }
 
   /** @scr.reference */
   private UserFactoryService userFactory;
+
+  protected void bindUserFactory(UserFactoryService userFactory) {
+    this.userFactory = userFactory;
+  }
+
+  protected void unbindUserFactory(UserFactoryService userFactory) {
+    this.userFactory = null;
+  }
 
   /**
    * Default constructor
@@ -65,8 +82,12 @@ public class InternalMessageHandler implements MessageHandler {
   public InternalMessageHandler() {
   }
 
-  public void handle(String userID, String filePath, String fileName, Node node) {
+  public void handle(Event event, Node node) {
     try {
+      String filePath = event.getPath();
+      int lastSlash = filePath.lastIndexOf('/');
+      String fileName = filePath.substring(lastSlash + 1);
+
       Session session = jcr.getSession();
       Workspace workspace = session.getWorkspace();
 
@@ -77,7 +98,7 @@ public class InternalMessageHandler implements MessageHandler {
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           String msgPath = buildMessagesPath(rcpt) + fileName;
-          LOGGER.debug("Writing {0} to {1}", filePath, msgPath);
+          LOG.debug("Writing {} to {}", filePath, msgPath);
           workspace.copy(filePath, msgPath);
           Node n = (Node) session.getItem(msgPath);
           JcrUtils.addNodeLabel(jcr, n, "inbox");
@@ -99,15 +120,15 @@ public class InternalMessageHandler implements MessageHandler {
       // targetNode.getParent().getParent().save();
       // }
       String sentMsgPath = sentPath + "/" + fileName;
-      LOGGER.debug("Moving message {0} to {1} ", filePath, sentMsgPath);
+      LOG.debug("Moving message {} to {}", filePath, sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
       JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      LOGGER.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     } catch (LockTimeoutException e) {
-      LOGGER.error(e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     }
   }
 
@@ -117,7 +138,7 @@ public class InternalMessageHandler implements MessageHandler {
 
   private String buildMessagesPath(String user) {
     Date now = new Date();
-    String msgStructPath = dateStruct.format(now);
+    String msgStructPath = DATE_STRUCT.format(now);
     String path = userFactory.getUserPrivatePath(user);
     path += MessagingConstants.FOLDER_MESSAGES;
     path += msgStructPath;

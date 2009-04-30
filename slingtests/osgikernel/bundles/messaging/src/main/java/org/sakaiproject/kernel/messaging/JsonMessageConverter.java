@@ -43,10 +43,27 @@ public class JsonMessageConverter implements MessageConverter {
   /** @scr.reference */
   private MessagingService messagingService;
 
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
+
   /**
    * Default constructor.
    */
   public JsonMessageConverter() {
+  }
+
+  /**
+   * Constructor for all required fields.
+   *
+   * @param messagingService
+   */
+  public JsonMessageConverter(MessagingService messagingService) {
+    this.messagingService = messagingService;
   }
 
   /**
@@ -118,7 +135,10 @@ public class JsonMessageConverter implements MessageConverter {
       } else if (Message.Field.PARTS.toString().equals(key)) {
         JSONArray array = (JSONArray) value;
         for (int i = 0; i < array.length(); i++) {
-          msg.addPart(toMessage(array.getJSONObject(i)));
+          String s = (String) array.get(i);
+          JSONTokener tok = new JSONTokener(s);
+          JSONObject jObj = new JSONObject(tok);
+          msg.addPart(toMessage(jObj));
         }
       } else {
         msg.setHeader(key, (String) value);

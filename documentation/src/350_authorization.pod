@@ -1,0 +1,36 @@
+=head1 Authorization
+
+=head2 Building on Jackrabbit
+
+Authorization in the next generation sakai will, as far as is possible, use the
+default authorization capabilities exposed by Sling though some customization
+may be required and maintained. Authorization in Sling is in turn built on top
+of functionality exposed by jackrabbit. Jackrabbit 1.5 is transitioning to the
+JSR-283 AccessControlManager API implemented by the DefaultAccessManager
+providing Access Control Lists that contain Access Control Entries. Each Entry
+is associated with a Principal by name, that principal identifying an
+Authorizable user or group via the PrincipalManager implementation.
+
+=head2 Sling Authz Implementation Plan
+
+http://groups.google.com/group/sakai-kernel/web/sling-authz-implementation-plan
+
+=head2 Jackrabbit User manager
+
+http://jackrabbit.apache.org/api/1.5/org/apache/jackrabbit/api/security/user/UserManager.html
+
+=head2 New Bundle for a ResourceProvider and Sling Post Operations for interacting with the jackrabbit UserManager
+
+https://issues.apache.org/jira/browse/SLING-875
+
+=head2 Jackrabbit 15/Sling UserManager Services
+
+http://groups.google.com/group/sakai-kernel/web/jackrabbit-15-sling-usermanager-services
+
+=head2 Extendable ACL Provider Implementation
+
+http://sakai-kernel.googlegroups.com/web/DynamicACLs.png?gda=1A6pJEEAAAC6JqF2TUgcYhor6C0puw6-_3PEeRFleA54Au7ojzqnSxH8uehpKFINyc3RpuJEHgRTCT_pCLcFTwcI3Sro5jAzlXFeCn-cdYleF-vtiGpWAA
+
+=head2 JackRabbit / JSR283 Authz
+
+http://sakai-kernel.googlegroups.com/web/JackrabbitAuthZ.png?gda=9jIGnEUAAAC6JqF2TUgcYhor6C0puw6-rqe_tI4Ou0rPgvrNCLM_dunyjkY-Jhfmky0EVK4dvbdzlqnWZQD3y6jZqCMfSFQ6Gu1iLHeqhw4ZZRj3RjJ_-A&gsc=BuxCoQsAAADwj9gtK3Y-OBR6_Y4ZhEGA

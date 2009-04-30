@@ -19,27 +19,41 @@
 package org.sakaiproject.kernel.api.messaging;
 
 /**
- * TODO: Javadoc
+ * Common constants used in the messaging bundle.
  */
 public interface MessagingConstants {
+  /**
+   * Property name for node labeling.
+   */
+  String JCR_LABELS = "sakaijcr:labels";
 
   /**
-   * TODO: Javadoc
+   * Property value for 'inbox' label.
    */
-  public static final String JCR_LABELS = "sakaijcr:labels";
+  String LABEL_INBOX = "inbox";
 
   /**
-   * TODO: Javadoc
+   * JCR folder name for message outbox.
    */
-  public static final String LABEL_INBOX = "inbox";
+  String FOLDER_OUTBOX = "outbox";
 
   /**
-   * TODO: Javadoc
+   * JCR folder name for messages.
    */
-  public static final String FOLDER_OUTBOX = "outbox";
+  String FOLDER_MESSAGES = "messages";
 
   /**
-   * TODO: Javadoc
+   * Property name for the JMS broker URL.
    */
-  public static final String FOLDER_MESSAGES = "messages";
+  String JMS_BROKER_URL = "jms.brokerurl";
+
+  /**
+   * Property name for the JMS email type.
+   */
+  String JMS_EMAIL_TYPE = "jms.email.type";
+
+  /**
+   * Property name for the JMS email queue name.
+   */
+  String JMS_EMAIL_QUEUE = "jms.email.queue";
 }
