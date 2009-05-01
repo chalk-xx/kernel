@@ -85,14 +85,14 @@ then
 
   if [ "${1}" = "html" ] ; then
     echo "Generating docs.html";
-    pod2pdf ../src/docs.pod > ../output/docs.html;
+    pod2html ../src/docs.pod > ../output/docs.html;
   fi
 
   if [ "${1}" = "all" ] ; then
     echo "Generating docs.pdf";
     pod2pdf ../src/docs.pod > ../output/docs.pdf;
     echo "Generating docs.html";
-    pod2pdf ../src/docs.pod > ../output/docs.html;
+    pod2html ../src/docs.pod > ../output/docs.html;
 
   fi
 
@@ -104,6 +104,7 @@ then
     echo "$0 toc  - Will build the TOC from the pod files"
     echo "$0 pdf  - Will build the documentaion and export all as a single PDF document."
     echo "$0 html - Will build the documentation and export all as a single html document."
+    echo "$0 all - Will build the documentation and export all as a single html document and as a single PDF document."
     echo ""
     exit 2  
 
@@ -114,7 +115,7 @@ fi
  else 
   echo""
   echo "Incorrect usage: "
-  echo "Use $0 (toc | pdf | html | help)"
+  echo "Use $0 (toc | pdf | html | all | help)"
   echo ""
   exit 3
 
