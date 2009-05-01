@@ -93,8 +93,8 @@ Other options
 # init the defaults
 initDefaults() {
     BASEDIR=`fullpath -d $0`
-	SLING_TITLE="Sling"
-	export SLING_TITLE
+  SLING_TITLE="Sling"
+  export SLING_TITLE
     SLING_SVN_ID='$Rev: 25335 $'
     export SLING_SVN_ID
     SLING_CONTEXT="${SLING_CONTEXT:-$BASEDIR}"
@@ -308,7 +308,7 @@ done
 
 #--------------------------------------------------------------------------------
 if [ ! -d "$SLING_CONTEXT" ] ; then
-	mkdir -p "$SLING_CONTEXT"
+  mkdir -p "$SLING_CONTEXT"
 fi
 if [ ! -f "$SLING_CONTEXT/bin/${project.build.finalName}.jar" ] ; then
     echo "Bad SLING_CONTEXT: $SLING_CONTEXT (bin/${project.build.finalName}.jar not found)" >&2
@@ -372,7 +372,7 @@ case "$SLING_COMMAND" in
     # assemble the startup param
     SLING_JAVA_VERSION=`javaVersion`
     if [ -n "$SLING_JVM_JAAS" ]; then
-    	jvmOpts="$jvmOpts -Djava.security.auth.login.config=$SLING_JVM_JAAS_CONFIG"
+      jvmOpts="$jvmOpts -Djava.security.auth.login.config=$SLING_JVM_JAAS_CONFIG"
     fi
     if [ -n "$SLING_JVM_VERBOSE_GC" ]; then
         jvmOpts="$jvmOpts -verbose:gc"

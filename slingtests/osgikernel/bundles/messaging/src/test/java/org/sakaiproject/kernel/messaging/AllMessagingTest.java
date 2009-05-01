@@ -18,21 +18,16 @@
 
 package org.sakaiproject.kernel.messaging;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+import org.sakaiproject.kernel.messaging.email.EmailMessageListenerT;
+import org.sakaiproject.kernel.messaging.email.MailSessionProviderT;
+
 /**
- * FIXME: Temporary Class
- * Temporary placeholder for compilation and testing. MUST be replaced with with
- * correct implementation once available.
+ * Suite controller for messaging tests.
  */
-public class UserFactoryService {
-  public String getUserPrivatePath(String user) {
-    return null;
-  }
-
-  public String getMessagesPath(String user) {
-    return null;
-  }
-
-  public String getNewMessagePath(String user) {
-    return null;
-  }
+@RunWith(Suite.class)
+@SuiteClasses( { EmailMessageListenerT.class, MailSessionProviderT.class })
+public class AllMessagingTest {
 }

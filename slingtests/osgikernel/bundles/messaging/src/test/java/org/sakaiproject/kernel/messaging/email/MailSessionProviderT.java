@@ -15,24 +15,29 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel.messaging.email;
 
-package org.sakaiproject.kernel.messaging;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+import org.sakaiproject.kernel.api.messaging.email.MailSessionProvider;
+import org.sakaiproject.kernel.messaging.email.MailSessionProviderImpl;
+
+import java.util.Properties;
+
+import javax.mail.Session;
 
 /**
- * FIXME: Temporary Class
- * Temporary placeholder for compilation and testing. MUST be replaced with with
- * correct implementation once available.
+ *
  */
-public class UserFactoryService {
-  public String getUserPrivatePath(String user) {
-    return null;
-  }
-
-  public String getMessagesPath(String user) {
-    return null;
-  }
-
-  public String getNewMessagePath(String user) {
-    return null;
+public class MailSessionProviderT {
+  @Test
+  public void getSession() {
+    Properties dict = new Properties();
+    dict.put(MailSessionProviderImpl.SMTP_HOST, "localhost");
+    dict.put(MailSessionProviderImpl.SMTP_PORT, "25");
+    MailSessionProvider prov = new MailSessionProviderImpl(dict);
+    Session session = prov.getSession();
+    assertNotNull(session);
   }
 }

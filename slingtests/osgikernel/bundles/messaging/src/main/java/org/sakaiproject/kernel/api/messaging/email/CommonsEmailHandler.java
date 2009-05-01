@@ -16,23 +16,20 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.messaging;
+package org.sakaiproject.kernel.api.messaging.email;
 
-/**
- * FIXME: Temporary Class
- * Temporary placeholder for compilation and testing. MUST be replaced with with
- * correct implementation once available.
- */
-public class UserFactoryService {
-  public String getUserPrivatePath(String user) {
-    return null;
-  }
+import org.apache.commons.mail.Email;
+import org.sakaiproject.kernel.api.messaging.MessagingException;
+import org.sakaiproject.kernel.messaging.email.commons.HtmlEmail;
+import org.sakaiproject.kernel.messaging.email.commons.MultiPartEmail;
+import org.sakaiproject.kernel.messaging.email.commons.SimpleEmail;
 
-  public String getMessagesPath(String user) {
-    return null;
-  }
+public interface CommonsEmailHandler {
+  SimpleEmail createSimpleEmail();
 
-  public String getNewMessagePath(String user) {
-    return null;
-  }
+  HtmlEmail createHtmlEmail();
+
+  MultiPartEmail createMultiPartEmail();
+
+  String send(Email email) throws MessagingException;
 }

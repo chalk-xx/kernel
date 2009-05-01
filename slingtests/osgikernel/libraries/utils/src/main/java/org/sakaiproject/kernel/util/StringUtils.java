@@ -77,6 +77,9 @@ public class StringUtils {
    * @return
    */
   public static String[] split(String st, char sep, int maxElements) {
+    if (st == null) {
+      return new String[maxElements];
+    }
     char[] pn = st.toCharArray();
     int n = 1;
     int start = 0;
@@ -226,7 +229,7 @@ public class StringUtils {
   }
 
   /**
-   * Removes all space chars, usefull for test comparisons, not much use elsewhere.
+   * Removes all space chars, useful for test comparisons, not much use elsewhere.
    * @param after
    * @return
    */
