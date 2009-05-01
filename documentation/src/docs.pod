@@ -3,7 +3,7 @@
 =head2 A reference guide:
 
 Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
--e 
+
 
 =ff
 
@@ -152,7 +152,7 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 
 =head3 User Interface ... Page 18
 
--e 
+
 
 =ff
 
@@ -370,7 +370,7 @@ admins in set A as an group to whom (e.g. guest access) certain permissions can
 be granted.
 
 =back
--e 
+
 
 =ff
 
@@ -466,7 +466,7 @@ secure, efficient and extensible server that provides HTTP services in sync
 with the current HTTP standards. It can act as a reliable front end to the next
 generation sakai and bring additional load balancing capability as well as SSL
 support and super fast static content serving.
--e 
+
 
 =ff
 
@@ -485,13 +485,26 @@ maven 2.0.7, e.g. mvn -v should return something like: Maven version: 2.0.9.
 There are instructions about upgrading maven on Mac OS X here:
 http://steve-on-sakai.blogspot.com/2009/04/updating-maven-on-mac-os-x.html
 
-Currently the trunk version of Sling is required and the source will need to be
-fetched and built. Note, full details are available here:
-http://incubator.apache.org/sling/site/project-information.html
+=head2 Building sling
+
+First up you will need to build sling, for which further details are available
+here: http://incubator.apache.org/sling/site/project-information.html. The
+trunk version of sling can be obtained via:
 
 $ svn co http://svn.eu.apache.org/repos/asf/incubator/sling/trunk sling;
 
-$ pushd sling;
+For those who prefer git, there is also a git repo of the sling source at
+http://git.apache.org/sling.git
+
+However, a fork of sling is currently being maintained at
+http://github.com/ieb/k2-sling-fork/tree/master which contains some necessary
+customizations to facilitate the next generation sakai. It is hoped that these
+changes will wherever possible find their way back into the apache sling and
+jackrabbit code bases. This fork can be fetched with:
+
+git clone git://github.com/ieb/k2-sling-fork.git
+
+Then you can build sling with:
 
 $ mvn -s /dev/null clean install;
 
@@ -499,15 +512,14 @@ This build will populate the maven repo with some required files for the next
 generation sakai, so it is important that all builds are performed as the same
 user.
 
-For those who prefer git, there is also a git repo of the sling source at
-http://git.apache.org/sling.git
-
 The python and ruby scripting engines also need to be built to further populate
 the local maven repo:
 
 $ pushd contrib;
 
 $ mvn -s /dev/null clean install;
+
+=head2 Building the next generation sakai
 
 The code for the next generation sakai is hosted at github. You do not need an
 account, however, to clone it (git terminology for svn checkout in effect) and
@@ -619,7 +631,7 @@ popd;
 popd;
 
 exit ${EXITCODE};
--e 
+
 
 =ff
 
@@ -708,7 +720,7 @@ worker.sakai.sticky_session=true
 Then you can map a URL across to the next generation sakai instance, e.g.:
 
 JkMount /* sakai
--e 
+
 
 =ff
 
@@ -765,6 +777,24 @@ Then either verbally contact the development lead to do a pull, or issue a pull
 request through the github interface. Subject to code review your changes will
 then be in!
 
+=head2 Following forks
+
+If you want to track changes from the open-experiments fork then add it as a
+remote source in git:
+
+$ git remote add ieb git://github.com/ieb/open-experiments.git
+
+And use pull to merge changes across:
+
+$ git pull ieb master
+
+Alternatively, if you don't want to automatically merge, you can fetch, review
+then merge:
+
+$ git fetch ieb
+
+$ git merge ieb/master
+
 =head2 Fetching other forks
 
 To fetch features from forks other than ieb master, such as those listed in the
@@ -799,7 +829,7 @@ You may also find that you can't git pull with the latest msysGit portable
 install: PortableGit-1.6.2.2-preview20090408, it seems to be missing a git-pull
 binary. Try downloading Git-1.5.5-preview20080413 which should work fine apart
 from the firewall issue above.
--e 
+
 
 =ff
 
@@ -813,7 +843,7 @@ http://groups.google.com/group/sakai-kernel/web/sling-content-and-processing-of-
 =head2 Manipulating Content: The SlingPostServlet
 
 http://incubator.apache.org/sling/site/manipulating-content-the-slingpostservlet.html
--e 
+
 
 =ff
 
@@ -846,7 +876,15 @@ https://issues.apache.org/jira/browse/SLING-875
 =head2 Jackrabbit 15/Sling UserManager Services
 
 http://groups.google.com/group/sakai-kernel/web/jackrabbit-15-sling-usermanager-services
--e 
+
+=head2 Extendable ACL Provider Implementation
+
+http://sakai-kernel.googlegroups.com/web/DynamicACLs.png
+
+=head2 JackRabbit / JSR283 Authz
+
+http://sakai-kernel.googlegroups.com/web/JackrabbitAuthZ.png
+
 
 =ff
 
@@ -887,7 +925,7 @@ A set of perl libraries have been developed to support automated testing with
 perl's LWP (search.cpan.org/perldoc?LWP) user agent. Currently, these scripts
 and libraries can be found at:
 https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse/K2Rest
--e 
+
 
 =ff
 
@@ -897,7 +935,7 @@ https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse
 JSON (JavaScript Object Notation) is a lightweight data-interchange format. It
 is used predominantly by the next generation sakai system in order to build an
 advanced user interface on top of a set of REST interfaces.
--e 
+
 
 =ff
 
@@ -915,7 +953,7 @@ in to a web server. However, they rely on being able to communicate with the
 next generation sakai via a set of well defined REST interfaces. As the system
 is developed, these interfaces will become available and the process of
 layering the new UI on top of the sakai system will be documented.
--e 
+
 
 =ff
 
@@ -1008,7 +1046,7 @@ some content to the page possibly along with a user interface.  Widgets are
 different from HTML pages, because a widget may be used in a web page, but does
 not have to be the only content on a web page.  One web page may contain one or
 more widgets.
--e 
+
 
 =ff
 
