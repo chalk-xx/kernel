@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -39,6 +40,7 @@ import java.util.Map;
 public class PresenceServiceImplTest {
 
   private CacheManagerService cacheManagerService;
+  private LogService logger;
   private PresenceServiceImpl presenceService;
   private Cache<Object> presenceLocationCache;
   private Cache<Object> presenceStatusCache;
@@ -62,7 +64,12 @@ public class PresenceServiceImplTest {
             CacheScope.CLUSTERREPLICATED)).andReturn(presenceStatusCache)
         .anyTimes();
     replay(cacheManagerService);
-    presenceService = new PresenceServiceImpl(cacheManagerService);
+
+    logger = createMock(LogService.class);
+
+    presenceService = new PresenceServiceImpl();
+    presenceService.bindCacheManagerService(cacheManagerService);
+    presenceService.bindLog(logger);
   }
 
   /**
