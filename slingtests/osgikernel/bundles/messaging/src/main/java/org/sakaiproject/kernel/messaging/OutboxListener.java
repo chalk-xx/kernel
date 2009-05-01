@@ -146,7 +146,7 @@ public class OutboxListener implements EventListener {
         // make sure we deal only with outbox items
         if (filePath.contains(MessagingConstants.FOLDER_MESSAGES + "/"
             + MessagingConstants.FOLDER_OUTBOX)) {
-          LOG.debug("Handling outbox message [{}]", filePath);
+          logger.log(LogService.LOG_DEBUG, "Handling outbox message [" + filePath + "]");
           // get the node, call up the appropriate handler and pass off based on
           // message type
           Session session = jcr.getSession();
@@ -157,18 +157,19 @@ public class OutboxListener implements EventListener {
           if (msgType != null && handlers != null) {
             for (MessageHandler handler : handlers) {
               if (msgType.equalsIgnoreCase(handler.getType())) {
-                LOG.debug("Handling with {}: {}", msgType, handler);
+                logger.log(LogService.LOG_DEBUG, "Handling with " + msgType + ": " + handler);
                 handler.handle(event, n);
                 handled = true;
               }
             }
           }
           if (!handled) {
-            LOG.warn("No handler found for message type [{}]", msgType);
+            logger.log(LogService.LOG_WARNING, "No handler found for message type [" + msgType
+                + "]");
           }
         }
       } catch (RepositoryException e) {
-        LOG.error(e.getMessage(), e);
+        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
       }
     }
   }

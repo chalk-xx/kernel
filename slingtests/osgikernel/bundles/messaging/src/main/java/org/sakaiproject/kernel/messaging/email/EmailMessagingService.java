@@ -139,7 +139,7 @@ public class EmailMessagingService extends JcrMessagingService implements Common
         conn.start();
       } catch (JMSException e) {
         try {
-          LOG.error("Fail to start connection: {}", conn.getClientID());
+          logger.log(LogService.LOG_ERROR, "Fail to start connection: " + conn.getClientID());
         } catch (JMSException e1) {
           // TMI
         }
@@ -160,7 +160,8 @@ public class EmailMessagingService extends JcrMessagingService implements Common
           sessions.put(conn.getClientID(), sess);
         } catch (JMSException e) {
           try {
-            LOG.error("Fail to create connection[{}]: {}", i, conn.getClientID());
+            logger.log(LogService.LOG_ERROR, "Fail to create connection[" + i + "]: "
+                + conn.getClientID());
           } catch (JMSException e1) {
             // TMI
           }

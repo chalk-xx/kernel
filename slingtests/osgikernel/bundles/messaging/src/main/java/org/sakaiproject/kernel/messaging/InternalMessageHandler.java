@@ -129,15 +129,15 @@ public class InternalMessageHandler implements MessageHandler {
       // targetNode.getParent().getParent().save();
       // }
       String sentMsgPath = sentPath + "/" + fileName;
-      LOG.debug("Moving message {} to {}", filePath, sentMsgPath);
+      logger.log(LogService.LOG_DEBUG, "Moving message " + filePath + " to " + sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
       JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      LOG.error(e.getMessage(), e);
+      logger.log(LogService.LOG_ERROR, e.getMessage(), e);
     } catch (LockTimeoutException e) {
-      LOG.error(e.getMessage(), e);
+      logger.log(LogService.LOG_ERROR, e.getMessage(), e);
     }
   }
 
