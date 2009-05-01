@@ -21,6 +21,7 @@ package org.sakaiproject.kernel.messaging.email;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.mail.Email;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.messaging.MessageConverter;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
@@ -31,8 +32,6 @@ import org.sakaiproject.kernel.messaging.UserFactoryService;
 import org.sakaiproject.kernel.messaging.email.commons.HtmlEmail;
 import org.sakaiproject.kernel.messaging.email.commons.MultiPartEmail;
 import org.sakaiproject.kernel.messaging.email.commons.SimpleEmail;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,7 +48,17 @@ import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 public class EmailMessagingService extends JcrMessagingService implements CommonsEmailHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(EmailMessagingService.class);
+  /** @scr.reference */
+  private LogService logger;
+
+  protected void bindLogger(LogService logger) {
+    this.logger = logger;
+  }
+
+  protected void unbindLogger(LogService logger) {
+    this.logger = null;
+  }
+
   private Long clientId = Long.valueOf(1L);
 
   /** @scr.property value="vm://localhost?broker.persistent=true" */
