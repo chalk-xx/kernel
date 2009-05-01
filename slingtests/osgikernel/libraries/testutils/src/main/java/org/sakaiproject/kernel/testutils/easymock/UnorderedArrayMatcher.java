@@ -9,6 +9,7 @@ import org.easymock.IArgumentMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,7 +30,7 @@ public class UnorderedArrayMatcher<T> implements IArgumentMatcher {
     buffer.append("aryUnorderedEq(");
     buffer.append(expected.getClass().getName());
     buffer.append(" with values \"");
-    buffer.append(expected.toString());
+    buffer.append(Arrays.toString(expected));
     buffer.append("\")");
   }
 

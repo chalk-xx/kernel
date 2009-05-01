@@ -29,8 +29,8 @@ http://groups.google.com/group/sakai-kernel/web/jackrabbit-15-sling-usermanager-
 
 =head2 Extendable ACL Provider Implementation
 
-http://sakai-kernel.googlegroups.com/web/DynamicACLs.png?gda=1A6pJEEAAAC6JqF2TUgcYhor6C0puw6-_3PEeRFleA54Au7ojzqnSxH8uehpKFINyc3RpuJEHgRTCT_pCLcFTwcI3Sro5jAzlXFeCn-cdYleF-vtiGpWAA
+http://sakai-kernel.googlegroups.com/web/DynamicACLs.png
 
 =head2 JackRabbit / JSR283 Authz
 
-http://sakai-kernel.googlegroups.com/web/JackrabbitAuthZ.png?gda=9jIGnEUAAAC6JqF2TUgcYhor6C0puw6-rqe_tI4Ou0rPgvrNCLM_dunyjkY-Jhfmky0EVK4dvbdzlqnWZQD3y6jZqCMfSFQ6Gu1iLHeqhw4ZZRj3RjJ_-A&gsc=BuxCoQsAAADwj9gtK3Y-OBR6_Y4ZhEGA
+http://sakai-kernel.googlegroups.com/web/JackrabbitAuthZ.png

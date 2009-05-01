@@ -229,7 +229,7 @@ public class LockManagerImpl implements LockManager {
    * @param cacheManagerService
    */
   protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
-    cacheManagerService = null;
+    this.cacheManagerService = null;
     lockMap = null;
   }
  
