@@ -6,7 +6,74 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.kernel.shindig</artifactId>
+  <packaging>bundle</packaging>
+  <name>Sakai Shindig Bundle</name>
   <version>0.1-SNAPSHOT</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-scr-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-Category>sakai-kernel</Bundle-Category>
+            <Bundle-Activator>${pom.artifactId}.Activator</Bundle-Activator>
+            <Export-Package>org.apache.shindig.*</Export-Package>
+            <!--
+            <Private-Package>org.apache.shindig.*</Private-Package>
+            -->
+            <Import-Package>*</Import-Package>
+            <Embed-Dependency>com.google.caja.lexer,
+com.google.caja.opensocial,
+com.google.caja.parser.css,
+com.google.caja.parser.html,
+com.google.caja.reporting,
+com.google.caja.util,
+com.ibm.icu.text,
+com.sun.syndication.feed.synd,
+com.sun.syndication.io,
+com.thoughtworks.xstream,
+com.thoughtworks.xstream.converters,
+com.thoughtworks.xstream.converters.collections,
+com.thoughtworks.xstream.converters.extended,
+com.thoughtworks.xstream.converters.javabean,
+com.thoughtworks.xstream.converters.reflection,
+com.thoughtworks.xstream.core.util,
+com.thoughtworks.xstream.io,
+com.thoughtworks.xstream.io.xml,
+com.thoughtworks.xstream.mapper,
+net.oauth,
+net.oauth.server,
+net.sf.ehcache,
+net.sf.ehcache.config,
+net.sf.ehcache.management,
+net.sf.ezmorph,
+net.sf.json,
+net.sf.json.processors,
+net.sf.json.util,
+org.apache.commons.betwixt,
+org.apache.commons.betwixt.io,
+org.apache.commons.httpclient,
+org.apache.commons.httpclient.methods,
+org.apache.xerces.xni,
+org.apache.xerces.xni.parser,
+org.apache.xml.serialize,
+org.cyberneko.html,
+org.cyberneko.html.parsers,
+org.hamcrest,
+org.joda.time;version=1.6.0
+org.joda.time.format;version=1.6.0
+org.json</Embed-Dependency>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
 <!-- OSGi -->
     <dependency>
@@ -47,6 +114,11 @@
       <artifactId>shindig-server</artifactId>
       <version>1.0-incubating-SNAPSHOT</version>
       <type>war</type>
+    </dependency>
+<!-- commons -->
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
     </dependency>
   </dependencies>
 </project>

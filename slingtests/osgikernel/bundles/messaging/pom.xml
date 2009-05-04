@@ -23,7 +23,6 @@
 		<groupId>org.sakaiproject.kernel</groupId>
 		<artifactId>base</artifactId>
 		<version>0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>org.sakaiproject.kernel.messaging</artifactId>
 	<packaging>bundle</packaging>
@@ -43,7 +42,7 @@
 					<instructions>
 						<Bundle-Category>sakai-kernel</Bundle-Category>
 						<Export-Package>org.sakaiproject.kernel.api.messaging</Export-Package>
-						<Import-Package>javax.jcr, javax.jcr.observation, org.apache.commons.lang, org.apache.commons.lang.time, org.apache.sling.commons.json, org.osgi.service.component, org.sakaiproject.kernel.api.jcr, org.sakaiproject.kernel.api.jcr.support, org.sakaiproject.kernel.api.locking, org.sakaiproject.kernel.util, org.slf4j</Import-Package>
+						<Import-Package>javax.jcr, javax.jcr.observation, org.apache.commons.lang, org.apache.commons.lang.time, org.apache.sling.commons.json, org.osgi.service.component, org.osgi.service.log, org.sakaiproject.kernel.api.jcr, org.sakaiproject.kernel.api.jcr.support, org.sakaiproject.kernel.api.locking, org.sakaiproject.kernel.util</Import-Package>
 						<Private-Package>org.sakaiproject.kernel.messaging</Private-Package>
 					</instructions>
 				</configuration>
