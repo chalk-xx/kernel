@@ -69,10 +69,10 @@ public class Activator implements BundleActivator {
       @Override
       public Object addingService(ServiceReference reference) {
         HttpService httpService = (HttpService) context.getService(reference);
+        HttpContext httpContext = httpService.createDefaultHttpContext();
 
         for (Entry<String, Class<? extends HttpServlet>> registrant : servletsToRegister.entrySet()) {
           try {
-            HttpContext httpContext = httpService.createDefaultHttpContext();
             httpService.registerServlet(registrant.getKey(), registrant.getValue().newInstance(),
                 null, httpContext);
           } catch (ServletException e) {
