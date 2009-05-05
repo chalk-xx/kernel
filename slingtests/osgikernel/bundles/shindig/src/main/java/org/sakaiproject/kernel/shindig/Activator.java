@@ -34,6 +34,9 @@ import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 import org.osgi.util.tracker.ServiceTracker;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
@@ -41,10 +44,18 @@ import javax.servlet.http.HttpServlet;
  * Activator for making Apache Shindig into an OSGi bundle.
  */
 public class Activator implements BundleActivator {
-  private static final Class<? extends HttpServlet>[] servletsToRegister = new Class[] {
-      DataServiceServlet.class, JsonRpcServlet.class, ConcatProxyServlet.class,
-      GadgetRenderingServlet.class, JsServlet.class, MakeRequestServlet.class, ProxyServlet.class,
-      RpcServlet.class, OAuthCallbackServlet.class };
+  private static final HashMap<String, Class<? extends HttpServlet>> servletsToRegister = new HashMap<String, Class<? extends HttpServlet>>();
+  static {
+    servletsToRegister.put("/social/rest", DataServiceServlet.class);
+    servletsToRegister.put("/social/rpc", JsonRpcServlet.class);
+    servletsToRegister.put("/gadgets/concat", ConcatProxyServlet.class);
+    servletsToRegister.put("/gadgets/ifr", GadgetRenderingServlet.class);
+    servletsToRegister.put("/gadgets/js", JsServlet.class);
+    servletsToRegister.put("/gadgets/makeRequest", MakeRequestServlet.class);
+    servletsToRegister.put("/gadgets/proxy", ProxyServlet.class);
+    servletsToRegister.put("/gadgets/metadata", RpcServlet.class);
+    servletsToRegister.put("/gadgets/oauthcallback", OAuthCallbackServlet.class);
+  }
 
   private ServiceTracker httpServiceTracker;
 
@@ -58,11 +69,12 @@ public class Activator implements BundleActivator {
       @Override
       public Object addingService(ServiceReference reference) {
         HttpService httpService = (HttpService) context.getService(reference);
-        for (Class<? extends HttpServlet> servletClass : servletsToRegister) {
+
+        for (Entry<String, Class<? extends HttpServlet>> registrant : servletsToRegister.entrySet()) {
           try {
             HttpContext httpContext = httpService.createDefaultHttpContext();
-            httpService.registerServlet(servletClass.getName(), servletClass.newInstance(), null,
-                httpContext);
+            httpService.registerServlet(registrant.getKey(), registrant.getValue().newInstance(),
+                null, httpContext);
           } catch (ServletException e) {
             e.printStackTrace();
           } catch (NamespaceException e) {
@@ -79,8 +91,8 @@ public class Activator implements BundleActivator {
       @Override
       public void removedService(ServiceReference reference, Object service) {
         HttpService httpService = (HttpService) service;
-        for (Class<? extends HttpServlet> servletClass : servletsToRegister) {
-          httpService.unregister(servletClass.getName());
+        for (String servlet : servletsToRegister.keySet()) {
+          httpService.unregister(servlet);
         }
         super.removedService(reference, service);
       }
