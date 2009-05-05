@@ -20,13 +20,14 @@ package org.sakaiproject.kernel.messaging;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.FastDateFormat;
-import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.jcr.support.JcrUtils;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
@@ -46,17 +47,7 @@ import javax.jcr.observation.Event;
  *                immediate="true"
  */
 public class InternalMessageHandler implements MessageHandler {
-  /** @scr.reference */
-  private LogService logger;
-
-  protected void bindLogger(LogService logger) {
-    this.logger = logger;
-  }
-
-  protected void unbindLogger(LogService logger) {
-    this.logger = null;
-  }
-
+  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = Message.Type.INTERNAL.toString();
   private static final FastDateFormat DATE_STRUCT;
 
@@ -108,7 +99,7 @@ public class InternalMessageHandler implements MessageHandler {
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           String msgPath = buildMessagesPath(rcpt) + fileName;
-          logger.log(LogService.LOG_DEBUG, "Writing " + filePath + " to " + msgPath);
+          LOG.debug("Writing {} to {}", filePath, msgPath);
           workspace.copy(filePath, msgPath);
           Node n = (Node) session.getItem(msgPath);
           JcrUtils.addNodeLabel(jcr, n, "inbox");
@@ -130,15 +121,15 @@ public class InternalMessageHandler implements MessageHandler {
       // targetNode.getParent().getParent().save();
       // }
       String sentMsgPath = sentPath + "/" + fileName;
-      logger.log(LogService.LOG_DEBUG, "Moving message " + filePath + " to " + sentMsgPath);
+      LOG.debug("Moving message {} to {}", filePath, sentMsgPath);
       workspace.move(filePath, sentMsgPath);
       Node movedNode = (Node) session.getItem(sentMsgPath);
       JcrUtils.addNodeLabel(jcr, movedNode, "sent");
       node.getParent().save();
     } catch (RepositoryException e) {
-      logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     } catch (LockTimeoutException e) {
-      logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     }
   }
 

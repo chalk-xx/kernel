@@ -18,9 +18,10 @@
 
 package org.sakaiproject.kernel.messaging.email;
 
-import org.osgi.service.log.LogService;
 import org.sakaiproject.kernel.api.messaging.EmailMessage;
 import org.sakaiproject.kernel.api.messaging.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,27 +55,10 @@ import javax.mail.internet.MimePart;
  *
  */
 public class EmailMessageListener implements MessageListener {
-  /** @scr.reference */
-  private LogService logger;
+  private static final Logger LOG = LoggerFactory.getLogger(EmailMessageListener.class);
 
-  protected void bindLogger(LogService logger) {
-    this.logger = logger;
-  }
-
-  protected void unbindLogger(LogService logger) {
-    this.logger = null;
-  }
-
-  /** @scr.reference */
+  /** scr.reference */
   private Session mailSession;
-
-  protected void bindMailSession(Session mailSession) {
-    this.mailSession = mailSession;
-  }
-
-  protected void unbindMailSession(Session mailSession) {
-    this.mailSession = null;
-  }
 
   /**
    * Testing variable to enable/disable the calling of Transport.send
@@ -121,17 +105,17 @@ public class EmailMessageListener implements MessageListener {
       } catch (JMSException e) {
         // TODO log for now. We need to return a message to the sender that
         // something died while processing this message
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       } catch (AddressException e) {
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       } catch (UnsupportedEncodingException e) {
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       } catch (SendFailedException e) {
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       } catch (MessagingException e) {
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       } catch (IOException e) {
-        logger.log(LogService.LOG_ERROR, e.getMessage(), e);
+        LOG.error(e.getMessage(), e);
       }
     }
   }
@@ -218,10 +202,10 @@ public class EmailMessageListener implements MessageListener {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         mimeMsg.writeTo(output);
         String emailString = output.toString();
-        logger.log(LogService.LOG_INFO, emailString);
+        LOG.info(emailString);
         observable.notifyObservers(emailString);
       } catch (IOException e) {
-        logger.log(LogService.LOG_INFO, "Transport disabled and unable to write message to log: "
+        LOG.info("Transport disabled and unable to write message to log: "
             + e.getMessage(), e);
       }
     }
