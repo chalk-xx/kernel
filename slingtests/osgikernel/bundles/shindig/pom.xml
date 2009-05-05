@@ -25,52 +25,41 @@
             <Bundle-Activator>${pom.artifactId}.Activator</Bundle-Activator>
             <Export-Package>org.apache.shindig.*</Export-Package>
             <!--
-            <Private-Package>org.apache.shindig.*</Private-Package>
+            <Private-Package>.</Private-Package>
             -->
             <Import-Package>*</Import-Package>
-            <Embed-Dependency>com.google.caja.lexer,
-com.google.caja.opensocial,
-com.google.caja.parser.css,
-com.google.caja.parser.html,
-com.google.caja.reporting,
-com.google.caja.util,
-com.ibm.icu.text,
-com.sun.syndication.feed.synd,
-com.sun.syndication.io,
-com.thoughtworks.xstream,
-com.thoughtworks.xstream.converters,
-com.thoughtworks.xstream.converters.collections,
-com.thoughtworks.xstream.converters.extended,
-com.thoughtworks.xstream.converters.javabean,
-com.thoughtworks.xstream.converters.reflection,
-com.thoughtworks.xstream.core.util,
-com.thoughtworks.xstream.io,
-com.thoughtworks.xstream.io.xml,
-com.thoughtworks.xstream.mapper,
-net.oauth,
-net.oauth.server,
-net.sf.ehcache,
-net.sf.ehcache.config,
-net.sf.ehcache.management,
-net.sf.ezmorph,
-net.sf.json,
-net.sf.json.processors,
-net.sf.json.util,
-org.apache.commons.betwixt,
-org.apache.commons.betwixt.io,
-org.apache.commons.httpclient,
-org.apache.commons.httpclient.methods,
-org.apache.xerces.xni,
-org.apache.xerces.xni.parser,
-org.apache.xml.serialize,
-org.cyberneko.html,
-org.cyberneko.html.parsers,
-org.hamcrest,
-org.joda.time;version=1.6.0
-org.joda.time.format;version=1.6.0
-org.json</Embed-Dependency>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+            <!--
+            <Embed-Dependency>commons-codec-1.3,caja-r3034,icu4j-3.8,rome-0.9,xstream-1.3.1,core-20080621,ehcache-1.5.0,ezmorph-1.0.4,json-lib-2.2-jdk15,commons-betwixt-0.8,common-httpclient-3.1,xercesImpl-2.8.1,serializer-2.7.1,nekohtml-1.9.7,hamcrest-all-1.1,joda-time-1.6,json-20070829</Embed-Dependency>
+            -->
+            <Bundle-ClassPath>.,{maven-dependencies}</Bundle-ClassPath>
+            <Include-Resource>{maven-resources},{maven-dependencies}</Include-Resource>
+            <_failok>true</_failok>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeScope>runtime</includeScope>
+              <includeScope>compile</includeScope>
+              <!--
+              <includeArtifactIds>commons-codec-1.3,caja-r3034,icu4j-3.8,rome-0.9,xstream-1.3.1,core-20080621,ehcache-1.5.0,ezmorph-1.0.4,json-lib-2.2-jdk15,commons-betwixt-0.8,common-httpclient-3.1,xercesImpl-2.8.1,serializer-2.7.1,nekohtml-1.9.7,hamcrest-all-1.1,joda-time-1.6,json-20070829</includeArtifactIds>
+              <includeArtifactIds>derby,derbynet,xalan,serializer,xercesImpl,xml-resolver,commons-pool,xstream,xpp3</includeArtifactIds>
+              -->
+              <excludeTransitive>false</excludeTransitive>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -119,6 +108,11 @@ org.json</Embed-Dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
     </dependency>
   </dependencies>
 </project>
