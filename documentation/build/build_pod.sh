@@ -86,6 +86,7 @@ then
   if [ "${1}" = "html" ] ; then
     echo "Generating docs.html";
     pod2html ../src/docs.pod > ../output/docs.html;
+    rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
   if [ "${1}" = "all" ] ; then
@@ -93,7 +94,7 @@ then
     pod2pdf ../src/docs.pod > ../output/docs.pdf;
     echo "Generating docs.html";
     pod2html ../src/docs.pod > ../output/docs.html;
-
+    rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
 
