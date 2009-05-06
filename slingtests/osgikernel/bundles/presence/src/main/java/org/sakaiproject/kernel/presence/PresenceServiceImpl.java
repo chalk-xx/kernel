@@ -47,11 +47,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PresenceServiceImpl implements PresenceService {
 
-  /** @scr.reference bind="bindLog" unbind="unbindLog" policy="dynamic" */
   private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
 
-  // private static final Logger logger = LoggerFactory
-  // .getLogger(PresenceServiceImpl.class);
   private static final String LOCATION_CACHE = "presence.location";
   private static final String USER_STATUS_CACHE = "presence.status";
   private static final long PRESENCE_TTL = 5L * 60L * 1000L; // 5 minutes
@@ -80,21 +77,6 @@ public class PresenceServiceImpl implements PresenceService {
       userStatusCache = null;
       this.cacheManagerService = null;
     }
-  }
-
-  protected void bindLog(Logger logger) {
-    this.logger = logger;
-  }
-
-  protected void unbindLog(Logger logger) {
-    this.logger = logger;
-  }
-
-  public PresenceServiceImpl(CacheManagerService cacheManager) {
-    bindCacheManagerService(cacheManager);
-  }
-
-  public PresenceServiceImpl() {
   }
 
   /**
