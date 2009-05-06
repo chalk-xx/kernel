@@ -23,7 +23,6 @@
 		<groupId>org.sakaiproject.kernel</groupId>
 		<artifactId>base</artifactId>
 		<version>0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>org.sakaiproject.kernel.messaging</artifactId>
 	<packaging>bundle</packaging>
