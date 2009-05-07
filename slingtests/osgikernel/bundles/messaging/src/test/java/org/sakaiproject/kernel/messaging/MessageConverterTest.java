@@ -153,6 +153,7 @@ public class MessageConverterTest {
     while ((inputLine = br.readLine()) != null) {
       fileContent.append(inputLine);
     }
+    br.close();
     return fileContent.toString();
   }
 
