@@ -165,7 +165,7 @@ module SlingInterface
     end
 
     def clear_acl(path)
-      acl = JSON.parse(get_node_acl_json("fish"))
+      acl = JSON.parse(get_node_acl_json(path))
       acl.keys.each { |p| delete_node_acl_entries(path, p) }
     end
 

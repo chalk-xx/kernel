@@ -49,16 +49,16 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
   private static Logger LOG = LoggerFactory.getLogger(OwnerPrincipalManagerImpl.class);
   protected SessionManagerService sessionManagerService;
   
-  public boolean hasPrincipalInContext(String principalName, Node node) {
+  public boolean hasPrincipalInContext(String principalName, Node aclNode) {
     try {
       if (".owner".equals(principalName))
       {
-        /* Request appears to come in at node/rep:policy */
-        node = node.getParent();
+        /* Request comes in at node/rep:policy */
+        Node contextNode = aclNode.getParent();
         LOG.info("Granting .owner privs to node owner");
-        if (node.hasProperty("jcr:createdBy"))
+        if (contextNode.hasProperty("jcr:createdBy"))
         {
-          Property owner = node.getProperty("jcr:createdBy");
+          Property owner = contextNode.getProperty("jcr:createdBy");
           String ownerName = owner.getString();
           LOG.info("Got node owner: " + ownerName);
           String currentUser = sessionManagerService.getCurrentUserId();
@@ -71,7 +71,7 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
         }
         else
         {
-          LOG.info("Node: " + node.getPath() + " has no jcr:createdBy property");
+          LOG.info("Node: " + contextNode.getPath() + " has no jcr:createdBy property");
         }
       }
     } catch (RepositoryException e) {
