@@ -6,62 +6,62 @@
 if [ $# -gt 0 ]
 then
 
-
   if [ "${1}" = "toc" ] ; then
 
-    TOC="../src/001_TOC.pod";
+    TOC="../src/010_TOC.pod";
+    TOCTMP=".`basename ${TOC}`";
 
     echo "Generating ${TOC}";
 
     # Remove the temporary TOC files if they exist:
-    if [ -f .${TOC} ] ; then
-        rm -f .${TOC};
+    if [ -f ${TOCTMP} ] ; then
+        rm -f ${TOCTMP};
     fi    
-    if [ -f .${TOC}.tmp ] ; then
-        rm -f .${TOC}.tmp;
+    if [ -f ${TOCTMP}.tmp ] ; then
+        rm -f ${TOCTMP}.tmp;
     fi    
 
     # Extract headers from the pod documentation:
     for i in `ls -1 ../src/[0-9]*.pod | egrep -v "../src/0(0|1).*.pod"` ; do
-        grep "=head" $i >> .${TOC};
+        grep "=head" $i >> ${TOCTMP};
     done
 
     # Add in list starter (=over) and finisher (=back):
     last_head="";
-    cat .${TOC} | while read i ; do
+    cat ${TOCTMP} | while read i ; do
         head=`echo $i | cut -d' ' -f1`;
         if [ "${head}" = "=head1" ] ; then
             if [ "${last_head}" != "" -a "${last_head}" != "=head1" ] ; then
-	        echo "=back" >> .${TOC}.tmp;
+	        echo "=back" >> ${TOCTMP}.tmp;
 	    fi
         else
             if [ "${last_head}" = "=head1" ] ; then
-	        echo "=over" >> .${TOC}.tmp;
+	        echo "=over" >> ${TOCTMP}.tmp;
 	    fi
         fi
-        echo "${i}" >> .${TOC}.tmp;
+        echo "${i}" >> ${TOCTMP}.tmp;
         last_head="${head}";
     done
-    mv .${TOC}.tmp .${TOC};
+    mv ${TOCTMP}.tmp ${TOCTMP};
 
     # Convvert sub-headings to list items:
-    perl -pe 's/=head[2-9](.*)/=item$1/g' .${TOC} > .${TOC}.tmp;
-    mv .${TOC}.tmp .${TOC};
+    perl -pe 's/=head[2-9](.*)/=item$1/g' ${TOCTMP} > ${TOCTMP}.tmp;
+    mv ${TOCTMP}.tmp ${TOCTMP};
     # Convert main headings to headings:
-    perl -pe 's/=head1(.*)/=head3$1 ... Page 1/g' .${TOC} > .${TOC}.tmp;
-    mv .${TOC}.tmp .${TOC};
+    perl -pe 's/=head1(.*)/=head3$1 ... Page 1/g' ${TOCTMP} > ${TOCTMP}.tmp;
+    mv ${TOCTMP}.tmp ${TOCTMP};
 
 
     # Add a header to the file:
-    echo "=head1 The Next Generation of Sakai. A reference guide:" > .${TOC}.tmp;
-    echo "=head2 Table Of Contents" >> .${TOC}.tmp;
-    cat .${TOC} >> .${TOC}.tmp;
-    mv .${TOC}.tmp .${TOC};
+    echo "=head1 The Next Generation of Sakai. A reference guide" > ${TOCTMP}.tmp;
+    echo "=head2 Table Of Contents" >> ${TOCTMP}.tmp;
+    cat ${TOCTMP} >> ${TOCTMP}.tmp;
+    mv ${TOCTMP}.tmp ${TOCTMP};
 
     # Add a newline to every line:
-    perl -pe 's/$/\n/' .${TOC} > .${TOC}.tmp;
-    mv .${TOC}.tmp .${TOC};
-    mv .${TOC} .${TOC};
+    perl -pe 's/$/\n/' ${TOCTMP} > ${TOCTMP}.tmp;
+    mv ${TOCTMP}.tmp ${TOCTMP};
+    mv ${TOCTMP} ${TOC};
 
   fi
 
@@ -79,7 +79,7 @@ then
 
   if [ "${1}" = "pdf" ] ; then
     echo "Generating docs.pdf";
-    pod2pdf ../src/docs.pod > ../output/docs.pdf;
+    pod2pdf --title "Next generation Sakai documentation" ../src/docs.pod > ../output/docs.pdf;
   fi
 
 
@@ -91,7 +91,7 @@ then
 
   if [ "${1}" = "all" ] ; then
     echo "Generating docs.pdf";
-    pod2pdf ../src/docs.pod > ../output/docs.pdf;
+    pod2pdf --title "Next generation Sakai documentation" ../src/docs.pod > ../output/docs.pdf;
     echo "Generating docs.html";
     pod2html ../src/docs.pod > ../output/docs.html;
     rm -f pod2htmd.tmp pod2htmi.tmp;

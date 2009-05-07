@@ -1,4 +1,4 @@
-=head1 The Next Generation of Sakai. A reference guide:
+=head1 The Next Generation of Sakai. A reference guide
 
 =head2 Table Of Contents
 
@@ -40,7 +40,7 @@
 
 =back
 
-=head3 System Architecture ... Page 7
+=head3 Architecture Overview ... Page 7
 
 =over
 
@@ -51,6 +51,8 @@
 =item Everything is Content!
 
 =item MySQL
+
+=item Java Persistence API (JPA)
 
 =item OSGi and Apache Felix
 
@@ -69,6 +71,10 @@
 =over
 
 =item The build environment
+
+=item Building sling
+
+=item Building the next generation sakai
 
 =item Appendix A: Build script used to build the next generation sakai:
 
@@ -96,13 +102,17 @@
 
 =item Forking
 
+=item Following forks
+
 =item Fetching other forks
 
-=item Git pre-commit hook
+=item git pre-commit hook
+
+=item git on windows
 
 =back
 
-=head3 Content ... Page 15
+=head3 Content ... Page 16
 
 =over
 
@@ -112,7 +122,7 @@
 
 =back
 
-=head3 Authorization ... Page 16
+=head3 Authorization ... Page 17
 
 =over
 
@@ -120,25 +130,67 @@
 
 =item Sling Authz Implementation Plan
 
-=item Jackrabbit User manager
+=item Users and Groups Implementation
+
+=item Authorizables
+
+=item Users
+
+=item Group
+
+=item UserManager
+
+=item Implementation
 
 =item New Bundle for a ResourceProvider and Sling Post Operations for interacting with the jackrabbit UserManager
 
 =item Jackrabbit 15/Sling UserManager Services
 
+=item Extendable ACL Provider Implementation
+
+=item JackRabbit / JSR283 Authz
+
 =back
 
-=head3 REST ... Page 17
+=head3 REST ... Page 19
 
 =over
 
 =item RESTful web services
 
-=item JSON
-
 =item REST web services provided by Sakai
 
 =back
 
-=head3 User Interface ... Page 18
+=head3 User and Group REST services ... Page 20
+
+=over
+
+=item User
+
+=item Create User
+
+=item Update User
+
+=item Change Password
+
+=item Delete User
+
+=item Group
+
+=item Create Group
+
+=item Update Group
+
+=item Delete Group
+
+=back
+
+=head3 JSON ... Page 24
+
+=head3 User Interface ... Page 25
+
+=head3 Glossary ... Page 26
+
+=head3 Credits ... Page 28
 
