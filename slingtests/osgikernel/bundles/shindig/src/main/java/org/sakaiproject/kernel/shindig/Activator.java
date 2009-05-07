@@ -16,6 +16,8 @@
  */
 package org.sakaiproject.kernel.shindig;
 
+import org.apache.shindig.auth.AuthenticationServletFilter;
+import org.apache.shindig.common.servlet.GuiceServletContextListener;
 import org.apache.shindig.gadgets.servlet.ConcatProxyServlet;
 import org.apache.shindig.gadgets.servlet.GadgetRenderingServlet;
 import org.apache.shindig.gadgets.servlet.JsServlet;
@@ -26,38 +28,47 @@ import org.apache.shindig.gadgets.servlet.RpcServlet;
 import org.apache.shindig.social.opensocial.service.DataServiceServlet;
 import org.apache.shindig.social.opensocial.service.JsonRpcServlet;
 
+import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpContext;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.util.tracker.ServiceTracker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
+import java.util.EventListener;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map.Entry;
 
-import javax.servlet.ServletException;
+import javax.servlet.Filter;
 import javax.servlet.http.HttpServlet;
 
 /**
- * Activator for making Apache Shindig into an OSGi bundle.
+ * Activator for making Apache Shindig into an OSGi bundle. Registers all the
+ * elements (context params, filters, listeners, servlets) from the web.xml
+ * found in server-shindig.
  */
 public class Activator implements BundleActivator {
+  private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
   private static final HashMap<String, Class<? extends HttpServlet>> servletsToRegister = new HashMap<String, Class<? extends HttpServlet>>();
   static {
-    servletsToRegister.put("/social/rest", DataServiceServlet.class);
-    servletsToRegister.put("/social/rpc", JsonRpcServlet.class);
-    servletsToRegister.put("/gadgets/concat", ConcatProxyServlet.class);
-    servletsToRegister.put("/gadgets/ifr", GadgetRenderingServlet.class);
-    servletsToRegister.put("/gadgets/js", JsServlet.class);
+    servletsToRegister.put("/gadgets/js/*", JsServlet.class);
+    servletsToRegister.put("/gadgets/proxy/*", ProxyServlet.class);
     servletsToRegister.put("/gadgets/makeRequest", MakeRequestServlet.class);
-    servletsToRegister.put("/gadgets/proxy", ProxyServlet.class);
-    servletsToRegister.put("/gadgets/metadata", RpcServlet.class);
+    servletsToRegister.put("/gadgets/concat", ConcatProxyServlet.class);
     servletsToRegister.put("/gadgets/oauthcallback", OAuthCallbackServlet.class);
+    servletsToRegister.put("/gadgets/ifr", GadgetRenderingServlet.class);
+    servletsToRegister.put("/gadgets/metadata", RpcServlet.class);
+    servletsToRegister.put("/social/rest/*", DataServiceServlet.class);
+    servletsToRegister.put("/social/rpc/*", JsonRpcServlet.class);
   }
 
-  private ServiceTracker httpServiceTracker;
+  private ServiceTracker paxWebTracker;
+  private Filter authFilter;
+  private EventListener guiceListener;
 
   /**
    * {@inheritDoc}
@@ -65,24 +76,52 @@ public class Activator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
    */
   public void start(BundleContext context) throws Exception {
-    httpServiceTracker = new ServiceTracker(context, HttpService.class.getName(), null) {
+    paxWebTracker = new ServiceTracker(context, WebContainer.class.getName(), null) {
       @Override
       public Object addingService(ServiceReference reference) {
-        HttpService httpService = (HttpService) context.getService(reference);
-        HttpContext httpContext = httpService.createDefaultHttpContext();
+        /**
+         * Note: All settings and configurations below are based on the web.xml
+         * from shindig-server
+         */
+        // get the web container and create a default context
+        LOG.debug("Activating Shindig...");
+        WebContainer webContainer = (WebContainer) context.getService(reference);
+        HttpContext context = webContainer.createDefaultHttpContext();
 
+        // setup context parameters
+        LOG.debug("Setting up guice-modules context parameter.");
+        Hashtable<String, String> contextParams = new Hashtable<String, String>();
+        contextParams.put("guice-modules", "org.apache.shindig.common.PropertiesModule:"
+            + "org.apache.shindig.gadgets.DefaultGuiceModule:"
+            + "org.apache.shindig.social.core.config.SocialApiGuiceModule:"
+            + "org.apache.shindig.gadgets.oauth.OAuthModule:"
+            + "org.apache.shindig.common.cache.ehcache.EhCacheModule");
+        webContainer.setContextParam(contextParams, context);
+
+        // register listeners first so that it can load a Guice injector into
+        // the context
+        LOG.debug("Registering Guice servlet context listener.");
+        guiceListener = new GuiceServletContextListener();
+        webContainer.registerEventListener(guiceListener, context);
+
+        // register filters
+        LOG.debug("Registering authentication servlet filter.");
+        authFilter = new AuthenticationServletFilter();
+        String[] urlPatterns = { "/social/*", "/gadgets/ifr", "/gadgets/makeRequest" };
+        String[] servletNames = null;
+        Dictionary<String, String> initParams = null;
+        webContainer.registerFilter(authFilter, urlPatterns, servletNames, initParams, context);
+
+        // register servlets
+        LOG.debug("Registering servlets...");
         for (Entry<String, Class<? extends HttpServlet>> registrant : servletsToRegister.entrySet()) {
           try {
-            httpService.registerServlet(registrant.getKey(), registrant.getValue().newInstance(),
-                null, httpContext);
-          } catch (ServletException e) {
-            e.printStackTrace();
-          } catch (NamespaceException e) {
-            e.printStackTrace();
-          } catch (InstantiationException e) {
-            e.printStackTrace();
-          } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            LOG.debug(" +registering {}", registrant.getKey());
+            webContainer.registerServlet(registrant.getKey(), registrant.getValue().newInstance(),
+                null, context);
+          } catch (Exception e) {
+            // Just log errors. If more can be done here, figure it out.
+            LOG.error(e.getMessage(), e);
           }
         }
         return super.addingService(reference);
@@ -90,14 +129,27 @@ public class Activator implements BundleActivator {
 
       @Override
       public void removedService(ServiceReference reference, Object service) {
-        HttpService httpService = (HttpService) service;
-        for (String servlet : servletsToRegister.keySet()) {
-          httpService.unregister(servlet);
+        WebContainer webContainer = (WebContainer) service;
+
+        // unregister servlets
+        LOG.debug("Unregistering servlets...");
+        for (String servletAlias : servletsToRegister.keySet()) {
+          LOG.debug(" +unregistering {}", servletAlias);
+          webContainer.unregister(servletAlias);
         }
+
+        // unregister filters
+        LOG.debug("Unregistering authentication servlet filter.");
+        webContainer.unregisterFilter(authFilter);
+
+        // unregister listeners
+        LOG.debug("Unregistering Guice servlet context listener.");
+        webContainer.unregisterEventListener(guiceListener);
+
         super.removedService(reference, service);
       }
     };
-    httpServiceTracker.open();
+    paxWebTracker.open();
   }
 
   /**
@@ -106,6 +158,6 @@ public class Activator implements BundleActivator {
    * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
    */
   public void stop(BundleContext context) throws Exception {
-    httpServiceTracker.close();
+    paxWebTracker.close();
   }
 }
