@@ -62,7 +62,9 @@ public class PresenceServiceImplTest {
             CacheScope.CLUSTERREPLICATED)).andReturn(presenceStatusCache)
         .anyTimes();
     replay(cacheManagerService);
-    presenceService = new PresenceServiceImpl(cacheManagerService);
+
+    presenceService = new PresenceServiceImpl();
+    presenceService.bindCacheManagerService(cacheManagerService);
   }
 
   /**
