@@ -50,27 +50,8 @@
             </Import-Package>
             <Private-Package>org.sakaiproject.kernel.registry.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency></Embed-Dependency>
           </instructions>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>embed-dependencies</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds></includeArtifactIds>
-              <excludeTransitive>false</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
