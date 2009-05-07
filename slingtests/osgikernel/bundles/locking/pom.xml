@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.kernel.locking</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Session Manager Bundle</name>
+  <name>Sakai Locking Bundle</name>
   <build>
     <plugins>
       <plugin>
