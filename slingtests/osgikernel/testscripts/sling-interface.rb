@@ -31,6 +31,11 @@ module SlingInterface
     def to_s
       return "Group: #{@name}"
     end
+
+    def update_properties(sling, props)
+      sling.execute_post(sling.url_for("#{$USERMANAGER_URI}group/#{@name}.update.html"), props)
+    end
+
   end
 
   class User < Principal
@@ -54,6 +59,9 @@ module SlingInterface
       return "User: #{@name} (pass: #{@password})"
     end
 
+    def update_properties(sling, props)
+      sling.execute_post(sling.url_for("#{$USERMANAGER_URI}user/#{@name}.update.html"), props)
+    end
   end
 
   class Sling
@@ -83,7 +91,9 @@ module SlingInterface
       req = Net::HTTP::Post.new(uri.path)
       @user.do_request_auth(req)
       req.set_form_data(post_params)
-      return Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+      res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
+      dump_response(res)
+      return res
     end
 
     def execute_get(path)
@@ -91,7 +101,13 @@ module SlingInterface
       uri = URI.parse(path)
       req = Net::HTTP::Get.new(uri.path)
       @user.do_request_auth(req)
-      return Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+      res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
+      dump_response(res)
+      return res
+    end
+
+    def url_for(path)
+      return "#{@server}#{path}"
     end
 
     def create_user(id)
@@ -102,7 +118,6 @@ module SlingInterface
                             { ":name" => user.name, 
                               "pwd" => user.password, 
                               "pwdConfirm" => user.password })
-      dump_response(result)
       if (result.code.to_i > 299)
         return nil
       end
@@ -113,21 +128,22 @@ module SlingInterface
       puts "Creating group: #{groupname}"
       group = Group.new(groupname)
       result = execute_post("#{@server}#{$GROUP_URI}", { ":name" => group.name })
-      dump_response(result)
       if (result.code.to_i > 299)
         return nil
       end
       return group
     end
 
+    def update_properties(principal, props)
+      principal.update_properties(self, props)
+    end
+
     def delete_node(path)
       result = execute_post("#{@server}#{path}", ":operation" => "delete")
-      dump_response(result)
     end
 
     def create_node(path, params)
       result = execute_post("#{@server}#{path}", params.update("jcr:createdBy" => @user.name))
-      dump_response(result)
     end
 
     def get_node_props_json(path)
@@ -153,7 +169,6 @@ module SlingInterface
                     privs.keys.inject(Hash.new) do |n,k| 
                       n.update("privilege@#{k}" => privs[k])
                     end))
-      dump_response(res)
       return res
     end
 
@@ -161,7 +176,6 @@ module SlingInterface
       res = execute_post("#{@server}#{path}.deleteAce.html", {
               ":applyTo" => principal
               })
-      dump_response(res)
     end
 
     def clear_acl(path)

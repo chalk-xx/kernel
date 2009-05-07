@@ -51,7 +51,7 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
   
   public boolean hasPrincipalInContext(String principalName, Node aclNode) {
     try {
-      if (".owner".equals(principalName))
+      if ("owner".equals(principalName))
       {
         /* Request comes in at node/rep:policy */
         Node contextNode = aclNode.getParent();
