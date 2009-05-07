@@ -1,13 +1,13 @@
 =head1 Deploying
 
 Once built (See the chapter on building), there will be the following jar
-available: app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar.
+available: app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 =head2 Accessing the next generation sakai directly via built in jetty
 
 The built jar can be transferred to a production server and run via:
 
-$ java -server -Xms256m -Xmx1500m -XX:MaxPermSize=64m -Djava.awt.headless=true -Duser.timezone=Europe/London -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar
+$ java -server -Xms256m -Xmx1500m -XX:MaxPermSize=64m -Djava.awt.headless=true -Duser.timezone=Europe/London -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 This will start up a Jetty web server (http://www.mortbay.org/) HTTP listener
 on port 8080, which a local web browser can access via http://localhost:8080,
@@ -30,16 +30,16 @@ Examples:
 
 eg
 
-java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f -
+java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f -
 
 -l sets the log level 0 = none, 1 = error , 2 = warn, 3 = info, 4 = debug
 
-eg java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f - -l 4
+eg java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - -l 4
 
 and if you want to attach a debugger right at the start of startup
 (suspend=y), log at debug to stdout
 
-java -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f - -l 4 
+java -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - -l 4 
 
 =head2 Load balancing behind apache httpd server
 
