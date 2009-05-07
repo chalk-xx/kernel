@@ -33,4 +33,4 @@ with a suitable HTTP user agent can be used to supply the appropriate requests.
 A set of perl libraries have been developed to support automated testing with
 perl's LWP (search.cpan.org/perldoc?LWP) user agent. Currently, these scripts
 and libraries can be found at:
-https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse/K2Rest
+https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse/Sling

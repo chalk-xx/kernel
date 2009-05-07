@@ -1,0 +1,297 @@
+=head1 User and Group REST services
+
+=head2 User
+
+=head3 Create User
+
+Creates a new user. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user. This servlet responds at
+/system/userManager/user.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :name The name of the new user (required)
+
+=item :pwd The password of the new user (required)
+
+=item :pwdConfirm The password of the new user (required)
+
+=item Additional parameters become user node properties (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the users resource locator with HTML describing status.
+
+=item 500 Failure, including user already exists. HTML explains failure.
+
+=back
+
+Example
+
+curl -F:name=username -Fpwd=password -FpwdConfirm=password -Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html
+
+=head3 Update User
+
+Updates a user's properties. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user/username . This servlet responds at
+/system/userManager/user/username.update.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item Additional parameters become user node properties (optional)
+
+=item @Delete Delete property, eg property1@Delete means delete property1 (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the user's resource locator with HTML describing status.
+
+=item 404 Resource was not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/user/username.update.html
+
+=head3 Change Password
+
+Changes user password. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users/ae/fd/3e/username mapped to a resource url
+/system/userManager/user/username . This servlet responds at
+/system/userManager/user/username.changePassword.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item oldPwd current password for user (required)
+
+=item newPwd new password for user (required)
+
+=item newPwdConfirm confirm new password for user (required)
+
+=back
+
+Response
+
+=over
+
+=item 200 Sucess sent with no body
+
+=item 404 user not found
+
+=item 500 Failure with HTML explanation
+
+=back
+
+Example
+
+curl -FoldPwd=oldpassword -FnewPwd=newpassword =FnewPwdConfirm=newpassword http://localhost:8080/system/userManager/user/username.changePassword.html
+
+=head3 Delete User
+
+Deletes a user. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user. This servlet responds at
+/system/userManager/user.delete.html. The servlet also responds to single
+delete requests eg /system/userManager/group/username.delete.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :applyTo An array of relative resource references to users to be deleted, if this parameter is present, the url is ignored and all listed users are removed.
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, no body.
+
+=item 404 Resource not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fgo=1 http://localhost:8080/system/userManager/group/groupname.delete.html
+
+=head2 Group
+
+=head3 Create Group
+
+Creates a new group. Maps on to nodes of resourceType sling/groups like
+/rep:system/rep:userManager/rep:groups mapped to a resource url
+/system/userManager/group . This servlet responds at
+/system/userManager/group.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :name name of new group (required)
+
+=item Additional parameters become group nod properties (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the group resource locator with HTML describing status.
+
+=item 500 Failure, including group already exists. HTML explains failure.
+
+=back
+
+Example
+
+curl -F:name=groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html
+
+Notes
+
+Groups are stored as a JCR node in a 3 way hashed tree, e.g:
+/rep:system/rep:userManager/rep:groups/ab/3e/4d/groupname
+
+=head3 Update Group
+
+Updates a group's properties. Maps on to nodes of resourceType sling/groups
+like /rep:system/rep:userManager/rep:groups/ae/3f/ed/groupname mapped to a
+resource url /system/userManager/group/groupname. This servlet responds at
+/system/userManager/group/groupname.update.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item Additional parameters become group node properties (optional)
+
+=item @Delete Delete property, eg property1@Delete means delete property1 (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the group's resource locator with HTML describing status.
+
+=item 404 Resource was not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/groupname.update.html
+
+=head3 Delete Group
+
+Deletes a group. Maps on to nodes of resourceType sling/groups like
+/rep:system/rep:userManager/rep:groups mapped to a resource url
+/system/userManager/group. This servlet responds at
+/system/userManager/group.delete.html. The servlet also responds to single
+delete requests eg /system/userManager/group/groupname.delete.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :applyTo An array of relative resource references to groups to be deleted, if this parameter is present, the url is ignored and all listed groups are removed.
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, no body.
+
+=item 404 Resource not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fgo=1 http://localhost:8080/system/userManager/group/groupname.delete.html
