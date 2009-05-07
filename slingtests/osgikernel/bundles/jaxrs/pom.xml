@@ -56,7 +56,8 @@
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
               scannotation, javassist,  commons-beanutils,
               commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
-            <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>>
+              scannotation, javassist,  commons-beanutils, commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
+            <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
             <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.* </Export-Package>
           </instructions>
@@ -95,7 +96,7 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.api</artifactId>
       <scope>provided</scope>
-      <version>2.0.3-incubator-SNAPSHOT</version>
+      <version>2.0.5-incubator-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>

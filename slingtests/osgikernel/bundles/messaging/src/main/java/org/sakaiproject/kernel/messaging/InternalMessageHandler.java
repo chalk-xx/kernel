@@ -55,6 +55,7 @@ public class InternalMessageHandler implements MessageHandler {
     DATE_STRUCT = FastDateFormat.getInstance("yyyy/MM/");
   }
 
+  /** @scr.reference */
   private JCRService jcr;
 
   protected void bindJcr(JCRService jcr) {

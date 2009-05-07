@@ -58,6 +58,8 @@
         <module>bundles/messaging</module>
         <module>bundles/presence</module>
         <module>bundles/ownerprincipalmanager</module>
+        <module>bundles/shindig</module>
+        <module>bundles/meservice</module>
         <module>libraries/utils</module>
       </modules>
     </profile>
@@ -578,6 +580,11 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-email</artifactId>
         <version>1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.3</version>
       </dependency>
 
 <!-- JMS -->

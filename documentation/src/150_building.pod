@@ -61,7 +61,7 @@ $ mvn -s /dev/null clean install;
 If that completes successfully, then you now have the next generation sakai
 built! You should now be able to run:
 
-$ java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar
+$ java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 Note: this will create a 'sling/' directory in the current working directory,
 which will contain configurations and run time data. If you make alterations or

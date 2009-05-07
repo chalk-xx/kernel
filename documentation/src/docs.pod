@@ -1,14 +1,12 @@
 =head1 The next generation of Sakai
 
-=head2 A reference guide:
-
-Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
+=head2 A reference guide
 
 
 =ff
 
 
-=head1 The Next Generation of Sakai. A reference guide:
+=head1 The Next Generation of Sakai. A reference guide
 
 =head2 Table Of Contents
 
@@ -50,7 +48,7 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 
 =back
 
-=head3 System Architecture ... Page 7
+=head3 Architecture Overview ... Page 7
 
 =over
 
@@ -61,6 +59,8 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 =item Everything is Content!
 
 =item MySQL
+
+=item Java Persistence API (JPA)
 
 =item OSGi and Apache Felix
 
@@ -79,6 +79,10 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 =over
 
 =item The build environment
+
+=item Building sling
+
+=item Building the next generation sakai
 
 =item Appendix A: Build script used to build the next generation sakai:
 
@@ -106,13 +110,17 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 
 =item Forking
 
+=item Following forks
+
 =item Fetching other forks
 
-=item Git pre-commit hook
+=item git pre-commit hook
+
+=item git on windows
 
 =back
 
-=head3 Content ... Page 15
+=head3 Content ... Page 16
 
 =over
 
@@ -122,7 +130,7 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 
 =back
 
-=head3 Authorization ... Page 16
+=head3 Authorization ... Page 17
 
 =over
 
@@ -130,27 +138,69 @@ Compiled by Daniel Parry, CARET, daniel@caret.cam.ac.uk
 
 =item Sling Authz Implementation Plan
 
-=item Jackrabbit User manager
+=item Users and Groups Implementation
+
+=item Authorizables
+
+=item Users
+
+=item Group
+
+=item UserManager
+
+=item Implementation
 
 =item New Bundle for a ResourceProvider and Sling Post Operations for interacting with the jackrabbit UserManager
 
 =item Jackrabbit 15/Sling UserManager Services
 
+=item Extendable ACL Provider Implementation
+
+=item JackRabbit / JSR283 Authz
+
 =back
 
-=head3 REST ... Page 17
+=head3 REST ... Page 19
 
 =over
 
 =item RESTful web services
 
-=item JSON
-
 =item REST web services provided by Sakai
 
 =back
 
-=head3 User Interface ... Page 18
+=head3 User and Group REST services ... Page 20
+
+=over
+
+=item User
+
+=item Create User
+
+=item Update User
+
+=item Change Password
+
+=item Delete User
+
+=item Group
+
+=item Create Group
+
+=item Update Group
+
+=item Delete Group
+
+=back
+
+=head3 JSON ... Page 24
+
+=head3 User Interface ... Page 25
+
+=head3 Glossary ... Page 26
+
+=head3 Credits ... Page 28
 
 
 
@@ -534,7 +584,7 @@ $ mvn -s /dev/null clean install;
 If that completes successfully, then you now have the next generation sakai
 built! You should now be able to run:
 
-$ java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar
+$ java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 Note: this will create a 'sling/' directory in the current working directory,
 which will contain configurations and run time data. If you make alterations or
@@ -639,13 +689,13 @@ exit ${EXITCODE};
 =head1 Deploying
 
 Once built (See the chapter on building), there will be the following jar
-available: app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar.
+available: app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 =head2 Accessing the next generation sakai directly via built in jetty
 
 The built jar can be transferred to a production server and run via:
 
-$ java -server -Xms256m -Xmx1500m -XX:MaxPermSize=64m -Djava.awt.headless=true -Duser.timezone=Europe/London -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar
+$ java -server -Xms256m -Xmx1500m -XX:MaxPermSize=64m -Djava.awt.headless=true -Duser.timezone=Europe/London -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 This will start up a Jetty web server (http://www.mortbay.org/) HTTP listener
 on port 8080, which a local web browser can access via http://localhost:8080,
@@ -668,16 +718,16 @@ Examples:
 
 eg
 
-java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f -
+java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f -
 
 -l sets the log level 0 = none, 1 = error , 2 = warn, 3 = info, 4 = debug
 
-eg java -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f - -l 4
+eg java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - -l 4
 
 and if you want to attach a debugger right at the start of startup
 (suspend=y), log at debug to stdout
 
-java -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y -jar app/target/org.sakaiproject.kernel2.osgi.app-0.1-SNAPSHOT.jar -f - -l 4 
+java -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=y -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - -l 4 
 
 =head2 Load balancing behind apache httpd server
 
@@ -865,9 +915,126 @@ Authorizable user or group via the PrincipalManager implementation.
 
 http://groups.google.com/group/sakai-kernel/web/sling-authz-implementation-plan
 
-=head2 Jackrabbit User manager
+=head2 Users and Groups Implementation
 
+The next generation sakai has adopted the Sling model for users and groups in
+its entirety with some small extensions to allow groups where the membership is
+dependent on the request context.
+
+=head3 Authorizables
+
+Authorizable objects form the basis of all user and group related objects
+within the model. Authorizable objects:
+
+=over
+
+=item have a Principal and ID
+
+=item can be referred to
+
+=item can refer to other authorizables
+
+=item can have properties
+
+=item can have direct and indirect members
+
+=back
+
+Indirect members are as a result of some membership of an authorizable that is,
+itself a member. Users are an example of an Authorizable, as are Groups.
+Javadocs are available at:
+http://jackrabbit.apache.org/api/1.5/org/apache/jackrabbit/api/security/user/Authorizable.html
+
+=head3 Users
+
+Users are Authorizables, with the ability to:
+
+=over
+
+=item change the user password
+
+=item fetch user credentials
+
+=item impersonate
+
+=item determine if user is an admin
+
+=back
+
+The User object is focused on the core user needs. It is not intended to
+encompass all real user properties. Although the password can be changed, and
+credentials retrieved, there is no fundamental requirement that binds the user
+to a password based or even server based authentication scheme. Methods
+provided come from the default jackrabbit authentication scheme. Javadocs are
+available at:
+http://jackrabbit.apache.org/api/1.5/org/apache/jackrabbit/api/security/user/User.html
+
+=head3 Group
+
+Groups add additional functionality to an Authorizable to make it possible to
+manage the group membership. Based on the functionality of Authorizable, a
+group can be a member of another Group. Javadocs are available at:
+http://jackrabbit.apache.org/api/1.5/org/apache/jackrabbit/api/security/user/Group.html
+
+=head3 UserManager
+
+Authorizable objects in the form of Users and Groups are unmanaged. The
+UserManager provides management of these objects with:
+
+=over
+
+=item User Creation
+
+=item Group Creation
+
+=item Direct find Principal or name based
+
+=item Search
+
+=back
+
+=head2 Implementation
+
+The Jackrabbit User manager manages a tree of nodes under the
+/rep:system/rep:userManager space. Nodes under
+/rep:system/rep:userManager/users represent User objects with object properties
+stored as nodes. Groups are stored in /rep:system/rep:userManager/groups.
+Note: paths mentioned here are JCR repository paths and not HTTP URLs.  The
+rep:userManager/users node has a resource type of sling/users. The
+rep:userManager/groups node has a resource type of sling/groups. This enables
+servlets to bind and act on these paths. More information about the jackrabbit
+user manager exists at:
 http://jackrabbit.apache.org/api/1.5/org/apache/jackrabbit/api/security/user/UserManager.html
+
+When a user is created a new node is created with user properties stored as
+properties on the node. The node location under the
+/rep:system/rep:userManager/users path is not defined and users may be created
+in subfolders to any depth. The URI for the user is always
+/system/userManager/user/<userid>. The Resource Resolver inside Sling converts
+this URI into the JCR repository location.
+
+In standard Sling, users are created under the node representing the user
+performing the creation. This has a potential limitation for large user
+communities as many users will appear in one JCR folder. Jackrabbit advises
+limiting the number of subnodes in a folder to < 1024. The next generation
+sakai patches Sling to apply a standard approach to gaining scalability such
+that a new user node is placed in a generated subtree three levels deep. The
+number of nodes at each level is limited to 255 entries, which should scale to
+160M users, provided the rest of the infrastructure can cope!
+
+The physical JCR node path is isolated from the URI referencing the
+Authorizable object. The internal path is not divulged outside the
+implementation. The external URI is used to construct references between
+groups. A User's membership is represented as a set of references pointing to
+other Authorizable objects. Thus, locating the Authorizables (Groups) that a
+user is a member of is a simple lookup of the reference properties on the
+user's node. Since the Group object is also an Authorizable, it too may be a
+member of other groups. In theory, a group could be a member of a user, but
+that may not be helpful.
+
+Finding the members of a group is implemented by searching for references to
+the group using Jackrabbit queries. This is fractionally slower than a direct
+lookup.
 
 =head2 New Bundle for a ResourceProvider and Sling Post Operations for interacting with the jackrabbit UserManager
 
@@ -924,7 +1091,309 @@ with a suitable HTTP user agent can be used to supply the appropriate requests.
 A set of perl libraries have been developed to support automated testing with
 perl's LWP (search.cpan.org/perldoc?LWP) user agent. Currently, these scripts
 and libraries can be found at:
-https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse/K2Rest
+https://saffron.caret.cam.ac.uk/svn/projects/sakoader/branches/improveGenericUse/Sling
+
+
+=ff
+
+
+=head1 User and Group REST services
+
+=head2 User
+
+=head3 Create User
+
+Creates a new user. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user. This servlet responds at
+/system/userManager/user.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :name The name of the new user (required)
+
+=item :pwd The password of the new user (required)
+
+=item :pwdConfirm The password of the new user (required)
+
+=item Additional parameters become user node properties (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the users resource locator with HTML describing status.
+
+=item 500 Failure, including user already exists. HTML explains failure.
+
+=back
+
+Example
+
+curl -F:name=username -Fpwd=password -FpwdConfirm=password -Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html
+
+=head3 Update User
+
+Updates a user's properties. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user/username . This servlet responds at
+/system/userManager/user/username.update.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item Additional parameters become user node properties (optional)
+
+=item @Delete Delete property, eg property1@Delete means delete property1 (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the user's resource locator with HTML describing status.
+
+=item 404 Resource was not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/user/username.update.html
+
+=head3 Change Password
+
+Changes user password. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users/ae/fd/3e/username mapped to a resource url
+/system/userManager/user/username . This servlet responds at
+/system/userManager/user/username.changePassword.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item oldPwd current password for user (required)
+
+=item newPwd new password for user (required)
+
+=item newPwdConfirm confirm new password for user (required)
+
+=back
+
+Response
+
+=over
+
+=item 200 Sucess sent with no body
+
+=item 404 user not found
+
+=item 500 Failure with HTML explanation
+
+=back
+
+Example
+
+curl -FoldPwd=oldpassword -FnewPwd=newpassword =FnewPwdConfirm=newpassword http://localhost:8080/system/userManager/user/username.changePassword.html
+
+=head3 Delete User
+
+Deletes a user. Maps on to nodes of resourceType sling/users like
+/rep:system/rep:userManager/rep:users mapped to a resource url
+/system/userManager/user. This servlet responds at
+/system/userManager/user.delete.html. The servlet also responds to single
+delete requests eg /system/userManager/group/username.delete.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :applyTo An array of relative resource references to users to be deleted, if this parameter is present, the url is ignored and all listed users are removed.
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, no body.
+
+=item 404 Resource not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fgo=1 http://localhost:8080/system/userManager/group/groupname.delete.html
+
+=head2 Group
+
+=head3 Create Group
+
+Creates a new group. Maps on to nodes of resourceType sling/groups like
+/rep:system/rep:userManager/rep:groups mapped to a resource url
+/system/userManager/group . This servlet responds at
+/system/userManager/group.create.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :name name of new group (required)
+
+=item Additional parameters become group nod properties (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the group resource locator with HTML describing status.
+
+=item 500 Failure, including group already exists. HTML explains failure.
+
+=back
+
+Example
+
+curl -F:name=groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html
+
+Notes
+
+Groups are stored as a JCR node in a 3 way hashed tree, e.g:
+/rep:system/rep:userManager/rep:groups/ab/3e/4d/groupname
+
+=head3 Update Group
+
+Updates a group's properties. Maps on to nodes of resourceType sling/groups
+like /rep:system/rep:userManager/rep:groups/ae/3f/ed/groupname mapped to a
+resource url /system/userManager/group/groupname. This servlet responds at
+/system/userManager/group/groupname.update.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item Additional parameters become group node properties (optional)
+
+=item @Delete Delete property, eg property1@Delete means delete property1 (optional)
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, a redirect is sent to the group's resource locator with HTML describing status.
+
+=item 404 Resource was not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/groupname.update.html
+
+=head3 Delete Group
+
+Deletes a group. Maps on to nodes of resourceType sling/groups like
+/rep:system/rep:userManager/rep:groups mapped to a resource url
+/system/userManager/group. This servlet responds at
+/system/userManager/group.delete.html. The servlet also responds to single
+delete requests eg /system/userManager/group/groupname.delete.html
+
+Methods
+
+=over
+
+=item POST
+
+=back
+
+Post Parameters
+
+=over
+
+=item :applyTo An array of relative resource references to groups to be deleted, if this parameter is present, the url is ignored and all listed groups are removed.
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, no body.
+
+=item 404 Resource not found
+
+=item 500 Failure
+
+=back
+
+Example
+
+curl -Fgo=1 http://localhost:8080/system/userManager/group/groupname.delete.html
 
 
 =ff
@@ -1046,6 +1515,41 @@ some content to the page possibly along with a user interface.  Widgets are
 different from HTML pages, because a widget may be used in a web page, but does
 not have to be the only content on a web page.  One web page may contain one or
 more widgets.
+
+
+=ff
+
+
+=head1 Credits
+
+In no particular order, the following people have contributed to this
+documentation at various direct and indirect levels, such as providing
+documentation on the sakai kernel google group that has been incorporated,
+creating a build system for the docs, writing docs directly etc:
+
+=over
+
+=item Carl Hall
+
+=item Clay Fenlayson
+
+=item Cris Holdorph
+
+=item Daniel Parry (daniel@caret.cam.ac.uk)
+
+=item David Horwitz
+
+=item Ian Boston
+
+=item John Norman
+
+=item Laura James
+
+=item Stuart Freeman
+
+=item Tony Stevenson
+
+=back
 
 
 =ff
