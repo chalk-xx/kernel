@@ -4,7 +4,7 @@ package Sling::Content;
 
 =head1 NAME
 
-Content - content related functionality for Sakai implemented over rest
+Content - content related functionality for Sling implemented over rest
 APIs.
 
 =head1 ABSTRACT

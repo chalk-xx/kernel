@@ -2,12 +2,12 @@
 
 =head1 NAME
 
-content perl script. Provides a means of uploading content into sakai
+content perl script. Provides a means of uploading content into sling
 from the command line.
 
 =head1 ABSTRACT
 
-This script can be used to upload content into sakai from the command line. It
+This script can be used to upload content into sling from the command line. It
 also acts as a reference implementation for the Content perl library.
 
 =cut
