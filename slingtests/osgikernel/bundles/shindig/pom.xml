@@ -20,12 +20,16 @@
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Bundle-Activator>${pom.artifactId}.Activator</Bundle-Activator>
-            <Export-Package>org.apache.shindig.*</Export-Package>
+            <Export-Package>
+               org/apache/shindig/social/opensocial/model,
+               org/apache/shindig/social/opensocial/spi,
+               org/apache/shindig/common/cache,
+               org/apache/shindig/social
+            </Export-Package>
             <Private-Package>org.sakaiproject.kernel.shindig</Private-Package>
             <Import-Package>
               !sun.*;resolution:=optional,
               !oracle.xml.parser.*,
-              !javax.jms,
               !net.sf.cglib.proxy,
               !nu.xom,
               !org.apache.commons.cli,
@@ -38,9 +42,10 @@
               !org.jgroups.*,
               !org.jmock.core,
               !org.mozilla.intl.chardet,
-              !edu.emory.mathcs.backport.java.util,
               !junit.framework,
               !org.easymock,
+              !org.apache.avalon.framework.logger,
+              org.apache.log;resolution:=optional,
               com.google.inject.cglib.reflect,
               *</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
@@ -48,6 +53,7 @@
             <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
             -->
             <Embed-Dependency>aopalliance,
+              backport-util-concurrent,
               caja,
               commons-beanutils,
               commons-beanutils-core,
@@ -69,17 +75,15 @@
               json-lib,
               json_simple,
               jsr107cache,
-              logkit,
               nekohtml,
               rome,
-              shindig-common,
-              shindig-features,
-              shindig-gadgets,
-              shindig-server,
-              shindig-social-api,
               xercesImpl,
-              xpp3,
               xpp3_min,
+              shindig-features;inline=true,
+              shindig-common;inline=true,
+              shindig-gadgets;inline=true,
+              shindig-server;inline=true,
+              shindig-social-api;inline=true,
               xstream</Embed-Dependency>
             <_failok>true</_failok>
           </instructions>
