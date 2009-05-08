@@ -64,6 +64,25 @@
       </modules>
     </profile>
     <profile>
+      <id>redeploy</id>
+      <build>
+       <plugins>
+         <plugin>
+          <groupId>org.apache.sling</groupId>
+          <artifactId>maven-sling-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>install-bundle</id>
+              <goals>
+                <goal>install</goal>
+              </goals>
+            </execution>
+          </executions>
+         </plugin>
+       </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>overlay-run-only</id>
       <activation>
         <activeByDefault>false</activeByDefault>
@@ -161,6 +180,7 @@
           <attach>true</attach>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
