@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.kernel.jcr</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Session Manager Bundle</name>
+  <name>Sakai JCR Service  Bundle</name>
   <build>
     <plugins>
       <plugin>

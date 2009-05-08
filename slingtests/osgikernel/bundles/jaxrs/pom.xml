@@ -55,8 +55,7 @@
               javassist.bytecode.*, org.apache.commons.collections, org.apache.commons.lang, org.apache.commons.logging, *</Import-Package>
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
               scannotation, javassist,  commons-beanutils,
-              commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
-              scannotation, javassist,  commons-beanutils, commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
+              commons-codec, commons-httpclient, jsr250-api </Embed-Dependency>
             <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
             <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.* </Export-Package>

@@ -34,14 +34,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <!--
-            <Export-Package> org.sakaiproject.kernel.api.registry, org.sakaiproject.kernel.api.registry.utils </Export-Package>
-              WARNING, these had to be excluded from the imports to get the bundle to activate there
-              may be classcast exceptions
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency></Embed-Dependency>
-            -->
             <Private-Package>org.sakaiproject.kernel.webapp.filter.*</Private-Package>
           </instructions>
         </configuration>
