@@ -47,12 +47,11 @@
               !org.apache.avalon.framework.logger,
               org.apache.log;resolution:=optional,
               com.google.inject.cglib.reflect,
-              *</Import-Package>
+              *
+            </Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <!--
-            <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
-            -->
-            <Embed-Dependency>aopalliance,
+            <Embed-Dependency>
+              aopalliance,
               backport-util-concurrent,
               caja,
               commons-beanutils,
@@ -84,7 +83,8 @@
               shindig-gadgets;inline=true,
               shindig-server;inline=true,
               shindig-social-api;inline=true,
-              xstream</Embed-Dependency>
+              xstream
+            </Embed-Dependency>
             <_failok>true</_failok>
           </instructions>
         </configuration>
