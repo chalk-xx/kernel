@@ -2,8 +2,131 @@
 
 =head2 Sling Content and processing of content
 
-http://groups.google.com/group/sakai-kernel/web/sling-content-and-processing-of-content
+Sling facilitates adding repository content in any desired layout via standard
+http methods like POST. Repository nodes can be marked with resourceType
+markers, or a default behavior can be utilized. Where nodes are marked, custom
+processing components either as scripting content under the /apps branch of the
+repository, or as servlets installed as OSGi bundles can be used. This grants
+UI and UX developer freedom in the URL layout space, since any application
+content can now be placed anywhere in the system with functionality in the
+/apps space providing data rendering and interaction, thus achieving a
+fundamental target of the next generation sakai.
 
-=head2 Manipulating Content: The SlingPostServlet
+The Slink wiki has some information about basic content handling at
+http://cwiki.apache.org/confluence/display/SLINGxSITE/Discover+Sling+in+15+minutes
+and there is more in depth information on content manipulation available at
+http://incubator.apache.org/sling/site/manipulating-content-the-slingpostservlet.html.
 
-http://incubator.apache.org/sling/site/manipulating-content-the-slingpostservlet.html
+=head2 Nodes
+
+Sling stores all content inside JCR as nodes. Webdav can be used to add nodes,
+or nodes can be created in JCR by POSTing to the node url via a mechanism such
+as curl. Content is stored with a JCR node type, and can have a
+sling:resourceType property set on the node. E.g. to create a node with 2
+properties (sling:resourceType = foo/bar and title = some title):
+
+curl -F"sling:resourceType=foo/bar" -F"title=some title" http://admin:admin@localhost:8080/content/mynode
+
+=head2 Rendering
+
+Node content is retrievable via various rendering mechanisms. The REST url to
+the resource is split into the resource node, a selector and a rendering. Hence
+to render the node as html a GET to http://localhost:8080/content/mynode.html
+will pass the JCR Node /content/mynode to the default html render, which is
+already configured in the sling repository. This renderer inspects the node,
+convert its properties to an HTML representation of the node and sends that
+back in the response.
+
+=head2 Other renderers
+
+Sling also has other renderers, such as the JSON renderer - invoked with
+http://localhost:8080/content/mynode.json. It is possible to perform certain
+actions on a node before invoking the renderer. A simple example being the tidy
+selector (e.g. http://localhost:8080/content/mynode.tidy.json), that (I guess
+without looking) cleans up the output. It is possible to make the rendering
+request connect to annother set of renderers.
+
+=head2 Searching for an output renderer
+
+Handling the search for an output renderer is complex (see
+http://cwiki.apache.org/SLING/url-to-script-resolution.html) but goes something
+like this:
+
+=over
+
+=item if extension specified this is renderer type used.
+
+=item If node sling:resourceType property set and a renderer for that sling:resourceType exists, then use it.
+
+=item Examine JCR node type eg nt:unstructured, if a renderer exists for that type, then use it.
+
+=item Examine default set, if a renderer exists for that type, then use it.
+
+=item Use the standard GET renderer.
+
+=back
+
+So for mynode.html, with a sling:resourceType of foo/bar we look for an html
+renderer with a selector of foo/bar. This could be an OSGi Declaratively
+Managed Service that implements javax.servlet.Servlet and is configured with
+the SCR plugin against this resource type, or it could be a ESP file in the
+/apps area of the JCR. UI developers can update the ESP files in the /apps area
+at run time, whereas Servlets require Java developers to implement and deploy
+the code.
+
+=head3 Other methods
+
+In addition to processing GET methods, the ResourceResolverFactory similarly
+routes other HTTP methods. However for non GET and HEAD methods the node and
+the resourceType are considered. It is up to the resource handler to decide how
+output is delivered. In the example above, a POST to /content/mynode would be
+resolved to /apps/foo/bar/POST.esp, with a simular mapping for other methods.
+
+=head3 ESP Files - For the UI developer.
+
+If an ESP file is uploaded to /apps/foo/bar/html.esp it becomes registered to
+respond to a GET request of type html to /content/mynode.html because this node
+has the sling:resourceType of foo/bar. Thus /apps/foo/bar/xml.esp could be
+uploaded to respond to /content/mynode.xml and /apps/foo/bar/json.esp to
+respond to /content/mynode.json. If the extension has no available renderer,
+then /apps/foo/bar/GET.esp is used.
+
+=head3 Other scripting languages
+
+The same mechanism can be used by any other scripting language that is
+installed in the Sling K2 runtime, currently this includes JSP, Ruby and
+Python.
+
+=head3 Servlets - For the Java developer
+
+Not only can a Sling application's runtime be modified by altering files under
+/apps, but Components implementing the javax.servlet.Servlet interface can also
+be registered as a Declaratively Managed Service. While achievable manually,
+this is simpler using the Apache Felix SCR Plugin. In the next generation sakai
+all bundle projects contain a pom.xml enabling this. CreateUserServlet is an
+example of such a servlet. The SCR plugin works via annotations inside Javadoc,
+thus presumably working with pre annotation JDKs also. Here is the
+CreateUserServlet class javadoc:
+
+ /**
+  * Sling Post Servlet implementation for creating
+  * a user in the jackrabbit UserManager.
+  *
+  * @scr.component immediate="true"
+  *                label="%createUser.post.operation.name"
+  *                description="%createUser.post.operation.description"
+  * @scr.service interface="javax.servlet.Servlet"
+  * @scr.property name="sling.servlet.resourceTypes" value="sling/users"
+  * @scr.property name="sling.servlet.methods" value="POST"
+  * @scr.property name="sling.servlet.selectors" value="create"
+  */
+			  
+Detailed documentation on how the SCR Plugin works is at:
+http://felix.apache.org/site/apache-felix-maven-scr-plugin.html
+
+In this example, a component is registered as providing the
+javax.servlet.Servlet interface, the @scr.service tag. The servlet is
+registered to respond to POST methods and resource types of sling/users with a
+selector of create. The node /rep:system/rep:userManager in the JCR has the a
+resourceType of sling/users and so this servlet will respond to a POST to
+/system/userManager/user.create.html and create a user.
