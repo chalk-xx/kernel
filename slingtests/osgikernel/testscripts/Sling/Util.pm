@@ -170,11 +170,25 @@ sub string_to_request {
 	return $request;
     }
     elsif ( $action =~ /^data$/ ) {
+        # multi-part form upload
         my $variables = join( " ", @reqVariables );
         my $postVariables;
         no strict;
         eval $variables;
         use strict;
+	my $request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
+	return $request;
+    }
+    elsif ( $action =~ /^fileupload$/ ) {
+        # multi-part form upload with the file name and file specified
+        my $filename = shift( @reqVariables );
+        my $file = shift( @reqVariables );
+        my $variables = join( " ", @reqVariables );
+        my $postVariables;
+        no strict;
+        eval $variables;
+        use strict;
+	push ( @{ $postVariables }, $filename => [ "$file" ] );
 	my $request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
 	return $request;
     }
