@@ -130,3 +130,12 @@ registered to respond to POST methods and resource types of sling/users with a
 selector of create. The node /rep:system/rep:userManager in the JCR has the a
 resourceType of sling/users and so this servlet will respond to a POST to
 /system/userManager/user.create.html and create a user.
+
+=head3 Searching content
+
+Sling provides a standard JSON Query Servlet in the package
+org.apache.sling.servlets.get that allows you to perform a search on the
+contents of the underlying repository. Search queries can use xpath or sql
+formatted search statements. See the Search REST services section for more
+information. Useful information is also available at:
+http://in-the-sling.blogspot.com/2008/09/how-to-use-json-query-servlet.html
