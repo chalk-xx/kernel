@@ -92,54 +92,51 @@
     </plugins>
   </build>
   <dependencies>
-    <!-- OSGi -->
+<!-- OSGi -->
     <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>osgi_R4_core</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>osgi_R4_compendium</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
     </dependency>
-    <!-- Shindig -->
+
+<!-- Shindig -->
     <dependency>
       <groupId>org.apache.shindig</groupId>
       <artifactId>shindig-common</artifactId>
-      <version>1.0-incubating</version>
+      <version>1.0.1-incubating-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shindig</groupId>
       <artifactId>shindig-features</artifactId>
-      <version>1.0-incubating</version>
+      <version>1.0.1-incubating-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shindig</groupId>
       <artifactId>shindig-gadgets</artifactId>
-      <version>1.0-incubating</version>
+      <version>1.0.1-incubating-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shindig</groupId>
       <artifactId>shindig-social-api</artifactId>
-      <version>1.0-incubating</version>
+      <version>1.0.1-incubating-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.shindig</groupId>
       <artifactId>shindig-server</artifactId>
-      <version>1.0-incubating</version>
+      <version>1.0.1-incubating-SNAPSHOT</version>
       <type>war</type>
     </dependency>
-    <!-- Pax Web -->
+
+<!-- Pax Web -->
     <dependency>
       <groupId>org.ops4j.pax.web</groupId>
       <artifactId>pax-web-service</artifactId>
-      <version>0.6.0</version>
-      <scope>provided</scope>
     </dependency>
-    <!-- Logging -->
+
+<!-- Logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
