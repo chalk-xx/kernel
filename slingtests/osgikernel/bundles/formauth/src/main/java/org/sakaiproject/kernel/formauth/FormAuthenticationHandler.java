@@ -41,9 +41,9 @@ import javax.servlet.http.HttpSession;
  * session will be made, if they are found, then the session stored credentials will be
  * used to authenticate the request against the JCR.
  * </p><p>
- * On POST, if sakai_login = 1, authentication will take place. If sakai_logout = 1, then
- * logout will take place. If sakai_login = 1 then the request parameter un will be used
- * for the username and pw for the password.
+ * On POST, if sakaiauth:login = 1, authentication will take place. If sakaiauth:logout = 1, then
+ * logout will take place. If sakaiauth:login = 1 then the request parameter "un" will be used
+ * for the username and "pw" for the password.
  * </p><p>
  * Login should be attempted at /system/sling/formlogin where there is a servlet mounted
  * to handle the request, performing this operation anywhere else will result in a
@@ -62,8 +62,8 @@ import javax.servlet.http.HttpSession;
 
 public final class FormAuthenticationHandler implements AuthenticationHandler {
 
-  public static final String FORCE_LOGOUT = "sakai:logout";
-  public static final String TRY_LOGIN = "sakai:login";
+  public static final String FORCE_LOGOUT = "sakaiauth:logout";
+  public static final String TRY_LOGIN = "sakaiauth:login";
   public static final String USERNAME = "un";
   public static final String PASSWORD = "pw";
 
