@@ -35,8 +35,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.presence </Export-Package>
-            <Private-Package>org.sakaiproject.kernel.presence.*</Private-Package>
+            <Export-Package> org.sakaiproject.kernel.formauth </Export-Package>
           </instructions>
         </configuration>
       </plugin>

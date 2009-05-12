@@ -134,41 +134,6 @@ public class FormAuthenticationHandlerTest {
     formAuthenticationHandler.authenticate(request, response);
     verify(request, response, session);
   }
-
-  @Test
-  public void testRequestAthentication() throws IOException {
-    FormAuthenticationHandler formAuthenticationHandler = new FormAuthenticationHandler();
-    HttpServletRequest request = createMock(HttpServletRequest.class);
-    HttpServletResponse response = createMock(HttpServletResponse.class);
-    HttpSession session = createMock(HttpSession.class);
-
-    // session already exists
-    expect(response.isCommitted()).andReturn(false);
-    response.reset();
-    expectLastCall();
-    response.setStatus(200);
-    expectLastCall();
-    expect(request.getContextPath()).andReturn("/");
-    expect(request.getAuthType()).andReturn(null);
-    expect(request.getRemoteUser()).andReturn(null);
-    response.setContentType("text/html");
-    expectLastCall();
-    response.setCharacterEncoding("UTF-8");
-    expectLastCall();
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter pw = new PrintWriter(baos);
-    
-    expect(response.getWriter()).andReturn(pw);
-    expectLastCall();
-    
-    replay(request, response, session);
-    formAuthenticationHandler.requestAuthentication(request, response);
-    pw.flush();
-    baos.flush();
-    assertTrue(baos.size() > 0);
-    verify(request, response, session);
-  }
-
   
   
 
