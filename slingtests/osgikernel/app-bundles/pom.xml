@@ -126,6 +126,11 @@
       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.formauth</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
@@ -226,7 +231,11 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api</includeArtifactIds>
+                  <includeArtifactIds>
+                  javax.activation,javax.xml.bind.jsr173,
+                  javax.xml.bind.jaxb,
+                  org.sakaiproject.kernel.jaxp-api
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
@@ -238,7 +247,16 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
+                  <includeArtifactIds>
+                  org.sakaiproject.kernel.configuration,
+                  javax.persistence,
+                  org.sakaiproject.kernel.guice,
+                  org.sakaiproject.kernel.utils,
+                  org.eclipse.persistence.core,
+                  org.eclipse.persistence.jpa,
+                  org.eclipse.persistence.asm,
+                  org.eclipse.persistence.antlr
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>
@@ -250,7 +268,13 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.guiceuser,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>
+                  org.sakaiproject.kernel.registry,
+                  org.sakaiproject.kernel.memory,
+                  org.sakaiproject.kernel.session,
+                  org.sakaiproject.kernel.guiceuser,
+                  org.sakaiproject.kernel.jpaprovider
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
@@ -262,7 +286,15 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.shindig</includeArtifactIds>
+                  <includeArtifactIds>
+                  org.sakaiproject.kernel.jcr,
+                  org.sakaiproject.kernel.persistence,
+                  org.sakaiproject.kernel.locking,
+                  org.sakaiproject.kernel.presence,
+                  org.sakaiproject.kernel.messaging,
+                  org.sakaiproject.kernel.shindig,
+                  org.sakaiproject.kernel.formauth
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
@@ -274,7 +306,12 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>
+                  org.sakaiproject.kernel.filters,
+                  org.sakaiproject.kernel.jaxrs,
+                  org.sakaiproject.kernel.jpaexample,
+                  org.sakaiproject.kernel.jpahelloworld
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
@@ -286,7 +323,12 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
+                  <includeArtifactIds>
+                  org.sakaiproject.kernel.lifecycle,
+                  org.apache.sling.scripting.python,
+                  org.apache.sling.scripting.ruby,
+                  org.apache.sling.fsresource
+                  </includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

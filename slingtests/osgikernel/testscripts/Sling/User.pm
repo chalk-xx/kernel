@@ -4,7 +4,7 @@ package Sling::User;
 
 =head1 NAME
 
-User - user related functionality for Sakai implemented over rest
+User - user related functionality for Sling implemented over rest
 APIs.
 
 =head1 ABSTRACT

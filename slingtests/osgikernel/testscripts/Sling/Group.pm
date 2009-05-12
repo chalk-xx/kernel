@@ -4,7 +4,7 @@ package Sling::Group;
 
 =head1 NAME
 
-Group - group related functionality for Sakai implemented over rest
+Group - group related functionality for Sling implemented over rest
 APIs.
 
 =head1 ABSTRACT

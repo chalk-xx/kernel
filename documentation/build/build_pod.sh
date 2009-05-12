@@ -62,42 +62,43 @@ then
     perl -pe 's/$/\n/' ${TOCTMP} > ${TOCTMP}.tmp;
     mv ${TOCTMP}.tmp ${TOCTMP};
     mv ${TOCTMP} ${TOC};
-
+    exit 0;
   fi
 
-  if [ -f ../src/docs.pod ] ; then
-    rm -f ../src/docs.pod;
+  if [ -f docs.pod ] ; then
+    rm -f docs.pod;
   fi    
 
   echo "Generating docs.pod";
 
   for i in ../src/[0-9]*.pod ; do
-    cat $i >> ../src/docs.pod;
-    echo -e "\n\n=ff\n\n" >> ../src/docs.pod;
-
+    cat $i >> docs.pod;
+    echo -e "\n\n=ff\n\n" >> docs.pod;
   done
 
   if [ "${1}" = "pdf" ] ; then
     echo "Generating docs.pdf";
-    pod2pdf --title "Next generation Sakai documentation" ../src/docs.pod > ../output/docs.pdf;
+    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" docs.pod > ../output/docs.pdf;
   fi
 
 
   if [ "${1}" = "html" ] ; then
     echo "Generating docs.html";
-    pod2html ../src/docs.pod > ../output/docs.html;
+    pod2html docs.pod > ../output/docs.html;
     rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
   if [ "${1}" = "all" ] ; then
     echo "Generating docs.pdf";
-    pod2pdf --title "Next generation Sakai documentation" ../src/docs.pod > ../output/docs.pdf;
+    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" docs.pod > ../output/docs.pdf;
     echo "Generating docs.html";
-    pod2html ../src/docs.pod > ../output/docs.html;
+    pod2html docs.pod > ../output/docs.html;
     rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
-
+  if [ -f docs.pod ] ; then
+    rm -f docs.pod;
+  fi    
 
   if [ "${1}" = "help" ] ; then
     echo ""
@@ -108,18 +109,14 @@ then
     echo "$0 all - Will build the documentation and export all as a single html document and as a single PDF document."
     echo ""
     exit 2  
+  fi
 
-fi
-
- 
-
- else 
-  echo""
-  echo "Incorrect usage: "
-  echo "Use $0 (toc | pdf | html | all | help)"
-  echo ""
-  exit 3
-
- fi
+  else 
+    echo""
+    echo "Incorrect usage: "
+    echo "Use $0 (toc | pdf | html | all | help)"
+    echo ""
+    exit 3
+  fi
 
 exit 0;
