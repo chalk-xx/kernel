@@ -2,7 +2,7 @@
 
 =head2 Table Of Contents
 
-=head3 Introduction ... Page 4
+=head3 Introduction ... Page 5
 
 =over
 
@@ -40,7 +40,7 @@
 
 =back
 
-=head3 Architecture Overview ... Page 7
+=head3 Architecture Overview ... Page 8
 
 =over
 
@@ -66,7 +66,7 @@
 
 =back
 
-=head3 Building ... Page 9
+=head3 Building ... Page 10
 
 =over
 
@@ -80,7 +80,7 @@
 
 =back
 
-=head3 Deploying ... Page 12
+=head3 Deploying ... Page 13
 
 =over
 
@@ -92,7 +92,7 @@
 
 =back
 
-=head3 Developing ... Page 14
+=head3 Developing ... Page 15
 
 =over
 
@@ -112,17 +112,33 @@
 
 =back
 
-=head3 Content ... Page 16
+=head3 Content ... Page 17
 
 =over
 
 =item Sling Content and processing of content
 
-=item Manipulating Content: The SlingPostServlet
+=item Nodes
+
+=item Rendering
+
+=item Other renderers
+
+=item Searching for an output renderer
+
+=item Other methods
+
+=item ESP Files - For the UI developer.
+
+=item Other scripting languages
+
+=item Servlets - For the Java developer
+
+=item Searching content
 
 =back
 
-=head3 Authorization ... Page 17
+=head3 Authorization ... Page 19
 
 =over
 
@@ -152,7 +168,7 @@
 
 =back
 
-=head3 REST ... Page 19
+=head3 REST ... Page 21
 
 =over
 
@@ -162,7 +178,7 @@
 
 =back
 
-=head3 User and Group REST services ... Page 20
+=head3 User and Group REST services ... Page 22
 
 =over
 
@@ -186,11 +202,19 @@
 
 =back
 
-=head3 JSON ... Page 24
+=head3 Search REST services ... Page 26
 
-=head3 User Interface ... Page 25
+=over
 
-=head3 Glossary ... Page 26
+=item Search
 
-=head3 Credits ... Page 28
+=back
+
+=head3 JSON ... Page 27
+
+=head3 User Interface ... Page 28
+
+=head3 Glossary ... Page 29
+
+=head3 Credits ... Page 31
 
