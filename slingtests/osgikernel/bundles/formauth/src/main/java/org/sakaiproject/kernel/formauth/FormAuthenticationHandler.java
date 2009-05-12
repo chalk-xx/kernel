@@ -31,20 +31,39 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * 
+ * <p>
+ * This is the Form Based Login Authenticator, its mounted at / and is invoked via the
+ * OSGi HttpService handleSecurity call on the context. It is also invoked explicitly via
+ * the FormLoginServlet via that authenticator service.
+ * </p><p>
+ * When the request is invoked, if the method is a POST, the authentication mechanism will
+ * be invoked. If the method is not a post an attempt to get credentials out of the
+ * session will be made, if they are found, then the session stored credentials will be
+ * used to authenticate the request against the JCR.
+ * </p><p>
+ * On POST, if sakai_login = 1, authentication will take place. If sakai_logout = 1, then
+ * logout will take place. If sakai_login = 1 then the request parameter un will be used
+ * for the username and pw for the password.
+ * </p><p>
+ * Login should be attempted at /system/sling/formlogin where there is a servlet mounted
+ * to handle the request, performing this operation anywhere else will result in a
+ * resource creation, as POST creates a resource in the default SLing POST mechanism.
+ * </p><p>
+ * See {@link FormLoginServlet} to see a description of POST and GET to that servlet.
+ * </p>
  * 
  * @scr.component immediate="false" label="%auth.http.name"
  *                description="%auth.http.description"
  * @scr.property name="service.description" value="Form Authentication Handler"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property nameRef="AuthenticationHandler.PATH_PROPERTY" value="/system/sling/formlogin"
+ * @scr.property nameRef="AuthenticationHandler.PATH_PROPERTY" value="/"
  * @scr.service interface="org.apache.sling.engine.auth.AuthenticationHandler"
  */
 
 public final class FormAuthenticationHandler implements AuthenticationHandler {
 
-  public static final String FORCE_LOGOUT = "sakai_logout";
-  public static final String TRY_LOGIN = "sakai_login";
+  public static final String FORCE_LOGOUT = "sakai:logout";
+  public static final String TRY_LOGIN = "sakai:login";
   public static final String USERNAME = "un";
   public static final String PASSWORD = "pw";
 
@@ -107,15 +126,16 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      * @return
      */
     Credentials getCredentials() {
-      IllegalAccessError e = new IllegalAccessError("getCredentials() has been invoked from an invalid location ");
+      IllegalAccessError e = new IllegalAccessError(
+          "getCredentials() has been invoked from an invalid location ");
       StackTraceElement[] ste = e.getStackTrace();
-      if ( FormAuthenticationHandler.class.getName().equals(ste[1].getClassName()) &&
-          "authenticate".equals(ste[1].getMethodName()) ) {
+      if (FormAuthenticationHandler.class.getName().equals(ste[1].getClassName())
+          && "authenticate".equals(ste[1].getMethodName())) {
         return credentials;
       }
       throw e;
     }
-    
+
   }
 
   private static final Logger LOGGER = LoggerFactory
@@ -131,7 +151,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public final AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
-    LOGGER.info("Traceback",new Exception());
+    LOGGER.info("Traceback", new Exception());
     HttpSession session = request.getSession(false);
 
     // no session authentication info, try the request

@@ -23,16 +23,14 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
 import org.sakaiproject.kernel.formauth.FormAuthenticationHandler;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
