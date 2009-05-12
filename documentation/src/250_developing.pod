@@ -70,10 +70,10 @@ $ git merge ieb/master
 
 =head2 Fetching other forks
 
-To fetch features from forks other than ieb master, such as those listed in the
-graph at http://github.com/ieb/open-experiments/network, you need to add the
-fork as a git checkout remote. First navigate to the repo github page and copy
-the clone url.
+To fetch unmerged features from forks other than ieb master, such as those
+listed in the graph at http://github.com/ieb/open-experiments/network, you need
+to add the fork as a git checkout remote. First navigate to the repo github
+page and copy the clone url.
 
 In your git checkout run 'remote add <name> <clone url>'
 

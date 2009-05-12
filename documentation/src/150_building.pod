@@ -7,23 +7,53 @@ works. This document details the required build environment and steps:
 
 To build the next generation sakai you will need to have a subversion client, a
 git client, java, and maven installed. In particular, JDK 5, e.g. java version
-"1.5.0_17" and maven 2.0.7 or above since sling specifies a prerequisite of
-maven 2.0.7, e.g. mvn -v should return something like: Maven version: 2.0.9.
+"1.5.0_17" and maven 2.0.9 or above since earlier versions have problems
+building sling, e.g. mvn -v should return something like: Maven version: 2.0.9.
 There are instructions about upgrading maven on Mac OS X here:
 http://steve-on-sakai.blogspot.com/2009/04/updating-maven-on-mac-os-x.html
 
+=head2 Building Apache Dependencies
+
+=head3 Apache Sling 5 incubator
+
+Currently, binding to the Sling 5 release must be simulated to resolve various
+dependencies required by the next generation sakai. Check out the Sling 5
+incubator source release locally with svn - avoid Git here as Apache has yet to
+set up sub-modules, then build it:
+
+svn co http://svn.apache.org/repos/asf/incubator/sling/tags/sling-5-incubator-source-release
+
+cd sling-5-incubator-source-release
+
+mvn clean install
+
+=head3 Apache Felix web console 1.2.9-SNAPSHOT jar
+
+Sling 5 uses Felix web console version 1.2.8 which throws a null pointer
+exception (NPE) when attempting to access system/console/configMgr (see
+https://issues.apache.org/jira/browse/SLING-959). The current workaround is to
+download manually and install in your local Maven repository the trunk version
+(1.2.9-SNAPSHOT) of Felix's web console. 
+
+Fetch the jar from:
+
+https://issues.apache.org/jira/secure/attachment/12407768/org.apache.felix.webconsole-1.2.9-SNAPSHOT.jar
+
+And locate it in this folder:
+
+.m2/repository/org/apache/felix/org.apache.felix.webconsole/1.2.9-SNAPSHOT/
+
+=head3 Apache Shindig 1.0-incubating
+
+svn co https://svn.apache.org/repos/asf/incubator/shindig/tags/shindig-project-1.0-incubating
+
+cd shindig-project-1.0-incubating
+
+mvn clean install
+
 =head2 Building sling
 
-First up you will need to build sling, for which further details are available
-here: http://incubator.apache.org/sling/site/project-information.html. The
-trunk version of sling can be obtained via:
-
-$ svn co http://svn.eu.apache.org/repos/asf/incubator/sling/trunk sling;
-
-For those who prefer git, there is also a git repo of the sling source at
-http://git.apache.org/sling.git
-
-However, a fork of sling is currently being maintained at
+A fork of sling is currently being maintained at
 http://github.com/ieb/k2-sling-fork/tree/master which contains some necessary
 customizations to facilitate the next generation sakai. It is hoped that these
 changes will wherever possible find their way back into the apache sling and
@@ -31,20 +61,13 @@ jackrabbit code bases. This fork can be fetched with:
 
 git clone git://github.com/ieb/k2-sling-fork.git
 
-Then you can build sling with:
+Then you can build with:
 
-$ mvn -s /dev/null clean install;
+mvn -s /dev/null -PwithContrib clean install;
 
 This build will populate the maven repo with some required files for the next
 generation sakai, so it is important that all builds are performed as the same
-user.
-
-The python and ruby scripting engines also need to be built to further populate
-the local maven repo:
-
-$ pushd contrib;
-
-$ mvn -s /dev/null clean install;
+user. Note: The python and ruby scripting engines will aslo be built.
 
 =head2 Building the next generation sakai
 
@@ -52,109 +75,18 @@ The code for the next generation sakai is hosted at github. You do not need an
 account, however, to clone it (git terminology for svn checkout in effect) and
 you can subsequently run git pull to keep your local version up to date:
 
-$ git clone git://github.com/ieb/open-experiments.git
+git clone git://github.com/ieb/open-experiments.git
 
-$ cd open-experiments/slingtests/osgikernel;
+cd open-experiments/slingtests/osgikernel;
 
-$ mvn -s /dev/null clean install;
+mvn -s /dev/null clean install;
 
 If that completes successfully, then you now have the next generation sakai
 built! You should now be able to run:
 
-$ java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
+java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
 
 Note: this will create a 'sling/' directory in the current working directory,
 which will contain configurations and run time data. If you make alterations or
 changes to the code you may well want to remove the sling directory and have it
 rebuilt to ensure a clean build.
-
-=head2 Appendix A: Build script used to build the next generation sakai:
-
-The following script is available from:
-https://saffron.caret.cam.ac.uk/svn/projects/sakaibuilds/trunk/scripts/build_sling.sh
-
-#!/bin/sh
-
-# Build return code: 0 denotes a success; anything else a failure.
-
-EXITCODE=0;
-
-pushd sling;
-
-echo "Starting maven build of sling.";
-
-mvn -s /dev/null clean install;
-
-EXITCODE=${?};
-
-if [ "${EXITCODE}" != "0" ] ; then
-
-echo "ERROR: Problem with build, exit code was ${EXITCODE}";
-
-exit ${EXITCODE};
-
-fi
-
-pushd contrib;
-
-echo "Starting maven build of sling contrib.";
-
-mvn -s /dev/null clean install;
-
-EXITCODE=${?};
-
-if [ "${EXITCODE}" != "0" ] ; then
-
-echo "ERROR: Problem with build, exit code was ${EXITCODE}";
-
-exit ${EXITCODE};
-
-fi
-
-popd;
-
-popd;
-
-if [ ! -d open-experiments ] ; then
-
-git clone git://github.com/ieb/open-experiments.git
-
-fi
-
-if [ ! -d open-experiments ] ; then
-
-echo "ERROR: git clone should have created directory open-experiments, aborting!";
-
-exit 1;
-
-fi
-
-pushd open-experiments;
-
-git pull;
-
-pushd slingtests;
-
-pushd osgikernel;
-
-echo "Starting maven build of open-experiments.";
-
-mvn -s /dev/null clean install;
-
-EXITCODE=${?};
-
-if [ "${EXITCODE}" != "0" ] ; then
-
-echo "ERROR: Problem with build, exit code was ${EXITCODE}";
-
-exit ${EXITCODE};
-
-fi
-
-popd;
-
-popd;
-
-popd;
-
-exit ${EXITCODE};
