@@ -22,9 +22,7 @@ import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -33,27 +31,46 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * 
+ * <p>
+ * This is the Form Based Login Authenticator, its mounted at / and is invoked via the
+ * OSGi HttpService handleSecurity call on the context. It is also invoked explicitly via
+ * the FormLoginServlet via that authenticator service.
+ * </p><p>
+ * When the request is invoked, if the method is a POST, the authentication mechanism will
+ * be invoked. If the method is not a post an attempt to get credentials out of the
+ * session will be made, if they are found, then the session stored credentials will be
+ * used to authenticate the request against the JCR.
+ * </p><p>
+ * On POST, if sakaiauth:login = 1, authentication will take place. If sakaiauth:logout = 1, then
+ * logout will take place. If sakaiauth:login = 1 then the request parameter "un" will be used
+ * for the username and "pw" for the password.
+ * </p><p>
+ * Login should be attempted at /system/sling/formlogin where there is a servlet mounted
+ * to handle the request, performing this operation anywhere else will result in a
+ * resource creation, as POST creates a resource in the default SLing POST mechanism.
+ * </p><p>
+ * See {@link FormLoginServlet} to see a description of POST and GET to that servlet.
+ * </p>
  * 
  * @scr.component immediate="false" label="%auth.http.name"
  *                description="%auth.http.description"
  * @scr.property name="service.description" value="Form Authentication Handler"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property nameRef="AuthenticationHandler.PATH_PROPERTY" value="/"
- * @scr.service
+ * @scr.service interface="org.apache.sling.engine.auth.AuthenticationHandler"
  */
 
-public class FormAuthenticationHandler implements AuthenticationHandler {
+public final class FormAuthenticationHandler implements AuthenticationHandler {
 
-  public static final String FORCE_LOGOUT = "sakai:logout";
-  public static final String TRY_LOGIN = "sakai:login";
+  public static final String FORCE_LOGOUT = "sakaiauth:logout";
+  public static final String TRY_LOGIN = "sakaiauth:login";
   public static final String USERNAME = "un";
   public static final String PASSWORD = "pw";
 
   /**
    * 
    */
-  class FormAuthentication {
+  final class FormAuthentication {
 
     /**
      *
@@ -69,11 +86,15 @@ public class FormAuthenticationHandler implements AuthenticationHandler {
     FormAuthentication(HttpServletRequest request) {
       forceLogout = false;
       valid = false;
+      LOGGER.info("Checking Request");
       if ("POST".equals(request.getMethod())) {
+        LOGGER.info("is a POST");
         if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
+          LOGGER.info(" logout");
           valid = false;
           forceLogout = true;
         } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
+          LOGGER.info(" login");
           String password = request.getParameter(PASSWORD);
           if (password == null) {
             credentials = new SimpleCredentials(request.getParameter(USERNAME),
@@ -105,23 +126,22 @@ public class FormAuthenticationHandler implements AuthenticationHandler {
      * @return
      */
     Credentials getCredentials() {
-      IllegalAccessError e = new IllegalAccessError("getCredentials() has been invoked from an invalid location ");
+      IllegalAccessError e = new IllegalAccessError(
+          "getCredentials() has been invoked from an invalid location ");
       StackTraceElement[] ste = e.getStackTrace();
-      if ( FormAuthenticationHandler.class.getName().equals(ste[1].getClassName()) &&
-          "extractAuthentication".equals(ste[1].getMethodName()) ) {
+      if (FormAuthenticationHandler.class.getName().equals(ste[1].getClassName())
+          && "authenticate".equals(ste[1].getMethodName())) {
         return credentials;
       }
       throw e;
     }
-    
+
   }
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(FormAuthenticationHandler.class);
   private static final String USER_CREDENTIALS = FormAuthentication.class.getName();
   public static final String SESSION_AUTH = FormAuthenticationHandler.class.getName();
-  private static final String LOGIN_FORM_TEMPLATE = "LoginFormTemplate.html";
-  private String loginFormTemplate;
 
   /**
    * {@inheritDoc}
@@ -129,23 +149,9 @@ public class FormAuthenticationHandler implements AuthenticationHandler {
    * @see org.apache.sling.engine.auth.AuthenticationHandler#authenticate(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
-  public AuthenticationInfo authenticate(HttpServletRequest request,
+  public final AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
-    // extract credentials and return
-    AuthenticationInfo info = this.extractAuthentication(request);
-    if (info != null) {
-      return info;
-    }
-
-    // no special header, so we will not authenticate here
-    return null;
-  }
-
-  /**
-   * @param request
-   * @return
-   */
-  private AuthenticationInfo extractAuthentication(HttpServletRequest request) {
+    LOGGER.info("Traceback", new Exception());
     HttpSession session = request.getSession(false);
 
     // no session authentication info, try the request
@@ -187,106 +193,7 @@ public class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public boolean requestAuthentication(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
-
-    // if the response is already committed, we have a problem !!
-    if (!response.isCommitted()) {
-
-      // reset the response
-      response.reset();
-      response.setStatus(HttpServletResponse.SC_OK);
-
-      String form = getLoginForm();
-
-      if (form != null) {
-
-        form = replaceVariables(form, "@@contextPath@@", request.getContextPath(), "/");
-        form = replaceVariables(form, "@@authType@@", request.getAuthType(), "");
-        form = replaceVariables(form, "@@user@@", request.getRemoteUser(), "");
-
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().print(form);
-
-      } else {
-
-        // have no form, so just send 401/UNATHORIZED for simple login
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-
-      }
-
-    } else {
-
-      LOGGER
-          .error("requestAuthentication: Response is committed, cannot request authentication");
-
-    }
-
     return true;
-  }
-
-  /**
-   * Returns the login form template as a string or <code>null</code> if it cannot be
-   * read. Failure to read the template is logged.
-   */
-  private String getLoginForm() {
-    if (loginFormTemplate == null) {
-      InputStream ins = getClass().getResourceAsStream(LOGIN_FORM_TEMPLATE);
-      if (ins != null) {
-        try {
-
-          ByteArrayOutputStream out = new ByteArrayOutputStream();
-          byte[] buf = new byte[3000];
-          int bytes = 0;
-          while ((bytes = ins.read(buf)) >= 0) {
-            out.write(buf, 0, bytes);
-          }
-          out.close();
-          loginFormTemplate = new String(out.toByteArray(), "UTF-8");
-
-        } catch (IOException ioe) {
-
-          LOGGER.error("getLoginForm: Failure reading login form template", ioe);
-
-        } finally {
-
-          try {
-            ins.close();
-          } catch (IOException ignore) {
-          }
-
-        }
-
-      } else {
-
-        LOGGER.error("getLoginForm: Cannot access login form template at "
-            + LOGIN_FORM_TEMPLATE);
-
-      }
-    }
-
-    return loginFormTemplate;
-  }
-
-  /**
-   * Replaces all occurrences in the <code>template</code> of the <code>key</code> (a
-   * regular expression) by the <code>value</code> or <code>defaultValue</code>.
-   * 
-   * @param template
-   *          The template to replace occurrences of key
-   * @param key
-   *          The regular expression of the key to replace
-   * @param value
-   *          The replacement value
-   * @param defaultValue
-   *          The replacement value to use if the value is null or an empty string.
-   * @return the template with the key values replaced.
-   */
-  private String replaceVariables(String template, String key, String value,
-      String defaultValue) {
-    if (value == null || value.length() == 0) {
-      value = defaultValue;
-    }
-    return template.replaceAll(key, value);
   }
 
 }

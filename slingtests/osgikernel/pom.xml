@@ -65,6 +65,14 @@
       </modules>
     </profile>
     <profile>
+       <!-- rebundle the standalone server -->
+       <id>bundle</id>
+       <modules>
+        <module>app</module>
+        <module>app-bundles</module>
+       </modules>
+    </profile>
+    <profile>
       <id>redeploy</id>
       <build>
        <plugins>

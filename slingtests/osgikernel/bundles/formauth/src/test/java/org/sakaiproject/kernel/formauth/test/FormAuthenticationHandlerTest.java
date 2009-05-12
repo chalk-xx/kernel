@@ -23,16 +23,14 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
 import org.sakaiproject.kernel.formauth.FormAuthenticationHandler;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -134,41 +132,6 @@ public class FormAuthenticationHandlerTest {
     formAuthenticationHandler.authenticate(request, response);
     verify(request, response, session);
   }
-
-  @Test
-  public void testRequestAthentication() throws IOException {
-    FormAuthenticationHandler formAuthenticationHandler = new FormAuthenticationHandler();
-    HttpServletRequest request = createMock(HttpServletRequest.class);
-    HttpServletResponse response = createMock(HttpServletResponse.class);
-    HttpSession session = createMock(HttpSession.class);
-
-    // session already exists
-    expect(response.isCommitted()).andReturn(false);
-    response.reset();
-    expectLastCall();
-    response.setStatus(200);
-    expectLastCall();
-    expect(request.getContextPath()).andReturn("/");
-    expect(request.getAuthType()).andReturn(null);
-    expect(request.getRemoteUser()).andReturn(null);
-    response.setContentType("text/html");
-    expectLastCall();
-    response.setCharacterEncoding("UTF-8");
-    expectLastCall();
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter pw = new PrintWriter(baos);
-    
-    expect(response.getWriter()).andReturn(pw);
-    expectLastCall();
-    
-    replay(request, response, session);
-    formAuthenticationHandler.requestAuthentication(request, response);
-    pw.flush();
-    baos.flush();
-    assertTrue(baos.size() > 0);
-    verify(request, response, session);
-  }
-
   
   
 
