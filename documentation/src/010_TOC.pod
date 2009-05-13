@@ -54,7 +54,7 @@
 
 =item Java Persistence API (JPA)
 
-=item OSGi and Apache Felix
+=item OSGi (Apache Felix)
 
 =item Bundles
 
@@ -118,9 +118,13 @@
 
 =item git on windows
 
+=item Developing with OSGi
+
+=item Building and deploying a simple bundle
+
 =back
 
-=head3 Content ... Page 16
+=head3 Content ... Page 18
 
 =over
 
@@ -146,7 +150,7 @@
 
 =back
 
-=head3 Authorization ... Page 18
+=head3 Authorization ... Page 20
 
 =over
 
@@ -176,7 +180,7 @@
 
 =back
 
-=head3 REST ... Page 20
+=head3 REST ... Page 22
 
 =over
 
@@ -186,7 +190,7 @@
 
 =back
 
-=head3 User and Group REST services ... Page 21
+=head3 User and Group REST services ... Page 23
 
 =over
 
@@ -210,7 +214,7 @@
 
 =back
 
-=head3 Search REST services ... Page 25
+=head3 Search REST services ... Page 26
 
 =over
 
@@ -218,13 +222,13 @@
 
 =back
 
-=head3 JSON ... Page 26
+=head3 JSON ... Page 27
 
-=head3 User Interface ... Page 27
+=head3 User Interface ... Page 28
 
-=head3 Glossary ... Page 28
+=head3 Glossary ... Page 29
 
-=head3 Credits ... Page 30
+=head3 Credits ... Page 31
 
-=head3 Licence ... Page 31
+=head3 Licence ... Page 32
 

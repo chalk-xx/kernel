@@ -81,6 +81,11 @@ Sling - The Apache Sling project is a web framework built on REST based
 principles, using a Java Content Repository (JCR) and powered by OSGI.
 (http://incubator.apache.org/sling/site/index.html)
 
+Whiteboard Pattern - A model used to track changes in the dynamic OSGi service
+model, essentially a way of keeping track of which OSGi bundles are available
+at any given time.
+(http://www.theserverside.com/tt/articles/article.tss?l=WhiteboardForOSGi)
+
 Widget - A widget is anything that can be embedded in an HTML page that addds
 some content to the page possibly along with a user interface.  Widgets are
 different from HTML pages, because a widget may be used in a web page, but does

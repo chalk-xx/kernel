@@ -63,7 +63,9 @@ git clone git://github.com/ieb/k2-sling-fork.git
 
 Then you can build with:
 
-mvn -s /dev/null -PwithContrib clean install;
+cd k2-sling-fork
+
+mvn -s /dev/null -PwithContrib clean install
 
 This build will populate the maven repo with some required files for the next
 generation sakai, so it is important that all builds are performed as the same
