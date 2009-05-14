@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -98,7 +99,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
           valid = false;
           forceLogout = true;
         } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
-          LOGGER.info(" login");
+          LOGGER.info(" login as "+request.getParameter(USERNAME));
           String password = request.getParameter(PASSWORD);
           if (password == null) {
             credentials = new SimpleCredentials(request.getParameter(USERNAME),
@@ -108,6 +109,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
                 .toCharArray());
           }
           valid = true;
+        } else {
+          LOGGER.info("Login was not requested ");
         }
       }
     }
@@ -176,6 +179,11 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
               + "allowed to go into production as it may result in the password being stored "
               + session.getId());
       session.setAttribute(USER_CREDENTIALS, authentication);
+      LOGGER.info("Session ID is     :"+session.getId());
+      LOGGER.info("Session is New    :"+session.isNew());
+      LOGGER.info("Session Created at:"+new Date(session.getCreationTime()));
+      LOGGER.info("Session Last Accessed "+new Date(session.getLastAccessedTime()));
+      LOGGER.info("Trace",new Exception("TRACEBACK IGNORE"));
       request.setAttribute(REQUEST_USER_CREDENTIALS, authentication.getUserId());
       return new AuthenticationInfo(SESSION_AUTH, authentication.getCredentials());
     }
@@ -189,16 +197,19 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     }
 
     if (session != null) {
-      LOGGER.debug("Has session {} ",session.getId());
+      LOGGER.info("SessionAuth: Has session {} ",session.getId());
       FormAuthentication savedCredentials = (FormAuthentication) session
           .getAttribute(USER_CREDENTIALS);
+      LOGGER.info("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
       if (savedCredentials != null && savedCredentials.isValid()) {
-
+        LOGGER.info("SessionAuth: User ID {} ",savedCredentials.getUserId());
         request.setAttribute(REQUEST_USER_CREDENTIALS, savedCredentials.getUserId());
         return new AuthenticationInfo(SESSION_AUTH, savedCredentials.getCredentials());
+      } else {
+        LOGGER.info("SessionAuth: Saved credentials are not valid ");
       }
     } else {
-      LOGGER.debug("No Session");
+      LOGGER.info("SessionAuth: No Session");
     }
     return null;
   }

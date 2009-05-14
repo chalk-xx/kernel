@@ -26,9 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  * The <code>FormLoginServlet</code> provides an end point to login against. On GET it
@@ -81,8 +83,16 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
     Authenticator authenticator = this.authenticator;
     if (authenticator != null) {
       try {
+        HttpSession session = request.getSession(false);
+        LOGGER.info("Servlet Session ID is     :"+session.getId());
+        LOGGER.info("Servlet Session is New    :"+session.isNew());
+        LOGGER.info("Servlet Session Created at:"+new Date(session.getCreationTime()));
+        LOGGER.info("Servlet Session Last Accessed "+new Date(session.getLastAccessedTime()));
+        LOGGER.info("Servlet Trace",new Exception("Servlet TRACEBACK IGNORE"));
+
         authenticator.login(request, response);
-        response.sendRedirect(request.getRequestURI());
+        
+        doGet(request, response);
         return;
       } catch (IllegalStateException ise) {
         LOGGER.error("doPOST: Response already committed, cannot login");
