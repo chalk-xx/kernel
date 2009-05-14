@@ -98,7 +98,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
           valid = false;
           forceLogout = true;
         } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
-          LOGGER.info(" login");
+          LOGGER.info(" login as "+request.getParameter(USERNAME));
           String password = request.getParameter(PASSWORD);
           if (password == null) {
             credentials = new SimpleCredentials(request.getParameter(USERNAME),
@@ -108,6 +108,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
                 .toCharArray());
           }
           valid = true;
+        } else {
+          LOGGER.info("Login was not requested ");
         }
       }
     }
@@ -151,9 +153,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(FormAuthenticationHandler.class);
-  private static final String USER_CREDENTIALS = FormAuthentication.class.getName();
+  static final String USER_CREDENTIALS = FormAuthentication.class.getName();
   public static final String SESSION_AUTH = FormAuthenticationHandler.class.getName();
-  public static final String REQUEST_USER_CREDENTIALS = SESSION_AUTH + ".userid";
 
   /**
    * {@inheritDoc}
@@ -163,22 +164,17 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public final AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
-    HttpSession session = request.getSession(false);
 
     // no session authentication info, try the request
 
     FormAuthentication authentication = new FormAuthentication(request);
     if (authentication.isValid()) {
       // authenticate
-      session = request.getSession(true);
-      LOGGER
-          .warn("Saving a populated credentials object to session, this should not be "
-              + "allowed to go into production as it may result in the password being stored "
-              + session.getId());
-      session.setAttribute(USER_CREDENTIALS, authentication);
-      request.setAttribute(REQUEST_USER_CREDENTIALS, authentication.getUserId());
+      request.setAttribute(USER_CREDENTIALS, authentication);
       return new AuthenticationInfo(SESSION_AUTH, authentication.getCredentials());
     }
+    
+    HttpSession session = request.getSession(false);
     if (authentication.isForceLogout()) {
       // force logout
       if (session != null) {
@@ -189,16 +185,18 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     }
 
     if (session != null) {
-      LOGGER.debug("Has session {} ",session.getId());
+      LOGGER.info("SessionAuth: Has session {} ",session.getId());
       FormAuthentication savedCredentials = (FormAuthentication) session
           .getAttribute(USER_CREDENTIALS);
+      LOGGER.info("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
       if (savedCredentials != null && savedCredentials.isValid()) {
-
-        request.setAttribute(REQUEST_USER_CREDENTIALS, savedCredentials.getUserId());
+        LOGGER.info("SessionAuth: User ID {} ",savedCredentials.getUserId());
         return new AuthenticationInfo(SESSION_AUTH, savedCredentials.getCredentials());
+      } else {
+        LOGGER.info("SessionAuth: Saved credentials are not valid ");
       }
     } else {
-      LOGGER.debug("No Session");
+      LOGGER.info("SessionAuth: No Session");
     }
     return null;
   }
