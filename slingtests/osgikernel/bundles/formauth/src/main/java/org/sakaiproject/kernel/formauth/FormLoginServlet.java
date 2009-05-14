@@ -20,8 +20,8 @@ package org.sakaiproject.kernel.formauth;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.engine.auth.Authenticator;
 import org.apache.sling.engine.auth.NoAuthenticationHandlerException;
+import org.sakaiproject.kernel.formauth.FormAuthenticationHandler.FormAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +55,6 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(FormLoginServlet.class);
 
   /**
-   * @scr.reference cardinality="0..1" policy="dynamic"
-   */
-  private Authenticator authenticator;
-
-  /**
    * {@inheritDoc}
    * 
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
@@ -80,29 +75,34 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    Authenticator authenticator = this.authenticator;
-    if (authenticator != null) {
-      try {
-        HttpSession session = request.getSession(false);
-        LOGGER.info("Servlet Session ID is     :"+session.getId());
-        LOGGER.info("Servlet Session is New    :"+session.isNew());
-        LOGGER.info("Servlet Session Created at:"+new Date(session.getCreationTime()));
-        LOGGER.info("Servlet Session Last Accessed "+new Date(session.getLastAccessedTime()));
-        LOGGER.info("Servlet Trace",new Exception("Servlet TRACEBACK IGNORE"));
+    try {
+      
+      // was the request just authenticated ?
+      FormAuthentication authenticaton = (FormAuthentication) request.getAttribute(FormAuthenticationHandler.USER_CREDENTIALS);
+      if ( authenticaton != null && authenticaton.isValid()) {
+        HttpSession session = request.getSession(true);
+        session.setAttribute(FormAuthenticationHandler.USER_CREDENTIALS, authenticaton);
+        LOGGER
+            .warn("Saving a populated credentials object to session, this should not be "
+                + "allowed to go into production as it may result in the password being stored "
+                + session.getId());
 
-        authenticator.login(request, response);
-        
-        doGet(request, response);
-        return;
-      } catch (IllegalStateException ise) {
-        LOGGER.error("doPOST: Response already committed, cannot login");
-        return;
-      } catch (NoAuthenticationHandlerException nahe) {
-        LOGGER.error("doPOST: No AuthenticationHandler to login registered");
+        LOGGER.info("Servlet Session ID is     :" + session.getId());
+        LOGGER.info("Servlet Session is New    :" + session.isNew());
+        LOGGER.info("Servlet Session Created at:" + new Date(session.getCreationTime()));
+        LOGGER.info("Servlet Session Last Accessed "
+            + new Date(session.getLastAccessedTime()));
+        LOGGER.info("Servlet Trace", new Exception("Servlet TRACEBACK IGNORE"));
+      } else {
+        LOGGER.info("No Authentication Provided ");
       }
-    } else {
-      LOGGER
-          .error("doPOST: Authenticator service missing, cannot request authentication");
+      doGet(request, response);
+      return;
+    } catch (IllegalStateException ise) {
+      LOGGER.error("doPOST: Response already committed, cannot login");
+      return;
+    } catch (NoAuthenticationHandlerException nahe) {
+      LOGGER.error("doPOST: No AuthenticationHandler to login registered");
     }
 
     // fall back to forbid access

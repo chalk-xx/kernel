@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Date;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -154,9 +153,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(FormAuthenticationHandler.class);
-  private static final String USER_CREDENTIALS = FormAuthentication.class.getName();
+  static final String USER_CREDENTIALS = FormAuthentication.class.getName();
   public static final String SESSION_AUTH = FormAuthenticationHandler.class.getName();
-  public static final String REQUEST_USER_CREDENTIALS = SESSION_AUTH + ".userid";
 
   /**
    * {@inheritDoc}
@@ -166,27 +164,17 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public final AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
-    HttpSession session = request.getSession(false);
 
     // no session authentication info, try the request
 
     FormAuthentication authentication = new FormAuthentication(request);
     if (authentication.isValid()) {
       // authenticate
-      session = request.getSession(true);
-      LOGGER
-          .warn("Saving a populated credentials object to session, this should not be "
-              + "allowed to go into production as it may result in the password being stored "
-              + session.getId());
-      session.setAttribute(USER_CREDENTIALS, authentication);
-      LOGGER.info("Session ID is     :"+session.getId());
-      LOGGER.info("Session is New    :"+session.isNew());
-      LOGGER.info("Session Created at:"+new Date(session.getCreationTime()));
-      LOGGER.info("Session Last Accessed "+new Date(session.getLastAccessedTime()));
-      LOGGER.info("Trace",new Exception("TRACEBACK IGNORE"));
-      request.setAttribute(REQUEST_USER_CREDENTIALS, authentication.getUserId());
+      request.setAttribute(USER_CREDENTIALS, authentication);
       return new AuthenticationInfo(SESSION_AUTH, authentication.getCredentials());
     }
+    
+    HttpSession session = request.getSession(false);
     if (authentication.isForceLogout()) {
       // force logout
       if (session != null) {
@@ -203,7 +191,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
       LOGGER.info("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
       if (savedCredentials != null && savedCredentials.isValid()) {
         LOGGER.info("SessionAuth: User ID {} ",savedCredentials.getUserId());
-        request.setAttribute(REQUEST_USER_CREDENTIALS, savedCredentials.getUserId());
         return new AuthenticationInfo(SESSION_AUTH, savedCredentials.getCredentials());
       } else {
         LOGGER.info("SessionAuth: Saved credentials are not valid ");
