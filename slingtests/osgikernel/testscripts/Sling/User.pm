@@ -136,20 +136,6 @@ sub exists {
 }
 #}}}
 
-#{{{sub login
-sub login {
-    my ( $user, $username, $password, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
-        Sling::UserUtil::login_setup( $user->{ 'BaseURL' }, $username, $password ) ) );
-    my $success = Sling::UserUtil::login_eval( \$res );
-    my $message = "Log in as user \"$username\" ";
-    $message .= ( $success ? "succeeded!" : "failed!" );
-    $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
-    return $success;
-}
-#}}}
-
 #{{{sub view
 sub view {
     my ( $user, $actOnUser, $log ) = @_;

@@ -24,6 +24,125 @@ use lib qw ( .. );
 use Sling::Util;
 #}}}
 
+#{{{sub add_setup
+
+=pod
+
+=head2 add_setup
+
+Returns a textual representation of the request needed to add content to the
+system.
+
+=cut
+
+sub add_setup {
+    my ( $baseURL, $remoteDest, $properties ) = @_;
+    die "No base URL provided to upload against!" unless defined $baseURL;
+    die "No remote destination to add content to!" unless defined $remoteDest;
+    my $property_post_vars;
+    foreach my $property ( @{ $properties } ) {
+        $property =~ /^([^=]*)=(.*)/;
+	if ( defined $1 && defined $2 ) {
+            $property_post_vars .= "'$1','$2',";
+	}
+    }
+    $property_post_vars =~ s/,$//;
+    my $postVariables = "\$postVariables = [$property_post_vars]";
+    return "post $baseURL/$remoteDest?sling:authRequestLogin=1 $postVariables";
+}
+#}}}
+
+#{{{sub add_eval
+
+=pod
+
+=head2 add_eval
+
+Check result of adding content.
+
+=cut
+
+sub add_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^20(0|1)$/ );
+}
+#}}}
+
+#{{{sub delete_setup
+
+=pod
+
+=head2 delete_setup
+
+Returns a textual representation of the request needed to delete content from
+the system.
+
+=cut
+
+sub delete_setup {
+    my ( $baseURL, $remoteDest ) = @_;
+    die "No base url defined!" unless defined $baseURL;
+    die "No content destination to delete defined!" unless defined $remoteDest;
+    my $postVariables = "\$postVariables = [':operation','delete']";
+    return "post $baseURL/$remoteDest?sling:authRequestLogin=1 $postVariables";
+}
+#}}}
+
+#{{{sub delete_eval
+
+=pod
+
+=head2 delete_eval
+
+Inspects the result returned from issuing the request generated in delete_setup
+returning true if the result indicates the content was deleted successfully,
+else false.
+
+=cut
+
+sub delete_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub exists_setup
+
+=pod
+
+=head2 exists_setup
+
+Returns a textual representation of the request needed to test whether content
+exists in the system.
+
+=cut
+
+sub exists_setup {
+    my ( $baseURL, $remoteDest ) = @_;
+    die "No base url defined!" unless defined $baseURL;
+    die "No content destination defined!" unless defined $remoteDest;
+    return "get $baseURL/$remoteDest.json";
+}
+#}}}
+
+#{{{sub exists_eval
+
+=pod
+
+=head2 exists_eval
+
+Inspects the result returned from issuing the request generated in exists_setup
+returning true if the result indicates the content does exist in the system,
+else false.
+
+=cut
+
+sub exists_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 #{{{sub upload_file_setup
 
 =pod
@@ -35,13 +154,13 @@ Returns a textual representation of the request needed to upload a file to the s
 =cut
 
 sub upload_file_setup {
-    my ( $baseURL, $localPath, $remotePath, $filename ) = @_;
+    my ( $baseURL, $localPath, $remoteDest, $filename ) = @_;
     die "No base URL provided to upload against!" unless defined $baseURL;
     die "No local file to upload defined!" unless defined $localPath;
-    die "No remote path to upload to defined for file $localPath!" unless defined $remotePath;
+    die "No remote path to upload to defined for file $localPath!" unless defined $remoteDest;
     $filename = "./*" unless ( $filename !~ /^$/ );
     my $postVariables = "\$postVariables = []";
-    return "fileupload $baseURL/$remotePath?sling:authRequestLogin=1 $filename $localPath $postVariables";
+    return "fileupload $baseURL/$remoteDest?sling:authRequestLogin=1 $filename $localPath $postVariables";
 }
 #}}}
 

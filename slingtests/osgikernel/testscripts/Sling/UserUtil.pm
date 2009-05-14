@@ -161,7 +161,7 @@ username exists in the system.
 
 sub exists_setup {
     my ( $baseURL, $actOnUser ) = @_;
-    die "No base url to check existence against!" unless defined $actOnUser;
+    die "No base url to check existence against!" unless defined $baseURL;
     die "No user to check existence of defined!" unless defined $actOnUser;
     $actOnUser = Sling::Util::urlencode( $actOnUser );
     return "get $baseURL/system/userManager/user/$actOnUser.json";
@@ -181,45 +181,6 @@ else false.
 =cut
 
 sub exists_eval {
-    my ( $res ) = @_;
-    return ( $$res->code =~ /^200$/ );
-}
-#}}}
-
-#{{{sub login_setup
-
-=pod
-
-=head2 login_setup
-
-Returns a textual representation of the request needed to log the user in to
-the system. Currently only form based login is supported here.
-
-=cut
-
-sub login_setup {
-    my ( $baseURL, $username, $password ) = @_;
-    die "No username supplied to attempt logging in with!" unless defined $username;
-    die "No password supplied to attempt logging in with for user name: $username!" unless defined $password;
-    $username = Sling::Util::urlencode( $username );
-    $password = Sling::Util::urlencode( $password );
-    my $type = "FORM";
-    my $postVariables = "\$postVariables = ['a','$type','u','$username','p','$password','l','1']";
-    return "post $baseURL/rest/login $postVariables";
-}
-#}}}
-
-#{{{sub login_eval
-
-=pod
-
-=head2 login_eval
-
-Verify whether the log in attempt for the user to the system was successful.
-
-=cut
-
-sub login_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }
