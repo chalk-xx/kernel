@@ -147,7 +147,7 @@ sub form_login_setup {
     $username = urlencode( $username );
     $password = urlencode( $password );
     my $type = "FORM";
-    my $postVariables = "\$postVariables = ['un','$username','pw','$password','sakaiauth:login','1']";
+    my $postVariables = "\$postVariables = ['sakaiauth:un','$username','sakaiauth:pw','$password','sakaiauth:login','1']";
     return "post $baseURL/system/sling/formlogin $postVariables";
 }
 #}}}
