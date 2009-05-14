@@ -36,7 +36,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> org.sakaiproject.kernel.api.user </Export-Package>
-            <Package-Private> org.sakaiproject.kernel.user </Package-Private>
+            <Private-Package> org.sakaiproject.kernel.user </Private-Package>
           </instructions>
         </configuration>
       </plugin>

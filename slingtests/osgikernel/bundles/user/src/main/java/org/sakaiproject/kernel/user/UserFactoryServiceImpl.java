@@ -32,7 +32,7 @@ import java.util.Map;
  * that is done by sling now.
  * 
  * @scr.component immediate="true" label="Sakai User Factory Service"
- *                description="Provides User related paths"
+ *                description="Provides User related paths" name="org.sakaiproject.kernel.api.user.UserFactoryService"
  * @scr.property name="service.description" value="Implementation of the User Service that provides setup properties for all kernel bundles."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.user.UserFactoryService"
