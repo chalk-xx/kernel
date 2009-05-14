@@ -11,7 +11,7 @@
   <name>Sakai Shindig Bundle</name>
   <version>0.1-SNAPSHOT</version>
   <properties>
-    <shindig.version>1.0.1-incubating-SNAPSHOT</shindig.version>
+    <shindig.version>1.0-incubating</shindig.version>
   </properties>
   <build>
     <plugins>
