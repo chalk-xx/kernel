@@ -52,10 +52,10 @@
               !org.codehaus.groovy.*, !org.junit.*, !org.scannotation.*, !groovy.lang,
               !junit.framework.*, !nu.xom, net.sf.ezmorph.*, !org.apache.commons.*, !org.apache.avalon.*,
               org.jboss.resteasy.*, org.codehaus.jettison.*;resolution:=optional, org.scannotation.*,
-              javassist.bytecode.*, * </Import-Package>
+              javassist.bytecode.*, org.apache.commons.collections, org.apache.commons.lang, org.apache.commons.logging, *</Import-Package>
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
-              scannotation, javassist,  commons-beanutils, commons-logging, commons-lang,
-              commons-collections, commons-codec, commons-httpclient, jsr250-api  </Embed-Dependency>
+              scannotation, javassist,  commons-beanutils,
+              commons-codec, commons-httpclient, jsr250-api </Embed-Dependency>
             <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
             <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.* </Export-Package>
