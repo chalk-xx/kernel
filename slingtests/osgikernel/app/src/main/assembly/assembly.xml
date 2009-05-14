@@ -18,6 +18,7 @@
 -->
 <assembly>
   <id>assembly</id>
+  <appendAssemblyId>false</appendAssemblyId>
   <formats>
     <format>zip</format>
     <format>tar.gz</format>
@@ -27,7 +28,7 @@
   <baseDirectory>sling-${version}</baseDirectory>
   <fileSets>
     <fileSet>
-      <directory>src/main/dist/unix</directory>
+      <directory>src/main/resources/scripts/dist/unix</directory>
       <outputDirectory>/</outputDirectory>
       <lineEnding>unix</lineEnding>
       <fileMode>0744</fileMode>
@@ -36,7 +37,7 @@
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>src/main/dist/bin</directory>
+      <directory>src/main/resources/scripts/dist/bin</directory>
       <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
@@ -49,14 +50,14 @@
   </fileSets>
   <files>
     <file>
-      <source>src/main/dist/unix/serverctl</source>
+      <source>src/main/resources/scripts/dist/unix/serverctl</source>
       <outputDirectory>/</outputDirectory>
       <lineEnding>unix</lineEnding>
       <fileMode>0744</fileMode>
       <filtered>true</filtered>
     </file>
     <file>
-      <source>src/main/dist/dos/server.bat</source>
+      <source>src/main/resources/scripts/dist/dos/server.bat</source>
       <outputDirectory>/</outputDirectory>
       <lineEnding>dos</lineEnding>
       <filtered>true</filtered>
