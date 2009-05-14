@@ -4,7 +4,7 @@ To run
 mvn clean install
 java -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar
  
-This will start Felix configured with Sling and the Sakai K2 bundles.
+This will start Apache Felix configured with Sling and the Sakai K2 bundles.
  
-You will find the bundles under budles and some libraries under libraries.
+You will find the bundles under bundles and some libraries under libraries.
 
