@@ -25,6 +25,7 @@ import org.sakaiproject.kernel.api.messaging.MessageConverter;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
 import org.sakaiproject.kernel.api.messaging.MessagingException;
 import org.sakaiproject.kernel.api.messaging.MessagingService;
+import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.sakaiproject.kernel.util.DateUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 

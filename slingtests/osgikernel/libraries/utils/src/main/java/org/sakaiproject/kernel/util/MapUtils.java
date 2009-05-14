@@ -29,7 +29,7 @@ import java.util.Map;
 public class MapUtils {
   /**
    * Converts a name value string delimited with = and ; into an immutable map.
-   *
+   * 
    * @param values
    *          the contents of the map
    * @return an immutable map.
@@ -39,7 +39,9 @@ public class MapUtils {
     String[] templates = StringUtils.split(values, ';');
     for (String template : templates) {
       String[] nv = StringUtils.split(template, '=', 2);
-      m.put(nv[0].trim(), nv[1].trim());
+      if (nv != null && nv.length > 1) {
+        m.put(nv[0].trim(), nv[1].trim());
+      }
     }
     return ImmutableMap.copyOf(m);
   }
