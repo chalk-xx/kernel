@@ -26,6 +26,7 @@ import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.messaging.Message;
 import org.sakaiproject.kernel.api.messaging.MessageHandler;
 import org.sakaiproject.kernel.api.messaging.MessagingConstants;
+import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
