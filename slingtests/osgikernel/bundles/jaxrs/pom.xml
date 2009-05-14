@@ -55,10 +55,10 @@
               javassist.bytecode.*, org.apache.commons.collections, org.apache.commons.lang, org.apache.commons.logging, *</Import-Package>
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
               scannotation, javassist,  commons-beanutils,
-              commons-codec, commons-httpclient, jsr250-api </Embed-Dependency>
+              commons-codec, commons-httpclient, jsr250-api, commons-lang </Embed-Dependency>
             <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
-            <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.*, net.sf.json </Export-Package>
+            <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.*, net.sf.json, org.apache.commons.lang.*, org.apache.commons.collections.* </Export-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -119,6 +119,15 @@
       <artifactId>json-lib</artifactId>
       <version>2.2</version>
       <classifier>jdk15</classifier>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+       <groupId>commons-collections</groupId>
+       <artifactId>commons-collections</artifactId>
+       <version>3.2</version>
     </dependency>
     <dependency>
       <groupId>net.sf.ezmorph</groupId>

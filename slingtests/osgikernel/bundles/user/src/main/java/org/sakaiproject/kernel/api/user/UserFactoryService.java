@@ -94,6 +94,14 @@ public interface UserFactoryService {
   String getUserSharedPrivatePath(String uuid);
 
   /**
+   * get the path for the User profile (absolute path)
+   *
+   * @param uuid
+   * @return
+   */
+  String getUserProfilePath(String userID);
+
+  /**
    * Get the path to messages for the entity identified.
    *
    * @param id
