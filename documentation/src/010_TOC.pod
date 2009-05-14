@@ -54,7 +54,7 @@
 
 =item Java Persistence API (JPA)
 
-=item OSGi and Apache Felix
+=item OSGi (Apache Felix)
 
 =item Bundles
 
@@ -72,19 +72,27 @@
 
 =item The build environment
 
+=item Building Apache Dependencies
+
+=item Apache Sling 5 incubator
+
+=item Apache Felix web console 1.2.9-SNAPSHOT jar
+
+=item Apache Shindig 1.0-incubating
+
 =item Building sling
 
 =item Building the next generation sakai
 
-=item Appendix A: Build script used to build the next generation sakai:
-
 =back
 
-=head3 Deploying ... Page 13
+=head3 Deploying ... Page 12
 
 =over
 
 =item Accessing the next generation sakai directly via built in jetty
+
+=item Felix web management console
 
 =item Startup switches for the next generation sakai
 
@@ -92,7 +100,7 @@
 
 =back
 
-=head3 Developing ... Page 15
+=head3 Developing ... Page 14
 
 =over
 
@@ -110,9 +118,13 @@
 
 =item git on windows
 
+=item Developing with OSGi
+
+=item Building and deploying a simple bundle
+
 =back
 
-=head3 Content ... Page 17
+=head3 Content ... Page 18
 
 =over
 
@@ -138,7 +150,7 @@
 
 =back
 
-=head3 Authorization ... Page 19
+=head3 Authorization ... Page 20
 
 =over
 
@@ -168,7 +180,7 @@
 
 =back
 
-=head3 REST ... Page 21
+=head3 REST ... Page 22
 
 =over
 
@@ -178,7 +190,7 @@
 
 =back
 
-=head3 User and Group REST services ... Page 22
+=head3 User and Group REST services ... Page 23
 
 =over
 
@@ -217,4 +229,6 @@
 =head3 Glossary ... Page 29
 
 =head3 Credits ... Page 31
+
+=head3 Licence ... Page 32
 
