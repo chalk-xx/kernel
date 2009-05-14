@@ -80,7 +80,7 @@ public class ActiveMQEmailDeliveryT {
   private static String TEST_EMAIL_BODY_MULTIPARTEMAIL = TEST_EMAIL_BODY_PREFIX + "MultiPartEmail";
   private static String TEST_EMAIL_SUBJECT = "Test message";
   private static Properties props = new Properties();
-  private static Properties kernelProps;
+  //private static Properties kernelProps;
   private static String emailQueueName;
   private static String emailType;
 

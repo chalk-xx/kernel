@@ -65,39 +65,39 @@ then
     exit 0;
   fi
 
-  if [ -f docs.pod ] ; then
-    rm -f docs.pod;
+  if [ -f documentation.pod ] ; then
+    rm -f documentation.pod;
   fi    
 
-  echo "Generating docs.pod";
+  echo "Generating documentation.pod";
 
   for i in ../src/[0-9]*.pod ; do
-    cat $i >> docs.pod;
-    echo -e "\n\n=ff\n\n" >> docs.pod;
+    cat $i >> documentation.pod;
+    echo -e "\n\n=ff\n\n" >> documentation.pod;
   done
 
   if [ "${1}" = "pdf" ] ; then
-    echo "Generating docs.pdf";
-    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" docs.pod > ../output/docs.pdf;
+    echo "Generating documentation.pdf";
+    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" documentation.pod > ../output/documentation.pdf;
   fi
 
 
   if [ "${1}" = "html" ] ; then
-    echo "Generating docs.html";
-    pod2html docs.pod > ../output/docs.html;
+    echo "Generating documentation.html";
+    pod2html documentation.pod > ../output/documentation.html;
     rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
   if [ "${1}" = "all" ] ; then
-    echo "Generating docs.pdf";
-    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" docs.pod > ../output/docs.pdf;
-    echo "Generating docs.html";
-    pod2html docs.pod > ../output/docs.html;
+    echo "Generating documentation.pdf";
+    pod2pdf --icon logo_inst.gif --title "Next generation Sakai documentation" documentation.pod > ../output/documentation.pdf;
+    echo "Generating documentation.html";
+    pod2html documentation.pod > ../output/documentation.html;
     rm -f pod2htmd.tmp pod2htmi.tmp;
   fi
 
-  if [ -f docs.pod ] ; then
-    rm -f docs.pod;
+  if [ -f documentation.pod ] ; then
+    rm -f documentation.pod;
   fi    
 
   if [ "${1}" = "help" ] ; then

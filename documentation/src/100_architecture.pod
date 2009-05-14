@@ -51,13 +51,14 @@ with the underlying database. With Jackrabbit being used there will likely be
 less direct interaction with the undelying database in the next generation
 sakai, whereas the previous sakai content hosting service used the db heavily.
 
-=head2 OSGi and Apache Felix
+=head2 OSGi (Apache Felix)
 
-Whilst Sling is not an OSGi framework implementation specific application, it
-features an embedded Apache Felix OSGi framework and console that provides a
-dynamic runtime environment, where code and content bundles can be loaded,
-unloaded and reconfigured at runtime. It is expected that Sling will also
-operate inside other OSGi frameworks such as Equinox and Knopflerfish.
+Whilst Sling is not an OSGi (http://www.osgi.org/About/WhatIsOSGi) framework
+implementation specific application, it features an embedded Apache Felix OSGi
+framework and console that provides a dynamic runtime environment, where code
+and content bundles can be loaded, unloaded and reconfigured at runtime. It is
+expected that Sling will also operate inside other OSGi frameworks such as
+Equinox and Knopflerfish.
 
 =head2 Bundles
 

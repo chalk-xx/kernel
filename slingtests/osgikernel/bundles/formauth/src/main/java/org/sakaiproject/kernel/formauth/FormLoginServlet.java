@@ -32,8 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>FormLoginServlet</code> provides an end point to login against. On GET it
- * will response with the remote username of the logged in user or "anonymous" if there
- * is no logged in user. On POST, the FormAutenticationHandler will be invoked. see
+ * will response with the remote username of the logged in user or "anonymous" if there is
+ * no logged in user. On POST, the FormAutenticationHandler will be invoked. see
  * {@link FormAuthenticationHandler} to see the parameters.
  * 
  * @scr.component metatype="no"
@@ -82,7 +82,6 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
     if (authenticator != null) {
       try {
         authenticator.login(request, response);
-        response.reset();
         response.sendRedirect(request.getRequestURI());
         return;
       } catch (IllegalStateException ise) {
