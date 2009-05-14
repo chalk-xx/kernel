@@ -49,7 +49,7 @@
             <goals>
               <goal>checkout</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>generate-resources</phase>
             <configuration>
               <skipCheckoutIfExists>true</skipCheckoutIfExists>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
@@ -61,7 +61,7 @@
             <goals>
               <goal>checkout</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>generate-resources</phase>
             <configuration>
               <skipCheckoutIfExists>true</skipCheckoutIfExists>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
@@ -73,10 +73,11 @@
             <goals>
               <goal>update</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>generate-resources</phase>
             <configuration>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/initial-content/dev</checkoutDirectory>
+              <workingDirectory>src/main/resources/initial-content/dev</workingDirectory>
+              <runChangelog>true</runChangelog>
             </configuration>
           </execution>
           <execution>
@@ -84,10 +85,11 @@
             <goals>
               <goal>update</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>generate-resources</phase>
             <configuration>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/initial-content/devwidgets</checkoutDirectory>
+              <workingDirectory>src/main/resources/initial-content/devwidgets</workingDirectory>
+              <runChangelog>true</runChangelog>
             </configuration>
           </execution>
         </executions>
