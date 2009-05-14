@@ -55,13 +55,16 @@ public class FormAuthenticationHandlerTest {
 
     
     expect(session.getId()).andReturn("123").anyTimes();
+    expect(session.isNew()).andReturn(true).anyTimes();
+    expect(session.getCreationTime()).andReturn(System.currentTimeMillis()).anyTimes();
+    expect(session.getLastAccessedTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(request.getSession(false)).andReturn(null);
     expect(request.getMethod()).andReturn("POST");
     expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn(null);
     expect(request.getParameter(FormAuthenticationHandler.TRY_LOGIN)).andReturn("1");
-    expect(request.getParameter(FormAuthenticationHandler.USERNAME)).andReturn("user");
+    expect(request.getParameter(FormAuthenticationHandler.USERNAME)).andReturn("user").atLeastOnce();
     expect(request.getParameter(FormAuthenticationHandler.PASSWORD))
-        .andReturn("password");
+        .andReturn("password").atLeastOnce();
     expect(request.getSession(true)).andReturn(session);
     Capture<Object> captured = new Capture<Object>();
     Capture<String> key = new Capture<String>();
