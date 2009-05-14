@@ -1,1 +1,7 @@
+# IDE metadata files
+.classpath
+.project
+
+# Directories
+/target
 sling/
