@@ -118,7 +118,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    */
   public String getUserProfilePath(String uuid) {
 
-    return getUserSharedPrivatePath(uuid) + KernelConstants.PROFILE_JSON;
+    return getUserSharedPrivatePath(uuid) + KernelConstants.PROFILE;
   }
 
   /**

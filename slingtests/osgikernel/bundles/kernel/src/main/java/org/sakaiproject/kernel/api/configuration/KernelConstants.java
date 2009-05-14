@@ -241,7 +241,7 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   /**
    * The name of the profile file.
    */
-  public static final String PROFILE_JSON = "profile.json";
+  public static final String PROFILE = "profile";
 
   /**
    * The name of the friends file
