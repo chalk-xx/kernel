@@ -1,11 +1,13 @@
 This is a binary distribution of Sakai K2 based on Sling.
 
-To use, on wndows Start->Run run.bat
-On Linux, OSX, Unix execute run.sh
+Before you start Sakai K2, you should look at system.cfg.  At the current time this is the only 
+file that you should need to edit.
 
-then point your browser to http://localhost:8080/
+You should be able to start Sakai K2 now, by running ./startup.sh
 
-The admin username is admin and password is admin
 
-You will need about 128M of memory unless you hammer the servier that starts
+Then point your browser to http://localhost:8080/
+
+The default admin username is admin and password is admin
+
 
