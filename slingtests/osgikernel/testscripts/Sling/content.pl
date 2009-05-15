@@ -71,11 +71,13 @@ sub HELP_MESSAGE {
     print "-P {property}   - Specify property to set on node.\n";
     print "-S {remoteSrc}  - specify remote source under JCR root to act on.\n";
     print "-U {URL}        - URL for system being tested against.\n";
+    print "--auth {type}   - Specify auth type. If ommitted, default is used.\n";
     Sling::Util::help_footer( $0 );
 }
 #}}}
 
 #{{{options parsing
+my $auth;
 my $add;
 my $copy;
 my $delete;
@@ -101,8 +103,12 @@ GetOptions ( "a" => \$add,    "c" => \$copy, "d" => \$delete,
 	     "t=s" => \$numberForks, "u=s" => \$username,
 	     "F=s" => \$file,        "L=s" => \$log,
 	     "P=s" => \@properties,  "S=s" => \$remoteSrc,
-	     "U=s" => \$url,
+	     "U=s" => \$url,         "auth=s" => \$auth,
 	     "help" => \&HELP_MESSAGE );
+
+# Strip leading slashes from the remoteDest and remoteSrc
+$remoteDest =~ s/^\///;
+$remoteSrc =~ s/^\///;
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
@@ -119,7 +125,7 @@ if ( defined $file ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
             my $content = new Sling::Content( $url, $lwpUserAgent );
             $content->upload_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
@@ -131,7 +137,7 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
     my $content = new Sling::Content( $url, $lwpUserAgent );
     if ( defined $localPath && defined $remoteDest ) {
         $content->upload_file( $localPath, $remoteDest, $filename, $log );

@@ -19,6 +19,7 @@ use HTTP::Request::Common qw(GET POST);
 use vars qw(@ISA @EXPORT);
 use LWP::UserAgent ();
 use Fcntl ':flock';
+use MIME::Base64;
 #}}}
 
 @ISA = qw(Exporter);
@@ -69,7 +70,7 @@ suitable cookie container.
 
 sub get_user_agent {
     # Optional parameters if auth is desired:
-    my ( $url, $username, $password, $type ) = @_;
+    my ( $log, $url, $username, $password, $type ) = @_;
     my $lwpUserAgent = LWP::UserAgent->new( keep_alive=>1 );
     push @{ $lwpUserAgent->requests_redirectable }, 'POST';
     $lwpUserAgent->cookie_jar( { file => "/tmp/RestCookies$$.txt" });
@@ -78,21 +79,26 @@ sub get_user_agent {
     if ( defined $url && defined $username && defined $password ) {
         my $loginType = ( defined $type ? $type : "basic" );
 	if ( $loginType =~ /^basic$/ ) {
-            my $realm = $url;
-            if ( $realm !~ /:[0-9]+$/ ) {
-                # No port specified yet, need to add one:
-                $realm = ( $realm =~ /^http:/ ? "$realm:80" : "$realm:443" );
-            }
-            # Strip the protocol for the realm:
-            $realm =~ s#https?://(.*)#$1#;
+            my $realm = url_to_realm( $url );
             $lwpUserAgent->credentials( $realm, 'Sling (Development)',
 	                                $username => $password, );
+	    if ( defined $log ) {
+                print_file_lock( "Basic auth credentials for realm: \"$realm\" " .
+		                 "set for user: \"$username\"", $log );
+            }
+	    my $success = basic_login( $log, $url, \$lwpUserAgent );
+	    if ( ! $success ) {
+	        die "Basic Auth log in for user \"$username\" was unsuccessful\n";
+	    }
         }
 	elsif ( $loginType =~ /^form$/ ) {
-	    form_login( $url, \$lwpUserAgent, $username, $password );
+	    my $success = form_login( $log, $url, \$lwpUserAgent, $username, $password );
+	    if ( ! $success ) {
+	        die "Form log in for user \"$username\" was unsuccessful\n";
+	    }
 	}
 	else {
-	    die "Unsupported login type: \"$loginType\""; 
+	    die "Unsupported auth type: \"$loginType\"\n"; 
 	}
     }
     return \$lwpUserAgent;
@@ -116,15 +122,61 @@ sub help_footer {
 }
 #}}}
 
+#{{{sub basic_login
+sub basic_login {
+    my ( $log, $url, $lwpUserAgent ) = @_;
+    my $res = ${ $lwpUserAgent }->request( string_to_request(
+        basic_login_setup( $url ), $lwpUserAgent ) );
+    my $success = basic_login_eval( \$res );
+    my $message = "Basic auth log in ";
+    $message .= ( $success ? "succeeded!" : "failed!" );
+    print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
+#{{{sub basic_login_setup
+
+=pod
+
+=head2 basic_login_setup
+
+Returns a textual representation of the request needed to log the user in to
+the system via a basic auth based login.
+
+=cut
+
+sub basic_login_setup {
+    my ( $baseURL ) = @_;
+    return "get $baseURL/system/sling/login";
+}
+#}}}
+
+#{{{sub basic_login_eval
+
+=pod
+
+=head2 basic_login_eval
+
+Verify whether the log in attempt for the user to the system was successful.
+
+=cut
+
+sub basic_login_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 #{{{sub form_login
 sub form_login {
-    my ( $url, $lwpUserAgent, $username, $password ) = @_;
+    my ( $log, $url, $lwpUserAgent, $username, $password ) = @_;
     my $res = ${ $lwpUserAgent }->request( string_to_request(
-        form_login_setup( $url, $username, $password ) ) );
+        form_login_setup( $url, $username, $password ), $lwpUserAgent ) );
     my $success = form_login_eval( \$res );
-    my $message = "Log in as user \"$username\" ";
+    my $message = "Form log in as user \"$username\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
-    print $message . "\n";
+    print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -146,7 +198,6 @@ sub form_login_setup {
     die "No password supplied to attempt logging in with for user name: $username!" unless defined $password;
     $username = urlencode( $username );
     $password = urlencode( $password );
-    my $type = "FORM";
     my $postVariables = "\$postVariables = ['sakaiauth:un','$username','sakaiauth:pw','$password','sakaiauth:login','1']";
     return "post $baseURL/system/sling/formlogin $postVariables";
 }
@@ -233,16 +284,16 @@ Function taking a string and converting to a GET or POST HTTP request.
 =cut
 
 sub string_to_request {
-    my ( $string ) = @_;
+    my ( $string, $lwp ) = @_;
     my ( $action, $target, @reqVariables ) = split( ' ', $string );
+    my $request;
     if ( $action =~ /^post$/ ) {
         my $variables = join( " ", @reqVariables );
         my $postVariables;
         no strict;
         eval $variables;
         use strict;
-	my $request = POST ( "$target", $postVariables );
-	return $request;
+	$request = POST ( "$target", $postVariables );
     }
     elsif ( $action =~ /^data$/ ) {
         # multi-part form upload
@@ -251,8 +302,7 @@ sub string_to_request {
         no strict;
         eval $variables;
         use strict;
-	my $request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
-	return $request;
+	$request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
     }
     elsif ( $action =~ /^fileupload$/ ) {
         # multi-part form upload with the file name and file specified
@@ -264,13 +314,23 @@ sub string_to_request {
         eval $variables;
         use strict;
 	push ( @{ $postVariables }, $filename => [ "$file" ] );
-	my $request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
-	return $request;
+	$request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
     }
     else {
-        my $request = GET "$target";
-	return $request;
+        $request = GET "$target";
     }
+    if ( defined $lwp ) {
+        my $realm = url_to_realm( $target );
+        my ( $username, $password ) = ${ $lwp }->credentials( $realm, 'Sling (Development)' );
+        if ( defined $username && defined $password ) {
+	    # Always add an Authorization header to deal with application not
+	    # properly requesting authentication to be sent:
+            my $encoded = "Basic " . encode_base64('admin:admin');
+            $request->header( 'Authorization' => $encoded );
+        }
+    }
+    print $request->as_string;
+    return $request;
 }
 #}}}
 
@@ -289,6 +349,35 @@ sub urlencode {
     $value =~ s/([^a-zA-Z_0-9 ])/"%" . uc(sprintf "%lx" , unpack("C", $1))/eg;
     $value =~ tr/ /+/;
     return ($value);
+}
+#}}}
+
+#{{{sub url_to_realm
+
+=pod
+
+=head2 url_to_realm
+
+Function to convert an url to a realm - Strips away the http or https and any
+query string or trailing path. Adds a port number definition.
+
+=cut
+
+sub url_to_realm {
+    my ( $url ) = @_;
+    my $realm = $url;
+    # Strip any query string:
+    $realm =~ s/(.*)\?.*?$/$1/;
+    # Strip everything after a first slash - including the slash:
+    $realm =~ s#(https?://|)([^/]*).*#$1$2#;
+    # Test if port is defined:
+    if ( $realm !~ /:[0-9]+$/ ) {
+        # No port specified yet, need to add one:
+        $realm = ( $realm =~ /^http:/ ? "$realm:80" : "$realm:443" );
+    }
+    # Strip the protocol for the realm:
+    $realm =~ s#https?://(.*)#$1#;
+    return $realm;
 }
 #}}}
 

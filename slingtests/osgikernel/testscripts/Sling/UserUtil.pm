@@ -48,6 +48,7 @@ sub add_setup {
     $actOnFirst = Sling::Util::urlencode( $actOnFirst );
     $actOnLast = Sling::Util::urlencode( $actOnLast );
     my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass','firstName','$actOnFirst','lastName','$actOnLast','email','$actOnEmail']";
+    print "post $baseURL/system/userManager/user.create.html $postVariables";
     return "post $baseURL/system/userManager/user.create.html $postVariables";
 }
 #}}}
@@ -91,7 +92,7 @@ sub change_password_setup {
     $newPass = Sling::Util::urlencode( $newPass );
     $newPassConfirm = Sling::Util::urlencode( $newPassConfirm );
     my $postVariables = "\$postVariables = ['oldPwd','$actOnPass','newPwd','$newPass','newPwdConfirm','$newPassConfirm']";
-    return "post $baseURL/system/userManager/user/$actOnUser.changePassword.html?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/system/userManager/user/$actOnUser.changePassword.html $postVariables";
 }
 #}}}
 
@@ -128,7 +129,7 @@ sub delete_setup {
     die "No user name defined to delete!" unless defined $actOnUser;
     $actOnUser = Sling::Util::urlencode( $actOnUser );
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/system/userManager/user/$actOnUser.delete.html?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/system/userManager/user/$actOnUser.delete.html $postVariables";
 }
 #}}}
 
@@ -181,6 +182,42 @@ else false.
 =cut
 
 sub exists_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub me_setup
+
+=pod
+
+=head2 me_setup
+
+Returns a textual representation of the request needed to return information
+about the current user.
+
+=cut
+
+sub me_setup {
+    my ( $baseURL ) = @_;
+    die "No base url to check existence against!" unless defined $baseURL;
+    return "get $baseURL/system/me";
+}
+#}}}
+
+#{{{sub me_eval
+
+=pod
+
+=head2 me_eval
+
+Inspects the result returned from issuing the request generated in me_setup
+returning true if the result indicates information was returned successfully,
+else false.
+
+=cut
+
+sub me_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }

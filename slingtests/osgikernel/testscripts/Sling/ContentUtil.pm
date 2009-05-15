@@ -48,7 +48,7 @@ sub add_setup {
     }
     $property_post_vars =~ s/,$//;
     my $postVariables = "\$postVariables = [$property_post_vars]";
-    return "post $baseURL/$remoteDest?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/$remoteDest $postVariables";
 }
 #}}}
 
@@ -84,7 +84,7 @@ sub delete_setup {
     die "No base url defined!" unless defined $baseURL;
     die "No content destination to delete defined!" unless defined $remoteDest;
     my $postVariables = "\$postVariables = [':operation','delete']";
-    return "post $baseURL/$remoteDest?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/$remoteDest $postVariables";
 }
 #}}}
 
@@ -160,7 +160,7 @@ sub upload_file_setup {
     die "No remote path to upload to defined for file $localPath!" unless defined $remoteDest;
     $filename = "./*" unless ( $filename !~ /^$/ );
     my $postVariables = "\$postVariables = []";
-    return "fileupload $baseURL/$remoteDest?sling:authRequestLogin=1 $filename $localPath $postVariables";
+    return "fileupload $baseURL/$remoteDest $filename $localPath $postVariables";
 }
 #}}}
 

@@ -41,7 +41,7 @@ sub add_setup {
     die "No group name defined to add!" unless defined $actOnGroup;
     $actOnGroup = Sling::Util::urlencode( $actOnGroup );
     my $postVariables = "\$postVariables = [':name','$actOnGroup']";
-    return "post $baseURL/system/userManager/group.create.html?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/system/userManager/group.create.html $postVariables";
 }
 #}}}
 
