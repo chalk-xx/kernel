@@ -10,6 +10,36 @@ from the command line.
 This script can be used to upload content into sling from the command line. It
 also acts as a reference implementation for the Content perl library.
 
+=head2 Example Usage
+
+=over
+
+=item Authenticate and add a node at /test:
+
+ perl content.pl -U http://localhost:8080 -a -D /test -u admin -p admin
+
+=item Authenticate and add a node at /test with property p1 set to v1:
+
+ perl content.pl -U http://localhost:8080 -a -D /test -P p1=v1 -u admin -p admin
+
+=item Authenticate and add a node at /test with property p1 set to v1, and p2 set to v2:
+
+ perl content.pl -U http://localhost:8080 -a -D /test -P p1=v1 -P p2=v2 -u admin -p admin
+
+=item View json for node at /test:
+
+ perl content.pl -U http://localhost:8080 -v -D /test
+
+=item Check whether node at /test exists:
+
+ perl content.pl -U http://localhost:8080 -v -D /test
+
+=item Authenticate and delete content at /test
+
+ perl content.pl -U http://localhost:8080 -d -D /test -u admin -p admin
+
+=back
+
 =cut
 
 #{{{imports
@@ -18,30 +48,40 @@ use lib qw ( .. );
 use LWP::UserAgent ();
 use Sling::Content;
 use Sling::Util;
-use Sling::User;
-use Getopt::Std;
-$Getopt::Std::STANDARD_HELP_VERSION = "true";
+use Getopt::Long qw(:config bundling);
 #}}}
 
 #{{{sub HELP_MESSAGE
 sub HELP_MESSAGE {
     my ( $out, $optPackage, $optVersion, $switches ) = @_;
     Sling::Util::help_header( $0, $switches );
+    print "-a              - Add content.\n";
+    print "-c              - Copy content.\n";
+    print "-d              - Delete content.\n";
     print "-l {localPath}  - Local path to content to upload.\n";
+    print "-m              - Move content.\n";
     print "-n {filename}   - Specify file name to use for content upload.\n";
     print "-p {password}   - Password of user performing content manipulations.\n";
-    print "-r {remotePath} - specify remote path under the JCR root to upload content to.\n";
     print "-t {threads}    - Used with -F, defines number of parallel\n";
     print "                  processes to have running through file.\n";
     print "-u {username}   - Name of user to perform content manipulations as.\n";
+    print "-D {remoteDest} - specify remote destination under JCR root to act on.\n";
     print "-F {File}       - File containing list of content to be uploaded.\n";
     print "-L {log}        - Log script output to specified log file.\n";
+    print "-P {property}   - Specify property to set on node.\n";
+    print "-S {remoteSrc}  - specify remote source under JCR root to act on.\n";
     print "-U {URL}        - URL for system being tested against.\n";
     Sling::Util::help_footer( $0 );
 }
 #}}}
 
 #{{{options parsing
+my $add;
+my $copy;
+my $delete;
+my $exists;
+my $move;
+my $view;
 my $url = "http://localhost";
 my $numberForks = 1;
 my $file;
@@ -50,22 +90,19 @@ my $log;
 my $username;
 my $password;
 my $localPath;
-my $remotePath="/";
+my $remoteSrc;
+my $remoteDest;
+my @properties;
 
-my %options;
-
-getopts('l:n:p:r:s:t:u:F:L:P:U:', \%options);
-
-$url = $options{ 'U' } if ( defined $options{ 'U' } );
-$file = $options{ 'F' } if ( defined $options{ 'F' } );
-$filename = $options{ 'n' } if ( defined $options{ 'n' } );
-$numberForks = $options{ 't' } if ( defined $options{ 't' } );
-$log = $options{ 'L' } if ( defined $options{ 'L' } );
-$username = $options{ 'u' } if ( defined $options{ 'u' } );
-$password = $options{ 'p' } if ( defined $options{ 'p' } );
-$remotePath = $options{ 'r' } if ( defined $options{ 'r' } );
-$localPath = $options{ 'l' } if ( defined $options{ 'l' } );
-
+GetOptions ( "a" => \$add,    "c" => \$copy, "d" => \$delete,
+             "e" => \$exists, "m" => \$move, "v" => \$view,
+             "l=s" => \$localPath,   "n=s" => \$filename,
+	     "p=s" => \$password,    "D=s" => \$remoteDest,
+	     "t=s" => \$numberForks, "u=s" => \$username,
+	     "F=s" => \$file,        "L=s" => \$log,
+	     "P=s" => \@properties,  "S=s" => \$remoteSrc,
+	     "U=s" => \$url,
+	     "help" => \&HELP_MESSAGE );
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
@@ -73,29 +110,16 @@ $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
 $url =~ s/(.*)\/$/$1/;
 $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
-
-my $realm = $url;
-if ( $realm !~ /:[0-9]+$/ ) {
-    # No port specified yet, need to add one:
-    $realm = ( $realm =~ /^http:/ ? "$realm:80" : "$realm:443" );
-}
-# Strip the protocol for the realm:
-$realm =~ s#https?://(.*)#$1#;
 #}}}
 
 #{{{ main execution path
-if ( defined $options{ 'F' } ) {
+if ( defined $file ) {
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent;
-            if ( defined $options{ 'u' } || defined $options{ 'p' } ) {
-                ${ $lwpUserAgent }->credentials(
-	            $realm, 'Sling (Development)', $options{ 'u' } => $options{ 'p' },
-	        )
-            }
+            my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
             my $content = new Sling::Content( $url, $lwpUserAgent );
             $content->upload_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
@@ -107,18 +131,48 @@ if ( defined $options{ 'F' } ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent;
-
-    if ( defined $options{ 'u' } || defined $options{ 'p' } ) {
-        ${ $lwpUserAgent }->credentials(
-	    $realm, 'Sling (Development)', $options{ 'u' } => $options{ 'p' },
-	)
-    }
-
+    my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
     my $content = new Sling::Content( $url, $lwpUserAgent );
-
-    if ( defined $options{ 'l' } && defined $options{ 'r' } ) {
-        $content->upload_file( $localPath, $remotePath, $filename, $log );
+    if ( defined $localPath && defined $remoteDest ) {
+        $content->upload_file( $localPath, $remoteDest, $filename, $log );
+        if ( ! defined $log ) {
+            print $content->{ 'Message' } . "\n";
+        }
+    }
+    elsif ( defined $add ) {
+        $content->add( $remoteDest, \@properties, $log );
+        if ( ! defined $log ) {
+            print $content->{ 'Message' } . "\n";
+        }
+    }
+    elsif ( defined $copy ) {
+        print "Not yet implemented!\n";
+        # $content->copy( $remoteSrc, $remoteDest, \@properties, $log );
+        # if ( ! defined $log ) {
+            # print $content->{ 'Message' } . "\n";
+        # }
+    }
+    elsif ( defined $delete ) {
+        $content->delete( $remoteDest, $log );
+        if ( ! defined $log ) {
+            print $content->{ 'Message' } . "\n";
+        }
+    }
+    elsif ( defined $exists ) {
+        $content->exists( $remoteDest, $log );
+        if ( ! defined $log ) {
+            print $content->{ 'Message' } . "\n";
+        }
+    }
+    elsif ( defined $move ) {
+        print "Not yet implemented!\n";
+        # $content->move( $remoteSrc, $remoteDest, \@properties, $log );
+        # if ( ! defined $log ) {
+            # print $content->{ 'Message' } . "\n";
+        # }
+    }
+    elsif ( defined $view ) {
+        $content->view( $remoteDest, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }

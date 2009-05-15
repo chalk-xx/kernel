@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.formauth.test;
+package org.sakaiproject.kernel.formauth;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -53,18 +53,20 @@ public class FormAuthenticationHandlerTest {
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
 
-    expect(request.getSession(false)).andReturn(null);
+    
+    expect(session.getCreationTime()).andReturn(System.currentTimeMillis()).anyTimes();
+    expect(session.getLastAccessedTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(request.getMethod()).andReturn("POST");
     expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn(null);
     expect(request.getParameter(FormAuthenticationHandler.TRY_LOGIN)).andReturn("1");
-    expect(request.getParameter(FormAuthenticationHandler.USERNAME)).andReturn("user");
+    expect(request.getParameter(FormAuthenticationHandler.USERNAME)).andReturn("user").atLeastOnce();
     expect(request.getParameter(FormAuthenticationHandler.PASSWORD))
-        .andReturn("password");
-    expect(request.getSession(true)).andReturn(session);
+        .andReturn("password").atLeastOnce();
     Capture<Object> captured = new Capture<Object>();
     Capture<String> key = new Capture<String>();
-    session.setAttribute(capture(key), capture(captured));
+    request.setAttribute(capture(key), capture(captured));
     expectLastCall();
+    
 
     replay(request, response, session);
     
@@ -96,6 +98,7 @@ public class FormAuthenticationHandlerTest {
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
+    expect(session.getId()).andReturn("123").anyTimes();
 
     // session already exists
     expect(request.getSession(false)).andReturn(session);
@@ -122,6 +125,7 @@ public class FormAuthenticationHandlerTest {
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
+    expect(session.getId()).andReturn("123").anyTimes();
 
     // session already exists
     expect(request.getSession(false)).andReturn(null);

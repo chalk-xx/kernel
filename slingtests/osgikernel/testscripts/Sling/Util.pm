@@ -68,19 +68,42 @@ suitable cookie container.
 =cut
 
 sub get_user_agent {
+    # Optional parameters if auth is desired:
+    my ( $url, $username, $password, $type ) = @_;
     my $lwpUserAgent = LWP::UserAgent->new( keep_alive=>1 );
     push @{ $lwpUserAgent->requests_redirectable }, 'POST';
     $lwpUserAgent->cookie_jar( { file => "/tmp/RestCookies$$.txt" });
+    # Apply basic authentication to the user agent if url, username and
+    # password are supplied:
+    if ( defined $url && defined $username && defined $password ) {
+        my $loginType = ( defined $type ? $type : "basic" );
+	if ( $loginType =~ /^basic$/ ) {
+            my $realm = $url;
+            if ( $realm !~ /:[0-9]+$/ ) {
+                # No port specified yet, need to add one:
+                $realm = ( $realm =~ /^http:/ ? "$realm:80" : "$realm:443" );
+            }
+            # Strip the protocol for the realm:
+            $realm =~ s#https?://(.*)#$1#;
+            $lwpUserAgent->credentials( $realm, 'Sling (Development)',
+	                                $username => $password, );
+        }
+	elsif ( $loginType =~ /^form$/ ) {
+	    form_login( $url, \$lwpUserAgent, $username, $password );
+	}
+	else {
+	    die "Unsupported login type: \"$loginType\""; 
+	}
+    }
     return \$lwpUserAgent;
 }
 #}}}
 
 #{{{sub help_header
 sub help_header {
-    my ( $script, $switches ) = @_;
+    my ( $script ) = @_;
     print "Usage: $script [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]\n\n";
-    print "The following single-character options are accepted: $switches\n";
-    print "Those with a ':' after require an argument to be supplied:\n\n";
+    print "The following options are accepted:\n\n";
 }
 #}}}
 
@@ -90,6 +113,58 @@ sub help_footer {
     print "\nOptions may be merged together. -- stops processing of options.\n";
     print "Space is not required between options and their arguments.\n";
     print "For more details run: perldoc -F $script\n";
+}
+#}}}
+
+#{{{sub form_login
+sub form_login {
+    my ( $url, $lwpUserAgent, $username, $password ) = @_;
+    my $res = ${ $lwpUserAgent }->request( string_to_request(
+        form_login_setup( $url, $username, $password ) ) );
+    my $success = form_login_eval( \$res );
+    my $message = "Log in as user \"$username\" ";
+    $message .= ( $success ? "succeeded!" : "failed!" );
+    print $message . "\n";
+    return $success;
+}
+#}}}
+
+#{{{sub form_login_setup
+
+=pod
+
+=head2 form_login_setup
+
+Returns a textual representation of the request needed to log the user in to
+the system via a form based login.
+
+=cut
+
+sub form_login_setup {
+    my ( $baseURL, $username, $password ) = @_;
+    die "No username supplied to attempt logging in with!" unless defined $username;
+    die "No password supplied to attempt logging in with for user name: $username!" unless defined $password;
+    $username = urlencode( $username );
+    $password = urlencode( $password );
+    my $type = "FORM";
+    my $postVariables = "\$postVariables = ['un','$username','pw','$password','sakaiauth:login','1']";
+    return "post $baseURL/system/sling/formlogin $postVariables";
+}
+#}}}
+
+#{{{sub form_login_eval
+
+=pod
+
+=head2 form_login_eval
+
+Verify whether the log in attempt for the user to the system was successful.
+
+=cut
+
+sub form_login_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
 }
 #}}}
 

@@ -35,20 +35,24 @@ import javax.servlet.http.HttpSession;
  * This is the Form Based Login Authenticator, its mounted at / and is invoked via the
  * OSGi HttpService handleSecurity call on the context. It is also invoked explicitly via
  * the FormLoginServlet via that authenticator service.
- * </p><p>
+ * </p>
+ * <p>
  * When the request is invoked, if the method is a POST, the authentication mechanism will
  * be invoked. If the method is not a post an attempt to get credentials out of the
  * session will be made, if they are found, then the session stored credentials will be
  * used to authenticate the request against the JCR.
- * </p><p>
- * On POST, if sakaiauth:login = 1, authentication will take place. If sakaiauth:logout = 1, then
- * logout will take place. If sakaiauth:login = 1 then the request parameter "un" will be used
- * for the username and "pw" for the password.
- * </p><p>
+ * </p>
+ * <p>
+ * On POST, if sakaiauth:login = 1, authentication will take place. If sakaiauth:logout =
+ * 1, then logout will take place. If sakaiauth:login = 1 then the request parameter "un"
+ * will be used for the username and "pw" for the password.
+ * </p>
+ * <p>
  * Login should be attempted at /system/sling/formlogin where there is a servlet mounted
  * to handle the request, performing this operation anywhere else will result in a
  * resource creation, as POST creates a resource in the default SLing POST mechanism.
- * </p><p>
+ * </p>
+ * <p>
  * See {@link FormLoginServlet} to see a description of POST and GET to that servlet.
  * </p>
  * 
@@ -64,8 +68,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
 
   public static final String FORCE_LOGOUT = "sakaiauth:logout";
   public static final String TRY_LOGIN = "sakaiauth:login";
-  public static final String USERNAME = "un";
-  public static final String PASSWORD = "pw";
+  public static final String USERNAME = "sakaiauth:un";
+  public static final String PASSWORD = "sakaiauth:pw";
 
   /**
    * 
@@ -94,7 +98,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
           valid = false;
           forceLogout = true;
         } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
-          LOGGER.info(" login");
+          LOGGER.info(" login as "+request.getParameter(USERNAME));
           String password = request.getParameter(PASSWORD);
           if (password == null) {
             credentials = new SimpleCredentials(request.getParameter(USERNAME),
@@ -104,6 +108,8 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
                 .toCharArray());
           }
           valid = true;
+        } else {
+          LOGGER.info("Login was not requested ");
         }
       }
     }
@@ -136,11 +142,18 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
       throw e;
     }
 
+    /**
+     * @return
+     */
+    public String getUserId() {
+      return credentials.getUserID();
+    }
+
   }
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(FormAuthenticationHandler.class);
-  private static final String USER_CREDENTIALS = FormAuthentication.class.getName();
+  static final String USER_CREDENTIALS = FormAuthentication.class.getName();
   public static final String SESSION_AUTH = FormAuthenticationHandler.class.getName();
 
   /**
@@ -151,21 +164,17 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public final AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
-    LOGGER.info("Traceback", new Exception());
-    HttpSession session = request.getSession(false);
 
     // no session authentication info, try the request
 
     FormAuthentication authentication = new FormAuthentication(request);
     if (authentication.isValid()) {
       // authenticate
-      session = request.getSession(true);
-      LOGGER
-          .warn("Saving a populated credentials object to session, this should not be "
-              + "allowed to go into production as it may result in the password being stored");
-      session.setAttribute(USER_CREDENTIALS, authentication);
+      request.setAttribute(USER_CREDENTIALS, authentication);
       return new AuthenticationInfo(SESSION_AUTH, authentication.getCredentials());
     }
+    
+    HttpSession session = request.getSession(false);
     if (authentication.isForceLogout()) {
       // force logout
       if (session != null) {
@@ -176,11 +185,18 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     }
 
     if (session != null) {
+      LOGGER.info("SessionAuth: Has session {} ",session.getId());
       FormAuthentication savedCredentials = (FormAuthentication) session
           .getAttribute(USER_CREDENTIALS);
+      LOGGER.info("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
       if (savedCredentials != null && savedCredentials.isValid()) {
-        return new AuthenticationInfo(SESSION_AUTH, authentication.getCredentials());
+        LOGGER.info("SessionAuth: User ID {} ",savedCredentials.getUserId());
+        return new AuthenticationInfo(SESSION_AUTH, savedCredentials.getCredentials());
+      } else {
+        LOGGER.info("SessionAuth: Saved credentials are not valid ");
       }
+    } else {
+      LOGGER.info("SessionAuth: No Session");
     }
     return null;
   }

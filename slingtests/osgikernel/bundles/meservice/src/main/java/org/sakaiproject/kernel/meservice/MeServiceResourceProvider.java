@@ -20,12 +20,16 @@ package org.sakaiproject.kernel.meservice;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.kernel.api.session.SessionManagerService;
+import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
+import javax.jcr.AccessDeniedException;
+import javax.jcr.LoginException;
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -40,37 +44,47 @@ import javax.servlet.http.HttpServletRequest;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="provider.roots" value="/system/me/"
  * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
- * @scr.reference name="sessionManagerService"
- *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
- *                bind="bindSessionManagerService"
- *                unbind="unbindSessionManagerService"
+ * @scr.reference name="UserFactoryService" interface="org.sakaiproject.kernel.api.user.UserFactoryService"
  */
 public class MeServiceResourceProvider implements ResourceProvider  {
 
-  private static Logger LOG = LoggerFactory.getLogger(MeServiceResourceProvider.class);
+  private UserFactoryService userFactoryService;
   
-  protected SessionManagerService sessionManagerService;  
+  private static Logger LOG = LoggerFactory.getLogger(MeServiceResourceProvider.class);  
 
   public Resource getResource(ResourceResolver resourceResolver, HttpServletRequest request,
       String path) {
     return getResource(resourceResolver, path);
   }
 
-  public Resource getResource(ResourceResolver resourceResolver, String path) {
+  public Resource getResource(ResourceResolver resourceResolver, String path)
+  {
     LOG.info("Looking for resource at " + path);
-    return new MeResource(resourceResolver, path, "sakai:user");
+    try {
+      return new MeResource(resourceResolver, path, "sakai/user", userFactoryService);
+    } catch (AccessDeniedException e) {
+      LOG.error("Access denied retrieving Me information", e);
+    } catch (UnsupportedRepositoryOperationException e) {
+      LOG.error("UnsupportedRepositoryOperationException retrieving Me information", e);
+    } catch (LoginException e) {
+      LOG.error("LoginException retrieving Me information", e);
+    } catch (RepositoryException e) {
+      LOG.error("RepositoryException retrieving Me information", e);
+    }
+    return null;    
   }
-
+  
   public Iterator<Resource> listChildren(Resource parent) {
     return null;
   }
 
-  protected void bindSessionManagerService(SessionManagerService sessionManagerService) {
-    this.sessionManagerService = sessionManagerService;
+  public void bindUserFactoryService(UserFactoryService userFactoryService)
+  {
+    this.userFactoryService = userFactoryService;
   }
-
-  protected void unbindSessionManagerService(SessionManagerService sessionManagerService) {
-    this.sessionManagerService = null;
+  
+  public void unbindUserFactoryService(UserFactoryService userFactoryService)
+  {
+    this.userFactoryService = null;
   }
-
 }

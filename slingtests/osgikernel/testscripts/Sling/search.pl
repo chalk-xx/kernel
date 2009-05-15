@@ -17,10 +17,8 @@ use strict;
 use lib qw ( .. );
 use LWP::UserAgent ();
 use Sling::Search;
-use Sling::User;
 use Sling::Util;
-use Getopt::Std;
-$Getopt::Std::STANDARD_HELP_VERSION = "true";
+use Getopt::Long qw(:config bundling);
 #}}}
 
 #{{{sub HELP_MESSAGE
@@ -50,18 +48,11 @@ my $username;
 my $password;
 my $path="/";
 
-my %options;
-
-getopts('p:s:t:u:F:L:P:U:', \%options);
-
-$url = $options{ 'U' } if ( defined $options{ 'U' } );
-$searchTerm = $options{ 's' } if ( defined $options{ 's' } );
-$file = $options{ 'F' } if ( defined $options{ 'F' } );
-$numberForks = $options{ 't' } if ( defined $options{ 't' } );
-$log = $options{ 'L' } if ( defined $options{ 'L' } );
-$username = $options{ 'u' } if ( defined $options{ 'u' } );
-$password = $options{ 'p' } if ( defined $options{ 'p' } );
-$path = $options{ 'P' } if ( defined $options{ 'P' } );
+GetOptions ( "s=s" => \$searchTerm,  "F=s" => \$file,
+             "t=i" => \$numberForks, "L=s" => \$log,
+             "u=s" => \$username,    "P=s" => \$path,
+	     "p=s" => \$password,    "U=s" => \$url,
+	     "help" => \&HELP_MESSAGE );
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
@@ -72,20 +63,14 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 #}}}
 
 #{{{ main execution path
-if ( defined $options{ 'F' } ) {
+if ( defined $file ) {
     print "Searching through all words in file:\n";
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent;
-            if ( defined $options{ 'u' } || defined $options{ 'p' } ) {
-                my $user = new Sling::User( $url, $lwpUserAgent );
-                if ( ! $user->login( $username, $password ) ) {
-                    die "Failed to log in, aborting!";
-                }
-            }
+            my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
             my $search = new Sling::Search( $url, $lwpUserAgent );
             $search->search_from_file( $file, $i, $numberForks, $path, $log );
 	    exit( 0 );
@@ -97,18 +82,9 @@ if ( defined $options{ 'F' } ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent;
-
-    if ( defined $options{ 'u' } || defined $options{ 'p' } ) {
-        my $user = new Sling::User( $url, $lwpUserAgent );
-        if ( ! $user->login( $username, $password ) ) {
-            die "Failed to log in, aborting!";
-        }
-    }
-
+    my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
     my $search = new Sling::Search( $url, $lwpUserAgent );
-
-    if ( defined $options{ 's' } ) {
+    if ( defined $searchTerm ) {
         $search->search( $searchTerm, $path, $log );
         if ( ! defined $log ) {
             print $search->{ 'Message' } . "\n";

@@ -120,7 +120,11 @@ echo ""
 echo "Copying files ready for the tar ball"
 cp ${build_root}/../app/target/*SNAPSHOT.jar ${build_root}/${target}/${K2_version}/lib > /dev/null 2>&1
 cp ${build_root}/../app/target/*sources.jar ${build_root}/${target}/${K2_version}/src > /dev/null 2>&1
+<<<<<<< HEAD:slingtests/osgikernel/binary/001_build.sh
 cp -r ${build_root}/app/src/main/resources/scripts/bin-dist/ ${build_root}/${target}/${K2_version}/ > /dev/null 2>&1
+=======
+cp -r ${build_root}/src/main/configuration/* ${build_root}/${target}/${K2_version}/ > /dev/null 2>&1
+>>>>>>> ieb/master:slingtests/osgikernel/binary/001_build.sh
 cp ${build_root}/../app/LICENSE ${build_root}/${target}/${K2_version}/ > /dev/null 2>&1
 cp ${build_root}/../app/NOTICE ${build_root}/${target}/${K2_version}/ > /dev/null 2>&1
 echo "Done ..."
