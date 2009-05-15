@@ -141,6 +141,11 @@
       <artifactId>org.sakaiproject.kernel.formauth</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  OSGi bundles -->
     <dependency>
@@ -289,7 +294,7 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
@@ -301,7 +306,7 @@ Disabled Ruby temp
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

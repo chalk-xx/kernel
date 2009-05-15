@@ -15,7 +15,7 @@
 
 K2_version="sakai-k2-0.1-SNAPSHOT-binary"
 mvn_bin="/usr/bin/mvn"
-tar_bin="/bin/tar"
+tar_bin="/usr/bin/tar"
 zip_bin="/usr/bin/zip"
 java_bin="`which java`"
 
