@@ -19,6 +19,7 @@ sub HELP_MESSAGE {
     print "-e {actOnUser}      - check whether specified user exists.\n";
     print "-f {actOnFirstName} - first name of user being actioned.\n";
     print "-l {actOnLastName}  - last name of user being actioned.\n";
+    print "--me                - me returns json representing authenticated user.\n";
     print "-n {newPassword}    - Used with -c, new password to set.\n";
     print "-p {password}       - Password of user performing actions.\n";
     print "-t {threads}        - Used with -F, defines number of parallel\n";
@@ -30,11 +31,13 @@ sub HELP_MESSAGE {
     print "-L {log}            - Log script output to specified log file.\n";
     print "-P {actOnPass}      - Password of user being actioned.\n";
     print "-U {URL}            - URL for system being tested against.\n";
+    print "--auth {type}       - Specify auth type. If ommitted, default is used.\n";
     Sling::Util::help_footer( $0 );
 }
 #}}}
 
 #{{{options parsing
+my $auth;
 my $url = "http://localhost";
 my $username;
 my $password;
@@ -47,6 +50,7 @@ my $actOnPass;
 my $actOnEmail;
 my $actOnFirst;
 my $actOnLast;
+my $meUser;
 my $file;
 my $log;
 my $newPass;
@@ -60,7 +64,8 @@ GetOptions ( "a=s" => \$addUser,     "c=s" => \$changePassUser,
 	     "v=s" => \$viewUser,    "E=s" => \$actOnEmail,
 	     "F=s" => \$file,        "L=s" => \$log,
 	     "P=s" => \$actOnPass,   "U=s" => \$url,
-	     "help" => \&HELP_MESSAGE );
+	     "me" => \$meUser,
+	     "auth=s" => \$auth,     "help" => \&HELP_MESSAGE );
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
@@ -80,7 +85,7 @@ if ( defined $file ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
-            my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
             my $user = new Sling::User( $url, $lwpUserAgent );
             $user->add_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
@@ -92,11 +97,15 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
     my $user = new Sling::User( $url, $lwpUserAgent );
 
     if ( defined $existsUser ) {
         $user->exists( $existsUser, $log );
+        print $user->{ 'Message' } . "\n";
+    }
+    elsif ( defined $meUser ) {
+        $user->me( $log );
         print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $addUser ) {

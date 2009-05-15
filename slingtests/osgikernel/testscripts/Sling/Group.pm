@@ -57,7 +57,7 @@ sub set_results {
 sub add {
     my ( $group, $actOnGroup, $log ) = @_;
     my $res = ${ $group->{ 'LWP' } }->request( Sling::Util::string_to_request(
-        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' }, $actOnGroup ) ) );
+        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
     my $success = Sling::GroupUtil::add_eval( \$res );
     my $message = "Group: \"$actOnGroup\" ";
     $message .= ( $success ? "added!" : "was not added!" );
@@ -71,7 +71,7 @@ sub add {
 sub delete {
     my ( $group, $actOnGroup, $log ) = @_;
     my $res = ${ $group->{ 'LWP' } }->request( Sling::Util::string_to_request(
-        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ) ) );
+        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
     my $success = Sling::GroupUtil::delete_eval( \$res );
     my $message = "Group: \"$actOnGroup\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
@@ -106,7 +106,7 @@ sub add_from_file {
 sub exists {
     my ( $group, $actOnGroup, $log ) = @_;
     my $res = ${ $group->{ 'LWP' } }->request( Sling::Util::string_to_request(
-                  Sling::GroupUtil::exists_setup( $group->{ 'BaseURL' }, $actOnGroup ) ) );
+                  Sling::GroupUtil::exists_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
     my $success = Sling::GroupUtil::exists_eval( \$res );
     my $message = "Group \"$actOnGroup\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
@@ -120,7 +120,7 @@ sub exists {
 sub view {
     my ( $group, $actOnGroup, $log ) = @_;
     my $res = ${ $group->{ 'LWP' } }->request( Sling::Util::string_to_request(
-                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ) ) );
+                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
     my $success = Sling::GroupUtil::view_eval( \$res );
     my $message = ( $success ? $res->content : "Problem viewing group: \"$actOnGroup\"" );
     $group->set_results( "$message", \$res );

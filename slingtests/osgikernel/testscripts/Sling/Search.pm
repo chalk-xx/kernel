@@ -64,7 +64,7 @@ sub search {
     my ( $search, $searchTerm, $path, $log ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = ${ $search->{ 'LWP' } }->request( Sling::Util::string_to_request(
-        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm, $path ) ) );
+        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm, $path ), $search->{ 'LWP' } ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_eval( \$res ) ) {

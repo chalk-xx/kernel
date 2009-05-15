@@ -34,11 +34,13 @@ sub HELP_MESSAGE {
     print "-L {log}        - Log script output to specified log file.\n";
     print "-P {path}       - specify absolute path under the JCR root to search under.\n";
     print "-U {URL}        - URL for system being tested against.\n";
+    print "--auth {type}   - Specify auth type. If ommitted, default is used.\n";
     Sling::Util::help_footer( $0 );
 }
 #}}}
 
 #{{{options parsing
+my $auth;
 my $url = "http://localhost";
 my $searchTerm;
 my $numberForks = 1;
@@ -52,7 +54,7 @@ GetOptions ( "s=s" => \$searchTerm,  "F=s" => \$file,
              "t=i" => \$numberForks, "L=s" => \$log,
              "u=s" => \$username,    "P=s" => \$path,
 	     "p=s" => \$password,    "U=s" => \$url,
-	     "help" => \&HELP_MESSAGE );
+	     "auth=s" => \$auth,     "help" => \&HELP_MESSAGE );
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
@@ -70,7 +72,7 @@ if ( defined $file ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
             my $search = new Sling::Search( $url, $lwpUserAgent );
             $search->search_from_file( $file, $i, $numberForks, $path, $log );
 	    exit( 0 );
@@ -82,7 +84,7 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $url, $username, $password );
+    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
     my $search = new Sling::Search( $url, $lwpUserAgent );
     if ( defined $searchTerm ) {
         $search->search( $searchTerm, $path, $log );
