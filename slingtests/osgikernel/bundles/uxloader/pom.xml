@@ -35,7 +35,7 @@
         <configuration>
           <instructions>
             <Private-Package>initial-content.*</Private-Package>
-            <Sling-Initial-Content>initial-content</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>
@@ -53,7 +53,7 @@
             <configuration>
               <skipCheckoutIfExists>true</skipCheckoutIfExists>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/initial-content/dev</checkoutDirectory>
+              <checkoutDirectory>src/main/resources/SLING-INF/content/dev</checkoutDirectory>
             </configuration>
           </execution>
           <execution>
@@ -65,7 +65,7 @@
             <configuration>
               <skipCheckoutIfExists>true</skipCheckoutIfExists>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/initial-content/devwidgets</checkoutDirectory>
+              <checkoutDirectory>src/main/resources/SLING-INF/content/devwidgets</checkoutDirectory>
             </configuration>
           </execution>
           <execution>
@@ -76,7 +76,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
-              <workingDirectory>src/main/resources/initial-content/dev</workingDirectory>
+              <workingDirectory>src/main/resources/SLING-INF/content/dev</workingDirectory>
               <runChangelog>true</runChangelog>
             </configuration>
           </execution>
@@ -88,7 +88,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
-              <workingDirectory>src/main/resources/initial-content/devwidgets</workingDirectory>
+              <workingDirectory>src/main/resources/SLING-INF/content/devwidgets</workingDirectory>
               <runChangelog>true</runChangelog>
             </configuration>
           </execution>

@@ -1,1 +1,14 @@
-sling/
+.DS_Store
+.classpath
+.project
+.settings
+derby.log
+target
+bin
+.git
+m2-target
+velocity.log
+.externalToolBuilders
+maven-eclipse.xml
+.checkstyle
+generated-src

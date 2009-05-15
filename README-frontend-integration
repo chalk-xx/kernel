@@ -1,3 +1,10 @@
+For a non developers, the front end is pulled from SVN and loaded into the JCR, so there is no action necessary,
+you can mount the JCR repository with webdav and work from there, however, you may want to work with SVN directly
+in which case the procedure outlined below can be used to mount normal file system space from your development machine into 
+the URL space of the SlingK2 server.
+
+
+
 The front end is stored on the filesystem, at least for now. Checkout dev and devwidgets somewhere on
 your filesystem.
 
