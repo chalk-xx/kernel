@@ -37,6 +37,9 @@
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> org.sakaiproject.kernel.api.personal </Export-Package>
             <Private-Package> org.sakaiproject.kernel.personal </Private-Package>
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Sling-Nodetypes>SLING-INF/nodetypes/sakai.cnd</Sling-Nodetypes>
+           
           </instructions>
         </configuration>
       </plugin>
