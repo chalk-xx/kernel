@@ -210,8 +210,6 @@
 
 
 <!-- additional sling bundles -->
-<!--
-Disabled Ruby temp
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.scripting.python</artifactId>
@@ -224,7 +222,6 @@ Disabled Ruby temp
       <version>2.0.0-incubator-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
--->
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.fsresource</artifactId>
