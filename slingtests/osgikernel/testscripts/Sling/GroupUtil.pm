@@ -78,7 +78,7 @@ sub delete_setup {
     die "No group name defined to delete!" unless defined $actOnGroup;
     $actOnGroup = Sling::Util::urlencode( $actOnGroup );
     my $postVariables = "\$postVariables = []";
-    return "post $baseURL/system/userManager/group/$actOnGroup.delete.html?sling:authRequestLogin=1 $postVariables";
+    return "post $baseURL/system/userManager/group/$actOnGroup.delete.html $postVariables";
 }
 #}}}
 
@@ -152,7 +152,7 @@ sub view_setup {
     die "No base url to check existence against!" unless defined $actOnGroup;
     die "No group to check existence of defined!" unless defined $actOnGroup;
     $actOnGroup = Sling::Util::urlencode( $actOnGroup );
-    return "get $baseURL/system/userManager/group/$actOnGroup.json?sling:authRequestLogin=1";
+    return "get $baseURL/system/userManager/group/$actOnGroup.tidy.json";
 }
 #}}}
 

@@ -23,9 +23,9 @@ Post Parameters
 
 =item :name The name of the new user (required)
 
-=item :pwd The password of the new user (required)
+=item pwd The password of the new user (required)
 
-=item :pwdConfirm The password of the new user (required)
+=item pwdConfirm The password of the new user (required)
 
 =item Additional parameters become user node properties (optional)
 
