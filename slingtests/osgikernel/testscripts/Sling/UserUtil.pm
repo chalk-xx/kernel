@@ -165,7 +165,7 @@ sub exists_setup {
     die "No base url to check existence against!" unless defined $baseURL;
     die "No user to check existence of defined!" unless defined $actOnUser;
     $actOnUser = Sling::Util::urlencode( $actOnUser );
-    return "get $baseURL/system/userManager/user/$actOnUser.json";
+    return "get $baseURL/system/userManager/user/$actOnUser.tidy.json";
 }
 #}}}
 

@@ -222,13 +222,21 @@
 
 =back
 
-=head3 JSON ... Page 27
+=head3 Me REST service ... Page 27
 
-=head3 User Interface ... Page 28
+=over
 
-=head3 Glossary ... Page 29
+=item Me
 
-=head3 Credits ... Page 31
+=back
 
-=head3 Licence ... Page 32
+=head3 JSON ... Page 28
+
+=head3 User Interface ... Page 29
+
+=head3 Glossary ... Page 30
+
+=head3 Credits ... Page 32
+
+=head3 Licence ... Page 33
 

@@ -148,7 +148,7 @@ the system via a basic auth based login.
 
 sub basic_login_setup {
     my ( $baseURL ) = @_;
-    return "get $baseURL/system/sling/login";
+    return "get $baseURL/system/sling/login?sling:authRequestLogin=1";
 }
 #}}}
 
@@ -325,11 +325,10 @@ sub string_to_request {
         if ( defined $username && defined $password ) {
 	    # Always add an Authorization header to deal with application not
 	    # properly requesting authentication to be sent:
-            my $encoded = "Basic " . encode_base64('admin:admin');
+            my $encoded = "Basic " . encode_base64("$username:$password");
             $request->header( 'Authorization' => $encoded );
         }
     }
-    print $request->as_string;
     return $request;
 }
 #}}}

@@ -1,0 +1,55 @@
+=head1 Me REST service
+
+=head2 Me
+
+Returns information about the current authenticated (or unauthenticated -
+anonymous) user in JSON format. This servlet responds at
+/system/me.
+
+Methods
+
+=over
+
+=item GET
+
+=back
+
+Response
+
+=over
+
+=item 200 Success, information about current user returned in JSON format.
+
+=item 500 Failure. HTML explains failure.
+
+=back
+
+Examples
+
+=over
+
+=item Unauthenticated - Anonymous user
+
+ curl http://localhost:8080/system/me
+
+ returns:
+
+ {"user": {"superUser":false,"subjects":[],"anon":true}, "profile" : {}}
+
+=item Authenticated - Ordinary user
+
+ curl http://localhost:8080/system/me -u bob:pass
+
+ returns:
+
+ {"user": {"userid":"bob","userProfilePath":"/_private/48/18/bob/profile","superUser":false,"subjects":["everyone"],"properties":{"jcr:uuid":"d48e1a58-f3f7-4ea6-8409-59a45cc69a7e","jcr:primaryType":"rep:User","email":"bob@email.com","firstName":"bob","lastName":"bob"},"userStoragePrefix":"/48/18/bob/"}, "profile" : {}}
+
+=item Authenticated - Super user
+
+ curl http://localhost:8080/system/me -u admin:admin
+
+ returns:
+ 
+ {"user": {"userid":"admin","userProfilePath":"/_private/D0/33/admin/profile","superUser":true,"subjects":["administrators","everyone"],"properties":{"jcr:uuid":"30272529-b5be-433d-9a68-77272e2deb85","jcr:primaryType":"rep:User"},"userStoragePrefix":"/D0/33/admin/"}, "profile" : {}}
+
+=back
