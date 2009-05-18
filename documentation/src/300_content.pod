@@ -77,10 +77,10 @@ the code.
 =head3 Other methods
 
 In addition to processing GET methods, the ResourceResolverFactory similarly
-routes other HTTP methods. However for non GET and HEAD methods the node and
-the resourceType are considered. It is up to the resource handler to decide how
-output is delivered. In the example above, a POST to /content/mynode would be
-resolved to /apps/foo/bar/POST.esp, with a simular mapping for other methods.
+routes other HTTP methods. However, for non GET and HEAD methods the node and
+the resourceType are considered. The resource handler decides how output is
+delivered. In the example above, a POST to /content/mynode would resolve to
+/apps/foo/bar/POST.esp, with a similar mapping for other methods.
 
 =head3 ESP Files - For the UI developer.
 
