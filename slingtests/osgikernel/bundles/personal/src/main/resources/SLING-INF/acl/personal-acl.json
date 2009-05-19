@@ -1,0 +1,40 @@
+{
+
+ "principals" : {
+    [ 
+    	"name":"owner", 
+    	"isgroup":"true",
+    	"members":[],
+    	"dynamic":"true"
+    ],
+    [ 
+    	"name":"everyone", 
+    	"isgroup":"true",
+    	"members":[],
+    	"dynamic":"true"
+    ]
+ },
+ "acl" : {
+ 	[
+ 		"path":"/_private",
+ 		"principal":"owner",
+ 		"privilege@read":"granted",
+ 		"privilege@write":"granted"
+ 		
+ 	],
+ 	[
+ 		"path":"/public",
+ 		"principal":"owner",
+ 		"privilege@read":"granted",
+ 		"privilege@write":"granted"
+ 		
+ 	],
+ 	[
+ 		"path":"/public",
+ 		"principal":"everyone",
+ 		"privilege@read":"granted"
+ 	]
+ }
+ 
+ 
+}

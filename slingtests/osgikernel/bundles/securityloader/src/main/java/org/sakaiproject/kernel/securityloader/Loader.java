@@ -30,7 +30,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.jackrabbit.usermanager.event.AuthoizableEvent.Operation;
+import org.apache.sling.jackrabbit.usermanager.api.event.AuthorizableEvent.Operation;
 import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
@@ -312,7 +312,7 @@ public class Loader implements SecurityLoader {
       throws RepositoryException, JSONException, IOException {
     final List<String> createdNodes = new ArrayList<String>();
 
-    LOGGER.debug("Installing initial content from bundle {}", bundle.getSymbolicName());
+    LOGGER.info("Installing initial security from bundle {}", bundle.getSymbolicName());
     try {
 
       while (pathIter.hasNext()) {
@@ -388,7 +388,7 @@ public class Loader implements SecurityLoader {
 
     while (entries.hasMoreElements()) {
       String bundleEntry = entries.nextElement();
-      LOGGER.debug("Processing initial content entry {}", entry);
+      LOGGER.info("Processing initial content entry {}", entry);
       URL file = bundle.getEntry(bundleEntry);
       JSONObject aclSetup = parse(file);
 
@@ -571,6 +571,7 @@ public class Loader implements SecurityLoader {
       session.save();
     }
 
+    jcrContentHelper.fireEvent(resourcePath, newPrivileges.toString());
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Updated ACE for principalId {0} for resource {1) from {2} to {3}",
           new Object[] {authorizable.getID(), resourcePath, oldPrivileges.toString(),
