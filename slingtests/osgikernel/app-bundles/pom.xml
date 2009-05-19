@@ -53,11 +53,6 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.guiceuser</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.jpaexample</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -91,13 +86,6 @@
       <artifactId>org.sakaiproject.kernel.persistence</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
-<!--
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.shindig</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
--->
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
@@ -279,7 +267,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.guiceuser,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
