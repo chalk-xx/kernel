@@ -24,8 +24,6 @@ Post Parameters
 
 =item sakaiauth:logout Set to 1 to log out
 
-=item Additional parameters become user node properties (optional)
-
 =back
 
 Response
