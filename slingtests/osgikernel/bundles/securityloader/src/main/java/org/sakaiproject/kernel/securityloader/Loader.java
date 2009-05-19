@@ -1,0 +1,922 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.kernel.securityloader;
+
+import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
+import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.commons.json.JSONArray;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.jackrabbit.usermanager.event.AuthoizableEvent.Operation;
+import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.servlets.post.Modification;
+import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+
+import javax.jcr.AccessDeniedException;
+import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.Value;
+
+/**
+ * 
+ */
+public class Loader implements SecurityLoader {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
+  private List<Bundle> delayedBundles;
+  private SecurityLoaderService jcrContentHelper;
+  private SecurityCreator securityCreator;
+  /**
+   * A one time use seed to randomize the user location.
+   */
+  private static final long INSTANCE_SEED = System.currentTimeMillis();
+  /**
+   * Hex characters
+   */
+  private static final char[] TOHEX = "0123456789abcdef".toCharArray();
+
+  /**
+   * The number of levels folder used to store a user, could be a configuration option.
+   */
+  private static final int STORAGE_LEVELS = 3;
+  private static final String MEMBERS = "members";
+  private static final String PASSWORD = "password";
+  private static final String NAME = "name";
+  private static final String ACCESSLIST = "acl";
+  private static final String PRINCIPALS = "principals";
+  private static final String GROUP = "isgroup";
+  private static final String PRINCIPAL = "principal";
+  private static final String PATH = "path";
+
+  /**
+   * @param securityLoaderService
+   */
+  public Loader(SecurityLoaderService jcrContentHelper) {
+    this.jcrContentHelper = jcrContentHelper;
+    this.securityCreator = new SecurityCreator(jcrContentHelper);
+    this.delayedBundles = new LinkedList<Bundle>();
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.securityloader.SecurityLoader#dispose()
+   */
+  public void dispose() {
+    if (delayedBundles != null) {
+      delayedBundles.clear();
+      delayedBundles = null;
+    }
+    jcrContentHelper = null;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @throws IOException
+   * @throws JSONException
+   * 
+   * @see org.sakaiproject.kernel.securityloader.SecurityLoader#registerBundle(org.osgi.framework.Bundle,
+   *      boolean)
+   */
+  public void registerBundle(Session session, Bundle bundle, boolean isUpdate)
+      throws JSONException, IOException {
+    // if this is an update, we have to uninstall the old content first
+    if (isUpdate) {
+      this.unregisterBundle(session, bundle);
+    }
+    LOGGER.debug("Registering bundle {} for content loading.", bundle.getSymbolicName());
+
+    if (registerBundleInternal(session, bundle, false, isUpdate)) {
+
+      // handle delayed bundles, might help now
+      int currentSize = -1;
+      for (int i = delayedBundles.size(); i > 0 && currentSize != delayedBundles.size()
+          && !delayedBundles.isEmpty(); i--) {
+
+        for (Iterator<Bundle> di = delayedBundles.iterator(); di.hasNext();) {
+
+          Bundle delayed = di.next();
+          if (registerBundleInternal(session, delayed, true, false)) {
+            di.remove();
+          }
+
+        }
+
+        currentSize = delayedBundles.size();
+      }
+
+    } else if (!isUpdate) {
+      // add to delayed bundles - if this is not an update!
+      delayedBundles.add(bundle);
+    }
+
+  }
+
+  /**
+   * @param bundle
+   * @param b
+   * @param isUpdate
+   * @return
+   * @throws IOException
+   * @throws JSONException
+   */
+  private boolean registerBundleInternal(Session session, Bundle bundle, boolean isRetry,
+      boolean isUpdate) throws JSONException, IOException {
+
+    // check if bundle has initial content
+    final Iterator<PathEntry> pathIter = PathEntry.getContentPaths(bundle);
+    if (pathIter == null) {
+      LOGGER.debug("Bundle {} has no initial content", bundle.getSymbolicName());
+      return true;
+    }
+
+    try {
+
+      // check if the content has already been loaded
+      final Map<String, Object> bundleContentInfo = jcrContentHelper
+          .getBundleContentInfo(session, bundle, true);
+
+      // if we don't get an info, someone else is currently loading
+      if (bundleContentInfo == null) {
+        return false;
+      }
+
+      boolean success = false;
+      List<String> createdNodes = null;
+      try {
+
+        final boolean contentAlreadyLoaded = ((Boolean) bundleContentInfo
+            .get(SecurityLoaderService.PROPERTY_SECURITY_LOADED)).booleanValue();
+
+        if (!isUpdate && contentAlreadyLoaded) {
+
+          LOGGER.info("Content of bundle already loaded {}.", bundle.getSymbolicName());
+
+        } else {
+
+          createdNodes = install(session, bundle, pathIter, contentAlreadyLoaded);
+
+          if (isRetry) {
+            // log success of retry
+            LOGGER.info("Retrytring to load initial content for bundle {} succeeded.",
+                bundle.getSymbolicName());
+          }
+
+        }
+
+        success = true;
+        return true;
+
+      } finally {
+        jcrContentHelper.unlockBundleContentInfo(session, bundle, success, createdNodes);
+      }
+
+    } catch (RepositoryException re) {
+      // if we are retrying we already logged this message once, so we
+      // won't log it again
+      if (!isRetry) {
+        LOGGER.error("Cannot load initial content for bundle " + bundle.getSymbolicName()
+            + " : " + re.getMessage(), re);
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.securityloader.SecurityLoader#unregisterBundle(org.osgi.framework.Bundle)
+   */
+  public void unregisterBundle(Session session, Bundle bundle) {
+
+    if (delayedBundles.contains(bundle)) {
+
+      delayedBundles.remove(bundle);
+
+    } else {
+      try {
+        final Map<String, Object> bundleContentInfo = jcrContentHelper
+            .getBundleContentInfo(session, bundle, false);
+
+        // if we don't get an info, someone else is currently loading or unloading
+        // or the bundle is already uninstalled
+        if (bundleContentInfo == null) {
+          return;
+        }
+
+        try {
+          uninstall(session, bundle, (String[]) bundleContentInfo
+              .get(SecurityLoaderService.PROPERTY_SECURITY_PATHS));
+          jcrContentHelper.contentIsUninstalled(session, bundle);
+        } finally {
+          jcrContentHelper.unlockBundleContentInfo(session, bundle, false, null);
+
+        }
+      } catch (RepositoryException re) {
+        LOGGER.error("Cannot remove initial content for bundle "
+            + bundle.getSymbolicName() + " : " + re.getMessage(), re);
+      }
+    }
+  }
+
+  private void uninstall(final Session session, final Bundle bundle,
+      final String[] uninstallPaths) {
+    try {
+      LOGGER.debug("Uninstalling initial security from bundle {}", bundle
+          .getSymbolicName());
+      if (uninstallPaths != null && uninstallPaths.length > 0) {
+        for (final String path : uninstallPaths) {
+          if (session.itemExists(path)) {
+            session.getItem(path).remove();
+          }
+        }
+        // persist modifications now
+        session.save();
+      }
+
+      LOGGER.debug("Done uninstalling initial security from bundle {}", bundle
+          .getSymbolicName());
+    } catch (RepositoryException re) {
+      LOGGER.error("Unable to uninstall initial security from bundle "
+          + bundle.getSymbolicName(), re);
+    } finally {
+      try {
+        if (session.hasPendingChanges()) {
+          session.refresh(false);
+        }
+      } catch (RepositoryException re) {
+        LOGGER.warn("Failure to rollback uninstaling initial content for bundle {}",
+            bundle.getSymbolicName(), re);
+      }
+    }
+  }
+
+  /**
+   * Install the content from the bundle.
+   * 
+   * @return If the content should be removed on uninstall, a list of top nodes
+   * @throws IOException
+   * @throws JSONException
+   */
+  private List<String> install(final Session session, final Bundle bundle,
+      final Iterator<PathEntry> pathIter, final boolean contentAlreadyLoaded)
+      throws RepositoryException, JSONException, IOException {
+    final List<String> createdNodes = new ArrayList<String>();
+
+    LOGGER.debug("Installing initial content from bundle {}", bundle.getSymbolicName());
+    try {
+
+      while (pathIter.hasNext()) {
+        final PathEntry entry = pathIter.next();
+        if (!contentAlreadyLoaded || entry.isOverwrite()) {
+
+          final Node targetNode = getTargetNode(session, entry.getTarget());
+
+          if (targetNode != null) {
+            installFromPath(session, bundle, entry.getPath(), entry, targetNode, entry
+                .isUninstall() ? createdNodes : null);
+          }
+        }
+      }
+
+      // now optimize created nodes list
+      Collections.sort(createdNodes);
+      if (createdNodes.size() > 1) {
+        final Iterator<String> i = createdNodes.iterator();
+        String previous = i.next() + '/';
+        while (i.hasNext()) {
+          final String current = i.next();
+          if (current.startsWith(previous)) {
+            i.remove();
+          } else {
+            previous = current + '/';
+          }
+        }
+      }
+
+      // persist modifications now
+      session.refresh(true);
+      session.save();
+
+    } finally {
+      try {
+        if (session.hasPendingChanges()) {
+          session.refresh(false);
+        }
+      } catch (RepositoryException re) {
+        LOGGER.warn("Failure to rollback partial initial content for bundle {}", bundle
+            .getSymbolicName(), re);
+      }
+      this.securityCreator.clear();
+    }
+    LOGGER.debug("Done installing initial content from bundle {}", bundle
+        .getSymbolicName());
+
+    return createdNodes;
+  }
+
+  /**
+   * Load the descriptor and process information
+   * 
+   * @param bundle
+   * @param path
+   * @param entry
+   * @param targetNode
+   * @param list
+   * @throws JSONException
+   * @throws RepositoryException
+   * @throws IOException
+   */
+  @SuppressWarnings("unchecked")
+  private void installFromPath(Session session, Bundle bundle, String path,
+      PathEntry entry, Node targetNode, List<String> list) throws JSONException,
+      IOException, RepositoryException {
+    Enumeration<String> entries = bundle.getEntryPaths(path);
+    if (entries == null) {
+      LOGGER.info("install: No initial content entries at {}", path);
+      return;
+    }
+
+    while (entries.hasMoreElements()) {
+      String bundleEntry = entries.nextElement();
+      LOGGER.debug("Processing initial content entry {}", entry);
+      URL file = bundle.getEntry(bundleEntry);
+      JSONObject aclSetup = parse(file);
+
+      // acl setup now contains the json to load.
+      JSONArray principals = aclSetup.getJSONArray(PRINCIPALS);
+      for (int i = 0; i < principals.length(); i++) {
+        JSONObject principal = principals.getJSONObject(i);
+        if (principal.getBoolean(GROUP)) {
+          createGroup(session, principal);
+        } else {
+          createUser(session, principal);
+        }
+      }
+
+      JSONArray acls = aclSetup.getJSONArray(ACCESSLIST);
+      for (int i = 0; i < acls.length(); i++) {
+        JSONObject acl = acls.getJSONObject(i);
+        createAcl(session, targetNode, acl);
+      }
+    }
+  }
+
+  /**
+   * @param session
+   * @param targetNode
+   * @param acl
+   * @throws JSONException 
+   * @throws RepositoryException 
+   * @throws UnsupportedRepositoryOperationException 
+   * @throws AccessDeniedException 
+   */
+  private void createAcl(Session session, Node targetNode, JSONObject acl) throws JSONException, AccessDeniedException, UnsupportedRepositoryOperationException, RepositoryException {
+
+    String principalId = acl.getString(PRINCIPAL);
+    if (principalId == null) {
+      LOGGER.warn("No Principal, ignoring :" + acl);
+    }
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    Authorizable authorizable = userManager.getAuthorizable(principalId);
+    if (authorizable == null) {
+      LOGGER.warn("No Principal Found, ignoring :" + acl);
+    }
+
+    String path = acl.getString(PATH);
+    String resourcePath = targetNode.getPath() + "/" + path;
+
+    List<String> grantedPrivilegeNames = new ArrayList<String>();
+    List<String> deniedPrivilegeNames = new ArrayList<String>();
+    Iterator<String> parameterNames = acl.keys();
+    while (parameterNames.hasNext()) {
+      String nextElement = parameterNames.next();
+      if (nextElement instanceof String) {
+        String paramName = (String) nextElement;
+        if (paramName.startsWith("privilege@")) {
+          String parameterValue = acl.getString(paramName);
+          if (parameterValue != null && parameterValue.length() > 0) {
+            if ("granted".equals(parameterValue)) {
+              String privilegeName = paramName.substring(10);
+              grantedPrivilegeNames.add(privilegeName);
+            } else if ("denied".equals(parameterValue)) {
+              String privilegeName = paramName.substring(10);
+              deniedPrivilegeNames.add(privilegeName);
+            }
+          }
+        }
+      }
+    }
+
+    AccessControlManager accessControlManager = AccessControlUtil
+        .getAccessControlManager(session);
+    AccessControlList updatedAcl = null;
+    AccessControlPolicyIterator applicablePolicies = accessControlManager
+        .getApplicablePolicies(resourcePath);
+    while (applicablePolicies.hasNext()) {
+      AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
+      if (policy instanceof AccessControlList) {
+        updatedAcl = (AccessControlList) policy;
+        break;
+      }
+    }
+    if (updatedAcl == null) {
+      throw new RepositoryException("Unable to find an access conrol policy to update.");
+    }
+
+    StringBuilder oldPrivileges = null;
+    StringBuilder newPrivileges = null;
+    if (LOGGER.isDebugEnabled()) {
+      oldPrivileges = new StringBuilder();
+      newPrivileges = new StringBuilder();
+    }
+
+    // keep track of the existing Aces for the target principal
+    AccessControlEntry[] accessControlEntries = updatedAcl.getAccessControlEntries();
+    List<AccessControlEntry> oldAces = new ArrayList<AccessControlEntry>();
+    for (AccessControlEntry ace : accessControlEntries) {
+      if (principalId.equals(ace.getPrincipal().getName())) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Found Existing ACE for principal {0} on resource: ",
+              new Object[] {principalId, resourcePath});
+        }
+        oldAces.add(ace);
+
+        if (LOGGER.isDebugEnabled()) {
+          // collect the information for debug logging
+          boolean isAllow = AccessControlUtil.isAllow(ace);
+          Privilege[] privileges = ace.getPrivileges();
+          for (Privilege privilege : privileges) {
+            if (oldPrivileges.length() > 0) {
+              oldPrivileges.append(", "); // separate entries by commas
+            }
+            if (isAllow) {
+              oldPrivileges.append("granted=");
+            } else {
+              oldPrivileges.append("denied=");
+            }
+            oldPrivileges.append(privilege.getName());
+          }
+        }
+      }
+    }
+
+    // remove the old aces
+    if (!oldAces.isEmpty()) {
+      for (AccessControlEntry ace : oldAces) {
+        updatedAcl.removeAccessControlEntry(ace);
+      }
+    }
+
+    // add a fresh ACE with the granted privileges
+    List<Privilege> grantedPrivilegeList = new ArrayList<Privilege>();
+    for (String name : grantedPrivilegeNames) {
+      if (name.length() == 0) {
+        continue; // empty, skip it.
+      }
+      Privilege privilege = accessControlManager.privilegeFromName(name);
+      grantedPrivilegeList.add(privilege);
+
+      if (LOGGER.isDebugEnabled()) {
+        if (newPrivileges.length() > 0) {
+          newPrivileges.append(", "); // separate entries by commas
+        }
+        newPrivileges.append("granted=");
+        newPrivileges.append(privilege.getName());
+      }
+    }
+    if (grantedPrivilegeList.size() > 0) {
+      Principal principal = authorizable.getPrincipal();
+      updatedAcl.addAccessControlEntry(principal, grantedPrivilegeList
+          .toArray(new Privilege[grantedPrivilegeList.size()]));
+    }
+
+    // if the authorizable is a user (not a group) process any denied privileges
+    if (!authorizable.isGroup()) {
+      // add a fresh ACE with the denied privileges
+      List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
+      for (String name : deniedPrivilegeNames) {
+        if (name.length() == 0) {
+          continue; // empty, skip it.
+        }
+        Privilege privilege = accessControlManager.privilegeFromName(name);
+        deniedPrivilegeList.add(privilege);
+
+        if (LOGGER.isDebugEnabled()) {
+          if (newPrivileges.length() > 0) {
+            newPrivileges.append(", "); // separate entries by commas
+          }
+          newPrivileges.append("denied=");
+          newPrivileges.append(privilege.getName());
+        }
+      }
+      if (deniedPrivilegeList.size() > 0) {
+        Principal principal = authorizable.getPrincipal();
+        AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
+            .toArray(new Privilege[deniedPrivilegeList.size()]), false);
+      }
+    }
+
+    accessControlManager.setPolicy(resourcePath, updatedAcl);
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Updated ACE for principalId {0} for resource {1) from {2} to {3}",
+          new Object[] {authorizable.getID(), resourcePath, oldPrivileges.toString(),
+              newPrivileges.toString()});
+    }
+
+  }
+
+  /**
+   * @param session
+   * @param principal
+   * @throws RepositoryException
+   * @throws UnsupportedRepositoryOperationException
+   * @throws AccessDeniedException
+   * @throws JSONException
+   */
+  private void createUser(Session session, JSONObject principal)
+      throws AccessDeniedException, UnsupportedRepositoryOperationException,
+      RepositoryException, JSONException {
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    final String principalName = principal.getString(NAME);
+    if (principalName == null || principalName.length() > 0) {
+      LOGGER.warn("Ignored Entry " + principalName);
+      return;
+    }
+    Authorizable authorizable = userManager.getAuthorizable(principalName);
+
+    if (authorizable == null) {
+      List<Modification> changes = new ArrayList<Modification>();
+      User user = userManager.createUser(principalName, jcrContentHelper
+          .digestPassword(principal.getString(PASSWORD)), new Principal() {
+        public String getName() {
+          return principalName;
+        }
+      }, hashPath(principalName));
+      String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+          + user.getID();
+
+      changes.add(Modification.onCreated(userPath));
+
+      // write content from form
+      writeContent(session, user, principal, changes);
+
+      jcrContentHelper.fireEvent(Operation.create, session, user, changes);
+    } else {
+      // ignore user already exists.
+
+    }
+
+  }
+
+  /**
+   * @param session
+   * @param principal
+   * @throws RepositoryException
+   * @throws UnsupportedRepositoryOperationException
+   * @throws AccessDeniedException
+   * @throws JSONException
+   */
+  private void createGroup(Session session, JSONObject principal)
+      throws AccessDeniedException, UnsupportedRepositoryOperationException,
+      RepositoryException, JSONException {
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    final String principalName = principal.getString(NAME);
+    if (principalName == null || principalName.length() > 0) {
+      LOGGER.warn("Ignored Entry " + principalName);
+      return;
+    }
+    Authorizable authorizable = userManager.getAuthorizable(principalName);
+    if (authorizable == null) {
+
+      List<Modification> changes = new ArrayList<Modification>();
+      Group group = userManager.createGroup(new Principal() {
+        public String getName() {
+          return principalName;
+        }
+      }, hashPath(principalName));
+      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+          + group.getID();
+      changes.add(Modification.onCreated(groupPath));
+      // write content from form
+      writeContent(session, group, principal, changes);
+
+      // update the group memberships
+      updateGroupMembership(userManager, group, principal.getJSONArray(MEMBERS), changes);
+
+      jcrContentHelper.fireEvent(Operation.create, session, group, changes); // create
+    } else {
+      // update
+      // ignore.
+    }
+  }
+
+  /**
+   * Update the group membership based on the ":member" request parameters. If the
+   * ":member" value ends with @Delete it is removed from the group membership, otherwise
+   * it is added to the group membership.
+   * 
+   * @param request
+   * @param authorizable
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  protected void updateGroupMembership(UserManager userManager, Group authorizable,
+      JSONArray members, List<Modification> changes) throws RepositoryException,
+      JSONException {
+    if (authorizable.isGroup()) {
+      Group group = ((Group) authorizable);
+      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+          + group.getID();
+
+      boolean changed = false;
+      if (members != null) {
+        for (int i = 0; i < members.length(); i++) {
+          String member = members.getString(i);
+          Authorizable memberAuthorizable = userManager.getAuthorizable(member);
+          if (memberAuthorizable != null) {
+            group.addMember(memberAuthorizable);
+            changed = true;
+          }
+        }
+      }
+
+      if (changed) {
+        // add an entry to the changes list to record the membership change
+        changes.add(Modification.onModified(groupPath + "/members"));
+      }
+    }
+  }
+
+  /**
+   * Writes back the content
+   * 
+   * @throws RepositoryException
+   *           if a repository error occurs
+   * @throws JSONException
+   * @throws ServletException
+   *           if an internal error occurs
+   */
+  protected void writeContent(Session session, Authorizable authorizable,
+      JSONObject properties, List<Modification> changes) throws RepositoryException,
+      JSONException {
+
+    for (Iterator<String> ki = properties.keys(); ki.hasNext();) {
+      String name = ki.next();
+      if (name != null) {
+        // skip jcr special properties
+        if (name.equals("jcr:primaryType") || name.equals("jcr:mixinTypes")) {
+          continue;
+        }
+        if (authorizable.isGroup()) {
+          if (name.equals("groupId")) {
+            // skip these
+            continue;
+          }
+        } else {
+          if (name.equals("userId") || name.equals("pwd") || name.equals("pwdConfirm")
+              || name.equals(MEMBERS)) {
+            // skip these
+            continue;
+          }
+        }
+        setPropertyAsIs(session, authorizable, name, properties.getString(name), changes);
+      }
+    }
+  }
+
+  /**
+   * @param item
+   * @return a parent path fragment for the item.
+   */
+  protected String hashPath(String item) {
+    String hash = sha1Hash(INSTANCE_SEED + item);
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < STORAGE_LEVELS; i++) {
+      sb.append(hash, i * 2, (i * 2) + 2).append("/");
+    }
+    return sb.toString();
+  }
+
+  /**
+   * @see org.apache.sling.jcr.contentloader.internal.ContentReader#parse(java.net.URL,
+   *      org.apache.sling.jcr.contentloader.internal.ContentCreator)
+   */
+  public JSONObject parse(URL url) throws IOException, RepositoryException {
+    InputStream ins = null;
+    try {
+      ins = url.openStream();
+      return parse(ins);
+    } finally {
+      if (ins != null) {
+        try {
+          ins.close();
+        } catch (IOException ignore) {
+        }
+      }
+    }
+  }
+
+  public JSONObject parse(InputStream ins) throws IOException, RepositoryException {
+    try {
+      String jsonString = toString(ins).trim();
+      if (!jsonString.startsWith("{")) {
+        jsonString = "{" + jsonString + "}";
+      }
+
+      return new JSONObject(jsonString);
+    } catch (JSONException je) {
+      throw (IOException) new IOException(je.getMessage()).initCause(je);
+    }
+  }
+
+  private String toString(InputStream ins) throws IOException {
+    if (!ins.markSupported()) {
+      ins = new BufferedInputStream(ins);
+    }
+
+    String encoding;
+    ins.mark(5);
+    int c = ins.read();
+    if (c == '#') {
+      // character encoding following
+      StringBuffer buf = new StringBuffer();
+      for (c = ins.read(); !Character.isWhitespace((char) c); c = ins.read()) {
+        buf.append((char) c);
+      }
+      encoding = buf.toString();
+    } else {
+      ins.reset();
+      encoding = "UTF-8";
+    }
+
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    byte[] buf = new byte[1024];
+    int rd;
+    while ((rd = ins.read(buf)) >= 0) {
+      bos.write(buf, 0, rd);
+    }
+    bos.close(); // just to comply with the contract
+
+    return new String(bos.toByteArray(), encoding);
+  }
+
+  private Node getTargetNode(Session session, String path) throws RepositoryException {
+
+    // not specyfied path directive
+    if (path == null)
+      return session.getRootNode();
+
+    int firstSlash = path.indexOf("/");
+
+    // it's a relative path
+    if (firstSlash != 0)
+      path = "/" + path;
+
+    if (!session.itemExists(path)) {
+      Node currentNode = session.getRootNode();
+      final StringTokenizer st = new StringTokenizer(path.substring(1), "/");
+      while (st.hasMoreTokens()) {
+        final String name = st.nextToken();
+        if (!currentNode.hasNode(name)) {
+          currentNode.addNode(name, "sling:Folder");
+        }
+        currentNode = currentNode.getNode(name);
+      }
+      return currentNode;
+    }
+    Item item = session.getItem(path);
+    return (item.isNode()) ? (Node) item : null;
+  }
+
+  /**
+   * Hash the suppled string into a SHA1 hash, hex encoded.
+   * 
+   * @param tohash
+   *          the string to hash.
+   * @return a hex encoded sha1 result.
+   */
+  private String sha1Hash(String tohash) {
+    try {
+      byte[] b = tohash.getBytes("UTF8");
+      MessageDigest sha1 = MessageDigest.getInstance("SHA");
+      b = sha1.digest(b);
+      return byteToHex(b);
+    } catch (UnsupportedEncodingException e) {
+      LOGGER.debug(e.getMessage(), e);
+    } catch (NoSuchAlgorithmException e) {
+      LOGGER.debug(e.getMessage(), e);
+    }
+    return null; // if the jvm cant do UTF8 and SHA1 we are in big trouble
+    // anyway
+  }
+
+  /**
+   * hex encode the byte array.
+   * 
+   * @param base
+   *          the array to encode.
+   * @return a hex encoded array.
+   */
+  public String byteToHex(byte[] base) {
+    char[] c = new char[base.length * 2];
+    int i = 0;
+
+    for (byte b : base) {
+      int j = b;
+      j = j + 128;
+      c[i++] = TOHEX[j / 0x10];
+      c[i++] = TOHEX[j % 0x10];
+    }
+    return new String(c);
+  }
+
+  /**
+   * set property without processing, except for type hints
+   * 
+   * @param parent
+   *          the parent node
+   * @param prop
+   *          the request property
+   * @throws RepositoryException
+   *           if a repository error occurs.
+   */
+  private void setPropertyAsIs(Session session, Authorizable parent, String name,
+      String value, List<Modification> changes) throws RepositoryException {
+
+    String parentPath;
+    if (parent.isGroup()) {
+      parentPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+          + parent.getID();
+    } else {
+      parentPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+          + parent.getID();
+    }
+
+    List<Value> values = new ArrayList<Value>();
+    if (parent.hasProperty(name)) {
+      Value[] valueArray = parent.getProperty(name);
+      for (Value v : valueArray) {
+        values.add(v);
+      }
+    }
+    values.add(session.getValueFactory().createValue(value));
+    parent.setProperty(name, values.toArray(new Value[0]));
+    changes.add(Modification.onModified(parentPath + "/" + name));
+
+  }
+
+}

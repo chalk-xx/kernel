@@ -34,6 +34,7 @@
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
         <module>bundles/formauth</module>
+        <module>bundles/securityloader</module>
         <module>bundles/guice</module>
         <module>bundles/guiceuser</module>
         <module>bundles/jpaexample</module>
