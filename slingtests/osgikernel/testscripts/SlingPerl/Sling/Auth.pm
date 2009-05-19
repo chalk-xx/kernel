@@ -81,4 +81,18 @@ sub form_login {
 }
 #}}}
 
+#{{{sub form_logout
+sub form_logout {
+    my ( $auth, $log ) = @_;
+    my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
+        Sling::AuthUtil::form_logout_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
+    my $success = Sling::AuthUtil::form_logout_eval( \$res );
+    my $message = "Form log out ";
+    $message .= ( $success ? "succeeded!" : "failed!" );
+    $auth->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
 1;

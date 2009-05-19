@@ -25,7 +25,7 @@ use Term::ANSIColor;
 
 require Exporter;
 
-@EXPORT = qw(help_user_add smry_user_add help_user_exists smry_user_exists help_login smry_login);
+@EXPORT = qw(help_user_add smry_user_add help_user_exists help_user_whoami smry_user_whoami smry_user_exists help_login smry_login help_logout smry_logout);
 
 #{{{sub run_user_add
 sub run_user_add {
@@ -52,7 +52,6 @@ sub run_user_add {
     if ( $actOnEmail =~ /^\s*$/ ) {
         return 1;
     }
-    my $user = new Sling::User( $config->{ 'host' }, $config->{ 'lwp' } );
     if ( ! $user->add( $actOnUser, $actOnPass, $actOnEmail ) ) {
         print ${ $user->{ 'Response' } }->status_line . "\n";
     }
@@ -101,6 +100,28 @@ sub smry_user_exists {
 }
 #}}}
 
+#{{{sub run_user_whoami
+sub run_user_whoami {
+    my ( $term, $config ) = @_;
+    my $user = new Sling::User( $config->{ 'host' }, $config->{ 'lwp' } );
+    $user->me;
+    print $user->{ 'Message' } . "\n";
+    return 1;
+}
+#}}}
+
+#{{{sub help_user_whoami
+sub help_user_whoami {
+    return "Fetch information in JSON format about the current logged in user.";
+}
+#}}}
+
+#{{{sub smry_user_whoami
+sub smry_user_whoami {
+    return "Information about logged in user.";
+}
+#}}}
+
 #{{{sub run_login
 sub run_login {
     my ( $term, $username, $config ) = @_;
@@ -140,6 +161,35 @@ sub help_login {
 #{{{sub smry_login
 sub smry_login {
     return "Log in to the system";
+}
+#}}}
+
+#{{{sub run_logout
+sub run_logout {
+    my ( $term, $config ) = @_;
+    my $auth = new Sling::Auth( $config->{ 'host' }, $config->{ 'lwp' } );
+    if ( $auth->form_logout ) {
+        $config->{ 'user' } = "anon";
+        print $auth->{ 'Message' } . "\n";
+    }
+    else {
+        print $auth->{ 'Message' } . "\n";
+        print ${ $auth->{ 'Response' } }->status_line . "\n";
+        return 0;
+    }
+    return 1;
+}
+#}}}
+
+#{{{sub help_login
+sub help_logout {
+    return "Log out of the system.";
+}
+#}}}
+
+#{{{sub smry_logout
+sub smry_logout {
+    return "Logs the user out of the system";
 }
 #}}}
 

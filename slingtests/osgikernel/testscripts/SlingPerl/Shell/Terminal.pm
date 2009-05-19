@@ -124,10 +124,26 @@ sub run_user_exists {
 }
 #}}}
 
+#{{{sub run_user_whoami
+sub run_user_whoami {
+    my ( $term ) = @_;
+    Shell::User::run_user_whoami( $term, \%config );
+    return 1;
+}
+#}}}
+
 #{{{sub run_login
 sub run_login {
     my ( $term, $username ) = @_;
     Shell::User::run_login( $term, $username, \%config );
+    return 1;
+}
+#}}}
+
+#{{{sub run_logout
+sub run_logout {
+    my ( $term ) = @_;
+    Shell::User::run_logout( $term, \%config );
     return 1;
 }
 #}}}
