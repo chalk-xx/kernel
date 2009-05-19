@@ -61,7 +61,7 @@
         <module>bundles/personal</module>
         <module>bundles/presence</module>
         <module>bundles/ownerprincipalmanager</module>
-        <module>bundles/shindig</module>
+     <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
