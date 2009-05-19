@@ -22,6 +22,7 @@ result of performing the request.
 use strict;
 use lib qw ( .. );
 use Sling::Util;
+use Sling::URL;
 #}}}
 
 #{{{sub add_setup
@@ -43,12 +44,11 @@ sub add_setup {
     die "No user email defined to add for user $actOnUser!" unless defined $actOnEmail;
     $actOnFirst = $actOnUser unless defined $actOnFirst;
     $actOnLast = $actOnUser unless defined $actOnLast;
-    $actOnUser = Sling::Util::urlencode( $actOnUser );
-    $actOnPass = Sling::Util::urlencode( $actOnPass );
-    $actOnFirst = Sling::Util::urlencode( $actOnFirst );
-    $actOnLast = Sling::Util::urlencode( $actOnLast );
+    $actOnUser = Sling::URL::urlencode( $actOnUser );
+    $actOnPass = Sling::URL::urlencode( $actOnPass );
+    $actOnFirst = Sling::URL::urlencode( $actOnFirst );
+    $actOnLast = Sling::URL::urlencode( $actOnLast );
     my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass','firstName','$actOnFirst','lastName','$actOnLast','email','$actOnEmail']";
-    print "post $baseURL/system/userManager/user.create.html $postVariables";
     return "post $baseURL/system/userManager/user.create.html $postVariables";
 }
 #}}}
@@ -87,10 +87,10 @@ sub change_password_setup {
     die "No current password defined for $actOnUser!" unless defined $actOnPass;
     die "No new password defined for $actOnUser!" unless defined $newPass;
     die "No confirmation of new password defined for $actOnUser!" unless defined $newPassConfirm;
-    $actOnUser = Sling::Util::urlencode( $actOnUser );
-    $actOnPass = Sling::Util::urlencode( $actOnPass );
-    $newPass = Sling::Util::urlencode( $newPass );
-    $newPassConfirm = Sling::Util::urlencode( $newPassConfirm );
+    $actOnUser = Sling::URL::urlencode( $actOnUser );
+    $actOnPass = Sling::URL::urlencode( $actOnPass );
+    $newPass = Sling::URL::urlencode( $newPass );
+    $newPassConfirm = Sling::URL::urlencode( $newPassConfirm );
     my $postVariables = "\$postVariables = ['oldPwd','$actOnPass','newPwd','$newPass','newPwdConfirm','$newPassConfirm']";
     return "post $baseURL/system/userManager/user/$actOnUser.changePassword.html $postVariables";
 }
@@ -127,7 +127,7 @@ sub delete_setup {
     my ( $baseURL, $actOnUser ) = @_;
     die "No base url defined to delete against!" unless defined $baseURL;
     die "No user name defined to delete!" unless defined $actOnUser;
-    $actOnUser = Sling::Util::urlencode( $actOnUser );
+    $actOnUser = Sling::URL::urlencode( $actOnUser );
     my $postVariables = "\$postVariables = []";
     return "post $baseURL/system/userManager/user/$actOnUser.delete.html $postVariables";
 }
@@ -164,7 +164,7 @@ sub exists_setup {
     my ( $baseURL, $actOnUser ) = @_;
     die "No base url to check existence against!" unless defined $baseURL;
     die "No user to check existence of defined!" unless defined $actOnUser;
-    $actOnUser = Sling::Util::urlencode( $actOnUser );
+    $actOnUser = Sling::URL::urlencode( $actOnUser );
     return "get $baseURL/system/userManager/user/$actOnUser.tidy.json";
 }
 #}}}

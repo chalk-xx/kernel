@@ -16,8 +16,9 @@ Perl library providing a layer of abstraction to the REST user methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Sling::Print;
+use Sling::Request;
 use Sling::UserUtil;
-use Sling::Util;
 #}}}
 
 #{{{sub new
@@ -56,14 +57,14 @@ sub set_results {
 #{{{sub add
 sub add {
     my ( $user, $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::UserUtil::add_setup( $user->{ 'BaseURL' },
 	    $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::add_eval( \$res );
     my $message = "User: \"$actOnUser\", email \"$actOnEmail\" ";
     $message .= ( $success ? "added!" : "was not added!" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -84,7 +85,7 @@ sub add_from_file {
 	    my $actOnLast = $5;
 	    if ( defined $actOnUser && defined $actOnPass && defined $actOnEmail ) {
 	        $user->add( $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log );
-		Sling::Util::print_lock( $user->{ 'Message' } );
+		Sling::Print::print_lock( $user->{ 'Message' } );
 	    }
 	}
     }
@@ -96,14 +97,14 @@ sub add_from_file {
 #{{{sub change_password
 sub change_password {
     my ( $user, $actOnUser, $actOnPass, $newPass, $newPassConfirm, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::UserUtil::change_password_setup( $user->{ 'BaseURL' },
 	    $actOnUser, $actOnPass, $newPass, $newPassConfirm ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::change_password_eval( \$res );
     my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "password changed!" : "password not changed!" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -111,13 +112,13 @@ sub change_password {
 #{{{sub delete
 sub delete {
     my ( $user, $actOnUser, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::UserUtil::delete_setup( $user->{ 'BaseURL' }, $actOnUser ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::delete_eval( \$res );
     my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -125,13 +126,13 @@ sub delete {
 #{{{sub exists
 sub exists {
     my ( $user, $actOnUser, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::UserUtil::exists_setup( $user->{ 'BaseURL' }, $actOnUser ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::exists_eval( \$res );
     my $message = "User \"$actOnUser\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -139,12 +140,12 @@ sub exists {
 #{{{sub me
 sub me {
     my ( $user, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::UserUtil::me_setup( $user->{ 'BaseURL' } ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::me_eval( \$res );
     my $message = ( $success ? $res->content : "Problem fetching details for current user" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -152,12 +153,12 @@ sub me {
 #{{{sub view
 sub view {
     my ( $user, $actOnUser, $log ) = @_;
-    my $res = ${ $user->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::UserUtil::exists_setup( $user->{ 'BaseURL' }, $actOnUser ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::exists_eval( \$res );
     my $message = ( $success ? $res->content : "Problem viewing user: \"$actOnUser\"" );
     $user->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}

@@ -22,6 +22,7 @@ result of performing the request.
 use strict;
 use lib qw ( .. );
 use Sling::Util;
+use Sling::URL;
 #}}}
 
 #{{{sub add_setup
@@ -39,7 +40,7 @@ sub add_setup {
     my ( $baseURL, $actOnGroup, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No group name defined to add!" unless defined $actOnGroup;
-    $actOnGroup = Sling::Util::urlencode( $actOnGroup );
+    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     my $postVariables = "\$postVariables = [':name','$actOnGroup']";
     return "post $baseURL/system/userManager/group.create.html $postVariables";
 }
@@ -76,7 +77,7 @@ sub delete_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url defined to delete against!" unless defined $baseURL;
     die "No group name defined to delete!" unless defined $actOnGroup;
-    $actOnGroup = Sling::Util::urlencode( $actOnGroup );
+    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     my $postVariables = "\$postVariables = []";
     return "post $baseURL/system/userManager/group/$actOnGroup.delete.html $postVariables";
 }
@@ -113,7 +114,7 @@ sub exists_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url to check existence against!" unless defined $actOnGroup;
     die "No group to check existence of defined!" unless defined $actOnGroup;
-    $actOnGroup = Sling::Util::urlencode( $actOnGroup );
+    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     return "get $baseURL/system/userManager/group/$actOnGroup.json";
 }
 #}}}
@@ -151,7 +152,7 @@ sub view_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url to check existence against!" unless defined $actOnGroup;
     die "No group to check existence of defined!" unless defined $actOnGroup;
-    $actOnGroup = Sling::Util::urlencode( $actOnGroup );
+    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     return "get $baseURL/system/userManager/group/$actOnGroup.tidy.json";
 }
 #}}}

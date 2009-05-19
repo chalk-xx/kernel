@@ -20,6 +20,8 @@ use strict;
 use lib qw ( .. );
 use Sling::ContentUtil;
 use Sling::Util;
+use Sling::Print;
+use Sling::Request;
 #}}}
 
 #{{{sub new
@@ -58,13 +60,13 @@ sub set_results {
 #{{{sub add
 sub add {
     my ( $content, $remoteDest, $properties, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::ContentUtil::add_setup( $content->{ 'BaseURL' }, $remoteDest, $properties ), $content->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::add_eval( \$res );
     my $message = "Content addition to \"$remoteDest\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
     $content->set_results( "$message", \$res );
-    Sling::Util::print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -72,13 +74,13 @@ sub add {
 #{{{sub delete
 sub delete {
     my ( $content, $remoteDest, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::ContentUtil::delete_setup( $content->{ 'BaseURL' }, $remoteDest ), $content->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::delete_eval( \$res );
     my $message = "Content \"$remoteDest\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
     $content->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -86,13 +88,13 @@ sub delete {
 #{{{sub exists
 sub exists {
     my ( $content, $remoteDest, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::ContentUtil::exists_setup( $content->{ 'BaseURL' }, $remoteDest ), $content->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::exists_eval( \$res );
     my $message = "Content \"$remoteDest\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
     $content->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -100,7 +102,7 @@ sub exists {
 #{{{sub upload_file
 sub upload_file {
     my ( $content, $localPath, $remotePath, $filename, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::ContentUtil::upload_file_setup( $content->{ 'BaseURL' }, $localPath, $remotePath, $filename ), $content->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::upload_file_eval( \$res );
     my $basename = $localPath;
@@ -109,7 +111,7 @@ sub upload_file {
     my $message = "Content: \"$localPath\" upload to \"$remoteDest\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
     $content->set_results( "$message", \$res );
-    Sling::Util::print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
@@ -127,7 +129,7 @@ sub upload_from_file {
 	    my $remotePath = $2;
 	    if ( defined $localPath && defined $remotePath ) {
 	        $content->upload_file( $localPath, $remotePath, "", $log );
-		Sling::Util::print_lock( $content->{ 'Message' } ) if ( ! defined $log );
+		Sling::Print::print_lock( $content->{ 'Message' } ) if ( ! defined $log );
 	    }
 	    else {
 	        print "ERROR: Problem parsing content to add: \"$_\"\n";
@@ -142,12 +144,12 @@ sub upload_from_file {
 #{{{sub view
 sub view {
     my ( $content, $remoteDest, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
                   Sling::ContentUtil::exists_setup( $content->{ 'BaseURL' }, $remoteDest ), $content->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::exists_eval( \$res );
     my $message = ( $success ? $res->content : "Problem viewing content: \"$remoteDest\"" );
     $content->set_results( "$message", \$res );
-    print_file_lock( $message, $log ) if ( defined $log );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}

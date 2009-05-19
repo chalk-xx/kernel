@@ -18,6 +18,8 @@ use strict;
 use lib qw ( .. );
 use Fcntl ':flock';
 use Time::HiRes;
+use Sling::Print;
+use Sling::Request;
 use Sling::SearchUtil;
 use Sling::Util;
 #}}}
@@ -63,7 +65,7 @@ sub set_results {
 sub search {
     my ( $search, $searchTerm, $path, $log ) = @_;
     my $startTime = Time::HiRes::time;
-    my $res = ${ $search->{ 'LWP' } }->request( Sling::Util::string_to_request(
+    my $res = ${ $search->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm, $path ), $search->{ 'LWP' } ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
@@ -122,7 +124,7 @@ sub search_from_file {
 	    my $searchTerm = $1;
 	    if ( $searchTerm !~ /^$/ ) {
                 $search->search( $searchTerm, $path, $log );
-		Sling::Util::print_lock( $search->{ 'Message' } ) if ( ! defined $log );
+		Sling::Print::print_lock( $search->{ 'Message' } ) if ( ! defined $log );
 	    }
 	}
     }
