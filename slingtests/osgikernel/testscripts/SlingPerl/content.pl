@@ -47,6 +47,7 @@ use strict;
 use lib qw ( .. );
 use LWP::UserAgent ();
 use Sling::Content;
+use Sling::UserAgent;
 use Sling::Util;
 use Getopt::Long qw(:config bundling);
 #}}}
@@ -125,7 +126,7 @@ if ( defined $file ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $content = new Sling::Content( $url, $lwpUserAgent );
             $content->upload_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
@@ -137,7 +138,7 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
     my $content = new Sling::Content( $url, $lwpUserAgent );
     if ( defined $localPath && defined $remoteDest ) {
         $content->upload_file( $localPath, $remoteDest, $filename, $log );

@@ -15,8 +15,8 @@ serves as a reference example for using the Sling::Search library.
 #{{{imports
 use strict;
 use lib qw ( .. );
-use LWP::UserAgent ();
 use Sling::Search;
+use Sling::UserAgent;
 use Sling::Util;
 use Getopt::Long qw(:config bundling);
 #}}}
@@ -72,7 +72,7 @@ if ( defined $file ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $search = new Sling::Search( $url, $lwpUserAgent );
             $search->search_from_file( $file, $i, $numberForks, $path, $log );
 	    exit( 0 );
@@ -84,7 +84,7 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
     my $search = new Sling::Search( $url, $lwpUserAgent );
     if ( defined $searchTerm ) {
         $search->search( $searchTerm, $path, $log );

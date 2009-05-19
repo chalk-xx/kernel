@@ -3,8 +3,8 @@
 #{{{imports
 use strict;
 use lib qw ( .. );
-use LWP::UserAgent ();
 use Sling::User;
+use Sling::UserAgent;
 use Sling::Util;
 use Getopt::Long qw(:config bundling);
 #}}}
@@ -85,7 +85,7 @@ if ( defined $file ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
-            my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $user = new Sling::User( $url, $lwpUserAgent );
             $user->add_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
@@ -97,7 +97,7 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::Util::get_user_agent( $log, $url, $username, $password, $auth );
+    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
     my $user = new Sling::User( $url, $lwpUserAgent );
 
     if ( defined $existsUser ) {

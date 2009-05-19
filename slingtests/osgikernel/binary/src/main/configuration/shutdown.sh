@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --------------------------
-# Shutdown script for Saaki
+# Shutdown script for Sakai
 # --------------------------
 
 

@@ -180,7 +180,9 @@
 
 =back
 
-=head3 REST ... Page 22
+=head3 Form based authentication ... Page 22
+
+=head3 REST ... Page 23
 
 =over
 
@@ -190,7 +192,7 @@
 
 =back
 
-=head3 User and Group REST services ... Page 23
+=head3 User and Group REST services ... Page 24
 
 =over
 
@@ -214,7 +216,7 @@
 
 =back
 
-=head3 Search REST services ... Page 26
+=head3 Search REST services ... Page 27
 
 =over
 
@@ -222,7 +224,7 @@
 
 =back
 
-=head3 Me REST service ... Page 27
+=head3 Me REST service ... Page 28
 
 =over
 
@@ -230,13 +232,13 @@
 
 =back
 
-=head3 JSON ... Page 28
+=head3 JSON ... Page 29
 
-=head3 User Interface ... Page 29
+=head3 User Interface ... Page 30
 
-=head3 Glossary ... Page 30
+=head3 Glossary ... Page 31
 
-=head3 Credits ... Page 32
+=head3 Credits ... Page 33
 
-=head3 Licence ... Page 33
+=head3 Licence ... Page 34
 

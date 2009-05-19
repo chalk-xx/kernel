@@ -22,6 +22,7 @@ result of performing the request.
 use strict;
 use lib qw ( .. );
 use Sling::Util;
+use Sling::URL;
 #}}}
 
 #{{{sub search_setup
@@ -38,8 +39,8 @@ sub search_setup {
     my ( $baseURL, $searchTerm, $path ) = @_;
     die "No base URL provided to search against!" unless defined $baseURL;
     die "No search term provided!" unless defined $searchTerm;
-    $searchTerm = Sling::Util::urlencode( $searchTerm );
-    $path = Sling::Util::urlencode( $path );
+    $searchTerm = Sling::URL::urlencode( $searchTerm );
+    $path = Sling::URL::urlencode( $path );
     return "get $baseURL/apps.query.json?queryType=xpath&statement=//*[jcr:contains(.,\"$searchTerm\")]";
 }
 #}}}

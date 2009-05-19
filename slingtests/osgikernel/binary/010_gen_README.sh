@@ -11,4 +11,4 @@ then point your browser to http://localhost:8080/
 
 The admin username is admin and password is admin
 
-You will need about 128M of memory unless you hammer the servier that starts" > ${build_root}/${target}/${K2_version}/README.txt
+You will need about 128M of memory unless you hammer the server that starts" > ${build_root}/${target}/${K2_version}/README.txt
