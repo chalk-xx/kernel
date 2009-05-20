@@ -16,7 +16,7 @@ Utility library providing useful utility functions for general LWP User Agent fu
 use strict;
 use lib qw ( .. );
 use LWP::UserAgent ();
-use Sling::Auth;
+use Sling::Authn;
 use Sling::URL;
 use Sling::Print;
 #}}}
@@ -51,14 +51,14 @@ sub get_user_agent {
 		    "Basic auth credentials for realm: \"$realm\" " .
 		    "set for user: \"$username\"", $log );
             }
-	    my $auth = new Sling::Auth( $url, \$lwpUserAgent );
+	    my $auth = new Sling::Authn( $url, \$lwpUserAgent );
 	    my $success = $auth->basic_login( $log );
 	    if ( ! $success ) {
 	        die "Basic Auth log in for user \"$username\" was unsuccessful\n";
 	    }
         }
 	elsif ( $loginType =~ /^form$/ ) {
-	    my $auth = new Sling::Auth( $url, \$lwpUserAgent );
+	    my $auth = new Sling::Authn( $url, \$lwpUserAgent );
 	    my $success = $auth->form_login( $username, $password, $log );
 	    if ( ! $success ) {
 	        die "Form log in for user \"$username\" was unsuccessful\n";

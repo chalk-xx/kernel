@@ -1,21 +1,21 @@
 #!/usr/bin/perl
 
-package Sling::Auth;
+package Sling::Authn;
 
 =head1 NAME
 
-Auth - useful utility functions for general Auth functionality.
+Authn - useful utility functions for general Authn functionality.
 
 =head1 ABSTRACT
 
-Utility library providing useful utility functions for general Auth functionality.
+Utility library providing useful utility functions for general Authn functionality.
 
 =cut
 
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Sling::AuthUtil;
+use Sling::AuthnUtil;
 use Sling::Print;
 use Sling::Request;
 #}}}
@@ -57,8 +57,8 @@ sub set_results {
 sub basic_login {
     my ( $auth, $log ) = @_;
     my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthUtil::basic_login_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthUtil::basic_login_eval( \$res );
+        Sling::AuthnUtil::basic_login_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
+    my $success = Sling::AuthnUtil::basic_login_eval( \$res );
     my $message = "Basic auth log in ";
     $message .= ( $success ? "succeeded!" : "failed!" );
     $auth->set_results( "$message", \$res );
@@ -71,8 +71,8 @@ sub basic_login {
 sub form_login {
     my ( $auth, $username, $password, $log ) = @_;
     my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthUtil::form_login_setup( $auth->{ 'BaseURL' }, $username, $password ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthUtil::form_login_eval( \$res );
+        Sling::AuthnUtil::form_login_setup( $auth->{ 'BaseURL' }, $username, $password ), $auth->{ 'LWP' } ) );
+    my $success = Sling::AuthnUtil::form_login_eval( \$res );
     my $message = "Form log in as user \"$username\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
     $auth->set_results( "$message", \$res );
@@ -85,8 +85,8 @@ sub form_login {
 sub form_logout {
     my ( $auth, $log ) = @_;
     my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthUtil::form_logout_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthUtil::form_logout_eval( \$res );
+        Sling::AuthnUtil::form_logout_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
+    my $success = Sling::AuthnUtil::form_logout_eval( \$res );
     my $message = "Form log out ";
     $message .= ( $success ? "succeeded!" : "failed!" );
     $auth->set_results( "$message", \$res );
