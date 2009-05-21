@@ -118,15 +118,15 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   public static final String JCR_SITE_DEFAULT_TEMPLATE = "jcrsite.templates.default";
 
   /**
-   * The property name defining the shared private data
+   * The property name defining the users public data
    * 
-   * @scr.property value="/_private" type="String"
+   * @scr.property value="/_public" type="String"
    */
   public static final String PRIVATE_SHARED_PATH_BASE = "jcrprivateshared.base";
   /**
    * The property name defining the data that is completely private to the user.
    * 
-   * @scr.property value="/_userprivate" type="String"
+   * @scr.property value="/_private" type="String"
    */
   public static final String PRIVATE_PATH_BASE = "jcrprivate.base";
   /**

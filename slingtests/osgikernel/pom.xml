@@ -41,7 +41,7 @@
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
         <module>bundles/persistence</module>
-        <module>bundles/kernel</module>
+        <module>bundles/configuration</module>
         <module>bundles/memory</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
