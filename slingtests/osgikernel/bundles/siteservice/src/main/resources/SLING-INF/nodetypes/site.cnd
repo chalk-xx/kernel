@@ -1,0 +1,12 @@
+<sakai = 'http://www.sakaiproject.org/kernel/2.0'>
+<nt  = 'http://www.jcp.org/jcr/nt/1.0'>
+
+// Node type for the Site objects
+[sakai:site] > nt:unstructured
+
+  - 'title' (String)
+    copy
+
+  - 'text' (String)
+    copy
+

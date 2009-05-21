@@ -162,6 +162,14 @@ module SlingInterface
       return JSON.parse(get_node_acl_json(path))
     end
 
+    def create_site(path)
+      nodepath = "#{@server}#{path}"
+      if (!(nodepath =~ /\/$/))
+        nodepath = "#{nodepath}/"
+      end
+      result = execute_post("#{nodepath}.createsite.html", Hash.new)
+    end
+
     def set_node_acl_entries(path, principal, privs)
       puts "Setting node acl for: #{principal} to #{privs.dump}"
       res = execute_post("#{@server}#{path}.modifyAce.html", 
