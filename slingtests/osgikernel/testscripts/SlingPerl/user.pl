@@ -78,7 +78,13 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{main execution path
 if ( defined $file ) {
-    print "Adding users and password from file:\n";
+    my $message = "Adding users and password from file:\n";
+    if ( defined $log ) {
+        Sling::Print::print_file_lock( "$message", $log );
+    }
+    else {
+        Sling::Print::print_lock( "$message" );
+    }
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
