@@ -98,6 +98,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.siteservice</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -291,7 +296,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.siteservice,org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
