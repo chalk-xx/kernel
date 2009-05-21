@@ -43,6 +43,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -53,6 +54,12 @@ import javax.jcr.lock.LockException;
 /**
  * Load Security related items. Much of this code is based on the ContentLoader in sling,
  * no point in creating something different just for the sake of it.
+ * 
+ * 
+ * @scr.component metatype="no"
+ * @scr.property name="service.description" value="Sakai
+ *               Security Loader Implementation"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
  */
 public class SecurityLoaderService implements SynchronousBundleListener {
 
@@ -182,6 +189,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
     Session session = null;
     try {
       session = this.getSession();
+      this.createRepositoryPath(session, BUNDLE_SECURITY_NODE);
       LOGGER.info("Activated - attempting to load content from all "
           + "bundles which are neither INSTALLED nor UNINSTALLED");
 
@@ -416,4 +424,30 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       throw new IllegalArgumentException(e.toString());
     }
   }
+  
+  protected void createRepositoryPath(final Session writerSession, final String repositoryPath)
+  throws RepositoryException {
+      if ( !writerSession.itemExists(repositoryPath) ) {
+          Node node = writerSession.getRootNode();
+          String path = repositoryPath.substring(1);
+          int pos = path.lastIndexOf('/');
+          if ( pos != -1 ) {
+              final StringTokenizer st = new StringTokenizer(path.substring(0, pos), "/");
+              while ( st.hasMoreTokens() ) {
+                  final String token = st.nextToken();
+                  if ( !node.hasNode(token) ) {
+                      node.addNode(token, "sling:Folder");
+                      node.save();
+                  }
+                  node = node.getNode(token);
+              }
+              path = path.substring(pos + 1);
+          }
+          if ( !node.hasNode(path) ) {
+              node.addNode(path, "sling:Folder");
+              node.save();
+          }
+      }
+  }
+
 }
