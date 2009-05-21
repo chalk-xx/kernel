@@ -36,12 +36,11 @@
         <module>bundles/formauth</module>
         <module>bundles/securityloader</module>
         <module>bundles/guice</module>
-        <module>bundles/guiceuser</module>
         <module>bundles/jpaexample</module>
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
         <module>bundles/persistence</module>
-        <module>bundles/kernel</module>
+        <module>bundles/configuration</module>
         <module>bundles/memory</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
@@ -63,6 +62,7 @@
         <module>bundles/ownerprincipalmanager</module>
      <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
+        <module>bundles/siteservice</module>
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
         <module>libraries/utils</module>

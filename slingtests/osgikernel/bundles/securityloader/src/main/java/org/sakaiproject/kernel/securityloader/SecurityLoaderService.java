@@ -20,15 +20,15 @@ package org.sakaiproject.kernel.securityloader;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.engine.SlingSettingsService;
-import org.apache.sling.jackrabbit.usermanager.event.AuthoizableEvent;
-import org.apache.sling.jackrabbit.usermanager.event.SynchronousAuthoizableEvent;
-import org.apache.sling.jackrabbit.usermanager.event.AuthoizableEvent.Operation;
+import org.apache.sling.jackrabbit.usermanager.api.event.AuthorizableEventUtil;
+import org.apache.sling.jackrabbit.usermanager.api.event.AuthorizableEvent.Operation;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +39,11 @@ import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -52,6 +54,12 @@ import javax.jcr.lock.LockException;
 /**
  * Load Security related items. Much of this code is based on the ContentLoader in sling,
  * no point in creating something different just for the sake of it.
+ * 
+ * 
+ * @scr.component metatype="no"
+ * @scr.property name="service.description" value="Sakai
+ *               Security Loader Implementation"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
  */
 public class SecurityLoaderService implements SynchronousBundleListener {
 
@@ -162,6 +170,9 @@ public class SecurityLoaderService implements SynchronousBundleListener {
 
   /** Activates this component, called by SCR before registering as a service */
   protected void activate(ComponentContext componentContext) {
+    
+    LOGGER.info("Activated Component ++++++++++++++++++++++++++++++++++++++++++++++");
+    
     this.slingId = this.settingsService.getSlingId();
     this.initialSecurityLoader = new Loader(this);
 
@@ -178,7 +189,8 @@ public class SecurityLoaderService implements SynchronousBundleListener {
     Session session = null;
     try {
       session = this.getSession();
-      LOGGER.debug("Activated - attempting to load content from all "
+      this.createRepositoryPath(session, BUNDLE_SECURITY_NODE);
+      LOGGER.info("Activated - attempting to load content from all "
           + "bundles which are neither INSTALLED nor UNINSTALLED");
 
       int ignored = 0;
@@ -200,7 +212,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       }
 
       LOGGER
-          .debug(
+          .info(
               "Out of {} bundles, {} were not in a suitable state for initial content loading",
               bundles.length, ignored);
 
@@ -354,9 +366,19 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   public void fireEvent(Operation operation, Session session, Authorizable authorizable,
       List<Modification> changes) {
     try {
-      eventAdmin.sendEvent(new SynchronousAuthoizableEvent(operation, session, null,
-          authorizable, changes));
-      eventAdmin.postEvent(new AuthoizableEvent(operation, authorizable, null, changes));
+      eventAdmin.sendEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, authorizable, changes));
+      eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, session, null, authorizable, changes));
+    } catch (Throwable t) {
+      LOGGER.warn("Failed to fire event", t);
+    }
+  }
+  
+  public void fireEvent(String path, String acl ) {
+    try {
+      Dictionary<String, Object> d = new Hashtable<String, Object>();
+      d.put("path", path);
+      d.put("acl", acl);
+      eventAdmin.postEvent(new Event(SecurityLoaderService.class.getName().replace('.','/'),d));
     } catch (Throwable t) {
       LOGGER.warn("Failed to fire event", t);
     }
@@ -402,4 +424,30 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       throw new IllegalArgumentException(e.toString());
     }
   }
+  
+  protected void createRepositoryPath(final Session writerSession, final String repositoryPath)
+  throws RepositoryException {
+      if ( !writerSession.itemExists(repositoryPath) ) {
+          Node node = writerSession.getRootNode();
+          String path = repositoryPath.substring(1);
+          int pos = path.lastIndexOf('/');
+          if ( pos != -1 ) {
+              final StringTokenizer st = new StringTokenizer(path.substring(0, pos), "/");
+              while ( st.hasMoreTokens() ) {
+                  final String token = st.nextToken();
+                  if ( !node.hasNode(token) ) {
+                      node.addNode(token, "sling:Folder");
+                      node.save();
+                  }
+                  node = node.getNode(token);
+              }
+              path = path.substring(pos + 1);
+          }
+          if ( !node.hasNode(path) ) {
+              node.addNode(path, "sling:Folder");
+              node.save();
+          }
+      }
+  }
+
 }
