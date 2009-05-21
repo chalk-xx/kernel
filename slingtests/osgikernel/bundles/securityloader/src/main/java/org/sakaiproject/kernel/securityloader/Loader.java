@@ -49,7 +49,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,7 +131,7 @@ public class Loader implements SecurityLoader {
     if (isUpdate) {
       this.unregisterBundle(session, bundle);
     }
-    LOGGER.debug("Registering bundle {} for content loading.", bundle.getSymbolicName());
+    LOGGER.info("Registering bundle {} for security loading.", bundle.getSymbolicName());
 
     if (registerBundleInternal(session, bundle, false, isUpdate)) {
 
@@ -174,7 +173,7 @@ public class Loader implements SecurityLoader {
     // check if bundle has initial content
     final Iterator<PathEntry> pathIter = PathEntry.getContentPaths(bundle);
     if (pathIter == null) {
-      LOGGER.debug("Bundle {} has no initial content", bundle.getSymbolicName());
+      LOGGER.debug("Bundle {} has no security setup", bundle.getSymbolicName());
       return true;
     }
 
@@ -198,7 +197,7 @@ public class Loader implements SecurityLoader {
 
         if (!isUpdate && contentAlreadyLoaded) {
 
-          LOGGER.info("Content of bundle already loaded {}.", bundle.getSymbolicName());
+          LOGGER.info("Content of security bundle already loaded {}.", bundle.getSymbolicName());
 
         } else {
 
@@ -206,7 +205,7 @@ public class Loader implements SecurityLoader {
 
           if (isRetry) {
             // log success of retry
-            LOGGER.info("Retrytring to load initial content for bundle {} succeeded.",
+            LOGGER.info("Retrytring to load security content for bundle {} succeeded.",
                 bundle.getSymbolicName());
           }
 
@@ -223,7 +222,7 @@ public class Loader implements SecurityLoader {
       // if we are retrying we already logged this message once, so we
       // won't log it again
       if (!isRetry) {
-        LOGGER.error("Cannot load initial content for bundle " + bundle.getSymbolicName()
+        LOGGER.error("Cannot load security content for bundle " + bundle.getSymbolicName()
             + " : " + re.getMessage(), re);
       }
     }
@@ -262,7 +261,7 @@ public class Loader implements SecurityLoader {
 
         }
       } catch (RepositoryException re) {
-        LOGGER.error("Cannot remove initial content for bundle "
+        LOGGER.error("Cannot remove security content for bundle "
             + bundle.getSymbolicName() + " : " + re.getMessage(), re);
       }
     }
@@ -286,7 +285,7 @@ public class Loader implements SecurityLoader {
       LOGGER.debug("Done uninstalling initial security from bundle {}", bundle
           .getSymbolicName());
     } catch (RepositoryException re) {
-      LOGGER.error("Unable to uninstall initial security from bundle "
+      LOGGER.error("Unable to uninstall security content from bundle "
           + bundle.getSymbolicName(), re);
     } finally {
       try {
@@ -294,7 +293,7 @@ public class Loader implements SecurityLoader {
           session.refresh(false);
         }
       } catch (RepositoryException re) {
-        LOGGER.warn("Failure to rollback uninstaling initial content for bundle {}",
+        LOGGER.warn("Failure to rollback uninstaling security content for bundle {}",
             bundle.getSymbolicName(), re);
       }
     }
@@ -353,12 +352,12 @@ public class Loader implements SecurityLoader {
           session.refresh(false);
         }
       } catch (RepositoryException re) {
-        LOGGER.warn("Failure to rollback partial initial content for bundle {}", bundle
+        LOGGER.warn("Failure to rollback partial security content for bundle {}", bundle
             .getSymbolicName(), re);
       }
       this.securityCreator.clear();
     }
-    LOGGER.debug("Done installing initial content from bundle {}", bundle
+    LOGGER.debug("Done installing security content from bundle {}", bundle
         .getSymbolicName());
 
     return createdNodes;
@@ -376,38 +375,31 @@ public class Loader implements SecurityLoader {
    * @throws RepositoryException
    * @throws IOException
    */
-  @SuppressWarnings("unchecked")
   private void installFromPath(Session session, Bundle bundle, String path,
       PathEntry entry, Node targetNode, List<String> list) throws JSONException,
       IOException, RepositoryException {
-    Enumeration<String> entries = bundle.getEntryPaths(path);
-    if (entries == null) {
-      LOGGER.info("install: No initial content entries at {}", path);
-      return;
+    LOGGER.info("Processing security content entry {}", entry);
+    URL file = bundle.getEntry(path);
+    JSONObject aclSetup = parse(file);
+
+    // acl setup now contains the json to load.
+    JSONArray principals = aclSetup.getJSONArray(PRINCIPALS);
+    for (int i = 0; i < principals.length(); i++) {
+      JSONObject principal = principals.getJSONObject(i);
+      if (principal.getBoolean(GROUP)) {
+        createGroup(session, principal);
+      } else {
+        createUser(session, principal);
+      }
+    }
+    if ( session.hasPendingChanges() ) {
+      session.save();
     }
 
-    while (entries.hasMoreElements()) {
-      String bundleEntry = entries.nextElement();
-      LOGGER.info("Processing initial content entry {}", entry);
-      URL file = bundle.getEntry(bundleEntry);
-      JSONObject aclSetup = parse(file);
-
-      // acl setup now contains the json to load.
-      JSONArray principals = aclSetup.getJSONArray(PRINCIPALS);
-      for (int i = 0; i < principals.length(); i++) {
-        JSONObject principal = principals.getJSONObject(i);
-        if (principal.getBoolean(GROUP)) {
-          createGroup(session, principal);
-        } else {
-          createUser(session, principal);
-        }
-      }
-
-      JSONArray acls = aclSetup.getJSONArray(ACCESSLIST);
-      for (int i = 0; i < acls.length(); i++) {
-        JSONObject acl = acls.getJSONObject(i);
-        createAcl(session, targetNode, acl);
-      }
+    JSONArray acls = aclSetup.getJSONArray(ACCESSLIST);
+    for (int i = 0; i < acls.length(); i++) {
+      JSONObject acl = acls.getJSONObject(i);
+      createAcl(session, targetNode, acl);
     }
   }
 
@@ -424,16 +416,32 @@ public class Loader implements SecurityLoader {
 
     String principalId = acl.getString(PRINCIPAL);
     if (principalId == null) {
-      LOGGER.warn("No Principal, ignoring :" + acl);
+      LOGGER.warn("No Principal specified, ignoring :" + acl);
     }
     UserManager userManager = AccessControlUtil.getUserManager(session);
     Authorizable authorizable = userManager.getAuthorizable(principalId);
     if (authorizable == null) {
-      LOGGER.warn("No Principal Found, ignoring :" + acl);
+      LOGGER.warn("No Principal "+principalId+" found, ignoring :" + acl);
     }
 
     String path = acl.getString(PATH);
-    String resourcePath = targetNode.getPath() + "/" + path;
+    String targetPath = targetNode.getPath();
+    
+    LOGGER.info("Base Path "+targetPath);
+    LOGGER.info("Source Path "+path);
+    
+    String resourcePath = path;
+    if ( !"/".equals(targetPath) )  {
+      resourcePath = targetPath + resourcePath;
+    }
+    LOGGER.info("Resource Path "+resourcePath);
+    
+    // create the path, if it doesnt exist.
+    // this may cause problems if we are putting files with acls
+    jcrContentHelper.createRepositoryPath(session, resourcePath);
+    
+    
+     
 
     List<String> grantedPrivilegeNames = new ArrayList<String>();
     List<String> deniedPrivilegeNames = new ArrayList<String>();
@@ -475,7 +483,7 @@ public class Loader implements SecurityLoader {
 
     StringBuilder oldPrivileges = null;
     StringBuilder newPrivileges = null;
-    if (LOGGER.isDebugEnabled()) {
+    if (LOGGER.isInfoEnabled()) {
       oldPrivileges = new StringBuilder();
       newPrivileges = new StringBuilder();
     }
@@ -485,13 +493,13 @@ public class Loader implements SecurityLoader {
     List<AccessControlEntry> oldAces = new ArrayList<AccessControlEntry>();
     for (AccessControlEntry ace : accessControlEntries) {
       if (principalId.equals(ace.getPrincipal().getName())) {
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("Found Existing ACE for principal {0} on resource: ",
+        if (LOGGER.isInfoEnabled()) {
+          LOGGER.info("Found Existing ACE for principal {} on resource: ",
               new Object[] {principalId, resourcePath});
         }
         oldAces.add(ace);
 
-        if (LOGGER.isDebugEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
           // collect the information for debug logging
           boolean isAllow = AccessControlUtil.isAllow(ace);
           Privilege[] privileges = ace.getPrivileges();
@@ -526,7 +534,7 @@ public class Loader implements SecurityLoader {
       Privilege privilege = accessControlManager.privilegeFromName(name);
       grantedPrivilegeList.add(privilege);
 
-      if (LOGGER.isDebugEnabled()) {
+      if (LOGGER.isInfoEnabled()) {
         if (newPrivileges.length() > 0) {
           newPrivileges.append(", "); // separate entries by commas
         }
@@ -551,7 +559,7 @@ public class Loader implements SecurityLoader {
         Privilege privilege = accessControlManager.privilegeFromName(name);
         deniedPrivilegeList.add(privilege);
 
-        if (LOGGER.isDebugEnabled()) {
+        if (LOGGER.isInfoEnabled()) {
           if (newPrivileges.length() > 0) {
             newPrivileges.append(", "); // separate entries by commas
           }
@@ -572,8 +580,8 @@ public class Loader implements SecurityLoader {
     }
 
     jcrContentHelper.fireEvent(resourcePath, newPrivileges.toString());
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Updated ACE for principalId {0} for resource {1) from {2} to {3}",
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Updated ACE for principalId {} for resource {} from {} to {}",
           new Object[] {authorizable.getID(), resourcePath, oldPrivileges.toString(),
               newPrivileges.toString()});
     }
@@ -593,8 +601,8 @@ public class Loader implements SecurityLoader {
       RepositoryException, JSONException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
     final String principalName = principal.getString(NAME);
-    if (principalName == null || principalName.length() > 0) {
-      LOGGER.warn("Ignored Entry " + principalName);
+    if (principalName == null || principalName.trim().length() == 0) {
+      LOGGER.warn("Ignored Entry " + principal);
       return;
     }
     Authorizable authorizable = userManager.getAuthorizable(principalName);
@@ -617,8 +625,8 @@ public class Loader implements SecurityLoader {
 
       jcrContentHelper.fireEvent(Operation.create, session, user, changes);
     } else {
-      // ignore user already exists.
-
+      LOGGER.info("Principal "+principalName+" exists, no action required");
+      //
     }
 
   }
@@ -636,7 +644,7 @@ public class Loader implements SecurityLoader {
       RepositoryException, JSONException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
     final String principalName = principal.getString(NAME);
-    if (principalName == null || principalName.length() > 0) {
+    if (principalName == null || principalName.trim().length() == 0) {
       LOGGER.warn("Ignored Entry " + principalName);
       return;
     }

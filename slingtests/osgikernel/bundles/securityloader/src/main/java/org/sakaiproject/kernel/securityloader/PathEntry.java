@@ -20,6 +20,8 @@ package org.sakaiproject.kernel.securityloader;
 
 import org.apache.sling.commons.osgi.ManifestHeader;
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,6 +49,8 @@ public class PathEntry {
      */
     public static final String PATH_DIRECTIVE = "path";
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathEntry.class);
+
     /** The path for the security content */
     private final String path;
 
@@ -70,6 +74,8 @@ public class PathEntry {
         final String root = (String) bundle.getHeaders().get(SECURITY_HEADER);
         if (root != null) {
             final ManifestHeader header = ManifestHeader.parse(root);
+            LOGGER.info("Found Entries "+header.getEntries().length);
+            
             for (final ManifestHeader.Entry entry : header.getEntries()) {
                 entries.add(new PathEntry(entry));
             }
@@ -78,6 +84,8 @@ public class PathEntry {
         if (entries.size() == 0) {
             return null;
         }
+        LOGGER.info("Found Final Entries ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ "+entries.size());
+        
         return entries.iterator();
     }
 

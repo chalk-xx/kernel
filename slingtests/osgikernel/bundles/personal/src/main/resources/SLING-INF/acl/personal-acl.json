@@ -1,40 +1,51 @@
 {
 
- "principals" : {
-    [ 
+ "principals" : [
+    { 
     	"name":"owner", 
     	"isgroup":"true",
     	"members":[],
     	"dynamic":"true"
-    ],
-    [ 
+    },
+    { 
     	"name":"everyone", 
     	"isgroup":"true",
     	"members":[],
     	"dynamic":"true"
-    ]
- },
- "acl" : {
- 	[
+    }
+ ],
+ "acl" : [
+ 	{
  		"path":"/_private",
  		"principal":"owner",
- 		"privilege@read":"granted",
- 		"privilege@write":"granted"
+ 		"privilege@jcr:read":"granted",
+ 		"privilege@jcr:write":"granted"
  		
- 	],
- 	[
+ 	},
+ 	{
  		"path":"/public",
  		"principal":"owner",
- 		"privilege@read":"granted",
- 		"privilege@write":"granted"
+ 		"privilege@jcr:read":"granted",
+ 		"privilege@jcr:write":"granted"
  		
- 	],
- 	[
+ 	},
+ 	{
  		"path":"/public",
  		"principal":"everyone",
- 		"privilege@read":"granted"
- 	]
- }
- 
+ 		"privilege@jcr:read":"granted"
+ 	}
+ ],
+
+"privileges" : [
+	"jcr:read",
+	"jcr:modifyProperties",
+	"jcr:addChildNodes",
+	"jcr:removeNode",
+	"jcr:removeChildNodes",
+	"jcr:write",
+	"jcr:readAccessControl",
+	"jcr:modifyAccessControl",
+	"jcr:all"
+]
  
 }
