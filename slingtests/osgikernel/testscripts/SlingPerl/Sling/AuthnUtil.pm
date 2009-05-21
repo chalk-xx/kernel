@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 
-package Sling::AuthUtil;
+package Sling::AuthnUtil;
 
 =head1 NAME
 
-AuthUtil - useful utility functions for general Auth functionality.
+AuthnUtil - useful utility functions for general Authn functionality.
 
 =head1 ABSTRACT
 
-Utility library providing useful utility functions for general Auth functionality.
+Utility library providing useful utility functions for general Authn functionality.
 
 =cut
 

@@ -138,7 +138,7 @@ sub run_login {
     chomp( $password );
     print "\n";
 
-    my $auth = new Sling::Auth( $config->{ 'host' }, $config->{ 'lwp' } );
+    my $auth = new Sling::Authn( $config->{ 'host' }, $config->{ 'lwp' } );
     if ( $auth->form_login( $username, "$password" ) ) {
         $config->{ 'user' } = $username;
         print $auth->{ 'Message' } . "\n";
@@ -167,7 +167,7 @@ sub smry_login {
 #{{{sub run_logout
 sub run_logout {
     my ( $term, $config ) = @_;
-    my $auth = new Sling::Auth( $config->{ 'host' }, $config->{ 'lwp' } );
+    my $auth = new Sling::Authn( $config->{ 'host' }, $config->{ 'lwp' } );
     if ( $auth->form_logout ) {
         $config->{ 'user' } = "anon";
         print $auth->{ 'Message' } . "\n";
