@@ -24,7 +24,7 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.guiceuser</artifactId>
+  <artifactId>org.sakaiproject.kernel.samples.guiceuser</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Guice User Bundle</name>

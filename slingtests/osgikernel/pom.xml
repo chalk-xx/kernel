@@ -36,7 +36,6 @@
         <module>bundles/formauth</module>
         <module>bundles/securityloader</module>
         <module>bundles/guice</module>
-        <module>bundles/guiceuser</module>
         <module>bundles/jpaexample</module>
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
