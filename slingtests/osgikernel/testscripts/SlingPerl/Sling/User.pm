@@ -85,7 +85,9 @@ sub add_from_file {
 	    my $actOnLast = $5;
 	    if ( defined $actOnUser && defined $actOnPass && defined $actOnEmail ) {
 	        $user->add( $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log );
-		Sling::Print::print_lock( $user->{ 'Message' } );
+		if ( ! defined $log ) {
+                    Sling::Print::print_lock( $user->{ 'Message' } );
+		}
 	    }
 	}
     }
