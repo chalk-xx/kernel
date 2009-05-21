@@ -144,113 +144,26 @@ sub get_acl {
 }
 #}}}
 
-#{{{sub grant_read
+#{{{sub modify_privileges
 
 =pod
 
-=head2 grant_privilege
+=head2 modify_privileges
 
-Grant the privilege on a specified node.
+Modify the privileges on a specified node for a specified principal.
 
 =cut
 
-sub grant_privilege {
-    my ( $content, $remoteDest, $principal, $privilege, $log ) = @_;
+sub modify_privileges {
+    my ( $content, $remoteDest, $principal, $grant_privileges, $deny_privileges, $log ) = @_;
     my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::AuthzUtil::grant_privilege_setup( $content->{ 'BaseURL' }, $remoteDest, $principal, "$privilege" ), $content->{ 'LWP' } ) );
-    my $success = Sling::AuthzUtil::grant_privilege_eval( \$res );
-    my $message = "Privilege \"$privilege\" on \"$remoteDest\" for \"$principal\" ";
-    $message .= ( $success ? "granted." : "was not granted." );
+                  Sling::AuthzUtil::modify_privilege_setup( $content->{ 'BaseURL' }, $remoteDest, $principal, $grant_privileges, $deny_privileges ), $content->{ 'LWP' } ) );
+    my $success = Sling::AuthzUtil::modify_privilege_eval( \$res );
+    my $message = "Privileges on \"$remoteDest\" for \"$principal\" ";
+    $message .= ( $success ? "modified." : "were not modified." );
     $content->set_results( "$message", \$res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
-}
-#}}}
-
-#{{{sub deny_privilege
-
-=pod
-
-=head2 deny_privilege
-
-Deny the privilege on a specified node.
-
-=cut
-
-sub deny_privilege {
-    my ( $content, $remoteDest, $principal, $privilege, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::AuthzUtil::deny_privilege_setup( $content->{ 'BaseURL' }, $remoteDest, $principal, "$privilege" ), $content->{ 'LWP' } ) );
-    my $success = Sling::AuthzUtil::deny_privilege_eval( \$res );
-    my $message = "Privilege \"$privilege\" on \"$remoteDest\" for \"$principal\" ";
-    $message .= ( $success ? "denied." : "was not denied." );
-    $content->set_results( "$message", \$res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
-    return $success;
-}
-#}}}
-
-#{{{sub grant_read
-
-=pod
-
-=head2 grant_read
-
-Grant the read privilege on a specified node.
-
-=cut
-
-sub grant_read {
-    my ( $content, $remoteDest, $principal, $log ) = @_;
-    return $content->grant_privilege( $remoteDest, $principal, "read", $log );
-}
-#}}}
-
-#{{{sub deny_read
-
-=pod
-
-=head2 deny_read
-
-Deny the read privilege on a specified node.
-
-=cut
-
-sub deny_read {
-    my ( $content, $remoteDest, $principal, $log ) = @_;
-    return $content->deny_privilege( $remoteDest, $principal, "read", $log );
-}
-#}}}
-
-#{{{sub grant_modifyProperties
-
-=pod
-
-=head2 grant_modifyProperties
-
-Grant the modifyProperties privilege on a specified node.
-
-=cut
-
-sub grant_modifyProperties {
-    my ( $content, $remoteDest, $principal, $log ) = @_;
-    return $content->grant_privilege( $remoteDest, $principal, "modifyProperties", $log );
-}
-#}}}
-
-#{{{sub deny_modifyProperties
-
-=pod
-
-=head2 deny_modifyProperties
-
-Deny the modifyProperties privilege on a specified node.
-
-=cut
-
-sub deny_modifyProperties {
-    my ( $content, $remoteDest, $principal, $log ) = @_;
-    return $content->deny_privilege( $remoteDest, $principal, "modifyProperties", $log );
 }
 #}}}
 

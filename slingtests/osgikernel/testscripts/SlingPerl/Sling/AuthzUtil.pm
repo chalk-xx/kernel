@@ -100,79 +100,73 @@ sub delete_eval {
 }
 #}}}
 
-#{{{sub grant_privilege_setup
+#{{{sub modify_privilege_setup
 
 =pod
 
-=head2 grant_privilege_setup
+=head2 modify_privilege_setup
 
-Returns a textual representation of the request needed to grant the privilege
-privilege on a node.
+Returns a textual representation of the request needed to modify the privileges
+on a node for a specific principal.
 
 =cut
 
-sub grant_privilege_setup {
-    my ( $baseURL, $remoteDest, $principal, $privilege ) = @_;
+sub modify_privilege_setup {
+    my ( $baseURL, $remoteDest, $principal, $grant_privileges, $deny_privileges ) = @_;
     die "No base url defined!" unless defined $baseURL;
-    die "No destination to grant privilege for defined!" unless defined $remoteDest;
-    die "No principal to grant privilege for defined!" unless defined $principal;
-    my $postVariables = "\$postVariables = ['principalId','$principal','privilege\@jcr:$privilege','granted']";
+    die "No destination to modify privilege for defined!" unless defined $remoteDest;
+    die "No principal to modify privilege for defined!" unless defined $principal;
+    my %privileges = (
+        'read', 1,
+        'modifyProperties', 1,
+        'addChildNodes', 1,
+        'removeNode', 1,
+        'removeChildNodes', 1,
+        'write', 1,
+        'readAccessControl', 1,
+        'modifyAccessControl', 1,
+        'lockManagement', 1,
+        'versionManagement', 1,
+        'nodeTypeManagement', 1,
+        'retentionManagement', 1,
+        'lifecycleManagement', 1,
+        'all', 1
+    );
+    my $postVariables = "\$postVariables = ['principalId','$principal',";
+    foreach my $grant ( @{ $grant_privileges} ) {
+        if ( $privileges{ $grant } ) {
+            $postVariables .= "'privilege\@jcr:$grant','granted',";
+	}
+	else {
+	    die "Unsupported privilege: \"$grant\" supplied!\n";
+	}
+    }
+    foreach my $deny ( @{ $deny_privileges} ) {
+        if ( $privileges{ $deny } ) {
+            $postVariables .= "'privilege\@jcr:$deny','denied',";
+	}
+	else {
+	    die "Unsupported privilege: \"$deny\" supplied!\n";
+	}
+    }
+    $postVariables =~ s/,$/]/;
     return "post $baseURL/$remoteDest.modifyAce.html $postVariables";
 }
 #}}}
 
-#{{{sub grant_privilege_eval
+#{{{sub modify_privilege_eval
 
 =pod
 
-=head2 grant_privilege_eval
+=head2 modify_privilege_eval
 
 Inspects the result returned from issuing the request generated in
-grant_privilege_setup returning true if the result indicates the privilege was
-granted successfully, else false.
+modify_privilege_setup returning true if the result indicates the privileges
+were modified successfully, else false.
 
 =cut
 
-sub grant_privilege_eval {
-    my ( $res ) = @_;
-    return ( $$res->code =~ /^200$/ );
-}
-#}}}
-
-#{{{sub deny_privilege_setup
-
-=pod
-
-=head2 deny_privilege_setup
-
-Returns a textual representation of the request needed to deny the 
-privilege on a node.
-
-=cut
-
-sub deny_privilege_setup {
-    my ( $baseURL, $remoteDest, $principal, $privilege ) = @_;
-    die "No base url defined!" unless defined $baseURL;
-    die "No destination to deny privilege for defined!" unless defined $remoteDest;
-    die "No principal to deny privilege for defined!" unless defined $principal;
-    my $postVariables = "\$postVariables = ['principalId','$principal','privilege\@jcr:$privilege','denied']";
-    return "post $baseURL/$remoteDest.modifyAce.html $postVariables";
-}
-#}}}
-
-#{{{sub deny_privilege_eval
-
-=pod
-
-=head2 deny_privilege_eval
-
-Inspects the result returned from issuing the request generated in
-deny_privilege_setup returning true if the result indicates the privilege was
-denied successfully, else false.
-
-=cut
-
-sub deny_privilege_eval {
+sub modify_privilege_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }
