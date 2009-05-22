@@ -27,7 +27,7 @@ import java.util.Calendar;
 
 /**
  * Generate a path prefix based on the user id.
- *
+ * 
  */
 public class PathUtils {
 
@@ -39,24 +39,24 @@ public class PathUtils {
   /**
    * Generate a path using a SHA-1 hash split into path parts to generate a unique path to
    * the user information, that will not result in too many objects in each folder.
-   *
+   * 
    * @param user
    *          the user for which the path will be generated.
    * @return a structured path fragment for the user.
    */
-  public static String getUserPrefix(String user) {
+  public static String getUserPrefix(String user,int levels) {
     if (user != null) {
       if (user.length() == 0) {
         user = "anon";
       }
-      return getStructuredHash(user);
+      return getStructuredHash(user,levels);
     }
     return null;
   }
 
   /**
    * Get the prefix for a message.
-   *
+   * 
    * @return Prefix used to store a message. Defaults to a yyyy/mm/dd structure.
    * @see java.text.SimpleDateFormat for pattern definitions.
    */
@@ -71,38 +71,33 @@ public class PathUtils {
    *          the target being formed into a structured path.
    * @return the structured path.
    */
-  private static String getStructuredHash(String target) {
+  private static String getStructuredHash(String target, int levels) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
-      char[] chars = new char[8 + target.length()];
-      byte current = userHash[0];
-      int hi = (current & 0xF0) >> 4;
-      int lo = current & 0x0F;
-      chars[0] = '/';
-      chars[1] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-      chars[2] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
-      current = userHash[1];
-      hi = (current & 0xF0) >> 4;
-      lo = current & 0x0F;
-      chars[3] = '/';
-      chars[4] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-      chars[5] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
-      chars[6] = '/';
+      char[] chars = new char[levels*3+1 + target.length()];
+      for (int i = 0; i < levels; i++) {
+        byte current = userHash[i];
+        int hi = (current & 0xF0) >> 4;
+        int lo = current & 0x0F;
+        chars[(i*3)+0] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
+        chars[(i*3)+1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
+        chars[(i*3)+2] = '/';
+      }
       for (int i = 0; i < target.length(); i++) {
         char c = target.charAt(i);
         if (!Character.isLetterOrDigit(c)) {
           c = '_';
         }
-        chars[i + 7] = c;
+        chars[i + levels*3] = c;
       }
-      chars[7 + target.length()] = '/';
+      chars[levels*3 + target.length()] = '/';
       return new String(chars);
     } catch (NoSuchAlgorithmException e) {
-      logger.error(e.getMessage(),e);
+      logger.error(e.getMessage(), e);
     } catch (UnsupportedEncodingException e) {
-      logger.error(e.getMessage(),e);
+      logger.error(e.getMessage(), e);
     }
     return null;
   }
@@ -134,8 +129,8 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getPoolPrefix(String path) {
-    String hash = getStructuredHash(path);
+  public static String getPoolPrefix(String path,int levels) {
+    String hash = getStructuredHash(path,levels);
     Calendar c = Calendar.getInstance();
     StringBuilder sb = new StringBuilder();
     sb.append(c.get(Calendar.YEAR)).append("/").append(c.get(Calendar.MONTH)).append("/")
@@ -146,7 +141,7 @@ public class PathUtils {
   /**
    * Normalizes the input path to an absolute path prepending / and ensuring that the path
    * does not end in /.
-   *
+   * 
    * @param pathFragment
    *          the path.
    * @return a normalized path.
@@ -175,13 +170,10 @@ public class PathUtils {
         break;
       }
     }
-    if ( j > 1 && normalized[j-1] == '/' ) {
+    if (j > 1 && normalized[j - 1] == '/') {
       j--;
     }
-    return new String(normalized,0,j);
+    return new String(normalized, 0, j);
   }
-
-
-
 
 }
