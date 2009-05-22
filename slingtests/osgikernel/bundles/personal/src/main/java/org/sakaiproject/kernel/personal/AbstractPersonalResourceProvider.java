@@ -20,10 +20,15 @@ package org.sakaiproject.kernel.personal;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -31,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractPersonalResourceProvider implements ResourceProvider {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(AbstractPersonalResourceProvider.class);
   /**
    * The user factory service, injected.
    */
@@ -43,7 +50,8 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
    *      java.lang.String)
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
-    return null;
+    LOGGER.info("getResource([" + resourceResolver + "],[" + path + "])");
+    return createResource(resourceResolver, path);
   }
 
   /**
@@ -54,14 +62,7 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
    */
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, String path) {
-    if (path.startsWith(getBasePath())) {
-      String userId = request.getRemoteUser();
-      String resourcePath = getResourcePath(userId, path);
-      if (resourcePath != null) {
-        return resourceResolver.resolve(resourcePath);
-      }
-    }
-    return null;
+    return getResource(resourceResolver, path);
   }
 
   /**
@@ -86,7 +87,68 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
    * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
    */
   public Iterator<Resource> listChildren(Resource parent) {
+    Resource parentItemResource = getResource(parent.getResourceResolver(), parent
+        .getPath());
+    return (parentItemResource != null) ? parentItemResource.getResourceResolver()
+        .listChildren(parent) : null;
+  }
+
+  /**
+   * @param resourceResolver
+   * @param path
+   * @return
+   */
+  private Resource createResource(ResourceResolver resourceResolver, String path) {
+    if (path.startsWith(getBasePath())) {
+      Session session = resourceResolver.adaptTo(Session.class);
+      String userId = session.getUserID();
+      String resourcePath = getResourcePath(userId, path);
+      Resource resource = resourceResolver.resolve(resourcePath);
+      if (resource != null) {
+        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+        LOGGER.info("Resolving resource for " + resourcePath + " gave " + resource
+            + " with " + pathInfo);
+        
+        resource = new SyntheticResource(resourceResolver, resource.getResourceMetadata(), resource
+            .getResourceType());
+        pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+        LOGGER.info("Final resource " + resourcePath + " gave " + resource
+            + " with " + pathInfo);
+        // did this resolve to the real resource where the resourcepath is empty ?
+        LOGGER.info("MATCHED ================================================ ");
+        return resource;
+      } else {
+        resource = new SyntheticResource(resourceResolver, resourcePath, "");
+        // did this resolve to the real resource where the resourcepath is empty ?
+        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+        LOGGER.info("Resolving resource for " + resourcePath + " gave " + resource
+            + " with " + pathInfo);
+        LOGGER.info("MATCHED ================================================ ");
+        return resource;
+      }
+    } else {
+      LOGGER.info("Base Path doesnt match ");
+    }
     return null;
+  }
+
+  /**
+   * @param session
+   * @param resourcePath
+   * @return
+   */
+  private boolean itemExists(Session session, String resourcePath) {
+    try {
+      if (session.itemExists(resourcePath)) {
+        LOGGER.info("Item {} exists ", resourcePath);
+        return true;
+      }
+      return false;
+    } catch (RepositoryException re) {
+      LOGGER.info("itemExists: Error checking for existence of {}: {}", resourcePath, re
+          .toString());
+      return false;
+    }
   }
 
   public void bindUserFactoryService(UserFactoryService userFactoryService) {
