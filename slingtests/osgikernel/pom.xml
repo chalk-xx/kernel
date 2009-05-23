@@ -65,6 +65,7 @@
         <module>bundles/siteservice</module>
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
+        <module>bundles/virtual</module>
         <module>libraries/utils</module>
       </modules>
     </profile>

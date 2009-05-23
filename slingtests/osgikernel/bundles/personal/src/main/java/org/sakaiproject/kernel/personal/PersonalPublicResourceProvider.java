@@ -29,8 +29,6 @@ import org.sakaiproject.kernel.util.PathUtils;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="provider.roots" value="/_user/public/"
  * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
  */
 public class PersonalPublicResourceProvider extends AbstractPersonalResourceProvider {
 
@@ -42,7 +40,7 @@ public class PersonalPublicResourceProvider extends AbstractPersonalResourceProv
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getResourcePath(java.lang.String,
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getResourcePath(java.lang.String,
    *      java.lang.String)
    */
   @Override
@@ -63,7 +61,7 @@ public class PersonalPublicResourceProvider extends AbstractPersonalResourceProv
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getBasePath()
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getBasePath()
    */
   @Override
   protected String getBasePath() {

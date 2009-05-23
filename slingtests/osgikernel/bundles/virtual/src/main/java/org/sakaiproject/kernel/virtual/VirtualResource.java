@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.personal;
+package org.sakaiproject.kernel.virtual;
 
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -66,7 +66,7 @@ public class VirtualResource implements Resource {
    * @see org.apache.sling.api.resource.SyntheticResource#adaptTo(java.lang.Class)
    */
   public <Type> Type adaptTo(Class<Type> type) {
-    LOGGER.info("Trying to adapt to {} ",type);
+    LOGGER.debug("Trying to adapt to {} ",type);
     return resource.adaptTo(type);
   }
   

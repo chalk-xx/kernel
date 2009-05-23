@@ -18,10 +18,10 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.personal</artifactId>
+  <artifactId>org.sakaiproject.kernel.virtual</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Personal Space Bundle</name>
+  <name>Sakai Path Virtualization Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -35,42 +35,13 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.personal </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.personal </Private-Package>
-            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
-            <Sling-Nodetypes>SLING-INF/nodetypes/sakai.cnd</Sling-Nodetypes>
-            <Sakai-Initial-Security>SLING-INF/acl/personal-acl.json</Sakai-Initial-Security>
-           
+            <Export-Package> org.sakaiproject.kernel.virtual </Export-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.virtual</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>

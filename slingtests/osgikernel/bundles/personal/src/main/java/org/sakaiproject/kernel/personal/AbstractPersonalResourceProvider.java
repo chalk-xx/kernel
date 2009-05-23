@@ -17,139 +17,22 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceProvider;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.SyntheticResource;
-import org.apache.sling.jcr.resource.internal.helper.jcr.JcrNodeResource;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Iterator;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.http.HttpServletRequest;
+import org.sakaiproject.kernel.virtual.AbstractVirtualResourceProvider;
 
 /**
- * Manages personal space for the user.
+ * 
  */
-public abstract class AbstractPersonalResourceProvider implements ResourceProvider {
+public abstract class AbstractPersonalResourceProvider extends
+    AbstractVirtualResourceProvider {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(AbstractPersonalResourceProvider.class);
   /**
    * The user factory service, injected.
+   * 
+   * @scr.reference name="UserFactoryService"
+   *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
    */
   protected UserFactoryService userFactoryService;
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
-   *      java.lang.String)
-   */
-  public Resource getResource(ResourceResolver resourceResolver, String path) {
-    LOGGER.info("getResource([" + resourceResolver + "],[" + path + "])");
-    return createResource(resourceResolver, path);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
-   *      javax.servlet.http.HttpServletRequest, java.lang.String)
-   */
-  public Resource getResource(ResourceResolver resourceResolver,
-      HttpServletRequest request, String path) {
-    return getResource(resourceResolver, path);
-  }
-
-  /**
-   * @return the base path for the resource.
-   */
-  protected abstract String getBasePath();
-
-  /**
-   * gets the resource path for a userid and subpath.
-   * 
-   * @param userId
-   *          the user id
-   * @param path
-   *          the path starting with the BasePath
-   * @return a transpated resource path.
-   */
-  protected abstract String getResourcePath(String userId, String path);
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
-   */
-  public Iterator<Resource> listChildren(Resource parent) {
-    Resource parentItemResource = getResource(parent.getResourceResolver(), parent
-        .getPath());
-    return (parentItemResource != null) ? parentItemResource.getResourceResolver()
-        .listChildren(parent) : null;
-  }
-
-  /**
-   * @param resourceResolver
-   * @param path
-   * @return
-   */
-  private Resource createResource(ResourceResolver resourceResolver, String path) {
-    if (path.startsWith(getBasePath())) {
-      Session session = resourceResolver.adaptTo(Session.class);
-      String userId = session.getUserID();
-      String resourcePath = getResourcePath(userId, path);
-      Resource resource = resourceResolver.resolve(resourcePath);
-      if (resource != null) {
-        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.info("Resolving resource for " + resourcePath + " gave " + resource
-            + " with " + pathInfo);
-
-        resource = new VirtualResource(resource);
-        pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.info("Final resource " + resourcePath + " gave " + resource + " with "
-            + pathInfo);
-        // did this resolve to the real resource where the resourcepath is empty ?
-        LOGGER.info("MATCHED ================================================ ");
-        return resource;
-      } else {
-        resource = new SyntheticResource(resourceResolver, resourcePath, "");
-        // did this resolve to the real resource where the resourcepath is empty ?
-        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.info("Failed to resolve resource for " + resourcePath + " gave "
-            + resource + " with " + pathInfo);
-        LOGGER.info("MATCHED ================================================ ");
-        return resource;
-      }
-    } else {
-      LOGGER.info("Base Path doesnt match ");
-    }
-    return null;
-  }
-
-  /**
-   * @param session
-   * @param resourcePath
-   * @return
-   */
-  private boolean itemExists(Session session, String resourcePath) {
-    try {
-      if (session.itemExists(resourcePath)) {
-        LOGGER.info("Item {} exists ", resourcePath);
-        return true;
-      }
-      return false;
-    } catch (RepositoryException re) {
-      LOGGER.info("itemExists: Error checking for existence of {}: {}", resourcePath, re
-          .toString());
-      return false;
-    }
-  }
 
   protected void bindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = userFactoryService;

@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.personal;
+package org.sakaiproject.kernel.virtual;
 
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class VirtualResourceMetadata extends ResourceMetadata {
   @Override
   public Object put(String key, Object value) {
     if ( sealed && ResourceMetadata.RESOLUTION_PATH_INFO.equals(key) ) {
-      LOGGER.info("Metadata has been sealed, ignoring change {} to {} ",key,value);
+      LOGGER.debug("Metadata has been sealed, ignoring change {} to {} ",key,value);
       return null;
     }
     return super.put(key,value);
