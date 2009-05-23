@@ -21,6 +21,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
+import org.apache.sling.jcr.resource.internal.helper.jcr.JcrNodeResource;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,12 +109,11 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
         String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
         LOGGER.info("Resolving resource for " + resourcePath + " gave " + resource
             + " with " + pathInfo);
-        
-        resource = new SyntheticResource(resourceResolver, resource.getResourceMetadata(), resource
-            .getResourceType());
+
+        resource = new VirtualResource(resource);
         pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.info("Final resource " + resourcePath + " gave " + resource
-            + " with " + pathInfo);
+        LOGGER.info("Final resource " + resourcePath + " gave " + resource + " with "
+            + pathInfo);
         // did this resolve to the real resource where the resourcepath is empty ?
         LOGGER.info("MATCHED ================================================ ");
         return resource;
@@ -121,8 +121,8 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
         resource = new SyntheticResource(resourceResolver, resourcePath, "");
         // did this resolve to the real resource where the resourcepath is empty ?
         String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.info("Resolving resource for " + resourcePath + " gave " + resource
-            + " with " + pathInfo);
+        LOGGER.info("Failed to resolve resource for " + resourcePath + " gave "
+            + resource + " with " + pathInfo);
         LOGGER.info("MATCHED ================================================ ");
         return resource;
       }
@@ -151,11 +151,11 @@ public abstract class AbstractPersonalResourceProvider implements ResourceProvid
     }
   }
 
-  public void bindUserFactoryService(UserFactoryService userFactoryService) {
+  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = userFactoryService;
   }
 
-  public void unbindUserFactoryService(UserFactoryService userFactoryService) {
+  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = null;
   }
 
