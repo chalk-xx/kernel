@@ -136,13 +136,11 @@
       <artifactId>org.sakaiproject.kernel.formauth</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
-<!--
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
--->
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
