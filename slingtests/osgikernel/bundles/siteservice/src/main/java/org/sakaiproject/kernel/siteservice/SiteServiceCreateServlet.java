@@ -20,9 +20,12 @@ package org.sakaiproject.kernel.siteservice;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.slf4j.Logger;
@@ -79,6 +82,10 @@ public class SiteServiceCreateServlet extends SlingAllMethodsServlet {
     List<Modification> changes = new ArrayList<Modification>();
     try {
       Node siteNode = deepGetOrCreateNode(session, path, reqProperties, changes);
+      siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, SiteServiceGetServlet.SITE_RESOURCE_TYPE);
+      
+      //
+      
       LOG.info("Created node: " + siteNode.getPath());
       session.save();
     } catch (RepositoryException e) {
@@ -158,18 +165,11 @@ public class SiteServiceCreateServlet extends SlingAllMethodsServlet {
       } else {
         final String tmpPath = to < 0 ? path : path.substring(0, to);
         // check for node type
-        if (tmpPath.equals(path))
-        {
-          node = node.addNode(name, SiteServiceGetServlet.SITE_RESOURCE_TYPE);
-        }
-        else
-        {
-          final String nodeType = getPrimaryType(reqProperties, tmpPath);
-          if (nodeType != null) {
-            node = node.addNode(name, nodeType);
-          } else {
-            node = node.addNode(name);
-          }
+        final String nodeType = getPrimaryType(reqProperties, tmpPath);
+        if (nodeType != null) {
+          node = node.addNode(name, nodeType);
+        } else {
+          node = node.addNode(name);
         }
         // check for mixin types
         final String[] mixinTypes = getMixinTypes(reqProperties, tmpPath);
