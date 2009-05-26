@@ -22,6 +22,7 @@ import org.apache.sling.engine.auth.AuthenticationInfo;
 
 import java.io.IOException;
 
+import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,7 +46,7 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
   /**
    * Attribute name for storage of authentication
    */
-  static final String USER_CREDENTIALS = TrustedAuthentication.class.getName();
+  public static final String USER_CREDENTIALS = TrustedAuthentication.class.getName();
 
   /**
    * Path on which this authentication should be activated.
@@ -66,44 +67,26 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
    * @see org.apache.sling.engine.auth.AuthenticationHandler#authenticate(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
-  public AuthenticationInfo authenticate(HttpServletRequest request, HttpServletResponse response) {
-    HttpSession session = request.getSession(false);
+  public AuthenticationInfo authenticate(HttpServletRequest req, HttpServletResponse resp) {
     AuthenticationInfo authInfo = null;
-
-    TrustedAuthentication notes = null;
-    String user = null;
+    Credentials cred = null;
 
     // check for existing authentication already in session
+    HttpSession session = req.getSession(false);
     if (session != null && session.getAttribute(USER_CREDENTIALS) != null) {
-      notes = (TrustedAuthentication) session.getAttribute(USER_CREDENTIALS);
-      user = notes.getUser();
-    }
-    // nothing in session, get the user from the request
-    else {
-      if (request.getUserPrincipal() != null) {
-        user = request.getUserPrincipal().getName();
-      } else if (request.getRemoteUser() != null) {
-        user = request.getRemoteUser();
+      cred = (Credentials) session.getAttribute(USER_CREDENTIALS);
+    } else {
+      TrustedAuthentication auth = new TrustedAuthentication(req);
+      req.setAttribute(USER_CREDENTIALS, auth);
+      if (auth.isValid()) {
+        cred = auth.getCredentials();
       }
     }
 
-    // if a user is available, construct the authentication info and store where
-    // appropriate
-    if (user != null) {
-      SimpleCredentials cred = new SimpleCredentials(user, null);
+    // if a user is available, construct the authentication info and store
+    // credentials on the request
+    if (cred != null) {
       authInfo = new AuthenticationInfo(TRUSTED_AUTH, cred);
-      // make sure the session is available and the authentication wasn't
-      // previously retrieved from the session
-      if (session != null && notes == null) {
-        notes = new TrustedAuthentication(user);
-        session.setAttribute(USER_CREDENTIALS, notes);
-      }
-
-      // if the authentication is available, store it on the request for
-      // downstream use
-      if (notes != null) {
-        request.setAttribute(USER_CREDENTIALS, notes);
-      }
     }
 
     return authInfo;
@@ -125,14 +108,36 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
    * an inner, non-static class, it is harder for an external source to inject
    * into the authentication chain.
    */
-  final class TrustedAuthentication {
-    private final String user;
+  protected static final class TrustedAuthentication {
+    private final boolean valid;
+    private final Credentials cred;
 
-    private TrustedAuthentication(String user) {
-      this.user = user;
+    TrustedAuthentication(HttpServletRequest req) {
+      String user = getUser(req);
+      if (user != null) {
+        cred = new SimpleCredentials(user, null);
+        valid = true;
+      } else {
+        cred = null;
+        valid = false;
+      }
     }
 
-    String getUser() {
+    Credentials getCredentials() {
+      return cred;
+    }
+
+    boolean isValid() {
+      return valid;
+    }
+
+    private String getUser(HttpServletRequest req) {
+      String user = null;
+      if (req.getUserPrincipal() != null) {
+        user = req.getUserPrincipal().getName();
+      } else if (req.getRemoteUser() != null) {
+        user = req.getRemoteUser();
+      }
       return user;
     }
   }
