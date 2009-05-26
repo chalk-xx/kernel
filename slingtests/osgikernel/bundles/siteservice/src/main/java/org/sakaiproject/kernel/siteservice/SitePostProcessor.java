@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.siteservice;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.kernel.resource.AbstractResourceTypePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

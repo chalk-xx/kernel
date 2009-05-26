@@ -153,6 +153,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.resource</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -265,7 +270,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.virtual,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.virtual,org.sakaiproject.kernel.resource,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>

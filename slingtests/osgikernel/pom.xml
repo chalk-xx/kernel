@@ -59,6 +59,7 @@
         <module>bundles/messaging</module>
         <module>bundles/personal</module>
         <module>bundles/presence</module>
+        <module>bundles/resource</module>
         <module>bundles/ownerprincipalmanager</module>
      <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
