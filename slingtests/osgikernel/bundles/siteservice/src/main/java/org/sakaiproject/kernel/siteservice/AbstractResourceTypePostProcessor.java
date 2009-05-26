@@ -65,32 +65,10 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
             .getRequestURI());
         LOGGER.info("Change from [{}] to [{}] type [{}] ", new Object[] {m.getSource(),
             m.getSource(), m.getType()});
-        switch (m.getType()) {
-        case COPY:
-          onCopy(request, m);
-          break;
-        case CREATE:
-          onCreate(request, m);
-          break;
-        case DELETE:
-          onDelete(request, m);
-          break;
-        case MODIFY:
-          onModify(request, m);
-          break;
-        case MOVE:
-          onMove(request, m);
-          break;
-        case ORDER:
-          onOrder(request, m);
-          break;
-        default:
-          onOther(request, m);
-        }
+        doProcess(request, changes);
+        break;
       }
-
     }
-
     long en = System.currentTimeMillis();
     LOGGER.info("Resource Type Processing added {} ms ", (en - st));
   }
@@ -100,9 +78,12 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
    * @return
    */
   private boolean isMatching(SlingHttpServletRequest request, Modification m) {
+    LOGGER.info("Matching operation {} ", m.getType());
     if (ModificationType.CREATE.equals(m.getType())) {
       RequestParameter resourceType = request
           .getRequestParameter(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
+      LOGGER.info("This is a create operation with resourceType {} matches {} ?",
+          resourceType, targetResourceType);
       if (resourceType != null && targetResourceType.equals(resourceType.getString())) {
         LOGGER.info("Post Processing for {}  on {} ", targetResourceType, request
             .getRequestURI());
@@ -112,10 +93,21 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
       Session s = request.getResourceResolver().adaptTo(Session.class);
       String path = m.getSource();
       try {
+        LOGGER.info("Checking source {} ", path);
         if (s.itemExists(path)) {
+          LOGGER.info("Source Exists {} ", path);
+
           Item item = s.getItem(path);
-          if (item != null && item.isNode()) {
-            Node n = (Node) item;
+          LOGGER.info("Item is  {} ", item);
+          if (item != null) {
+            Node n = null;
+            if (item.isNode()) {
+              n = (Node) item;
+            } else {
+              n = item.getParent();
+            }
+            LOGGER.info("Node  is  {} and has property {} ", item, n
+                .hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY));
 
             if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
                 && targetResourceType.equals(n.getProperty(
@@ -137,43 +129,8 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
    * @param request
    * @param changes
    */
-  protected abstract void onOther(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param changes
-   */
-  protected abstract void onOrder(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param changes
-   */
-  protected abstract void onMove(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param m
-   */
-  protected abstract void onModify(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param m
-   */
-  protected abstract void onDelete(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param m
-   */
-  protected abstract void onCreate(SlingHttpServletRequest request, Modification m);
-
-  /**
-   * @param request
-   * @param m
-   */
-  protected abstract void onCopy(SlingHttpServletRequest request, Modification m);
+  protected abstract void doProcess(SlingHttpServletRequest request,
+      List<Modification> changes);
 
   /**
    * @return

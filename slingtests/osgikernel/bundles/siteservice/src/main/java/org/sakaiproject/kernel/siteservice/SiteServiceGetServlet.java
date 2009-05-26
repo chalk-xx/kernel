@@ -50,7 +50,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SiteServiceGetServlet extends SlingAllMethodsServlet {
   
-  public static final String SITE_RESOURCE_TYPE = "sakai:site";
+  /**
+   *
+   */
+  private static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
+  public static final String SITE_RESOURCE_TYPE = "sakai/site";
   public static final String DEFAULT_SITE = "/sites/default.html";
   
   private static final Logger LOG = LoggerFactory.getLogger(SiteServiceGetServlet.class);
@@ -68,9 +72,9 @@ public class SiteServiceGetServlet extends SlingAllMethodsServlet {
     }
     try {
       String templatePath = DEFAULT_SITE;
-      if (site.hasProperty("sakai:site-template"))
+      if (site.hasProperty(SAKAI_SITE_TEMPLATE))
       {
-        templatePath = site.getProperty("sakai:site-template").getString();
+        templatePath = site.getProperty(SAKAI_SITE_TEMPLATE).getString();
       }
       Resource siteTemplate = request.getResourceResolver().getResource(templatePath);
       IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
