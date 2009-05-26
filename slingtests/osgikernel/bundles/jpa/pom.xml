@@ -21,6 +21,7 @@
   <packaging>bundle</packaging>
   <version>1.1.0</version>
   <name>EclipseLink JPA Bundle</name>
+  <description>Provides JPA Support for eclipse link.</description>
   <build>
     <plugins>
       <plugin>

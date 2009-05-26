@@ -9,6 +9,7 @@
   <artifactId>org.sakaiproject.kernel.shindig</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Shindig Bundle</name>
+  <description>Apache Shindig Social API and Gadget Server bundle.</description>
   <version>0.1-SNAPSHOT</version>
   <properties>
     <shindig.version>1.0-incubating</shindig.version>

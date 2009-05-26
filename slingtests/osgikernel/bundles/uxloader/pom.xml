@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel UX Loader</name>
+  <description>Loads the Sakai 3 UI into the JCR</description>
   <build>
     <plugins>
       <plugin>

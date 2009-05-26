@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Site Service Bundle</name>
+  <description>Site Resource Type suppor.</description>
   <build>
     <plugins>
       <plugin>
@@ -41,8 +42,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
+            <Private-Package>org.sakaiproject.kernel.siteservice</Private-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/site.cnd</Sling-Nodetypes>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
@@ -62,6 +62,26 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.resource</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.api</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.4</version>
@@ -78,52 +98,6 @@
       <artifactId>slf4j-simple</artifactId>
       <version>1.5.2</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.json-lib</groupId>
-      <artifactId>json-lib</artifactId>
-      <version>2.2</version>
-      <classifier>jdk15</classifier>
-    </dependency> 
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.session</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.jcr</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.jackrabbit.usermanager</artifactId>
-      <version>2.0.2-incubator</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.4-incubator</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.base</artifactId>
-      <version>2.0.4-incubator</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.resource</artifactId>
-      <version>2.0.4-incubator</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.api</artifactId>
-      <version>2.0.4-incubator</version>
     </dependency>
   </dependencies>
 </project>

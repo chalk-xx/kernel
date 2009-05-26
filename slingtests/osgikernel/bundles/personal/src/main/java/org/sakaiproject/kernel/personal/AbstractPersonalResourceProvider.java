@@ -17,83 +17,28 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceProvider;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
-
-import java.util.Iterator;
-
-import javax.servlet.http.HttpServletRequest;
+import org.sakaiproject.kernel.virtual.AbstractVirtualResourceProvider;
 
 /**
- * Manages personal space for the user.
+ * 
  */
-public abstract class AbstractPersonalResourceProvider implements ResourceProvider {
+public abstract class AbstractPersonalResourceProvider extends
+    AbstractVirtualResourceProvider {
 
   /**
    * The user factory service, injected.
+   * 
+   * @scr.reference name="UserFactoryService"
+   *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
    */
   protected UserFactoryService userFactoryService;
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
-   *      java.lang.String)
-   */
-  public Resource getResource(ResourceResolver resourceResolver, String path) {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#getResource(org.apache.sling.api.resource.ResourceResolver,
-   *      javax.servlet.http.HttpServletRequest, java.lang.String)
-   */
-  public Resource getResource(ResourceResolver resourceResolver,
-      HttpServletRequest request, String path) {
-    if (path.startsWith(getBasePath())) {
-      String userId = request.getRemoteUser();
-      String resourcePath = getResourcePath(userId, path);
-      if (resourcePath != null) {
-        return resourceResolver.resolve(resourcePath);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the base path for the resource.
-   */
-  protected abstract String getBasePath();
-
-  /**
-   * gets the resource path for a userid and subpath.
-   * 
-   * @param userId
-   *          the user id
-   * @param path
-   *          the path starting with the BasePath
-   * @return a transpated resource path.
-   */
-  protected abstract String getResourcePath(String userId, String path);
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
-   */
-  public Iterator<Resource> listChildren(Resource parent) {
-    return null;
-  }
-
-  public void bindUserFactoryService(UserFactoryService userFactoryService) {
+  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = userFactoryService;
   }
 
-  public void unbindUserFactoryService(UserFactoryService userFactoryService) {
+  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = null;
   }
 

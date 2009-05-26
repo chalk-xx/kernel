@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import org.sakaiproject.kernel.util.PathUtils;
+
 /**
  * 
  * 
@@ -25,28 +27,27 @@ package org.sakaiproject.kernel.personal;
  * @scr.property name="service.description"
  *               value="Handles requests for Personal Public resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="provider.roots" value="/system/ppublic/"
+ * @scr.property name="provider.roots" value="/_user/public/"
  * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
  */
 public class PersonalPublicResourceProvider extends AbstractPersonalResourceProvider {
 
   /**
    * The base path.
    */
-  private static final String BASE_PATH = "/system/ppublic/";
+  private static final String BASE_PATH = "/_user/public";
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getResourcePath(java.lang.String,
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getResourcePath(java.lang.String,
    *      java.lang.String)
    */
   @Override
   protected String getResourcePath(String userId, String path) {
     // ignore the userid, and use the first element in the path.
-    String resourcePath = path.substring(0, BASE_PATH.length());
+    String resourcePath = path.substring(BASE_PATH.length());
+    resourcePath = PathUtils.normalizePath(resourcePath);
     int i = resourcePath.indexOf('/');
     if ( i > 0 ) {
       String pathUserId = resourcePath.substring(0,i);
@@ -60,7 +61,7 @@ public class PersonalPublicResourceProvider extends AbstractPersonalResourceProv
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getBasePath()
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getBasePath()
    */
   @Override
   protected String getBasePath() {

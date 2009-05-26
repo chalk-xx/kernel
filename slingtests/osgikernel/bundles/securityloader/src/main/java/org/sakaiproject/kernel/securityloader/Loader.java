@@ -35,6 +35,7 @@ import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProv
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,10 +43,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,14 +70,6 @@ public class Loader implements SecurityLoader {
   private List<Bundle> delayedBundles;
   private SecurityLoaderService jcrContentHelper;
   private SecurityCreator securityCreator;
-  /**
-   * A one time use seed to randomize the user location.
-   */
-  private static final long INSTANCE_SEED = System.currentTimeMillis();
-  /**
-   * Hex characters
-   */
-  private static final char[] TOHEX = "0123456789abcdef".toCharArray();
 
   /**
    * The number of levels folder used to store a user, could be a configuration option.
@@ -614,7 +604,7 @@ public class Loader implements SecurityLoader {
         public String getName() {
           return principalName;
         }
-      }, hashPath(principalName));
+      }, PathUtils.getUserPrefix(principalName, STORAGE_LEVELS));
       String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
           + user.getID();
 
@@ -656,7 +646,7 @@ public class Loader implements SecurityLoader {
         public String getName() {
           return principalName;
         }
-      }, hashPath(principalName));
+      }, PathUtils.getUserPrefix(principalName, STORAGE_LEVELS));
       String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
           + group.getID();
       changes.add(Modification.onCreated(groupPath));
@@ -747,18 +737,7 @@ public class Loader implements SecurityLoader {
     }
   }
 
-  /**
-   * @param item
-   * @return a parent path fragment for the item.
-   */
-  protected String hashPath(String item) {
-    String hash = sha1Hash(INSTANCE_SEED + item);
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < STORAGE_LEVELS; i++) {
-      sb.append(hash, i * 2, (i * 2) + 2).append("/");
-    }
-    return sb.toString();
-  }
+
 
   /**
    * @see org.apache.sling.jcr.contentloader.internal.ContentReader#parse(java.net.URL,
@@ -851,47 +830,7 @@ public class Loader implements SecurityLoader {
     return (item.isNode()) ? (Node) item : null;
   }
 
-  /**
-   * Hash the suppled string into a SHA1 hash, hex encoded.
-   * 
-   * @param tohash
-   *          the string to hash.
-   * @return a hex encoded sha1 result.
-   */
-  private String sha1Hash(String tohash) {
-    try {
-      byte[] b = tohash.getBytes("UTF8");
-      MessageDigest sha1 = MessageDigest.getInstance("SHA");
-      b = sha1.digest(b);
-      return byteToHex(b);
-    } catch (UnsupportedEncodingException e) {
-      LOGGER.debug(e.getMessage(), e);
-    } catch (NoSuchAlgorithmException e) {
-      LOGGER.debug(e.getMessage(), e);
-    }
-    return null; // if the jvm cant do UTF8 and SHA1 we are in big trouble
-    // anyway
-  }
 
-  /**
-   * hex encode the byte array.
-   * 
-   * @param base
-   *          the array to encode.
-   * @return a hex encoded array.
-   */
-  public String byteToHex(byte[] base) {
-    char[] c = new char[base.length * 2];
-    int i = 0;
-
-    for (byte b : base) {
-      int j = b;
-      j = j + 128;
-      c[i++] = TOHEX[j / 0x10];
-      c[i++] = TOHEX[j % 0x10];
-    }
-    return new String(c);
-  }
 
   /**
    * set property without processing, except for type hints

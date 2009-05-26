@@ -28,6 +28,7 @@
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Test Utilities</name>
+  <description>Testing Support Utilities.</description>
   <dependencies>
     <dependency>
       <groupId>org.apache.felix</groupId>

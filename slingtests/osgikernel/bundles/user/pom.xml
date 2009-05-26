@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel User Extension Bundle</name>
+  <description>Extension bundle that provides additional functionality in the user area as required by Sakai.</description>
   <build>
     <plugins>
       <plugin>

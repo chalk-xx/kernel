@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Personal Space Bundle</name>
+  <description>Provides support for the personal storage area bound to the current user, and support for public user spaces addressable via a url containing the user id.</description>
   <build>
     <plugins>
       <plugin>
@@ -62,6 +63,12 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.virtual</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

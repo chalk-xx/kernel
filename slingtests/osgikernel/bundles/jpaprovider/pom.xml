@@ -26,7 +26,8 @@
   <artifactId>org.sakaiproject.kernel.jpaprovider</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai JPA Mysql Provider</name>
+  <name>Sakai JPA Provider</name>
+  <description>Default JPA provider for Sakai with Embedded Derby DB.</description>
   <build>
     <plugins>
       <plugin>
