@@ -15,12 +15,12 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.siteservice;
+package org.sakaiproject.kernel.site.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +29,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGetServlet</code>
  * 
- * @scr.component immediate="true" label="SiteServiceGetServlet"
+ * @scr.component immediate="true" label="SiteGetServlet"
  *                description="Get servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="service.description"
@@ -48,16 +45,10 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.extensions" value="html"
  */
-public class SiteServiceGetServlet extends SlingAllMethodsServlet {
+public class SiteGetServlet extends AbstractSiteServlet {
   
-  /**
-   *
-   */
-  private static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
-  public static final String SITE_RESOURCE_TYPE = "sakai/site";
-  public static final String DEFAULT_SITE = "/sites/default.html";
   
-  private static final Logger LOG = LoggerFactory.getLogger(SiteServiceGetServlet.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
   @Override
@@ -71,24 +62,16 @@ public class SiteServiceGetServlet extends SlingAllMethodsServlet {
       return;
     }
     try {
-      String templatePath = DEFAULT_SITE;
-      if (site.hasProperty(SAKAI_SITE_TEMPLATE))
-      {
-        templatePath = site.getProperty(SAKAI_SITE_TEMPLATE).getString();
-      }
+      String templatePath = getSiteService().getSiteTemplate(site);
       Resource siteTemplate = request.getResourceResolver().getResource(templatePath);
       IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
       LOG.info("Streamed site template");
+      response.setStatus(HttpServletResponse.SC_OK);
       return;
-    } catch (ValueFormatException e) {
-      LOG.error("Unable to read template value", e);
-    } catch (PathNotFoundException e) {
-      LOG.error("Unable to read template value", e);
-    } catch (RepositoryException e) {
-      LOG.error("Unable to read template value", e);
+    } catch (SiteException e) {
+      response.sendError(e.getSatusCode(), e.getMessage());
+      return;
     }
-    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to render template");
-    return;
   }
 
 }

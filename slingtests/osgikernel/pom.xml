@@ -63,7 +63,7 @@
         <module>bundles/ownerprincipalmanager</module>
      <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
-        <module>bundles/siteservice</module>
+        <module>bundles/site</module>
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
         <module>bundles/virtual</module>
