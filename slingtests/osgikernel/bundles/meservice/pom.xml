@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Me Service Bundle</name>
+  <description>Me service to provide information on the current user.</description>
   <build>
     <plugins>
       <plugin>

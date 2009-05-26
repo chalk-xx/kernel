@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Security Loader Bundle</name>
+  <description>Security Loader Bundle, watches for bundles with security configuration and loads them into the JCR on startup, recording the details in /var in the JCR .</description>
   <build>
     <plugins>
       <plugin>

@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Guice Bundle</name>
+  <description>Support libraries for simple Guice1 usage within a bundle. Does not work for Guice based bundles that contain non listed concrete classes in the bundle (requires Guice2).</description>
   <build>
     <plugins>
       <plugin>

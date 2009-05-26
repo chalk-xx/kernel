@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Path Virtualization Bundle</name>
+  <description>Provides support for path abstraction and virtualization between the URL space and the JCR content space via virtualizing Resources.</description>
   <build>
     <plugins>
       <plugin>

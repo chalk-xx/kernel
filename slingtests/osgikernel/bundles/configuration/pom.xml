@@ -20,7 +20,8 @@
   <artifactId>org.sakaiproject.kernel.configuration</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Kernel Bundle</name>
+  <name>Sakai Kernel Configuration Bundle</name>
+  <description>Provides configuration support for the Kernel bound to OSIGi configuration services.</description>
   <build>
     <plugins>
       <plugin>

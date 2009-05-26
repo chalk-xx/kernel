@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Memory Bundle</name>
+  <description>Caching Support for Sakai Kernel (uses Ehcache for underlying cache).</description>
   <build>
     <plugins>
       <plugin>

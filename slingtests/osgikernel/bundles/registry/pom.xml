@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Registry Bundle</name>
+  <description>Registry Service.</description>
   <build>
     <plugins>
       <plugin>

@@ -20,6 +20,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai JPA Mysql Hello World</name>
+  <description>Example JPA Bundle usage.</description>
   <build>
     <plugins>
       <plugin>

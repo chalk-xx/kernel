@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Samples: Hello World</name>
+  <description>Sample Bundle: Hello World.</description>
   <build>
     <plugins>
       <plugin>

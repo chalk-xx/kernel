@@ -22,6 +22,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Form Auth Bundle</name>
+  <description>Provides Form based authentication support to the request cycle and adds a URL against which form based authentication can be performed.</description>
   <build>
     <plugins>
       <plugin>
