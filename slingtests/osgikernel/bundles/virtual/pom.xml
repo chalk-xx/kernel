@@ -18,11 +18,11 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.samples.helloworld</artifactId>
+  <artifactId>org.sakaiproject.kernel.virtual</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Kernel Samples: Hello World</name>
-  <description>Sample Bundle: Hello World.</description>
+  <name>Sakai Path Virtualization Bundle</name>
+  <description>Provides support for path abstraction and virtualization between the URL space and the JCR content space via virtualizing Resources.</description>
   <build>
     <plugins>
       <plugin>
@@ -36,7 +36,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.samples.helloworld </Export-Package>
+            <Export-Package> org.sakaiproject.kernel.virtual </Export-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -44,12 +44,39 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

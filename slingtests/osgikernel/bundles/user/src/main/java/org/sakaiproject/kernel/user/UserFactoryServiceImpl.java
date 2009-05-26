@@ -24,6 +24,8 @@ import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.sakaiproject.kernel.util.MapUtils;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -43,6 +45,7 @@ import java.util.Map;
  */
 public class UserFactoryServiceImpl implements UserFactoryService, ConfigurationListener {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(UserFactoryServiceImpl.class);
   private String userEnvironmentBase;
   private Map<String, String> userTemplateMap;
   private String defaultTemplate;
@@ -53,6 +56,9 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
   private String privatePathBase;
 
   private ConfigurationService configurationService;
+  
+  /** @scr.property name="storage.levels" value="3" */
+  private int levels = 3;
 
   /**
    * 
@@ -82,8 +88,8 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @return
    */
   public String getUserEnvironmentBasePath(String uuid) {
-    String prefix = PathUtils.getUserPrefix(uuid);
-    return userEnvironmentBase + prefix;
+    String prefix = PathUtils.getUserPrefix(uuid,levels);
+    return PathUtils.normalizePath(userEnvironmentBase + "/" + prefix);
   }
 
   /**
@@ -108,7 +114,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserPathPrefix(java.lang.String)
    */
   public String getUserPathPrefix(String uuid) {
-    return PathUtils.getUserPrefix(uuid);
+    return PathUtils.getUserPrefix(uuid,levels);
   }
 
   /**
@@ -143,7 +149,8 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserPrivatePath(java.lang.String)
    */
   public String getUserPrivatePath(String uuid) {
-    return privatePathBase + PathUtils.getUserPrefix(uuid);
+    LOGGER.info("User private Path ["+privatePathBase+"] ["+uuid+"]" );
+    return PathUtils.normalizePath(privatePathBase + "/" + PathUtils.getUserPrefix(uuid,levels));
   }
 
   /**
@@ -152,7 +159,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserSharedPrivatePath(java.lang.String)
    */
   public String getUserSharedPrivatePath(String uuid) {
-    return sharedPrivatePathBase + PathUtils.getUserPrefix(uuid);
+    return PathUtils.normalizePath(sharedPrivatePathBase + "/" + PathUtils.getUserPrefix(uuid,levels));
   }
 
   /**
@@ -191,9 +198,11 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
     if (config.containsKey(KernelConstants.PRIVATE_PATH_BASE)) {
 
       privatePathBase = config.get(KernelConstants.PRIVATE_PATH_BASE);
+      LOGGER.info("Loaded Private space as "+privatePathBase);
     }
     if (config.containsKey(KernelConstants.PRIVATE_SHARED_PATH_BASE)) {
       sharedPrivatePathBase = config.get(KernelConstants.PRIVATE_SHARED_PATH_BASE);
+      LOGGER.info("LoadedShared space as "+sharedPrivatePathBase);
     }
     if (config.containsKey(KernelConstants.JCR_USERENV_TEMPLATES)) {
 

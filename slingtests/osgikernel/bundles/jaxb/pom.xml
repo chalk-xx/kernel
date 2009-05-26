@@ -18,6 +18,7 @@
     <version>0.1-SNAPSHOT</version>
   </parent>
   <artifactId>javax.xml.bind.jaxb</artifactId>
+   <description>Provides javax.xml.bind JAXB </description>
   <packaging>bundle</packaging>
   <version>2.1</version>
   <name>Jaxb Bundle</name>

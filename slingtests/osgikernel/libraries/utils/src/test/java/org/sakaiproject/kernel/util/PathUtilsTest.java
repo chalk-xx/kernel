@@ -10,11 +10,11 @@ public class PathUtilsTest {
 
   @Test
   public void testGetUserPrefix() {
-    assertEquals("/61/51/anon/", PathUtils.getUserPrefix(""));
-    assertNull(PathUtils.getUserPrefix(null));
-    assertEquals("/22/C6/Lorem/", PathUtils.getUserPrefix("Lorem"));
-    assertEquals("/DA/3B/ipsum/", PathUtils.getUserPrefix("ipsum"));
-    assertEquals("/90/8B/amet_/", PathUtils.getUserPrefix("amet."));
+    assertEquals("61/51/anon/", PathUtils.getUserPrefix("",2));
+    assertNull(PathUtils.getUserPrefix(null,2));
+    assertEquals("22/C6/Lorem/", PathUtils.getUserPrefix("Lorem",2));
+    assertEquals("DA/3B/ipsum/", PathUtils.getUserPrefix("ipsum",2));
+    assertEquals("90/8B/amet_/", PathUtils.getUserPrefix("amet.",2));
   }
 
   @Test
@@ -35,10 +35,10 @@ public class PathUtilsTest {
   @Test
   public void testGetPoolPrefix() {
     Pattern prefixFormat = Pattern
-        .compile("^\\d{4}/\\d{1,2}//\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
-    String path = PathUtils.getPoolPrefix("Lorem");
-    assertTrue(prefixFormat.matcher(path).matches());
-    assertTrue(path.endsWith("//22/C6/Lorem/"));
+        .compile("^\\d{4}/\\d{1,2}/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
+    String path = PathUtils.getPoolPrefix("Lorem",2);
+    assertTrue(path,prefixFormat.matcher(path).matches());
+    assertTrue(path.endsWith("/22/C6/Lorem/"));
   }
 
   @Test

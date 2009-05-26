@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Messaging Bundle</name>
+  <description>Messaging services for email, internal and other messages.</description>
   <build>
     <plugins>
       <plugin>

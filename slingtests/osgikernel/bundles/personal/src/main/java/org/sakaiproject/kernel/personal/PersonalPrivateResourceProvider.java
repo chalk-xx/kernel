@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import org.sakaiproject.kernel.util.PathUtils;
+
 /**
  * 
  * 
@@ -25,34 +27,37 @@ package org.sakaiproject.kernel.personal;
  * @scr.property name="service.description"
  *               value="Handles requests for Personal Private resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="provider.roots" value="/system/pprivate/"
+ * @scr.property name="provider.roots" value="/_user/private/"
  * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
  */
 public class PersonalPrivateResourceProvider extends AbstractPersonalResourceProvider {
 
   /**
    * The base path.
    */
-  private static final String BASE_PATH = "/system/pprivate/";
+  private static final String BASE_PATH = "/_user/private";
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getResourcePath(java.lang.String,
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getResourcePath(java.lang.String,
    *      java.lang.String)
    */
   @Override
   protected String getResourcePath(String userId, String path) {
-    return userFactoryService.getUserPrivatePath(userId)
-        + path.substring(0, BASE_PATH.length());
+    String resourcePath = userFactoryService.getUserPrivatePath(userId)
+        + path.substring(BASE_PATH.length());;
+    
+    if ( resourcePath.endsWith("/") ) {
+      resourcePath = resourcePath.substring(0,resourcePath.length()-1);
+    }
+    return PathUtils.normalizePath(resourcePath);
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.personal.AbstractPersonalResourceProvider#getBasePath()
+   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getBasePath()
    */
   @Override
   protected String getBasePath() {

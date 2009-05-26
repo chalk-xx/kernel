@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Kernel Utilities</name>
+  <description>Utility Library providing path, string, array, IO, date and other utilities, generally not available elsewhere.</description>
   <build>
     <plugins>
       <plugin>

@@ -28,6 +28,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Site Service Bundle</name>
+  <description>Site Resource Type suppor.</description>
   <build>
     <plugins>
       <plugin>
@@ -41,8 +42,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
+            <Private-Package>org.sakaiproject.kernel.siteservice</Private-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/site.cnd</Sling-Nodetypes>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>

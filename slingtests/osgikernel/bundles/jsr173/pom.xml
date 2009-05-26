@@ -21,6 +21,7 @@
   <packaging>bundle</packaging>
   <version>1.0</version>
   <name>JSR 173 Bundle</name>
+  <description>Provides JSR173 javax.xml.stream.* </description>
   <build>
     <plugins>
       <plugin>
