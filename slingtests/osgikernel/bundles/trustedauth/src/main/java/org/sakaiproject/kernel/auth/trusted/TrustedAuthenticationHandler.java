@@ -19,10 +19,22 @@ package org.sakaiproject.kernel.auth.trusted;
 
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.Map;
 
 import javax.jcr.Credentials;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.FailedLoginException;
+import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -34,9 +46,11 @@ import javax.servlet.http.HttpSession;
  *
  * @scr.component immediate="false" label="%auth.http.name"
  *                description="%auth.http.description"
- * @scr.service interface="org.apache.sling.engine.auth.AuthenticationHandler"
+ * @scr.service
  */
-public class TrustedAuthenticationHandler implements AuthenticationHandler {
+public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationHandler.class);
+
   /**
    * Authentication type name
    */
@@ -67,21 +81,13 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
    *      javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo authenticate(HttpServletRequest req, HttpServletResponse resp) {
-    AuthenticationInfo authInfo = null;
-    Credentials cred = null;
-
     // check for existing authentication information in session
     TrustedAuthentication auth = new TrustedAuthentication(req);
     req.setAttribute(USER_CREDENTIALS, auth);
-    if (auth.isValid()) {
-      cred = auth.getCredentials();
-    }
 
-    // if a user is available, construct the authentication info and store
-    // credentials on the request
-    if (cred != null) {
-      authInfo = new AuthenticationInfo(TRUSTED_AUTH, cred);
-    }
+    // construct the authentication info and store credentials on the request
+    Credentials cred = auth.getCredentials();
+    AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH, cred);
 
     return authInfo;
   }
@@ -95,6 +101,60 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
   public boolean requestAuthentication(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
+   */
+  public boolean canHandle(Credentials credentials) {
+    boolean notNull = credentials != null;
+    boolean isSimple = credentials instanceof SimpleCredentials;
+
+    return notNull && isSimple;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
+   *      javax.jcr.Session, java.util.Map)
+   */
+  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
+      throws LoginException {
+    return;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getAuthentication(java.security.Principal,
+   *      javax.jcr.Credentials)
+   */
+  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
+      throws RepositoryException {
+    return new TrustedAuthenticationPlugin(principal);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getPrincipal(javax.jcr.Credentials)
+   */
+  public Principal getPrincipal(Credentials credentials) {
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#impersonate(java.security.Principal,
+   *      javax.jcr.Credentials)
+   */
+  public int impersonate(Principal principal, Credentials credentials) throws RepositoryException,
+      FailedLoginException {
+    return LoginModulePlugin.IMPERSONATION_DEFAULT;
   }
 
   /**
