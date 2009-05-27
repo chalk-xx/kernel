@@ -22,6 +22,8 @@ import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -43,6 +45,12 @@ public interface SiteService {
    * The property used to store the joinable status of the site.
    */
   public static final String JOINABLE = "sakai:joinable";
+  
+  /**
+   * The property used to store the sites a group is associated with.
+   */
+  public static final String SITES = "sakai:site";
+
   /**
    * The muntivalued property to store the list of associated authorizables.
    */
@@ -227,5 +235,11 @@ public interface SiteService {
    * @throws SiteException when there is an internal problem with getting the groups.
    */
   Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort) throws SiteException;
+
+  /**
+   * @param user
+   * @throws SiteException 
+   */
+  Map<String, List<Group>> getMembership(String user) throws SiteException;
 
 }

@@ -566,4 +566,41 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @throws RepositoryException
+   * @throws IllegalStateException
+   * @throws ValueFormatException
+   * @see org.sakaiproject.kernel.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
+   */
+  @SuppressWarnings("unchecked")
+  public Map<String, List<Group>> getMembership(String user) throws SiteException {
+    try {
+      Map<String, List<Group>> sites = Maps.newHashMap();
+      Authorizable a = userManager.getAuthorizable(user);
+      if (a instanceof User) {
+        User u = (User) a;
+        for (Iterator<Group> igroup = u.memberOf(); igroup.hasNext();) {
+          Group group = igroup.next();
+          if (group.hasProperty(SiteService.SITES)) {
+            Value[] siteReferences = group.getProperty(SiteService.SITES);
+            for (Value v : siteReferences) {
+              List<Group> g = sites.get(v.getString());
+              if (g == null) {
+                g = Lists.newArrayList();
+                sites.put(v.getString(), g);
+              }
+              g.add(group);
+            }
+          }
+        }
+      }
+      return sites;
+    } catch (RepositoryException e) {
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
+    }
+  }
+
 }
