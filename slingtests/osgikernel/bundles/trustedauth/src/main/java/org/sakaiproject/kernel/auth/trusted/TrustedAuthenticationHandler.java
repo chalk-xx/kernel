@@ -23,7 +23,6 @@ import org.apache.sling.engine.auth.AuthenticationInfo;
 import java.io.IOException;
 
 import javax.jcr.Credentials;
-import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -71,16 +70,11 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
     AuthenticationInfo authInfo = null;
     Credentials cred = null;
 
-    // check for existing authentication already in session
-    HttpSession session = req.getSession(false);
-    if (session != null && session.getAttribute(USER_CREDENTIALS) != null) {
-      cred = (Credentials) session.getAttribute(USER_CREDENTIALS);
-    } else {
-      TrustedAuthentication auth = new TrustedAuthentication(req);
-      req.setAttribute(USER_CREDENTIALS, auth);
-      if (auth.isValid()) {
-        cred = auth.getCredentials();
-      }
+    // check for existing authentication information in session
+    TrustedAuthentication auth = new TrustedAuthentication(req);
+    req.setAttribute(USER_CREDENTIALS, auth);
+    if (auth.isValid()) {
+      cred = auth.getCredentials();
     }
 
     // if a user is available, construct the authentication info and store
@@ -109,17 +103,14 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
    * into the authentication chain.
    */
   protected static final class TrustedAuthentication {
-    private final boolean valid;
     private final Credentials cred;
 
     TrustedAuthentication(HttpServletRequest req) {
-      String user = getUser(req);
-      if (user != null) {
-        cred = new SimpleCredentials(user, null);
-        valid = true;
+      HttpSession session = req.getSession(false);
+      if (session != null) {
+        cred = (Credentials) session.getAttribute(USER_CREDENTIALS);
       } else {
         cred = null;
-        valid = false;
       }
     }
 
@@ -128,17 +119,7 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler {
     }
 
     boolean isValid() {
-      return valid;
-    }
-
-    private String getUser(HttpServletRequest req) {
-      String user = null;
-      if (req.getUserPrincipal() != null) {
-        user = req.getUserPrincipal().getName();
-      } else if (req.getRemoteUser() != null) {
-        user = req.getRemoteUser();
-      }
-      return user;
+      return cred != null;
     }
   }
 }

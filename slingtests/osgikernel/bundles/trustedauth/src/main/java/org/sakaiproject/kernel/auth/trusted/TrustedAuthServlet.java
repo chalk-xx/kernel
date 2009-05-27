@@ -33,7 +33,6 @@ public class TrustedAuthServlet extends HttpServlet {
       IOException {
     HttpSession session = req.getSession(true);
 
-
     TrustedAuthentication auth = (TrustedAuthentication) req
         .getAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS);
     // check for authentication on request. if found, store on request
@@ -45,5 +44,15 @@ public class TrustedAuthServlet extends HttpServlet {
     else {
       // @TODO send to authentication authority
     }
+  }
+
+  private String getUser(HttpServletRequest req) {
+    String user = null;
+    if (req.getUserPrincipal() != null) {
+      user = req.getUserPrincipal().getName();
+    } else if (req.getRemoteUser() != null) {
+      user = req.getRemoteUser();
+    }
+    return user;
   }
 }
