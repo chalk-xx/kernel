@@ -1,0 +1,231 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.kernel.api.site;
+
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+
+import java.util.Iterator;
+
+import javax.jcr.Item;
+import javax.jcr.Node;
+
+/**
+ * Site service wraps site management in Sakai Kernel.
+ */
+public interface SiteService {
+
+  /**
+   * The property name of the site template.
+   */
+  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
+  /**
+   * The resource type for a site.
+   */
+  public static final String SITE_RESOURCE_TYPE = "sakai/site";
+  /**
+   * The property used to store the joinable status of the site.
+   */
+  public static final String JOINABLE = "sakai:joinable";
+  /**
+   * The muntivalued property to store the list of associated authorizables.
+   */
+  public static final String AUTHORIZABLE = "sakai:authorizables";
+  /**
+   * The request parameter indicating the target group for join and unjoin operations.
+   */
+  public static final String PARAM_GROUP = "targetGroup";
+  public static final String PARAM_START = "start";
+  public static final String PARAM_ITEMS = "items";
+  public static final String PARAM_SORT = "sort";
+
+  /**
+   * The joinable property
+   */
+  public enum Joinable {
+    /**
+     * The site is joinable.
+     */
+    yes(),
+    /**
+     * The site is not joinable.
+     */
+    no(),
+    /**
+     * Is joinable.
+     */
+    withauth();
+  }
+
+  /**
+   * An Event Enumeration for all the events that the Site Service might emit.
+   */
+  public enum SiteEvent {
+    /**
+     * This event is posted to indicate the at join workflow should be started for the
+     * user.
+     */
+    startJoinWorkflow(),
+    /**
+     * Indicates that a user just joined the site.
+     */
+    joinedSite(),
+    /**
+     * Indicates a user just left the site.
+     */
+    unjoinedSite();
+    /**
+     * The topic that the event is sent as.
+     */
+    public static final String TOPIC = "org/sakaiproject/kernel/api/site/event/";
+    /**
+     * The event property name use to store the JCR path to the site.
+     */
+    public static final String SITE = "site";
+    /**
+     * The use that is the subject of the event.
+     */
+    public static final String USER = "user";
+    /**
+     * The target group of the request.
+     */
+    public static final String GROUP = "group";
+
+    /**
+     * @return a topic ID for sites, bound to the operation being performed.
+     */
+    public String getTopic() {
+      return TOPIC + toString();
+    }
+
+  }
+
+  /**
+   * @param site
+   *          the site to test.
+   * @return true if item represents a site.
+   */
+  boolean isSite(Item site);
+
+  /**
+   * Join a site in a target Group. The target Group must already be associated with the
+   * site and the Site and the group must both be joinable. THe target group does not need
+   * to be a directly associated with the site.
+   * 
+   * @param site
+   *          the site to join
+   * @param targetGroup
+   *          the target Group to join
+   * @throws SiteException
+   *           if its not possible to fulfill the request.
+   */
+  void joinSite(Node site, String targetGroup) throws SiteException;
+
+  /**
+   * @param site
+   *          the site in question.
+   * @return the joinable status of the site.
+   */
+  Joinable getJoinable(Node site);
+
+  /**
+   * @param authorizable
+   *          the authorizable in question.
+   * @return the joinable status of the authorizable
+   */
+  Joinable getJoinable(Authorizable authorizable);
+
+  /**
+   * Is the group a member of the site, either directly or implied.
+   * 
+   * @param site
+   *          the site in question.
+   * @param group
+   *          the group under test.
+   * @return true if the group is a member of the site.
+   */
+  boolean isMember(Node site, Authorizable group);
+
+  /**
+   * Initiate a join workflow for the site and the user. The user is taken from the
+   * current request.
+   * 
+   * @param site
+   *          the site in question
+   * @param group
+   *          the group being joined.
+   * @throws SiteException
+   *           thrown if there was a problem initiating the join workflow.
+   */
+  void startJoinWorkfow(Node site, Group group) throws SiteException;
+
+  /**
+   * @param site
+   *          the site in question.
+   * @return the path to the template associated with the site, may be the default site
+   *         template if none is specified.
+   */
+  String getSiteTemplate(Node site) throws SiteException;
+
+  /**
+   * Unjoin a site, only if the user is a member of the group and the group is associated
+   * with the site. The user mist also be a member of the group.
+   * 
+   * @param site
+   *          the site containing the group.
+   * @param group
+   *          the group to unjoin.
+   */
+  void unjoinSite(Node site, String string) throws SiteException;
+
+  /**
+   * Lists declared members of the site with a sort order and paging.
+   * 
+   * @param site
+   *          the Site node
+   * @param start
+   *          the first item of the iterator
+   * @param nitems
+   *          the number of items
+   * @param sort
+   *          an array of sort specifications, in order of preference.
+   * @param sortOrder
+   *          the sort order of each field.
+   * @return An iterator of User elements representing the users of the the site, this
+   *         does not include users that have membership of dynamic groups, or groups
+   */
+  Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort);
+
+  /**
+   * Get and Iterator of Groups for the site.
+   * 
+   * @param site
+   *          the site node.
+   * @param start
+   *          the first group.
+   * @param nitems
+   *          the number of groups.
+   * @param sort
+   *          a specification for sorting.
+   * @return an Iterator of groups for the list requested.
+   * @throws SiteException when there is an internal problem with getting the groups.
+   */
+  Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort) throws SiteException;
+
+}
