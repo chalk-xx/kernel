@@ -19,6 +19,9 @@ package org.sakaiproject.kernel.api.site;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+
+import java.util.Iterator;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -48,6 +51,9 @@ public interface SiteService {
    * The request parameter indicating the target group for join and unjoin operations.
    */
   public static final String PARAM_GROUP = "targetGroup";
+  public static final String PARAM_START = "start";
+  public static final String PARAM_ITEMS = "items";
+  public static final String PARAM_SORT = "sort";
 
   /**
    * The joinable property
@@ -187,5 +193,39 @@ public interface SiteService {
    *          the group to unjoin.
    */
   void unjoinSite(Node site, String string) throws SiteException;
+
+  /**
+   * Lists declared members of the site with a sort order and paging.
+   * 
+   * @param site
+   *          the Site node
+   * @param start
+   *          the first item of the iterator
+   * @param nitems
+   *          the number of items
+   * @param sort
+   *          an array of sort specifications, in order of preference.
+   * @param sortOrder
+   *          the sort order of each field.
+   * @return An iterator of User elements representing the users of the the site, this
+   *         does not include users that have membership of dynamic groups, or groups
+   */
+  Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort);
+
+  /**
+   * Get and Iterator of Groups for the site.
+   * 
+   * @param site
+   *          the site node.
+   * @param start
+   *          the first group.
+   * @param nitems
+   *          the number of groups.
+   * @param sort
+   *          a specification for sorting.
+   * @return an Iterator of groups for the list requested.
+   * @throws SiteException when there is an internal problem with getting the groups.
+   */
+  Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort) throws SiteException;
 
 }
