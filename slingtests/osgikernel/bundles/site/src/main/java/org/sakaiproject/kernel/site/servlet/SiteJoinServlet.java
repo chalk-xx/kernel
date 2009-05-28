@@ -83,16 +83,15 @@ public class SiteJoinServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Target Group must be specified in the request parameter "
               + SiteService.PARAM_GROUP);
+    } else {
+      try {
+        getSiteService().joinSite(site, requestedGroup.getString());
+
+        response.sendError(HttpServletResponse.SC_OK);
+      } catch (SiteException ex) {
+        response.sendError(ex.getSatusCode(), ex.getMessage());
+      }
     }
-
-    try {
-      getSiteService().joinSite(site, requestedGroup.getString());
-
-      response.sendError(HttpServletResponse.SC_OK);
-    } catch (SiteException ex) {
-      response.sendError(ex.getSatusCode(), ex.getMessage());
-    }
-
     return;
 
   }

@@ -94,7 +94,7 @@ public class SiteServiceImpl implements SiteService {
         Node n = (Node) site;
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             && SiteService.SITE_RESOURCE_TYPE.equals(n
-                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
+                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getValue())) {
           return true;
         }
       }
