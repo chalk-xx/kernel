@@ -23,8 +23,8 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.site.SiteException;
+import org.sakaiproject.kernel.api.site.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -60,9 +61,10 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
 
     try {
       String u = request.getRemoteUser();
-      Map<String, List<Group>> membership = getSiteService().getMembership(u);
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Map<String, List<Group>> membership = getSiteService().getMembership(session, u);
 
-      JSONWriter output = new JSONWriter(response.getWriter());
+      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
       output.array();
       for (Entry<String, List<Group>> site : membership.entrySet()) {
         Resource resource = request.getResourceResolver().resolve(site.getKey());
@@ -80,7 +82,7 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
         output.endArray();
 
         output.key("site");
-        output.value(resource.adaptTo(ValueMap.class));
+        output.valueMap(resource.adaptTo(ValueMap.class));
         output.endObject();
 
       }

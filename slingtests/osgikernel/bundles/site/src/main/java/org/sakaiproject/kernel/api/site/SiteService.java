@@ -27,6 +27,7 @@ import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.Session;
 
 /**
  * Site service wraps site management in Sakai Kernel.
@@ -240,6 +241,6 @@ public interface SiteService {
    * @param user
    * @throws SiteException 
    */
-  Map<String, List<Group>> getMembership(String user) throws SiteException;
+  Map<String, List<Group>> getMembership(Session session, String user) throws SiteException;
 
 }

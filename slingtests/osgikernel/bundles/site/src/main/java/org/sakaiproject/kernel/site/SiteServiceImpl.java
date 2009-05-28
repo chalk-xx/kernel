@@ -25,6 +25,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.site.SiteException;
@@ -56,8 +57,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description"
  *               value="Provides a site service to manage sites."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @src.reference name="userManager" bind="bindUserManager" unbind="unbindUserManager"
- * @src.reference name="eventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
+ * @scr.reference name="eventAdmin" interface="org.osgi.service.event.EventAdmin"
  */
 public class SiteServiceImpl implements SiteService {
 
@@ -72,11 +72,6 @@ public class SiteServiceImpl implements SiteService {
    * The maximum size of any list before we truncate. The user is warned.
    */
   private static final int MAXLISTSIZE = 10000;
-
-  /**
-   * The user manager implementation.
-   */
-  private UserManager userManager;
 
   /**
    * The OSGi Event Admin Service.
@@ -94,7 +89,7 @@ public class SiteServiceImpl implements SiteService {
         Node n = (Node) site;
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             && SiteService.SITE_RESOURCE_TYPE.equals(n
-                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))) {
+                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
           return true;
         }
       }
@@ -115,6 +110,7 @@ public class SiteServiceImpl implements SiteService {
     try {
       Session session = site.getSession();
       String user = session.getUserID();
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable userAuthorizable = userManager.getAuthorizable(user);
       if (isMember(site, userAuthorizable)) {
         throw new SiteException(HttpServletResponse.SC_CONFLICT,
@@ -182,10 +178,11 @@ public class SiteServiceImpl implements SiteService {
    */
   public void unjoinSite(Node site, String requestedGroup) throws SiteException {
     try {
-      if (isSite(site)) {
+      if (!isSite(site)) {
         throw new SiteException(HttpServletResponse.SC_BAD_REQUEST, site.getPath()
             + " is not a site");
       }
+      UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       Authorizable authorizable = userManager.getAuthorizable(requestedGroup);
       if (!(authorizable instanceof Group)) {
         throw new SiteException(HttpServletResponse.SC_BAD_REQUEST,
@@ -209,7 +206,7 @@ public class SiteServiceImpl implements SiteService {
 
       if (!targetGroup.removeMember(userAuthorizable)) {
         throw new SiteException(HttpServletResponse.SC_CONFLICT, "User " + user
-            + " was no a member of " + requestedGroup);
+            + " was not a member of " + requestedGroup);
       }
       postEvent(SiteEvent.unjoinedSite, site, targetGroup);
 
@@ -263,6 +260,7 @@ public class SiteServiceImpl implements SiteService {
      */
     // low cost check
     try {
+      UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Value[] values = site.getProperty(SiteService.AUTHORIZABLE).getValues();
         for (Value v : values) {
@@ -334,12 +332,12 @@ public class SiteServiceImpl implements SiteService {
     return Joinable.no;
   }
 
-  public void bindUserManager(UserManager userManager) {
-    this.userManager = userManager;
+  public void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
   }
 
-  public void unbindUserManager(UserManager userManager) {
-    this.userManager = null;
+  public void unbindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = null;
   }
 
   /**
@@ -347,7 +345,7 @@ public class SiteServiceImpl implements SiteService {
    * 
    * @see org.sakaiproject.kernel.api.site.SiteService#getSiteTemplate(javax.jcr.Node)
    */
-  public String getSiteTemplate(Node site) throws SiteException {
+  public String getSiteTemplate(Node site) {
     try {
       if (site.hasProperty(SiteService.SAKAI_SITE_TEMPLATE)) {
         return site.getProperty(SiteService.SAKAI_SITE_TEMPLATE).getString();
@@ -422,6 +420,7 @@ public class SiteServiceImpl implements SiteService {
     Map<Group, Membership> groups = Maps.newLinkedHashMap();
     Map<User, Membership> users = Maps.newLinkedHashMap();
     try {
+      UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Value[] values = site.getProperty(SiteService.AUTHORIZABLE).getValues();
         for (Value v : values) {
@@ -575,9 +574,10 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.kernel.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
    */
   @SuppressWarnings("unchecked")
-  public Map<String, List<Group>> getMembership(String user) throws SiteException {
+  public Map<String, List<Group>> getMembership(Session session, String user) throws SiteException {
     try {
       Map<String, List<Group>> sites = Maps.newHashMap();
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable a = userManager.getAuthorizable(user);
       if (a instanceof User) {
         User u = (User) a;

@@ -9,7 +9,7 @@ public class AbstractEasyMockTest {
   private List<Object> mocks;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     mocks = new ArrayList<Object>();
   }
 

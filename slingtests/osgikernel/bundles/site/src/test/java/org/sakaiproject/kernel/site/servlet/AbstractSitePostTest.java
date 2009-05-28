@@ -14,7 +14,6 @@ import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,8 +27,6 @@ public abstract class AbstractSitePostTest extends AbstractSiteNodeTest {
   protected void goodRequestAndSessionSetup() throws RepositoryException
   {
     goodRequestSetup();
-    Session session = createMock(Session.class);
-    expect(node.getSession()).andReturn(session).anyTimes();
     user = createDummyUser(TEST_USERNAME);
     expect(session.getUserID()).andReturn(TEST_USERNAME).anyTimes();
   }

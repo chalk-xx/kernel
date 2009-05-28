@@ -26,7 +26,7 @@ import org.sakaiproject.kernel.api.site.SiteService;
 public class AbstractSiteServlet extends SlingAllMethodsServlet {
 
   /**
-   * @src.reference name="siteService" bind="bindSiteService" unbind="unbindSiteService"
+   * @scr.reference name="SiteService"
    */
   private SiteService siteService;
   /**

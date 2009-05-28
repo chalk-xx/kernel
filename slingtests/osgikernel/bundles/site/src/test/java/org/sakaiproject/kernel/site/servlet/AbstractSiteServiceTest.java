@@ -27,7 +27,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
 
   @Override
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     super.setUp();
     userManager = createMock(UserManager.class);
     eventAdmin = createMock(EventAdmin.class);
@@ -82,12 +82,10 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   protected void preRequest() {
     replay();
     siteService = new SiteServiceImpl();
-    siteService.bindUserManager(userManager);
     siteService.bindEventAdmin(eventAdmin);
   }
 
   protected void postRequest() {
-    siteService.unbindUserManager(userManager);
     siteService.unbindEventAdmin(eventAdmin);
     verify();
   }

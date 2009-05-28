@@ -24,14 +24,16 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.site.ExtendedJSONWriter;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -44,7 +46,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.component immediate="true" label="SiteGetServlet"
  *                description="Get members servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Gets lists of members for a site"
+ * @scr.property name="service.description"
+ *               value="Gets lists of members for a site"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
  * @scr.property name="sling.servlet.methods" value="GET"
@@ -64,6 +67,10 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
       return;
     }
+    if (!getSiteService().isSite(site)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Location does not represent site ");
+      return;
+    }
     RequestParameter startParam = request.getRequestParameter(SiteService.PARAM_START);
     RequestParameter itemsParam = request.getRequestParameter(SiteService.PARAM_ITEMS);
     RequestParameter[] sortParam = request.getRequestParameters(SiteService.PARAM_SORT);
@@ -74,44 +81,46 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       try {
         start = Integer.parseInt(startParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START, startParam
-            .getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START, startParam.getString());
       }
     }
     if (itemsParam != null) {
       try {
         items = Integer.parseInt(itemsParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS, startParam
-            .getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS, startParam.getString());
       }
     }
     if (sortParam != null) {
-      sort = new Sort[sortParam.length];
-      int i = 0;
+      List<Sort> sorts = new ArrayList<Sort>();
       for (RequestParameter p : sortParam) {
-        sort[i++] = new Sort(p.toString());
+        try {
+          sorts.add(new Sort(p.getString()));
+        } catch (IllegalArgumentException ie) {
+          LOGGER.warn("Invalid sort parameter: " + p.getString());
+        }
       }
+      sort = sorts.toArray(new Sort[] {});
     }
 
     Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
 
     try {
-    JSONWriter output = new JSONWriter(response.getWriter());
-    output.array();
-    for (; members.hasNext();) {
-      User u = members.next();
-      Resource resource = request.getResourceResolver().resolve(
-          "/system/userManager/user/" + u.getID());
-      output.value(resource.adaptTo(ValueMap.class));
-    }
-    output.endArray();
+      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
+      output.array();
+      for (; members.hasNext();) {
+        User u = members.next();
+        Resource resource = request.getResourceResolver().resolve(
+            "/system/userManager/user/" + u.getID());
+        ValueMap map = resource.adaptTo(ValueMap.class);
+        output.valueMap(map);
+      }
+      output.endArray();
     } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,e.getMessage());      
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;
   }
-
 }

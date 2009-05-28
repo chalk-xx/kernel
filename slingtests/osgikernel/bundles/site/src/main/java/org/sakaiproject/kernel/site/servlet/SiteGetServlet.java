@@ -46,8 +46,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="html"
  */
 public class SiteGetServlet extends AbstractSiteServlet {
-  
-  
+
   private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
@@ -59,6 +58,11 @@ public class SiteGetServlet extends AbstractSiteServlet {
     if (site == null)
     {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
+      return;
+    }
+    if (!getSiteService().isSite(site)) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "Location does not represent site ");
       return;
     }
     try {
@@ -73,5 +77,5 @@ public class SiteGetServlet extends AbstractSiteServlet {
       return;
     }
   }
-
+  
 }

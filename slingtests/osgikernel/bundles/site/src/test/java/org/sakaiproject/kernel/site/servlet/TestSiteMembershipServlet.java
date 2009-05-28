@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.ServletException;
 
@@ -41,6 +42,9 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     request = createMock(SlingHttpServletRequest.class);
     createDummyUser(TEST_USER);
     expect(request.getRemoteUser()).andReturn(TEST_USER);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     JSONArray sites = makeGetRequestReturningJSON();
     assertEquals("Expected no sites back", 0, sites.length());
   }
@@ -55,7 +59,8 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     createDummyUserWithGroups(TEST_USER, siteGroups);
     expect(request.getRemoteUser()).andReturn(TEST_USER);
     ResourceResolver resolver = createMock(ResourceResolver.class);
-    expect(request.getResourceResolver()).andReturn(resolver);
+    expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(resolver.resolve(eq(TEST_SITE_PATH))).andReturn(dummySiteResource(TEST_SITE_PATH));
     JSONArray sites = makeGetRequestReturningJSON();
     assertEquals("Expected 1 site back", 1, sites.length());

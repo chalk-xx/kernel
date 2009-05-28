@@ -16,7 +16,6 @@ import org.sakaiproject.kernel.api.site.SiteService.Joinable;
 import java.io.IOException;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -50,8 +49,6 @@ public class TestSiteJoinServlet extends AbstractSitePostTest {
   public void testGroupJoinAlreadyMember() throws RepositoryException, ServletException,
       IOException {
     goodRequestSetup();
-    Session session = createMock(Session.class);
-    expect(node.getSession()).andReturn(session);
     createDummyUser("TEST UID");
     expect(session.getUserID()).andReturn("TEST UID");
     expect(node.hasProperty(eq(SiteService.AUTHORIZABLE))).andReturn(true);

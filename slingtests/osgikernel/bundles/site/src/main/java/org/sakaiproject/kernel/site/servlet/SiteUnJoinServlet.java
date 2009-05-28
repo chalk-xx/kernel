@@ -83,6 +83,7 @@ public class SiteUnJoinServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Target Group must be specified in the request parameter "
               + SiteService.PARAM_GROUP);
+      return;
     }
 
     try {

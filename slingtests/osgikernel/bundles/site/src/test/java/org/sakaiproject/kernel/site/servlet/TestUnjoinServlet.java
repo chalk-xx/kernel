@@ -11,7 +11,6 @@ import org.osgi.service.event.Event;
 import java.io.IOException;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,8 +41,6 @@ public class TestUnjoinServlet extends AbstractSitePostTest {
     goodRequestSetup();
     createDummyGroup(TEST_GROUP);
     setSiteGroups(new String[] {TEST_GROUP});
-    Session session = createMock(Session.class);
-    expect(node.getSession()).andReturn(session).anyTimes();
     expect(session.getUserID()).andReturn(TEST_USERNAME).anyTimes();
     createDummyGroup(TEST_USERNAME);
     response.sendError(eq(HttpServletResponse.SC_CONFLICT), isA(String.class));

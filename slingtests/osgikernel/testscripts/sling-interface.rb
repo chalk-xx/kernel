@@ -2,11 +2,8 @@
 require 'net/http'
 require 'cgi'
 require 'json'
-
-$USERMANAGER_URI="system/userManager/"
-$GROUP_URI="#{$USERMANAGER_URI}group.create.html"
-$USER_URI="#{$USERMANAGER_URI}user.create.html"
-$DEFAULT_PASSWORD="testuser"
+require 'sling-users'
+require 'sling-sites'
 
 class Hash
 
@@ -18,61 +15,14 @@ end
 
 module SlingInterface
 
-  class Principal
-    attr_accessor :name
-    
-    def initialize(name)
-      @name = name
-    end
-
-  end
-
-  class Group < Principal
-    def to_s
-      return "Group: #{@name}"
-    end
-
-    def update_properties(sling, props)
-      sling.execute_post(sling.url_for("#{$USERMANAGER_URI}group/#{@name}.update.html"), props)
-    end
-
-  end
-
-  class User < Principal
-
-    attr_accessor :password
-
-    def initialize(username, password=$DEFAULT_PASSWORD)
-      super(username)
-      @password = password
-    end
-
-    def self.admin_user
-      return User.new("admin", "admin")
-    end
-
-    def do_request_auth(req)
-      req.basic_auth(@name, @password)
-    end
-
-    def to_s
-      return "User: #{@name} (pass: #{@password})"
-    end
-
-    def update_properties(sling, props)
-      sling.execute_post(sling.url_for("#{$USERMANAGER_URI}user/#{@name}.update.html"), props)
-    end
-  end
-
   class Sling
 
     attr_accessor :debug
 
     def initialize(server="http://localhost:8080/", debug=false)
       @server = server
-      @date = Time.now().strftime("%Y%m%d%H%M%S")
       @debug = debug
-      @user = User.admin_user()
+      @user = SlingUsers::User.admin_user()
     end
 
     def dump_response(response)
@@ -106,32 +56,27 @@ module SlingInterface
       return res
     end
 
+    def execute_get_with_follow(url)
+      found = false
+      uri = URI.parse(url)
+      until found
+        host, port = uri.host, uri.port if uri.host && uri.port
+        req = Net::HTTP::Get.new(uri.path)
+        @user.do_request_auth(req)
+        res = Net::HTTP.start(host, port) {|http|  http.request(req) }
+        if res.header['location']
+          puts "Got Redirect: #{res.header['location']}"
+          uri = URI.parse(res.header['location']) 
+        else
+          found = true
+        end
+      end 
+      dump_response(res)
+      return res
+    end
+
     def url_for(path)
       return "#{@server}#{path}"
-    end
-
-    def create_user(id)
-      username = "testuser#{@date}-#{id}"
-      puts "Creating user: #{username}"
-      user = User.new(username)
-      result = execute_post("#{@server}#{$USER_URI}", 
-                            { ":name" => user.name, 
-                              "pwd" => user.password, 
-                              "pwdConfirm" => user.password })
-      if (result.code.to_i > 299)
-        return nil
-      end
-      return user
-    end
-
-    def create_group(groupname)
-      puts "Creating group: #{groupname}"
-      group = Group.new(groupname)
-      result = execute_post("#{@server}#{$GROUP_URI}", { ":name" => group.name })
-      if (result.code.to_i > 299)
-        return nil
-      end
-      return group
     end
 
     def update_properties(principal, props)
@@ -198,8 +143,9 @@ end
 if __FILE__ == $0
   puts "Sling test"  
   s = SlingInterface::Sling.new("http://localhost:8080/", false)
-  s.create_group(10)
-  user = s.create_user(10)
+  um = SlingUsers::UserManager.new(s)
+  um.create_group(10)
+  user = um.create_test_user(10)
   s.create_node("fish", { "foo" => "bar", "baz" => "jim" })
   puts s.get_node_props_json("fish")
   puts s.get_node_acl_json("fish")
