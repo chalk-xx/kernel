@@ -17,65 +17,83 @@
  */
 package org.sakaiproject.kernel.site.servlet;
 
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.site.SiteException;
-import org.sakaiproject.kernel.util.IOUtils;
+import org.sakaiproject.kernel.api.site.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import javax.jcr.Node;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The <code>SiteServiceGetServlet</code>
+ * The <code>SiteMembershipServlet</code>
  * 
  * @scr.component immediate="true" label="SiteGetServlet"
- *                description="Get servlet for site service"
+ *                description="Get members servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="service.description"
- *               value="Renders sites"
+ *               value="Gets a list of sites that the user is a member of"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
+ * @scr.property name="sling.servlet.paths" value="/system/sling/membership"
  * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="html"
  */
-public class SiteGetServlet extends AbstractSiteServlet {
+public class SiteMembershipServlet extends AbstractSiteServlet {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SiteMembershipServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    LOG.info("Got get to SiteServiceGetServlet");
-    Node site = request.getResource().adaptTo(Node.class);
-    if (site == null)
-    {
-      response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
-      return;
-    }
-    if (!getSiteService().isSite(site)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "Location does not represent site ");
-      return;
-    }
+
     try {
-      String templatePath = getSiteService().getSiteTemplate(site);
-      Resource siteTemplate = request.getResourceResolver().getResource(templatePath);
-      IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
-      LOG.info("Streamed site template");
-      response.setStatus(HttpServletResponse.SC_OK);
-      return;
+      String u = request.getRemoteUser();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Map<String, List<Group>> membership = getSiteService().getMembership(session, u);
+
+      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
+      output.array();
+      for (Entry<String, List<Group>> site : membership.entrySet()) {
+        Resource resource = request.getResourceResolver().resolve(site.getKey());
+
+        output.object();
+        output.key("siteref");
+        output.value(site.getKey());
+
+        output.key("groups");
+
+        output.array();
+        for (Group g : site.getValue()) {
+          output.value(g);
+        }
+        output.endArray();
+
+        output.key("site");
+        output.valueMap(resource.adaptTo(ValueMap.class));
+        output.endObject();
+
+      }
+      output.endArray();
+    } catch (JSONException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (SiteException e) {
+      LOGGER.warn(e.getMessage(),e);
       response.sendError(e.getSatusCode(), e.getMessage());
-      return;
     }
+    return;
   }
-  
+
 }

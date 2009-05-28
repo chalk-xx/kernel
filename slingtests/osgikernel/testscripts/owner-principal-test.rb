@@ -4,11 +4,14 @@ require 'sling-interface.rb'
 require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
+include SlingUsers
 
 class TC_MyTest < Test::Unit::TestCase
 
   def setup
     @s = Sling.new()
+    @um = UserManager.new(@s)
+    @s.debug = true
     @test_node = "some_test_node"
     @s.delete_node(@test_node)
   end
@@ -21,9 +24,9 @@ class TC_MyTest < Test::Unit::TestCase
   def test_ownership_privs
 
     # Set up user and group
-    user = @s.create_user(10)
+    user = @um.create_test_user(10)
     assert_not_nil(user, "Expected user to be created")
-    owner = @s.create_group("owner")
+    owner = @um.create_group("owner")
     if (owner == nil)
       # assume already exists
       owner = Group.new("owner")
@@ -64,7 +67,7 @@ class TC_MyTest < Test::Unit::TestCase
     puts @s.get_node_acl_json(@test_node)
 
     # Switch to a different unprivileged user and assert owner grant is not in effect
-    user2 = @s.create_user(11)
+    user2 = @um.create_test_user(11)
     @s.switch_user(user2)
     res = @s.set_node_acl_entries(child_node, user2, { "jcr:addChildNodes" => "granted" })
     assert_equal(500, res.code.to_i, "Expected not to be able to modify ACL")

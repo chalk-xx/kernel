@@ -17,48 +17,31 @@
  */
 package org.sakaiproject.kernel.site.servlet;
 
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.api.site.SiteService;
+import org.junit.Before;
 
-/**
- * 
- */
-public class AbstractSiteServlet extends SlingAllMethodsServlet {
+import java.util.ArrayList;
+import java.util.List;
 
-  /**
-   * @scr.reference name="SiteService"
-   */
-  private SiteService siteService;
-  /**
-   *
-   */
-  private static final long serialVersionUID = 5162531798000496718L;
+public class AbstractEasyMockTest {
+  private List<Object> mocks;
 
-  /**
-   * 
-   */
-  public AbstractSiteServlet() {
+  @Before
+  public void setUp() throws Exception {
+    mocks = new ArrayList<Object>();
   }
 
-  /**
-   * @param siteService
-   */
-  public void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
+  protected <T> T createMock(Class<T> c) {
+    T result = org.easymock.EasyMock.createMock(c);
+    mocks.add(result);
+    return result;
   }
 
-  /**
-   * @param siteService
-   */
-  public void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
+  protected void replay() {
+    org.easymock.EasyMock.replay(mocks.toArray());
+  }
+
+  protected void verify() {
+    org.easymock.EasyMock.verify(mocks.toArray());
   }
   
-  /**
-   * @return the siteService
-   */
-  public SiteService getSiteService() {
-    return siteService;
-  }
-
 }
