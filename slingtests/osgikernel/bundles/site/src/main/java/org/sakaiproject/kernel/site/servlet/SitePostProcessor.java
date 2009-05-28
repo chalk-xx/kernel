@@ -15,10 +15,12 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.siteservice;
+package org.sakaiproject.kernel.site.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
+import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.resource.AbstractResourceTypePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +50,7 @@ public class SitePostProcessor extends AbstractResourceTypePostProcessor {
    */
   @Override
   protected String getResourceType() {
-    return SiteServiceGetServlet.SITE_RESOURCE_TYPE;
+    return SiteService.SITE_RESOURCE_TYPE;
   }
 
   /**
