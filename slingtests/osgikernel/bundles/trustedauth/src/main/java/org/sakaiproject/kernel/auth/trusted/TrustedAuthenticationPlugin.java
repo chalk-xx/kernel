@@ -14,9 +14,15 @@ public class TrustedAuthenticationPlugin implements AuthenticationPlugin {
   public TrustedAuthenticationPlugin(Principal principal) {
     this.principal = principal;
   }
+
   public boolean authenticate(Credentials credentials) throws RepositoryException {
+    boolean auth = false;
     if (credentials instanceof SimpleCredentials) {
+      SimpleCredentials sc = (SimpleCredentials) credentials;
+      if (principal.getName().equals(sc.getUserID())) {
+        auth = true;
+      }
     }
-    return false;
+    return auth;
   }
 }

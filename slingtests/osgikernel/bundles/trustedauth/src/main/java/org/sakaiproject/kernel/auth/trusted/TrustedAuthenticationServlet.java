@@ -26,7 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-public class TrustedAuthServlet extends HttpServlet {
+public class TrustedAuthenticationServlet extends HttpServlet {
+  private static final long serialVersionUID = 1L;
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
@@ -46,6 +47,7 @@ public class TrustedAuthServlet extends HttpServlet {
     }
   }
 
+  @SuppressWarnings("unused")
   private String getUser(HttpServletRequest req) {
     String user = null;
     if (req.getUserPrincipal() != null) {

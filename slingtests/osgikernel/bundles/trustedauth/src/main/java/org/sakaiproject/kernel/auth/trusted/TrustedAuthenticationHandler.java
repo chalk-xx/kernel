@@ -21,8 +21,6 @@ import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -49,8 +47,6 @@ import javax.servlet.http.HttpSession;
  * @scr.service
  */
 public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationHandler.class);
-
   /**
    * Authentication type name
    */
@@ -121,6 +117,7 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
+  @SuppressWarnings("unchecked")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
     return;
@@ -143,7 +140,16 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getPrincipal(javax.jcr.Credentials)
    */
   public Principal getPrincipal(Credentials credentials) {
-    return null;
+    Principal principal = null;
+    if (credentials != null && credentials instanceof SimpleCredentials) {
+      SimpleCredentials sc = (SimpleCredentials) credentials;
+      principal = new TrustedPrincipal(sc);
+      /*
+       * OpenIdUser user = (OpenIdUser)sc.getAttribute(getClass().getName());
+       * if(user != null) { return new OpenIDPrincipal(user); }
+       */
+    }
+    return principal;
   }
 
   /**
