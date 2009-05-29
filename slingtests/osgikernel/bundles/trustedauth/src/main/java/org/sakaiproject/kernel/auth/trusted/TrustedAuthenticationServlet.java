@@ -20,15 +20,26 @@ import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler.Trusted
 
 import java.io.IOException;
 
+import javax.jcr.Credentials;
+import javax.jcr.SimpleCredentials;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+/**
+ * Servlet for handling authentication requests from trusted mechanisms.
+ */
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
+   */
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
       IOException {
@@ -40,21 +51,65 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     if (auth != null && auth.isValid()) {
       session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, auth.getCredentials());
     }
-    // if authentication missing or invalid, send user to authentication
-    // authority
+    // if authentication missing or invalid in session, get the information from
+    // the request.
     else {
-      // @TODO send to authentication authority
+      Credentials cred = getCredentials(req);
+      session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, cred);
     }
   }
 
-  @SuppressWarnings("unused")
-  private String getUser(HttpServletRequest req) {
-    String user = null;
+  /**
+   * Get the user ID from the request. Currently checks getRemoteUser() and
+   * getUserPrincipal() but may need to change based on how the external
+   * authentication passes the user information back. Once the user is
+   * determined, {@link Credentials} are constructed with the user and a trusted
+   * attribute.
+   *
+   * @param req
+   *          The request to sniff for a user.
+   * @return
+   */
+  private Credentials getCredentials(HttpServletRequest req) {
+    String userId = null;
     if (req.getUserPrincipal() != null) {
-      user = req.getUserPrincipal().getName();
+      userId = req.getUserPrincipal().getName();
     } else if (req.getRemoteUser() != null) {
-      user = req.getRemoteUser();
+      userId = req.getRemoteUser();
     }
-    return user;
+    SimpleCredentials sc = new SimpleCredentials(userId, null);
+    TrustedUser user = new TrustedUser(userId);
+    sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
+    return sc;
+  }
+
+  /**
+   * "Trusted" inner class for passing the user on to the authentication
+   * handler.<br/>
+   * <br/>
+   * By being a static, inner class with a private constructor, it is harder for
+   * an external source to inject into the authentication chain.
+   */
+  static final class TrustedUser {
+    private final String user;
+
+    /**
+     * Constructor.
+     *
+     * @param user
+     *          The user to represent.
+     */
+    private TrustedUser(String user) {
+      this.user = user;
+    }
+
+    /**
+     * Get the user that is being represented.
+     *
+     * @return The represented user.
+     */
+    String getUser() {
+      return user;
+    }
   }
 }

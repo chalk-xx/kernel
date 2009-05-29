@@ -21,6 +21,7 @@ import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationServlet.TrustedUser;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -104,11 +105,15 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
    *
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
-  public boolean canHandle(Credentials credentials) {
-    boolean notNull = credentials != null;
-    boolean isSimple = credentials instanceof SimpleCredentials;
+  public boolean canHandle(Credentials cred) {
+    boolean hasAttribute = false;
 
-    return notNull && isSimple;
+    if (cred != null && cred instanceof SimpleCredentials) {
+      Object attr = ((SimpleCredentials) cred).getAttribute(getClass().getName());
+      hasAttribute = (attr != null);
+    }
+
+    return hasAttribute;
   }
 
   /**
@@ -143,11 +148,10 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
     Principal principal = null;
     if (credentials != null && credentials instanceof SimpleCredentials) {
       SimpleCredentials sc = (SimpleCredentials) credentials;
-      principal = new TrustedPrincipal(sc);
-      /*
-       * OpenIdUser user = (OpenIdUser)sc.getAttribute(getClass().getName());
-       * if(user != null) { return new OpenIDPrincipal(user); }
-       */
+      TrustedUser user = (TrustedUser) sc.getAttribute(getClass().getName());
+      if (user != null) {
+        principal = new TrustedPrincipal(user);
+      }
     }
     return principal;
   }
@@ -164,14 +168,15 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
   }
 
   /**
-   * Authentication information for storage in session and/or request. By being
-   * an inner, non-static class, it is harder for an external source to inject
-   * into the authentication chain.
+   * Authentication information for storage in session and/or request.<br/>
+   * <br/>
+   * By being an inner, static class with a private constructor, it is harder
+   * for an external source to inject into the authentication chain.
    */
-  protected static final class TrustedAuthentication {
+  static final class TrustedAuthentication {
     private final Credentials cred;
 
-    TrustedAuthentication(HttpServletRequest req) {
+    private TrustedAuthentication(HttpServletRequest req) {
       HttpSession session = req.getSession(false);
       if (session != null) {
         cred = (Credentials) session.getAttribute(USER_CREDENTIALS);
