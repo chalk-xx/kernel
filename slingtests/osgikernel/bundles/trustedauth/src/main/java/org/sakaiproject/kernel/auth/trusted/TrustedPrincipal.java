@@ -1,17 +1,17 @@
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationServlet.TrustedUser;
+
 import java.security.Principal;
 
-import javax.jcr.SimpleCredentials;
-
 public class TrustedPrincipal implements Principal {
-  private final SimpleCredentials sc;
+  private final TrustedUser user;
 
-  public TrustedPrincipal(SimpleCredentials sc) {
-    this.sc = sc;
+  public TrustedPrincipal(TrustedUser user) {
+    this.user = user;
   }
 
   public String getName() {
-    return sc.getUserID();
+    return user.getUser();
   }
 }
