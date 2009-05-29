@@ -93,7 +93,6 @@ public class SiteJoinServlet extends AbstractSiteServlet {
     } catch (SiteException ex) {
       response.sendError(ex.getSatusCode(), ex.getMessage());
     }
-
     return;
 
   }
