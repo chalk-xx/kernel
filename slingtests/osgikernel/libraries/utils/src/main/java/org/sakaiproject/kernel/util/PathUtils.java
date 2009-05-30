@@ -129,13 +129,21 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getPoolPrefix(String path,int levels) {
+  public static String getDatePrefix(String path,int levels) {
     String hash = getStructuredHash(path,levels);
     Calendar c = Calendar.getInstance();
     StringBuilder sb = new StringBuilder();
     sb.append(c.get(Calendar.YEAR)).append("/").append(c.get(Calendar.MONTH)).append("/")
         .append(hash);
     return sb.toString();
+  }
+  /**
+   * @param path
+   *          the original path.
+   * @return a pooled hash of the filename
+   */
+  public static String getHashedPrefix(String path,int levels) {
+    return getStructuredHash(path,levels);
   }
 
   /**
