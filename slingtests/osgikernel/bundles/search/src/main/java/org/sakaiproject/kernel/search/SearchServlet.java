@@ -85,7 +85,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
-      if (node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
+      if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
         String queryLanguage = Query.SQL;
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
@@ -149,7 +149,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         escape = false;
       } else if (vstart > 0) {
         if (c == '}') {
-          String v = new String(ca, vstart + 1, i - vstart);
+          String v = new String(ca, vstart + 1, i - vstart - 1);
           RequestParameter rp = request.getRequestParameter(v);
           if (rp != null) {
             sb.append(rp.getString());
