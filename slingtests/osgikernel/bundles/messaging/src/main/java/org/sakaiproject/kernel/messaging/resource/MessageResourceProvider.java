@@ -93,8 +93,8 @@ public class MessageResourceProvider extends AbstractVirtualResourceProvider {
       String basePath = path.substring(0, resourcePath.length());
       String pathInfo = path.substring(resourcePath.length());
       basePath = PathUtils.normalizePath(basePath);
-      pathInfo = PathUtils.normalizePath(basePath);
-      return basePath + PathUtils.getHashedPrefix(pathInfo, 4) + pathInfo;
+      pathInfo = PathUtils.normalizePath(pathInfo);
+      return basePath + PathUtils.getHashedPath(pathInfo, 4);
     }
     return null;
   }

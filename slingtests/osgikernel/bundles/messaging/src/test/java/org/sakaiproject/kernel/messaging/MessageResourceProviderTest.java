@@ -76,7 +76,7 @@ public class MessageResourceProviderTest {
     MessageResourceProvider mrp = new MessageResourceProvider();
     Resource resolvedResource = mrp.getResource(rr, "/test/messages/b/c/1001");
 
- //   assertEquals("/test/messages/AA/BB/CC/DD/b/c/1001", finalPath.getValue());
+    assertEquals("/test/messages/e9/d7/1f/5e/b/c/1001", finalPath.getValue());
     verify(rr, session, resource, nodeC, rootNode, nodeB, nodeMessages, somethingElse, sakaiMessages, finalResource);
   }
 }
