@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.kernel.util.PathUtils;
 
 /**
@@ -37,14 +38,8 @@ public class PersonalPublicResourceProvider extends AbstractPersonalResourceProv
    */
   private static final String BASE_PATH = "/_user/public";
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getResourcePath(java.lang.String,
-   *      java.lang.String)
-   */
   @Override
-  protected String getResourcePath(String userId, String path) {
+  protected String getResourcePath(ResourceResolver resourceResolver, String userId, String path) {
     // ignore the userid, and use the first element in the path.
     String resourcePath = path.substring(BASE_PATH.length());
     resourcePath = PathUtils.normalizePath(resourcePath);

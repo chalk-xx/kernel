@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.kernel.util.PathUtils;
 
 /**
@@ -39,12 +40,10 @@ public class PersonalPrivateResourceProvider extends AbstractPersonalResourcePro
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getResourcePath(java.lang.String,
-   *      java.lang.String)
+   * @see org.sakaiproject.kernel.virtual.AbstractVirtualResourceProvider#getResourcePath(org.apache.sling.api.resource.ResourceResolver, java.lang.String, java.lang.String)
    */
   @Override
-  protected String getResourcePath(String userId, String path) {
+  protected String getResourcePath(ResourceResolver resourceResolver, String userId, String path) {
     String resourcePath = userFactoryService.getUserPrivatePath(userId)
         + path.substring(BASE_PATH.length());;
     
