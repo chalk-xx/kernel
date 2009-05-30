@@ -177,7 +177,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getNewMessagePath(java.lang.String)
    */
   public String getNewMessagePath(String id) {
-    return getMessagesPath(id) + "/" + PathUtils.getMessagePrefix();
+    return getMessagesPath(id) + PathUtils.getMessagePath();
   }
 
   /**
