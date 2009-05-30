@@ -140,7 +140,7 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getDatePrefix(String path,int levels) {
+  public static String getDatePath(String path,int levels) {
     String hash = getStructuredHash(path,levels);
     Calendar c = Calendar.getInstance();
     StringBuilder sb = new StringBuilder();
@@ -153,7 +153,7 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getHashedPrefix(String path,int levels) {
+  public static String getHashedPath(String path,int levels) {
     return getStructuredHash(path,levels);
   }
 
