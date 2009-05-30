@@ -73,6 +73,11 @@ public class PathUtils {
    */
   private static String getStructuredHash(String target, int levels) {
     try {
+      // take the first element as the key for the target so that subtrees end up in the 
+      // same place.
+      String[] elements = StringUtils.split(target, '/',1);
+      target = elements[0];
+      
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
@@ -182,6 +187,53 @@ public class PathUtils {
       j--;
     }
     return new String(normalized, 0, j);
+  }
+
+  /**
+   * Removes the first element of the path
+   * @param path the path
+   * @return the path with the first element removed.
+   */
+  public static String removeFirstElement(String path) {
+    if ( path == null || path.length() == 0 ) {
+      return path;
+    }
+    char[] p = path.toCharArray();
+    int i = 0;
+    while ( i < p.length &&  p[i] == '/' ) {
+     i++; 
+    }
+    while( i < p.length && p[i] != '/' ) {
+      i++;
+    }
+    if ( i < p.length ) {
+      return new String(p,i,p.length-i);
+    }
+    return "/";
+  }
+  
+  /**
+   * Remove the last path element.
+   * @param path the path 
+   * @return the path with the last element removed.
+   */
+  public static String removeLastElement(String path) {
+    if ( path == null || path.length() == 0 ) {
+      return path;
+    }
+    char[] p = path.toCharArray();
+    int i = p.length-1;
+    while ( i >= 0 && p[i] == '/' ) {
+     i--; 
+    }
+    while( i >= 0 && p[i] != '/' ) {
+      i--;
+    }
+    if ( i > 0 ) {
+      return new String(p,0,i);
+    }
+    return "/";
+    
   }
 
 }

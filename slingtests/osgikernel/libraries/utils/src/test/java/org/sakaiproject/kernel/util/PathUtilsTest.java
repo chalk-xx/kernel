@@ -60,4 +60,27 @@ public class PathUtilsTest {
     assertEquals("/Lorem", PathUtils.normalizePath("Lorem"));
     assertEquals("/", PathUtils.normalizePath(""));
   }
+  
+  
+  @Test
+  public void testRemoveFistElement() {
+    assertEquals("/a/b/c", PathUtils.removeFirstElement("/x/a/b/c"));
+    assertEquals("/a/b/c", PathUtils.removeFirstElement("x/a/b/c"));
+    assertEquals("/a/b/c/", PathUtils.removeFirstElement("//x/a/b/c/"));
+    assertEquals(null, PathUtils.removeFirstElement(null));
+    assertEquals("/", PathUtils.removeFirstElement("/x/"));
+    assertEquals("/", PathUtils.removeFirstElement("/"));
+    assertEquals("", PathUtils.removeFirstElement(""));
+  }
+  
+  @Test
+  public void testRemoveLastElement() {
+    assertEquals("/a/b/c", PathUtils.removeLastElement("/a/b/c/x/"));
+    assertEquals("/a/b/c", PathUtils.removeLastElement("/a/b/c/x"));
+    assertEquals("/a/b/c", PathUtils.removeLastElement("/a/b/c/x///"));
+    assertEquals(null, PathUtils.removeLastElement(null));
+    assertEquals("/", PathUtils.removeLastElement("/x/"));
+    assertEquals("/", PathUtils.removeLastElement("/"));
+    assertEquals("", PathUtils.removeLastElement(""));
+  }
 }
