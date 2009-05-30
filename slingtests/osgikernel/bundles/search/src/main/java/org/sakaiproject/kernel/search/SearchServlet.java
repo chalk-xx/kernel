@@ -39,7 +39,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The <code>SearchServlet</code>
+ * The <code>SearchServlet</code> uses nodes from the 
  * 
  * @scr.component immediate="true" label="SearchServlet"
  *                description="a generic resource driven search servlet"
@@ -49,10 +49,22 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/search"
  * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json" v
+ * @scr.property name="sling.servlet.extensions" value="json" 
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
+  /**
+   *
+   */
+  private static final String RESULTS = "results";
+  /**
+   *
+   */
+  private static final String QUERY = "query";
+  /**
+   *
+   */
+  private static final String PARAMS_ITEMS = "items";
   /**
    *
    */
@@ -80,7 +92,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
         }
         int nitems = 25;
-        RequestParameter nitemsRequestParameter = request.getRequestParameter("items");
+        RequestParameter nitemsRequestParameter = request.getRequestParameter(PARAMS_ITEMS);
         if (nitemsRequestParameter != null) {
           try {
             nitems = Integer.parseInt(nitemsRequestParameter.getString());
@@ -96,11 +108,11 @@ public class SearchServlet extends SlingAllMethodsServlet {
         
         JSONWriter write = new JSONWriter(response.getWriter());
         write.object();
-        write.key("query");
+        write.key(QUERY);
         write.value(queryString);
-        write.key("items");
+        write.key(PARAMS_ITEMS);
         write.value(nitems);
-        write.key("results");
+        write.key(RESULTS);
         write.array();
         for (NodeIterator ni = result.getNodes(); i < nitems && ni.hasNext();) {
           Node resultNode = ni.nextNode();
