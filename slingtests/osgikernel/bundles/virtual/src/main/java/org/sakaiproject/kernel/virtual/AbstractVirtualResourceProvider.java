@@ -71,9 +71,12 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
    *          the user id
    * @param path
    *          the path starting with the BasePath
+   * @param resourceResolver
+   *          the Resource resolver for this request.
    * @return a transpated resource path.
    */
-  protected abstract String getResourcePath(String userId, String path);
+  protected abstract String getResourcePath(ResourceResolver resourceResolver,
+      String userId, String path);
 
   /**
    * {@inheritDoc}
@@ -96,7 +99,7 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
     if (path.startsWith(getBasePath())) {
       Session session = resourceResolver.adaptTo(Session.class);
       String userId = session.getUserID();
-      String resourcePath = getResourcePath(userId, path);
+      String resourcePath = getResourcePath(resourceResolver, userId, path);
       Resource resource = resourceResolver.resolve(resourcePath);
       if (resource != null) {
         String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
