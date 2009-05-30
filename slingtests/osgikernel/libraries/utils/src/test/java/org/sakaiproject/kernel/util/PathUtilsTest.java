@@ -19,8 +19,8 @@ public class PathUtilsTest {
 
   @Test
   public void testGetMessagePrefix() {
-    Pattern prefixFormat = Pattern.compile("^\\d{4}/\\d{1,2}/$");
-    assertTrue(prefixFormat.matcher(PathUtils.getMessagePrefix()).matches());
+    Pattern prefixFormat = Pattern.compile("^/\\d{4}/\\d{1,2}/$");
+    assertTrue(prefixFormat.matcher(PathUtils.getMessagePath()).matches());
   }
 
   @Test
@@ -35,7 +35,7 @@ public class PathUtilsTest {
   @Test
   public void testGetDatePrefix() {
     Pattern prefixFormat = Pattern
-        .compile("^\\d{4}/\\d{1,2}/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
+        .compile("^/\\d{4}/\\d{1,2}/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
     String path = PathUtils.getDatePath("Lorem",2);
     assertTrue(path,prefixFormat.matcher(path).matches());
     assertTrue(path.endsWith("/22/C6/Lorem/"));
@@ -43,11 +43,11 @@ public class PathUtilsTest {
   @Test
   public void testGetHashPrefix() {
     Pattern prefixFormat = Pattern
-        .compile("^\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
+        .compile("^/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
     String path = PathUtils.getHashedPath("Lorem",2);
     assertTrue(path,prefixFormat.matcher(path).matches());
     
-    assertEquals("22/C6/Lorem/",path);
+    assertEquals("/22/C6/Lorem/",path);
   }
 
   @Test

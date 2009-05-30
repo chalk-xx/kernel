@@ -44,12 +44,12 @@ public class PathUtils {
    *          the user for which the path will be generated.
    * @return a structured path fragment for the user.
    */
-  public static String getUserPrefix(String user,int levels) {
+  public static String getUserPrefix(String user, int levels) {
     if (user != null) {
       if (user.length() == 0) {
         user = "anon";
       }
-      return getStructuredHash(user,levels);
+      return getStructuredHash(user, levels, false);
     }
     return null;
   }
@@ -60,49 +60,52 @@ public class PathUtils {
    * @return Prefix used to store a message. Defaults to a yyyy/mm/dd structure.
    * @see java.text.SimpleDateFormat for pattern definitions.
    */
-  public static String getMessagePrefix() {
+  public static String getMessagePath() {
     Calendar c = Calendar.getInstance();
-    String prefix = c.get(Calendar.YEAR) + "/" + c.get(Calendar.MONTH) + "/";
+    String prefix = "/" + c.get(Calendar.YEAR) + "/" + c.get(Calendar.MONTH) + "/";
     return prefix;
   }
 
   /**
    * @param target
    *          the target being formed into a structured path.
+   * @param b
    * @return the structured path.
    */
-  private static String getStructuredHash(String target, int levels) {
+  private static String getStructuredHash(String target, int levels, boolean absPath) {
     try {
-      // take the first element as the key for the target so that subtrees end up in the 
+      // take the first element as the key for the target so that subtrees end up in the
       // same place.
-      String[] elements = StringUtils.split(target, '/',1);
+      String[] elements = StringUtils.split(target, '/', 1);
       String pathInfo = removeFirstElement(target);
       target = elements[0];
-     
-      
+
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
-      char[] chars = new char[levels*3 + target.length()+pathInfo.length()];
+      char[] chars = new char[(absPath?1:0) + levels * 3 + target.length() + pathInfo.length()];
+      int j = 0;
+      if (absPath) {
+        chars[j++] = '/';
+      }
       for (int i = 0; i < levels; i++) {
         byte current = userHash[i];
         int hi = (current & 0xF0) >> 4;
         int lo = current & 0x0F;
-        chars[(i*3)+0] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-        chars[(i*3)+1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
-        chars[(i*3)+2] = '/';
+        chars[j++] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
+        chars[j++] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
+        chars[j++] = '/';
       }
-      int j = levels*3;
       for (int i = 0; i < target.length(); i++) {
         char c = target.charAt(i);
         if (!Character.isLetterOrDigit(c)) {
           c = '_';
         }
         chars[j++] = c;
-        
+
       }
-      for ( int i = 0; i < pathInfo.length(); i++ ) {
-        chars[j++] = pathInfo.charAt(i); 
+      for (int i = 0; i < pathInfo.length(); i++) {
+        chars[j++] = pathInfo.charAt(i);
       }
       return new String(chars);
     } catch (NoSuchAlgorithmException e) {
@@ -140,21 +143,22 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getDatePath(String path,int levels) {
-    String hash = getStructuredHash(path,levels);
+  public static String getDatePath(String path, int levels) {
+    String hash = getStructuredHash(path, levels, true);
     Calendar c = Calendar.getInstance();
     StringBuilder sb = new StringBuilder();
-    sb.append(c.get(Calendar.YEAR)).append("/").append(c.get(Calendar.MONTH)).append("/")
+    sb.append("/").append(c.get(Calendar.YEAR)).append("/").append(c.get(Calendar.MONTH))
         .append(hash);
     return sb.toString();
   }
+
   /**
    * @param path
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getHashedPath(String path,int levels) {
-    return getStructuredHash(path,levels);
+  public static String getHashedPath(String path, int levels) {
+    return getStructuredHash(path, levels, true);
   }
 
   /**
@@ -197,49 +201,53 @@ public class PathUtils {
 
   /**
    * Removes the first element of the path
-   * @param path the path
+   * 
+   * @param path
+   *          the path
    * @return the path with the first element removed.
    */
   public static String removeFirstElement(String path) {
-    if ( path == null || path.length() == 0 ) {
+    if (path == null || path.length() == 0) {
       return path;
     }
     char[] p = path.toCharArray();
     int i = 0;
-    while ( i < p.length &&  p[i] == '/' ) {
-     i++; 
-    }
-    while( i < p.length && p[i] != '/' ) {
+    while (i < p.length && p[i] == '/') {
       i++;
     }
-    if ( i < p.length ) {
-      return new String(p,i,p.length-i);
+    while (i < p.length && p[i] != '/') {
+      i++;
+    }
+    if (i < p.length) {
+      return new String(p, i, p.length - i);
     }
     return "/";
   }
-  
+
   /**
    * Remove the last path element.
-   * @param path the path 
+   * 
+   * @param path
+   *          the path
    * @return the path with the last element removed.
    */
   public static String removeLastElement(String path) {
-    if ( path == null || path.length() == 0 ) {
+    if (path == null || path.length() == 0) {
       return path;
     }
     char[] p = path.toCharArray();
-    int i = p.length-1;
-    while ( i >= 0 && p[i] == '/' ) {
-     i--; 
-    }
-    while( i >= 0 && p[i] != '/' ) {
+    int i = p.length - 1;
+    while (i >= 0 && p[i] == '/') {
       i--;
     }
-    if ( i > 0 ) {
-      return new String(p,0,i);
+    while (i >= 0 && p[i] != '/') {
+      i--;
+    }
+    if (i > 0) {
+      return new String(p, 0, i);
     }
     return "/";
-    
+
   }
 
 }
