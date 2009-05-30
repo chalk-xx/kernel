@@ -76,12 +76,14 @@ public class PathUtils {
       // take the first element as the key for the target so that subtrees end up in the 
       // same place.
       String[] elements = StringUtils.split(target, '/',1);
+      String pathInfo = removeFirstElement(target);
       target = elements[0];
+     
       
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
-      char[] chars = new char[levels*3+1 + target.length()];
+      char[] chars = new char[levels*3 + target.length()+pathInfo.length()];
       for (int i = 0; i < levels; i++) {
         byte current = userHash[i];
         int hi = (current & 0xF0) >> 4;
@@ -90,14 +92,18 @@ public class PathUtils {
         chars[(i*3)+1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
         chars[(i*3)+2] = '/';
       }
+      int j = levels*3;
       for (int i = 0; i < target.length(); i++) {
         char c = target.charAt(i);
         if (!Character.isLetterOrDigit(c)) {
           c = '_';
         }
-        chars[i + levels*3] = c;
+        chars[j++] = c;
+        
       }
-      chars[levels*3 + target.length()] = '/';
+      for ( int i = 0; i < pathInfo.length(); i++ ) {
+        chars[j++] = pathInfo.charAt(i); 
+      }
       return new String(chars);
     } catch (NoSuchAlgorithmException e) {
       logger.error(e.getMessage(), e);
