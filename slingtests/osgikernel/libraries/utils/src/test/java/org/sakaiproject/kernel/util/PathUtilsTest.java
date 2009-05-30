@@ -12,9 +12,9 @@ public class PathUtilsTest {
   public void testGetUserPrefix() {
     assertEquals("61/51/anon/", PathUtils.getUserPrefix("",2));
     assertNull(PathUtils.getUserPrefix(null,2));
-    assertEquals("22/C6/Lorem/", PathUtils.getUserPrefix("Lorem",2));
-    assertEquals("DA/3B/ipsum/", PathUtils.getUserPrefix("ipsum",2));
-    assertEquals("90/8B/amet_/", PathUtils.getUserPrefix("amet.",2));
+    assertEquals("22/c6/Lorem/", PathUtils.getUserPrefix("Lorem",2));
+    assertEquals("da/3b/ipsum/", PathUtils.getUserPrefix("ipsum",2));
+    assertEquals("90/8b/amet_/", PathUtils.getUserPrefix("amet.",2));
   }
 
   @Test
@@ -38,7 +38,7 @@ public class PathUtilsTest {
         .compile("^/\\d{4}/\\d{1,2}/\\p{XDigit}{2}/\\p{XDigit}{2}/\\w+/$");
     String path = PathUtils.getDatePath("Lorem",2);
     assertTrue(path,prefixFormat.matcher(path).matches());
-    assertTrue(path.endsWith("/22/C6/Lorem/"));
+    assertTrue(path.endsWith("/22/c6/Lorem/"));
   }
   @Test
   public void testGetHashPrefix() {
@@ -47,7 +47,7 @@ public class PathUtilsTest {
     String path = PathUtils.getHashedPath("Lorem",2);
     assertTrue(path,prefixFormat.matcher(path).matches());
     
-    assertEquals("/22/C6/Lorem/",path);
+    assertEquals("/22/c6/Lorem/",path);
   }
 
   @Test

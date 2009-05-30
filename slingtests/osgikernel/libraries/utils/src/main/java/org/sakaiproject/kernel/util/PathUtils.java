@@ -92,8 +92,8 @@ public class PathUtils {
         byte current = userHash[i];
         int hi = (current & 0xF0) >> 4;
         int lo = current & 0x0F;
-        chars[j++] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-        chars[j++] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
+        chars[j++] = (char) (hi < 10 ? ('0' + hi) : ('a' + hi - 10));
+        chars[j++] = (char) (lo < 10 ? ('0' + lo) : ('a' + lo - 10));
         chars[j++] = '/';
       }
       for (int i = 0; i < target.length(); i++) {
