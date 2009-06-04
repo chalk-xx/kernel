@@ -55,12 +55,11 @@ public class PersonalPublicResourceProvider extends AbstractPersonalResourceProv
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.personal.AbstractVirtualResourceProvider#getBasePath()
+   * @see org.sakaiproject.kernel.virtual.AbstractVirtualResourceProvider#isMatchingResource(org.apache.sling.api.resource.ResourceResolver, java.lang.String)
    */
   @Override
-  protected String getBasePath() {
-    return BASE_PATH;
+  protected boolean isMatchingResource(ResourceResolver resourceResolver, String path) {
+    return path.startsWith(BASE_PATH);
   }
 
 }
