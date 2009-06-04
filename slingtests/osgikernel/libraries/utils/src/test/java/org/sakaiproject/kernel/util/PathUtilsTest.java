@@ -27,6 +27,10 @@ public class PathUtilsTest {
   public void testGetParentReference() {
     assertEquals("/Lorem/ipsum/dolor", PathUtils
         .getParentReference("/Lorem/ipsum/dolor/sit"));
+    assertEquals("/Lorem/ipsum", PathUtils
+        .getParentReference("/Lorem/ipsum/dolor/"));
+    assertEquals("/Lorem/ipsum", PathUtils
+        .getParentReference("/Lorem/ipsum/dolor"));
     assertEquals("/", PathUtils.getParentReference("/Lorem/"));
     assertEquals("/", PathUtils.getParentReference("/"));
     assertEquals("/", PathUtils.getParentReference(""));
@@ -82,5 +86,24 @@ public class PathUtilsTest {
     assertEquals("/", PathUtils.removeLastElement("/x/"));
     assertEquals("/", PathUtils.removeLastElement("/"));
     assertEquals("", PathUtils.removeLastElement(""));
+  }
+  
+  
+  @Test
+  public void testNodePatParts() {
+    assertArrayEquals(new String[]{"/a/b/c/x/",""},PathUtils.getNodePathParts("/a/b/c/x/"));
+    assertArrayEquals(new String[]{"/a/b/c/x",""},PathUtils.getNodePathParts("/a/b/c/x"));
+    assertArrayEquals(new String[]{"/a.a/b/c/x/",""},PathUtils.getNodePathParts("/a.a/b/c/x/"));
+    assertArrayEquals(new String[]{"/aaa.a/b/c/x",""},PathUtils.getNodePathParts("/aaa.a/b/c/x"));
+    assertArrayEquals(new String[]{"/aaa.aa.aa/b/c/x",""},PathUtils.getNodePathParts("/aaa.aa.aa/b/c/x"));
+    assertArrayEquals(new String[]{"aaa.aa.aa/b/c/x",""},PathUtils.getNodePathParts("aaa.aa.aa/b/c/x"));
+    assertArrayEquals(new String[]{"aaa.aa.aa/b/c/xxxx",".x"},PathUtils.getNodePathParts("aaa.aa.aa/b/c/xxxx.x"));
+    assertArrayEquals(new String[]{"aaa.aa.aa/b/c/xxxx",".x.a"},PathUtils.getNodePathParts("aaa.aa.aa/b/c/xxxx.x.a"));
+    assertArrayEquals(new String[]{"aaa.aa.aa/b/c/xxxx.x.a/",""},PathUtils.getNodePathParts("aaa.aa.aa/b/c/xxxx.x.a/"));
+    assertArrayEquals(new String[]{"",""},PathUtils.getNodePathParts(""));
+    assertArrayEquals(new String[]{"/",""},PathUtils.getNodePathParts("/"));
+    assertArrayEquals(new String[]{"/",".aaa"},PathUtils.getNodePathParts("/.aaa"));
+    assertArrayEquals(new String[]{"/",".a.aa"},PathUtils.getNodePathParts("/.a.aa"));
+    assertArrayEquals(new String[]{"",".aaa"},PathUtils.getNodePathParts(".aaa"));
   }
 }

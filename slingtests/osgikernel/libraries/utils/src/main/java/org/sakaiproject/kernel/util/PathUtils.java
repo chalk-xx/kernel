@@ -250,4 +250,25 @@ public class PathUtils {
 
   }
 
+  /**
+   * Parses the path into all the parts before the first . in the last path element, and everything after the first . in the last element.
+   * @param relativePath
+   * @return
+   */
+  public static String[] getNodePathParts(String relativePath) {
+    char[] c = relativePath.toCharArray();
+    int dot = -1;
+    for ( int i = 0; i < c.length; i++ ) {
+      if ( c[i] == '/' ) {
+        dot = -1;
+      } else if ( c[i] == '.' && dot == -1 ) {
+        dot = i;
+      }
+    }
+    if ( dot < 0 ) {
+      return new String[] { relativePath, ""};
+    }
+    return new String[]{new String(c,0,dot), new String(c,dot,c.length-dot)};
+  }
+
 }
