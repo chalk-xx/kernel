@@ -36,6 +36,7 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractVirtualResourceProvider.class);
+  private ThreadLocal<Integer> recursion = new ThreadLocal<Integer>();
 
   /**
    * {@inheritDoc}
@@ -60,11 +61,6 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
   }
 
   /**
-   * @return the base path for the resource.
-   */
-  protected abstract String getBasePath();
-
-  /**
    * gets the resource path for a userid and subpath.
    * 
    * @param userId
@@ -84,10 +80,14 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
    * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
    */
   public Iterator<Resource> listChildren(Resource parent) {
-    Resource parentItemResource = getResource(parent.getResourceResolver(), parent
-        .getPath());
-    return (parentItemResource != null) ? parentItemResource.getResourceResolver()
-        .listChildren(parent) : null;
+    LOGGER.debug("Listing Children of {} ", parent);
+    if (isMatchingResource(parent.getResourceResolver(), parent.getPath())) {
+      Resource parentItemResource = getResource(parent.getResourceResolver(), parent
+          .getPath());
+      return (parentItemResource != null) ? parentItemResource.getResourceResolver()
+          .listChildren(parent) : null;
+    }
+    return null;
   }
 
   /**
@@ -96,33 +96,60 @@ public abstract class AbstractVirtualResourceProvider implements ResourceProvide
    * @return
    */
   private Resource createResource(ResourceResolver resourceResolver, String path) {
-    if (path.startsWith(getBasePath())) {
-      Session session = resourceResolver.adaptTo(Session.class);
-      String userId = session.getUserID();
-      String resourcePath = getResourcePath(resourceResolver, userId, path);
-      Resource resource = resourceResolver.resolve(resourcePath);
-      if (resource != null) {
-        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.debug("Resolving resource for [{}] gave [{}] with [{}] ", new Object[] {
-            resourcePath, resource, pathInfo});
+    LOGGER.debug("Creating Resource {} from {}", new Object[] {path, getCallerLocation()});
+    if (recursion.get() == null) {
+      try {
+        recursion.set(1);
+        if (isMatchingResource(resourceResolver, path)) {
+          Session session = resourceResolver.adaptTo(Session.class);
+          String userId = session.getUserID();
+          String resourcePath = getResourcePath(resourceResolver, userId, path);
+          Resource resource = resourceResolver.resolve(resourcePath);
+          if (resource != null) {
+            String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+            LOGGER.debug("Resolving resource for [{}] gave [{}] with [{}] ",
+                new Object[] {resourcePath, resource, pathInfo});
 
-        resource = new VirtualResource(resource);
-        pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.debug("Final resource for [{}] gave [{}] with [{}] ", new Object[] {
-            resourcePath, resource, pathInfo});
-        return resource;
-      } else {
-        resource = new SyntheticResource(resourceResolver, resourcePath, "");
-        // did this resolve to the real resource where the resourcepath is empty ?
-        String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
-        LOGGER.debug("Failed to resolve resource for [{}] gave [{}]  with [{}]",
-            new Object[] {resourcePath, resource, pathInfo});
-        return resource;
+            resource = new VirtualResource(resource);
+            pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+            LOGGER.debug("Final resource for [{}] gave [{}] with [{}] ", new Object[] {
+                resourcePath, resource, pathInfo});
+            return resource;
+          } else {
+            resource = new SyntheticResource(resourceResolver, resourcePath, "");
+            // did this resolve to the real resource where the resourcepath is empty ?
+            String pathInfo = resource.getResourceMetadata().getResolutionPathInfo();
+            LOGGER.debug("Failed to resolve resource for [{}] gave [{}]  with [{}]",
+                new Object[] {resourcePath, resource, pathInfo});
+            return resource;
+          }
+        } else {
+          LOGGER.debug("Base Path doesnt match ");
+        }
+      } finally {
+        recursion.set(null);
       }
-    } else {
-      LOGGER.debug("Base Path doesnt match ");
     }
     return null;
   }
+
+  /**
+   * @return
+   */
+  private String getCallerLocation() {
+    Exception ex = new Exception();
+    StackTraceElement[] ste = ex.getStackTrace();
+
+    return ste[3].getClassName() + "." + ste[3].getMethodName() + " ("
+        + ste[3].getFileName() + ":" + ste[3].getLineNumber() + ")";
+  }
+
+  /**
+   * @param resourceResolver
+   * @param path
+   * @return
+   */
+  protected abstract boolean isMatchingResource(ResourceResolver resourceResolver,
+      String path);
 
 }
