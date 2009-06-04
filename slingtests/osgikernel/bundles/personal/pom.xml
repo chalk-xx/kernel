@@ -67,12 +67,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.virtual</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
