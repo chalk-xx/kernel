@@ -94,6 +94,8 @@ public class MessageServlet extends AbstractMessageServlet {
         return;     
       }
       request.getRequestDispatcher(resource).forward(request, response);
+      
+      
     } catch (RepositoryException ex) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
     }

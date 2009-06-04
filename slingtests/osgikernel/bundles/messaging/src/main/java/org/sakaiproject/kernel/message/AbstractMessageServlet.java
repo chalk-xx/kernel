@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.message;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
 
