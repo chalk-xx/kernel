@@ -39,7 +39,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
   /**
    *
    */
-  private static final String _USER_PRIVATE = "/_user/private";
+  protected static final String _USER_PRIVATE = "/_user/private";
   /**
    *
    */

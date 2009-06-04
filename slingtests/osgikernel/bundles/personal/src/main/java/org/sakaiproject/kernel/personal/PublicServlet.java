@@ -40,7 +40,7 @@ public class PublicServlet extends AbstractPersonalServlet {
   /**
    *
    */
-  private static final String _USER_PUBLIC = "/_user/public";
+  protected static final String _USER_PUBLIC = "/_user/public";
   /**
    *
    */
@@ -54,7 +54,7 @@ public class PublicServlet extends AbstractPersonalServlet {
      */
     Resource baseResource = request.getResource();
     String uriPath = baseResource.getPath();
-    String relativePath = uriPath.substring(uriPath.length());
+    String relativePath = uriPath.substring(_USER_PUBLIC.length());
     String[] pathParts = PathUtils.getNodePathParts(relativePath);
     String resourcePath = toInternalPath(_USER_PUBLIC, pathParts[0], pathParts[1]);
 
