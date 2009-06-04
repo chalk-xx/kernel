@@ -22,6 +22,7 @@ import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -39,7 +40,7 @@ import javax.servlet.ServletOutputStream;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
  */
-public class CreateMessageServlet extends AbstractMessageServlet {
+public class CreateMessageServlet extends SlingAllMethodsServlet {
 
   /**
    *
@@ -75,7 +76,7 @@ public class CreateMessageServlet extends AbstractMessageServlet {
     
     String[] pathParts = PathUtils.getNodePathParts(pathInfo);
 
-    final String finalPath = toInternalPath(servletPath, pathParts[0], pathParts[1]);
+    final String finalPath = PathUtils.toInternalHashedPath(servletPath, pathParts[0], pathParts[1]);
     final ResourceMetadata resourceMetadata = new ResourceMetadata();
     resourceMetadata.putAll(rm);
     resourceMetadata.setResolutionPath("/");

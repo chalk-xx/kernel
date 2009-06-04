@@ -17,8 +17,14 @@
  */
 package org.sakaiproject.kernel.message;
 
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.kernel.util.PathUtils;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
 
 /**
  * 
@@ -30,18 +36,62 @@ public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = 7894134023341453341L;
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   */
+  @Override
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    hashRequest(request, response);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doDelete(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    hashRequest(request, response);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    hashRequest(request, response);
+  }
   
   /**
-   * @param servletPath 
-   * @param pathInfo 
-   * @return
+   * {@inheritDoc}
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.SlingHttpServletResponse)
    */
-  protected String toInternalPath(String servletPath, String pathInfo, String selector) {
-    String hashedPath = PathUtils.getHashedPath(pathInfo, 4);
-    if ( hashedPath.endsWith("/") ) {
-      hashedPath = hashedPath.substring(0, hashedPath.length()-2);
-    }
-    return PathUtils.normalizePath(servletPath  
-        + PathUtils.getHashedPath(pathInfo, 4) + selector);  }
+  @Override
+  protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    hashRequest(request, response);
+  }
+
+  /**
+   * @param request
+   * @param response
+   * @throws IOException 
+   * @throws ServletException 
+   */
+  protected abstract void hashRequest(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException;
+
+
 
 }

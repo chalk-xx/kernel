@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" value="GET"
  */
-public class GetMessageServlet extends AbstractMessageServlet {
+public class MessageServlet extends AbstractMessageServlet {
 
   /**
    *
@@ -52,8 +52,7 @@ public class GetMessageServlet extends AbstractMessageServlet {
    * @see org.sakaiproject.kernel.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  protected void hashRequest(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
     try {
@@ -83,7 +82,7 @@ public class GetMessageServlet extends AbstractMessageServlet {
 
       String relativePath = pathInfo.substring(1);
       String[] parts = PathUtils.getNodePathParts(relativePath);
-      String resourcePath = toInternalPath(path, parts[0], parts[1]);
+      String resourcePath = PathUtils.toInternalHashedPath(path, parts[0], parts[1]);
       
       Resource resource = request.getResourceResolver().resolve(resourcePath);
       if ( resource instanceof NonExistingResource ) {
