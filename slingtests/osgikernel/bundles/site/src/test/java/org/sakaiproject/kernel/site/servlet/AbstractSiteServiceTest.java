@@ -28,6 +28,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.site.SiteServiceImpl;
+import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.security.Principal;
 import java.util.ArrayList;

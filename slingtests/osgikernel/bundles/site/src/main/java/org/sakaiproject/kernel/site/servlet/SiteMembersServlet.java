@@ -24,9 +24,9 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.kernel.api.site.ExtendedJSONWriter;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

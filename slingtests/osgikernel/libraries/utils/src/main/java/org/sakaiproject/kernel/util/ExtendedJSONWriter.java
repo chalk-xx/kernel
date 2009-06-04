@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.api.site;
+package org.sakaiproject.kernel.util;
 
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
