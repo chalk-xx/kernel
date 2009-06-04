@@ -84,7 +84,8 @@ public class PathUtils {
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
-      char[] chars = new char[(absPath?1:0) + levels * 3 + target.length() + pathInfo.length()];
+      char[] chars = new char[(absPath ? 1 : 0) + levels * 3 + target.length()
+          + pathInfo.length()];
       int j = 0;
       if (absPath) {
         chars[j++] = '/';
@@ -252,24 +253,40 @@ public class PathUtils {
   }
 
   /**
-   * Parses the path into all the parts before the first . in the last path element, and everything after the first . in the last element.
+   * Parses the path into all the parts before the first . in the last path element, and
+   * everything after the first . in the last element.
+   * 
    * @param relativePath
    * @return
    */
   public static String[] getNodePathParts(String relativePath) {
     char[] c = relativePath.toCharArray();
     int dot = -1;
-    for ( int i = 0; i < c.length; i++ ) {
-      if ( c[i] == '/' ) {
+    for (int i = 0; i < c.length; i++) {
+      if (c[i] == '/') {
         dot = -1;
-      } else if ( c[i] == '.' && dot == -1 ) {
+      } else if (c[i] == '.' && dot == -1) {
         dot = i;
       }
     }
-    if ( dot < 0 ) {
-      return new String[] { relativePath, ""};
+    if (dot < 0) {
+      return new String[] {relativePath, ""};
     }
-    return new String[]{new String(c,0,dot), new String(c,dot,c.length-dot)};
+    return new String[] {new String(c, 0, dot), new String(c, dot, c.length - dot)};
   }
 
+  /**
+   * @param servletPath
+   * @param pathInfo
+   * @return
+   */
+  public static String toInternalHashedPath(String servletPath, String pathInfo,
+      String selector) {
+    String hashedPath = PathUtils.getHashedPath(pathInfo, 4);
+    if (hashedPath.endsWith("/")) {
+      hashedPath = hashedPath.substring(0, hashedPath.length() - 2);
+    }
+    return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
+        + selector);
+  }
 }
