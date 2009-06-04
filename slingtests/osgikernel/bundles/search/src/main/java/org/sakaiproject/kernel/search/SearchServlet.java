@@ -100,7 +100,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
             LOGGER.warn("nitems parameter ("+nitemsRequestParameter.getString()+") is invalid defaulting to 25 items ",e);
           }
         }
-        String queryString = processQueryTemplate(request, queryTemplate);
+        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
         QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
         QueryResult result = query.execute();
@@ -137,7 +137,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
    * @return A processed query template.
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
-      String queryTemplate) {
+      String queryTemplate, String queryLanguage) {
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
     int vstart = -1;
@@ -152,7 +152,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
           String v = new String(ca, vstart + 1, i - vstart - 1);
           RequestParameter rp = request.getRequestParameter(v);
           if (rp != null) {
-            sb.append(rp.getString());
+            sb.append(escapeString(rp.getString(), queryLanguage));
           }
           vstart = -1;
         }
@@ -171,4 +171,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
     return sb.toString();
   }
+
+  private String escapeString(String value, String queryLanguage) {
+    return value.replaceAll("\\\\", "\\\\").replaceAll("'", "\\\\'");
+  }
+
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'sling-interface.rb'
+require 'sling/sling'
 require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface

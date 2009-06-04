@@ -38,8 +38,36 @@
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package>org.sakaiproject.kernel.api.search.*</Export-Package>
             <Private-Package>org.sakaiproject.kernel.search.*</Private-Package>
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Dependency>
+            jackrabbit-spi,jackrabbit-spi-commons,jackrabbit-core
+            </Embed-Dependency>
+            <Import-Package>org.apache.lucene.*;resolution:=optional,
+                            org.apache.jackrabbit.*;resolution:=optional,
+                            EDU.oswego.cs.*;resolution:=optional,
+                            *</Import-Package>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>
+              jackrabbit-spi,jackrabbit-spi-commons,jackrabbit-core
+              </includeArtifactIds>
+              <excludeTransitive>false</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -116,6 +144,28 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.base</artifactId>
       <version>2.0.4-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-spi</artifactId>
+      <version>1.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-spi-commons</artifactId>
+      <version>1.5.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.jackrabbit</groupId>
+        <artifactId>jackrabbit-core</artifactId>
+        <version>1.5.0</version>
+        <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>
