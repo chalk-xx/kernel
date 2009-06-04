@@ -29,7 +29,6 @@ import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 
 import java.io.IOException;
 
@@ -45,7 +44,6 @@ public class PersonalServletTest {
   public void testHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -55,30 +53,25 @@ public class PersonalServletTest {
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("ieb");
-    expect(userFactoryService.getUserPrivatePath("ieb")).andReturn("/ed/fe/33/ieb");
     expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ed/fe/33/ieb/testpath.tidy.json"))
+    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
         .andReturn(finalResource);
     expect(request.getRequestDispatcher(finalResource)).andReturn(dispatcher);
     dispatcher.forward(request, response);
     expectLastCall();
 
-    replay(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    replay(request, response, resourceResolver, finalResource, dispatcher);
 
     PersonalServlet ps = new PersonalServlet();
-    ps.bindUserFactoryService(userFactoryService);
 
     ps.hashRequest(request, response);
-    verify(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    verify(request, response, resourceResolver, finalResource, dispatcher);
   }
 
   @Test
   public void testNonHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -90,28 +83,23 @@ public class PersonalServletTest {
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("ieb");
-    expect(userFactoryService.getUserPrivatePath("ieb")).andReturn("/ed/fe/33/ieb");
     expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ed/fe/33/ieb/testpath.tidy.json"))
+    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
         .andReturn(nonExistentResource);
     response.sendError(404, "Resource does not exist (non existant)");
     expectLastCall();
-    replay(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    replay(request, response, resourceResolver, finalResource, dispatcher);
 
     PersonalServlet ps = new PersonalServlet();
-    ps.bindUserFactoryService(userFactoryService);
 
     ps.hashRequest(request, response);
-    verify(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    verify(request, response, resourceResolver, finalResource, dispatcher);
   }
 
   @Test
   public void testNullHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -121,21 +109,17 @@ public class PersonalServletTest {
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("ieb");
-    expect(userFactoryService.getUserPrivatePath("ieb")).andReturn("/ed/fe/33/ieb");
     expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ed/fe/33/ieb/testpath.tidy.json"))
+    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
         .andReturn(null);
     response.sendError(404, "Resource does not exist (null)");
     expectLastCall();
-    replay(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    replay(request, response, resourceResolver, finalResource, dispatcher);
 
     PersonalServlet ps = new PersonalServlet();
-    ps.bindUserFactoryService(userFactoryService);
 
     ps.hashRequest(request, response);
-    verify(request, response, userFactoryService, resourceResolver, finalResource,
-        dispatcher);
+    verify(request, response, resourceResolver, finalResource, dispatcher);
   }
 
 }

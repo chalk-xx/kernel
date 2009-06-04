@@ -54,8 +54,9 @@ public class PersonalServlet extends AbstractPersonalServlet {
     Resource baseResource = request.getResource();
     String uriPath = baseResource.getPath();
     String userId = request.getRemoteUser();
-    String resourcePath = _USER_PRIVATE + userFactoryService.getUserPrivatePath(userId)
-        + uriPath.substring(_USER_PRIVATE.length());
+
+    String resourcePath = toInternalPath(_USER_PRIVATE, userId, uriPath
+        .substring(_USER_PRIVATE.length()));
 
     Resource resource = request.getResourceResolver().resolve(resourcePath);
     if (resource instanceof NonExistingResource) {

@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.personal;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
@@ -110,21 +109,6 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
         + PathUtils.getHashedPath(pathInfo, 4) + selector);  }
   
   
-  /**
-   * The user factory service, injected.
-   * 
-   * @scr.reference name="UserFactoryService"
-   *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
-   */
-  protected UserFactoryService userFactoryService;
-
-  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = userFactoryService;
-  }
-
-  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = null;
-  }
 
 
 }

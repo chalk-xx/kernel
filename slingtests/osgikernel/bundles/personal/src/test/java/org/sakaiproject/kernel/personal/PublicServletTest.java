@@ -29,7 +29,6 @@ import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 
 import java.io.IOException;
 
@@ -46,7 +45,6 @@ public class PublicServletTest {
   public void testHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -61,13 +59,12 @@ public class PublicServletTest {
     dispatcher.forward(request,response);
     expectLastCall();
     
-    replay(request,response, userFactoryService,resourceResolver, finalResource, dispatcher);
+    replay(request,response, resourceResolver, finalResource, dispatcher);
      
     PublicServlet ps = new PublicServlet();
-    ps.bindUserFactoryService(userFactoryService);
     
     ps.hashRequest(request, response);
-    verify(request,response, userFactoryService, resourceResolver, finalResource, dispatcher);
+    verify(request,response,  resourceResolver, finalResource, dispatcher);
   }
   
   
@@ -75,7 +72,6 @@ public class PublicServletTest {
   public void testNonHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -88,20 +84,18 @@ public class PublicServletTest {
     expect(resourceResolver.resolve("/_user/public/ea/89/fa/4f/ieb/testpath2.tidy.json")).andReturn(nonExistentResource);
     response.sendError(404, "Resource does not exist (non existant)");
     expectLastCall();
-    replay(request,response, userFactoryService,resourceResolver, finalResource, dispatcher);
+    replay(request,response, resourceResolver, finalResource, dispatcher);
      
     PublicServlet ps = new PublicServlet();
-    ps.bindUserFactoryService(userFactoryService);
     
     ps.hashRequest(request, response);
-    verify(request,response, userFactoryService, resourceResolver, finalResource, dispatcher);
+    verify(request,response,  resourceResolver, finalResource, dispatcher);
   }
   
   @Test
   public void testNullHashRequest() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    UserFactoryService userFactoryService = createMock(UserFactoryService.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
@@ -112,13 +106,12 @@ public class PublicServletTest {
     expect(resourceResolver.resolve("/_user/public/ea/89/fa/4f/ieb/testpath3.tidy.json")).andReturn(null);
     response.sendError(404, "Resource does not exist (null)");
     expectLastCall();
-    replay(request,response, userFactoryService,resourceResolver, finalResource, dispatcher);
+    replay(request,response, resourceResolver, finalResource, dispatcher);
      
     PublicServlet ps = new PublicServlet();
-    ps.bindUserFactoryService(userFactoryService);
     
     ps.hashRequest(request, response);
-    verify(request,response, userFactoryService, resourceResolver, finalResource, dispatcher);
+    verify(request,response,  resourceResolver, finalResource, dispatcher);
   }
 
 }
