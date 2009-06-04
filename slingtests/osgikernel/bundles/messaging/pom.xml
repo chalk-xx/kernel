@@ -42,8 +42,8 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.messaging</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.messaging</Private-Package>
+            <Export-Package>org.sakaiproject.kernel.api.message.*</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.message.*</Private-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -87,6 +87,21 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.json</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.api</artifactId>
+      <version>2.0.5-incubator-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.5-incubator-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.servlets.post</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
 
 <!-- OSGi -->
     <dependency>
@@ -129,7 +144,7 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-core</artifactId>
     </dependency>
-
+    
 <!-- testing -->
     <dependency>
       <groupId>org.easymock</groupId>

@@ -36,11 +36,11 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
- * @scr.component
+ * @off-scr.component
  */
 public class JsonMessageConverter implements MessageConverter {
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private MessagingService messagingService;
 
   protected void bindMessagingService(MessagingService messagingService) {

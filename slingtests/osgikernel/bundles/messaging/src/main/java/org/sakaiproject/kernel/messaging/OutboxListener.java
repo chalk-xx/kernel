@@ -38,12 +38,12 @@ import javax.jcr.observation.EventListener;
 import javax.jcr.observation.ObservationManager;
 
 /**
- * @scr.component
+ * @off-scr.component
  */
 public class OutboxListener implements EventListener {
   private static final Logger LOG = LoggerFactory.getLogger(OutboxListener.class);
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private JCRService jcr;
 
   protected void bindJcr(JCRService jcr) {
@@ -55,7 +55,7 @@ public class OutboxListener implements EventListener {
   }
 
   /**
-   * @scr.reference
+   * @off-scr.reference
    *                interface="org.sakaiproject.kernel.api.messaging.MessageHandler"
    *                policy="dynamic" cardinality="0..n" bind="addHandler"
    *                unbind="removeHandler"

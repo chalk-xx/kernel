@@ -40,11 +40,11 @@ import javax.jcr.Session;
 /**
  * Messaging service implementation that is backed by JCR.
  *
- * @scr.component description="Messaging service implementation backed by JCR"
- * @scr.service
+ * @off-scr.component description="Messaging service implementation backed by JCR"
+ * @off-scr.service
  */
 public class JcrMessagingService implements MessagingService {
-  /** @scr.reference */
+  /** @off-scr.reference */
   private MessageConverter messageConverter;
 
   protected void bindMessageConverter(MessageConverter messageConverter) {
@@ -55,7 +55,7 @@ public class JcrMessagingService implements MessagingService {
     this.messageConverter = null;
   }
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private UserFactoryService userFactory;
 
   protected void bindUserFactory(UserFactoryService UserFactory) {
@@ -66,7 +66,7 @@ public class JcrMessagingService implements MessagingService {
     this.userFactory = null;
   }
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private JCRService jcr;
 
   protected void bindJcr(JCRService jcr) {

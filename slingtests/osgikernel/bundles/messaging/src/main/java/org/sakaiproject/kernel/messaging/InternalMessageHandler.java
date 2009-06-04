@@ -44,7 +44,7 @@ import javax.jcr.observation.Event;
  * Needs to be started immediately to make sure it registers with JCR as soon as
  * possible.
  *
- * @scr.component description="Handler for internally delivered messages."
+ * @off-scr.component description="Handler for internally delivered messages."
  *                immediate="true"
  */
 public class InternalMessageHandler implements MessageHandler {
@@ -56,7 +56,7 @@ public class InternalMessageHandler implements MessageHandler {
     DATE_STRUCT = FastDateFormat.getInstance("yyyy/MM/");
   }
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private JCRService jcr;
 
   protected void bindJcr(JCRService jcr) {
@@ -67,7 +67,7 @@ public class InternalMessageHandler implements MessageHandler {
     this.jcr = null;
   }
 
-  /** @scr.reference */
+  /** @off-scr.reference */
   private UserFactoryService userFactory;
 
   protected void bindUserFactory(UserFactoryService userFactory) {

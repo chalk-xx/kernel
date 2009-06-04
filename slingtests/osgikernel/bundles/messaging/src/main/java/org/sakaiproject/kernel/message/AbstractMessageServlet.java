@@ -15,13 +15,33 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel.message;
 
-package org.sakaiproject.kernel.api.messaging.email;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.util.PathUtils;
 
-import org.apache.commons.mail.Email;
-import org.sakaiproject.kernel.api.messaging.MessagingException;
+/**
+ * 
+ */
+public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
 
-public interface CommonsEmailHandler {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 7894134023341453341L;
 
-  String send(Email email) throws MessagingException;
+  
+  /**
+   * @param servletPath 
+   * @param pathInfo 
+   * @return
+   */
+  protected String toInternalPath(String servletPath, String pathInfo, String selector) {
+    String hashedPath = PathUtils.getHashedPath(pathInfo, 4);
+    if ( hashedPath.endsWith("/") ) {
+      hashedPath = hashedPath.substring(0, hashedPath.length()-2);
+    }
+    return PathUtils.normalizePath(servletPath  
+        + PathUtils.getHashedPath(pathInfo, 4) + selector);  }
+
 }

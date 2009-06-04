@@ -11,17 +11,17 @@ import java.util.Properties;
 import javax.mail.Session;
 
 /**
- * @scr.component
- * @scr.service
+ * @off-scr.component
+ * @off-scr.service
  */
 public class MailSessionProviderImpl implements MailSessionProvider, ManagedService {
-  /** @scr.property value="localhost" */
+  /** @off-scr.property value="localhost" */
   public final static String SMTP_HOST = "mail.smtp.host";
 
-  /** @scr.property value="25" */
+  /** @off-scr.property value="25" */
   public final static String SMTP_PORT = "mail.smtp.port";
 
-  /** @scr.property value="true" type="Boolean" */
+  /** @off-scr.property value="true" type="Boolean" */
   public final static String SMTP_SENDPARTIAL = "mail.smtp.sendpartial";
 
   private Session session;

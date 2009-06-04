@@ -52,13 +52,13 @@ public class EmailMessagingService extends JcrMessagingService implements Common
   private static final Logger LOG = LoggerFactory.getLogger(EmailMessagingService.class);
   private Long clientId = Long.valueOf(1L);
 
-  /** @scr.property value="vm://localhost?broker.persistent=true" */
+  /** @off-scr.property value="vm://localhost?broker.persistent=true" */
   private static final String JMS_BROKER_URL = MessagingConstants.JMS_BROKER_URL;
 
-  /** @scr.property value="kernel.jms.email;" */
+  /** @off-scr.property value="kernel.jms.email;" */
   private static final String JMS_EMAIL_TYPE = MessagingConstants.JMS_EMAIL_TYPE;
 
-  /** @scr.property value="kernel.email;" */
+  /** @off-scr.property value="kernel.email;" */
   private static final String JMS_EMAIL_QUEUE = MessagingConstants.JMS_EMAIL_TYPE;
 
   private String emailJmsType;

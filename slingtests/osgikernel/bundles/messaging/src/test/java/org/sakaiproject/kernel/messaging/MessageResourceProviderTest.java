@@ -20,20 +20,23 @@ package org.sakaiproject.kernel.messaging;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.easymock.Capture;
 import org.junit.Test;
-import org.sakaiproject.kernel.messaging.resource.MessageResourceProvider;
+import org.sakaiproject.kernel.message.resource.MessageResourceProvider;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- * 
+ * t
  */
 public class MessageResourceProviderTest {
 
@@ -52,9 +55,27 @@ public class MessageResourceProviderTest {
     ResourceMetadata resourceMetadata = new ResourceMetadata();
 
     expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
-    expect(session.getUserID()).andReturn("ieb").anyTimes();
     expect(session.getRootNode()).andReturn(rootNode).anyTimes();
-    expect(rr.resolve("/test/messages/b/c/1001")).andReturn(resource);
+    expect(session.getUserID()).andReturn("ieb").anyTimes();
+    
+    
+    expect(session.getItem("/test/messages/b/c/1001")).andThrow(new PathNotFoundException());
+    expect(session.getItem("/test/messages/b/c")).andThrow(new PathNotFoundException());
+    expect(session.getItem("/test/messages/b")).andThrow(new PathNotFoundException());
+    expect(session.getItem("/test/messages")).andReturn(nodeMessages);
+    expect(nodeMessages.isNode()).andReturn(true);
+    expect(nodeMessages.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
+    expect(nodeMessages.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(sakaiMessages);
+    expect(sakaiMessages.getString()).andReturn(MessageResourceProvider.SAKAI_MESSAGESTORE);
+    expect(nodeMessages.getPath()).andReturn("/test/messages");
+    
+    
+    
+    
+    expect(nodeMessages.getPath()).andReturn("/test/messages");
+    expect(nodeMessages.getPath()).andReturn("/test/messages");
+    
+  /*  expect(rr.resolve("/test/messages/b/c/1001")).andReturn(resource);
     expect(resource.adaptTo(Node.class)).andReturn(nodeC);
     expect(nodeC.getSession()).andReturn(session);
     expect(nodeC.hasProperty("sling:resourceType")).andReturn(false).anyTimes();
@@ -70,13 +91,17 @@ public class MessageResourceProviderTest {
     Capture<String> finalPath = new Capture<String>();
     expect(rr.resolve(capture(finalPath))).andReturn(finalResource);
     expect(finalResource.getResourceMetadata()).andReturn(resourceMetadata).atLeastOnce();
-    
+*/    
     replay(rr, session, resource, nodeC, rootNode, nodeB, nodeMessages, somethingElse, sakaiMessages, finalResource);
     
     MessageResourceProvider mrp = new MessageResourceProvider();
     Resource resolvedResource = mrp.getResource(rr, "/test/messages/b/c/1001");
 
-    assertEquals("/test/messages/e9/d7/1f/5e/b/c/1001", finalPath.getValue());
+    assertEquals(MessageResourceProvider.SAKAI_MESSAGESTORE, resolvedResource.getResourceType());
+    assertEquals("/test/messages", resolvedResource.getPath());
+    assertEquals("/test/messages", resolvedResource.getResourceMetadata().getResolutionPath());
+    assertEquals("/b/c/1001", resolvedResource.getResourceMetadata().getResolutionPathInfo());
+    
     verify(rr, session, resource, nodeC, rootNode, nodeB, nodeMessages, somethingElse, sakaiMessages, finalResource);
   }
 }
