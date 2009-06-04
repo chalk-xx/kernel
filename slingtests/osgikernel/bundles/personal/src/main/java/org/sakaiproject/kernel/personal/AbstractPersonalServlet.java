@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.personal;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
 
@@ -95,18 +94,6 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   protected abstract void hashRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException, ServletException;
 
-  /**
-   * @param servletPath 
-   * @param pathInfo 
-   * @return
-   */
-  protected String toInternalPath(String servletPath, String pathInfo, String selector) {
-    String hashedPath = PathUtils.getHashedPath(pathInfo, 4);
-    if ( hashedPath.endsWith("/") ) {
-      hashedPath = hashedPath.substring(0, hashedPath.length()-2);
-    }
-    return PathUtils.normalizePath(servletPath  
-        + PathUtils.getHashedPath(pathInfo, 4) + selector);  }
   
   
 

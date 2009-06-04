@@ -56,7 +56,7 @@ public class PublicServlet extends AbstractPersonalServlet {
     String uriPath = baseResource.getPath();
     String relativePath = uriPath.substring(_USER_PUBLIC.length());
     String[] pathParts = PathUtils.getNodePathParts(relativePath);
-    String resourcePath = toInternalPath(_USER_PUBLIC, pathParts[0], pathParts[1]);
+    String resourcePath = PathUtils.toInternalHashedPath(_USER_PUBLIC, pathParts[0], pathParts[1]);
 
     Resource resource = request.getResourceResolver().resolve(resourcePath);
     if (resource instanceof NonExistingResource) {

@@ -21,6 +21,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
 
@@ -55,7 +56,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
     String uriPath = baseResource.getPath();
     String userId = request.getRemoteUser();
 
-    String resourcePath = toInternalPath(_USER_PRIVATE, userId, uriPath
+    String resourcePath = PathUtils.toInternalHashedPath(_USER_PRIVATE, userId, uriPath
         .substring(_USER_PRIVATE.length()));
 
     Resource resource = request.getResourceResolver().resolve(resourcePath);
