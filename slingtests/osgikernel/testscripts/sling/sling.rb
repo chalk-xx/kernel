@@ -2,13 +2,35 @@
 require 'net/http'
 require 'cgi'
 require 'json'
-require 'sling-users'
-require 'sling-sites'
+require 'rubygems'
+require 'curb'
+require 'sling/users'
+require 'sling/sites'
 
 class Hash
 
   def dump
     return keys.collect{|k| "#{k} => #{self[k]}"}.join(", ")
+  end
+
+end
+
+class WrappedCurlResponse
+
+  def initialize(response)
+    @response = response
+  end
+
+  def code
+    return @response.response_code
+  end
+  
+  def message
+    return @response.response_code
+  end
+
+  def body
+    return @response.body_str
   end
 
 end
@@ -35,6 +57,19 @@ module SlingInterface
       @user = user
     end
 
+    def execute_file_post(path, fieldname, filepath, content_type)
+      post_data = Curl::PostField.file(fieldname, filepath)
+      post_data.content_type = content_type
+      c = Curl::Easy.new(path)
+      c.multipart_form_post = true
+      @user.do_curl_auth(c)
+      c.http_auth_types = Curl::CURLAUTH_BASIC
+      c.http_post(post_data)
+      res = WrappedCurlResponse.new(c)
+      dump_response(res)
+      return res
+    end
+
     def execute_post(path, post_params)
       puts "URL: #{path} params: #{post_params.dump}" if @debug
       uri = URI.parse(path)
@@ -49,7 +84,9 @@ module SlingInterface
     def execute_get(path)
       puts "URL: #{path}" if @debug
       uri = URI.parse(path)
-      req = Net::HTTP::Get.new(uri.path)
+      path = uri.path
+      path = path + "?" + uri.query if uri.query
+      req = Net::HTTP::Get.new(path)
       @user.do_request_auth(req)
       res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
       dump_response(res)
@@ -85,6 +122,10 @@ module SlingInterface
 
     def delete_node(path)
       result = execute_post("#{@server}#{path}", ":operation" => "delete")
+    end
+    
+    def create_file_node(path, fieldname, filename, content_type="text/plain")
+      result = execute_file_post("#{@server}#{path}", fieldname, filename, content_type)
     end
 
     def create_node(path, params)

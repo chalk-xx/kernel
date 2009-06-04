@@ -42,6 +42,10 @@ module SlingUsers
     def do_request_auth(req)
       req.basic_auth(@name, @password)
     end
+  
+    def do_curl_auth(c)
+      c.userpwd = "#{@name}:#{@password}"
+    end
 
     def to_s
       return "User: #{@name} (pass: #{@password})"
