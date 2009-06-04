@@ -80,6 +80,7 @@ public class PathUtils {
       String pathInfo = removeFirstElement(target);
       target = elements[0];
 
+      target = String.valueOf(target);
       MessageDigest md = MessageDigest.getInstance("SHA-1");
       byte[] userHash = md.digest(target.getBytes("UTF-8"));
 
