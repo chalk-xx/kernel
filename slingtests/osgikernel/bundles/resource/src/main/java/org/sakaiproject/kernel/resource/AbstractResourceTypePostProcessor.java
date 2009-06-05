@@ -61,9 +61,9 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
     long st = System.currentTimeMillis();
     for (Modification m : changes) {
       if (isMatching(request, m)) {
-        LOGGER.info("Post Processing for {}  on {} ", targetResourceType, request
+        LOGGER.debug("Post Processing for {}  on {} ", targetResourceType, request
             .getRequestURI());
-        LOGGER.info("Change from [{}] to [{}] type [{}] ", new Object[] {m.getSource(),
+        LOGGER.debug("Change from [{}] to [{}] type [{}] ", new Object[] {m.getSource(),
             m.getSource(), m.getType()});
         doProcess(request, changes);
         break;
@@ -89,40 +89,8 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
             .getRequestURI());
         return true;
       }
-    } else {
-      Session s = request.getResourceResolver().adaptTo(Session.class);
-      String path = m.getSource();
-      try {
-        LOGGER.info("Checking source {} ", path);
-        if (s.itemExists(path)) {
-          LOGGER.info("Source Exists {} ", path);
-
-          Item item = s.getItem(path);
-          LOGGER.info("Item is  {} ", item);
-          if (item != null) {
-            Node n = null;
-            if (item.isNode()) {
-              n = (Node) item;
-            } else {
-              n = item.getParent();
-            }
-            LOGGER.info("Node  is  {} and has property {} ", item, n
-                .hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY));
-
-            if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-                && targetResourceType.equals(n.getProperty(
-                    JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-              LOGGER.info("Post Processing for {}  on {} ", targetResourceType, request
-                  .getRequestURI());
-              return true;
-            }
-          }
-        }
-      } catch (RepositoryException ex) {
-        LOGGER.warn("Failed to resolve resource Type ", ex);
-      }
     }
-    return false;
+    return ( targetResourceType.equals(request.getResource().getResourceType()));
   }
 
   /**
