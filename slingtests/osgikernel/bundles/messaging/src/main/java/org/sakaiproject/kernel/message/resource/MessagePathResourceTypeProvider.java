@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.message.resource;
 
+import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
+
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.jcr.resource.PathResourceTypeProvider;
@@ -44,7 +46,6 @@ public class MessagePathResourceTypeProvider implements PathResourceTypeProvider
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePathResourceTypeProvider.class);
-  public static final String SAKAI_MESSAGESTORE = "sakai/messagestore";
 
   /**
    * {@inheritDoc}
@@ -79,11 +80,11 @@ public class MessagePathResourceTypeProvider implements PathResourceTypeProvider
       Node n = (Node) item;
       while (!"/".equals(n.getPath())) {
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && SAKAI_MESSAGESTORE.equals(n.getProperty(
+            && SAKAI_MESSAGESTORE_RT.equals(n.getProperty(
                 JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
           LOGGER.info(" {} is a messagestore file, base is {}  ", absRealPath, n
               .getPath());
-          return SAKAI_MESSAGESTORE;
+          return SAKAI_MESSAGESTORE_RT;
         }
         n = n.getParent();
       }

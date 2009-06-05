@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.message;
 
+import static org.sakaiproject.kernel.api.message.MessageConstants.*;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -30,6 +31,9 @@ import javax.servlet.ServletException;
  */
 public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
 
+  /**
+   *
+   */
   /**
    *
    */
@@ -57,6 +61,7 @@ public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
+    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
     hashRequest(request, response);
   }
 

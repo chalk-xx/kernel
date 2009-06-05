@@ -17,11 +17,21 @@
  */
 package org.sakaiproject.kernel.message;
 
+import static org.sakaiproject.kernel.api.message.MessageConstants.BOX_OUTBOX;
+import static org.sakaiproject.kernel.api.message.MessageConstants.EVENT_LOCATION;
+import static org.sakaiproject.kernel.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
+import static org.sakaiproject.kernel.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
+import static org.sakaiproject.kernel.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.kernel.api.message.MessageConstants.STATE_NONE;
+import static org.sakaiproject.kernel.api.message.MessageConstants.STATE_NOTIFIED;
+import static org.sakaiproject.kernel.api.message.MessageConstants.STATE_PENDING;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,35 +60,6 @@ import javax.jcr.Session;
  */
 public class MessagePostProcessor implements SlingPostProcessor {
 
-  /**
-   *
-   */
-  private static final String SAKAI_MESSAGEBOX = "sakai:messagebox";
-  /**
-   *
-   */
-  private static final String OUTBOX = "outbox";
-  /**
-   *
-   */
-  private static final String LOCATION = "location";
-  /**
-   *
-   */
-  private static final String NONE = "none";
-  /**
-   *
-   */
-  private static final String NOTIFIED = "notified";
-  /**
-   *
-   */
-  private static final String PENDING = "pending";
-  /**
-   *
-   */
-  private static final String SAKAI_SENDSTATE = "sakai:sendstate";
-  private static final String PENDINGMESSAGE = "org/sakaiproject/kernel/message/pending";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePostProcessor.class);
   /**
@@ -86,70 +67,73 @@ public class MessagePostProcessor implements SlingPostProcessor {
   private EventAdmin eventAdmin;
 
   /**
-   * {@inheritDoc}
+   * {@inheritDoc} This post processor is only interested in posts to messages, so it
+   * should iterate rapidly through all messages.
    * 
    * @see org.apache.sling.servlets.post.SlingPostProcessor#process(org.apache.sling.api.SlingHttpServletRequest,
    *      java.util.List)
    */
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
-    Map<Node, String> messageMap = new HashMap<Node, String>();
-    Session s = request.getResourceResolver().adaptTo(Session.class);
-    for (Modification m : changes) {
-      try {
-        switch (m.getType()) {
-        case CREATE:
-        case MODIFY:
-          if (s.itemExists(m.getSource())) {
-            Item item = s.getItem(m.getSource());
-            if (item != null && item.isNode()) {
-              Node n = (Node) item;
-              if (n.hasProperty(SAKAI_MESSAGEBOX)) {
-                String box = n.getProperty(SAKAI_MESSAGEBOX).getString();
-                if (OUTBOX.equals(box)) {
-                  String sendstate = NONE;
-                  if (n.hasProperty(SAKAI_SENDSTATE)) {
-                    sendstate = n.getProperty(SAKAI_SENDSTATE).getString();
-                    messageMap.put(n, sendstate);
-                  } else {
-                    messageMap.put(n, sendstate);
+    if (request.getAttribute(MessageConstants.MESSAGE_OPERATION) != null) {
+      Map<Node, String> messageMap = new HashMap<Node, String>();
+      Session s = request.getResourceResolver().adaptTo(Session.class);
+      for (Modification m : changes) {
+        try {
+          switch (m.getType()) {
+          case CREATE:
+          case MODIFY:
+            if (s.itemExists(m.getSource())) {
+              Item item = s.getItem(m.getSource());
+              if (item != null && item.isNode()) {
+                Node n = (Node) item;
+                if (n.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
+                  String box = n.getProperty(PROP_SAKAI_MESSAGEBOX).getString();
+                  if (BOX_OUTBOX.equals(box)) {
+                    String sendstate = STATE_NONE;
+                    if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
+                      sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
+                      messageMap.put(n, sendstate);
+                    } else {
+                      messageMap.put(n, sendstate);
+                    }
                   }
                 }
               }
             }
+            break;
           }
-          break;
+        } catch (RepositoryException ex) {
+          LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
         }
-      } catch (RepositoryException ex) {
-        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
+      }
+
+      for (Entry<Node, String> mm : messageMap.entrySet()) {
+        Node n = mm.getKey();
+        String state = mm.getValue();
+        if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
+
+          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+
+          Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+          messageDict.put(EVENT_LOCATION, n.getPath());
+          eventAdmin.postEvent(new Event(PENDINGMESSAGE_EVENT, messageDict));
+        }
       }
     }
-
-    for (Entry<Node, String> mm : messageMap.entrySet()) {
-      Node n = mm.getKey();
-      String state = mm.getValue();
-      if (NONE.equals(state) || PENDING.equals(state)) {
-
-        n.setProperty(SAKAI_SENDSTATE, NOTIFIED);
-
-        Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
-        messageDict.put(LOCATION, n.getPath());
-        eventAdmin.postEvent(new Event(PENDINGMESSAGE, messageDict));
-      }
-    }
-
   }
 
-  
   /**
-   * @param eventAdmin the new EventAdmin service to bind to this service.
+   * @param eventAdmin
+   *          the new EventAdmin service to bind to this service.
    */
   protected void bindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = eventAdmin;
   }
 
   /**
-   * @param eventAdmin the EventAdminService to be unbound from this service.
+   * @param eventAdmin
+   *          the EventAdminService to be unbound from this service.
    */
   protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
