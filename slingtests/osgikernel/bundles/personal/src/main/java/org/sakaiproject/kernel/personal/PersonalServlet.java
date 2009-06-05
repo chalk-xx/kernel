@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
@@ -37,10 +39,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PersonalServlet extends AbstractPersonalServlet {
 
-  /**
-   *
-   */
-  protected static final String _USER_PRIVATE = "/_user/private";
   /**
    *
    */

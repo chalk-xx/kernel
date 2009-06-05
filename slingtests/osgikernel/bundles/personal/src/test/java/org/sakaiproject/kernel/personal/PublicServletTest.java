@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -49,7 +50,7 @@ public class PublicServletTest {
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
     
-    Resource resource = new NonExistingResource(resourceResolver, PublicServlet._USER_PUBLIC+"/ieb/testpath.tidy.json");
+    Resource resource = new NonExistingResource(resourceResolver, _USER_PUBLIC+"/ieb/testpath.tidy.json");
    
     
     expect(request.getResource()).andReturn(resource);
@@ -76,7 +77,7 @@ public class PublicServletTest {
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
     
-    Resource resource = new NonExistingResource(resourceResolver, PublicServlet._USER_PUBLIC+"/ieb/testpath2.tidy.json");
+    Resource resource = new NonExistingResource(resourceResolver, _USER_PUBLIC+"/ieb/testpath2.tidy.json");
     Resource nonExistentResource = new NonExistingResource(resourceResolver,"/_user/private/ed/fe/33/ieb/testpath2.tidy.json");
     
     expect(request.getResource()).andReturn(resource);
@@ -100,7 +101,7 @@ public class PublicServletTest {
     Resource finalResource = createMock(Resource.class);
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
     
-    Resource resource = new NonExistingResource(resourceResolver, PublicServlet._USER_PUBLIC+"/ieb/testpath3.tidy.json");
+    Resource resource = new NonExistingResource(resourceResolver, _USER_PUBLIC+"/ieb/testpath3.tidy.json");
     expect(request.getResource()).andReturn(resource);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
     expect(resourceResolver.resolve("/_user/public/ea/89/fa/4f/ieb/testpath3.tidy.json")).andReturn(null);

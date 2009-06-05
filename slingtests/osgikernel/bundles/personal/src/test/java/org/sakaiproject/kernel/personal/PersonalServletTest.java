@@ -16,12 +16,12 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.sakaiproject.kernel.personal;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -49,7 +49,7 @@ public class PersonalServletTest {
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
 
     Resource resource = new NonExistingResource(resourceResolver,
-        PersonalServlet._USER_PRIVATE + "/testpath.tidy.json");
+        _USER_PRIVATE + "/testpath.tidy.json");
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("ieb");
@@ -77,7 +77,7 @@ public class PersonalServletTest {
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
 
     Resource resource = new NonExistingResource(resourceResolver,
-        PersonalServlet._USER_PRIVATE + "/testpath.tidy.json");
+        _USER_PRIVATE + "/testpath.tidy.json");
     Resource nonExistentResource = new NonExistingResource(resourceResolver,
         "/_user/private/ed/fe/33/ieb/testpath.tidy.json");
 
@@ -105,7 +105,7 @@ public class PersonalServletTest {
     RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
 
     Resource resource = new NonExistingResource(resourceResolver,
-        PersonalServlet._USER_PRIVATE + "/testpath.tidy.json");
+        _USER_PRIVATE + "/testpath.tidy.json");
 
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("ieb");
