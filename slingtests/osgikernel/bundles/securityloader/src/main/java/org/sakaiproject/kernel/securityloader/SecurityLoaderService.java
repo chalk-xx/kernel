@@ -20,8 +20,6 @@ package org.sakaiproject.kernel.securityloader;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.engine.SlingSettingsService;
-import org.apache.sling.jackrabbit.usermanager.api.event.AuthorizableEventUtil;
-import org.apache.sling.jackrabbit.usermanager.api.event.AuthorizableEvent.Operation;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
@@ -30,6 +28,8 @@ import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
+import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -366,8 +366,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   public void fireEvent(Operation operation, Session session, Authorizable authorizable,
       List<Modification> changes) {
     try {
-      eventAdmin.sendEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, authorizable, changes));
-      eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, session, null, authorizable, changes));
+      eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, session.getUserID(), authorizable, null));
     } catch (Throwable t) {
       LOGGER.warn("Failed to fire event", t);
     }
