@@ -106,4 +106,23 @@ public class PathUtilsTest {
     assertArrayEquals(new String[]{"/",".a.aa"},PathUtils.getNodePathParts("/.a.aa"));
     assertArrayEquals(new String[]{"",".aaa"},PathUtils.getNodePathParts(".aaa"));
   }
+
+  @Test
+  public void testLastElement() { 
+    assertEquals("",PathUtils.lastElement("/a/b/c/x/"));
+    assertEquals("x",PathUtils.lastElement("/a/b/c/x"));
+    assertEquals("",PathUtils.lastElement("/a.a/b/c/x/"));
+    assertEquals("x",PathUtils.lastElement("/aaa.a/b/c/x"));
+    assertEquals("x",PathUtils.lastElement("/aaa.aa.aa/b/c/x"));
+    assertEquals("x",PathUtils.lastElement("aaa.aa.aa/b/c/x"));
+    assertEquals("xxxx",PathUtils.lastElement("aaa.aa.aa/b/c/xxxx.x"));
+    assertEquals("xxxx",PathUtils.lastElement("aaa.aa.aa/b/c/xxxx.x.a"));
+    assertEquals("",PathUtils.lastElement("aaa.aa.aa/b/c/xxxx.x.a/"));
+    assertEquals("",PathUtils.lastElement(""));
+    assertEquals("",PathUtils.lastElement("/"));
+    assertEquals("",PathUtils.lastElement("/.aaa"));
+    assertEquals("",PathUtils.lastElement("/.a.aa"));
+    assertEquals("",PathUtils.lastElement(".aaa"));
+  }
+
 }

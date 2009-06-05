@@ -289,4 +289,23 @@ public class PathUtils {
     return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
         + selector);
   }
+
+  /**
+   * @param dest
+   * @return
+   */
+  public static String lastElement(String dest) {
+    int i = dest.lastIndexOf('/');
+    if ( i == dest.length()-1 ) {
+      return "";
+    }
+    if (i > -1) {
+      dest = dest.substring(i+1);
+    }
+    i = dest.indexOf('.');
+    if (i > -1) {
+      dest = dest.substring(0, i);
+    }
+    return dest;
+  }
 }
