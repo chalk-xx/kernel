@@ -46,6 +46,8 @@ end
 
 ARGV.unshift "--simple-prompt"
 
+s = Sling.new
+um = SlingUsers::UserManager.new(s)
 IRB.start
 
 

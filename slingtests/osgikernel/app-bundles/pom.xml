@@ -148,6 +148,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.search</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.resource</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -313,7 +318,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

@@ -31,8 +31,8 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.EventAdmin;
@@ -71,9 +71,6 @@ import javax.jcr.version.VersionException;
  * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
  *                name="SlingRepository" bind="bindSlingRepository"
  *                unbind="unbindSlingRepository"
- * @scr.reference interface="org.apache.jackrabbit.api.security.user.UserManager"
- *                name="UserManager" bind="bindUserManager" unbind="unbindUserManager"
- * 
  * @scr.reference bind="bindEventAdmin" unbind="bindEventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
  * 
@@ -81,10 +78,6 @@ import javax.jcr.version.VersionException;
 public class UserPostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UserPostProcessor.class);
-  /**
-   * The Usermanager provided by jackrabbit.
-   */
-  private UserManager userManager;
 
   /**
    */
@@ -105,6 +98,7 @@ public class UserPostProcessor implements SlingPostProcessor {
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
     String resourcePath = request.getRequestPathInfo().getResourcePath();
+    UserManager userManager = AccessControlUtil.getUserManager(request.getResourceResolver().adaptTo(Session.class));
     Authorizable authorizable = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       RequestParameter rpid = request
@@ -237,22 +231,6 @@ public class UserPostProcessor implements SlingPostProcessor {
     this.slingRepository = null;
   }
 
-  /**
-   * @param userManager
-   *          the userManager to set
-   */
-  public void bindUserManager(UserManager userManager) {
-    this.userManager = userManager;
-  }
-
-  /**
-   * @param userManager
-   *          the userManager to set
-   */
-  public void unbindUserManager(UserManager userManager) {
-    this.userManager = null;
-  }
-
   // event processing
   // -----------------------------------------------------------------------------
 
@@ -275,7 +253,6 @@ public class UserPostProcessor implements SlingPostProcessor {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       String user = session.getUserID();
-      ModificationType mt = null;
       for (Modification m : changes) {
         String path = m.getDestination();
         if (path.endsWith(authorizable.getID())) {

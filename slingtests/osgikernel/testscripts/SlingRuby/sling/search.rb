@@ -3,7 +3,6 @@
 module SlingSearch
 
   $SEARCH = "var/search/"
-  $SEARCH_FILES = $SEARCH + "content"
 
   class SearchManager
 
@@ -12,11 +11,20 @@ module SlingSearch
     end
 
     def search_for(string)
-       return JSON.parse(@sling.execute_get(@sling.url_for($SEARCH_FILES) + ".json?q=#{string}").body)
+      return json_search("content", "q" => string)
     end
 
     def create_search_template(name, language, template)
       return @sling.create_node("#{$SEARCH}#{name}", "sakai:query-language" => language, "sakai:query-template" => template, "sling:resourceType" => "sakai/search") 
+    end
+
+    def search_for_user(username)
+      return json_search("users", "username" => username) 
+    end
+    
+    private
+    def json_search(template, params)
+      return JSON.parse(@sling.execute_get(@sling.url_for($SEARCH + template) + ".json?" + params.collect{|k,v| URI.escape(k) + "=" + URI.escape(v)}.join("&")).body)
     end
   end
 
