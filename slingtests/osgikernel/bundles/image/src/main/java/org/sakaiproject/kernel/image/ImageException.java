@@ -22,22 +22,27 @@ public class ImageException extends Exception {
   /**
    * 
    */
-  private static final long serialVersionUID = -992304685713600582L;
-  private String message;
+  private static final long serialVersionUID = -4376383518792880320L;
 
   public ImageException() {
     super();
+    // TODO Auto-generated constructor stub
+  }
+
+  public ImageException(String message, Throwable cause) {
+    super(message, cause);
+    // TODO Auto-generated constructor stub
   }
 
   public ImageException(String message) {
-    this.message = message;
+    super(message);
+    // TODO Auto-generated constructor stub
   }
 
-  public String getMessage() {
-    return message;
+  public ImageException(Throwable cause) {
+    super(cause);
+    // TODO Auto-generated constructor stub
   }
+
   
-  public String toString() {
-    return message;
-  }
 }
