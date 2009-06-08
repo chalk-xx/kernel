@@ -89,7 +89,7 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
       node.addMixin(JCRConstants.MIX_SAKAIPROPERTIES);
     }
     if (jcrService.needsMixin(node, JCRConstants.MIX_ACL)) {
-      node.addMixin(JCRConstants.MIX_ACL);
+      //node.addMixin(JCRConstants.MIX_ACL);
     }
 
     Node resource = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_UNSTRUCTURED);

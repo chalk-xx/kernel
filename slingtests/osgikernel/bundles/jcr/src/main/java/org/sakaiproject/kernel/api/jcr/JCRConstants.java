@@ -312,7 +312,7 @@ public interface JCRConstants {
    */
   String NT_VERSIONEDCHILD = "nt:versionedChild";
 
-  String MIX_SAKAIPROPERTIES = "sakaijcr:properties-mix";
+  String MIX_SAKAIPROPERTIES = "sakai:propertiesmix";
 
   String MIX_ACL = "acl:properties-mix";
 
@@ -320,13 +320,13 @@ public interface JCRConstants {
 
   String ACL_OWNER = "acl:owner";
 
-  String JCR_SMARTNODE = "sakaijcr:smartNode";
+  String JCR_SMARTNODE = "sakai:smartNode";
 
   /**
    * true Indicates that the smart node at this point is inherited, false
    * indicates that smart node propagation stops at this point.
    */
-  String JCR_SMARTNODE_INHERIT = "sakaijcr:inheritSmartNode";
+  String JCR_SMARTNODE_INHERIT = "sakai:inheritSmartNode";
 
   // reserved namespace for items defined by built-in node types
   String NS_JCR_PREFIX = "jcr";
@@ -359,9 +359,9 @@ public interface JCRConstants {
   String NS_ACL_PREFIX = "acl";
   String NS_ACL_URI = "http://www.jcp.org/acl/sv/1.0";
 
-  String JCR_LABELS = "sakaijcr:labels";
-  String JCR_MESSAGE_TYPE = "sakaijcr:messageType";
-  String JCR_MESSAGE_RCPTS = "sakaijcr:messageRcpts";
-  String JCR_MESSAGE_DATE = "sakaijcr:messageDate";
-  String JCR_MESSAGE_FROM = "sakaijcr:messageFrom";
+  String JCR_LABELS = "sakai:labels";
+  String JCR_MESSAGE_TYPE = "sakai:messageType";
+  String JCR_MESSAGE_RCPTS = "sakai:messageRcpts";
+  String JCR_MESSAGE_DATE = "sakai:messageDate";
+  String JCR_MESSAGE_FROM = "sakai:messageFrom";
 }
