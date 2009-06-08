@@ -15,24 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.user;
+package org.sakaiproject.kernel.user.resource;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.servlets.post.Modification;
-
-import java.util.List;
+import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
 
 /**
+ * Resource Provider implementation for jackrabbit UserManager resources.
  * 
+ * @scr.component immediate="true" label="%authorizable.resourceprovider.name"
+ *                description="authorizable.resourceprovider.description"
+ * @scr.property name="service.description"
+ *                value="Resource provider implementation for UserManager resources"
+ * @scr.property name="service.vendor" value="The Apache Software Foundation"
+ * @scr.property name="provider.roots" value="/system/userManager/"
+ * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
  */
-public interface UserPostProcessor {
 
-  /**
-   * @param request
-   * @param changes
-   * @throws Exception
-   */
-  void process(SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception;
+public class SakaiAuthorizableResourceProvider extends AuthorizableResourceProvider {
 
 }

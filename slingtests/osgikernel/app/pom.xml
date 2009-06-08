@@ -72,6 +72,7 @@
             </goals>
             <configuration>
               <includeArtifactIds> org.apache.sling.launchpad.bundles </includeArtifactIds>
+              <excludes> resources/bundles/**/org.apache.sling.jcr.jackrabbit.usermanager* </excludes>
               <includes> resources/** </includes>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
