@@ -179,8 +179,11 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
         String propertyName = (String) inames.next();
         if (!privateProperties.contains(propertyName)) {
           Value[] v = authorizable.getProperty(propertyName);
-          Property prop = profileNode.setProperty(propertyName, v);
-          changes.add(Modification.onModified(prop.getPath()));
+          if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(propertyName)
+              .getDefinition().isProtected())) {
+            Property prop = profileNode.setProperty(propertyName, v);
+            changes.add(Modification.onModified(prop.getPath()));
+          }
         }
       }
     } finally {
@@ -253,6 +256,9 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
       String user = session.getUserID();
       for (Modification m : changes) {
         String path = m.getDestination();
+        if (path == null) {
+          path = m.getSource();
+        }
         if (path.endsWith(authorizable.getID())) {
           switch (m.getType()) {
           case COPY:
