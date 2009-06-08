@@ -63,6 +63,7 @@
         <module>bundles/ownerprincipalmanager</module>
      <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
+        <module>bundles/image</module>
         <module>bundles/site</module>
         <module>bundles/search</module>
         <module>bundles/user</module>
