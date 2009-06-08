@@ -31,7 +31,8 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  r.security.dynamic;uses:="javax.jcr";version="2.0.3.incubator-SNAPSHO
  T",org.apache.sling.jcr.jackrabbit.server.security;uses:="javax.secur
  ity.auth.login,javax.jcr,javax.security.auth.callback";version="2.0.3
- .incubator-SNAPSHOT"
+ .incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.server.security.
+ dynamic;uses:="javax.jcr";version="0.1-SNAPSHOT"
 Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  observation,javax.jcr.query,javax.jcr.util,javax.jcr.version,javax.na
  ming,javax.naming.directory,javax.naming.spi,javax.security.auth,java
@@ -52,7 +53,8 @@ Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  apache.sling.jcr.jackrabbit.server.security;version="2.0.3.incubator-
  SNAPSHOT",org.osgi.framework,org.osgi.service.cm,org.osgi.service.com
  ponent,org.osgi.service.log,org.osgi.util.tracker,org.slf4j,org.xml.s
- ax,org.xml.sax.helpers
+ ax,org.xml.sax.helpers,org.apache.sling.jcr.jackrabbit.server.securit
+ y.dynamic;uses:="javax.jcr";version="0.1-SNAPSHOT"
 DynamicImport-Package: *
 Service-Component: OSGI-INF/serviceComponents.xml
 Bnd-LastModified: 1232723302069
