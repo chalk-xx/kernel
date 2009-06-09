@@ -1,0 +1,5 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "{q}",
+  "sling:resourceType": "sakai/search"
+}
