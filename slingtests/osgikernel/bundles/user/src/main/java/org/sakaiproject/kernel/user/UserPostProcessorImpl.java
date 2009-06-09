@@ -36,6 +36,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -203,17 +204,22 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = null;
+    String type = null;
     if (authorizable.isGroup()) {
       path = PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getID(),
           AUTH_PROFILE);
+      type = UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
     } else {
       path = PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getID(),
           AUTH_PROFILE);
+      type = UserConstants.USER_PROFILE_RESOURCE_TYPE;
     }
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
-    return JcrUtils.deepGetOrCreateNode(session, path);
+    Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
+    profileNode.setProperty("sling:resourceType", type);
+    return profileNode;
   }
 
   /**

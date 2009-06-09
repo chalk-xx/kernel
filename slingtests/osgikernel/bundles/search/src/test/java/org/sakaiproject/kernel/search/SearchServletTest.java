@@ -1,7 +1,6 @@
 package org.sakaiproject.kernel.search;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.*;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
