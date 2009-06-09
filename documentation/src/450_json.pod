@@ -1,5 +1,0 @@
-=head1 JSON
-
-JSON (JavaScript Object Notation) is a lightweight data-interchange format. It
-is used predominantly by the next generation sakai system in order to build an
-advanced user interface on top of a set of REST interfaces.

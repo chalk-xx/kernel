@@ -1,4 +1,0 @@
-=head1 Licence
-
-This documentation is licenced under an International Creative Commons Licence:
-Please see http://creativecommons.org/licenses/by-sa/3.0/ for details.

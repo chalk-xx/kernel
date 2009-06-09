@@ -69,7 +69,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
   /**
    *
    */
-  public void activate(ComponentContext ctx) {
+  protected void activate(ComponentContext ctx) {
     configurationService.addListener(this);
     update(configurationService.getProperties());
   }

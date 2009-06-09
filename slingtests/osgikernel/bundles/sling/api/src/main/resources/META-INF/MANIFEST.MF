@@ -1,0 +1,44 @@
+Manifest-Version: 1.0
+Built-By: cziegeler
+Created-By: Apache Maven Bundle Plugin
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Import-Package: javax.servlet;version="2.4",javax.servlet.http;version
+ ="2.4",org.apache.sling.api;version="2.0.4.incubator",org.apache.slin
+ g.api.adapter;version="2.0.4.incubator",org.apache.sling.api.request;
+ version="2.0.4.incubator",org.apache.sling.api.resource;version="2.0.
+ 4.incubator",org.apache.sling.api.scripting;version="2.0.4.incubator"
+ ,org.apache.sling.api.servlets;version="2.0.4.incubator",org.apache.s
+ ling.api.wrappers;version="2.0.4.incubator",org.slf4j
+Bnd-LastModified: 1242242628566
+Export-Package: org.apache.sling.api.servlets;uses:="javax.servlet.htt
+ p,javax.servlet,org.apache.sling.api.wrappers,org.apache.sling.api";v
+ ersion="2.0.4.incubator",org.apache.sling.api.adapter;version="2.0.4.
+ incubator",org.apache.sling.api.resource;uses:="javax.servlet.http,or
+ g.apache.sling.api.adapter,org.apache.sling.api.wrappers,org.apache.s
+ ling.api";version="2.0.4.incubator",org.apache.sling.api.wrappers;use
+ s:="javax.servlet.http,javax.servlet,org.apache.sling.api.resource,or
+ g.apache.sling.api.request,org.apache.sling.api";version="2.0.4.incub
+ ator",org.apache.sling.api.request;uses:="org.apache.sling.api";versi
+ on="2.0.4.incubator",org.apache.sling.api.scripting;uses:="org.apache
+ .sling.api.resource,org.slf4j,org.apache.sling.api.request,org.apache
+ .sling.api";version="2.0.4.incubator",org.apache.sling.api;uses:="jav
+ ax.servlet.http,javax.servlet,org.apache.sling.api.resource,org.apach
+ e.sling.api.request";version="2.0.4.incubator"
+Bundle-Version: 2.0.4.incubator
+Bundle-Name: Apache Sling API (Sakai Patched)
+Bundle-Description: The Apache Sling API defines an extension to the S
+ ervlet        API 2.4 to provide access to content and unified access
+         to request parameters hiding the differences between the     
+    different methods of transferring parameters from client        to
+  server. Note that the Apache Sling API bundle does not        includ
+ e the Servlet API but instead requires the API to        be provided 
+ by the Servlet container in which the Apache        Sling framework i
+ s running or by another bundle.
+Build-Jdk: 1.5.0_16
+Bundle-DocURL: http://incubator.apache.org/sling/site/sling-api.html
+Bundle-Vendor: The Apache Software Foundation
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.apache.sling.api
+Tool: Bnd-0.0.255
+Bundle-Category: sling
+
