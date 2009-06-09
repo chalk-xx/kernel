@@ -74,6 +74,7 @@ public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
     hashRequest(request, response);
   }
   
@@ -84,6 +85,7 @@ public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
     hashRequest(request, response);
   }
 

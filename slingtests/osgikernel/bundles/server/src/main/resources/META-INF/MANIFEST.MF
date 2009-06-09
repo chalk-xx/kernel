@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Note: Manifest File built by Maven Bundle Plugin
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.apache.sling.jcr.jackrabbit.server
-Bundle-Version: 2.0.3.incubator-SNAPSHOT
+Bundle-Version: 2.0.2.incubator
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository
 Bundle-Description: Bundle providing support to embed Jackrabbit Repos
  itory instances and publish via RMI and/or JNDI
@@ -20,19 +20,18 @@ Bundle-ClassPath: .,nekohtml-1.9.7.jar,lucene-core-2.3.2.jar,jackrabbi
  .3.jar,jackrabbit-spi-1.5.0.jar,poi-scratchpad-3.0.2-FINAL.jar
 Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  "javax.jcr,javax.security.auth.callback,javax.security.auth.login,jav
- ax.security.auth";version="2.0.3.incubator-SNAPSHOT",org.apache.jackr
- abbit.core.security.principal;uses:="javax.jcr,org.slf4j,org.apache.c
- ommons.collections.iterators,org.apache.jackrabbit.api.security.user,
- org.apache.commons.collections.map,javax.jcr.observation,org.apache.j
- ackrabbit.api.security.principal,org.apache.commons.collections.set";
- version="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.se
- rver.security.accessmanager;uses:="javax.jcr,javax.security.auth";ver
- sion="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.serve
- r.security.dynamic;uses:="javax.jcr";version="2.0.3.incubator-SNAPSHO
- T",org.apache.sling.jcr.jackrabbit.server.security;uses:="javax.secur
- ity.auth.login,javax.jcr,javax.security.auth.callback";version="2.0.3
- .incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.server.security.
- dynamic;uses:="javax.jcr";version="0.1-SNAPSHOT"
+ ax.security.auth";version="2.0.2.incubator",org.apache.jackrabbit.cor
+ e.security.principal;uses:="javax.jcr,org.slf4j,org.apache.commons.co
+ llections.iterators,org.apache.jackrabbit.api.security.user,org.apach
+ e.commons.collections.map,javax.jcr.observation,org.apache.jackrabbit
+ .api.security.principal,org.apache.commons.collections.set";version="
+ 2.0.2.incubator",org.apache.sling.jcr.jackrabbit.server.security.acce
+ ssmanager;uses:="javax.jcr,javax.security.auth";version="2.0.2.incuba
+ tor",org.apache.sling.jcr.jackrabbit.server.security.dynamic;uses:="j
+ avax.jcr";version="2.0.2.incubator",org.apache.sling.jcr.jackrabbit.s
+ erver.security;uses:="javax.security.auth.login,javax.jcr,javax.secur
+ ity.auth.callback";version="2.0.2.incubator",org.apache.sling.jcr.jac
+ krabbit.server.security.dynamic;uses:="javax.jcr"
 Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  observation,javax.jcr.query,javax.jcr.util,javax.jcr.version,javax.na
  ming,javax.naming.directory,javax.naming.spi,javax.security.auth,java
@@ -50,11 +49,11 @@ Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  ersion="1.5",org.apache.jackrabbit.api.security.principal;version="1.
  5",org.apache.jackrabbit.api.security.user;version="1.5",org.apache.s
  ling.jcr.api,org.apache.sling.jcr.base;version="2.0.2.incubator",org.
- apache.sling.jcr.jackrabbit.server.security;version="2.0.3.incubator-
- SNAPSHOT",org.osgi.framework,org.osgi.service.cm,org.osgi.service.com
- ponent,org.osgi.service.log,org.osgi.util.tracker,org.slf4j,org.xml.s
- ax,org.xml.sax.helpers,org.apache.sling.jcr.jackrabbit.server.securit
- y.dynamic;uses:="javax.jcr";version="0.1-SNAPSHOT"
+ apache.sling.jcr.jackrabbit.server.security;version="2.0.2.incubator"
+ ,org.osgi.framework,org.osgi.service.cm,org.osgi.service.component,or
+ g.osgi.service.log,org.osgi.util.tracker,org.slf4j,org.xml.sax,org.xm
+ l.sax.helpers,org.apache.sling.jcr.jackrabbit.server.security.dynamic
+ ;uses:="javax.jcr"
 DynamicImport-Package: *
 Service-Component: OSGI-INF/serviceComponents.xml
 Bnd-LastModified: 1232723302069
