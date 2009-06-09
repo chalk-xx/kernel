@@ -1,7 +1,9 @@
 package org.sakaiproject.kernel.search;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.*;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -34,8 +36,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
   private SearchServlet searchServlet;
   private StringWriter stringWriter;
 
-  private static final String SAKAI_QUERY_TEMPLATE = "sakai:query-template";
-  private static final String SAKAI_QUERY_LANGUAGE = "sakai:query-language";
   private static final String SQL_QUERY = "select * from \\y where x = '{q}'";
 
   @Before
@@ -85,7 +85,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
 
-    executeQuery();
+    executeQuery(queryNode);
   }
 
   @Test
@@ -115,7 +115,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);
 
-    executeQuery();
+    executeQuery(queryNode);
   }
 
   private Node prepareNodeSessionWithQueryManagerAndResultNode(Node resultNode,
@@ -167,11 +167,12 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(node.getProperty(propertyName)).andReturn(property);
   }
 
-  private void executeQuery() throws IOException, ServletException {
+  private void executeQuery(Node queryNode) throws IOException, ServletException, RepositoryException {
     stringWriter = new StringWriter();
     response = createMock(SlingHttpServletResponse.class);
     expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
+    expect(queryNode.hasProperty(SAKAI_RESULTPROCESSOR)).andReturn(false).anyTimes();
 
     replay();
 
