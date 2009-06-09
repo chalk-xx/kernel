@@ -93,6 +93,24 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
  * 
+ * @scr.property name="password.digest.algorithm" value="sha1"
+ * 
+ * 
+ * @scr.property name="servlet.post.dateFormats"
+ *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
+ *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
+ *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
+ *               values.5="dd.MM.yyyy"
+ * 
+ * 
+ * @scr.property name="self.registration.enabled" label="%self.registration.enabled.name"
+ *               description="%self.registration.enabled.description"
+ *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
+ * 
+ * @scr.property name="usermanager.hashlevels" label="%usermanager.hashlevels.name"
+ *               description="%usermanager.hashlevels.description"
+ *               valueRef="DEFAULT_HASH_LEVELS"
+ * 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.user.UserPostProcessor"
@@ -111,18 +129,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    */
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  /**
-   * @scr.property label="%self.registration.enabled.name"
-   *               description="%self.registration.enabled.description"
-   *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
-   */
   private static final String PROP_SELF_REGISTRATION_ENABLED = "self.registration.enabled";
   private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
-  /**
-   * @scr.property label="%usermanager.hashlevels.name"
-   *               description="%usermanager.hashlevels.description"
-   *               valueRef="DEFAULT_HASH_LEVELS"
-   */
   private static final String PROP_HASH_LEVELS = "usermanager.hashlevels";
   private static final int DEFAULT_HASH_LEVELS = 4;
 
@@ -264,12 +272,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     } finally {
       ungetSession(selfRegSession);
     }
-    
-    
+
     try {
       userPostProcessor.process(request, changes);
     } catch (Exception e) {
-      log.warn(e.getMessage(),e);
+      log.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }

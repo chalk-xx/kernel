@@ -88,6 +88,11 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
  * 
+ * @scr.property name="servlet.post.dateFormats" values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
+ *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
+ *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
+ *               values.5="dd.MM.yyyy"
+ * 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.user.UserPostProcessor"
