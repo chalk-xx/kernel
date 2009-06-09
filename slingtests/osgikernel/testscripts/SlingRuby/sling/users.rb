@@ -68,7 +68,7 @@ module SlingUsers
     end
      
     def delete_user(username)
-      result = @sling.execute_post(@sling.url_for("#{$USERMANAGER_URI}/user/#{username}.delete.html"),
+      result = @sling.execute_post(@sling.url_for("#{$USERMANAGER_URI}user/#{username}.delete.html"),
                                     { "go" => 1 })
       if (result.code.to_i > 299)
         puts "Error deleting user"
