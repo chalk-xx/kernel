@@ -46,7 +46,7 @@ public interface SiteService {
    * The property used to store the joinable status of the site.
    */
   public static final String JOINABLE = "sakai:joinable";
-  
+
   /**
    * The property used to store the sites a group is associated with.
    */
@@ -233,14 +233,26 @@ public interface SiteService {
    * @param sort
    *          a specification for sorting.
    * @return an Iterator of groups for the list requested.
-   * @throws SiteException when there is an internal problem with getting the groups.
+   * @throws SiteException
+   *           when there is an internal problem with getting the groups.
    */
-  Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort) throws SiteException;
+  Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort)
+      throws SiteException;
 
   /**
    * @param user
-   * @throws SiteException 
+   * @throws SiteException
    */
-  Map<String, List<Group>> getMembership(Session session, String user) throws SiteException;
+  Map<String, List<Group>> getMembership(Session session, String user)
+      throws SiteException;
+
+  /**
+   * Gets the default site template for the node, this must be a node that exist and is
+   * readable by the current session.
+   * 
+   * @param site
+   * @return the location of the default site template.
+   */
+  String getDefaultSiteTemplate(Node site);
 
 }
