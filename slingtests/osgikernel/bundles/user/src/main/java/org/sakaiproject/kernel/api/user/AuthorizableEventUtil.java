@@ -16,7 +16,6 @@
  */
 package org.sakaiproject.kernel.api.user;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
@@ -42,13 +41,13 @@ public class AuthorizableEventUtil {
    */
   public static Event newAuthorizableEvent(
       Operation operation, String user,
-      Authorizable authorizable, Modification m) throws RepositoryException {
+      String principalName, Modification m) throws RepositoryException {
     Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
     if (operation != null) {
       eventDictionary.put(AuthorizableEvent.OPERATION, operation);
     }
-    if (authorizable != null && authorizable.getPrincipal() != null) {
-      eventDictionary.put(AuthorizableEvent.PRINCIPAL, authorizable.getPrincipal());
+    if (principalName != null) {
+      eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, principalName);
     }
     if (m != null) {
       eventDictionary.put(AuthorizableEvent.MODIFICATION, m);

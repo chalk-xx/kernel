@@ -99,44 +99,45 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     UserManager userManager = AccessControlUtil.getUserManager(request.getResourceResolver().adaptTo(Session.class));
     Authorizable authorizable = null;
+    String principalName = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
-        authorizable = userManager.getAuthorizable(rpid.getString());
-        updateProperties(authorizable, changes);
+        principalName = rpid.getString();
+        authorizable = userManager.getAuthorizable(principalName);
+        updateProperties(authorizable, principalName, false, changes);
       }
     } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
-        authorizable = userManager.getAuthorizable(rpid.getString());
-        updateProperties(authorizable, changes);
+        principalName = rpid.getString();
+        authorizable = userManager.getAuthorizable(principalName);
+        updateProperties(authorizable, principalName, true, changes);
       }
     } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-      String pid = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
-      if (pid.indexOf('/') != -1) {
+      principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
+      if (principalName.indexOf('/') != -1) {
         return;
       }
-      authorizable = userManager.getAuthorizable(pid);
-      updateProperties(authorizable, changes);
+      authorizable = userManager.getAuthorizable(principalName);
+      updateProperties(authorizable, principalName,false,  changes);
     } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-      String pid = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
-      if (pid.indexOf('/') != -1) {
+      principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
+      if (principalName.indexOf('/') != -1) {
         return;
       }
-      authorizable = userManager.getAuthorizable(pid);
-      updateProperties(authorizable, changes);
+      authorizable = userManager.getAuthorizable(principalName);
+      updateProperties(authorizable, principalName, true, changes);
     }
-    if (authorizable != null) {
-      fireEvent(request, authorizable, changes);
-    }
+    fireEvent(request, principalName, changes);
 
   }
 
   /**
-   * @param request
-   * @param user
+   * @param authorizable
+   * @param principalName 
    * @param changes
    * @throws RepositoryException
    * @throws ConstraintViolationException
@@ -144,29 +145,42 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    * @throws VersionException
    * @throws PathNotFoundException
    */
-  private void updateProperties(Authorizable authorizable, List<Modification> changes)
+  private void updateProperties(Authorizable authorizable, String principalName, boolean isGroup, List<Modification> changes)
       throws PathNotFoundException, VersionException, LockException,
       ConstraintViolationException, RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
     try {
-      Node profileNode = createProfileNode(session, authorizable);
-      Iterator<?> inames = authorizable.getPropertyNames();
-      String id = authorizable.getID();
+      Node profileNode = null;
+      Iterator<?> inames = null;
+      if (authorizable != null) {
+        profileNode = createProfileNode(session, authorizable);
+        inames = authorizable.getPropertyNames();
+      }
       for (Modification m : changes) {
         String dest = m.getDestination();
+        if (dest == null) {
+          dest = m.getSource();
+        }
         switch (m.getType()) {
         case DELETE:
-          if (!dest.endsWith(id)) {
+          if (!dest.endsWith(principalName) && profileNode != null) {
             String propertyName = PathUtils.lastElement(dest);
             if (profileNode.hasProperty(propertyName)) {
               Property prop = profileNode.getProperty(propertyName);
               changes.add(Modification.onDeleted(prop.getPath()));
               prop.remove();
             }
+          } else {
+            deleteProfileNode(session, principalName, isGroup);
           }
           break;
         }
       }
+      
+      if (profileNode == null) {
+        return;
+      }
+      
       // build a blacklist set of properties that should be kept private
       Set<String> privateProperties = new HashSet<String>();
       if (profileNode.hasProperty(PRIVATE_PROPERTIES)) {
@@ -203,17 +217,8 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    */
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = null;
-    String type = null;
-    if (authorizable.isGroup()) {
-      path = PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getID(),
-          AUTH_PROFILE);
-      type = UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
-    } else {
-      path = PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getID(),
-          AUTH_PROFILE);
-      type = UserConstants.USER_PROFILE_RESOURCE_TYPE;
-    }
+    String path = profileNodeForAuthorizable(authorizable);
+    String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
@@ -222,6 +227,39 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
     return profileNode;
   }
 
+  private void deleteProfileNode(Session session, String principalName, boolean isGroup)
+      throws RepositoryException {
+    String path = profileNodeForAuthorizable(principalName, isGroup);
+    if (session.itemExists(path)) {
+      Node node = (Node)session.getItem(path);
+      node.remove();
+    }
+  }
+
+  private static String nodeTypeForAuthorizable(Authorizable authorizable) {
+    if (authorizable.isGroup()) {
+      return UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
+    } else {
+      return UserConstants.USER_PROFILE_RESOURCE_TYPE;
+    }
+  }
+
+  public static String profileNodeForAuthorizable(String principalName, boolean isGroup) throws RepositoryException
+  {
+    if (isGroup) {
+      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, principalName,
+          AUTH_PROFILE);
+    } else {
+      return PathUtils.toInternalHashedPath(_USER_PUBLIC, principalName,
+          AUTH_PROFILE);
+    }
+  }
+
+  public static String profileNodeForAuthorizable(Authorizable authorizable) throws RepositoryException
+  {
+    return profileNodeForAuthorizable(authorizable.getID(), authorizable.isGroup());
+  }
+  
   /**
    * @param slingRepository
    *          the slingRepository to set
@@ -255,7 +293,7 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    * @param changes
    *          a list of {@link Modification} caused by the operation.
    */
-  private void fireEvent(SlingHttpServletRequest request, Authorizable authorizable,
+  private void fireEvent(SlingHttpServletRequest request, String principalName,
       List<Modification> changes) {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -265,27 +303,27 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
         if (path == null) {
           path = m.getSource();
         }
-        if (path.endsWith(authorizable.getID())) {
+        if (path.endsWith(principalName)) {
           switch (m.getType()) {
           case COPY:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(
-                Operation.update, user, authorizable, m));
+                Operation.update, user, principalName, m));
             break;
           case CREATE:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(
-                Operation.create, user, authorizable, m));
+                Operation.create, user, principalName, m));
             break;
           case DELETE:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(
-                Operation.delete, user, authorizable, m));
+                Operation.delete, user, principalName, m));
             break;
           case MODIFY:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(
-                Operation.update, user, authorizable, m));
+                Operation.update, user, principalName, m));
             break;
           case MOVE:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(
-                Operation.update, user, authorizable, m));
+                Operation.update, user, principalName, m));
             break;
           }
         }
