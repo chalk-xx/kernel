@@ -30,7 +30,7 @@ public interface UserConstants {
   public static final String SYSTEM_USER_MANAGER_GROUP_PREFIX = SYSTEM_USER_MANAGER_GROUP_PATH + "/";
 
   public static final String USER_PROFILE_RESOURCE_TYPE = "sakai/user-profile";
-  public static final String GROUP_PROFILE_RESOURCE_TYPE = "sakai/user-profile";
+  public static final String GROUP_PROFILE_RESOURCE_TYPE = "sakai/group-profile";
 
   /**
    * The node name of the authentication profile in public space.

@@ -28,11 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 /**
  * This Class implements the post processing operations on resource types.
  */

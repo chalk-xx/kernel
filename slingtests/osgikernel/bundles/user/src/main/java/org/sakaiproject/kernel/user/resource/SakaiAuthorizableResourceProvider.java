@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.user.resource;
 
-import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 
 /**
  * Resource Provider implementation for jackrabbit UserManager resources.
