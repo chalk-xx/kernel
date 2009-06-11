@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.user.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.post.UpdateUserServlet;
+import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.kernel.user.UserPostProcessor;
 

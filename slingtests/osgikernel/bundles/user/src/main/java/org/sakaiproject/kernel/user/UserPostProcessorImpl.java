@@ -203,17 +203,8 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    */
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = null;
-    String type = null;
-    if (authorizable.isGroup()) {
-      path = PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getID(),
-          AUTH_PROFILE);
-      type = UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
-    } else {
-      path = PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getID(),
-          AUTH_PROFILE);
-      type = UserConstants.USER_PROFILE_RESOURCE_TYPE;
-    }
+    String path = profileNodeForAuthorizable(authorizable);
+    String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
@@ -222,6 +213,25 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
     return profileNode;
   }
 
+  private static String nodeTypeForAuthorizable(Authorizable authorizable) {
+    if (authorizable.isGroup()) {
+      return UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
+    } else {
+      return UserConstants.USER_PROFILE_RESOURCE_TYPE;
+    }
+  }
+
+  public static String profileNodeForAuthorizable(Authorizable authorizable) throws RepositoryException
+  {
+    if (authorizable.isGroup()) {
+      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getID(),
+          AUTH_PROFILE);
+    } else {
+      return PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getID(),
+          AUTH_PROFILE);
+    }
+  }
+  
   /**
    * @param slingRepository
    *          the slingRepository to set
