@@ -23,12 +23,12 @@ class TC_MySearchTest < SlingTest
   end
 
   def test_user_search
-    create_user("anunusualuser")
-    result = @sm.search_for_user("anunusualuser")
+    create_user("unusualuser")
+    result = @sm.search_for_user("unusualuser")
     assert_not_nil(result, "Expected result back")
     users = result["results"]
     assert_equal(1, users.size, "Expected one matching user")
-    assert_equal("anunusualuser", users[0], "Expected user to match")
+    assert_not_nil(users[0].match(/.*\/unusualuser\/.*/), "Expected user to match")
   end
 
 end
