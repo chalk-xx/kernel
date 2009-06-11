@@ -49,9 +49,9 @@
               <includeArtifactIds>org.apache.sling.jcr.resource</includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>  org/apache/sling/jcr/resource/PathResourceTypeProvider*,
-              org/apache/sling/jcr/resource/internal/JcrResourceResolver2*,
-              org/apache/sling/jcr/resource/internal/JcrResourceResolverFactoryImpl* </excludes>
+              <excludes> org/apache/sling/jcr/resource/PathResourceTypeProvider*,
+                org/apache/sling/jcr/resource/internal/JcrResourceResolver2*,
+                org/apache/sling/jcr/resource/internal/JcrResourceResolverFactoryImpl* </excludes>
             </configuration>
           </execution>
         </executions>
@@ -64,12 +64,24 @@
       <artifactId>org.sakaiproject.kernel.sling.api</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+        </exclusion>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>org.apache.sling.api</artifactId>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.resource</artifactId>
-      <version>2.0.4-incubator</version>
+      <version>2.0.5-incubator-SNAPSHOT</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+        </exclusion>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>org.apache.sling.api</artifactId>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
