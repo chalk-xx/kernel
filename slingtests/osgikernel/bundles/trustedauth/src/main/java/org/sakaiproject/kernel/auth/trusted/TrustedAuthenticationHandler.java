@@ -60,8 +60,8 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
 
   /**
    * Path on which this authentication should be activated.
-   *
-   * @scr.property value="/trusted"
+   * 
+   * @scr.property value="/"
    */
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
