@@ -1,6 +1,7 @@
 require 'test/unit.rb'
 require 'sling/sling'
 require 'sling/users'
+require 'sling/sites'
 require 'tempfile'
 
 class SlingTest < Test::Unit::TestCase
@@ -8,9 +9,11 @@ class SlingTest < Test::Unit::TestCase
   def setup
     @s = SlingInterface::Sling.new()
     @um = SlingUsers::UserManager.new(@s)
+    @sm = SlingSites::SiteManager.new(@s)
     @created_nodes = []
     @created_users = []
     @created_groups = []
+    @created_sites = []
   end
 
   def teardown
@@ -18,6 +21,7 @@ class SlingTest < Test::Unit::TestCase
     @created_nodes.each { |n| assert(@s.delete_node(n), "Expected node delete to succeed") }
     @created_users.each { |u| assert(@um.delete_user(u), "Expected user delete to succeed") }
     @created_groups.each { |g| assert(@um.delete_group(g), "Expected group delete to succeed") }
+    @created_sites.each { |s| assert(@sm.delete_site(s), "Expected site delete to succeed") }
   end
 
   def create_node(path, props)
@@ -44,6 +48,12 @@ class SlingTest < Test::Unit::TestCase
     g = @um.create_group(groupname)
     @created_groups << groupname
     return g
+  end
+
+  def create_site(path)
+    s = @sm.create_site(path)
+    @created_sites << path
+    return s
   end
 
 end
