@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.message;
 
+import static org.sakaiproject.kernel.api.message.MessageConstants.MESSAGE_OPERATION;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
@@ -59,6 +61,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
+    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
 
     LOGGER.info("ServletPath " + request.getPathInfo());
 

@@ -18,67 +18,58 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
-  <packaging>bundle</packaging>
+  <artifactId>org.sakaiproject.kernel.sling.resource</artifactId>
+  <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Kernel Security Loader Bundle</name>
-  <description>Security Loader Bundle, watches for bundles with security configuration and loads them into the JCR on startup, recording the details in /var in the JCR .</description>
+  <name>Sakai Kernel Sling Resources Extension Bundle</name>
+  <description>Extension bundle that provides additional functionality in the Sling
+    Resources area as required by Sakai.</description>
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
-          <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.securityloader </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.securityloader </Private-Package>
-          </instructions>
+          <archive>
+            <manifestFile> ${project.build.outputDirectory}/META-INF/MANIFEST.MF </manifestFile>
+          </archive>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Expand Server</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>org.apache.sling.jcr.resource</includeArtifactIds>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+              <excludes>  org/apache/sling/jcr/resource/PathResourceTypeProvider*,
+              org/apache/sling/jcr/resource/internal/JcrResourceResolver2*,
+              org/apache/sling/jcr/resource/internal/JcrResourceResolverFactoryImpl* </excludes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <artifactId>org.sakaiproject.kernel.sling.api</artifactId>
       <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.engine</artifactId>
-      <version>2.0.2-incubator</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.jackrabbit.usermanager</artifactId>
-      <version>2.0.2-incubator</version>  
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
-      <version>2.0.2-incubator</version>  
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.4-incubator</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -87,6 +78,12 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -104,5 +101,6 @@
       <version>1.5.2</version>
       <scope>test</scope>
     </dependency>
+          <!-- Testing -->
   </dependencies>
 </project>

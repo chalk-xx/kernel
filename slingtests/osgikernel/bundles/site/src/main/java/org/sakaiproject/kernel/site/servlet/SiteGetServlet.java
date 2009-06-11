@@ -38,8 +38,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.component immediate="true" label="SiteGetServlet"
  *                description="Get servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Renders sites"
+ * @scr.property name="service.description" value="Renders sites"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
  * @scr.property name="sling.servlet.methods" value="GET"
@@ -55,8 +54,7 @@ public class SiteGetServlet extends AbstractSiteServlet {
       throws ServletException, IOException {
     LOG.info("Got get to SiteServiceGetServlet");
     Node site = request.getResource().adaptTo(Node.class);
-    if (site == null)
-    {
+    if (site == null) {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
       return;
     }
@@ -68,6 +66,12 @@ public class SiteGetServlet extends AbstractSiteServlet {
     try {
       String templatePath = getSiteService().getSiteTemplate(site);
       Resource siteTemplate = request.getResourceResolver().getResource(templatePath);
+      if (siteTemplate == null) {
+        LOG.warn("No site template found at location {} for site {}, will use default template (templates must be specified as absolute paths) ", new Object[] {
+            templatePath, site, request.getResource().getPath()});
+        templatePath = getSiteService().getDefaultSiteTemplate(site);
+        siteTemplate = request.getResourceResolver().getResource(templatePath);
+      }
       IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
       LOG.info("Streamed site template");
       response.setStatus(HttpServletResponse.SC_OK);
@@ -77,5 +81,5 @@ public class SiteGetServlet extends AbstractSiteServlet {
       return;
     }
   }
-  
+
 }

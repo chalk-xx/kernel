@@ -161,9 +161,21 @@
       <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    
+    <!--  these override bundles from Sling -->
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.jcr.jackrabbit.server</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.sling.api</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.sling.resource</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
     
@@ -258,6 +270,18 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
             <executions>
+              <execution>
+                <id>copy-level-0-bundles</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeArtifactIds>org.sakaiproject.kernel.sling.api,org.sakaiproject.kernel.sling.resource</includeArtifactIds>
+                  <excludeTransitive>true</excludeTransitive>
+                  <outputDirectory> ${project.build.outputDirectory}/resources/bundles/0 
+                  </outputDirectory>
+                </configuration>
+              </execution>
               <execution>
                 <id>copy-level-1-bundles</id>
                 <goals>

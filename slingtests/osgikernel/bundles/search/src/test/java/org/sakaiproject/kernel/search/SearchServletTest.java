@@ -1,6 +1,10 @@
 package org.sakaiproject.kernel.search;
 
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -26,15 +30,13 @@ import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 import javax.servlet.ServletException;
 
-public class SearchServletT extends AbstractEasyMockTest {
+public class SearchServletTest extends AbstractEasyMockTest {
 
   private SlingHttpServletRequest request;
   private SlingHttpServletResponse response;
   private SearchServlet searchServlet;
   private StringWriter stringWriter;
 
-  private static final String SAKAI_QUERY_TEMPLATE = "sakai:query-template";
-  private static final String SAKAI_QUERY_LANGUAGE = "sakai:query-language";
   private static final String SQL_QUERY = "select * from \\y where x = '{q}'";
 
   @Before
@@ -44,8 +46,8 @@ public class SearchServletT extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testNoQueryTemplate() throws ValueFormatException, RepositoryException, IOException,
-      ServletException {
+  public void testNoQueryTemplate() throws ValueFormatException,
+      RepositoryException, IOException, ServletException {
     Node node = createMock(Node.class);
     expect(node.hasProperty(SAKAI_QUERY_TEMPLATE)).andReturn(false);
 
@@ -64,12 +66,13 @@ public class SearchServletT extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testGoodQuery() throws ValueFormatException, RepositoryException, IOException,
-      ServletException {
-    
+  public void testGoodQuery() throws ValueFormatException, RepositoryException,
+      IOException, ServletException {
+
     Node resultNode = createMock(Node.class);
-    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(resultNode, "select * from y where x = 'foo'");
-    
+    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
+        resultNode, "select * from y where x = 'foo'");
+
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
 
@@ -81,24 +84,59 @@ public class SearchServletT extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
 
-    executeQuery();
+    executeQuery(queryNode);
   }
 
   @Test
   public void testDefaultLanguageAndBadItemCount() throws ValueFormatException,
       RepositoryException, IOException, ServletException {
-    executeSimpleQueryWithNoResults("foo", "NAN", "select * from y where x = 'foo'");
+    executeSimpleQueryWithNoResults("foo", "NAN",
+        "select * from y where x = 'foo'");
   }
 
   @Test
-  public void testSqlEscaping() throws RepositoryException, IOException, ServletException
-  {
-    executeSimpleQueryWithNoResults("fo'o", "NAN", "select * from y where x = 'fo\\'o'");    
+  public void testSqlEscaping() throws RepositoryException, IOException,
+      ServletException {
+    executeSimpleQueryWithNoResults("fo'o", "NAN",
+        "select * from y where x = 'fo\\'o'");
   }
-  
-  private void executeSimpleQueryWithNoResults(String queryParameter, String itemCount, String expectedSqlQuery) throws RepositoryException, IOException, ServletException
-  {
-    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(null, expectedSqlQuery);
+
+  @Test
+  public void testRepositoryExceptionHandling() throws Exception {
+    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(null,
+        "foo");
+
+    addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
+    expect(queryNode.hasProperty(SAKAI_QUERY_LANGUAGE)).andThrow(
+        new RepositoryException());
+
+    Resource resource = createMock(Resource.class);
+    expect(resource.adaptTo(Node.class)).andReturn(queryNode);
+
+    request = createMock(SlingHttpServletRequest.class);
+    expect(request.getResource()).andReturn(resource);
+    addStringRequestParameter(request, "items", "25");
+    addStringRequestParameter(request, "q", "foo");
+
+    response = createMock(SlingHttpServletResponse.class);
+    response.sendError(500, null);
+    expectLastCall();
+
+    stringWriter = new StringWriter();
+    expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
+    searchServlet = new SearchServlet();
+
+    replay();
+
+    searchServlet.doGet(request, response);
+    stringWriter.close();
+  }
+
+  private void executeSimpleQueryWithNoResults(String queryParameter,
+      String itemCount, String expectedSqlQuery) throws RepositoryException,
+      IOException, ServletException {
+    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(null,
+        expectedSqlQuery);
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     expect(queryNode.hasProperty(SAKAI_QUERY_LANGUAGE)).andReturn(false);
@@ -111,11 +149,11 @@ public class SearchServletT extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);
 
-    executeQuery();    
+    executeQuery(queryNode);
   }
-  
-  private Node prepareNodeSessionWithQueryManagerAndResultNode(Node resultNode, String expectedQuery)
-      throws RepositoryException {
+
+  private Node prepareNodeSessionWithQueryManagerAndResultNode(Node resultNode,
+      String expectedQuery) throws RepositoryException {
     Node queryNode = createMock(Node.class);
 
     NodeIterator nodeIterator = createMock(NodeIterator.class);
@@ -147,14 +185,15 @@ public class SearchServletT extends AbstractEasyMockTest {
     return queryNode;
   }
 
-  private void addStringRequestParameter(SlingHttpServletRequest request, String key, String value) {
+  private void addStringRequestParameter(SlingHttpServletRequest request,
+      String key, String value) {
     RequestParameter param = createMock(RequestParameter.class);
     expect(param.getString()).andReturn(value).anyTimes();
     expect(request.getRequestParameter(key)).andReturn(param);
   }
 
-  private void addStringPropertyToNode(Node node, String propertyName, String propertyValue)
-      throws ValueFormatException, RepositoryException {
+  private void addStringPropertyToNode(Node node, String propertyName,
+      String propertyValue) throws ValueFormatException, RepositoryException {
     Property property = createMock(Property.class);
     expect(property.getString()).andReturn(propertyValue).anyTimes();
 
@@ -162,11 +201,14 @@ public class SearchServletT extends AbstractEasyMockTest {
     expect(node.getProperty(propertyName)).andReturn(property);
   }
 
-  private void executeQuery() throws IOException, ServletException {
+  private void executeQuery(Node queryNode) throws IOException,
+      ServletException, RepositoryException {
     stringWriter = new StringWriter();
     response = createMock(SlingHttpServletResponse.class);
     expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
+    expect(queryNode.hasProperty(SAKAI_RESULTPROCESSOR)).andReturn(false)
+        .anyTimes();
 
     replay();
 

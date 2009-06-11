@@ -55,7 +55,7 @@
                 <artifactItem>
                   <groupId>org.apache.sling</groupId>
                   <artifactId>org.apache.sling.launchpad.base</artifactId>
-                  <version>2.0.5-incubator-SNAPSHOT</version>
+                  <version>2.0.4-incubator</version>
                 </artifactItem>
               </artifactItems>
               <stripVersion>true</stripVersion>
@@ -73,7 +73,9 @@
             <configuration>
               <includeArtifactIds> org.apache.sling.launchpad.bundles </includeArtifactIds>
               <excludes> resources/bundles/**/org.apache.sling.jcr.jackrabbit.usermanager*,
-                         resources/bundles/**/org.apache.sling.jcr.jackrabbit.server* </excludes>
+                         resources/bundles/**/org.apache.sling.jcr.jackrabbit.server*,
+                         resources/bundles/**/org.apache.sling.api*,
+                         resources/bundles/**/org.apache.sling.jcr.resource*  </excludes>
               <includes> resources/** </includes>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
@@ -163,7 +165,6 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.launchpad.base</artifactId>
       <version>2.0.5-incubator-SNAPSHOT</version>
-      <classifier>app</classifier>
       <scope>provided</scope>
     </dependency>
     <dependency>

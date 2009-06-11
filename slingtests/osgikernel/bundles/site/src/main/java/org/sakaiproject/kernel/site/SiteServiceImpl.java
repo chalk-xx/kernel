@@ -88,8 +88,8 @@ public class SiteServiceImpl implements SiteService {
       if (site instanceof Node) {
         Node n = (Node) site;
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && SiteService.SITE_RESOURCE_TYPE.equals(n
-                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+            && SiteService.SITE_RESOURCE_TYPE.equals(n.getProperty(
+                JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
           return true;
         }
       }
@@ -359,6 +359,17 @@ public class SiteServiceImpl implements SiteService {
   /**
    * {@inheritDoc}
    * 
+   * @see org.sakaiproject.kernel.api.site.SiteService#getDefaultSiteTemplate(javax.jcr.Node)
+   */
+  public String getDefaultSiteTemplate(Node site) {
+    // we should probably test that this node exists, but since this is a hard config,
+    // then its probably not worth doing it.
+    return DEFAULT_SITE;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.site.SiteService#getGroups(javax.jcr.Node, int, int,
    *      org.sakaiproject.kernel.api.site.Sort[])
    */
@@ -574,7 +585,8 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.kernel.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
    */
   @SuppressWarnings("unchecked")
-  public Map<String, List<Group>> getMembership(Session session, String user) throws SiteException {
+  public Map<String, List<Group>> getMembership(Session session, String user)
+      throws SiteException {
     try {
       Map<String, List<Group>> sites = Maps.newHashMap();
       UserManager userManager = AccessControlUtil.getUserManager(session);
