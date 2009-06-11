@@ -42,9 +42,8 @@ import javax.servlet.http.HttpSession;
  * Authentication handler for trusted authentication sources. These sources will
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
- *
- * @scr.component immediate="false" label="%auth.http.name"
- *                description="%auth.http.description"
+ * 
+ * @scr.component
  * @scr.service
  */
 public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
@@ -61,7 +60,7 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
   /**
    * Path on which this authentication should be activated.
    *
-   * @scr.property value="/trusted"
+   * @scr.property value="/"
    */
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 

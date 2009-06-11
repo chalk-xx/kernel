@@ -77,6 +77,12 @@
       <artifactId>servlet-api</artifactId>
     </dependency>
 
+<!-- Pax Web -->
+    <dependency>
+      <groupId>org.ops4j.pax.web</groupId>
+      <artifactId>pax-web-service</artifactId>
+    </dependency>
+
 <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
