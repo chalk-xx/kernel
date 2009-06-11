@@ -366,7 +366,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   public void fireEvent(Operation operation, Session session, Authorizable authorizable,
       List<Modification> changes) {
     try {
-      eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, session.getUserID(), authorizable, null));
+      eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(operation, session.getUserID(), authorizable.getID(), null));
     } catch (Throwable t) {
       LOGGER.warn("Failed to fire event", t);
     }
