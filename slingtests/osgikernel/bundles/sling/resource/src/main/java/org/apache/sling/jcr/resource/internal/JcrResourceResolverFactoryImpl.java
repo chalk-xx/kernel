@@ -75,9 +75,12 @@ import org.slf4j.LoggerFactory;
  * @scr.reference name="PathResourceTypeProvider"
  *                interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  *                cardinality="0..n" policy="dynamic"
+ * @scr.reference name="Repository" 
+ *                 interface="org.apache.sling.jcr.api.SlingRepository"
+ *                 
  *                
  *  NOTE:
- *  Although th SCR Statements are here, we manually manitan the mappings so that we can extend.               
+ *  Although th SCR Statements are here, we manually maintain the mappings so that we can extend.               
  *                
  */
 public class JcrResourceResolverFactoryImpl implements
@@ -153,7 +156,6 @@ public class JcrResourceResolverFactoryImpl implements
     /**
      * The JCR Repository we access to resolve resources
      *
-     * @scr.reference
      */
     private SlingRepository repository;
 
