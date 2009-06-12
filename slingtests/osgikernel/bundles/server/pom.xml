@@ -53,7 +53,8 @@
               <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,repository.xml </excludes>
+              <excludes>META-INF/MANIFEST.MF,repository.xml 
+              </excludes>
             </configuration>
           </execution>
         </executions>
@@ -89,14 +90,12 @@
     <!-- Jackrabbbit dependencies
      -->
             <!-- The core repository implementation -->
-        <dependency>
-            <groupId>org.apache.jackrabbit</groupId>
-            <artifactId>jackrabbit-core</artifactId>
-            <version>1.5.0</version>
-            <scope>compile</scope>
-        </dependency>
-    
-    
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-core</artifactId>
+      <version>1.5.0</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>
@@ -104,6 +103,10 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
