@@ -37,6 +37,10 @@ module SlingUsers
               { ":member@Delete" => principal_path })
     end
 
+    def set_joinable(sling, joinable)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"), "sakai:joinable" => joinable)
+    end
+
     def members(sling)
       props = s.get_node_props("#{group_url}.json")
       return props["members"]
@@ -48,7 +52,7 @@ module SlingUsers
 
     private
     def group_url
-      return self.url_for(@name)
+      return Group.url_for(@name)
     end
   end
 
@@ -86,7 +90,7 @@ module SlingUsers
 
     private
     def user_url
-      return self.url_for(@name)
+      return User.url_for(@name)
     end
   end
 
