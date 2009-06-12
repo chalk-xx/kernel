@@ -21,7 +21,6 @@ use Time::HiRes;
 use Sling::Print;
 use Sling::Request;
 use Sling::SearchUtil;
-use Sling::Util;
 #}}}
 
 #{{{sub new
@@ -71,7 +70,7 @@ sub search {
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_eval( \$res ) ) {
 	my $hits = () = ($res->content =~ /jcr:path/g);
-	my $message = Sling::Util::dateTime .
+	my $message = Sling::Print::dateTime .
 	    " Searching for \"$searchTerm\": Search OK. Found $hits hits.";
 	if ( defined $log && open( LOG, ">>$log" ) ) {
 	    flock( LOG, LOCK_EX );
@@ -84,7 +83,7 @@ sub search {
 	return 1;
     }
     else {
-        my $message = Sling::Util::dateTime . " Searching for \"$searchTerm\": Search failed!";
+        my $message = Sling::Print::dateTime . " Searching for \"$searchTerm\": Search failed!";
         $search->set_results( 0, $message, \$res, $timeElapse );
 	return 0;
     }

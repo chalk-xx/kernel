@@ -152,6 +152,19 @@ sub me {
 }
 #}}}
 
+#{{{sub sites
+sub sites {
+    my ( $user, $log ) = @_;
+    my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
+                  Sling::UserUtil::sites_setup( $user->{ 'BaseURL' } ), $user->{ 'LWP' } ) );
+    my $success = Sling::UserUtil::sites_eval( \$res );
+    my $message = ( $success ? $res->content : "Problem fetching details for current user" );
+    $user->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
 #{{{sub view
 sub view {
     my ( $user, $actOnUser, $log ) = @_;

@@ -1,46 +1,75 @@
 #!/usr/bin/perl
 
+#{{{Documentation
+=head1 SYNOPSIS
+
+dav perl script. Provides a means of uploading content into sling from the
+command line over WebDAV. The script also acts as a reference implementation for the
+DAV perl library.
+
+=head1 OPTIONS
+
+Usage: perl dav.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
+The following options are accepted:
+
+ -a              - add specified content.
+ -l {localPath}  - path of local file or folder to upload.
+ -p {password}   - Password of user performing actions.
+ -r {remotePath} - remote path on server to upload content to.
+ -t {threads}    - Used with -F, defines number of parallel
+                   processes to have running through file.
+ -u {username}   - Name of user to perform any actions as.
+ -F {File}       - File containing list of sites to add.
+ -U {URL}        - URL for system being tested against.
+ --help or -?    - view the script synopsis and options.
+ --man           - view the full script documentation.
+
+Options may be merged together. -- stops processing of options.
+Space is not required between options and their arguments.
+For full details run: perl dav.pl
+
+=head1 Example Usage
+
+=over
+
+=item Authenticate and add local file test.txt to /test.txt:
+
+ perl dav.pl -U http://localhost:8080 -a -l test.txt -u admin -p admin
+
+=back
+
+=cut
+#}}}
+
 #{{{imports
 use strict;
 use lib qw ( .. );
-use HTTP::DAV;
-use Sling::DAV;
-use Sling::Util;
 use Getopt::Long qw(:config bundling);
-#}}}
-
-#{{{sub HELP_MESSAGE
-sub HELP_MESSAGE {
-    my ( $out, $optPackage, $optVersion, $switches ) = @_;
-    Sling::Util::help_header( $0, $switches );
-    print "-a                   - add specified content.\n";
-    print "-l {localPath}       - path of local file or folder to upload.\n";
-    print "-r {remotePath}      - remote path on server to upload content to.\n";
-    print "-p {password}        - Password of user performing actions.\n";
-    print "-t {threads}         - Used with -F, defines number of parallel\n";
-    print "                       processes to have running through file.\n";
-    print "-u {username}        - Name of user to perform any actions as.\n";
-    print "-F {File}            - File containing list of sites to add.\n";
-    print "-U {URL}             - URL for system being tested against.\n";
-    Sling::Util::help_footer( $0 );
-}
+use HTTP::DAV;
+use Pod::Usage;
+use Sling::DAV;
 #}}}
 
 #{{{options parsing
-my $url = "http://localhost";
-my $localPath;
-my $remotePath;
-my $username;
-my $password;
-my $file;
-my $numberForks = 1;
 my $add;
+my $file;
+my $help;
+my $localPath;
+my $man;
+my $numberForks = 1;
+my $password;
+my $remotePath;
+my $url = "http://localhost";
+my $username;
 
 GetOptions ( "a" => \$add,           "l=s" => \$localPath,
              "p=s" => \$password,    "r=s" => \$remotePath,
              "t=i" => \$numberForks, "u=s" => \$username,
 	     "F=s" => \$file,        "U=s" => \$url,
-	     "help" => \&HELP_MESSAGE );
+             "help|?" => \$help,     "man" => \$man) or pod2usage(2);
+
+pod2usage(-exitstatus => 0, -verbose => 1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 $url =~ s/(.*)\/$/$1/;
 $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
@@ -87,7 +116,11 @@ else {
         else {
             die "ERROR: Unsupported Local path type for \"$localPath\"";
         }
-        print "Uploading $type $localPath to $remotePath: ";
+        print "Uploading $type $localPath";
+	if ( defined $remotePath ) {
+	    print " to $remotePath";
+	}
+	print ": ";
         if( $dav->upload( $localPath, $remotePath ) ) {
             print "Done!\n";
         }
