@@ -4,7 +4,7 @@ require 'sling/sling'
 include SlingInterface
 
 if $ARGV.size < 1
-  puts "Usage: put_file.rb NODE_PATH"
+  puts "Usage: delete-node.rb NODE_PATH"
   exit 1
 end
 
