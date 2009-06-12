@@ -3,15 +3,11 @@ package org.sakaiproject.kernel.search;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
-import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
 import javax.jcr.query.QueryResult;
 
 /**
@@ -31,34 +27,7 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
     NodeIterator resultNodes = result.getNodes();
     while (resultNodes.hasNext()) {
       Node resultNode = resultNodes.nextNode();
-      write.object();
-      PropertyIterator properties = resultNode.getProperties();
-      while (properties.hasNext()) {
-        Property prop = properties.nextProperty();
-        write.key(prop.getName());
-        if (prop.getDefinition().isMultiple()) {
-          Value[] values = prop.getValues();
-          write.array();
-          for (Value value : values) {
-            write.value(stringValue(value));
-          }
-          write.endArray();
-        } else {
-          write.value(stringValue(prop.getValue()));
-        }
-      }
-      write.endObject();
-    }
-  }
-
-  private String stringValue(Value value) throws ValueFormatException, IllegalStateException, RepositoryException {
-    switch (value.getType())
-    {
-      case PropertyType.STRING:
-      case PropertyType.NAME:
-        return value.getString();
-      default:
-        return value.toString();
+      ExtendedJSONWriter.writeNodeToWriter(write, resultNode);
     }
   }
 
