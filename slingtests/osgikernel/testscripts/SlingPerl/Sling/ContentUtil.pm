@@ -21,7 +21,6 @@ result of performing the request.
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Sling::Util;
 #}}}
 
 #{{{sub add_setup

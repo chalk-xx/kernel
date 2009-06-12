@@ -19,7 +19,6 @@ Perl library providing a layer of abstraction to the REST content methods
 use strict;
 use lib qw ( .. );
 use Sling::ContentUtil;
-use Sling::Util;
 use Sling::Print;
 use Sling::Request;
 #}}}
