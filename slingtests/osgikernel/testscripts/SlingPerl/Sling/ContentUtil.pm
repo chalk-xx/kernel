@@ -37,7 +37,7 @@ system.
 sub add_setup {
     my ( $baseURL, $remoteDest, $properties ) = @_;
     die "No base URL provided!" unless defined $baseURL;
-    die "No position or ID to perform addition for specified!" unless defined $remoteDest;
+    die "No position or ID to perform action for specified!" unless defined $remoteDest;
     my $property_post_vars;
     foreach my $property ( @{ $properties } ) {
         $property =~ /^([^=]*)=(.*)/;

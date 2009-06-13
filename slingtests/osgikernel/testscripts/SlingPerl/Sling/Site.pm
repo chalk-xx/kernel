@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST site methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Text::CSV;
 use Sling::SiteUtil;
 use Sling::ContentUtil;
 use Sling::Print;
@@ -56,9 +57,9 @@ sub set_results {
 }
 #}}}
 
-#{{{sub add
-sub add {
-    my ( $site, $id, $template, $joinable, $groups, $log ) = @_;
+#{{{sub update
+sub update {
+    my ( $site, $id, $template, $joinable, $groups, $other_properties, $log ) = @_;
     my @properties = ("sling:resourceType=sakai/site");
     if ( defined $template ) {
         push ( @properties, "sakai:site-template=$template" );
@@ -69,35 +70,63 @@ sub add {
     foreach my $group ( @{ $groups } ) {
         push ( @properties, "sakai:authorizables=$group" );
     }
+    foreach my $property ( @{ $other_properties } ) {
+        push ( @properties, "$property" );
+    }
     my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::ContentUtil::add_setup( $site->{ 'BaseURL' }, $id, \@properties ), $site->{ 'LWP' } ) );
     my $success = Sling::ContentUtil::add_eval( \$res );
-    my $message = "Site \"$id\" ";
-    $message .= ( $success ? "added!" : "was not added!" );
+    my $message = ( $success ? "Action successful" : "Action not successful" );
+    $message .= " for site \"$id\".";
     $site->set_results( "$message", \$res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
-#{{{sub add_from_file
-sub add_from_file {
+#{{{sub update_from_file
+sub update_from_file {
     my ( $site, $file, $forkId, $numberForks, $log ) = @_;
+    my $csv = Text::CSV->new();
     my $count = 0;
+    my $numberColumns = 0;
+    my @column_headings;
     open ( FILE, $file );
     while ( <FILE> ) {
-        if ( $forkId == ( $count++ % $numberForks ) ) {
-            chomp;
-	    $_ =~ /^(.*?),(.*?),(.*?)$/;
-	    my $id = $1;
-	    my $name = $2;
-	    my $description = $3;
-	    if ( defined $id && defined $name && defined $description ) {
-	        $site->add( $id, $name, $description, $log );
+        if ( $count++ == 0 ) {
+	    # Parse file column headings first to determine field names:
+	    if ( $csv->parse( $_ ) ) {
+	        @column_headings = $csv->fields();
+		# First field must be site:
+		if ( $column_headings[0] !~ /^[Ss][Ii][Tt][Ee]$/ ) {
+		    die "First CSV column must be the site ID, column heading must be \"site\". Found: \"" . $column_headings[0] . "\".\n";
+		}
+		$numberColumns = @column_headings;
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+        elsif ( $forkId == ( $count++ % $numberForks ) ) {
+	    my @properties;
+	    if ( $csv->parse( $_ ) ) {
+	        my @columns = $csv->fields();
+		my $columns_size = @columns;
+		# Check row has same number of columns as there were column headings:
+		if ( $columns_size != $numberColumns ) {
+		    die "Found \"$columns_size\" columns. There should have been \"$numberColumns\".\nRow contents was: $_";
+		}
+		my $id = $columns[0];
+		for ( my $i = 1; $i < $numberColumns ; $i++ ) {
+                    my $value = $column_headings[ $i ] . "=" . $columns[ $i ];
+		    push ( @properties, $value );
+		}
+	        my $template; my $joinable; my $groups;
+                $site->update( $id, $template, $joinable, $groups, \@properties, $log );
 		Sling::Print::print_lock( $site->{ 'Message' } ) if ( ! defined $log );
 	    }
 	    else {
-	        print "ERROR: Problem parsing site to add: \"$_\"\n";
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
 	    }
 	}
     }
