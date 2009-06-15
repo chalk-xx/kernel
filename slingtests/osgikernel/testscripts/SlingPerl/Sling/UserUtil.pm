@@ -21,7 +21,6 @@ result of performing the request.
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Sling::Util;
 use Sling::URL;
 #}}}
 
@@ -218,6 +217,42 @@ else false.
 =cut
 
 sub me_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub sites_setup
+
+=pod
+
+=head2 sites_setup
+
+Returns a textual representation of the request needed to return the list of
+sites the current user is a member of.
+
+=cut
+
+sub sites_setup {
+    my ( $baseURL ) = @_;
+    die "No base url to check membership of sites against!" unless defined $baseURL;
+    return "get $baseURL/system/sling/membership";
+}
+#}}}
+
+#{{{sub sites_eval
+
+=pod
+
+=head2 sites_eval
+
+Inspects the result returned from issuing the request generated in sites_setup
+returning true if the result indicates information was returned successfully,
+else false.
+
+=cut
+
+sub sites_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }

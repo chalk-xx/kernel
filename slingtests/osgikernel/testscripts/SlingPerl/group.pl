@@ -1,53 +1,83 @@
 #!/usr/bin/perl
 
+#{{{Documentation
+=head1 SYNOPSIS
+
+group perl script. Provides a means of managing groups in sling from the
+command line. The script also acts as a reference implementation for the Group
+perl library.
+
+=head1 OPTIONS
+
+Usage: perl group.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
+The following options are accepted:
+
+ -a (actOnGroup) - add specified group.
+ -d (actOnGroup) - delete specified group.
+ -e (actOnGroup) - check whether specified group exists.
+ -p (password)   - Password of user performing actions.
+ -t (threads)    - Used with -F, defines number of parallel
+                   processes to have running through file.
+ -v (actOnGroup) - view details for specified group in json format.
+ -u (username)   - Name of user to perform any actions as.
+ -F (file)       - file containing list of group to be added.
+ -L (log)        - Log script output to specified log file.
+ -U (URL)        - URL for system being tested against.
+ --auth (type)   - Specify auth type. If ommitted, default is used.
+ --help or -?    - view the script synopsis and options.
+ --man           - view the full script documentation.
+
+Options may be merged together. -- stops processing of options.
+Space is not required between options and their arguments.
+For full details run: perl group.pl --man
+
+=head1 Example Usage
+
+=over
+
+=item Authenticate and add a group with id testgroup:
+
+ perl group.pl -U http://localhost:8080 -a testgroup -u admin -p admin
+
+=back
+
+=cut
+#}}}
+
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
 use Sling::Group;
 use Sling::UserAgent;
-use Sling::Util;
-use Getopt::Long qw(:config bundling);
-#}}}
-
-#{{{sub HELP_MESSAGE
-sub HELP_MESSAGE {
-    my ( $out, $optPackage, $optVersion, $switches ) = @_;
-    Sling::Util::help_header( $0, $switches );
-    print "-a {actOnGroup} - add specified group.\n";
-    print "-d {actOnGroup} - delete specified group.\n";
-    print "-e {actOnGroup} - check whether specified group exists.\n";
-    print "-p {password}   - Password of user performing actions.\n";
-    print "-t {threads}    - Used with -F, defines number of parallel\n";
-    print "                  processes to have running through file.\n";
-    print "-v {actOnGroup} - view details for specified group in json format.\n";
-    print "-u {username}   - Name of user to perform any actions as.\n";
-    print "-F {file}       - file containing list of group to be added.\n";
-    print "-L {log}        - Log script output to specified log file.\n";
-    print "-U {URL}        - URL for system being tested against.\n";
-    print "--auth {type}   - Specify auth type. If ommitted, default is used.\n";
-    Sling::Util::help_footer( $0 );
-}
 #}}}
 
 #{{{options parsing
-my $auth;
-my $url = "http://localhost";
-my $username;
-my $password;
-my $file;
-my $log;
-my $numberForks = 1;
 my $addGroup;
+my $auth;
 my $deleteGroup;
 my $existsGroup;
+my $file;
+my $help;
+my $log;
+my $man;
+my $numberForks = 1;
+my $password;
+my $url = "http://localhost";
+my $username;
 my $viewGroup;
 
-GetOptions ( "a=s" => \$addGroup,    "d=s" => \$deleteGroup,
+GetOptions ( "a=s" => \$addGroup,    "d=s"   => \$deleteGroup,
              "e=s" => \$existsGroup, "p=s" => \$password,
              "u=s" => \$username,    "t=s" => \$numberForks,
 	     "v=s" => \$viewGroup,   "F=s" => \$file,
 	     "L=s" => \$log,         "U=s" => \$url,
-	     "auth=s" => \$auth,     "help" => \&HELP_MESSAGE );
+	     "auth=s" => \$auth,
+             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+
+pod2usage(-exitstatus => 0, -verbose => 1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );

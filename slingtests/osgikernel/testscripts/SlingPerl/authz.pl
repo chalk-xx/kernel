@@ -1,91 +1,126 @@
 #!/usr/bin/perl
 
-=head1 NAME
+#{{{Documentation
+=head1 SYNOPSIS
 
 authz perl script. Provides a means of manipulating access control on content
-in sling from the command line.
+in sling from the command line. This script can be used to get, set, update and
+delete content permissions. It also acts as a reference implementation for the
+Authz perl library.
 
-=head1 ABSTRACT
+=head1 OPTIONS
 
-This script can be used to get, set, update and delete permissions on content
-in sling from the command line. It also acts as a reference implementation for
-the Authz perl library.
+Usage: perl authz.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
+The following options are accepted:
+
+ -d                   - delete access control list for node for principal.
+ -v                   - view access control list for node.
+ -p (password)        - Password of user performing content manipulations.
+ -u (username)        - Name of user to perform content manipulations as.
+ -D (remoteDest)      - specify remote destination under JCR root to act on.
+ -L (log)             - Log script output to specified log file.
+ -P (principal)       - Principal to grant, deny, or delete privilege for.
+ -U (URL)             - URL for system being tested against.
+ --(no-)read          - Grant or deny the read privilege
+ --(no-)modifyProps   - Grant or deny the modifyProperties privilege
+ --(no-)addChildNodes - Grant or deny the addChildNodes privilege
+ --(no-)removeNode    - Grant or deny the removeNode privilege
+ --(no-)removeChilds  - Grant or deny the removeChildNodes privilege
+ --(no-)write         - Grant or deny the write privileges (modifyProperties,addChildNodes,removeNode,removeChildNodes)
+ --(no-)readACL       - Grant or deny the readACL privilege
+ --(no-)modifyACL     - Grant or deny the modifyACL privilege
+ --(no-)all           - Grant or deny all above privileges
+ --auth (type)        - Specify auth type. If ommitted, default is used.
+ --help or -?         - view the script synopsis and options.
+ --man                - view the full script documentation.
+
+Options may be merged together. -- stops processing of options.
+Space is not required between options and their arguments.
+For full details run: perl authz.pl --man
+
+=head1 Example Usage
+
+=over
+
+=item Authenticate and view the ACL for the /data node:
+
+ perl authz.pl -U http://localhost:8080 -D /data -v -u admin -p admin
+
+=item Authenticate and grant the read privilege to the owner principal, view the result:
+
+ perl authz.pl -U http://localhost:8080 -D /testdata -P owner --read -u admin -p admin -v
+
+=item Authenticate and grant the modifyProps privilege to the everyone principal, view the result:
+
+ perl authz.pl -U http://localhost:8080 -D /testdata -P everyone --modifyProps -u admin -p admin -v
+
+=item Authenticate and deny the addChildNodes privilege to the testuser principal, view the result:
+
+ perl authz.pl -U http://localhost:8080 -D /testdata -P testuser --no-addChildNodes -u admin -p admin -v
+
+=item Authenticate with form based authentication and grant the read and write privileges to the testgroup principal, log the results, including the resulting JSON, to authz.log:
+
+ perl authz.pl -U http://localhost:8080 -D /testdata -P testgroup --read --write -u admin -p admin --auth form -v -L authz.log
+
+=back
+
+=head1 JSR-283 privileges:
+
+The following privileges are not yet supported, but may be soon:
+
+ --(no-)lockManage      - Grant or deny the lockManagement privilege\n";
+ --(no-)versionManage   - Grant or deny the versionManagement privilege\n";
+ --(no-)nodeTypeManage  - Grant or deny the nodeTypeManagement privilege\n";
+ --(no-)retentionManage - Grant or deny the retentionManagement privilege\n";
+ --(no-)lifecycleManage - Grant or deny the lifeCycleManagement privilege\n";
 
 =cut
+#}}}
 
 #{{{imports
 use strict;
 use lib qw ( .. );
 use LWP::UserAgent ();
+use Pod::Usage;
 use Sling::Authz;
 use Sling::UserAgent;
-use Sling::Util;
+use Sling::URL;
 use Getopt::Long qw(:config bundling);
-#}}}
-
-#{{{sub HELP_MESSAGE
-sub HELP_MESSAGE {
-    my ( $out, $optPackage, $optVersion, $switches ) = @_;
-    Sling::Util::help_header( $0, $switches );
-    print "-d                     - delete access control list for node for principal.\n";
-    print "-v                     - view access control list for node.\n";
-    print "-p {password}          - Password of user performing content manipulations.\n";
-    print "-u {username}          - Name of user to perform content manipulations as.\n";
-    print "-D {remoteDest}        - specify remote destination under JCR root to act on.\n";
-    print "-L {log}               - Log script output to specified log file.\n";
-    print "-P {principal}         - Principal to grant, deny, or delete privilege for.\n";
-    print "-U {URL}               - URL for system being tested against.\n";
-    print "--auth {type}          - Specify auth type. If ommitted, default is used.\n";
-    print "--(no-)read            - Grant or deny the read privilege\n";
-    print "--(no-)modifyProps     - Grant or deny the modifyProperties privilege\n";
-    print "--(no-)addChildNodes   - Grant or deny the addChildNodes privilege\n";
-    print "--(no-)removeNode      - Grant or deny the removeNode privilege\n";
-    print "--(no-)removeChilds    - Grant or deny the removeChildNodes privilege\n";
-    print "--(no-)write           - Grant or deny the write privileges (modifyProperties,addChildNodes,removeNode,removeChildNodes)\n";
-    print "--(no-)readACL         - Grant or deny the readACL privilege\n";
-    print "--(no-)modifyACL       - Grant or deny the modifyACL privilege\n";
-    # JSR-283 privileges:
-    # print "--(no-)lockManage      - Grant or deny the lockManagement privilege\n";
-    # print "--(no-)versionManage   - Grant or deny the versionManagement privilege\n";
-    # print "--(no-)nodeTypeManage  - Grant or deny the nodeTypeManagement privilege\n";
-    # print "--(no-)retentionManage - Grant or deny the retentionManagement privilege\n";
-    # print "--(no-)lifecycleManage - Grant or deny the lifeCycleManagement privilege\n";
-    print "--(no-)all             - Grant or deny all above privileges\n";
-    Sling::Util::help_footer( $0 );
-}
 #}}}
 
 #{{{options parsing
 my $auth;
 my $delete;
-my $view;
-my $url = "http://localhost";
+my $help;
 my $log;
-my $username;
+my $man;
 my $password;
-my $remoteDest;
 my $principal;
+my $remoteDest;
+my $url = "http://localhost";
+my $username;
+my $view;
 
 # privileges:
-my $read;
-my $modifyProps;
 my $addChildNodes;
-my $removeNode;
-my $removeChilds;
-my $write;
-my $readACL;
-my $modifyACL;
-my $lockManage;
-my $versionManage;
-my $nodeTypeManage;
-my $retentionManage;
-my $lifecycleManage;
 my $all;
+my $lifecycleManage;
+my $lockManage;
+my $modifyACL;
+my $modifyProps;
+my $nodeTypeManage;
+my $read;
+my $readACL;
+my $removeChilds;
+my $removeNode;
+my $retentionManage;
+my $versionManage;
+my $write;
 
 GetOptions ( "v" => \$view,                           "U=s" => \$url,
 	     "p=s" => \$password,                     "D=s" => \$remoteDest,
 	     "u=s" => \$username,                     "L=s" => \$log,
-	     "auth=s" => \$auth,                      "help" => \&HELP_MESSAGE,
+	     "auth=s" => \$auth,
 	     "read!" => \$read,                       "modifyProps!" => \$modifyProps,
 	     "addChildNodes!" => \$addChildNodes,     "removeNode!" => \$removeNode,
 	     "removeChilds!" => \$removeChilds,       "write!" => \$write,
@@ -93,10 +128,13 @@ GetOptions ( "v" => \$view,                           "U=s" => \$url,
 	     "versionManage!" => \$versionManage,     "nodeTypeManage!" => \$nodeTypeManage,
 	     "retentionManage!" => \$retentionManage, "lifecycleManage!" => \$lifecycleManage,
 	     "all!" => \$all,                         "lockManage!" => \$lockManage,
-	     "P=s" => \$principal,                    "d" => \$delete );
+	     "P=s" => \$principal,                    "d" => \$delete,
+             "help|?" => \$help, "man" => \$man) or pod2usage(2);
 
-# Strip leading slashes from the remoteDest and remoteSrc
-$remoteDest =~ s/^\///;
+pod2usage(-exitstatus => 0, -verbose => 1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+
+$remoteDest = Sling::URL::strip_leading_slash( $remoteDest );
 
 $url =~ s/(.*)\/$/$1/;
 $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
@@ -156,7 +194,9 @@ if ( defined $all ) {
 }
 if ( @grant_privileges || @deny_privileges ) {
     $authz->modify_privileges( $remoteDest, $principal, \@grant_privileges, \@deny_privileges, $log );
-    print $authz->{ 'Message' } . "\n";
+    if ( ! defined $log ) {
+        print $authz->{ 'Message' } . "\n";
+    }
 }
 if ( defined $view ) {
     $authz->get_acl( $remoteDest, $log );

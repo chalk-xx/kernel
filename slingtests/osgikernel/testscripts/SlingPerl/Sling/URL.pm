@@ -17,6 +17,46 @@ use strict;
 use lib qw ( .. );
 #}}}
 
+#{{{sub strip_leading_slash
+
+=pod
+
+=head2 strip_leading_slash
+
+Function to remove any leading slashes from a string.
+
+=cut
+
+sub strip_leading_slash {
+    my ( $value ) = @_;
+    if ( defined $value ) {
+        $value =~ s/^\///;
+    }
+    return ( $value );
+}
+#}}}
+
+#{{{sub add_leading_slash
+
+=pod
+
+=head2 add_leading_slash
+
+Function to add a leading slash to a string if one does not exist.
+
+=cut
+
+sub add_leading_slash {
+    my ( $value ) = @_;
+    if ( defined $value ) {
+        if ( $value !~ /^\// ) {
+            $value = "/$value";
+        }
+    }
+    return ( $value );
+}
+#}}}
+
 #{{{sub urlencode
 
 =pod

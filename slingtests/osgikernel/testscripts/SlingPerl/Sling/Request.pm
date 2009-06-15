@@ -31,6 +31,8 @@ Function taking a string and converting to a GET or POST HTTP request.
 
 sub string_to_request {
     my ( $string, $lwp ) = @_;
+    die "No string defined to turn into request!" unless defined $string;
+    die "No reference to an lwp user agent supplied!" unless defined $lwp;
     my ( $action, $target, @reqVariables ) = split( ' ', $string );
     my $request;
     if ( $action =~ /^post$/ ) {
