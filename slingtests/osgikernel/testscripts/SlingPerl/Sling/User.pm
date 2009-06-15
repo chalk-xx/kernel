@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST user methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Text::CSV;
 use Sling::Print;
 use Sling::Request;
 use Sling::UserUtil;
@@ -56,12 +57,12 @@ sub set_results {
 
 #{{{sub add
 sub add {
-    my ( $user, $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log ) = @_;
+    my ( $user, $actOnUser, $actOnPass, $properties, $log ) = @_;
     my $res = ${ $user->{ 'LWP' } }->request( Sling::Request::string_to_request(
         Sling::UserUtil::add_setup( $user->{ 'BaseURL' },
-	    $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ), $user->{ 'LWP' } ) );
+	    $actOnUser, $actOnPass, $properties ), $user->{ 'LWP' } ) );
     my $success = Sling::UserUtil::add_eval( \$res );
-    my $message = "User: \"$actOnUser\", email \"$actOnEmail\" ";
+    my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "added!" : "was not added!" );
     $user->set_results( "$message", \$res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
@@ -72,22 +73,49 @@ sub add {
 #{{{sub add_from_file
 sub add_from_file {
     my ( $user, $file, $forkId, $numberForks, $log ) = @_;
+    my $csv = Text::CSV->new();
     my $count = 0;
+    my $numberColumns = 0;
+    my @column_headings;
     open ( FILE, $file );
     while ( <FILE> ) {
-        if ( $forkId == ( $count++ % $numberForks ) ) {
-            chomp;
-	    $_ =~ /^(.*?),(.*?),(.*?),(.*?),(.*?)$/;
-	    my $actOnUser = $1;
-	    my $actOnPass = $2;
-	    my $actOnEmail = $3;
-	    my $actOnFirst = $4;
-	    my $actOnLast = $5;
-	    if ( defined $actOnUser && defined $actOnPass && defined $actOnEmail ) {
-	        $user->add( $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log );
-		if ( ! defined $log ) {
-                    Sling::Print::print_lock( $user->{ 'Message' } );
+        if ( $count++ == 0 ) {
+	    # Parse file column headings first to determine field names:
+	    if ( $csv->parse( $_ ) ) {
+	        @column_headings = $csv->fields();
+		# First field must be site:
+		if ( $column_headings[0] !~ /^[Uu][Ss][Ee][Rr]$/ ) {
+		    die "First CSV column must be the user ID, column heading must be \"user\". Found: \"" . $column_headings[0] . "\".\n";
 		}
+		if ( $column_headings[1] !~ /^[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]$/ ) {
+		    die "Second CSV column must be the user password, column heading must be \"password\". Found: \"" . $column_headings[0] . "\".\n";
+		}
+		$numberColumns = @column_headings;
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+        elsif ( $forkId == ( $count++ % $numberForks ) ) {
+	    my @properties;
+	    if ( $csv->parse( $_ ) ) {
+	        my @columns = $csv->fields();
+		my $columns_size = @columns;
+		# Check row has same number of columns as there were column headings:
+		if ( $columns_size != $numberColumns ) {
+		    die "Found \"$columns_size\" columns. There should have been \"$numberColumns\".\nRow contents was: $_";
+		}
+		my $id = $columns[0];
+		my $password = $columns[1];
+		for ( my $i = 2; $i < $numberColumns ; $i++ ) {
+                    my $value = $column_headings[ $i ] . "=" . $columns[ $i ];
+		    push ( @properties, $value );
+		}
+                $user->add( $id, $password, \@properties, $log );
+		Sling::Print::print_lock( $user->{ 'Message' } ) if ( ! defined $log );
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
 	    }
 	}
     }

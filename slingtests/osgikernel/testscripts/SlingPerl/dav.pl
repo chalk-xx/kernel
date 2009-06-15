@@ -12,17 +12,17 @@ DAV perl library.
 Usage: perl dav.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a              - add specified content.
- -l {localPath}  - path of local file or folder to upload.
- -p {password}   - Password of user performing actions.
- -r {remotePath} - remote path on server to upload content to.
- -t {threads}    - Used with -F, defines number of parallel
-                   processes to have running through file.
- -u {username}   - Name of user to perform any actions as.
- -F {File}       - File containing list of sites to add.
- -U {URL}        - URL for system being tested against.
- --help or -?    - view the script synopsis and options.
- --man           - view the full script documentation.
+ -a                - add specified content.
+ -l {localPath}    - path of local file or folder to upload.
+ -p {password}     - Password of user performing actions.
+ -r {remotePath}   - remote path on server to upload content to.
+ -t {threads}      - Used with -F, defines number of parallel
+                     processes to have running through file.
+ -u {username}     - Name of user to perform any actions as.
+ -F {File}         - File containing list of sites to add.
+ --url or -U {URL} - URL for system being tested against.
+ --help or -?      - view the script synopsis and options.
+ --man             - view the full script documentation.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -65,7 +65,7 @@ my $username;
 GetOptions ( "a" => \$add,           "l=s" => \$localPath,
              "p=s" => \$password,    "r=s" => \$remotePath,
              "t=i" => \$numberForks, "u=s" => \$username,
-	     "F=s" => \$file,        "U=s" => \$url,
+	     "F=s" => \$file,        "url|U=s" => \$url,
              "help|?" => \$help,     "man" => \$man) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;

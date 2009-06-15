@@ -12,25 +12,25 @@ Sling::Site library.
 Usage: perl site.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a (actOnSite) - add site.
- -d (actOnSite) - delete site.
- -e (actOnSite) - check whether site exists.
- -g (group)     - group(s) to add as site member.
- -j (joinable)  - Joinable status of site (yes|no|withauth).
- -p (password)  - Password of user performing actions.
- -t (threads)   - Used with -F, defines number of parallel
-                  processes to have running through file.
- -u (username)  - Name of user to perform any actions as.
- -v (actOnSite) - view site.
- -A (actOnSite) - alter (update) site.
- -F (File)      - File containing list of sites to add.
- -L (log)       - Log script output to specified log file.
- -P (property)  - Specify property to set on site.
- -T (template)  - Template location to use for site.
- -U (URL)       - URL for system being tested against.
- --auth (type)  - Specify auth type. If ommitted, default is used.
- --help or -?   - view the script synopsis and options.
- --man          - view the full script documentation.
+ -a (actOnSite)    - add site.
+ -d (actOnSite)    - delete site.
+ -e (actOnSite)    - check whether site exists.
+ -g (group)        - group(s) to add as site member.
+ -j (joinable)     - Joinable status of site (yes|no|withauth).
+ -p (password)     - Password of user performing actions.
+ -t (threads)      - Used with -F, defines number of parallel
+                     processes to have running through file.
+ -u (username)     - Name of user to perform any actions as.
+ -v (actOnSite)    - view site.
+ -A (actOnSite)    - alter (update) site.
+ -F (File)         - File containing list of sites to add.
+ --log or -L (log) - Log script output to specified log file.
+ -P (property)     - Specify property to set on site.
+ -T (template)     - Template location to use for site.
+ --url or -U (URL) - URL for system being tested against.
+ --auth (type)     - Specify auth type. If ommitted, default is used.
+ --help or -?      - view the script synopsis and options.
+ --man             - view the full script documentation.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -84,9 +84,9 @@ GetOptions ( "a=s" => \$add,         "A=s" => \$alter,
 	     "e=s" => \$exists,      "v=s" => \$view,
 	     "j=s" => \$joinable,    "g=s" => \@groups,
              "F=s" => \$file,        "P=s" => \@properties,
-             "t=i" => \$numberForks, "L=s" => \$log,
+             "t=i" => \$numberForks, "log|L=s" => \$log,
              "u=s" => \$username,    "p=s" => \$password,
-	     "U=s" => \$url,         "auth=s" => \$auth,
+	     "url|U=s" => \$url,         "auth=s" => \$auth,
              "help|?" => \$help, "man" => \$man) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;

@@ -36,11 +36,16 @@ system.
 =cut
 
 sub add_setup {
-    my ( $baseURL, $actOnGroup, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ) = @_;
+    my ( $baseURL, $actOnGroup, $properties ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No group name defined to add!" unless defined $actOnGroup;
     $actOnGroup = Sling::URL::urlencode( $actOnGroup );
-    my $postVariables = "\$postVariables = [':name','$actOnGroup']";
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
+    my $postVariables = "\$postVariables = [':name','$actOnGroup'";
+    if ( $property_post_vars !~ /^$/ ) {
+        $postVariables .= ",$property_post_vars";
+    }
+    $postVariables .= "]";
     return "post $baseURL/system/userManager/group.create.html $postVariables";
 }
 #}}}

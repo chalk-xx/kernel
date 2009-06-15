@@ -13,26 +13,27 @@ Authz perl library.
 Usage: perl authz.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -d                   - delete access control list for node for principal.
- -v                   - view access control list for node.
- -p (password)        - Password of user performing content manipulations.
- -u (username)        - Name of user to perform content manipulations as.
- -D (remoteDest)      - specify remote destination under JCR root to act on.
- -L (log)             - Log script output to specified log file.
- -P (principal)       - Principal to grant, deny, or delete privilege for.
- -U (URL)             - URL for system being tested against.
- --(no-)read          - Grant or deny the read privilege
- --(no-)modifyProps   - Grant or deny the modifyProperties privilege
- --(no-)addChildNodes - Grant or deny the addChildNodes privilege
- --(no-)removeNode    - Grant or deny the removeNode privilege
- --(no-)removeChilds  - Grant or deny the removeChildNodes privilege
- --(no-)write         - Grant or deny the write privileges (modifyProperties,addChildNodes,removeNode,removeChildNodes)
- --(no-)readACL       - Grant or deny the readACL privilege
- --(no-)modifyACL     - Grant or deny the modifyACL privilege
- --(no-)all           - Grant or deny all above privileges
- --auth (type)        - Specify auth type. If ommitted, default is used.
- --help or -?         - view the script synopsis and options.
- --man                - view the full script documentation.
+ --auth (type)                 - Specify auth type. If ommitted, default is used.
+ --delete or -d                - delete access control list for node for principal.
+ --help or -?                  - view the script synopsis and options.
+ --log or -L (log)             - Log script output to specified log file.
+ --man or -M                   - view the full script documentation.
+ --(no-)addChildNodes          - Grant or deny the addChildNodes privilege
+ --(no-)all                    - Grant or deny all above privileges
+ --(no-)modifyACL              - Grant or deny the modifyACL privilege
+ --(no-)modifyProps            - Grant or deny the modifyProperties privilege
+ --(no-)readACL                - Grant or deny the readACL privilege
+ --(no-)read                   - Grant or deny the read privilege
+ --(no-)removeChilds           - Grant or deny the removeChildNodes privilege
+ --(no-)removeNode             - Grant or deny the removeNode privilege
+ --(no-)write                  - Grant or deny the write privileges:
+                                 modifyProperties,addChildNodes,removeNode,removeChildNodes
+ --pass or -p (password)       - Password of user performing content manipulations.
+ --principal or -P (principal) - Principal to grant, deny, or delete privilege for.
+ --remote or -r (remoteNode)   - specify remote node under JCR root to act on.
+ --url or -U (URL)             - URL for system being tested against.
+ --user or -u (username)       - Name of user to perform content manipulations as.
+ --view or -v                  - view access control list for node.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -44,23 +45,23 @@ For full details run: perl authz.pl --man
 
 =item Authenticate and view the ACL for the /data node:
 
- perl authz.pl -U http://localhost:8080 -D /data -v -u admin -p admin
+ perl authz.pl -U http://localhost:8080 -r /data -v -u admin -p admin
 
 =item Authenticate and grant the read privilege to the owner principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -D /testdata -P owner --read -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P owner --read -u admin -p admin -v
 
 =item Authenticate and grant the modifyProps privilege to the everyone principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -D /testdata -P everyone --modifyProps -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P everyone --modifyProps -u admin -p admin -v
 
 =item Authenticate and deny the addChildNodes privilege to the testuser principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -D /testdata -P testuser --no-addChildNodes -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P testuser --no-addChildNodes -u admin -p admin -v
 
 =item Authenticate with form based authentication and grant the read and write privileges to the testgroup principal, log the results, including the resulting JSON, to authz.log:
 
- perl authz.pl -U http://localhost:8080 -D /testdata -P testgroup --read --write -u admin -p admin --auth form -v -L authz.log
+ perl authz.pl -U http://localhost:8080 -r /testdata -P testgroup --read --write -u admin -p admin --auth form -v -L authz.log
 
 =back
 
@@ -96,7 +97,7 @@ my $log;
 my $man;
 my $password;
 my $principal;
-my $remoteDest;
+my $remoteNode;
 my $url = "http://localhost";
 my $username;
 my $view;
@@ -117,24 +118,37 @@ my $retentionManage;
 my $versionManage;
 my $write;
 
-GetOptions ( "v" => \$view,                           "U=s" => \$url,
-	     "p=s" => \$password,                     "D=s" => \$remoteDest,
-	     "u=s" => \$username,                     "L=s" => \$log,
-	     "auth=s" => \$auth,
-	     "read!" => \$read,                       "modifyProps!" => \$modifyProps,
-	     "addChildNodes!" => \$addChildNodes,     "removeNode!" => \$removeNode,
-	     "removeChilds!" => \$removeChilds,       "write!" => \$write,
-             "readACL!" => \$readACL,                 "modifyACL!" => \$modifyACL,
-	     "versionManage!" => \$versionManage,     "nodeTypeManage!" => \$nodeTypeManage,
-	     "retentionManage!" => \$retentionManage, "lifecycleManage!" => \$lifecycleManage,
-	     "all!" => \$all,                         "lockManage!" => \$lockManage,
-	     "P=s" => \$principal,                    "d" => \$delete,
-             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+GetOptions (
+    "addChildNodes!" => \$addChildNodes,
+    "all!" => \$all,
+    "auth=s" => \$auth,
+    "delete|d" => \$delete,
+    "help|?" => \$help,
+    "lifecycleManage!" => \$lifecycleManage,
+    "lockManage!" => \$lockManage,
+    "log|L=s" => \$log,
+    "man|M" => \$man) or pod2usage(2);
+    "modifyACL!" => \$modifyACL,
+    "modifyProps!" => \$modifyProps,
+    "nodeTypeManage!" => \$nodeTypeManage,
+    "pass|p=s" => \$password,
+    "principal|P=s" => \$principal,
+    "readACL!" => \$readACL,
+    "read!" => \$read,
+    "remote|r=s" => \$remoteNode,
+    "removeChilds!" => \$removeChilds,
+    "removeNode!" => \$removeNode,
+    "retentionManage!" => \$retentionManage,
+    "url|U=s" => \$url,
+    "user|u=s" => \$username,
+    "versionManage!" => \$versionManage,
+    "view|v" => \$view,
+    "write!" => \$write,
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
-$remoteDest = Sling::URL::strip_leading_slash( $remoteDest );
+$remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
 
 $url =~ s/(.*)\/$/$1/;
 $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
@@ -144,7 +158,7 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
 my $authz = new Sling::Authz( $url, $lwpUserAgent );
 if ( defined $delete ) {
-    $authz->delete( $remoteDest, $principal, $log );
+    $authz->delete( $remoteNode, $principal, $log );
     print $authz->{ 'Message' } . "\n";
 }
 my @grant_privileges;
@@ -193,13 +207,13 @@ if ( defined $all ) {
     $all ? push ( @grant_privileges, "all" ) : push ( @deny_privileges, "all" ); 
 }
 if ( @grant_privileges || @deny_privileges ) {
-    $authz->modify_privileges( $remoteDest, $principal, \@grant_privileges, \@deny_privileges, $log );
+    $authz->modify_privileges( $remoteNode, $principal, \@grant_privileges, \@deny_privileges, $log );
     if ( ! defined $log ) {
         print $authz->{ 'Message' } . "\n";
     }
 }
 if ( defined $view ) {
-    $authz->get_acl( $remoteDest, $log );
+    $authz->get_acl( $remoteNode, $log );
     if ( ! defined $log ) {
         print $authz->{ 'Message' } . "\n";
     }

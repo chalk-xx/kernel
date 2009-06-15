@@ -12,28 +12,26 @@ library.
 Usage: perl user.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a (actOnUser)      - add specified user name.
- -c (actOnUser)      - change password of specified user name.
- -d (actOnUser)      - delete specified user name.
- -e (actOnUser)      - check whether specified user exists.
- -f (actOnFirstName) - first name of user being actioned.
- -l (actOnLastName)  - last name of user being actioned.
- --me                - me returns json representing authenticated user.
- -n (newPassword)    - Used with -c, new password to set.
- -p (password)       - Password of user performing actions.
- --sites             - list sites user is a member of.
- -t (threads)        - Used with -F, defines number of parallel
-                       processes to have running through file.
- -v (actOnUser)      - view details for specified user in json format.
- -u (username)       - Name of user to perform any actions as.
- -E (actOnEmail)     - Email of user being actioned.
- -F (file)           - file containing list of users to be added.
- -L (log)            - Log script output to specified log file.
- -P (actOnPass)      - Password of user being actioned.
- -U (URL)            - URL for system being tested against.
- --auth (type)       - Specify auth type. If ommitted, default is used.
- --help or -?        - view the script synopsis and options.
- --man               - view the full script documentation.
+ --add or -a (actOnUser)             - add specified user name.
+ --additions or -A (file)            - file containing list of users to be added.
+ --auth (type)                       - Specify auth type. If ommitted, default is used.
+ --change-password or -c (actOnUser) - change password of specified user name.
+ --delete or -d (actOnUser)          - delete specified user name.
+ --exists or -e (actOnUser)          - check whether specified user exists.
+ --help or -?                        - view the script synopsis and options.
+ --log or -L (log)                   - Log script output to specified log file.
+ --man or -M                         - view the full script documentation.
+ --me or -m                          - me returns json representing authenticated user.
+ --new-password or -n (newPassword)  - Used with -c, new password to set.
+ --password or -w (actOnPass)        - Password of user being actioned.
+ --pass or -p (password)             - Password of user performing actions.
+ --property or -P (property=value)   - Specify property to set on user.
+ --sites or -s                       - list sites authenticated user is a member of.
+ --threads or -t (threads)           - Used with -A, defines number of parallel
+                                       processes to have running through file.
+ --url or -U (URL)                   - URL for system being tested against.
+ --user or -u (username)             - Name of user to perform any actions as.
+ --view or -v (actOnUser)            - view details for specified user in json format.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -43,9 +41,9 @@ For full details run: perl user.pl --man
 
 =over
 
-=item Authenticate and add user "testuser" with password "test" and email address "test@test.com":
+=item Authenticate and add user "testuser" with password "test"
 
- perl user.pl -U http://localhost:8080 -a testuser -P test -E test@test.com -u admin -p admin
+ perl user.pl -U http://localhost:8080 -a testuser -w test -u admin -p admin
 
 =back
 
@@ -62,16 +60,13 @@ use Sling::UserAgent;
 #}}}
 
 #{{{options parsing
-my $actOnEmail;
-my $actOnFirst;
-my $actOnLast;
 my $actOnPass;
+my $additions;
 my $addUser;
 my $auth;
 my $changePassUser;
 my $deleteUser;
 my $existsUser;
-my $file;
 my $help;
 my $log;
 my $man;
@@ -79,22 +74,33 @@ my $meUser;
 my $newPass;
 my $numberForks = 1;
 my $password;
+my @properties;
 my $sitesUser;
 my $url = "http://localhost";
 my $username;
 my $viewUser;
 
-GetOptions ( "a=s" => \$addUser,     "c=s" => \$changePassUser,
-             "d=s" => \$deleteUser,  "e=s" => \$existsUser,
-             "f=s" => \$actOnFirst,  "l=s" => \$actOnLast,
-             "n=s" => \$newPass,     "p=s" => \$password,
-	     "t=s" => \$numberForks, "u=s" => \$username,
-	     "v=s" => \$viewUser,    "E=s" => \$actOnEmail,
-	     "F=s" => \$file,        "L=s" => \$log,
-	     "P=s" => \$actOnPass,   "U=s" => \$url,
-	     "me" => \$meUser,       "sites" => \$sitesUser,
-	     "auth=s" => \$auth,
-             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+GetOptions (
+    "add|a=s" => \$addUser,
+    "additions|A=s" => \$additions,
+    "auth=s" => \$auth,
+    "change-password|c=s" => \$changePassUser,
+    "delete|d=s" => \$deleteUser,
+    "exists|e=s" => \$existsUser,
+    "help|?" => \$help,
+    "log|L=s" => \$log,
+    "man|M" => \$man,
+    "me|m" => \$meUser,
+    "new-password|n=s" => \$newPass,
+    "password|w=s" => \$actOnPass,
+    "pass|p=s" => \$password,
+    "property|P=s" => \@properties,
+    "sites|s" => \$sitesUser,
+    "threads|t=s" => \$numberForks,
+    "url|U=s" => \$url,
+    "user|u=s" => \$username,
+    "view|v=s" => \$viewUser
+) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
@@ -109,8 +115,8 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 #}}}
 
 #{{{main execution path
-if ( defined $file ) {
-    my $message = "Adding users and password from file:\n";
+if ( defined $additions ) {
+    my $message = "Adding users from file:\n";
     if ( defined $log ) {
         Sling::Print::print_file_lock( "$message", $log );
     }
@@ -125,7 +131,7 @@ if ( defined $file ) {
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $user = new Sling::User( $url, $lwpUserAgent );
-            $user->add_from_file( $file, $i, $numberForks, $log );
+            $user->add_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
 	else {
@@ -151,7 +157,7 @@ else {
         print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $addUser ) {
-        $user->add( $addUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast, $log );
+        $user->add( $addUser, $actOnPass, \@properties, $log );
         print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $changePassUser ) {
