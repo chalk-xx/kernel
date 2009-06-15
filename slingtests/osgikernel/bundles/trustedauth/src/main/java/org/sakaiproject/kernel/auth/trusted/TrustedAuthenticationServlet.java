@@ -34,7 +34,16 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Servlet for handling authentication requests from trusted mechanisms.
+ * <p>
+ * Servlet for storing authentication credentials from requests using an
+ * external trusted mechanism such as CAS.
+ * </p>
+ * <p>
+ * This servlet does not perform the authentication itself but looks for
+ * information in the request from the authentication authority. This
+ * information is then stored in the session for use by the authentication
+ * handler on subsequent calls.
+ * </p>
  *
  * @scr.component
  * @scr.service interface="javax.servlet.Servlet"
