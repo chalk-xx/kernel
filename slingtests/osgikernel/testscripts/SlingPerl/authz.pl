@@ -127,7 +127,7 @@ GetOptions (
     "lifecycleManage!" => \$lifecycleManage,
     "lockManage!" => \$lockManage,
     "log|L=s" => \$log,
-    "man|M" => \$man) or pod2usage(2);
+    "man|M" => \$man,
     "modifyACL!" => \$modifyACL,
     "modifyProps!" => \$modifyProps,
     "nodeTypeManage!" => \$nodeTypeManage,
@@ -143,7 +143,8 @@ GetOptions (
     "user|u=s" => \$username,
     "versionManage!" => \$versionManage,
     "view|v" => \$view,
-    "write!" => \$write,
+    "write!" => \$write
+) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
