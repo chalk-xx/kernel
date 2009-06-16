@@ -36,18 +36,18 @@ system.
 =cut
 
 sub add_setup {
-    my ( $baseURL, $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ) = @_;
+    my ( $baseURL, $actOnUser, $actOnPass, $properties ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No user name defined to add!" unless defined $actOnUser;
     die "No user password defined to add for user $actOnUser!" unless defined $actOnPass;
-    die "No user email defined to add for user $actOnUser!" unless defined $actOnEmail;
-    $actOnFirst = $actOnUser unless defined $actOnFirst;
-    $actOnLast = $actOnUser unless defined $actOnLast;
     $actOnUser = Sling::URL::urlencode( $actOnUser );
     $actOnPass = Sling::URL::urlencode( $actOnPass );
-    $actOnFirst = Sling::URL::urlencode( $actOnFirst );
-    $actOnLast = Sling::URL::urlencode( $actOnLast );
-    my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass','firstName','$actOnFirst','lastName','$actOnLast','email','$actOnEmail']";
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
+    my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass'";
+    if ( $property_post_vars !~ /^$/ ) {
+        $postVariables .= ",$property_post_vars";
+    }
+    $postVariables .= "]";
     return "post $baseURL/system/userManager/user.create.html $postVariables";
 }
 #}}}

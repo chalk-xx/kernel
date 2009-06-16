@@ -41,6 +41,7 @@
         <module>bundles/jpaprovider</module>
         <module>bundles/persistence</module>
         <module>bundles/configuration</module>
+        <module>bundles/connections</module>
         <module>bundles/memory</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>

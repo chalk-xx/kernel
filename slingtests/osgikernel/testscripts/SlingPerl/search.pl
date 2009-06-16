@@ -12,18 +12,18 @@ Sling::Search library.
 Usage: perl search.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -p (password)   - Password of user performing searches.
- -s (SearchTerm) - Term to search in the system for.
- -t (threads)    - Used with -F, defines number of parallel
-                   processes to have running through file.
- -u (username)   - Name of user to perform any searches as.
- -F (File)       - File containing list of search terms to search through.
- -L (log)        - Log script output to specified log file.
- -P (path)       - specify absolute path under the JCR root to search under.
- -U (URL)        - URL for system being tested against.
- --auth (type)   - Specify auth type. If ommitted, default is used.
- --help or -?    - view the script synopsis and options.
- --man           - view the full script documentation.
+ -p (password)     - Password of user performing searches.
+ -s (SearchTerm)   - Term to search in the system for.
+ -t (threads)      - Used with -F, defines number of parallel
+                     processes to have running through file.
+ -u (username)     - Name of user to perform any searches as.
+ -F (File)         - File containing list of search terms to search through.
+ --log or -L (log) - Log script output to specified log file.
+ -P (path)         - specify absolute path under the JCR root to search under.
+ --url or -U (URL) - URL for system being tested against.
+ --auth (type)     - Specify auth type. If ommitted, default is used.
+ --help or -?      - view the script synopsis and options.
+ --man             - view the full script documentation.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -65,9 +65,9 @@ my $url = "http://localhost";
 my $username;
 
 GetOptions ( "s=s" => \$searchTerm,  "F=s" => \$file,
-             "t=i" => \$numberForks, "L=s" => \$log,
+             "t=i" => \$numberForks, "log|L=s" => \$log,
              "u=s" => \$username,    "P=s" => \$path,
-	     "p=s" => \$password,    "U=s" => \$url,
+	     "p=s" => \$password,    "url|U=s" => \$url,
 	     "auth=s" => \$auth,
              "help|?" => \$help, "man" => \$man) or pod2usage(2);
 

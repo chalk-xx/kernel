@@ -12,25 +12,25 @@ Content perl library.
 Usage: perl content.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a              - Add content.
- -c              - Copy content.
- -d              - Delete content.
- -l (localPath)  - Local path to content to upload.
- -m              - Move content.
- -n (filename)   - Specify file name to use for content upload.
- -p (password)   - Password of user performing content manipulations.
- -t (threads)    - Used with -F, defines number of parallel
-                   processes to have running through file.
- -u (username)   - Name of user to perform content manipulations as.
- -D (remoteDest) - specify remote destination under JCR root to act on.
- -F (File)       - File containing list of content to be uploaded.
- -L (log)        - Log script output to specified log file.
- -P (property)   - Specify property to set on node.
- -S (remoteSrc)  - specify remote source under JCR root to act on.
- -U (URL)        - URL for system being tested against.
- --auth (type)   - Specify auth type. If ommitted, default is used.
- --help or -?    - view the script synopsis and options.
- --man           - view the full script documentation.
+ -a                - Add content.
+ -c                - Copy content.
+ -d                - Delete content.
+ -l (localPath)    - Local path to content to upload.
+ -m                - Move content.
+ -n (filename)     - Specify file name to use for content upload.
+ -p (password)     - Password of user performing content manipulations.
+ -t (threads)      - Used with -F, defines number of parallel
+                     processes to have running through file.
+ -u (username)     - Name of user to perform content manipulations as.
+ -D (remoteDest)   - specify remote destination under JCR root to act on.
+ -F (File)         - File containing list of content to be uploaded.
+ --log or -L (log) - Log script output to specified log file.
+ -P (property)     - Specify property to set on node.
+ -S (remoteSrc)    - specify remote source under JCR root to act on.
+ --url or -U (URL) - URL for system being tested against.
+ --auth (type)     - Specify auth type. If ommitted, default is used.
+ --help or -?      - view the script synopsis and options.
+ --man             - view the full script documentation.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -106,9 +106,9 @@ GetOptions ( "a" => \$add,    "c" => \$copy, "d" => \$delete,
              "l=s" => \$localPath,   "n=s" => \$filename,
 	     "p=s" => \$password,    "D=s" => \$remoteDest,
 	     "t=s" => \$numberForks, "u=s" => \$username,
-	     "F=s" => \$file,        "L=s" => \$log,
+	     "F=s" => \$file,        "log|L=s" => \$log,
 	     "P=s" => \@properties,  "S=s" => \$remoteSrc,
-	     "U=s" => \$url,         "auth=s" => \$auth,
+	     "url|U=s" => \$url,     "auth=s" => \$auth,
              "help|?" => \$help, "man" => \$man) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;

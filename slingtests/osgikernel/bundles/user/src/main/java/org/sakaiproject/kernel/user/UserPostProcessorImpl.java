@@ -37,6 +37,7 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
 import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -62,7 +63,7 @@ import javax.jcr.version.VersionException;
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
  * 
- * @scr.service interface="org.sakaiproject.kernel.user.UserPostProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.component immediate="true" label="SitePostProcessor"
  *                description="Post Processor for User and Group operations" metatype="no"

@@ -21,6 +21,7 @@ result of performing the request.
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Sling::URL;
 #}}}
 
 #{{{sub add_setup
@@ -37,15 +38,8 @@ system.
 sub add_setup {
     my ( $baseURL, $remoteDest, $properties ) = @_;
     die "No base URL provided!" unless defined $baseURL;
-    die "No position or ID to perform addition for specified!" unless defined $remoteDest;
-    my $property_post_vars;
-    foreach my $property ( @{ $properties } ) {
-        $property =~ /^([^=]*)=(.*)/;
-	if ( defined $1 && defined $2 ) {
-            $property_post_vars .= "'$1','$2',";
-	}
-    }
-    $property_post_vars =~ s/,$//;
+    die "No position or ID to perform action for specified!" unless defined $remoteDest;
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
     my $postVariables = "\$postVariables = [$property_post_vars]";
     return "post $baseURL/$remoteDest $postVariables";
 }

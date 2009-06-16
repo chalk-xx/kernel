@@ -21,7 +21,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateGroupServlet;
 import org.apache.sling.servlets.post.Modification;
-import org.sakaiproject.kernel.user.UserPostProcessor;
+import org.osgi.framework.ServiceReference;
+import org.sakaiproject.kernel.api.user.UserPostProcessor;
 
 import java.util.List;
 
@@ -74,7 +75,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST" 
  * @scr.property name="sling.servlet.selectors" value="update" 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor" unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.kernel.user.UserPostProcessor"
+ *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
+ *                cardinality="0..n" policy="dynamic"
  *
  */
 public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
@@ -84,7 +86,8 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
    */
   private static final long serialVersionUID = -2378929115784007976L;
 
-  private UserPostProcessor userPostProcessor;
+  
+  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * {@inheritDoc}
@@ -95,25 +98,23 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
       List<Modification> changes) throws RepositoryException {
     super.handleOperation(request, response, changes);
     try {
-      userPostProcessor.process(request, changes);
+      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+        userPostProcessor.process(request, changes);
+      }
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
   }
   
-  /**
-   * @param userPostProcessor the userPostProcessor to set
-   */
-  protected void bindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = userPostProcessor;
+
+  protected void bindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.bindUserPostProcessor(serviceReference);
+
   }
 
-  /**
-   * @param userPostProcessor the userPostProcessor to set
-   */
-  protected void unbindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = null;
+  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
 
 }

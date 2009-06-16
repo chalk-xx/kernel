@@ -91,15 +91,13 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     FormAuthentication(HttpServletRequest request) {
       forceLogout = false;
       valid = false;
-      LOGGER.info("Checking Request");
       if ("POST".equals(request.getMethod())) {
-        LOGGER.info("is a POST");
         if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
-          LOGGER.info(" logout");
+          LOGGER.debug(" logout");
           valid = false;
           forceLogout = true;
         } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
-          LOGGER.info(" login as "+request.getParameter(USERNAME));
+          LOGGER.debug(" login as {} ",request.getParameter(USERNAME));
           String password = request.getParameter(PASSWORD);
           if (password == null) {
             credentials = new SimpleCredentials(request.getParameter(USERNAME),
@@ -110,7 +108,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
           }
           valid = true;
         } else {
-          LOGGER.info("Login was not requested ");
+          LOGGER.debug("Login was not requested ");
         }
       }
     }
@@ -186,18 +184,18 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
     }
 
     if (session != null) {
-      LOGGER.info("SessionAuth: Has session {} ",session.getId());
+      LOGGER.debug("SessionAuth: Has session {} ",session.getId());
       FormAuthentication savedCredentials = (FormAuthentication) session
           .getAttribute(USER_CREDENTIALS);
-      LOGGER.info("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
+      LOGGER.debug("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
       if (savedCredentials != null && savedCredentials.isValid()) {
-        LOGGER.info("SessionAuth: User ID {} ",savedCredentials.getUserId());
+        LOGGER.debug("SessionAuth: User ID {} ",savedCredentials.getUserId());
         return new AuthenticationInfo(SESSION_AUTH, savedCredentials.getCredentials());
       } else {
-        LOGGER.info("SessionAuth: Saved credentials are not valid ");
+        LOGGER.debug("SessionAuth: Saved credentials are not valid ");
       }
     } else {
-      LOGGER.info("SessionAuth: No Session");
+      LOGGER.debug("SessionAuth: No Session");
     }
     return null;
   }
