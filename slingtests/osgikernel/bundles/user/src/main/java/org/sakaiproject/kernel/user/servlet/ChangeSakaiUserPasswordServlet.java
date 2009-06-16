@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
-import org.apache.sling.jackrabbit.usermanager.post.ChangeUserPasswordServlet;
+import org.apache.sling.jackrabbit.usermanager.impl.post.ChangeUserPasswordServlet;
 
 /**
  * Sling Post Operation implementation for updating the password of a user in the 

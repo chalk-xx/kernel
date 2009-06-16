@@ -54,14 +54,14 @@ sub get_user_agent {
 	    my $auth = new Sling::Authn( $url, \$lwpUserAgent );
 	    my $success = $auth->basic_login( $log );
 	    if ( ! $success ) {
-	        die "Basic Auth log in for user \"$username\" was unsuccessful\n";
+	        die "Basic Auth log in for user \"$username\" at URL \"$url\" was unsuccessful\n";
 	    }
         }
 	elsif ( $loginType =~ /^form$/ ) {
 	    my $auth = new Sling::Authn( $url, \$lwpUserAgent );
 	    my $success = $auth->form_login( $username, $password, $log );
 	    if ( ! $success ) {
-	        die "Form log in for user \"$username\" was unsuccessful\n";
+	        die "Form log in for user \"$username\" at URL \"$url\" was unsuccessful\n";
 	    }
 	}
 	else {

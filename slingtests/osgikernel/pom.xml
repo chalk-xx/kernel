@@ -41,6 +41,7 @@
         <module>bundles/jpaprovider</module>
         <module>bundles/persistence</module>
         <module>bundles/configuration</module>
+        <module>bundles/connections</module>
         <module>bundles/memory</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
@@ -70,6 +71,9 @@
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
         <module>libraries/utils</module>
+        <!-- these are sling extension bundles that replace sling classes with patched versions -->
+        <module>bundles/sling/api</module>
+        <module>bundles/sling/resource</module>
       </modules>
     </profile>
     <profile>
@@ -461,6 +465,17 @@
       <id>EclipseLink Repo</id>
       <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
     </repository>
+  <repository>
+      <id>apache-snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>http://repository.apache.org/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
 <!--
     <repository>
       <id>sakai-maven</id>
@@ -635,14 +650,17 @@
         <artifactId>activemq-core</artifactId>
         <version>5.2.0</version>
       </dependency>
-
-<!-- Sling -->
+      <dependency>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>org.apache.sling.commons.osgi</artifactId>
+        <version>2.0.4-incubator</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.sling</groupId>
         <artifactId>org.apache.sling.commons.json</artifactId>
-        <version>2.0.5-incubator-SNAPSHOT</version>
-        <scope>provided</scope>
+        <version>2.0.4-incubator</version>
       </dependency>
+
 
 <!-- Pax Web -->
     <dependency>

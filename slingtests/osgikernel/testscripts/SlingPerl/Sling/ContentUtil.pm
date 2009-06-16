@@ -21,7 +21,7 @@ result of performing the request.
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Sling::Util;
+use Sling::URL;
 #}}}
 
 #{{{sub add_setup
@@ -37,16 +37,9 @@ system.
 
 sub add_setup {
     my ( $baseURL, $remoteDest, $properties ) = @_;
-    die "No base URL provided to upload against!" unless defined $baseURL;
-    die "No remote destination to add content to!" unless defined $remoteDest;
-    my $property_post_vars;
-    foreach my $property ( @{ $properties } ) {
-        $property =~ /^([^=]*)=(.*)/;
-	if ( defined $1 && defined $2 ) {
-            $property_post_vars .= "'$1','$2',";
-	}
-    }
-    $property_post_vars =~ s/,$//;
+    die "No base URL provided!" unless defined $baseURL;
+    die "No position or ID to perform action for specified!" unless defined $remoteDest;
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
     my $postVariables = "\$postVariables = [$property_post_vars]";
     return "post $baseURL/$remoteDest $postVariables";
 }
@@ -120,7 +113,7 @@ exists in the system.
 sub exists_setup {
     my ( $baseURL, $remoteDest ) = @_;
     die "No base url defined!" unless defined $baseURL;
-    die "No content destination defined!" unless defined $remoteDest;
+    die "No position or ID to perform exists for specified!" unless defined $remoteDest;
     return "get $baseURL/$remoteDest.json";
 }
 #}}}

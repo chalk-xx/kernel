@@ -1,60 +1,78 @@
 #!/usr/bin/perl
 
-=head1 NAME
+#{{{Documentation
+=head1 SYNOPSIS
 
-search perl script. Provides a means of performing searches in a s ystem
-from the command line.
+search perl script. Provides a means of performing searches in a system from
+the command line. Additionally serves as a reference example for using the
+Sling::Search library.
 
-=head1 ABSTRACT
+=head1 OPTIONS
 
-This script can be used to perform searches in a system and additionally
-serves as a reference example for using the Sling::Search library.
+Usage: perl search.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
+The following options are accepted:
+
+ -p (password)     - Password of user performing searches.
+ -s (SearchTerm)   - Term to search in the system for.
+ -t (threads)      - Used with -F, defines number of parallel
+                     processes to have running through file.
+ -u (username)     - Name of user to perform any searches as.
+ -F (File)         - File containing list of search terms to search through.
+ --log or -L (log) - Log script output to specified log file.
+ -P (path)         - specify absolute path under the JCR root to search under.
+ --url or -U (URL) - URL for system being tested against.
+ --auth (type)     - Specify auth type. If ommitted, default is used.
+ --help or -?      - view the script synopsis and options.
+ --man             - view the full script documentation.
+
+Options may be merged together. -- stops processing of options.
+Space is not required between options and their arguments.
+For full details run: perl search.pl --man
+
+=head1 Example Usage
+
+=over
+
+=item Authenticate and add search for the word test through all content:
+
+ perl search.pl -U http://localhost:8080 -s test -u admin -p admin
+
+=back
 
 =cut
+#}}}
 
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
 use Sling::Search;
 use Sling::UserAgent;
-use Sling::Util;
-use Getopt::Long qw(:config bundling);
-#}}}
-
-#{{{sub HELP_MESSAGE
-sub HELP_MESSAGE {
-    my ( $out, $optPackage, $optVersion, $switches ) = @_;
-    Sling::Util::help_header( $0, $switches );
-    print "-p {password}   - Password of user performing searches.\n";
-    print "-s {SearchTerm} - Term to search in the system for.\n";
-    print "-t {threads}    - Used with -F, defines number of parallel\n";
-    print "                  processes to have running through file.\n";
-    print "-u {username}   - Name of user to perform any searches as.\n";
-    print "-F {File}       - File containing list of search terms to search through.\n";
-    print "-L {log}        - Log script output to specified log file.\n";
-    print "-P {path}       - specify absolute path under the JCR root to search under.\n";
-    print "-U {URL}        - URL for system being tested against.\n";
-    print "--auth {type}   - Specify auth type. If ommitted, default is used.\n";
-    Sling::Util::help_footer( $0 );
-}
 #}}}
 
 #{{{options parsing
 my $auth;
-my $url = "http://localhost";
-my $searchTerm;
-my $numberForks = 1;
 my $file;
+my $help;
 my $log;
-my $username;
+my $man;
+my $numberForks = 1;
 my $password;
 my $path="/";
+my $searchTerm;
+my $url = "http://localhost";
+my $username;
 
 GetOptions ( "s=s" => \$searchTerm,  "F=s" => \$file,
-             "t=i" => \$numberForks, "L=s" => \$log,
+             "t=i" => \$numberForks, "log|L=s" => \$log,
              "u=s" => \$username,    "P=s" => \$path,
-	     "p=s" => \$password,    "U=s" => \$url,
-	     "auth=s" => \$auth,     "help" => \&HELP_MESSAGE );
+	     "p=s" => \$password,    "url|U=s" => \$url,
+	     "auth=s" => \$auth,
+             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+
+pod2usage(-exitstatus => 0, -verbose => 1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );

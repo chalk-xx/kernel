@@ -75,7 +75,6 @@ effectively controlled by jcr:removeNode.
 use strict;
 use lib qw ( .. );
 use Sling::AuthzUtil;
-use Sling::Util;
 use Sling::Print;
 use Sling::Request;
 #}}}

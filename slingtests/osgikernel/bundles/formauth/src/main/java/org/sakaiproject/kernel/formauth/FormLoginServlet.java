@@ -94,7 +94,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
             + new Date(session.getLastAccessedTime()));
         LOGGER.info("Servlet Trace", new Exception("Servlet TRACEBACK IGNORE"));
       } else {
-        LOGGER.info("No Authentication Provided ");
+        LOGGER.debug("No Authentication Provided ");
       }
       doGet(request, response);
       return;

@@ -74,4 +74,26 @@ sub print_lock {
 }
 #}}}
 
+#{{{sub dateTime
+
+=pod
+
+=head2 dateTime
+
+Returns a current date time string, which is useful for log timestamps.
+
+=cut
+
+sub dateTime {
+    my @months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+    my @weekDays = qw(Sun Mon Tue Wed Thu Fri Sat Sun);
+    (my $second, my $minute, my $hour, my $dayOfMonth,
+     my $month, my $yearOffset, my $dayOfWeek, my $dayOfYear, my $daylightSavings) = localtime();
+    $second = "0$second" if $second < 10;
+    $second = "0$minute" if $minute < 10;
+    my $year = 1900 + $yearOffset;
+    return "$weekDays[$dayOfWeek] $months[$month] $dayOfMonth $hour:$minute:$second";
+}
+#}}}
+
 1;

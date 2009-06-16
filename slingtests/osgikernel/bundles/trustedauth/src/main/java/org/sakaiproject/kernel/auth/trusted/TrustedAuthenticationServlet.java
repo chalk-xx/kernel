@@ -16,7 +16,12 @@
  */
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.ops4j.pax.web.service.WebContainer;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler.TrustedAuthentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -29,10 +34,51 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Servlet for handling authentication requests from trusted mechanisms.
+ * <p>
+ * Servlet for storing authentication credentials from requests using an
+ * external trusted mechanism such as CAS.
+ * </p>
+ * <p>
+ * This servlet does not perform the authentication itself but looks for
+ * information in the request from the authentication authority. This
+ * information is then stored in the session for use by the authentication
+ * handler on subsequent calls.
+ * </p>
+ *
+ * @scr.component
+ * @scr.service interface="javax.servlet.Servlet"
  */
 public class TrustedAuthenticationServlet extends HttpServlet {
+  private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
   private static final long serialVersionUID = 1L;
+  private static final String REGISTRATION_PATH = "/trusted";
+
+  /** @scr.property value="Trusted Authentication Servlet" */
+  static final String DESCRIPTION_PROPERTY = "service.description";
+
+  /** @scr.property value="The Sakai Foundation" */
+  static final String VENDOR_PROPERTY = "service.vendor";
+
+  /** @scr.reference */
+  private WebContainer webContainer;
+
+  protected void bindWebContainer(WebContainer webContainer) {
+    this.webContainer = webContainer;
+  }
+
+  protected void unbindWebContainer(WebContainer webContainer) {
+    this.webContainer = null;
+  }
+
+  protected void activate(ComponentContext context) {
+    try {
+      webContainer.registerServlet(REGISTRATION_PATH, this, null, null);
+    } catch (NamespaceException e) {
+      LOG.error(e.getMessage(), e);
+    } catch (ServletException e) {
+      LOG.error(e.getMessage(), e);
+    }
+  }
 
   /**
    * {@inheritDoc}

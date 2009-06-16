@@ -25,6 +25,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
@@ -42,6 +43,7 @@ import java.util.Map;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -62,6 +64,11 @@ import javax.servlet.http.HttpServletResponse;
 public class SiteServiceImpl implements SiteService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
+
+  /**
+   * @scr.reference
+   */
+  private SlingRepository slingRepository;
 
   /**
    * The default site template, used when none has been defined.
@@ -88,8 +95,8 @@ public class SiteServiceImpl implements SiteService {
       if (site instanceof Node) {
         Node n = (Node) site;
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && SiteService.SITE_RESOURCE_TYPE.equals(n
-                .getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+            && SiteService.SITE_RESOURCE_TYPE.equals(n.getProperty(
+                JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
           return true;
         }
       }
@@ -108,8 +115,8 @@ public class SiteServiceImpl implements SiteService {
    */
   public void joinSite(Node site, String requestedGroup) throws SiteException {
     try {
-      Session session = site.getSession();
-      String user = session.getUserID();
+      Session session = slingRepository.loginAdministrative(null);
+      String user = site.getSession().getUserID();
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable userAuthorizable = userManager.getAuthorizable(user);
       if (isMember(site, userAuthorizable)) {
@@ -262,7 +269,7 @@ public class SiteServiceImpl implements SiteService {
     try {
       UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
-        Value[] values = site.getProperty(SiteService.AUTHORIZABLE).getValues();
+        Value[] values = getPropertyValues(site, SiteService.AUTHORIZABLE);
         for (Value v : values) {
           String groupName = v.getString();
           if (groupName.equals(targetGroup.getPrincipal().getName())) {
@@ -286,6 +293,15 @@ public class SiteServiceImpl implements SiteService {
       LOGGER.warn(ex.getMessage(), ex);
     }
     return false;
+  }
+
+  private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException, RepositoryException {
+    Property property = site.getProperty(propName);
+    if (property.getDefinition().isMultiple()) {
+      return property.getValues();
+    } else {
+      return new Value[] { property.getValue() };
+    }
   }
 
   /**
@@ -359,6 +375,17 @@ public class SiteServiceImpl implements SiteService {
   /**
    * {@inheritDoc}
    * 
+   * @see org.sakaiproject.kernel.api.site.SiteService#getDefaultSiteTemplate(javax.jcr.Node)
+   */
+  public String getDefaultSiteTemplate(Node site) {
+    // we should probably test that this node exists, but since this is a hard config,
+    // then its probably not worth doing it.
+    return DEFAULT_SITE;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.site.SiteService#getGroups(javax.jcr.Node, int, int,
    *      org.sakaiproject.kernel.api.site.Sort[])
    */
@@ -422,7 +449,7 @@ public class SiteServiceImpl implements SiteService {
     try {
       UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
-        Value[] values = site.getProperty(SiteService.AUTHORIZABLE).getValues();
+        Value[] values = getPropertyValues(site, SiteService.AUTHORIZABLE);
         for (Value v : values) {
           String groupId = v.getString();
           Authorizable a = userManager.getAuthorizable(groupId);
@@ -574,7 +601,8 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.kernel.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
    */
   @SuppressWarnings("unchecked")
-  public Map<String, List<Group>> getMembership(Session session, String user) throws SiteException {
+  public Map<String, List<Group>> getMembership(Session session, String user)
+      throws SiteException {
     try {
       Map<String, List<Group>> sites = Maps.newHashMap();
       UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -601,6 +629,14 @@ public class SiteServiceImpl implements SiteService {
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
     }
+  }
+
+  public void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+  
+  public void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 
 }

@@ -22,15 +22,16 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
-import org.apache.sling.jackrabbit.usermanager.post.AbstractUserPostServlet;
-import org.apache.sling.jackrabbit.usermanager.post.impl.RequestProperty;
-import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
+import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
+import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractUserPostServlet;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.user.UserPostProcessor;
+import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +114,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.kernel.user.UserPostProcessor"
+ *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
+ *                cardinality="0..n" policy="dynamic"
  */
 
 public class CreateSakaiUserServlet extends AbstractUserPostServlet {
@@ -122,7 +124,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    *
    */
   private static final long serialVersionUID = -5060795742204221361L;
-  private UserPostProcessor userPostProcessor;
+
+  
+  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * default log
@@ -274,27 +278,23 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     }
 
     try {
-      userPostProcessor.process(request, changes);
+      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+        userPostProcessor.process(request, changes);
+      }
     } catch (Exception e) {
       log.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
-  /**
-   * @param userPostProcessor
-   *          the userPostProcessor to set
-   */
-  protected void bindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = userPostProcessor;
+
+  protected void bindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.bindUserPostProcessor(serviceReference);
+
   }
 
-  /**
-   * @param userPostProcessor
-   *          the userPostProcessor to set
-   */
-  protected void unbindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = null;
+  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
 
 }

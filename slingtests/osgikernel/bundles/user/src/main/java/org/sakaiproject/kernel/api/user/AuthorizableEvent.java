@@ -33,9 +33,9 @@ public interface AuthorizableEvent {
    */
   public static final String OPERATION = "operation";
   /**
-   * Principal of the authorizable.
+   * Principal name of the authorizable.
    */
-  public static final String PRINCIPAL = "principal";
+  public static final String PRINCIPAL_NAME = "principal_name";
   
 
   public static final String MODIFICATION = "change";

@@ -10,8 +10,10 @@ Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-Category: sling,jcr,jackrabbit
 Bundle-Vendor: The Apache Software Foundation
 Bundle-DocURL: http://incubator.apache.org/sling
-Sling-Bundle-Activator-Ignored: org.apache.sling.jcr.jackrabbit.server.impl.Activator
-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator
+Sling-Bundle-Activator-Ignored: org.apache.sling.jcr.jackrabbit.server
+ .impl.Activator
+Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security
+ .dynamic.SakaiActivator
 Bundle-ClassPath: .,nekohtml-1.9.7.jar,lucene-core-2.3.2.jar,jackrabbi
  t-spi-commons-1.5.0.jar,jackrabbit-jcr-commons-1.5.0.jar,jempbox-0.2.
  0.jar,jackrabbit-jcr-rmi-1.4.1.jar,concurrent-1.3.4.jar,jackrabbit-te
@@ -28,11 +30,7 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  version="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.se
  rver.security.accessmanager;uses:="javax.jcr,javax.security.auth";ver
  sion="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.serve
- r.security.dynamic;uses:="javax.jcr";version="2.0.3.incubator-SNAPSHO
- T",org.apache.sling.jcr.jackrabbit.server.security;uses:="javax.secur
- ity.auth.login,javax.jcr,javax.security.auth.callback";version="2.0.3
- .incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.server.security.
- dynamic;uses:="javax.jcr"
+ r.security.dynamic;uses:="javax.jcr"
 Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  observation,javax.jcr.query,javax.jcr.util,javax.jcr.version,javax.na
  ming,javax.naming.directory,javax.naming.spi,javax.security.auth,java
@@ -60,3 +58,7 @@ Service-Component: OSGI-INF/serviceComponents.xml
 Bnd-LastModified: 1232723302069
 Tool: Bnd-0.0.255
 Created-By: 1.6.0_10 (Sun Microsystems Inc.)
+
+
+
+

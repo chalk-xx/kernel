@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.api.jcr.support;
 
-import org.apache.jackrabbit.value.StringValue;
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
@@ -26,6 +25,7 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 
 /**
  *
@@ -100,6 +100,8 @@ public class JcrUtils {
     if (label == null) {
       throw new IllegalArgumentException("Node label must not be null.");
     }
+    
+    ValueFactory valueFactory = node.getSession().getValueFactory();
 
     jcrService.lock(node);
     // get properties from node
@@ -142,7 +144,7 @@ public class JcrUtils {
         newVals[i] = values[i];
       }
       // add new label
-      newVals[newVals.length - 1] = new StringValue(label);
+      newVals[newVals.length - 1] = valueFactory.createValue(label);
     }
     // set values back to the node property.
     node.setProperty(JCRConstants.JCR_LABELS, newVals);

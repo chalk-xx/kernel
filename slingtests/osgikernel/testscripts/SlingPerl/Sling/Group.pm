@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST group methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use Text::CSV;
 use Sling::GroupUtil;
 use Sling::Print;
 use Sling::Request;
@@ -56,9 +57,10 @@ sub set_results {
 
 #{{{sub add
 sub add {
-    my ( $group, $actOnGroup, $log ) = @_;
+    my ( $group, $actOnGroup, $properties, $log ) = @_;
     my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
+        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' },
+	    $actOnGroup, $properties ), $group->{ 'LWP' } ) );
     my $success = Sling::GroupUtil::add_eval( \$res );
     my $message = "Group: \"$actOnGroup\" ";
     $message .= ( $success ? "added!" : "was not added!" );
@@ -85,16 +87,48 @@ sub delete {
 #{{{sub add_from_file
 sub add_from_file {
     my ( $group, $file, $forkId, $numberForks, $log ) = @_;
+    my $csv = Text::CSV->new();
     my $count = 0;
+    my $numberColumns = 0;
+    my @column_headings;
     open ( FILE, $file );
     while ( <FILE> ) {
-        if ( $forkId == ( $count++ % $numberForks ) ) {
-            chomp;
-	    $_ =~ /^(.*?)$/;
-	    my $actOnGroup = $1;
-	    if ( defined $actOnGroup ) {
-	        $group->add( $actOnGroup, $log );
-		Sling::Print::print_lock( $group->{ 'Message' } );
+        if ( $count++ == 0 ) {
+	    # Parse file column headings first to determine field names:
+	    if ( $csv->parse( $_ ) ) {
+	        @column_headings = $csv->fields();
+		# First field must be site:
+		if ( $column_headings[0] !~ /^group$/i ) {
+		    die "First CSV column must be the group ID, ".
+		        "column heading must be \"group\". ".
+		        "Found: \"" . $column_headings[0] . "\".\n";
+		}
+		$numberColumns = @column_headings;
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+        elsif ( $forkId == ( $count++ % $numberForks ) ) {
+	    my @properties;
+	    if ( $csv->parse( $_ ) ) {
+	        my @columns = $csv->fields();
+		my $columns_size = @columns;
+		# Check row has same number of columns as there were column headings:
+		if ( $columns_size != $numberColumns ) {
+		    die "Found \"$columns_size\" columns. There should have been \"$numberColumns\".\n".
+		        "Row contents was: $_";
+		}
+		my $id = $columns[0];
+		for ( my $i = 1; $i < $numberColumns ; $i++ ) {
+                    my $value = $column_headings[ $i ] . "=" . $columns[ $i ];
+		    push ( @properties, $value );
+		}
+                $group->add( $id, \@properties, $log );
+		Sling::Print::print_lock( $group->{ 'Message' } ) if ( ! defined $log );
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
 	    }
 	}
     }

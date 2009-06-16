@@ -21,7 +21,6 @@ result of performing the request.
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Sling::Util;
 use Sling::URL;
 #}}}
 
@@ -37,18 +36,18 @@ system.
 =cut
 
 sub add_setup {
-    my ( $baseURL, $actOnUser, $actOnPass, $actOnEmail, $actOnFirst, $actOnLast ) = @_;
+    my ( $baseURL, $actOnUser, $actOnPass, $properties ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No user name defined to add!" unless defined $actOnUser;
     die "No user password defined to add for user $actOnUser!" unless defined $actOnPass;
-    die "No user email defined to add for user $actOnUser!" unless defined $actOnEmail;
-    $actOnFirst = $actOnUser unless defined $actOnFirst;
-    $actOnLast = $actOnUser unless defined $actOnLast;
     $actOnUser = Sling::URL::urlencode( $actOnUser );
     $actOnPass = Sling::URL::urlencode( $actOnPass );
-    $actOnFirst = Sling::URL::urlencode( $actOnFirst );
-    $actOnLast = Sling::URL::urlencode( $actOnLast );
-    my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass','firstName','$actOnFirst','lastName','$actOnLast','email','$actOnEmail']";
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
+    my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass'";
+    if ( $property_post_vars !~ /^$/ ) {
+        $postVariables .= ",$property_post_vars";
+    }
+    $postVariables .= "]";
     return "post $baseURL/system/userManager/user.create.html $postVariables";
 }
 #}}}
@@ -218,6 +217,42 @@ else false.
 =cut
 
 sub me_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub sites_setup
+
+=pod
+
+=head2 sites_setup
+
+Returns a textual representation of the request needed to return the list of
+sites the current user is a member of.
+
+=cut
+
+sub sites_setup {
+    my ( $baseURL ) = @_;
+    die "No base url to check membership of sites against!" unless defined $baseURL;
+    return "get $baseURL/system/sling/membership";
+}
+#}}}
+
+#{{{sub sites_eval
+
+=pod
+
+=head2 sites_eval
+
+Inspects the result returned from issuing the request generated in sites_setup
+returning true if the result indicates information was returned successfully,
+else false.
+
+=cut
+
+sub sites_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }
