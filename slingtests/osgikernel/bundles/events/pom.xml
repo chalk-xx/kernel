@@ -42,12 +42,18 @@
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Private-Package>org.sakaiproject.kernel.events</Private-Package>
+            <Import-Package>javax.jms,org.slf4j</Import-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
 	<dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
 <!-- osgi -->
     <dependency>
       <groupId>org.apache.felix</groupId>

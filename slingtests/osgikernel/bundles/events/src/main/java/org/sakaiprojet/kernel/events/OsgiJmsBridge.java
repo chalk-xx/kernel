@@ -17,8 +17,22 @@
  */
 package org.sakaiprojet.kernel.events;
 
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Dictionary;
+
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MapMessage;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
 
 /**
  * Bridge to pipe OSGi events into a JMS topic.
@@ -27,8 +41,59 @@ import org.osgi.service.event.EventHandler;
  * @scr.service
  */
 public class OsgiJmsBridge implements EventHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  public void handleEvent(Event arg0) {
-    // TODO post to JMS
+  /** @scr.property value="*" */
+  static final String TOPICS = EventConstants.EVENT_TOPIC;
+
+  /** @scr.property value="sakai.event.bridge" */
+  static final String EVENT_JMS_QUEUE = "eventJmsQueue";
+
+  /** @scr.property value="false" */
+  static final String CONN_TRANSACTED = "connectionTransacted";
+
+  /** @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" */
+  static final String ACKNOWLEDGE_MODE = "acknowledgeMode";
+
+  private ConnectionFactory connFactory;
+  private String emailQueueName;
+  private boolean transacted;
+  private int acknowledgeMode;
+
+  @SuppressWarnings("unchecked")
+  protected void activate(ComponentContext ctx) {
+    Dictionary props = ctx.getProperties();
+    emailQueueName = (String) props.get(EVENT_JMS_QUEUE);
+    transacted = Boolean.parseBoolean((String) props.get(CONN_TRANSACTED));
+    acknowledgeMode = Integer.parseInt((String) props.get(ACKNOWLEDGE_MODE));
+  }
+
+  public void handleEvent(Event event) {
+    Connection conn = null;
+    try {
+      // post to JMS
+      conn = connFactory.createConnection();
+      conn.setClientID("sakai.event.bridge");
+      Session clientSession = conn.createSession(transacted, acknowledgeMode);
+      Destination emailTopic = clientSession.createTopic(emailQueueName);
+      MessageProducer client = clientSession.createProducer(emailTopic);
+      MapMessage msg = clientSession.createMapMessage();
+      msg.setJMSType(event.getTopic());
+      for (String name : event.getPropertyNames()) {
+        Object obj = event.getProperty(name);
+        msg.setObject(name, obj);
+      }
+      client.send(msg);
+    } catch (JMSException e) {
+      LOG.error("Unable to cross post event from OSGi to JMS: " + e.getMessage(), e);
+    } finally {
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (JMSException e) {
+          LOG.error("Unable to close JMS connection: " + e.getMessage(), e);
+        }
+      }
+    }
   }
 }
