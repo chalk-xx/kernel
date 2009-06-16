@@ -236,7 +236,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
    */
   private void removeProcessor(ServiceReference serviceReference) {
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
-    SearchResultProcessor processor = processorsById.get(serviceId);
+    SearchResultProcessor processor = processorsById.remove(serviceId);
     if (processor != null) {
       List<String> toRemove = new ArrayList<String>();
       for (Entry<String, SearchResultProcessor> e : processors.entrySet()) {
