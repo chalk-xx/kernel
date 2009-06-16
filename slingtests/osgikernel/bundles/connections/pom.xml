@@ -22,7 +22,8 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Connections Management Support Bundle</name>
-  <description>Connections Management Support bundle that allows the management of connections between users for social and achademic networking.</description>
+  <description>Connections Management Support bundle that allows the management of
+    connections between users for social and achademic networking.</description>
   <build>
     <plugins>
       <plugin>
@@ -51,6 +52,17 @@
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.5-sakai-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
