@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.path" values="/_user/private"
+ * @scr.property name="sling.servlet.paths" values="/_user/private/*"
  * @scr.property name="sling.servlet.methods" value.0="GET" value.1="POST" value.2="PUT"
  *               value.3="DELETE"
  */
@@ -50,6 +50,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
      * Process the path to expand based on the user, then dispatch to the resource at that
      * location.
      */
+    System.out.println("Went into personal servlet");
     Resource baseResource = request.getResource();
     String uriPath = baseResource.getPath();
     String userId = request.getRemoteUser();
@@ -57,6 +58,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
     String resourcePath = PathUtils.toInternalHashedPath(_USER_PRIVATE, userId, uriPath
         .substring(_USER_PRIVATE.length()));
 
+    System.out.println("Path is " + resourcePath);
     Resource resource = request.getResourceResolver().resolve(resourcePath);
     if (resource instanceof NonExistingResource) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND,
