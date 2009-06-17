@@ -90,6 +90,7 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         messageStore.setProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             MessageConstants.SAKAI_MESSAGESTORE_RT);
+        // TODO - Set correct ACL's!
         session.save();
         session.logout();
 

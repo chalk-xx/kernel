@@ -153,7 +153,7 @@ public class ChatMessageHandler implements MessageHandler {
            */
 
           Node n = (Node) session.getItem(toPath);
-
+          
           PropertyIterator pi = originalMessage.getProperties();
           while (pi.hasNext()) {
             Property p = pi.nextProperty();

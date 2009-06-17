@@ -23,6 +23,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.message.MessageConstants;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,10 +42,10 @@ import javax.servlet.http.HttpServletResponse;
  * Will count all the messages under the user his message store. The user can
  * specify what messages should be counted by specifying parameters in comma
  * seperated values. ex:
- * messages.count.json?filters=sakai:messagebox,read,to&values=inbox,true,user1&groupedby=sakai:messagebox
- * The following are optional:
- *  - filters: only nodes with the properties in filters and the values in values get travers
- *  - groupedby: group the results by the values of this parameter.
+ * messages.count.json?filters=sakai:messagebox,read,to&values
+ * =inbox,true,user1&groupedby=sakai:messagebox The following are optional: -
+ * filters: only nodes with the properties in filters and the values in values
+ * get travers - groupedby: group the results by the values of this parameter.
  * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
@@ -70,9 +71,11 @@ public class CountServlet extends SlingAllMethodsServlet {
       // Do the query
       // We do the query on the user his messageStore's path.
       String messageStorePath = ISO9075.encodePath(node.getPath());
-      //String messageStorePath = node.getPath();
+      // String messageStorePath = node.getPath();
       String queryString = "/jcr:root" + messageStorePath
-          + "//*[@sling:resourceType='sakai/message'";
+          + "//*[@sling:resourceType='sakai/message' and @"
+          + MessageConstants.PROP_SAKAI_TYPE + "='"
+          + MessageConstants.TYPE_INTERNAL + "'";
 
       // Get the filters
       if (request.getRequestParameter("filters") != null
@@ -105,12 +108,14 @@ public class CountServlet extends SlingAllMethodsServlet {
       if (request.getRequestParameter("groupedby") == null) {
         write.object();
         write.key("count");
-        // TODO: getSize iterates over all the nodes, add a JackRabbit service to fetch this number.
-        write.value("" + resultNodes.getSize());
+        // TODO: getSize iterates over all the nodes, add a JackRabbit service
+        // to fetch this number.
+        write.value(resultNodes.getSize());
         write.endObject();
       } else {
         // The user want to group the count by a specified set.
-        // We will have to traverse each node, get that property and count each value for it.
+        // We will have to traverse each node, get that property and count each
+        // value for it.
         String groupedby = request.getRequestParameter("groupedby").getString();
         Map<String, Integer> mapCount = new HashMap<String, Integer>();
         while (resultNodes.hasNext()) {

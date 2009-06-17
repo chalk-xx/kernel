@@ -17,21 +17,14 @@
  */
 package org.sakaiproject.kernel.message.internal;
 
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.Principal;
-import java.util.Iterator;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -40,30 +33,24 @@ import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jcr.query.QueryResult;
 
 /**
  * Formats message node search results
  * 
- * @scr.component immediate="true" label="MessageSearchResultProcessor"
- *                description="Formatter for message search results"
+ * @scr.component immediate="true" label="InternalMessageSearchResultProcessor"
+ *                description="Procsessor for internalmessage search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Message"
+ * @scr.property name="sakai.search.processor" value="InternalMessage"
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.kernel.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
-public class InternalMessageSearchResultProcessor implements
-    SearchResultProcessor {
+public class InternalMessageSearchResultProcessor extends
+    MessageSearchResultProcessor implements SearchResultProcessor {
 
   private static final Logger LOG = LoggerFactory
       .getLogger(InternalMessageSearchResultProcessor.class);
-
-  private UserManager userManager;
 
   public void output(JSONWriter write, QueryResult result, int nitems)
       throws RepositoryException, JSONException {
@@ -71,12 +58,6 @@ public class InternalMessageSearchResultProcessor implements
     int i = 1;
     while (resultNodes.hasNext() && i <= nitems) {
       Node resultNode = resultNodes.nextNode();
-
-      if (userManager == null) {
-        Session session = resultNode.getSession();
-        this.userManager = AccessControlUtil.getUserManager(session);
-      }
-
       parseMessage(write, resultNode);
       i++;
     }
@@ -101,57 +82,35 @@ public class InternalMessageSearchResultProcessor implements
     write.key("path");
     write.value(messagingService.getMessagePathFromMessageStore(resultNode));
 
+    // TODO : This should probably be using an Authorizable. However, updated
+    // properties were not included in this..
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
-
-      // TODO: Add the user info for this message.
-      String to = resultNode.getProperty(MessageConstants.PROP_SAKAI_TO)
-          .getString();
-      write.key("userTo");
-      Authorizable userAuthorizable = userManager.getAuthorizable(to);
-
-      write.object();
-    
-      write.key("properties");
-      write.array();
-      Iterator iterator = userAuthorizable.getPropertyNames();
-      while (iterator.hasNext()) {
-        write.object();
-
-        Object o = iterator.next();
-        write.key(o.toString());
-        Value[] values = userAuthorizable.getProperty(o.toString());
-        write.array();
-
-        for (Value val : values) {
-          write.value(val.getString());
-        }
-        write.endArray();
-
-        write.endObject();
-      }
-      write.endArray();
-      write.endObject();
-
+      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
     }
 
-    write.key("userFrom");
-    write.value("{}");
+    if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
+      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM,
+          "userFrom");
+    }
 
     // List all of the properties on here.
     PropertyIterator pi = resultNode.getProperties();
     while (pi.hasNext()) {
       Property p = pi.nextProperty();
+
+      // If the path of a previous message is in here we go and retrieve that
+      // node and parse it as well.
       if (p.getName().equalsIgnoreCase(
           MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE)) {
         write.key(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE);
         parsePreviousMessages(resultNode, write);
 
       } else {
+        // These are normal properties.., just parse them.
         write.key(p.getName());
         write.value(p.getString());
       }
     }
-
     write.endObject();
   }
 
@@ -180,15 +139,4 @@ public class InternalMessageSearchResultProcessor implements
     Node previousMessage = (Node) s.getItem(path);
     parseMessage(write, previousMessage);
   }
-
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
-
 }
