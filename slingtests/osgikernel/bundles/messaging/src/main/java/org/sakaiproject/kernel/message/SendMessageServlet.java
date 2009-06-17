@@ -19,29 +19,26 @@ package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Will create a message under the user's _private folder. If the box is set
- * to outbox en the pending property to pending or none it will be picked up by
- * the MessagePostProcessor who will then send an OSGi event that feeds it to
- * the correct MessageHandler.
- * 
+ * Will send a message that is either a draft or a complete new one..
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="create"
+ * @scr.property name="sling.servlet.selectors" value="send"
  */
-public class CreateMessageServlet extends SlingAllMethodsServlet {
+public class SendMessageServlet extends SlingAllMethodsServlet {
 
   /**
    *
    */
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(CreateMessageServlet.class);
+      .getLogger(SendMessageServlet.class);
 
   /**
    * {@inheritDoc}
@@ -53,10 +50,11 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
-    LOGGER.info("Creating message.");
     
-    MessagingServiceImpl messagingService = new MessagingServiceImpl();
-    messagingService.create(request, response);
+    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request.getMethod());
+
+    LOGGER.info("ServletPath " + request.getPathInfo());
+
   }
 
 }

@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST group methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use JSON;
 use Text::CSV;
 use Sling::GroupUtil;
 use Sling::Print;
@@ -70,20 +71,6 @@ sub add {
 }
 #}}}
 
-#{{{sub delete
-sub delete {
-    my ( $group, $actOnGroup, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::delete_eval( \$res );
-    my $message = "Group: \"$actOnGroup\" ";
-    $message .= ( $success ? "deleted!" : "was not deleted!" );
-    $group->set_results( "$message", \$res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
-    return $success;
-}
-#}}}
-
 #{{{sub add_from_file
 sub add_from_file {
     my ( $group, $file, $forkId, $numberForks, $log ) = @_;
@@ -97,7 +84,7 @@ sub add_from_file {
 	    # Parse file column headings first to determine field names:
 	    if ( $csv->parse( $_ ) ) {
 	        @column_headings = $csv->fields();
-		# First field must be site:
+		# First field must be group:
 		if ( $column_headings[0] !~ /^group$/i ) {
 		    die "First CSV column must be the group ID, ".
 		        "column heading must be \"group\". ".
@@ -137,6 +124,20 @@ sub add_from_file {
 }
 #}}}
 
+#{{{sub delete
+sub delete {
+    my ( $group, $actOnGroup, $log ) = @_;
+    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
+        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
+    my $success = Sling::GroupUtil::delete_eval( \$res );
+    my $message = "Group: \"$actOnGroup\" ";
+    $message .= ( $success ? "deleted!" : "was not deleted!" );
+    $group->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
 #{{{sub exists
 sub exists {
     my ( $group, $actOnGroup, $log ) = @_;
@@ -145,6 +146,130 @@ sub exists {
     my $success = Sling::GroupUtil::exists_eval( \$res );
     my $message = "Group \"$actOnGroup\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
+    $group->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
+#{{{sub member_add
+sub member_add {
+    my ( $group, $actOnGroup, $addMember, $log ) = @_;
+    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
+        Sling::GroupUtil::member_add_setup( $group->{ 'BaseURL' },
+	    $actOnGroup, $addMember ), $group->{ 'LWP' } ) );
+    my $success = Sling::GroupUtil::member_add_eval( \$res );
+    my $message = "Member: \"$addMember\" ";
+    $message .= ( $success ? "added" : "was not added" );
+    $message .= " to group \"$actOnGroup\"!";
+    $group->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
+#{{{sub member_add_from_file
+sub member_add_from_file {
+    my ( $group, $file, $forkId, $numberForks, $log ) = @_;
+    my $csv = Text::CSV->new();
+    my $count = 0;
+    my $numberColumns = 0;
+    my @column_headings;
+    open ( FILE, $file );
+    while ( <FILE> ) {
+        if ( $count++ == 0 ) {
+	    # Parse file column headings first to determine field names:
+	    if ( $csv->parse( $_ ) ) {
+	        @column_headings = $csv->fields();
+		# First field must be group:
+		if ( $column_headings[0] !~ /^group$/i ) {
+		    die "First CSV column must be the group ID, ".
+		        "column heading must be \"group\". ".
+		        "Found: \"" . $column_headings[0] . "\".\n";
+		}
+		# Second field must be user:
+		if ( $column_headings[1] !~ /^user$/i ) {
+		    die "Second CSV column must be the user ID, ".
+		        "column heading must be \"user\". ".
+		        "Found: \"" . $column_headings[1] . "\".\n";
+		}
+		$numberColumns = @column_headings;
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+        elsif ( $forkId == ( $count++ % $numberForks ) ) {
+	    if ( $csv->parse( $_ ) ) {
+	        my @columns = $csv->fields();
+		my $columns_size = @columns;
+		# Check row has same number of columns as there were column headings:
+		if ( $columns_size != $numberColumns ) {
+		    die "Found \"$columns_size\" columns. There should have been \"$numberColumns\".\n".
+		        "Row contents was: $_";
+		}
+		my $actOnGroup = $columns[0];
+		my $addMember = $columns[1];
+                $group->member_add( $actOnGroup, $addMember, $log );
+		Sling::Print::print_lock( $group->{ 'Message' } ) if ( ! defined $log );
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+    }
+    close ( FILE ); 
+    return 1;
+}
+#}}}
+
+#{{{sub member_exists
+sub member_exists {
+    my ( $group, $actOnGroup, $existsMember, $log ) = @_;
+    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
+                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
+    my $success = Sling::GroupUtil::view_eval( \$res );
+    my $message;
+    if ( $success ) {
+        my $group_info = from_json( $res->content );
+	my $is_member = 0;
+        foreach my $member ( @{ $group_info->{ 'members' } } ) {
+            if ( $member =~ /^$existsMember$/ ) {
+	        $is_member = 1;
+		last;
+	    }
+        }
+	$message = "\"$existsMember\" is " . ( $is_member ? "" : "not " ) .
+	    "a member of group \"$actOnGroup\"";
+    }
+    else {
+        $message = "Problem viewing group: \"$actOnGroup\"";
+    }
+    $group->set_results( "$message", \$res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
+#{{{sub member_view
+sub member_view {
+    my ( $group, $actOnGroup, $log ) = @_;
+    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
+                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
+    my $success = Sling::GroupUtil::view_eval( \$res );
+    my $message;
+    if ( $success ) {
+        my $group_info = from_json( $res->content );
+        my $number_members = @{ $group_info->{ 'members' } };
+        my $members = "Group \"$actOnGroup\" has $number_members member(s):";
+        foreach my $member ( @{ $group_info->{ 'members' } } ) {
+            $members .= "\n$member";
+        }
+	$message = "$members";
+    }
+    else {
+        $message = "Problem viewing group: \"$actOnGroup\"";
+    }
     $group->set_results( "$message", \$res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;

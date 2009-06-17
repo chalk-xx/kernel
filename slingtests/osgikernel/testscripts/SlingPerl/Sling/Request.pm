@@ -39,8 +39,11 @@ sub string_to_request {
         my $variables = join( " ", @reqVariables );
         my $postVariables;
         no strict;
-        eval $variables;
+        my $success = eval $variables;
         use strict;
+        if ( ! defined $success ) {
+	    die "Error \"$@\" parsing post variables: \"$variables\"";
+	}
 	$request = POST ( "$target", $postVariables );
     }
     elsif ( $action =~ /^data$/ ) {
@@ -48,8 +51,11 @@ sub string_to_request {
         my $variables = join( " ", @reqVariables );
         my $postVariables;
         no strict;
-        eval $variables;
+        my $success = eval $variables;
         use strict;
+        if ( ! defined $success ) {
+	    die "Error \"$@\" parsing post variables: \"$variables\"";
+	}
 	$request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
     }
     elsif ( $action =~ /^fileupload$/ ) {
@@ -59,8 +65,11 @@ sub string_to_request {
         my $variables = join( " ", @reqVariables );
         my $postVariables;
         no strict;
-        eval $variables;
+        my $success = eval $variables;
         use strict;
+        if ( ! defined $success ) {
+	    die "Error \"$@\" parsing post variables: \"$variables\"";
+	}
 	push ( @{ $postVariables }, $filename => [ "$file" ] );
 	$request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
     }

@@ -12,25 +12,25 @@ Content perl library.
 Usage: perl content.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a                - Add content.
- -c                - Copy content.
- -d                - Delete content.
- -l (localPath)    - Local path to content to upload.
- -m                - Move content.
- -n (filename)     - Specify file name to use for content upload.
- -p (password)     - Password of user performing content manipulations.
- -t (threads)      - Used with -F, defines number of parallel
-                     processes to have running through file.
- -u (username)     - Name of user to perform content manipulations as.
- -D (remoteDest)   - specify remote destination under JCR root to act on.
- -F (File)         - File containing list of content to be uploaded.
- --log or -L (log) - Log script output to specified log file.
- -P (property)     - Specify property to set on node.
- -S (remoteSrc)    - specify remote source under JCR root to act on.
- --url or -U (URL) - URL for system being tested against.
- --auth (type)     - Specify auth type. If ommitted, default is used.
- --help or -?      - view the script synopsis and options.
- --man             - view the full script documentation.
+ --additions or -A (file)          - File containing list of content to be uploaded.
+ --add or -a                       - Add content.
+ --auth (type)                     - Specify auth type. If ommitted, default is used.
+ --copy or -c                      - Copy content.
+ --delete or -d                    - Delete content.
+ --filename or -n (filename)       - Specify file name to use for content upload.
+ --help or -?                      - view the script synopsis and options.
+ --local or -l (localPath)         - Local path to content to upload.
+ --log or -L (log)                 - Log script output to specified log file.
+ --man or -M                       - view the full script documentation.
+ --move or -m                      - Move content.
+ --pass or -p (password)           - Password of user performing content manipulations.
+ --property or -P (property)       - Specify property to set on node.
+ --remote or -r (remoteNode)       - specify remote destination under JCR root to act on.
+ --remote-source or -S (remoteSrc) - specify remote source node under JCR root to act on.
+ --threads or -t (threads)         - Used with -A, defines number of parallel
+                                     processes to have running through file.
+ --url or -U (URL)                 - URL for system being tested against.
+ --user or -u (username)           - Name of user to perform content manipulations as.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -42,27 +42,27 @@ For full details run: perl content.pl --man
 
 =item Authenticate and add a node at /test:
 
- perl content.pl -U http://localhost:8080 -a -D /test -u admin -p admin
+ perl content.pl -U http://localhost:8080 -a -r /test -u admin -p admin
 
 =item Authenticate and add a node at /test with property p1 set to v1:
 
- perl content.pl -U http://localhost:8080 -a -D /test -P p1=v1 -u admin -p admin
+ perl content.pl -U http://localhost:8080 -a -r /test -P p1=v1 -u admin -p admin
 
 =item Authenticate and add a node at /test with property p1 set to v1, and p2 set to v2:
 
- perl content.pl -U http://localhost:8080 -a -D /test -P p1=v1 -P p2=v2 -u admin -p admin
+ perl content.pl -U http://localhost:8080 -a -r /test -P p1=v1 -P p2=v2 -u admin -p admin
 
 =item View json for node at /test:
 
- perl content.pl -U http://localhost:8080 -v -D /test
+ perl content.pl -U http://localhost:8080 -v -r /test
 
 =item Check whether node at /test exists:
 
- perl content.pl -U http://localhost:8080 -v -D /test
+ perl content.pl -U http://localhost:8080 -v -r /test
 
 =item Authenticate and delete content at /test
 
- perl content.pl -U http://localhost:8080 -d -D /test -u admin -p admin
+ perl content.pl -U http://localhost:8080 -d -r /test -u admin -p admin
 
 =back
 
@@ -85,7 +85,7 @@ my $auth;
 my $copy;
 my $delete;
 my $exists;
-my $file;
+my $additions;
 my $filename = "";
 my $help;
 my $localPath;
@@ -95,26 +95,39 @@ my $move;
 my $numberForks = 1;
 my $password;
 my @properties;
-my $remoteDest;
+my $remoteNode;
 my $remoteSrc;
 my $url = "http://localhost";
 my $username;
 my $view;
 
-GetOptions ( "a" => \$add,    "c" => \$copy, "d" => \$delete,
-             "e" => \$exists, "m" => \$move, "v" => \$view,
-             "l=s" => \$localPath,   "n=s" => \$filename,
-	     "p=s" => \$password,    "D=s" => \$remoteDest,
-	     "t=s" => \$numberForks, "u=s" => \$username,
-	     "F=s" => \$file,        "log|L=s" => \$log,
-	     "P=s" => \@properties,  "S=s" => \$remoteSrc,
-	     "url|U=s" => \$url,     "auth=s" => \$auth,
-             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+GetOptions (
+    "add|a" => \$add,
+    "additions|A=s" => \$additions,
+    "auth=s" => \$auth,
+    "copy|c" => \$copy,
+    "delete|d" => \$delete,
+    "exists|e" => \$exists,
+    "filename|n=s" => \$filename,
+    "help|?" => \$help,
+    "local|l=s" => \$localPath,
+    "log|L=s" => \$log,
+    "man|M" => \$man,
+    "move|m" => \$move,
+    "pass|p=s" => \$password,
+    "property|P=s" => \@properties,
+    "remote|r=s" => \$remoteNode,
+    "remote-source|S=s" => \$remoteSrc,
+    "threads|t=s" => \$numberForks,
+    "url|U=s" => \$url,
+    "user|u=s" => \$username,
+    "view|v" => \$view
+) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
-$remoteDest = Sling::URL::strip_leading_slash( $remoteDest );
+$remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
 $remoteSrc = Sling::URL::strip_leading_slash( $remoteSrc );
 
 $numberForks = ( $numberForks || 1 );
@@ -126,7 +139,7 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 #}}}
 
 #{{{ main execution path
-if ( defined $file ) {
+if ( defined $additions ) {
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -134,7 +147,7 @@ if ( defined $file ) {
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $content = new Sling::Content( $url, $lwpUserAgent );
-            $content->upload_from_file( $file, $i, $numberForks, $log );
+            $content->upload_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
 	else {
@@ -146,46 +159,46 @@ if ( defined $file ) {
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
     my $content = new Sling::Content( $url, $lwpUserAgent );
-    if ( defined $localPath && defined $remoteDest ) {
-        $content->upload_file( $localPath, $remoteDest, $filename, $log );
+    if ( defined $localPath && defined $remoteNode ) {
+        $content->upload_file( $localPath, $remoteNode, $filename, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }
     }
     elsif ( defined $add ) {
-        $content->add( $remoteDest, \@properties, $log );
+        $content->add( $remoteNode, \@properties, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }
     }
     elsif ( defined $copy ) {
         print "Not yet implemented!\n";
-        # $content->copy( $remoteSrc, $remoteDest, \@properties, $log );
+        # $content->copy( $remoteSrc, $remoteNode, \@properties, $log );
         # if ( ! defined $log ) {
             # print $content->{ 'Message' } . "\n";
         # }
     }
     elsif ( defined $delete ) {
-        $content->delete( $remoteDest, $log );
+        $content->delete( $remoteNode, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }
     }
     elsif ( defined $exists ) {
-        $content->exists( $remoteDest, $log );
+        $content->exists( $remoteNode, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }
     }
     elsif ( defined $move ) {
         print "Not yet implemented!\n";
-        # $content->move( $remoteSrc, $remoteDest, \@properties, $log );
+        # $content->move( $remoteSrc, $remoteNode, \@properties, $log );
         # if ( ! defined $log ) {
             # print $content->{ 'Message' } . "\n";
         # }
     }
     elsif ( defined $view ) {
-        $content->view( $remoteDest, $log );
+        $content->view( $remoteNode, $log );
         if ( ! defined $log ) {
             print $content->{ 'Message' } . "\n";
         }

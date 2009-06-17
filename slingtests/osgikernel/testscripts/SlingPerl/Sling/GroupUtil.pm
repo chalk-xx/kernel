@@ -141,6 +141,45 @@ sub exists_eval {
 }
 #}}}
 
+#{{{sub member_add_setup
+
+=pod
+
+=head2 member_add_setup
+
+Returns a textual representation of the request needed to add the group to the
+system.
+
+=cut
+
+sub member_add_setup {
+    my ( $baseURL, $actOnGroup, $addMember ) = @_;
+    die "No base url defined to add against!" unless defined $baseURL;
+    die "No group name defined to add member to!" unless defined $actOnGroup;
+    die "No member name defined to add!" unless defined $addMember;
+    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
+    $addMember = Sling::URL::urlencode( $addMember );
+    my $postVariables = "\$postVariables = [':member','/system/userManager/user/$addMember']";
+    return "post $baseURL/system/userManager/group/$actOnGroup.update.html $postVariables";
+}
+#}}}
+
+#{{{sub member_add_eval
+
+=pod
+
+=head2 member_add_eval
+
+Check result of adding a member to a group in the system.
+
+=cut
+
+sub member_add_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 #{{{sub view_setup
 
 =pod
@@ -154,8 +193,8 @@ the system. This function is similar to exists expect authentication is forced.
 
 sub view_setup {
     my ( $baseURL, $actOnGroup ) = @_;
-    die "No base url to check existence against!" unless defined $actOnGroup;
-    die "No group to check existence of defined!" unless defined $actOnGroup;
+    die "No base url to view with defined!" unless defined $baseURL;
+    die "No group to view defined!" unless defined $actOnGroup;
     $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     return "get $baseURL/system/userManager/group/$actOnGroup.tidy.json";
 }

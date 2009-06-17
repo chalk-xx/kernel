@@ -15,34 +15,34 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.image;
+package org.sakaiproject.kernel.api.message;
 
-public class ImageException extends Exception {
+import org.osgi.service.event.Event;
+
+import javax.jcr.Node;
+
+
+/**
+ * Definition for handling messages that originate in the system. Messages are
+ * written to known areas of JCR. Events are triggered by JCR when this content
+ * appears and based on the type of message, all appropriate message handlers
+ * are dispatched with the event and node of content.
+ */
+public interface MessageHandler {
+  /**
+   * The type of messages in which the handler is interested.
+   *
+   * @return
+   */
+  String getType();
 
   /**
-   * 
+   * The dispatch method called to handle a message.
+   *
+   * @param event
+   *          The event fired by JCR.
+   * @param node
+   *          The node that caused the event.
    */
-  private static final long serialVersionUID = -4376383518792880320L;
-
-  public ImageException() {
-    super();
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(String message, Throwable cause) {
-    super(message, cause);
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(String message) {
-    super(message);
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(Throwable cause) {
-    super(cause);
-    // TODO Auto-generated constructor stub
-  }
-
-  
+  void handle(Event event, Node node);
 }
