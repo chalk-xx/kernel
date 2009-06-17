@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Export-Package: javax.jms;uses:="javax.transaction.xa";version="1.1"
+Built-By: chall39
+Tool: Bnd-0.0.255
+Bundle-Category: sakai-kernel
+Bundle-Name: Java Messaging Service Bundle
+Created-By: Apache Maven Bundle Plugin
+Bundle-Vendor: The Sakai Foundation
+Build-Jdk: 1.6.0_13
+Bundle-Version: 0.1.0.SNAPSHOT
+Bnd-LastModified: 1245267100152
+Bundle-ManifestVersion: 2
+Bundle-Description: Kernel Experiments to evaluate approaches and gene
+ rate Proof of Concept    implementations.
+Bundle-DocURL: http://groups.google.com/group/sakai-kernel
+Bundle-SymbolicName: org.sakaiproject.kernel.jms
+Import-Package: javax.jms;version="1.1",javax.transaction.xa
+
