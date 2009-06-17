@@ -37,6 +37,7 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
 import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -62,7 +63,7 @@ import javax.jcr.version.VersionException;
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
  * 
- * @scr.service interface="org.sakaiproject.kernel.user.UserPostProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.component immediate="true" label="SitePostProcessor"
  *                description="Post Processor for User and Group operations" metatype="no"
@@ -96,10 +97,12 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    */
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
+    LOGGER.info("Starting process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     UserManager userManager = AccessControlUtil.getUserManager(request.getResourceResolver().adaptTo(Session.class));
     Authorizable authorizable = null;
     String principalName = null;
+    LOGGER.info("resourcePath: " + resourcePath);
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
@@ -218,6 +221,7 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = profileNodeForAuthorizable(authorizable);
+    System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);

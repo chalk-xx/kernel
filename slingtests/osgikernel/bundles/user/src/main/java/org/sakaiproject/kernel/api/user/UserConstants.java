@@ -40,4 +40,8 @@ public interface UserConstants {
    * A list of private properties that will not be copied from the authorizable.
    */
   public static final String PRIVATE_PROPERTIES = "sakai:privateproperties";
+  
+  
+  
+  public static final String USER_POST_PROCESSOR = "UserPostProcessor";
 }

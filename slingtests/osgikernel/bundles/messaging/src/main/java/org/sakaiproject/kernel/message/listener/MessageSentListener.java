@@ -19,18 +19,22 @@ package org.sakaiproject.kernel.message.listener;
  */
 
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.kernel.api.message.Message;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageHandler;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.message.internal.InternalMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.LoginException;
 import javax.jcr.Node;
@@ -39,68 +43,40 @@ import javax.jcr.RepositoryException;
 
 /**
  * 
- * @scr.component inherit="true" label="%sakai-event.name"
+ * @scr.component inherit="true" label="%sakai-event.name" immediate="true"
  * @scr.service interface="org.osgi.service.event.EventHandler"
  * @scr.property name="service.description"
  *               value="Event Handler Listening to Pending Messages Events"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="event.topics"
  *               value="org/sakaiproject/kernel/message/pending"
- *               
- * @scr.reference name="UserFactoryService" interface="org.sakaiproject.kernel.api.user.UserFactoryService"
+ * @scr.reference name="MessageHandler"
+ *                interface="org.sakaiproject.kernel.api.message.MessageHandler"
+ *                policy="dynamic" cardinality="0..n" bind="bindHandler"
+ *                unbind="unbindHandler"
+ * @scr.reference name="MessagingService" policy="dynamic"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory
       .getLogger(MessageSentListener.class);
 
-
   /**
-   * @scr.reference 
-   *                    interface="org.sakaiproject.kernel.api.message.MessageHandler"
-   *                    policy="dynamic" cardinality="0..n" bind="addHandler"
-   *                    unbind="removeHandler"
+   * This will contain all the handlers we have for every type.
    */
-  private Set<MessageHandler> handlers = new HashSet<MessageHandler>();
-
+  private Map<String, MessageHandler> handlers = new ConcurrentHashMap<String, MessageHandler>();
+  private ComponentContext osgiComponentContext;
+  private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
   /**
-   * Binder for adding message handlers.
-   * 
-   * @param handler
+   * If no handler is found for a message we will fall back to this one.
    */
-  protected void addHandler(MessageHandler handler) {
-    System.out.println("Added a handler to MessageSentListener : " + handler);
-    handlers.add(handler);
-  }
-
-  /**
-   * Unbinder for removing message handlers.
-   * 
-   * @param handler
-   */
-  protected void removeHandler(MessageHandler handler) {
-    handlers.remove(handler);
-  }
-  
-  private UserFactoryService userFactory;
-  
-  /**
-   * 
-   * @param userFactory
-   */
-  public void bindUserFactoryService(UserFactoryService userFactory) {
-    System.out.println("Bound userFactoryService to MessageSentListener.");
-    this.userFactory = userFactory;
-  }
+  private InternalMessageHandler defaultHandler = new InternalMessageHandler();
 
   /**
    * 
-   * @param userFactory
    */
-  public void unbindUserFactoryService(UserFactoryService userFactory) {
-    this.userFactory = null;
-  }
 
-  
   /**
    * {@inheritDoc}
    * 
@@ -118,22 +94,21 @@ public class MessageSentListener implements EventHandler {
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
       if (resourceType.equals(MessageConstants.PROP_SAKAI_MESSAGE)) {
-        Property msgTypeProp = n.getProperty(Message.Field.TYPE.toString());
+        Property msgTypeProp = n.getProperty(MessageConstants.PROP_SAKAI_TYPE);
         String msgType = msgTypeProp.getString();
-        LOG.info("Got a message with type: " + msgType);
+        LOG.info("The type for this message is {}", msgType);
         boolean handled = false;
+        // Find the correct messagehandler for this type of message and let it
+        // handle the message..
         if (msgType != null && handlers != null) {
-          InternalMessageHandler handler = new InternalMessageHandler();
-          handler.bindUserFactoryService(userFactory);
+          MessageHandler handler = defaultHandler;
+          if (handlers.containsKey(msgType)) {
+            LOG.info("Found a message handler for type [{}]", msgType);
+            handler = handlers.get(msgType);
+          }
+          handler.bindMessagingService(messagingService);
           handler.handle(event, n);
-          
-          /*
-          for (MessageHandler handler : handlers) {
-            if (msgType.equalsIgnoreCase(handler.getType())) {
-              handler.handle(event, n);
-              handled = true;
-            }
-          }*/
+          handled = true;
         }
         if (!handled) {
           LOG.warn("No handler found for message type [{}]", msgType);
@@ -147,6 +122,80 @@ public class MessageSentListener implements EventHandler {
       e.printStackTrace();
     }
 
+  }
+
+  private MessagingService messagingService;
+
+  public void bindMessagingService(MessagingService messagingService) {
+    System.out.println("Bound MessageService : " + messagingService);
+    this.messagingService = messagingService;
+  }
+
+  public void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
+
+  protected void bindHandler(ServiceReference serviceReference) {
+    System.out.println("Binding a serviceReference.");
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedReferences.add(serviceReference);
+      } else {
+        addHandler(serviceReference);
+      }
+    }
+
+  }
+
+  protected void unbindHandler(ServiceReference serviceReference) {
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedReferences.remove(serviceReference);
+      } else {
+        removeHandler(serviceReference);
+      }
+    }
+
+  }
+
+  /**
+   * @param serviceReference
+   */
+  private void removeHandler(ServiceReference serviceReference) {
+    MessageHandler handler = (MessageHandler) osgiComponentContext
+        .locateService("MessageHandler", serviceReference);
+    handlers.remove(handler.getType());
+  }
+
+  /**
+   * @param serviceReference
+   */
+  private void addHandler(ServiceReference serviceReference) {
+    MessageHandler handler = (MessageHandler) osgiComponentContext
+        .locateService("MessageHandler", serviceReference);
+    System.out.println("Binding handler in addHandler - " + handler.getType());
+    handlers.put(handler.getType(), handler);
+  }
+
+  /**
+   * @param componentContext
+   */
+  protected void activate(ComponentContext componentContext) {
+
+    synchronized (delayedReferences) {
+      osgiComponentContext = componentContext;
+      for (ServiceReference ref : delayedReferences) {
+        addHandler(ref);
+      }
+      delayedReferences.clear();
+    }
+  }
+
+  /**
+   * @return
+   */
+  public Collection<MessageHandler> getProcessors() {
+    return handlers.values();
   }
 
 }

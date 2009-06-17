@@ -28,8 +28,9 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.user.UserPostProcessor;
+import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 
 import java.security.Principal;
@@ -88,14 +89,17 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
  * 
- * @scr.property name="servlet.post.dateFormats" values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
+ * @scr.property name="servlet.post.dateFormats"
+ *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
  * 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.kernel.user.UserPostProcessor"
+ *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
+ *                cardinality="0..n" policy="dynamic"
+ * 
  */
 
 public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
@@ -111,8 +115,12 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
    */
   private static final String PROP_HASH_LEVELS = "usermanager.hashlevels";
   private static final int DEFAULT_HASH_LEVELS = 4;
-  private UserPostProcessor userPostProcessor;
   private int hashLevels = DEFAULT_HASH_LEVELS;
+
+  
+  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  
+ 
 
   /**
    * Activates this component.
@@ -129,6 +137,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
     } else {
       hashLevels = DEFAULT_HASH_LEVELS;
     }
+    postProcessorTracker.setComponentContext(componentContext);
   }
 
   /*
@@ -188,26 +197,21 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
       throw new RepositoryException("Failed to create new group.", re);
     }
     try {
-      userPostProcessor.process(request, changes);
+      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+        userPostProcessor.process(request, changes);
+      }
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
-  /**
-   * @param userPostProcessor
-   *          the userPostProcessor to set
-   */
-  protected void bindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = userPostProcessor;
+  protected void bindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.bindUserPostProcessor(serviceReference);
+
   }
 
-  /**
-   * @param userPostProcessor
-   *          the userPostProcessor to set
-   */
-  protected void unbindUserPostProcessor(UserPostProcessor userPostProcessor) {
-    this.userPostProcessor = null;
+  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
+    postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
 
 }
