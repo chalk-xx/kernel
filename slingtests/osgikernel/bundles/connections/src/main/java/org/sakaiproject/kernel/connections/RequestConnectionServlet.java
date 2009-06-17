@@ -26,6 +26,7 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
+import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
@@ -37,8 +38,6 @@ import java.io.PrintWriter;
 import javax.servlet.ServletOutputStream;
 
 /**
- * Request a connection.
- * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/connectionstore"
@@ -53,6 +52,7 @@ public class RequestConnectionServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(RequestConnectionServlet.class);
+  private ConnectionManager connectionManager;
 
   /**
    * {@inheritDoc}
@@ -69,15 +69,9 @@ public class RequestConnectionServlet extends SlingAllMethodsServlet {
     LOGGER.info("ServletPath " + request.getPathInfo());
 
     Resource baseResource = request.getResource();
-
     final ResourceMetadata rm = baseResource.getResourceMetadata();
-    String pathInfo = String.valueOf(Thread.currentThread().getId())
-        + String.valueOf(System.currentTimeMillis());
-    try {
-      pathInfo = StringUtils.sha1Hash(pathInfo);
-    } catch (Exception ex) {
-
-    }
+    
+    String pathInfo = connectionManager.requestConnection(baseResource);
     String servletPath = rm.getResolutionPath();
     
     String[] pathParts = PathUtils.getNodePathParts(pathInfo);

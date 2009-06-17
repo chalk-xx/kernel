@@ -17,7 +17,9 @@
  */
 package org.sakaiproject.kernel.util;
 
+import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -96,4 +98,36 @@ public class JcrUtils {
   public static Node deepGetOrCreateNode(Session session, String path) throws RepositoryException {
     return deepGetOrCreateNode(session, path, null);
   }
+  
+  
+  /**
+   * @throws RepositoryException
+   * 
+   */
+  public static Node getFirstExistingNode(Session session, String absRealPath)
+      throws RepositoryException {
+    Item item = null;
+    try {
+      item = session.getItem(absRealPath);
+    } catch (PathNotFoundException ex) {
+    }
+    String parentPath = absRealPath;
+    while (item == null && !"/".equals(parentPath)) {
+      parentPath = PathUtils.getParentReference(parentPath);
+      try {
+        item = session.getItem(parentPath);
+      } catch (PathNotFoundException ex) {
+      }
+    }
+    if (item == null) {
+      return null;
+    }
+    // convert first item to a node.
+    if (!item.isNode()) {
+      item = item.getParent();
+    }
+
+    return (Node) item;
+  }
+
 }

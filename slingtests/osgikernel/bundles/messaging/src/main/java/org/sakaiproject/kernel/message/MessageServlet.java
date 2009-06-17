@@ -21,13 +21,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
 
-import javax.jcr.Item;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
@@ -66,7 +65,7 @@ public class MessageServlet extends AbstractMessageServlet {
       Resource baseResource = request.getResource();
       Session session = request.getResourceResolver().adaptTo(Session.class);
       String uriPath = baseResource.getPath();
-      Node firstNode = getFirstNode(session, baseResource.getPath());
+      Node firstNode = JcrUtils.getFirstExistingNode(session, baseResource.getPath());
       if (firstNode == null) {
         response
             .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -102,33 +101,4 @@ public class MessageServlet extends AbstractMessageServlet {
 
   }
 
-  /**
-   * @throws RepositoryException
-   * 
-   */
-  private Node getFirstNode(Session session, String absRealPath)
-      throws RepositoryException {
-    Item item = null;
-    try {
-      item = session.getItem(absRealPath);
-    } catch (PathNotFoundException ex) {
-    }
-    String parentPath = absRealPath;
-    while (item == null && !"/".equals(parentPath)) {
-      parentPath = PathUtils.getParentReference(parentPath);
-      try {
-        item = session.getItem(parentPath);
-      } catch (PathNotFoundException ex) {
-      }
-    }
-    if (item == null) {
-      return null;
-    }
-    // convert first item to a node.
-    if (!item.isNode()) {
-      item = item.getParent();
-    }
-
-    return (Node) item;
-  }
 }
