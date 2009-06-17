@@ -26,7 +26,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.sakaiproject.kernel.events</artifactId>
 	<packaging>bundle</packaging>
-	<name>org.sakaiproject.kernel.events</name>
+	<name>Sakai JCR to OSGi Events Bridge Bundle</name>
 	<version>0.1-SNAPSHOT</version>
 	<build>
     <plugins>
@@ -67,7 +67,7 @@
 <!-- jms -->
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>

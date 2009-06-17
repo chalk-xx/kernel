@@ -161,6 +161,16 @@
       <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.events</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.jms</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     
     <!--  these override bundles from Sling -->
     <dependency>
@@ -256,6 +266,7 @@
       <version>0.9.3-incubator-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+
   </dependencies>
   <profiles>
     <profile>
@@ -288,7 +299,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api</includeArtifactIds>
+                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.jms</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
