@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.user;
 
+import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
+
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationListener;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
@@ -57,8 +59,6 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
 
   private ConfigurationService configurationService;
   
-  /** @scr.property name="storage.levels" value="3" */
-  private int levels = 3;
 
   /**
    * 
@@ -88,7 +88,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @return
    */
   public String getUserEnvironmentBasePath(String uuid) {
-    String prefix = PathUtils.getUserPrefix(uuid,levels);
+    String prefix = PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS);
     return PathUtils.normalizePath(userEnvironmentBase + "/" + prefix);
   }
 
@@ -114,7 +114,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserPathPrefix(java.lang.String)
    */
   public String getUserPathPrefix(String uuid) {
-    return PathUtils.getUserPrefix(uuid,levels);
+    return PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS);
   }
 
   /**
@@ -150,7 +150,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    */
   public String getUserPrivatePath(String uuid) {
     LOGGER.info("User private Path ["+privatePathBase+"] ["+uuid+"]" );
-    return PathUtils.normalizePath(privatePathBase + "/" + PathUtils.getUserPrefix(uuid,levels));
+    return PathUtils.normalizePath(privatePathBase + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
   }
 
   /**
@@ -159,7 +159,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserSharedPrivatePath(java.lang.String)
    */
   public String getUserSharedPrivatePath(String uuid) {
-    return PathUtils.normalizePath(sharedPrivatePathBase + "/" + PathUtils.getUserPrefix(uuid,levels));
+    return PathUtils.normalizePath(sharedPrivatePathBase + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
   }
 
   /**

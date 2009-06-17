@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
+import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
+
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -107,11 +109,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="self.registration.enabled" label="%self.registration.enabled.name"
  *               description="%self.registration.enabled.description"
  *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
- * 
- * @scr.property name="usermanager.hashlevels" label="%usermanager.hashlevels.name"
- *               description="%usermanager.hashlevels.description"
- *               valueRef="DEFAULT_HASH_LEVELS"
- * 
+ *  
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
@@ -135,8 +133,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
 
   private static final String PROP_SELF_REGISTRATION_ENABLED = "self.registration.enabled";
   private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
-  private static final String PROP_HASH_LEVELS = "usermanager.hashlevels";
-  private static final int DEFAULT_HASH_LEVELS = 4;
 
   private Boolean selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
 
@@ -146,10 +142,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    * @scr.reference
    */
   private SlingRepository repository;
-  /**
-   * The number of levels to hash storage
-   */
-  private int hashLevels;
 
   /** Returns the JCR repository used by this service. */
   protected SlingRepository getRepository() {
@@ -192,12 +184,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
       selfRegistrationEnabled = Boolean.parseBoolean((String) propValue);
     } else {
       selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
-    }
-    propValue = props.get(PROP_HASH_LEVELS);
-    if (propValue instanceof String) {
-      hashLevels = Integer.parseInt((String) propValue);
-    } else {
-      hashLevels = DEFAULT_HASH_LEVELS;
     }
   }
 
@@ -256,7 +242,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
               public String getName() {
                 return principalName;
               }
-            }, PathUtils.getUserPrefix(principalName, hashLevels));
+            }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
 
@@ -296,5 +282,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
+  
 
 }
