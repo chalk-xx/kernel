@@ -39,7 +39,7 @@ import javax.jcr.ValueFormatException;
  * 
  * @scr.component immediate="true" label="Sakai User Factory Service"
  *                description="Service for doing operations with messages."
- *                name="MessagingService"
+ *                name="org.sakaiproject.kernel.api.message.MessagingService"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessagingService"
  */
