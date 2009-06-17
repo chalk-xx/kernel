@@ -199,6 +199,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     } else {
       hashLevels = DEFAULT_HASH_LEVELS;
     }
+    postProcessorTracker.setComponentContext(componentContext);
   }
 
   /*
@@ -259,6 +260,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             }, PathUtils.getUserPrefix(principalName, hashLevels));
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
+        
+
+        log.info("The user his path is: " + userPath);
 
         response.setPath(userPath);
         response.setLocation(externalizePath(request, userPath));

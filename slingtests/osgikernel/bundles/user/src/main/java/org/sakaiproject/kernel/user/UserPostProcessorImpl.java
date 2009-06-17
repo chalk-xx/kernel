@@ -97,10 +97,12 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    */
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
+    LOGGER.info("Starting process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     UserManager userManager = AccessControlUtil.getUserManager(request.getResourceResolver().adaptTo(Session.class));
     Authorizable authorizable = null;
     String principalName = null;
+    LOGGER.info("resourcePath: " + resourcePath);
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
@@ -219,6 +221,7 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = profileNodeForAuthorizable(authorizable);
+    System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);

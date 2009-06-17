@@ -21,7 +21,7 @@ package org.sakaiproject.kernel.api.message;
  * 
  */
 public interface MessageConstants {
-  
+
   /**
    *
    */
@@ -36,13 +36,53 @@ public interface MessageConstants {
   */
   public static final String PROP_SAKAI_MESSAGEBOX = "sakai:messagebox";
   /**
+  *
+  */
+  public static final String PROP_SAKAI_MESSAGE = "sakai/message";
+  /**
+   * The property wether this message has been read or not.
+   */
+  public static final String PROP_SAKAI_READ = "sakai:read";
+  /**
  *
  */
   public static final String PROP_SAKAI_SENDSTATE = "sakai:sendstate";
+
   /**
-  *
-  */
+   * The value for this property will define what kind of message this is. ex:
+   * internal, email, ..
+   */
+  public static final String PROP_SAKAI_TYPE = "sakai:type";
+  /**
+   * This property will hold the value to send the message to.
+   */
+  public static final String PROP_SAKAI_TO = "sakai:to";
+  /**
+   * This property will hold the value for whom this message sent.
+   */
+  public static final String PROP_SAKAI_FROM = "sakai:from";
+  /**
+   * This property will hold the value for the subject.
+   */
+  public static final String PROP_SAKAI_SUBJECT = "sakai:subject";
+  /**
+   * This property will hold the value for the body.
+   */
+  public static final String PROP_SAKAI_BODY = "sakai:body";
+  /**
+   * This property will hold the path to the previous message (starts after the
+   * message store.)
+   */
+  public static final String PROP_SAKAI_PREVIOUS_MESSAGE = "sakai:previousmessage";
+
+  /**
+   * The name for the outbox box.
+   */
   public static final String BOX_OUTBOX = "outbox";
+  /**
+   * The name for the inbox box.
+   */
+  public static final String BOX_INBOX = "inbox";
   /**
   *
   */
@@ -63,5 +103,28 @@ public interface MessageConstants {
    *
    */
   public static final String EVENT_LOCATION = "location";
+  /**
+   * JCR folder name for messages.
+   */
+  public static final String FOLDER_MESSAGES = "messages";
+  /**
+   * JCR folder name for chat logs.
+   */
+  public static final String FOLDER_CHATS = "chatlogs";
+
+  /**
+   * Identifier for an internal message.
+   */
+  public static final String TYPE_INTERNAL = "internal";
+
+  /**
+   * Identifier for a chat message.
+   */
+  public static final String TYPE_CHAT = "chat";
+
+  /**
+   * Cleanup chat messages every X minutes
+   */
+  public static final int CLEAUNUP_EVERY_X_MINUTES =  120;
 
 }
