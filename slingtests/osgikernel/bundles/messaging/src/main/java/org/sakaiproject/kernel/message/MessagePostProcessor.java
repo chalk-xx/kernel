@@ -34,6 +34,7 @@ import org.osgi.service.event.EventAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -55,6 +56,9 @@ import javax.jcr.Session;
  *                metatype="no"
  * @scr.property name="service.description"
  *               value="Post Processes message operations"
+ * @scr.reference name="EventAdmin"
+ *                interface="org.osgi.service.event.EventAdmin"
+ *                bind="bindEventAdmin" unbind="unbindEventAdmin"
  * 
  */
 public class MessagePostProcessor implements SlingPostProcessor {
@@ -62,20 +66,17 @@ public class MessagePostProcessor implements SlingPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePostProcessor.class);
 
-//  public void activate(ComponentContext cc) {
-//    System.err.println("This takes the place of an activator so do what I say!");
-//    BundleContext bc = cc.getBundleContext();
-//    System.err.println("Just like normal with bc: " + bc);
-//  }
+  // public void activate(ComponentContext cc) {
+  // System.err.println("This takes the place of an activator so do what I say!");
+  // BundleContext bc = cc.getBundleContext();
+  // System.err.println("Just like normal with bc: " + bc);
+  // }
 
-  /**
-   * @scr.reference 
-   */
   private EventAdmin eventAdmin;
 
   /**
    * @param eventAdmin
-   *          the new EventAdmin service to bind t o this service.
+   *          the new EventAdmin service to bind to this service.
    */
   protected void bindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = eventAdmin;
@@ -129,23 +130,27 @@ public class MessagePostProcessor implements SlingPostProcessor {
       } catch (RepositoryException ex) {
         LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
       }
-      // }
+    }
 
-      // Check if we have any nodes that have a pending state and launch an OSGi
-      // event
-      for (Entry<Node, String> mm : messageMap.entrySet()) {
-        Node n = mm.getKey();
-        String state = mm.getValue();
+    List<String> handledNodes = new ArrayList<String>();
+    // Check if we have any nodes that have a pending state and launch an OSGi
+    // event
+    for (Entry<Node, String> mm : messageMap.entrySet()) {
+      Node n = mm.getKey();
+      String state = mm.getValue();
+      if (!handledNodes.contains(n.getPath())) {
         if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
 
           n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
 
           Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
           messageDict.put(EVENT_LOCATION, n);
-          LOGGER.info("Launched event");
-          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
+          LOGGER.info("Launched event for node: " + n.getPath());
+          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT,
+              messageDict);
           // Initiate an asynchronous event.
           eventAdmin.postEvent(pendingMessageEvent);
+          handledNodes.add(n.getPath());
         }
       }
     }

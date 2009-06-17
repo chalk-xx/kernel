@@ -17,23 +17,51 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
+import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 
 public interface MessagingService {
+  /**
+   * Creates a message for the current user. Will take all the resource meta
+   * data from the provided resource and create a new node.
+   * 
+   * @param resource
+   * @return
+   * @throws MessagingException
+   */
+  public String create(Resource resource) throws MessagingException;
 
   /**
-   * Creates a node under a user his message store with all the properties on
-   * the request's resource
-   * @param request
-   * @param response
-   * @throws ServletException
-   * @throws IOException
+   * Gets the absolute path to the message store from a message. ex:
+   * /_private/D0/33/E2/admin/messages
+   * 
+   * @param msg
+   *          A message node
+   * @return
    */
-  public void create(SlingHttpServletRequest request,
-      org.apache.sling.api.SlingHttpServletResponse response)
-      throws ServletException, IOException;
+  public String getMessageStorePathFromMessageNode(Node msg)
+      throws ValueFormatException, PathNotFoundException,
+      ItemNotFoundException, AccessDeniedException, RepositoryException;
+
+  /**
+   * Gets the path for the message starting at the message store. ex:
+   * /fd/e1/df/h1/45fsdf4sd453uy4ods4fa45r4
+   * 
+   * @param msg
+   * @return
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws ItemNotFoundException
+   * @throws AccessDeniedException
+   * @throws RepositoryException
+   */
+  public String getMessagePathFromMessageStore(Node msg)
+      throws ValueFormatException, PathNotFoundException,
+      ItemNotFoundException, AccessDeniedException, RepositoryException;
 }

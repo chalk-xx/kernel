@@ -245,6 +245,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
+        
+
+        log.info("The user his path is: " + userPath);
 
         response.setPath(userPath);
         response.setLocation(externalizePath(request, userPath));
@@ -264,7 +267,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     }
 
     try {
+      log.info("Looping all the users");
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+        log.info("Processor: " + userPostProcessor);
         userPostProcessor.process(request, changes);
       }
     } catch (Exception e) {

@@ -23,6 +23,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationListener;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.configuration.KernelConstants;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.sakaiproject.kernel.util.MapUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -124,7 +125,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    */
   public String getUserProfilePath(String uuid) {
 
-    return getUserSharedPrivatePath(uuid) + "/" + KernelConstants.PROFILE;
+    return getUserSharedPrivatePath(uuid) + "/" + UserConstants.AUTH_PROFILE;
   }
 
   /**

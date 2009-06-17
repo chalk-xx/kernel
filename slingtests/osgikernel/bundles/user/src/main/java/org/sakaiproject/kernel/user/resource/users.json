@@ -4,4 +4,3 @@
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Node"
 }
-
