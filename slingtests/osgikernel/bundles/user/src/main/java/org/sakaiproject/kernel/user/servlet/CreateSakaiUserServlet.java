@@ -282,7 +282,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     }
 
     try {
+      log.info("Looping all the users");
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+        log.info("Processor: " + userPostProcessor);
         userPostProcessor.process(request, changes);
       }
     } catch (Exception e) {
