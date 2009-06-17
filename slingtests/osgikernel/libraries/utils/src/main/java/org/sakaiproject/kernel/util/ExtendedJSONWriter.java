@@ -30,8 +30,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     endObject();
   }
 
-  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException, RepositoryException {
-    write.object();
+  public static void writeNodeContentsToWriter(JSONWriter write, Node node) throws RepositoryException, JSONException {
     PropertyIterator properties = node.getProperties();
     while (properties.hasNext()) {
       Property prop = properties.nextProperty();
@@ -47,7 +46,12 @@ public class ExtendedJSONWriter extends JSONWriter {
         write.value(stringValue(prop.getValue()));
       }
     }
-    write.endObject();
+  }
+  
+  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException, RepositoryException {
+    write.object();
+    writeNodeContentsToWriter(write, node);
+    write.endObject();    
   }
 
   private static String stringValue(Value value) throws ValueFormatException,

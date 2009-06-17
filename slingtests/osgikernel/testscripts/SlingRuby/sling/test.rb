@@ -2,6 +2,7 @@ require 'test/unit.rb'
 require 'sling/sling'
 require 'sling/users'
 require 'sling/sites'
+require 'sling/search'
 require 'tempfile'
 
 class SlingTest < Test::Unit::TestCase
@@ -10,6 +11,7 @@ class SlingTest < Test::Unit::TestCase
     @s = SlingInterface::Sling.new()
     @um = SlingUsers::UserManager.new(@s)
     @sm = SlingSites::SiteManager.new(@s)
+    @search = SlingSearch::SearchManager.new(@s)
     @created_nodes = []
     @created_users = []
     @created_groups = []

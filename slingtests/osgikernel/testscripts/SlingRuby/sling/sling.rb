@@ -140,6 +140,10 @@ module SlingInterface
       return JSON.parse(get_node_props_json(path))
     end
 
+    def update_node_props(path, props)
+      return execute_post("#{@server}#{path}", props)
+    end
+
     def get_node_acl_json(path)
       return execute_get("#{@server}#{path}.acl.json").body
     end

@@ -429,6 +429,10 @@ public class SiteServiceImpl implements SiteService {
     return Iterators.limit(unsortedIterator, nitems);
   }
 
+  public int getMemberCount(Node site) {
+    return getMembershipTree(site).getUsers().size();
+  }
+
   /**
    * Builds a membership tree of users and groups for the site, because of the tree like
    * nature of membership we may want to think of a more efficient way of performing this
