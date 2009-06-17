@@ -15,34 +15,25 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.image;
+package org.sakaiproject.kernel.api.message;
 
-public class ImageException extends Exception {
+import org.apache.sling.api.SlingHttpServletRequest;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+
+public interface MessagingService {
 
   /**
-   * 
+   * Creates a node under a user his message store with all the properties on
+   * the request's resource
+   * @param request
+   * @param response
+   * @throws ServletException
+   * @throws IOException
    */
-  private static final long serialVersionUID = -4376383518792880320L;
-
-  public ImageException() {
-    super();
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(String message, Throwable cause) {
-    super(message, cause);
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(String message) {
-    super(message);
-    // TODO Auto-generated constructor stub
-  }
-
-  public ImageException(Throwable cause) {
-    super(cause);
-    // TODO Auto-generated constructor stub
-  }
-
-  
+  public void create(SlingHttpServletRequest request,
+      org.apache.sling.api.SlingHttpServletResponse response)
+      throws ServletException, IOException;
 }

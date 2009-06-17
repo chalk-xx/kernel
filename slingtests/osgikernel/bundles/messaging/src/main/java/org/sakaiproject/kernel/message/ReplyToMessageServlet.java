@@ -18,45 +18,37 @@
 package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameterMap;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Will create a message under the user's _private folder. If the box is set
- * to outbox en the pending property to pending or none it will be picked up by
- * the MessagePostProcessor who will then send an OSGi event that feeds it to
- * the correct MessageHandler.
- * 
+ * Will reply to a message. This will place a new message node under the message we are replying to.
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
+ * @scr.property name="sling.servlet.resourceTypes" values="sakai/message"
  * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="create"
+ * @scr.property name="sling.servlet.selectors" value="reply"
  */
-public class CreateMessageServlet extends SlingAllMethodsServlet {
+public class ReplyToMessageServlet extends SlingAllMethodsServlet {
 
+  
   /**
-   *
-   */
-  private static final long serialVersionUID = 3813877071190736742L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(CreateMessageServlet.class);
-
-  /**
-   * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   */
+  private static final long serialVersionUID = 1L;
+
+  /**
+   * 
+   * {@inheritDoc}
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
   protected void doPost(SlingHttpServletRequest request,
-      org.apache.sling.api.SlingHttpServletResponse response)
-      throws javax.servlet.ServletException, java.io.IOException {
-    LOGGER.info("Creating message.");
+      SlingHttpServletResponse response) {
     
-    MessagingServiceImpl messagingService = new MessagingServiceImpl();
-    messagingService.create(request, response);
-  }
 
+  }
 }

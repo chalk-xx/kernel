@@ -75,6 +75,9 @@ public class MessageServlet extends AbstractMessageServlet {
       }
       String path = firstNode.getPath();
       String pathInfo = uriPath.substring(path.length());
+
+      System.out.println(pathInfo);
+ 
       if (pathInfo.length() == 0 || "/".equals(pathInfo)) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource does not exist");
         return;
@@ -84,7 +87,9 @@ public class MessageServlet extends AbstractMessageServlet {
       String[] parts = PathUtils.getNodePathParts(relativePath);
       String resourcePath = PathUtils.toInternalHashedPath(path, parts[0], parts[1]);
       
-      Resource resource = request.getResourceResolver().resolve(resourcePath);
+      System.out.println("ResourcePath = " + resourcePath);
+      
+      Resource resource = request.getResourceResolver().resolve(path);
       if ( resource instanceof NonExistingResource ) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND,"Resource does not exist (non existant)");
         return;
@@ -93,6 +98,7 @@ public class MessageServlet extends AbstractMessageServlet {
         response.sendError(HttpServletResponse.SC_NOT_FOUND,"Resource does not exist (null)");
         return;     
       }
+      System.out.println("Dispatch request from MessageServlet");
       request.getRequestDispatcher(resource).forward(request, response);
       
       
