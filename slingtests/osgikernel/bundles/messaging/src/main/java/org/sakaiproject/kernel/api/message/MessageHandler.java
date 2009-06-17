@@ -21,7 +21,6 @@ import org.osgi.service.event.Event;
 
 import javax.jcr.Node;
 
-
 /**
  * Definition for handling messages that originate in the system. Messages are
  * written to known areas of JCR. Events are triggered by JCR when this content
@@ -31,18 +30,21 @@ import javax.jcr.Node;
 public interface MessageHandler {
   /**
    * The type of messages in which the handler is interested.
-   *
+   * 
    * @return
    */
   String getType();
 
   /**
    * The dispatch method called to handle a message.
-   *
+   * 
    * @param event
    *          The event fired by JCR.
    * @param node
    *          The node that caused the event.
    */
   void handle(Event event, Node node);
+
+  void bindMessagingService(MessagingService messagingService);
+
 }

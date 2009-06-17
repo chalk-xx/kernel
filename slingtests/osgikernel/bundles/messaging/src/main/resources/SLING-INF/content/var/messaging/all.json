@@ -1,0 +1,6 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "/jcr:root{path}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='message'] order by @{sortOn} {sortOrder}",
+  "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "Message"
+}
