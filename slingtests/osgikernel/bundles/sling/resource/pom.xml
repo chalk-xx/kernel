@@ -51,7 +51,8 @@
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
               <excludes> org/apache/sling/jcr/resource/PathResourceTypeProvider*,
                 org/apache/sling/jcr/resource/internal/JcrResourceResolver2*,
-                org/apache/sling/jcr/resource/internal/JcrResourceResolverFactoryImpl* </excludes>
+                org/apache/sling/jcr/resource/internal/JcrResourceResolverFactoryImpl*,
+                OSGI-INF/serviceComponents.xml </excludes>
             </configuration>
           </execution>
         </executions>
@@ -63,13 +64,7 @@
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.apache.sling.api</artifactId>
       <version>2.0.5-sakai-SNAPSHOT</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.sling</groupId>
-          <artifactId>org.apache.sling.api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.resource</artifactId>
