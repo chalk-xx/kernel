@@ -40,10 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 public class TestSiteJoinServlet extends AbstractSitePostTest {
 
   private void makeSiteJoinable(Joinable joinable) throws RepositoryException {
-    expect(node.hasProperty(eq(SiteService.JOINABLE))).andReturn(true).anyTimes();
-    MockProperty joinProperty = new MockProperty(SiteService.JOINABLE);
-    joinProperty.setValue(joinable.toString());
-    expect(node.getProperty(eq(SiteService.JOINABLE))).andReturn(joinProperty).anyTimes();
+    addStringPropertyToNode(node, SiteService.JOINABLE, joinable.toString());
   }
 
   private void makeGroupJoinable(Group group, Joinable joinable) throws RepositoryException {

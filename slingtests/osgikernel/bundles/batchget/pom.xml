@@ -18,11 +18,11 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.search</artifactId>
+  <artifactId>org.sakaiproject.kernel.batchget</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Search Support Bundle</name>
-  <description>Search Support bundle that allows searches to be defined in JCR.</description>
+  <name>Sakai Batch Get Bundle</name>
+  <description>Allows multiple resources to be returned as the result of a single GET request.</description>
   <build>
     <plugins>
       <plugin>
@@ -36,9 +36,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.search.*</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.search.*</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Private-Package>org.sakaiproject.kernel.batch.*</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>
@@ -93,17 +91,6 @@
       <artifactId>slf4j-simple</artifactId>
       <version>1.5.2</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.commons.testing</artifactId>
-      <version>2.0.4-incubator</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.site</artifactId>
-      <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>

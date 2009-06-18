@@ -222,6 +222,15 @@ public interface SiteService {
   Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort);
 
   /**
+   * Returns the number of declared members of a site
+   * 
+   * @param site
+   *          the Site node
+   * @return The number of members
+   */
+  int getMemberCount(Node site);
+
+  /**
    * Get and Iterator of Groups for the site.
    * 
    * @param site
