@@ -21,6 +21,10 @@ module SlingSearch
     def search_for_user(username)
       return json_search("users", "username" => username) 
     end
+
+    def search_for_site(sitepropertyvalue)
+      return json_search("sites", "q" => sitepropertyvalue)
+    end
     
     private
     def json_search(template, params)

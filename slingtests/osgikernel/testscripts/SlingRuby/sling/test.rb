@@ -2,6 +2,7 @@ require 'test/unit.rb'
 require 'sling/sling'
 require 'sling/users'
 require 'sling/sites'
+require 'sling/search'
 require 'tempfile'
 
 class SlingTest < Test::Unit::TestCase
@@ -10,6 +11,7 @@ class SlingTest < Test::Unit::TestCase
     @s = SlingInterface::Sling.new()
     @um = SlingUsers::UserManager.new(@s)
     @sm = SlingSites::SiteManager.new(@s)
+    @search = SlingSearch::SearchManager.new(@s)
     @created_nodes = []
     @created_users = []
     @created_groups = []
@@ -40,18 +42,21 @@ class SlingTest < Test::Unit::TestCase
 
   def create_user(username)
     u = @um.create_user(username)
+    assert_not_nil(u, "Expected user to be created: #{username}")
     @created_users << username
     return u
   end
  
   def create_group(groupname)
     g = @um.create_group(groupname)
+    assert_not_nil(g, "Expected group to be created: #{groupname}")
     @created_groups << groupname
     return g
   end
 
   def create_site(path)
     s = @sm.create_site(path)
+    assert_not_nil(s, "Expected site to be created: #{path}")
     @created_sites << path
     return s
   end

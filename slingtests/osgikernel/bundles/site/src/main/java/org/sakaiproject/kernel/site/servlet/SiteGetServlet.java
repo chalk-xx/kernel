@@ -20,7 +20,9 @@ package org.sakaiproject.kernel.site.servlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.site.SiteException;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -58,6 +61,12 @@ public class SiteGetServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
       return;
     }
+    
+    if ("json".equals(request.getRequestPathInfo().getExtension())) {
+      renderAsJson(site, response);
+      return;
+    }
+    
     if (!getSiteService().isSite(site)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Location does not represent site ");
@@ -79,6 +88,18 @@ public class SiteGetServlet extends AbstractSiteServlet {
     } catch (SiteException e) {
       response.sendError(e.getSatusCode(), e.getMessage());
       return;
+    }
+  }
+
+  private void renderAsJson(Node node, SlingHttpServletResponse response) throws IOException {
+    ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+    try {
+      writer.node(node);
+      response.setStatus(HttpServletResponse.SC_OK);
+    } catch (JSONException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
