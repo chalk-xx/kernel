@@ -17,6 +17,7 @@
  */
 package org.sakaiprojet.kernel.events;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -43,6 +44,12 @@ import javax.jms.Session;
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
+  /** @scr.property value="" */
+  static final String BROKER_URL = "brokerUrl";
+
+  /** @scr.property value="sakai.event.bridge" */
+  static final String CONNECTION_CLIENT_ID = "connectionClientId";
+
   /** @scr.property value="*" */
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
@@ -56,16 +63,26 @@ public class OsgiJmsBridge implements EventHandler {
   static final String ACKNOWLEDGE_MODE = "acknowledgeMode";
 
   private ConnectionFactory connFactory;
+  private String brokerUrl;
   private String eventTopicName;
   private boolean transacted;
+  private String connectionClientId;
   private int acknowledgeMode;
 
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
+
     eventTopicName = (String) props.get(EVENT_JMS_TOPIC);
     transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
     acknowledgeMode = Integer.parseInt((String) props.get(ACKNOWLEDGE_MODE));
+    connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
+
+    String _brokerUrl = (String) props.get(EVENT_JMS_TOPIC);
+    if (diff(brokerUrl, _brokerUrl)) {
+      brokerUrl = _brokerUrl;
+      connFactory = new ActiveMQConnectionFactory(brokerUrl);
+    }
   }
 
   public void handleEvent(Event event) {
@@ -73,7 +90,7 @@ public class OsgiJmsBridge implements EventHandler {
     try {
       // post to JMS
       conn = connFactory.createConnection();
-      conn.setClientID("sakai.event.bridge");
+      conn.setClientID(connectionClientId);
       Session clientSession = conn.createSession(transacted, acknowledgeMode);
       Destination emailTopic = clientSession.createTopic(eventTopicName);
       MessageProducer client = clientSession.createProducer(emailTopic);
@@ -91,9 +108,22 @@ public class OsgiJmsBridge implements EventHandler {
         try {
           conn.close();
         } catch (JMSException e) {
-          LOG.error("Unable to close JMS connection: " + e.getMessage(), e);
+          LOG.warn("Unable to close JMS connection: " + e.getMessage(), e);
         }
       }
     }
+  }
+
+  private boolean diff(Object obj1, Object obj2) {
+    boolean diff = true;
+
+    boolean bothNull = obj1 == null && obj2 == null;
+    boolean neitherNull = obj1 != null && obj2 != null;
+
+    if (bothNull || (neitherNull && obj1.equals(obj2))) {
+      diff = false;
+    }
+
+    return diff;
   }
 }
