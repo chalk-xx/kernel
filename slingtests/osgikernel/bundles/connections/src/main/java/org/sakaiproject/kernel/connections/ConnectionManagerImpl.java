@@ -30,13 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 /**
  * 
@@ -103,7 +98,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @return
    */
   private Node getRemoteStoreNode(Node connectionNode, String userId) {
-    if ( connecti)
     // TODO Auto-generated method stub
     return null;
   }
