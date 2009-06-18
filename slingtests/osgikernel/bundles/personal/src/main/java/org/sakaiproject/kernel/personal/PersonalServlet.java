@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants.*;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -33,12 +33,14 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" values="/_user/private/*"
+ * @scr.property name="sling.servlet.resourceTypes" valueref="TARGET_RESOURCE_TYPE"
  * @scr.property name="sling.servlet.methods" value.0="GET" value.1="POST" value.2="PUT"
  *               value.3="DELETE"
  */
 public class PersonalServlet extends AbstractPersonalServlet {
 
+  @SuppressWarnings("unused")
+  private static final String TARGET_RESOURCE_TYPE = USER_PRIVATE_RESOURCE_TYPE;
   /**
    *
    */
@@ -55,6 +57,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
     String uriPath = baseResource.getPath();
     String userId = request.getRemoteUser();
 
+    // TODO: It would be much better not to hard code the path in here, it must be possible from the resource information.
     String resourcePath = PathUtils.toInternalHashedPath(_USER_PRIVATE, userId, uriPath
         .substring(_USER_PRIVATE.length()));
 

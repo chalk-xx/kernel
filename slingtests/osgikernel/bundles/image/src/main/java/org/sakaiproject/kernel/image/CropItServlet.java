@@ -18,7 +18,6 @@
 package org.sakaiproject.kernel.image;
 
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -43,8 +42,8 @@ import javax.jcr.Session;
  * @scr.component immediate="true" label="%cropit.get.operation.name"
  *                description="%cropit.get.operation.description"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" value="/var/image/cropit"
- * @scr.property name="sling.servlet.methods" value="GET"
+ * @scr.property name="sling.servlet.paths" value="/system/image/cropit"
+ * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.extensions" value="json"
  */
 public class CropItServlet extends SlingAllMethodsServlet {
@@ -57,7 +56,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
   private JCRNodeFactoryService jcrNodeFactoryService;
 
   protected void bindJcr(JCRNodeFactoryService jcrNodeFactoryService) {
-    System.out.println("Binded JCR NodeFactory");
     this.jcrNodeFactoryService = jcrNodeFactoryService;
   }
 
@@ -69,7 +67,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
   private JCRService jcrService;
 
   protected void bindJcr(JCRService jcrService) {
-    System.out.println("Binded JCR NodeFactory");
     this.jcrService = jcrService;
   }
 
@@ -78,46 +75,49 @@ public class CropItServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Perform the actual request.
-   * {@inheritDoc}
-   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.SlingHttpServletResponse)
+   * Perform the actual request. {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
    */
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException {
 
     // Get the parameters.
-    String parameters = request.getRequestParameter("parameter").toString();
-    JSONObject obj = JSONObject.fromObject(parameters);
-    int x = Integer.parseInt(obj.get("x").toString());
-    int y = Integer.parseInt(obj.get("y").toString());
-    String urlSaveIn = obj.get("urlSaveIn").toString();
-    String urlToCrop = obj.get("urlToCrop").toString();
-    JSONArray dimensions = obj.getJSONArray("dimensions");
-    int width = 0;
-    int height = 0;
+    int x = Integer.parseInt(request.getRequestParameter("x").toString());
+    int y = Integer.parseInt(request.getRequestParameter("y").toString());
+    int width = Integer.parseInt(request.getRequestParameter("width")
+        .toString());
+    int height = Integer.parseInt(request.getRequestParameter("height")
+        .toString());
+    String urlSaveIn = request.getRequestParameter("urlSaveIn").toString();
+    String urlToCrop = request.getRequestParameter("urlToCrop").toString();
+
+    // Make sure that we have correct values for the cropping.
+    x = checkIntBiggerThanZero(x, 1);
+    y = checkIntBiggerThanZero(y, 1);
     // We check for a width and a height.
     // If none is provided we pass along 0.
     // The Processor will use the entire image then.
-    if (obj.has("width")) {
-      width = Integer.parseInt(obj.get("width").toString());
-    }
-    if (obj.has("height")) {
-      height = Integer.parseInt(obj.get("height").toString());
-    }
+    width = checkIntBiggerThanZero(width, 0);
+    height = checkIntBiggerThanZero(height, 0);
 
     // Make sure that the path is a right path.
     urlSaveIn = PathUtils.normalizePath(urlSaveIn) + "/";
+
+    JSONArray dimensions = JSONArray.fromObject(request.getRequestParameter(
+        "dimensions").toString());
 
     try {
       // Get the resource at the provided path. (for /var/image/cropit)
       ResourceResolver resourceResolver = request.getResourceResolver();
       Resource resource = resourceResolver.getResource(urlToCrop);
-      
+
       // Get the resource from the path we are now. (for node.cropit.json)
-      //Resource resource = request.getResource();
-      
-      
-      // Convert the resource to a node and take the session from it and add it to jcrService.
+      // Resource resource = request.getResource();
+
+      // Convert the resource to a node and take the session from it and add it
+      // to jcrService.
       Node imgToCrop = resource.adaptTo(Node.class);
 
       Session s = imgToCrop.getSession();
@@ -125,8 +125,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
       System.out.println("Session userid: " + s.getUserID());
 
       jcrService.setSession(s);
-
-      
 
       String[] crop = CropItProcessor.crop(x, y, width, height, dimensions,
           urlSaveIn, imgToCrop, jcrNodeFactoryService);
@@ -148,7 +146,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
     } catch (RepositoryException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }  catch (JSONException e) {
+    } catch (JSONException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (ImageException e) {
@@ -157,5 +155,12 @@ public class CropItServlet extends SlingAllMethodsServlet {
     }
     return;
 
+  }
+
+  private int checkIntBiggerThanZero(int val, int defaultVal) {
+    if (val <= 0) {
+      return defaultVal;
+    }
+    return val;
   }
 }

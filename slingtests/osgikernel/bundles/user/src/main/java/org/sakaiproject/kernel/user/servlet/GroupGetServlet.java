@@ -8,7 +8,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.kernel.user.UserPostProcessorImpl;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import java.io.IOException;
@@ -67,7 +66,7 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
       }
       write.key("profile");
-      write.value(UserPostProcessorImpl.profileNodeForAuthorizable(authorizable));
+      write.value("/_user/public/"+authorizable.getPrincipal().getName()+"/authinfo");
       write.key("members");
       write.array();
       
@@ -89,5 +88,6 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
     }
   }
 
+  
 
 }

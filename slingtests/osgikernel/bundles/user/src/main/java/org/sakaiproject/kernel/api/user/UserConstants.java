@@ -23,11 +23,15 @@ package org.sakaiproject.kernel.api.user;
 public interface UserConstants {
   public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
 
-  public static final String SYSTEM_USER_MANAGER_USER_PATH = SYSTEM_USER_MANAGER_PATH + "/user";
-  public static final String SYSTEM_USER_MANAGER_GROUP_PATH = SYSTEM_USER_MANAGER_PATH + "/group";
+  public static final String SYSTEM_USER_MANAGER_USER_PATH = SYSTEM_USER_MANAGER_PATH
+      + "/user";
+  public static final String SYSTEM_USER_MANAGER_GROUP_PATH = SYSTEM_USER_MANAGER_PATH
+      + "/group";
 
-  public static final String SYSTEM_USER_MANAGER_USER_PREFIX = SYSTEM_USER_MANAGER_USER_PATH + "/";
-  public static final String SYSTEM_USER_MANAGER_GROUP_PREFIX = SYSTEM_USER_MANAGER_GROUP_PATH + "/";
+  public static final String SYSTEM_USER_MANAGER_USER_PREFIX = SYSTEM_USER_MANAGER_USER_PATH
+      + "/";
+  public static final String SYSTEM_USER_MANAGER_GROUP_PREFIX = SYSTEM_USER_MANAGER_GROUP_PATH
+      + "/";
 
   public static final String USER_PROFILE_RESOURCE_TYPE = "sakai/user-profile";
   public static final String GROUP_PROFILE_RESOURCE_TYPE = "sakai/group-profile";
@@ -40,8 +44,12 @@ public interface UserConstants {
    * A list of private properties that will not be copied from the authorizable.
    */
   public static final String PRIVATE_PROPERTIES = "sakai:privateproperties";
-  
-  
-  
+
   public static final String USER_POST_PROCESSOR = "UserPostProcessor";
+
+  /**
+   * The number of hash levels applied to user paths, this is system wide and can't be
+   * changed once an instance has been loaded with users. 4 will give upto 2E9 users.
+   */
+  public static final int DEFAULT_HASH_LEVELS = 4;
 }
