@@ -47,24 +47,24 @@ public class OsgiJmsBridge implements EventHandler {
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
   /** @scr.property value="sakai.event.bridge" */
-  static final String EVENT_JMS_QUEUE = "eventJmsQueue";
+  static final String EVENT_JMS_TOPIC = "eventJmsTopic";
 
   /** @scr.property value="false" */
-  static final String CONN_TRANSACTED = "connectionTransacted";
+  static final String SESSION_TRANSACTED = "sessionTransacted";
 
   /** @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" */
   static final String ACKNOWLEDGE_MODE = "acknowledgeMode";
 
   private ConnectionFactory connFactory;
-  private String emailQueueName;
+  private String eventTopicName;
   private boolean transacted;
   private int acknowledgeMode;
 
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
-    emailQueueName = (String) props.get(EVENT_JMS_QUEUE);
-    transacted = Boolean.parseBoolean((String) props.get(CONN_TRANSACTED));
+    eventTopicName = (String) props.get(EVENT_JMS_TOPIC);
+    transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
     acknowledgeMode = Integer.parseInt((String) props.get(ACKNOWLEDGE_MODE));
   }
 
@@ -75,7 +75,7 @@ public class OsgiJmsBridge implements EventHandler {
       conn = connFactory.createConnection();
       conn.setClientID("sakai.event.bridge");
       Session clientSession = conn.createSession(transacted, acknowledgeMode);
-      Destination emailTopic = clientSession.createTopic(emailQueueName);
+      Destination emailTopic = clientSession.createTopic(eventTopicName);
       MessageProducer client = clientSession.createProducer(emailTopic);
       MapMessage msg = clientSession.createMapMessage();
       msg.setJMSType(event.getTopic());
