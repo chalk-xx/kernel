@@ -23,14 +23,37 @@ package org.sakaiproject.kernel.api.personal;
 public interface PersonalConstants {
 
   /**
-  *
-  */
+   * The base location of personal private stores.
+   */
   public static final String _USER_PRIVATE = "/_user/private";
+  /**
+   * The resource type of personal private stores.
+   */
   public static final String USER_PRIVATE_RESOURCE_TYPE = "sakai/personalPrivate";
   /**
- *
- */
+   * The base location of public personal stores
+   */
   public static final String _USER_PUBLIC = "/_user/public";
-  public static final String USER_PUBLIC_RESOURCE_TYPE = "sakai/personlPublic";
-  
+  /**
+   * The resource type for public personal stores
+   */
+  public static final String USER_PUBLIC_RESOURCE_TYPE = "sakai/personalPublic";
+
+  /**
+   * The base location of private groups stores
+   */
+  public static final String _GROUP_PRIVATE = "/_group/private";
+  /**
+   * The resource type for private group stores
+   */
+  public static final String GROUP_PRIVATE_RESOURCE_TYPE = "sakai/groupPrivate";
+  /**
+   * The locatio of public groups
+   */
+  public static final String _GROUP_PUBLIC = "/_group/public";
+  /**
+   * The resource type for the public group store.
+   */
+  public static final String GROUP_PUBLIC_RESOURCE_TYPE = "sakai/groupPublic";
+
 }
