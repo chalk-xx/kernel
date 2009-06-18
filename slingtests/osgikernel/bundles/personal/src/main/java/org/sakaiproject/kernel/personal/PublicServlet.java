@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants.*;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -33,12 +33,13 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.path" values="/_user/public"
+ * @scr.property name="sling.servlet.resourceTypes" valueref="TARGET_RESOURCE_TYPE"
  * @scr.property name="sling.servlet.methods" value.0="GET" value.1="POST" value.2="PUT"
  *               value.3="DELETE"
  */
 public class PublicServlet extends AbstractPersonalServlet {
 
+  private static final String TARGET_RESOURCE_TYPE = USER_PUBLIC_RESOURCE_TYPE;
   /**
    *
    */

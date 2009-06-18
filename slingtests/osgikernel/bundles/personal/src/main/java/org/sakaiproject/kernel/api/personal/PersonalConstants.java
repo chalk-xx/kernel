@@ -26,16 +26,11 @@ public interface PersonalConstants {
   *
   */
   public static final String _USER_PRIVATE = "/_user/private";
+  public static final String USER_PRIVATE_RESOURCE_TYPE = "sakai/personalPrivate";
   /**
  *
  */
   public static final String _USER_PUBLIC = "/_user/public";
-  /**
-  *
-  */
-  public static final String _GROUP_PRIVATE = "/_group/private";
-  /**
- *
- */
-  public static final String _GROUP_PUBLIC = "/_group/public";
+  public static final String USER_PUBLIC_RESOURCE_TYPE = "sakai/personlPublic";
+  
 }
