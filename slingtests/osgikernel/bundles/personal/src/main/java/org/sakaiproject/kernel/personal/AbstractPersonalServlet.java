@@ -20,6 +20,8 @@ package org.sakaiproject.kernel.personal;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -36,6 +38,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
    *
    */
   private static final long serialVersionUID = -7892996718559864951L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPersonalServlet.class);
   
 
   /**
@@ -47,6 +50,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    LOGGER.info("Processing {}",request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -59,6 +63,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
+    LOGGER.info("Processing {}",request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -71,6 +76,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    LOGGER.info("Processing {}",request.getRequestURI());
     hashRequest(request, response);
   }
   
@@ -81,6 +87,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+    LOGGER.info("Processing {}",request.getRequestURI());
     hashRequest(request, response);
   }
 

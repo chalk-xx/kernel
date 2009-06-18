@@ -185,6 +185,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     } else {
       selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
     }
+    postProcessorTracker.setComponentContext(componentContext);
+
   }
 
   /*
@@ -247,7 +249,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             + user.getID();
         
 
-        log.info("The user his path is: " + userPath);
+        log.debug("The user path is: {} ",userPath);
 
         response.setPath(userPath);
         response.setLocation(externalizePath(request, userPath));
@@ -267,11 +269,12 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     }
 
     try {
-      log.info("Looping all the users");
+      log.info("Looping all the post processors");
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
         log.info("Processor: " + userPostProcessor);
         userPostProcessor.process(request, changes);
       }
+      log.info("Finished Looping all the post processors");
     } catch (Exception e) {
       log.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -288,5 +291,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
   
+  
+
 
 }
