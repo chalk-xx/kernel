@@ -22,10 +22,14 @@ import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGE
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -45,6 +49,9 @@ import javax.jcr.ValueFormatException;
  */
 public class MessagingServiceImpl implements MessagingService {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(MessagingServiceImpl.class);
+
   /**
    * 
    * {@inheritDoc}
@@ -53,8 +60,11 @@ public class MessagingServiceImpl implements MessagingService {
    * 
    * @see org.sakaiproject.kernel.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
-  public String create(Resource baseResource) throws MessagingException {
+  public Node create(Resource baseResource, Map<String, Object> mapProperties)
+      throws MessagingException {
 
+    Node msg = null;
+    
     // Create a unique id for the message
     // (08e2a6e89de23e61a101346e134f131f7a94b7ba)
     ResourceMetadata rm = baseResource.getResourceMetadata();
@@ -76,15 +86,23 @@ public class MessagingServiceImpl implements MessagingService {
     // Create a unique path to the message.
     String finalPath = PathUtils.toInternalHashedPath(servletPath,
         pathParts[0], pathParts[1]);
-    ResourceMetadata resourceMetadata = new ResourceMetadata();
-    // Put all the information in this message.
-    resourceMetadata.putAll(rm);
-    resourceMetadata.put(MessageConstants.PROP_SAKAI_READ, true);
-    resourceMetadata.setResolutionPath("/");
-    resourceMetadata.setResolutionPathInfo(finalPath);
 
-    return finalPath;
+    Node n = (Node) baseResource.adaptTo(Node.class);
+    try {
+      msg = JcrUtils.deepGetOrCreateNode(n.getSession(), finalPath);
 
+      for (String s : mapProperties.keySet()) {
+        msg.setProperty(s, mapProperties.get(s).toString());
+      }
+
+      n.getSession().save();
+
+    } catch (RepositoryException e) {
+      LOGGER.warn("RepositoryException on trying to save message." + e.getMessage());
+      e.printStackTrace();
+      throw new MessagingException("Unable to save message.");
+    }
+    return msg;
   }
 
   /**
@@ -111,6 +129,7 @@ public class MessagingServiceImpl implements MessagingService {
   /**
    * 
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.message.MessagingService#getMessagePathFromMessageStore(javax.jcr.Node)
    */
   public String getMessagePathFromMessageStore(Node msg)

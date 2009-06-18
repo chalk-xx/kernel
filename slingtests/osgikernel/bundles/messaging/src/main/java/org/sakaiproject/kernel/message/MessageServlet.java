@@ -21,16 +21,9 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.message.chat.ChatMessageCleaner;
 import org.sakaiproject.kernel.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Timer;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -45,68 +38,29 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository" policy="dynamic"
  */
 public class MessageServlet extends AbstractMessageServlet {
-
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(MessageServlet.class);
-
   /**
    *
    */
   private static final long serialVersionUID = -2663916166760531044L;
 
-  private SlingRepository slingRepository;  
-  
-  private Timer chatCleanUpTimer = null;
-  
-  
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-  
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-  
-  /**
-   * @param componentContext
-   */
-  protected void activate(ComponentContext componentContext) {
-    // Start the timer that will delete this message.
-    chatCleanUpTimer = new Timer();
-    chatCleanUpTimer.schedule(new ChatMessageCleaner(slingRepository), 15 * 1000, MessageConstants.CLEAUNUP_EVERY_X_MINUTES * 1000 * 60);
-    
-    LOGGER.info("Started the chats cleanup timer.");
-  }
-  
-  protected void deactivate(ComponentContext componentContext) {
-    if (chatCleanUpTimer != null) {
-      chatCleanUpTimer.cancel();
-    }
-  }
-  
-  
-  
   /**
    * {@inheritDoc}
    * 
    * @see org.sakaiproject.kernel.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
-  protected void hashRequest(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void hashRequest(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
 
     try {
       /*
-       * The type will be sakai/messagestore, other wise the request would not be here,
-       * however the resource has not be processed. We need to reprocess the path to find
-       * the first existing node, and then calculate the path from that point on, to
-       * generate the virtual path. Once we have done that we need to re-resolve the path
-       * and re-dispatch.
+       * The type will be sakai/messagestore, other wise the request would not
+       * be here, however the resource has not be processed. We need to
+       * reprocess the path to find the first existing node, and then calculate
+       * the path from that point on, to generate the virtual path. Once we have
+       * done that we need to re-resolve the path and re-dispatch.
        */
       Resource baseResource = request.getResource();
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -122,33 +76,37 @@ public class MessageServlet extends AbstractMessageServlet {
       String pathInfo = uriPath.substring(path.length());
 
       System.out.println(pathInfo);
- 
+
       if (pathInfo.length() == 0 || "/".equals(pathInfo)) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource does not exist");
+        response.sendError(HttpServletResponse.SC_NOT_FOUND,
+            "Resource does not exist");
         return;
       }
 
       String relativePath = pathInfo.substring(1);
       String[] parts = PathUtils.getNodePathParts(relativePath);
-      String resourcePath = PathUtils.toInternalHashedPath(path, parts[0], parts[1]);
-      
+      String resourcePath = PathUtils.toInternalHashedPath(path, parts[0],
+          parts[1]);
+
       System.out.println("ResourcePath = " + resourcePath);
-      
+
       Resource resource = request.getResourceResolver().resolve(path);
-      if ( resource instanceof NonExistingResource ) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND,"Resource does not exist (non existant)");
+      if (resource instanceof NonExistingResource) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND,
+            "Resource does not exist (non existant)");
         return;
       }
-      if ( resource == null ) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND,"Resource does not exist (null)");
-        return;     
+      if (resource == null) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND,
+            "Resource does not exist (null)");
+        return;
       }
       System.out.println("Dispatch request from MessageServlet");
       request.getRequestDispatcher(resource).forward(request, response);
-      
-      
+
     } catch (RepositoryException ex) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex
+          .getMessage());
     }
 
   }

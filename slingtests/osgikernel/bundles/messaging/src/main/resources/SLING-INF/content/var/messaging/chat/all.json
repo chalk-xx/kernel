@@ -1,0 +1,6 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "{_userPrivatePath}/messages//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='chat'] order by @{sortOn|jcr:created} {sortOrder|descending}",
+  "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "ChatMessage"
+}

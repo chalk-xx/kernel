@@ -19,20 +19,28 @@ package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
+import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
+import org.sakaiproject.kernel.api.session.SessionManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,6 +58,10 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="MessagingService"
  *                interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                bind="bindMessagingService" unbind="unbindMessagingService"
+ * @scr.reference name="SessionManagerService"
+ *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
+ *                bind="bindSessionManagerService"
+ *                unbind="unbindSessionManagerService"
  */
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
@@ -61,6 +73,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       .getLogger(CreateMessageServlet.class);
 
   private MessagingService messagingService;
+  private SessionManagerService sessionManagerService;
 
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
@@ -68,6 +81,17 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
+  }
+
+  protected void bindSessionManagerService(
+      SessionManagerService sessionManagerService) {
+    System.out.println("Bound sessionManagerService" + sessionManagerService);
+    this.sessionManagerService = sessionManagerService;
+  }
+
+  protected void unbindSessionManagerService(
+      SessionManagerService sessionManagerService) {
+    this.sessionManagerService = null;
   }
 
   /**
@@ -90,6 +114,12 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     // This is the message store resource.
     Resource baseResource = request.getResource();
 
+    if (sessionManagerService.getCurrentSession() == null) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "Anonymous users can't send messages.");
+      return;
+    }
+
     // Do some small checks before we actually write anything.
     if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE) == null) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -102,16 +132,43 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       return;
     }
 
+    RequestParameterMap mapRequest = request.getRequestParameterMap();
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Iterator<String> it = mapRequest.keySet().iterator();
+
+    while (it.hasNext()) {
+      String k = it.next();
+      mapProperties.put(k, mapRequest.get(k).toString());
+    }
+    mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        MessageConstants.PROP_SAKAI_MESSAGE);
+    mapProperties.put(MessageConstants.PROP_SAKAI_READ, true);
+    mapProperties.put(MessageConstants.PROP_SAKAI_FROM, sessionManagerService
+        .getCurrentUserId());
+
     // Create the message.
+    Node msg = null;
     String path = null;
     try {
-      path = messagingService.create(baseResource);
+      msg = messagingService.create(baseResource, mapProperties);
+      if (msg == null) {
+        throw new MessagingException("Unable to create the message.");
+      }
+      path = msg.getPath();
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
       return;
+    } catch (RepositoryException e) {
+      LOGGER.warn("RepositoryException: " + e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
+      return;
     }
+
+    baseResource.getResourceMetadata().setResolutionPath("/");
+    baseResource.getResourceMetadata().setResolutionPathInfo(path);
 
     final String finalPath = path;
     final ResourceMetadata rm = baseResource.getResourceMetadata();

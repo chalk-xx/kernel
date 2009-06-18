@@ -20,8 +20,8 @@ package org.sakaiproject.kernel.message.chat;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageSearchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
-import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -45,6 +45,8 @@ public class ChatMessageSearchResultProcessor extends
 
   public void output(JSONWriter write, QueryResult result, int nitems)
       throws RepositoryException, JSONException {
+    System.out.println("Processing chat items");
+    
     NodeIterator resultNodes = result.getNodes();
     int i = 1;
     while (resultNodes.hasNext() && i <= nitems) {

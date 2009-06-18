@@ -44,7 +44,4 @@ public interface MessageHandler {
    *          The node that caused the event.
    */
   void handle(Event event, Node node);
-
-  void bindMessagingService(MessagingService messagingService);
-
 }

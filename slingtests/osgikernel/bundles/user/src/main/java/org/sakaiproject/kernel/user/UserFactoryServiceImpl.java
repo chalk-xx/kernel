@@ -151,7 +151,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    */
   public String getUserPrivatePath(String uuid) {
     LOGGER.info("User private Path ["+privatePathBase+"] ["+uuid+"]" );
-    return PathUtils.normalizePath(privatePathBase + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
+    return PathUtils.normalizePath("_user/private" + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
   }
 
   /**
@@ -160,7 +160,7 @@ public class UserFactoryServiceImpl implements UserFactoryService, Configuration
    * @see org.sakaiproject.kernel.api.user.UserFactoryService#getUserSharedPrivatePath(java.lang.String)
    */
   public String getUserSharedPrivatePath(String uuid) {
-    return PathUtils.normalizePath(sharedPrivatePathBase + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
+    return PathUtils.normalizePath("_user/public" + "/" + PathUtils.getUserPrefix(uuid,DEFAULT_HASH_LEVELS));
   }
 
   /**
