@@ -103,8 +103,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
   @Test
   public void testRepositoryExceptionHandling() throws Exception {
-    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(null,
-        "foo");
+    Node queryNode = createMock(Node.class);
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     expect(queryNode.hasProperty(SAKAI_QUERY_LANGUAGE)).andThrow(
@@ -115,21 +114,18 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-    addStringRequestParameter(request, "items", "25");
-    addStringRequestParameter(request, "q", "foo");
 
     response = createMock(SlingHttpServletResponse.class);
     response.sendError(500, null);
     expectLastCall();
 
-    stringWriter = new StringWriter();
-    expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
 
     replay();
 
     searchServlet.doGet(request, response);
-    stringWriter.close();
+    
+    verify();
   }
 
   private void executeSimpleQueryWithNoResults(String queryParameter,
