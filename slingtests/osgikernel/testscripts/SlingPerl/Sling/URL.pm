@@ -74,9 +74,7 @@ sub properties_array_to_string {
     foreach my $property ( @{ $properties } ) {
         $property =~ /^([^=]*)=(.*)/;
 	if ( defined $1 && defined $2 ) {
-	    my $key = urlencode( $1 );
-	    my $value = urlencode( $2 );
-            $property_post_vars .= "'$key','$value',";
+            $property_post_vars .= "'$1','$2',";
 	}
     }
     $property_post_vars =~ s/,$//;

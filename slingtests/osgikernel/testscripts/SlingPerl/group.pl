@@ -21,7 +21,7 @@ The following options are accepted:
  --log or -L (log)                 - Log script output to specified log file.
  --man or -M                       - view the full script documentation.
  --pass or -p (password)           - Password of user performing actions.
- --property or -P (property=value) - Specify property to set on user.
+ --property or -P (property=value) - Specify property to set on group.
  --threads or -t (threads)         - Used with -A, defines number of parallel
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.

@@ -200,10 +200,10 @@ public class CropItProcessor {
   public static void SaveImageToJCR(String sPath, String sType,
       ByteArrayOutputStream out, Node baseNode) throws RepositoryException,
       JCRNodeFactoryServiceException, IOException {
+    
     // Save image into the jcr
-
     Node n = jcrNodeFactoryService.getNode(sPath);
-
+    
     System.out.println(sPath);
 
     // This node doesn't exist yet. Create and save it.

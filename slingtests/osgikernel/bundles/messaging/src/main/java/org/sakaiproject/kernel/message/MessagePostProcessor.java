@@ -31,10 +31,10 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -52,76 +52,27 @@ import javax.jcr.Session;
  * @scr.service interface="org.apache.sling.servlets.post.SlingPostProcessor"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.component immediate="true" label="MessagePostProcessor"
- *                description="Post Processor for Message operations" metatype="no"
- * @scr.property name="service.description" value="Post Processes message operations"
- * @scr.reference bind="bindEventAdmin" unbind="bindEventAdmin"
+ *                description="Post Processor for Message operations"
+ *                metatype="no"
+ * @scr.property name="service.description"
+ *               value="Post Processes message operations"
+ * @scr.reference name="EventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
+ *                bind="bindEventAdmin" unbind="unbindEventAdmin"
  * 
  */
 public class MessagePostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePostProcessor.class);
-  /**
-   */
+
+  // public void activate(ComponentContext cc) {
+  // System.err.println("This takes the place of an activator so do what I say!");
+  // BundleContext bc = cc.getBundleContext();
+  // System.err.println("Just like normal with bc: " + bc);
+  // }
+
   private EventAdmin eventAdmin;
-
-  /**
-   * {@inheritDoc} This post processor is only interested in posts to messages, so it
-   * should iterate rapidly through all messages.
-   * 
-   * @see org.apache.sling.servlets.post.SlingPostProcessor#process(org.apache.sling.api.SlingHttpServletRequest,
-   *      java.util.List)
-   */
-  public void process(SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception {
-    if (request.getAttribute(MessageConstants.MESSAGE_OPERATION) != null) {
-      Map<Node, String> messageMap = new HashMap<Node, String>();
-      Session s = request.getResourceResolver().adaptTo(Session.class);
-      for (Modification m : changes) {
-        try {
-          switch (m.getType()) {
-          case CREATE:
-          case MODIFY:
-            if (s.itemExists(m.getSource())) {
-              Item item = s.getItem(m.getSource());
-              if (item != null && item.isNode()) {
-                Node n = (Node) item;
-                if (n.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
-                  String box = n.getProperty(PROP_SAKAI_MESSAGEBOX).getString();
-                  if (BOX_OUTBOX.equals(box)) {
-                    String sendstate = STATE_NONE;
-                    if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
-                      sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
-                      messageMap.put(n, sendstate);
-                    } else {
-                      messageMap.put(n, sendstate);
-                    }
-                  }
-                }
-              }
-            }
-            break;
-          }
-        } catch (RepositoryException ex) {
-          LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
-        }
-      }
-
-      for (Entry<Node, String> mm : messageMap.entrySet()) {
-        Node n = mm.getKey();
-        String state = mm.getValue();
-        if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
-
-          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
-
-          Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
-          messageDict.put(EVENT_LOCATION, n.getPath());
-          eventAdmin.postEvent(new Event(PENDINGMESSAGE_EVENT, messageDict));
-        }
-      }
-    }
-  }
 
   /**
    * @param eventAdmin
@@ -137,5 +88,83 @@ public class MessagePostProcessor implements SlingPostProcessor {
    */
   protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
+  }
+
+  /**
+   * {@inheritDoc} This post processor is only interested in posts to messages,
+   * so it should iterate rapidly through all messages.
+   * 
+   * @see org.apache.sling.servlets.post.SlingPostProcessor#process(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.util.List)
+   */
+  public void process(SlingHttpServletRequest request,
+      List<Modification> changes) throws Exception {
+    // if (request.getAttribute(MessageConstants.MESSAGE_OPERATION) != null) {
+    Map<Node, String> messageMap = new HashMap<Node, String>();
+    Session s = request.getResourceResolver().adaptTo(Session.class);
+    for (Modification m : changes) {
+      try {
+        switch (m.getType()) {
+        case CREATE:
+        case MODIFY:
+          if (s.itemExists(m.getSource())) {
+            Item item = s.getItem(getMessageFromModifcation(m));
+            if (item != null && item.isNode()) {
+              Node n = (Node) item;
+              if (n.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
+                String box = n.getProperty(PROP_SAKAI_MESSAGEBOX).getString();
+                if (BOX_OUTBOX.equals(box)) {
+                  String sendstate = STATE_NONE;
+                  if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
+                    sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
+                    messageMap.put(n, sendstate);
+                  } else {
+                    messageMap.put(n, sendstate);
+                  }
+                }
+              }
+            }
+          }
+          break;
+        }
+      } catch (RepositoryException ex) {
+        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
+      }
+    }
+
+    List<String> handledNodes = new ArrayList<String>();
+    // Check if we have any nodes that have a pending state and launch an OSGi
+    // event
+    for (Entry<Node, String> mm : messageMap.entrySet()) {
+      Node n = mm.getKey();
+      String state = mm.getValue();
+      if (!handledNodes.contains(n.getPath())) {
+        if (STATE_NONE.equals(state) || STATE_PENDING.equals(state)) {
+
+          n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+
+          Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+          messageDict.put(EVENT_LOCATION, n);
+          LOGGER.info("Launched event for node: " + n.getPath());
+          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT,
+              messageDict);
+          // Initiate an asynchronous event.
+          eventAdmin.postEvent(pendingMessageEvent);
+          handledNodes.add(n.getPath());
+        }
+      }
+    }
+  }
+
+  /**
+   * Gets the node for a modification.
+   * 
+   * @param m
+   * @return
+   */
+  private String getMessageFromModifcation(Modification m) {
+    String path = m.getSource();
+    path = path.substring(0, path.lastIndexOf("/"));
+    return path;
   }
 }

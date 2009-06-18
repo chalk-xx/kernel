@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.kernel.message;
 
-import static org.sakaiproject.kernel.api.message.MessageConstants.MESSAGE_OPERATION;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
@@ -26,7 +24,9 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
-import org.sakaiproject.kernel.util.PathUtils;
+import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessagingException;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,22 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 /**
+ * Will create a message under the user's _private folder. If the box is set to
+ * outbox en the pending property to pending or none it will be picked up by the
+ * MessagePostProcessor who will then send an OSGi event that feeds it to the
+ * correct MessageHandler.
+ * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="create"
+ * @scr.reference name="MessagingService"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
@@ -50,6 +59,16 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateMessageServlet.class);
+
+  private MessagingService messagingService;
+
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
 
   /**
    * {@inheritDoc}
@@ -61,33 +80,43 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
-    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
+    LOGGER.info("Creating message.");
+
+    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request
+        .getMethod());
 
     LOGGER.info("ServletPath " + request.getPathInfo());
 
+    // This is the message store resource.
     Resource baseResource = request.getResource();
 
-    final ResourceMetadata rm = baseResource.getResourceMetadata();
-    String pathInfo = String.valueOf(Thread.currentThread().getId())
-        + String.valueOf(System.currentTimeMillis());
-    try {
-      pathInfo = org.sakaiproject.kernel.util.StringUtils.sha1Hash(pathInfo);
-    } catch (Exception ex) {
-
+    // Do some small checks before we actually write anything.
+    if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE) == null) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "No type for this message specified.");
+      return;
     }
-    String servletPath = rm.getResolutionPath();
-    
-    String[] pathParts = PathUtils.getNodePathParts(pathInfo);
+    if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TO) == null) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "No recipient specified.");
+      return;
+    }
 
-    final String finalPath = PathUtils.toInternalHashedPath(servletPath, pathParts[0], pathParts[1]);
-    final ResourceMetadata resourceMetadata = new ResourceMetadata();
-    resourceMetadata.putAll(rm);
-    resourceMetadata.setResolutionPath("/");
-    resourceMetadata.setResolutionPathInfo(finalPath);
+    // Create the message.
+    String path = null;
+    try {
+      path = messagingService.create(baseResource);
+    } catch (MessagingException e) {
+      LOGGER.warn("MessagingException: " + e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
+      return;
+    }
 
-    LOGGER.info("ServletPath:{}\nPathInfo:{}\nFinalPath:{}", new Object[] {servletPath,
-        pathInfo, finalPath});
+    final String finalPath = path;
+    final ResourceMetadata rm = baseResource.getResourceMetadata();
 
+    // Wrap the request so it points to the message we just created.
     ResourceWrapper wrapper = new ResourceWrapper(request.getResource()) {
       /**
        * {@inheritDoc}
@@ -162,9 +191,11 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       }
     };
     options.setReplaceSelectors("");
-    request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
+    LOGGER.info("Sending the request out again with attribute: "
+        + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
+    request.getRequestDispatcher(wrapper, options).forward(request,
+        wrappedResponse);
     response.reset();
-    response.sendRedirect(rm.getResolutionPath() + "/" + pathInfo);
+    response.sendRedirect(finalPath);
   }
-
 }

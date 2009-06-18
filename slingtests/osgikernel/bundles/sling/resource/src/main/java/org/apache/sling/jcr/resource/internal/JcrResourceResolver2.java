@@ -233,13 +233,13 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
         // if no resource has been found, use a NonExistingResource
         if (res == null) {
-            log.debug(
+            log.info(
                 "resolve: Path {} does not resolve, returning NonExistingResource at {}",
                 absPath, realPathList[0]);
             String absRealPath = ensureAbsPath(realPathList[0]);
             final String resourceType = getPathResourceType(absRealPath);
             if ( resourceType == null ) {
-            res = new NonExistingResource(this, absRealPath);
+              res = new NonExistingResource(this, absRealPath);
             } else {
               res = new NonExistingResource(this, absRealPath) {
                 /**
@@ -841,11 +841,15 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
       PathResourceTypeProvider[] pathResourceTypeProviders = factory.getPathResourceTypeProviders();
       if ( pathResourceTypeProviders != null ) {
         for ( PathResourceTypeProvider prp : factory.getPathResourceTypeProviders()) {
+          log.info("Trying  {}",prp);
           String resourceType = prp.getResourceTypeFromPath(this,absRealPath);
           if ( resourceType != null ) {
-            return resourceType;
+            log.info("Got  {}",resourceType);
+                  return resourceType;
           }
         }
+      } else {
+        log.info("No ResourcePathTypeResolvers ");
       }
       return null;
     }
