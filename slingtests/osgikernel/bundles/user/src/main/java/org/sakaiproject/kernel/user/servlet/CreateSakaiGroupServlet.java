@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
+import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
+
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -34,7 +36,6 @@ import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 
 import java.security.Principal;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 
@@ -108,19 +109,8 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
    *
    */
   private static final long serialVersionUID = 6587376522316825454L;
-  /**
-   * @scr.property label="%usermanager.hashlevels.name"
-   *               description="%usermanager.hashlevels.description"
-   *               valueRef="DEFAULT_HASH_LEVELS"
-   */
-  private static final String PROP_HASH_LEVELS = "usermanager.hashlevels";
-  private static final int DEFAULT_HASH_LEVELS = 4;
-  private int hashLevels = DEFAULT_HASH_LEVELS;
 
-  
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
-  
- 
 
   /**
    * Activates this component.
@@ -130,13 +120,6 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
    */
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
-    Dictionary<?, ?> props = componentContext.getProperties();
-    Object propValue = props.get(PROP_HASH_LEVELS);
-    if (propValue instanceof String) {
-      hashLevels = Integer.parseInt((String) propValue);
-    } else {
-      hashLevels = DEFAULT_HASH_LEVELS;
-    }
     postProcessorTracker.setComponentContext(componentContext);
   }
 
@@ -177,7 +160,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
           public String getName() {
             return principalName;
           }
-        }, PathUtils.getUserPrefix(principalName, hashLevels));
+        }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
 
         String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
             + group.getID();

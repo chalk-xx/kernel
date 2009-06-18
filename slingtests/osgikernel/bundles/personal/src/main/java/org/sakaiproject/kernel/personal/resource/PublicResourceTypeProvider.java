@@ -15,31 +15,33 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.connections.resource;
+package org.sakaiproject.kernel.personal.resource;
 
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONNECTIONSTORE_RT;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PRIVATE_RESOURCE_TYPE;
 
 import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
 
 /**
- * This class checks resource paths to see if there is a prefered resoruce type, where the
+ * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="MessagePathResourceTypeProvider"
- *                description="Message Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Message resources"
+ * @scr.component immediate="true" label="PersonalResourceTypeProvider"
+ *                description="Personal Service path resource type provider"
+ * @scr.property name="service.description" value="Handles requests for Personal resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-public class ConnectionPathResourceTypeProvider extends AbstractPathResourceTypeProvider {
+
+public class PublicResourceTypeProvider extends AbstractPathResourceTypeProvider {
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider#getResourceType()
+   * @see org.sakaiproject.kernel.personal.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   @Override
   protected String getResourceType() {
-    return SAKAI_CONNECTIONSTORE_RT;
+    return USER_PRIVATE_RESOURCE_TYPE;
   }
+
 
 }

@@ -19,21 +19,12 @@ package org.sakaiproject.kernel.message.resource;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.apache.sling.jcr.resource.PathResourceTypeProvider;
-import org.sakaiproject.kernel.util.PathUtils;
+import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 /**
- * This class checks resource paths to see if there is a prefered resoruce type, where the
+ * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
  * @scr.component immediate="true" label="MessagePathResourceTypeProvider"
@@ -42,60 +33,15 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-public class MessagePathResourceTypeProvider implements PathResourceTypeProvider {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(MessagePathResourceTypeProvider.class);
+public class MessagePathResourceTypeProvider extends AbstractPathResourceTypeProvider  {
 
   /**
    * {@inheritDoc}
-   * 
-   * @see org.apache.sling.jcr.resource.PathResourceTypeProvider#getResourceTypeFromPath(java.lang.String)
+   * @see org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
-  public String getResourceTypeFromPath(ResourceResolver resolver, String absRealPath) {
-    Session session = resolver.adaptTo(Session.class);
-    long s = System.currentTimeMillis();
-    try {
-      Item item = null;
-      try {
-        item = session.getItem(absRealPath);
-      } catch (PathNotFoundException ex) {
-      }
-      String parentPath = absRealPath;
-      while (item == null && !"/".equals(parentPath)) {
-        parentPath = PathUtils.getParentReference(parentPath);
-        try {
-          item = session.getItem(parentPath);
-        } catch (PathNotFoundException ex) {
-        }
-      }
-      if ( item == null ) {
-        return null;
-      }
-      // convert first item to a node.
-      if (!item.isNode()) {
-        item = item.getParent();
-      }
-
-      Node n = (Node) item;
-      while (!"/".equals(n.getPath())) {
-        if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && SAKAI_MESSAGESTORE_RT.equals(n.getProperty(
-                JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-          LOGGER.info(" {} is a messagestore file, base is {}  ", absRealPath, n
-              .getPath());
-          return SAKAI_MESSAGESTORE_RT;
-        }
-        n = n.getParent();
-      }
-    } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage(), e);
-    } finally {
-      LOGGER.info(" Type resolution added {}ms",(System.currentTimeMillis()-s));
-    }
-    LOGGER.debug(" {} is not a messagestore file ", absRealPath);
-    
-    return null;
+  @Override
+  protected String getResourceType() {
+    return SAKAI_MESSAGESTORE_RT;
   }
 
 }

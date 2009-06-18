@@ -22,6 +22,7 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateGroupServlet;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 
 import java.util.List;
@@ -115,6 +116,17 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
 
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
+  }
+  
+  /**
+   * Activates this component.
+   * 
+   * @param componentContext
+   *          The OSGi <code>ComponentContext</code> of this component.
+   */
+  protected void activate(ComponentContext componentContext) {
+    super.activate(componentContext);
+    postProcessorTracker.setComponentContext(componentContext);
   }
 
 }

@@ -120,13 +120,13 @@ public class KernelConstants implements ConfigurationService, ManagedService {
   /**
    * The property name defining the users public data
    * 
-   * @scr.property value="/_public" type="String"
+   * @scr.property value="/_user/public" type="String"
    */
   public static final String PRIVATE_SHARED_PATH_BASE = "jcrprivateshared.base";
   /**
    * The property name defining the data that is completely private to the user.
    * 
-   * @scr.property value="/_private" type="String"
+   * @scr.property value="/_user/private" type="String"
    */
   public static final String PRIVATE_PATH_BASE = "jcrprivate.base";
   /**

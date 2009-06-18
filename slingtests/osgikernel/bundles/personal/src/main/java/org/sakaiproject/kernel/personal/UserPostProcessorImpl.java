@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.user;
+package org.sakaiproject.kernel.personal;
 
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PUBLIC;
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
@@ -76,9 +76,10 @@ import javax.jcr.version.VersionException;
  *                interface="org.osgi.service.event.EventAdmin"
  * 
  */
-public class UserPostProcessorImpl implements UserPostProcessor  {
+public class UserPostProcessorImpl implements UserPostProcessor {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UserPostProcessorImpl.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(UserPostProcessorImpl.class);
 
   /**
    */
@@ -99,7 +100,8 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
       throws Exception {
     LOGGER.info("Starting process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
-    UserManager userManager = AccessControlUtil.getUserManager(request.getResourceResolver().adaptTo(Session.class));
+    UserManager userManager = AccessControlUtil.getUserManager(request
+        .getResourceResolver().adaptTo(Session.class));
     Authorizable authorizable = null;
     String principalName = null;
     LOGGER.info("resourcePath: " + resourcePath);
@@ -125,7 +127,7 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
         return;
       }
       authorizable = userManager.getAuthorizable(principalName);
-      updateProperties(authorizable, principalName,false,  changes);
+      updateProperties(authorizable, principalName, false, changes);
     } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
       principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
       if (principalName.indexOf('/') != -1) {
@@ -140,7 +142,7 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
 
   /**
    * @param authorizable
-   * @param principalName 
+   * @param principalName
    * @param changes
    * @throws RepositoryException
    * @throws ConstraintViolationException
@@ -148,9 +150,9 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
    * @throws VersionException
    * @throws PathNotFoundException
    */
-  private void updateProperties(Authorizable authorizable, String principalName, boolean isGroup, List<Modification> changes)
-      throws PathNotFoundException, VersionException, LockException,
-      ConstraintViolationException, RepositoryException {
+  private void updateProperties(Authorizable authorizable, String principalName,
+      boolean isGroup, List<Modification> changes) throws PathNotFoundException,
+      VersionException, LockException, ConstraintViolationException, RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
     try {
       Node profileNode = null;
@@ -179,11 +181,11 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
           break;
         }
       }
-      
+
       if (profileNode == null) {
         return;
       }
-      
+
       // build a blacklist set of properties that should be kept private
       Set<String> privateProperties = new HashSet<String>();
       if (profileNode.hasProperty(PRIVATE_PROPERTIES)) {
@@ -197,8 +199,8 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
         String propertyName = (String) inames.next();
         if (!privateProperties.contains(propertyName)) {
           Value[] v = authorizable.getProperty(propertyName);
-          if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(propertyName)
-              .getDefinition().isProtected())) {
+          if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
+              propertyName).getDefinition().isProtected())) {
             Property prop = profileNode.setProperty(propertyName, v);
             changes.add(Modification.onModified(prop.getPath()));
           }
@@ -235,12 +237,12 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
       throws RepositoryException {
     String path = profileNodeForAuthorizable(principalName, isGroup);
     if (session.itemExists(path)) {
-      Node node = (Node)session.getItem(path);
+      Node node = (Node) session.getItem(path);
       node.remove();
     }
   }
 
-  private static String nodeTypeForAuthorizable(Authorizable authorizable) {
+  private String nodeTypeForAuthorizable(Authorizable authorizable) {
     if (authorizable.isGroup()) {
       return UserConstants.GROUP_PROFILE_RESOURCE_TYPE;
     } else {
@@ -248,22 +250,20 @@ public class UserPostProcessorImpl implements UserPostProcessor  {
     }
   }
 
-  public static String profileNodeForAuthorizable(String principalName, boolean isGroup) throws RepositoryException
-  {
+  private String profileNodeForAuthorizable(String principalName, boolean isGroup)
+      throws RepositoryException {
     if (isGroup) {
-      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, principalName,
-          AUTH_PROFILE);
+      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, principalName, AUTH_PROFILE);
     } else {
-      return PathUtils.toInternalHashedPath(_USER_PUBLIC, principalName,
-          AUTH_PROFILE);
+      return PathUtils.toInternalHashedPath(_USER_PUBLIC, principalName, AUTH_PROFILE);
     }
   }
 
-  public static String profileNodeForAuthorizable(Authorizable authorizable) throws RepositoryException
-  {
+  private String profileNodeForAuthorizable(Authorizable authorizable)
+      throws RepositoryException {
     return profileNodeForAuthorizable(authorizable.getID(), authorizable.isGroup());
   }
-  
+
   /**
    * @param slingRepository
    *          the slingRepository to set
