@@ -393,18 +393,36 @@ public class SiteServiceImpl implements SiteService {
       throws SiteException {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
-      Comparator<Group> comparitor = buildCompoundComparitor(sort);
-      List<Group> sortedList = Lists.sortedCopy(membership.getGroups().keySet(),
+      Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
+      List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(),
           comparitor);
-      Iterator<Group> sortedIterator = sortedList.listIterator(start);
-      return Iterators.limit(sortedIterator, nitems);
+      Iterator<GroupKey> sortedIterator = sortedList.listIterator(start);
+      return unwrapGroups(Iterators.limit(sortedIterator, nitems));
     }
 
     // no sort requested.
 
-    List<Group> finalList = Lists.immutableList(membership.getGroups().keySet());
-    Iterator<Group> unsortedIterator = finalList.listIterator(start);
-    return Iterators.limit(unsortedIterator, nitems);
+    List<GroupKey> finalList = Lists.immutableList(membership.getGroups().keySet());
+    Iterator<GroupKey> unsortedIterator = finalList.listIterator(start);
+    return unwrapGroups(Iterators.limit(unsortedIterator, nitems));
+  }
+  
+  public Iterator<Group> unwrapGroups(final Iterator<GroupKey> underlying)
+  {
+    return new Iterator<Group>() {
+
+      public boolean hasNext() {
+        return underlying.hasNext();
+      }
+
+      public Group next() {
+        return underlying.next().getGroup();
+      }
+
+      public void remove() {
+        underlying.remove();
+      }
+    };
   }
 
   /**
@@ -416,17 +434,35 @@ public class SiteServiceImpl implements SiteService {
   public Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
-      Comparator<User> comparitor = buildCompoundComparitor(sort);
-      List<User> sortedList = Lists
+      Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
+      List<UserKey> sortedList = Lists
           .sortedCopy(membership.getUsers().keySet(), comparitor);
-      Iterator<User> sortedIterator = sortedList.listIterator(start);
-      return Iterators.limit(sortedIterator, nitems);
+      Iterator<UserKey> sortedIterator = sortedList.listIterator(start);
+      return unwrapUsers(Iterators.limit(sortedIterator, nitems));
     }
 
     // no sort requested.
-    List<User> finalList = Lists.immutableList(membership.getUsers().keySet());
-    Iterator<User> unsortedIterator = finalList.listIterator(start);
-    return Iterators.limit(unsortedIterator, nitems);
+    List<UserKey> finalList = Lists.immutableList(membership.getUsers().keySet());
+    Iterator<UserKey> unsortedIterator = finalList.listIterator(start);
+    return unwrapUsers(Iterators.limit(unsortedIterator, nitems));
+  }
+
+  public Iterator<User> unwrapUsers(final Iterator<UserKey> underlying)
+  {
+    return new Iterator<User>() {
+
+      public boolean hasNext() {
+        return underlying.hasNext();
+      }
+
+      public User next() {
+        return underlying.next().getUser();
+      }
+
+      public void remove() {
+        underlying.remove();
+      }
+    };
   }
 
   public int getMemberCount(Node site) {
@@ -448,8 +484,8 @@ public class SiteServiceImpl implements SiteService {
    * @return a membership tree
    */
   private MembershipTree getMembershipTree(Node site) {
-    Map<Group, Membership> groups = Maps.newLinkedHashMap();
-    Map<User, Membership> users = Maps.newLinkedHashMap();
+    Map<GroupKey, Membership> groups = Maps.newLinkedHashMap();
+    Map<UserKey, Membership> users = Maps.newLinkedHashMap();
     try {
       UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
@@ -459,12 +495,12 @@ public class SiteServiceImpl implements SiteService {
           Authorizable a = userManager.getAuthorizable(groupId);
           if (a instanceof Group) {
             if (!groups.containsKey(a)) {
-              groups.put((Group) a, new Membership(null, a));
+              groups.put(new GroupKey((Group) a), new Membership(null, a));
               populateMembers((Group) a, groups, users);
             }
           } else if (a instanceof User) {
             if (!users.containsKey(a)) {
-              users.put((User) a, new Membership(null, a));
+              users.put(new UserKey((User) a), new Membership(null, a));
             }
           }
         }
@@ -487,7 +523,7 @@ public class SiteServiceImpl implements SiteService {
    * @return the first comparator in the set.
    */
   @SuppressWarnings("unchecked")
-  private <T extends Authorizable> Comparator<T> buildCompoundComparitor(Sort[] sort) {
+  private <T extends AuthorizableKey> Comparator<T> buildCompoundComparitor(Sort[] sort) {
     if (sort.length == 0) {
       return null;
     }
@@ -507,8 +543,8 @@ public class SiteServiceImpl implements SiteService {
          */
         public int compare(T o1, T o2) {
           try {
-            Object c1 = o1.getID();
-            Object c2 = o2.getID();
+            Object c1 = o1.getAuthorizable().getID();
+            Object c2 = o2.getAuthorizable().getID();
             switch (s.getField()) {
             case firstName:
             case id:
@@ -575,16 +611,16 @@ public class SiteServiceImpl implements SiteService {
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  private void populateMembers(Group group, Map<Group, Membership> groups,
-      Map<User, Membership> users) throws RepositoryException {
+  private void populateMembers(Group group, Map<GroupKey, Membership> groups,
+      Map<UserKey, Membership> users) throws RepositoryException {
     for (Iterator<Authorizable> igm = group.getDeclaredMembers(); igm.hasNext();) {
       Authorizable a = igm.next();
       if (!groups.containsKey(a)) {
         if (a instanceof Group) {
-          groups.put((Group) a, new Membership(group, a));
+          groups.put(new GroupKey((Group) a), new Membership(group, a));
           populateMembers((Group) a, groups, users);
         } else {
-          users.put((User) a, new Membership(group, a));
+          users.put(new UserKey((User) a), new Membership(group, a));
         }
       }
       if (users.size() > MAXLISTSIZE || groups.size() > MAXLISTSIZE) {

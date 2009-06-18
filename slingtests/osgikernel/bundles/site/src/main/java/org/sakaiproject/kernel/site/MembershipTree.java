@@ -17,9 +17,6 @@
  */
 package org.sakaiproject.kernel.site;
 
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
-
 import java.util.Map;
 
 /**
@@ -27,27 +24,27 @@ import java.util.Map;
  */
 public class MembershipTree {
 
-  private Map<Group, Membership> groups;
-  private Map<User, Membership> users;
+  private Map<GroupKey, Membership> groups;
+  private Map<UserKey, Membership> users;
 
   /**
    * @param groups
    * @param users
    */
-  public MembershipTree(Map<Group, Membership> groups, Map<User, Membership> users) {
+  public MembershipTree(Map<GroupKey, Membership> groups, Map<UserKey, Membership> users) {
     this.groups = groups;
     this.users = users;
   }
   /**
    * @return the groups
    */
-  public Map<Group, Membership> getGroups() {
+  public Map<GroupKey, Membership> getGroups() {
     return groups;
   }
   /**
    * @return the users
    */
-  public Map<User, Membership> getUsers() {
+  public Map<UserKey, Membership> getUsers() {
     return users;
   }
 

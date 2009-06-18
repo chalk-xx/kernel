@@ -42,12 +42,14 @@ class SlingTest < Test::Unit::TestCase
 
   def create_user(username)
     u = @um.create_user(username)
+    assert_not_nil(u, "Expected user to be created: #{username}")
     @created_users << username
     return u
   end
  
   def create_group(groupname)
     g = @um.create_group(groupname)
+    assert_not_nil(g, "Expected group to be created: #{groupname}")
     @created_groups << groupname
     return g
   end

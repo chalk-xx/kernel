@@ -25,7 +25,18 @@ public class ExtendedJSONWriter extends JSONWriter {
     object();
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       key(entry.getKey());
-      value(entry.getValue());
+      Object entryValue = entry.getValue();
+      if (entryValue instanceof Object[]) {
+        array();
+        Object[] objects = (Object[])entryValue;
+        for (Object object : objects) {
+          value(object);
+        }
+        endArray();
+      }
+      else {
+        value(entry.getValue());
+      }
     }
     endObject();
   }

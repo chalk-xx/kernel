@@ -62,15 +62,16 @@ class TC_MySiteTest < SlingTest
     assert_not_nil(members, "Expected to get member list")
     assert_equal(1, members.size, "Expected site members")
     assert_equal(site_user.name, members[0]["rep:userId"], "Expected user to match")
+    @s.switch_user(SlingUsers::User.admin_user)
+    return test_site
   end
 
   def test_join
-    do_join("someothersite", "mysitegroup", "mysiteuser")    
+    return do_join("someothersite", "mysitegroup", "mysiteuser")    
   end
 
   def test_join_and_search
     do_join("anothersite", "mysitegroup", "mysiteuser")
-    @s.switch_user(SlingUsers::User.admin_user)
     res = @s.update_node_props("anothersite", "fish" => "dog")
     assert_equal(200, res.code.to_i, "Expected site property to be updated")
     result = @search.search_for_site("dog")
@@ -79,6 +80,15 @@ class TC_MySiteTest < SlingTest
     created_site = result["results"].select { |r| r["path"] == "/anothersite" }
     assert_equal(1, created_site.size, "Expected to find site with matching path")
     assert_equal(1, created_site[0]["member-count"].to_i, "Expected single member")
+  end
+
+  def test_multi_group_join
+    site = do_join("anothersite", "mysitegroup", "mysiteuser")
+    group2 = create_group("sitegroup2")
+    group2.add_member(@s, "mysiteuser", "user")
+    site.add_group(group2.name)
+    members = site.get_members
+    assert_equal(1, members.size, "Expected a single member")
   end
 
 end

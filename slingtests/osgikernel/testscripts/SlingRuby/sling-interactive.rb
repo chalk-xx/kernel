@@ -4,6 +4,12 @@ require 'sling/sling.rb'
 require 'irb'
 include SlingInterface
 
+def sling
+  $s = Sling.new
+  $um = SlingUsers::UserManager.new($s)
+  $sm = SlingSites::SiteManager.new($s)
+end
+
 module IRB
   class PIRB < Irb
     # Close stdout while we initialize irb
@@ -46,9 +52,5 @@ end
 
 ARGV.unshift "--simple-prompt"
 
-s = Sling.new
-um = SlingUsers::UserManager.new(s)
-sm = SlingSites::SiteManager.new(s)
 IRB.start
-
 
