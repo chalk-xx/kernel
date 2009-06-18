@@ -20,6 +20,27 @@ use lib qw ( .. );
 use Fcntl ':flock';
 #}}}
 
+#{{{sub print_with_lock
+
+=pod
+
+=head2 print_with_lock
+
+Selects printing to standard out or to log with locking based on whether a suitable log file is defined.
+
+=cut
+
+sub print_with_lock {
+    my ( $message, $file ) = @_;
+    if ( defined $file ) {
+        return print_file_lock( "$message", $file );
+    }
+    else {
+        return print_lock( "$message" );
+    }
+}
+#}}}
+
 #{{{sub print_file_lock
 
 =pod

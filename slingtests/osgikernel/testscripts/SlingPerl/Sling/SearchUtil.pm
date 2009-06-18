@@ -35,12 +35,11 @@ Returns a textual representation of the request needed to search the system.
 =cut
 
 sub search_setup {
-    my ( $baseURL, $searchTerm, $path ) = @_;
+    my ( $baseURL, $searchTerm ) = @_;
     die "No base URL provided to search against!" unless defined $baseURL;
     die "No search term provided!" unless defined $searchTerm;
     $searchTerm = Sling::URL::urlencode( $searchTerm );
-    $path = Sling::URL::urlencode( $path );
-    return "get $baseURL/apps.query.json?queryType=xpath&statement=//*[jcr:contains(.,\"$searchTerm\")]";
+    return "get $baseURL/var/search/content.json?q=$searchTerm";
 }
 #}}}
 
