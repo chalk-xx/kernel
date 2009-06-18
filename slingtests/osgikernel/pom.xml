@@ -72,6 +72,8 @@
         <module>bundles/uxloader</module>
         <module>bundles/events</module>
         <module>bundles/jms</module>
+        <module>bundles/jmx</module>
+        <module>bundles/ejb</module>
         <module>libraries/utils</module>
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/api</module>
@@ -667,6 +669,20 @@
         <artifactId>activemq-pool</artifactId>
         <version>5.2.0</version>
       </dependency>
+
+<!-- JMX -->
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-j2ee-management_1.1_spec</artifactId>
+        <version>1.0.1</version>
+      </dependency>
+
+<!-- EJB (for JMX) -->
+      <dependency>
+	      <groupId>org.apache.geronimo.specs</groupId>
+	      <artifactId>geronimo-ejb_3.0_spec</artifactId>
+	      <version>1.0.1</version>
+	    </dependency>
 
       <dependency>
         <groupId>org.apache.sling</groupId>

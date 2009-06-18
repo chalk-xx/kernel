@@ -24,9 +24,9 @@
     <version>0.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.sakaiproject.kernel.jms</artifactId>
+  <artifactId>org.sakaiproject.kernel.ejb</artifactId>
   <packaging>bundle</packaging>
-  <name>Java Messaging Service Bundle</name>
+  <name>Java Enterprise Java Bean Bundle</name>
   <version>0.1-SNAPSHOT</version>
   <build>
     <plugins>
@@ -37,17 +37,20 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>javax.jms.*;version=1.1</Export-Package>
+            <Export-Package>javax.ejb.*;version=3.0,
+              javax.xml.*,
+              javax.xml.rpc.*,
+              javax.xml.rpc.handler.*</Export-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-<!-- jms -->
+<!-- ejb -->
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <artifactId>geronimo-ejb_3.0_spec</artifactId>
     </dependency>
   </dependencies>
 </project>
