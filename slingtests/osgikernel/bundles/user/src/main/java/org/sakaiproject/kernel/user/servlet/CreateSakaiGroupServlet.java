@@ -139,6 +139,10 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
     if (principalName == null) {
       throw new RepositoryException("Group name was not submitted");
     }
+    
+    if (!principalName.startsWith("g-")) {
+      throw new RepositoryException("Group names must begin with 'g-'");
+    }
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     if (session == null) {

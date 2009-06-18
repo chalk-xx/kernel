@@ -215,6 +215,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     if (principalName == null) {
       throw new RepositoryException("User name was not submitted");
     }
+    
+    if (principalName.startsWith("g-")) {
+      throw new RepositoryException("User name must not begin 'g-'");
+    }
+    
     String pwd = request.getParameter("pwd");
     if (pwd == null) {
       throw new RepositoryException("Password was not submitted");

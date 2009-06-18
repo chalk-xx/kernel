@@ -29,16 +29,16 @@ class TC_MySiteTest < SlingTest
   end
 
   def test_add_group_to_site
-   site_group = create_group("mysitegroup")
+   site_group = create_group("g-mysitegroup")
    test_site = create_site("somesite")
    test_site.add_group(site_group.name)
    groups = SlingSites::Site.get_groups("somesite", @s)
    assert_equal(1, groups.size, "Expected 1 group")
-   assert_equal("mysitegroup", groups[0], "Expected group to be added")
+   assert_equal("g-mysitegroup", groups[0], "Expected group to be added")
   end
 
   def test_join_unjoinable_site
-    site_group = create_group("mysitegroup")
+    site_group = create_group("g-mysitegroup")
     site_user = create_user("mysiteuser")
     test_site = create_site("someothersite")
     test_site.add_group(site_group.name)
@@ -67,11 +67,11 @@ class TC_MySiteTest < SlingTest
   end
 
   def test_join
-    return do_join("someothersite", "mysitegroup", "mysiteuser")    
+    return do_join("someothersite", "g-mysitegroup", "mysiteuser")    
   end
 
   def test_join_and_search
-    do_join("anothersite", "mysitegroup", "mysiteuser")
+    do_join("anothersite", "g-mysitegroup", "mysiteuser")
     res = @s.update_node_props("anothersite", "fish" => "dog")
     assert_equal(200, res.code.to_i, "Expected site property to be updated")
     result = @search.search_for_site("dog")
@@ -83,8 +83,8 @@ class TC_MySiteTest < SlingTest
   end
 
   def test_multi_group_join
-    site = do_join("anothersite", "mysitegroup", "mysiteuser")
-    group2 = create_group("sitegroup2")
+    site = do_join("anothersite", "g-mysitegroup", "mysiteuser")
+    group2 = create_group("g-sitegroup2")
     group2.add_member(@s, "mysiteuser", "user")
     site.add_group(group2.name)
     members = site.get_members
