@@ -56,6 +56,7 @@ class SlingTest < Test::Unit::TestCase
 
   def create_site(path)
     s = @sm.create_site(path)
+    assert_not_nil(s, "Expected site to be created: #{path}")
     @created_sites << path
     return s
   end
