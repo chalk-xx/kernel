@@ -99,7 +99,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
     try {
-      LOGGER.info("Starting process with reques session {}",request.getResourceResolver().adaptTo(Session.class));
+      LOGGER.debug("Starting process with reques session {}",request.getResourceResolver().adaptTo(Session.class));
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       UserManager userManager = AccessControlUtil.getUserManager(request
           .getResourceResolver().adaptTo(Session.class));
@@ -157,7 +157,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       boolean isGroup, List<Modification> changes) throws PathNotFoundException,
       VersionException, LockException, ConstraintViolationException, RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
-    LOGGER.info("Using Session {} ",session);
+    LOGGER.debug("Using Session {} ",session);
     try {
       Node profileNode = null;
       Iterator<?> inames = null;
