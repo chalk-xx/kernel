@@ -25,13 +25,23 @@ public class ExtendedJSONWriter extends JSONWriter {
     object();
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       key(entry.getKey());
-      value(entry.getValue());
+      Object entryValue = entry.getValue();
+      if (entryValue instanceof Object[]) {
+        array();
+        Object[] objects = (Object[])entryValue;
+        for (Object object : objects) {
+          value(object);
+        }
+        endArray();
+      }
+      else {
+        value(entry.getValue());
+      }
     }
     endObject();
   }
 
-  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException, RepositoryException {
-    write.object();
+  public static void writeNodeContentsToWriter(JSONWriter write, Node node) throws RepositoryException, JSONException {
     PropertyIterator properties = node.getProperties();
     while (properties.hasNext()) {
       Property prop = properties.nextProperty();
@@ -47,7 +57,12 @@ public class ExtendedJSONWriter extends JSONWriter {
         write.value(stringValue(prop.getValue()));
       }
     }
-    write.endObject();
+  }
+  
+  public static void writeNodeToWriter(JSONWriter write, Node node) throws JSONException, RepositoryException {
+    write.object();
+    writeNodeContentsToWriter(write, node);
+    write.endObject();    
   }
 
   private static String stringValue(Value value) throws ValueFormatException,

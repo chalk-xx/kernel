@@ -12,18 +12,17 @@ Sling::Search library.
 Usage: perl search.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -p (password)     - Password of user performing searches.
- -s (SearchTerm)   - Term to search in the system for.
- -t (threads)      - Used with -F, defines number of parallel
-                     processes to have running through file.
- -u (username)     - Name of user to perform any searches as.
- -F (File)         - File containing list of search terms to search through.
- --log or -L (log) - Log script output to specified log file.
- -P (path)         - specify absolute path under the JCR root to search under.
- --url or -U (URL) - URL for system being tested against.
- --auth (type)     - Specify auth type. If ommitted, default is used.
- --help or -?      - view the script synopsis and options.
- --man             - view the full script documentation.
+ --auth (type)               - Specify auth type. If ommitted, default is used.
+ --file or -F (File)         - File containing list of search terms to search through.
+ --help or -?                - view the script synopsis and options.
+ --log or -L (log)           - Log script output to specified log file.
+ --man or -M                 - view the full script documentation.
+ --pass or -p (password)     - Password of user performing searches.
+ --search or -s (SearchTerm) - Term to search in the system for.
+ --threads or -t (threads)   - Used with -F, defines number of parallel
+                               processes to have running through file.
+ --url or -U (URL)           - URL for system being tested against.
+ --user or -u (username)     - Name of user to perform any searches as.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -33,7 +32,7 @@ For full details run: perl search.pl --man
 
 =over
 
-=item Authenticate and add search for the word test through all content:
+=item Authenticate and search for the word test through all content:
 
  perl search.pl -U http://localhost:8080 -s test -u admin -p admin
 
@@ -59,17 +58,22 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
-my $path="/";
 my $searchTerm;
 my $url = "http://localhost";
 my $username;
 
-GetOptions ( "s=s" => \$searchTerm,  "F=s" => \$file,
-             "t=i" => \$numberForks, "log|L=s" => \$log,
-             "u=s" => \$username,    "P=s" => \$path,
-	     "p=s" => \$password,    "url|U=s" => \$url,
-	     "auth=s" => \$auth,
-             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+GetOptions (
+    "auth=s" => \$auth,
+    "file|F=s" => \$file,
+    "help|?" => \$help,
+    "log|L=s" => \$log,
+    "man|M" => \$man,
+    "pass|p=s" => \$password,
+    "search|s=s" => \$searchTerm,
+    "threads|t=i" => \$numberForks,
+    "url|U=s" => \$url,
+    "user|u=s" => \$username
+) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
@@ -84,7 +88,8 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{ main execution path
 if ( defined $file ) {
-    print "Searching through all words in file:\n";
+    my $message = "Searching through all words in file: \"$file\":";
+    Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -92,7 +97,7 @@ if ( defined $file ) {
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
             my $search = new Sling::Search( $url, $lwpUserAgent );
-            $search->search_from_file( $file, $i, $numberForks, $path, $log );
+            $search->search_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
 	}
 	else {
@@ -105,7 +110,7 @@ else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
     my $search = new Sling::Search( $url, $lwpUserAgent );
     if ( defined $searchTerm ) {
-        $search->search( $searchTerm, $path, $log );
+        $search->search( $searchTerm, $log );
         if ( ! defined $log ) {
             print $search->{ 'Message' } . "\n";
         }

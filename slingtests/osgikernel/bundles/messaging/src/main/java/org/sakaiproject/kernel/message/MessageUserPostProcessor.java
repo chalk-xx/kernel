@@ -39,8 +39,8 @@ import javax.jcr.Node;
 import javax.jcr.Session;
 
 /**
- * This PostProcessor listens to post operations on User objects and creates a
- * message store.
+ * This PostProcessor listens to post operations on User objects and creates a message
+ * store.
  * 
  * @scr.service interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -65,10 +65,9 @@ public class MessageUserPostProcessor implements UserPostProcessor {
    */
   private SlingRepository slingRepository;
 
-  public void process(SlingHttpServletRequest request,
-      List<Modification> changes) throws Exception {
+  public void process(SlingHttpServletRequest request, List<Modification> changes)
+      throws Exception {
     LOGGER.info("Starting MessageUserPostProcessor process");
-    Session session = slingRepository.loginAdministrative(null);
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     String principalName = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
@@ -79,20 +78,24 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         String pathPrivate = PathUtils.toInternalHashedPath(
             PersonalConstants._USER_PRIVATE, principalName,
             MessageConstants.FOLDER_MESSAGES);
-        System.out
-            .println("Getting/creating private profile node with messages: "
-                + pathPrivate);
+        System.out.println("Getting/creating private profile node with messages: "
+            + pathPrivate);
         Node messageStore = null;
-        if (session.itemExists(pathPrivate)) {
-          messageStore = (Node) session.getItem(pathPrivate);
+        Session session = slingRepository.loginAdministrative(null);
+        try {
+          if (session.itemExists(pathPrivate)) {
+            messageStore = (Node) session.getItem(pathPrivate);
+          }
+          messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+              MessageConstants.SAKAI_MESSAGESTORE_RT);
+          // TODO - Set correct ACL's!
+          if (session.hasPendingChanges()) {
+            session.save();
+          }
+        } finally {
+          session.logout();
         }
-        messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-        messageStore.setProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            MessageConstants.SAKAI_MESSAGESTORE_RT);
-        // TODO - Set correct ACL's!
-        session.save();
-        session.logout();
 
       }
     }

@@ -69,11 +69,11 @@ For full details run: perl authz.pl --man
 
 The following privileges are not yet supported, but may be soon:
 
- --(no-)lockManage      - Grant or deny the lockManagement privilege\n";
- --(no-)versionManage   - Grant or deny the versionManagement privilege\n";
- --(no-)nodeTypeManage  - Grant or deny the nodeTypeManagement privilege\n";
- --(no-)retentionManage - Grant or deny the retentionManagement privilege\n";
- --(no-)lifecycleManage - Grant or deny the lifeCycleManagement privilege\n";
+ --(no-)lockManage      - Grant or deny the lockManagement privilege
+ --(no-)versionManage   - Grant or deny the versionManagement privilege
+ --(no-)nodeTypeManage  - Grant or deny the nodeTypeManagement privilege
+ --(no-)retentionManage - Grant or deny the retentionManagement privilege
+ --(no-)lifecycleManage - Grant or deny the lifeCycleManagement privilege
 
 =cut
 #}}}

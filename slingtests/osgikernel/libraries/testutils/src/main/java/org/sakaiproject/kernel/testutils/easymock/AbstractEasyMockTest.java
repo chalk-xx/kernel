@@ -17,10 +17,21 @@
  */
 package org.sakaiproject.kernel.testutils.easymock;
 
+import static org.easymock.EasyMock.expect;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.junit.Before;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
+import javax.jcr.nodetype.PropertyDefinition;
 
 public class AbstractEasyMockTest {
   private List<Object> mocks;
@@ -44,4 +55,34 @@ public class AbstractEasyMockTest {
     org.easymock.EasyMock.verify(mocks.toArray());
   }
   
+  protected void addStringPropertyToNode(Node node, String propertyName,
+      String propertyValue) throws ValueFormatException, RepositoryException {
+    Property property = createMock(Property.class);
+    expect(property.getString()).andReturn(propertyValue).anyTimes();
+    PropertyDefinition definition = createMock(PropertyDefinition.class);
+    expect(property.getDefinition()).andReturn(definition).anyTimes();
+    expect(definition.isMultiple()).andReturn(false).anyTimes();
+
+    expect(node.hasProperty(propertyName)).andReturn(true);
+    expect(node.getProperty(propertyName)).andReturn(property);
+  }
+  
+  protected void addPropertyToNode(Node node, String propertyName, Value[] values) throws ValueFormatException, RepositoryException {
+    Property property = createMock(Property.class);
+    expect(property.getValues()).andReturn(values).anyTimes();
+    PropertyDefinition definition = createMock(PropertyDefinition.class);
+    expect(property.getDefinition()).andReturn(definition).anyTimes();
+    expect(definition.isMultiple()).andReturn(true).anyTimes();
+
+    expect(node.hasProperty(propertyName)).andReturn(true);
+    expect(node.getProperty(propertyName)).andReturn(property);
+  }
+  
+  protected void addStringRequestParameter(SlingHttpServletRequest request,
+      String key, String value) {
+    RequestParameter param = createMock(RequestParameter.class);
+    expect(param.getString()).andReturn(value).anyTimes();
+    expect(request.getRequestParameter(key)).andReturn(param);
+  }
+
 }

@@ -24,6 +24,8 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -45,6 +47,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
    *
    */
   private static final long serialVersionUID = -2663916166760531044L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(PersonalServlet.class);
 
   protected void hashRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException, ServletException {
@@ -52,7 +55,7 @@ public class PersonalServlet extends AbstractPersonalServlet {
      * Process the path to expand based on the user, then dispatch to the resource at that
      * location.
      */
-    System.out.println("Went into personal servlet");
+    LOGGER.info("Went into personal servlet");
     Resource baseResource = request.getResource();
     String uriPath = baseResource.getPath();
     String userId = request.getRemoteUser();

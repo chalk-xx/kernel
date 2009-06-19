@@ -15,6 +15,18 @@ class Hash
 
 end
 
+## Fix array handling
+module Net::HTTPHeader
+  def set_form_data(params, sep = '&')
+    self.body = params.map {|k, v| encode_kvpair(k, v) }.flatten.join(sep)
+    self.content_type = 'application/x-www-form-urlencoded'
+  end
+
+  def encode_kvpair(k, vs)
+    Array(vs).map {|v| "#{urlencode(k)}=#{urlencode(v.to_s)}" }
+  end
+end
+
 class WrappedCurlResponse
 
   def initialize(response)
@@ -138,6 +150,10 @@ module SlingInterface
 
     def get_node_props(path)
       return JSON.parse(get_node_props_json(path))
+    end
+
+    def update_node_props(path, props)
+      return execute_post("#{@server}#{path}", props)
     end
 
     def get_node_acl_json(path)
