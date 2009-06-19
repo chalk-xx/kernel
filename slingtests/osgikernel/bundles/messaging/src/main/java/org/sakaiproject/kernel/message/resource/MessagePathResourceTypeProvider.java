@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.message.resource;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
+import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public class MessagePathResourceTypeProvider extends AbstractPathResourceTypePro
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider#getResourceType()
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   @Override
   protected String getResourceType() {
