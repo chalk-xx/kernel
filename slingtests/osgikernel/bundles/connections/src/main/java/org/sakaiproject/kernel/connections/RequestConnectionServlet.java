@@ -28,7 +28,6 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.util.PathUtils;
-import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +70,7 @@ public class RequestConnectionServlet extends SlingAllMethodsServlet {
     Resource baseResource = request.getResource();
     final ResourceMetadata rm = baseResource.getResourceMetadata();
     
-    String pathInfo = connectionManager.requestConnection(baseResource);
+    String pathInfo = null; //FIXME
     String servletPath = rm.getResolutionPath();
     
     String[] pathParts = PathUtils.getNodePathParts(pathInfo);
