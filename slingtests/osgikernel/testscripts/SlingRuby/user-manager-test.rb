@@ -15,21 +15,31 @@ class TC_UserManagerTest < SlingTest
   end
 
   def test_create_group
-    g = create_group("testgroup")
+    g = create_group("g-testgroup")
     details = @um.get_group_props(g.name)
-    assert_equal("testgroup", details["properties"]["rep:principalName"], "Expected groupname to match")
+    assert_equal("g-testgroup", details["properties"]["rep:principalName"], "Expected groupname to match")
   end
 
   def test_group_deletion
-    g = @um.create_group("testgroup")
+    g = @um.create_group("g-testgroup")
     details = @um.get_group_props(g.name)
-    assert_equal("testgroup", details["properties"]["rep:principalName"], "Expected groupname to match")
+    assert_equal("g-testgroup", details["properties"]["rep:principalName"], "Expected groupname to match")
     profile = details["profile"]
     props = @s.get_node_props(profile[1..-1])
     assert_not_nil(props, "Expected group profile")
     @um.delete_group(g.name)
     res = @s.execute_get(@s.url_for(profile[1..-1] + ".json"))
     assert_equal("404", res.code, "Expected no group profile")
+  end
+
+  def test_invalid_group_create
+    g = @um.create_group("testgroup")
+    assert_nil(g, "Expected group not to be created")
+  end
+  
+  def test_invalid_user_create
+    u = @um.create_user("g-testuser")
+    assert_nil(u, "Expected user not to be created")
   end
 
 end

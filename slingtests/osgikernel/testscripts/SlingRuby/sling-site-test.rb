@@ -29,16 +29,16 @@ class TC_MySiteTest < SlingTest
   end
 
   def test_add_group_to_site
-   site_group = create_group("mysitegroup")
+   site_group = create_group("g-mysitegroup")
    test_site = create_site("somesite")
    test_site.add_group(site_group.name)
    groups = SlingSites::Site.get_groups("somesite", @s)
    assert_equal(1, groups.size, "Expected 1 group")
-   assert_equal("mysitegroup", groups[0], "Expected group to be added")
+   assert_equal("g-mysitegroup", groups[0], "Expected group to be added")
   end
 
   def test_join_unjoinable_site
-    site_group = create_group("mysitegroup")
+    site_group = create_group("g-mysitegroup")
     site_user = create_user("mysiteuser")
     test_site = create_site("someothersite")
     test_site.add_group(site_group.name)
@@ -49,11 +49,11 @@ class TC_MySiteTest < SlingTest
     assert_equal(0, members.size, "Expected no site members")
   end
 
-  def test_join
-    site_group = create_group("mysitegroup")
+  def do_join(site, group, user)
+    site_group = create_group(group)
     site_group.set_joinable(@s, "yes")
-    site_user = create_user("mysiteuser")
-    test_site = create_site("someothersite")
+    site_user = create_user(user)
+    test_site = create_site(site)
     test_site.add_group(site_group.name)
     test_site.set_joinable("yes")
     @s.switch_user(site_user)
@@ -62,6 +62,33 @@ class TC_MySiteTest < SlingTest
     assert_not_nil(members, "Expected to get member list")
     assert_equal(1, members.size, "Expected site members")
     assert_equal(site_user.name, members[0]["rep:userId"], "Expected user to match")
+    @s.switch_user(SlingUsers::User.admin_user)
+    return test_site
+  end
+
+  def test_join
+    return do_join("someothersite", "g-mysitegroup", "mysiteuser")    
+  end
+
+  def test_join_and_search
+    do_join("anothersite", "g-mysitegroup", "mysiteuser")
+    res = @s.update_node_props("anothersite", "fish" => "dog")
+    assert_equal(200, res.code.to_i, "Expected site property to be updated")
+    result = @search.search_for_site("dog")
+    assert_not_nil(result, "Expected results back")
+    assert(result["results"].size >= 1, "Expected at least one site")
+    created_site = result["results"].select { |r| r["path"] == "/anothersite" }
+    assert_equal(1, created_site.size, "Expected to find site with matching path")
+    assert_equal(1, created_site[0]["member-count"].to_i, "Expected single member")
+  end
+
+  def test_multi_group_join
+    site = do_join("anothersite", "g-mysitegroup", "mysiteuser")
+    group2 = create_group("g-sitegroup2")
+    group2.add_member(@s, "mysiteuser", "user")
+    site.add_group(group2.name)
+    members = site.get_members
+    assert_equal(1, members.size, "Expected a single member")
   end
 
 end

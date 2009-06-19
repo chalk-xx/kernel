@@ -62,14 +62,14 @@ sub set_results {
 
 #{{{sub search
 sub search {
-    my ( $search, $searchTerm, $path, $log ) = @_;
+    my ( $search, $searchTerm, $log ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = ${ $search->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm, $path ), $search->{ 'LWP' } ) );
+        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm ), $search->{ 'LWP' } ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_eval( \$res ) ) {
-	my $hits = () = ($res->content =~ /jcr:path/g);
+	my $hits = () = ($res->content =~ /jcr:uuid/g);
 	my $message = Sling::Print::dateTime .
 	    " Searching for \"$searchTerm\": Search OK. Found $hits hits.";
 	if ( defined $log && open( LOG, ">>$log" ) ) {
@@ -111,7 +111,7 @@ sub search_user {
 
 #{{{sub search_from_file
 sub search_from_file {
-    my ( $search, $file, $forkId, $numberForks, $path, $log ) = @_;
+    my ( $search, $file, $forkId, $numberForks, $log ) = @_;
     $forkId = 0 unless defined $forkId;
     $numberForks = 1 unless defined $numberForks;
     my $count = 0;
@@ -122,7 +122,7 @@ sub search_from_file {
 	    $_ =~ /^(.*?)$/;
 	    my $searchTerm = $1;
 	    if ( $searchTerm !~ /^$/ ) {
-                $search->search( $searchTerm, $path, $log );
+                $search->search( $searchTerm, $log );
 		Sling::Print::print_lock( $search->{ 'Message' } ) if ( ! defined $log );
 	    }
 	}

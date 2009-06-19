@@ -8,7 +8,6 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPRO
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import java.io.StringWriter;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
@@ -103,8 +101,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
   @Test
   public void testRepositoryExceptionHandling() throws Exception {
-    Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(null,
-        "foo");
+    Node queryNode = createMock(Node.class);
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     expect(queryNode.hasProperty(SAKAI_QUERY_LANGUAGE)).andThrow(
@@ -115,21 +112,18 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-    addStringRequestParameter(request, "items", "25");
-    addStringRequestParameter(request, "q", "foo");
 
     response = createMock(SlingHttpServletResponse.class);
     response.sendError(500, null);
     expectLastCall();
 
-    stringWriter = new StringWriter();
-    expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
 
     replay();
 
     searchServlet.doGet(request, response);
-    stringWriter.close();
+    
+    verify();
   }
 
   private void executeSimpleQueryWithNoResults(String queryParameter,
@@ -183,22 +177,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(queryNode.getSession()).andReturn(session);
 
     return queryNode;
-  }
-
-  private void addStringRequestParameter(SlingHttpServletRequest request,
-      String key, String value) {
-    RequestParameter param = createMock(RequestParameter.class);
-    expect(param.getString()).andReturn(value).anyTimes();
-    expect(request.getRequestParameter(key)).andReturn(param);
-  }
-
-  private void addStringPropertyToNode(Node node, String propertyName,
-      String propertyValue) throws ValueFormatException, RepositoryException {
-    Property property = createMock(Property.class);
-    expect(property.getString()).andReturn(propertyValue).anyTimes();
-
-    expect(node.hasProperty(propertyName)).andReturn(true);
-    expect(node.getProperty(propertyName)).andReturn(property);
   }
 
   private void executeQuery(Node queryNode) throws IOException,

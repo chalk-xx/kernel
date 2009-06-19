@@ -1,14 +1,11 @@
-package org.sakaiproject.kernel.search;
+package org.sakaiproject.kernel.search.processors;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.query.QueryResult;
 
 /**
  * Formats user profile node search results
@@ -20,15 +17,11 @@ import javax.jcr.query.QueryResult;
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
-public class NodeSearchResultProcessor implements SearchResultProcessor {
+public class NodeSearchResultProcessor extends AbstractSearchResultProcessor {
 
-  public void output(JSONWriter write, QueryResult result, int nitems) throws RepositoryException,
-      JSONException {
-    NodeIterator resultNodes = result.getNodes();
-    while (resultNodes.hasNext()) {
-      Node resultNode = resultNodes.nextNode();
-      ExtendedJSONWriter.writeNodeToWriter(write, resultNode);
-    }
+  @Override
+  protected void writeNode(JSONWriter write, Node resultNode) throws JSONException, RepositoryException {
+    ExtendedJSONWriter.writeNodeToWriter(write, resultNode);    
   }
 
 }

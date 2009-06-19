@@ -87,7 +87,6 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   protected User createDummyUserWithGroups(String userName, List<Group> groups) throws RepositoryException {
     User user = createMock(User.class);
     registerAuthorizable(user, userName);
-    expect(user.getID()).andReturn(userName).anyTimes();
     expect(user.memberOf()).andReturn(groups.iterator()).anyTimes();
     return user;
   }
@@ -96,6 +95,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
       throws RepositoryException {
     Principal authorizablePrincipal = createMock(Principal.class);
     expect(authorizable.getPrincipal()).andReturn(authorizablePrincipal).anyTimes();
+    expect(authorizable.getID()).andReturn(name).anyTimes();
     expect(authorizablePrincipal.getName()).andReturn(name).anyTimes();
     expect(userManager.getAuthorizable(eq(name))).andReturn(authorizable).anyTimes();
   }

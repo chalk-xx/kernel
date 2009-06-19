@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
@@ -59,6 +60,12 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     makeRequest();
   }
   
+  private void setupEmptyExtension() {
+    RequestPathInfo requestPathInfo = createMock(RequestPathInfo.class);
+    expect(request.getRequestPathInfo()).andReturn(requestPathInfo).anyTimes();
+    expect(requestPathInfo.getExtension()).andReturn(null).anyTimes();
+  }
+
   @Test
   public void testSiteException() throws RepositoryException, IOException, ServletException, SiteException
   {
@@ -68,6 +75,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     expect(siteService.getSiteTemplate(isA(Node.class))).andThrow(new SiteException(1, "Doom"));
     response.sendError(eq(1), isA(String.class));
 
+    setupEmptyExtension();
     preRequest();
     SiteGetServlet servlet = new SiteGetServlet();
     servlet.bindSiteService(siteService);
@@ -78,6 +86,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
 
   
   protected void makeRequest() throws ServletException, IOException {
+    setupEmptyExtension();
     preRequest();
     SiteGetServlet servlet = new SiteGetServlet();
     servlet.bindSiteService(siteService);
