@@ -37,39 +37,34 @@ import javax.jms.Session;
 
 /**
  * Bridge to pipe OSGi events into a JMS topic.
- *
- * @scr.component
+ * 
+ * @scr.component label="%bridge.name" description="%bridge.description"
  * @scr.service
  */
 public class OsgiJmsBridge implements EventHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(OsgiJmsBridge.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  /**
-   * @scr.property value="*"
-   *               name="org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics"
-   *               description=
-   *               "%org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics.description"
-   */
+  /** @scr.property value="*" private="true" */
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
   /** @scr.property value="tcp://localhost:61616" */
-  static final String BROKER_URL = "org.sakaiproject.kernel.events.OsgiJmsBridge.brokerUrl";
+  static final String BROKER_URL = "bridge.brokerUrl";
 
   /** @scr.property value="sakai.event.bridge" */
-  static final String CONNECTION_CLIENT_ID = "org.sakaiproject.kernel.events.OsgiJmsBridge.connectionClientId";
+  static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
   /** @scr.property value="sakai.event.bridge" */
-  static final String EVENT_JMS_TOPIC = "org.sakaiproject.kernel.events.OsgiJmsBridge.eventJmsTopic";
+  static final String EVENT_JMS_TOPIC = "bridge.eventJmsTopic";
 
   /** @scr.property value="false" options true="true" false="false" */
-  static final String SESSION_TRANSACTED = "org.sakaiproject.kernel.events.OsgiJmsBridge.sessionTransacted";
+  static final String SESSION_TRANSACTED = "bridge.sessionTransacted";
 
   /**
    * @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" options
    *               1="Auto Acknowledge" 2="Client Acknowledge"
    *               3="Lazy Acknowledge"
    */
-  static final String ACKNOWLEDGE_MODE = "org.sakaiproject.kernel.events.OsgiJmsBridge.acknowledgeMode";
+  static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
@@ -87,15 +82,17 @@ public class OsgiJmsBridge implements EventHandler {
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
 
-    String _brokerUrl = (String) props.get(EVENT_JMS_TOPIC);
+    String _brokerUrl = (String) props.get(BROKER_URL);
     if (diff(brokerUrl, _brokerUrl)) {
       brokerUrl = _brokerUrl;
-      LOG.info("Creating a new ActiveMQ Connection Factory");
-      connFactory = new ActiveMQConnectionFactory(brokerUrl);
+      LOGGER.info("Creating a new ActiveMQ Connection Factory");
+      //connFactory = new ActiveMQConnectionFactory(brokerUrl);
     }
   }
 
   public void handleEvent(Event event) {
+    LOGGER.debug("Receiving event {}", event);
+	/*
     Connection conn = null;
     try {
       // post to JMS
@@ -111,19 +108,18 @@ public class OsgiJmsBridge implements EventHandler {
         msg.setObject(name, obj);
       }
       client.send(msg);
-      LOG.debug("Message sent [client ID: {}, topic name: {}, type: {}]", new String[] {
-          connectionClientId, eventTopicName, event.getTopic() });
     } catch (JMSException e) {
-      LOG.error(e.getMessage(), e);
+      LOGGER.error(e.getMessage(), e);
     } finally {
       if (conn != null) {
         try {
           conn.close();
         } catch (JMSException e) {
-          LOG.warn(e.getMessage(), e);
+          LOGGER.warn(e.getMessage(), e);
         }
       }
     }
+	*/
   }
 
   private boolean diff(Object obj1, Object obj2) {
