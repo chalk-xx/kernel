@@ -82,16 +82,17 @@ public class OsgiJmsBridge implements EventHandler {
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
 
-    String _brokerUrl = (String) props.get(EVENT_JMS_TOPIC);
+    String _brokerUrl = (String) props.get(BROKER_URL);
     if (diff(brokerUrl, _brokerUrl)) {
       brokerUrl = _brokerUrl;
       LOGGER.info("Creating a new ActiveMQ Connection Factory");
-      connFactory = new ActiveMQConnectionFactory(brokerUrl);
+      //connFactory = new ActiveMQConnectionFactory(brokerUrl);
     }
   }
 
   public void handleEvent(Event event) {
     LOGGER.debug("Receiving event {}", event);
+	/*
     Connection conn = null;
     try {
       // post to JMS
@@ -118,6 +119,7 @@ public class OsgiJmsBridge implements EventHandler {
         }
       }
     }
+	*/
   }
 
   private boolean diff(Object obj1, Object obj2) {
