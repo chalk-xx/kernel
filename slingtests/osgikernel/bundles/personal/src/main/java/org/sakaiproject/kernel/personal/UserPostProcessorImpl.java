@@ -98,46 +98,49 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
-    LOGGER.info("Starting process");
-    String resourcePath = request.getRequestPathInfo().getResourcePath();
-    UserManager userManager = AccessControlUtil.getUserManager(request
-        .getResourceResolver().adaptTo(Session.class));
-    Authorizable authorizable = null;
-    String principalName = null;
-    LOGGER.info("resourcePath: " + resourcePath);
-    if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-      RequestParameter rpid = request
-          .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
-      if (rpid != null) {
-        principalName = rpid.getString();
+    try {
+      LOGGER.debug("Starting process with reques session {}",request.getResourceResolver().adaptTo(Session.class));
+      String resourcePath = request.getRequestPathInfo().getResourcePath();
+      UserManager userManager = AccessControlUtil.getUserManager(request
+          .getResourceResolver().adaptTo(Session.class));
+      Authorizable authorizable = null;
+      String principalName = null;
+      LOGGER.info("resourcePath: " + resourcePath);
+      if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+        RequestParameter rpid = request
+            .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
+        if (rpid != null) {
+          principalName = rpid.getString();
+          authorizable = userManager.getAuthorizable(principalName);
+          updateProperties(authorizable, principalName, false, changes);
+        }
+      } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
+        RequestParameter rpid = request
+            .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
+        if (rpid != null) {
+          principalName = rpid.getString();
+          authorizable = userManager.getAuthorizable(principalName);
+          updateProperties(authorizable, principalName, true, changes);
+        }
+      } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
+        principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
+        if (principalName.indexOf('/') != -1) {
+          return;
+        }
         authorizable = userManager.getAuthorizable(principalName);
         updateProperties(authorizable, principalName, false, changes);
-      }
-    } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-      RequestParameter rpid = request
-          .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
-      if (rpid != null) {
-        principalName = rpid.getString();
+      } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
+        principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
+        if (principalName.indexOf('/') != -1) {
+          return;
+        }
         authorizable = userManager.getAuthorizable(principalName);
         updateProperties(authorizable, principalName, true, changes);
       }
-    } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-      principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
-      if (principalName.indexOf('/') != -1) {
-        return;
-      }
-      authorizable = userManager.getAuthorizable(principalName);
-      updateProperties(authorizable, principalName, false, changes);
-    } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-      principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
-      if (principalName.indexOf('/') != -1) {
-        return;
-      }
-      authorizable = userManager.getAuthorizable(principalName);
-      updateProperties(authorizable, principalName, true, changes);
+      fireEvent(request, principalName, changes);
+    } catch (Exception ex) {
+      LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
     }
-    fireEvent(request, principalName, changes);
-
   }
 
   /**
@@ -154,6 +157,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       boolean isGroup, List<Modification> changes) throws PathNotFoundException,
       VersionException, LockException, ConstraintViolationException, RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
+    LOGGER.debug("Using Session {} ",session);
     try {
       Node profileNode = null;
       Iterator<?> inames = null;
@@ -206,10 +210,10 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           }
         }
       }
-    } finally {
       if (session.hasPendingChanges()) {
         session.save();
       }
+    } finally {
       session.logout();
     }
   }
