@@ -41,7 +41,7 @@ import javax.servlet.ServletOutputStream;
  * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/connectionstore"
+ * @scr.property name="sling.servlet.resourceTypes" values="sakai/contactstore"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="remove"
  */

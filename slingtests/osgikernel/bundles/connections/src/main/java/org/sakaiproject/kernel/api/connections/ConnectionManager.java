@@ -17,7 +17,8 @@
  */
 package org.sakaiproject.kernel.api.connections;
 
-import org.apache.sling.api.resource.Resource;
+import javax.jcr.Node;
+import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperations;
 
 /**
  * The connection manager manages state changes on connections with friends.
@@ -25,57 +26,27 @@ import org.apache.sling.api.resource.Resource;
 public interface ConnectionManager {
 
   /**
-   * Request a connection be made with a user in the store that contains the resource
+   * Request a connection be made with a user in the store that contains the resource,
+   * this will create a connection node which represents the connection between two users
    * 
-   * @param store a {@link Resource} contained within the connection store.
+   * @param node a JCR node which represents the path to the contacts node (the base of the connections storage)
    * @param userId
    *          the user to connect to.
-   * @param type
-   *          the type to associate with the user.
-   * @return a path to the resource representing the connection.
+   * @param types
+   *          the types of this connection (e.g. friend of, professor of, student of)
+   * @return the path to the connection node
    */
-  String invite(Resource store, String userId, String type) throws ConnectionException;
+  String request(Node node, String requesterUserId, String targetUserId, String[] types) throws ConnectionException;
 
-  
   /**
-   * Accept a connection in the store from the user.
-   * @param store a {@link Resource} contained within the connection store.
+   * Handle a connection operation from the current user to another user
+   * 
+   * @param node a JCR node which represents the path to the contacts node (the base of the connections storage)
    * @param userId the id of the user sending the invitation.
+   * @param operation the operation to perform when connecting (accept, reject, etc.)
+   * @return the path to the connection node
    * @throws ConnectionException 
    */
-  void accept(Resource store, String userId) throws ConnectionException;
-  
-  /**
-   * Reject an invitation in the store for the user. 
-   * @param store a {@link Resource} contained within the connection store.
-   * @param userId the id of the user sending the invitation.
-   */
-  void reject(Resource store, String userId) throws ConnectionException;
-  
-  /**
-   * Ignore an invitation from a user in the store identified by store.
-   * @param store a {@link Resource} contained within the connection store.
-   * @param userId the id of the user sending the invitation.
-   */
-  void ignore(Resource store, String userId) throws ConnectionException;
-  
-  /**
-   * Block this and future invitations from the user
-   * @param store a {@link Resource} contained within the connection store.
-   * @param userId the id of the user sending the invitation.
-   */
-  void block(Resource store, String userId) throws ConnectionException;
-  
-  /**
-   * Cancel an invitation.
-   * @param store a {@link Resource} contained within the connection store.
-   * @param userId the id of the user sending the invitation.
-   */
-  void cancel(Resource store, String userId) throws ConnectionException;
-  
-  /**
-   * @param store a {@link Resource} contained within the connection store.
-   * @param userId the id of the user sending the invitation.
-   */
-  void remove(Resource store, String userId) throws ConnectionException;
+  String connect(Node node, String userId, ConnectionOperations operation) throws ConnectionException;
+
 }

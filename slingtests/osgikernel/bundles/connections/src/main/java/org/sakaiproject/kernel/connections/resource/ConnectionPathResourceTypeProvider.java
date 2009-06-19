@@ -17,12 +17,12 @@
  */
 package org.sakaiproject.kernel.connections.resource;
 
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONNECTIONSTORE_RT;
+import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONTACTSTORE_RT;
 
 import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
 
 /**
- * This class checks resource paths to see if there is a prefered resoruce type, where the
+ * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
  * @scr.component immediate="true" label="MessagePathResourceTypeProvider"
@@ -39,7 +39,7 @@ public class ConnectionPathResourceTypeProvider extends AbstractPathResourceType
    */
   @Override
   protected String getResourceType() {
-    return SAKAI_CONNECTIONSTORE_RT;
+    return SAKAI_CONTACTSTORE_RT;
   }
 
 }

@@ -39,7 +39,7 @@ import javax.servlet.ServletOutputStream;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/connectionstore"
+ * @scr.property name="sling.servlet.resourceTypes" values="sakai/contactstore"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="request"
  */
@@ -50,7 +50,7 @@ public class RequestConnectionServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(RequestConnectionServlet.class);
+  .getLogger(RequestConnectionServlet.class);
   private ConnectionManager connectionManager;
 
   /**
@@ -62,17 +62,17 @@ public class RequestConnectionServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
-      throws javax.servlet.ServletException, java.io.IOException {
+  throws javax.servlet.ServletException, java.io.IOException {
     request.setAttribute(CONNECTION_OPERATION, request.getMethod());
 
     LOGGER.info("ServletPath " + request.getPathInfo());
 
     Resource baseResource = request.getResource();
     final ResourceMetadata rm = baseResource.getResourceMetadata();
-    
+
     String pathInfo = null; //FIXME
     String servletPath = rm.getResolutionPath();
-    
+
     String[] pathParts = PathUtils.getNodePathParts(pathInfo);
 
     final String finalPath = PathUtils.toInternalHashedPath(servletPath, pathParts[0], pathParts[1]);

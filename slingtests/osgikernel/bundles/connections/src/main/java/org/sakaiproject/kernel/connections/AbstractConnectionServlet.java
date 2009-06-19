@@ -26,17 +26,8 @@ import java.io.IOException;
 
 import javax.servlet.ServletException;
 
-/**
- * 
- */
 public abstract class AbstractConnectionServlet extends SlingAllMethodsServlet {
 
-  /**
-   *
-   */
-  /**
-   *
-   */
   private static final long serialVersionUID = 7894134023341453341L;
 
   /**
@@ -50,7 +41,6 @@ public abstract class AbstractConnectionServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     hashRequest(request, response);
   }
-
 
   /**
    * {@inheritDoc}
@@ -97,7 +87,5 @@ public abstract class AbstractConnectionServlet extends SlingAllMethodsServlet {
    */
   protected abstract void hashRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException;
-
-
 
 }

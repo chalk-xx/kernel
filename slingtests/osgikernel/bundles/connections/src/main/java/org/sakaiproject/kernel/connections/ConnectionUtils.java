@@ -40,8 +40,7 @@ public class ConnectionUtils {
    *          a resource within the store.
    * @param resourceType
    *          the type to stop at when a node is found
-   * @return the Node that is the root node of the store, or null if the
-   *         resource does not come from a store.
+   * @return the first Node that matches the resourceType OR null if none found
    * @throws RepositoryException
    */
   public static Node getStoreNode(Resource store, String resourceType) throws RepositoryException {
@@ -51,6 +50,37 @@ public class ConnectionUtils {
     Session session = store.getResourceResolver().adaptTo(Session.class);
     String path = store.getPath();
     Node node = JcrUtils.getFirstExistingNode(session, path);
+    return findNode(resourceType, node);
+  }
+
+  /**
+   * Gets the first node which matches a given type starting at the current node
+   * 
+   * @param node
+   *          a node within the store.
+   * @param resourceType
+   *          the type to stop at when a node is found
+   * @return the first Node that matches the resourceType OR null if none found
+   * @throws RepositoryException
+   */
+  public static Node getStoreNode(Node node, String resourceType) throws RepositoryException {
+    if (node == null || resourceType == null) {
+      throw new IllegalArgumentException("store and resourceType must be set");
+    }
+    Session session = node.getSession();
+    String path = node.getPath();
+    Node n = JcrUtils.getFirstExistingNode(session, path);
+    return findNode(resourceType, n);
+  }
+
+  /**
+   * @param resourceType the type to limit the search by
+   * @param node the node to start searching from
+   * @return the first Node that matches the resourceType OR null if none found
+   * @throws RepositoryException
+   */
+  private static Node findNode(String resourceType, Node node)
+      throws RepositoryException {
     while (!"/".equals(node.getPath())) {
       if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
           && resourceType.equals(node.getProperty(
