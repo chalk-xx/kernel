@@ -30,7 +30,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -69,9 +68,6 @@ import javax.jcr.version.VersionException;
  *                description="Post Processor for User and Group operations" metatype="no"
  * @scr.property name="service.description"
  *               value="Post Processes User and Group operations"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
  * @scr.reference name="EventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
  * 
@@ -85,11 +81,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private EventAdmin eventAdmin;
 
-  /**
-   * The JCR Repository we access to update profile.
-   * 
-   */
-  private SlingRepository slingRepository;
 
   /**
    * @param request
@@ -262,21 +253,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return profileNodeForAuthorizable(authorizable.getID(), authorizable.isGroup());
   }
 
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   // event processing
   // -----------------------------------------------------------------------------

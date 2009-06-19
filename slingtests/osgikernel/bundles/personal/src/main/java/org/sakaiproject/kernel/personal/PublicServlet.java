@@ -17,64 +17,35 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
-
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/personalPublic"
- * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST" values.2="PUT"
- *               values.3="DELETE"
+ * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
+ *               values.2="PUT" values.3="DELETE"
  */
-public class PublicServlet extends AbstractPersonalServlet {
+public class PublicServlet extends AbstractVirtualPathServlet {
 
   /**
    *
    */
   private static final long serialVersionUID = -2663916166760531044L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(PublicServlet.class);
 
-  protected void hashRequest(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws IOException, ServletException {
-    /*
-     * Process the path to expand based on the user, then dispatch to the resource at that
-     * location.
-     */
-    
-    
-    LOGGER.info("+++++++++++++++++++++++++++++++=========== In public servlet ");
-    Resource baseResource = request.getResource();
-    String uriPath = baseResource.getPath();
-    String relativePath = uriPath.substring(_USER_PUBLIC.length());
-    String[] pathParts = PathUtils.getNodePathParts(relativePath);
-    String resourcePath = PathUtils.toInternalHashedPath(_USER_PUBLIC, pathParts[0], pathParts[1]);
-
-    Resource resource = request.getResourceResolver().resolve(resourcePath);
-    if (resource instanceof NonExistingResource) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND,
-          "Resource does not exist (non existant)");
-      return;
-    }
-    if (resource == null) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND,
-          "Resource does not exist (null)");
-      return;
-    }
-    request.getRequestDispatcher(resource).forward(request, response);
-
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.personal.AbstractPersonalServlet#getTargetPath(org.apache.sling.api.resource.Resource,
+   *      org.apache.sling.api.SlingHttpServletRequest)
+   */
+  @Override
+  protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request, String realPath, String virtualPath) {
+    String[] pathParts = PathUtils.getNodePathParts(virtualPath);
+    return PathUtils.toInternalHashedPath(realPath, pathParts[0], pathParts[1]);
   }
 
 }
