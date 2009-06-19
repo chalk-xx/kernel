@@ -44,23 +44,32 @@ import javax.jms.Session;
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  /** @scr.property value="" */
-  static final String BROKER_URL = "brokerUrl";
-
-  /** @scr.property value="sakai.event.bridge" */
-  static final String CONNECTION_CLIENT_ID = "connectionClientId";
-
-  /** @scr.property value="*" */
+  /**
+   * @scr.property value="*"
+   *               name="org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics"
+   *               description=
+   *               "%org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics.description"
+   */
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
+  /** @scr.property value="tcp://localhost:61616" */
+  static final String BROKER_URL = "org.sakaiproject.kernel.events.OsgiJmsBridge.brokerUrl";
+
   /** @scr.property value="sakai.event.bridge" */
-  static final String EVENT_JMS_TOPIC = "eventJmsTopic";
+  static final String CONNECTION_CLIENT_ID = "org.sakaiproject.kernel.events.OsgiJmsBridge.connectionClientId";
 
-  /** @scr.property value="false" */
-  static final String SESSION_TRANSACTED = "sessionTransacted";
+  /** @scr.property value="sakai.event.bridge" */
+  static final String EVENT_JMS_TOPIC = "org.sakaiproject.kernel.events.OsgiJmsBridge.eventJmsTopic";
 
-  /** @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" */
-  static final String ACKNOWLEDGE_MODE = "acknowledgeMode";
+  /** @scr.property value="false" options true="true" false="false" */
+  static final String SESSION_TRANSACTED = "org.sakaiproject.kernel.events.OsgiJmsBridge.sessionTransacted";
+
+  /**
+   * @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" options
+   *               1="Auto Acknowledge" 2="Client Acknowledge"
+   *               3="Lazy Acknowledge"
+   */
+  static final String ACKNOWLEDGE_MODE = "org.sakaiproject.kernel.events.OsgiJmsBridge.acknowledgeMode";
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
@@ -105,13 +114,13 @@ public class OsgiJmsBridge implements EventHandler {
       LOG.debug("Message sent [client ID: {}, topic name: {}, type: {}]", new String[] {
           connectionClientId, eventTopicName, event.getTopic() });
     } catch (JMSException e) {
-      LOG.error("Unable to cross post event from OSGi to JMS: " + e.getMessage(), e);
+      LOG.error(e.getMessage(), e);
     } finally {
       if (conn != null) {
         try {
           conn.close();
         } catch (JMSException e) {
-          LOG.warn("Unable to close JMS connection: " + e.getMessage(), e);
+          LOG.warn(e.getMessage(), e);
         }
       }
     }
