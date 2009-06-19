@@ -55,5 +55,11 @@ public interface PersonalConstants {
    * The resource type for the public group store.
    */
   public static final String GROUP_PUBLIC_RESOURCE_TYPE = "sakai/groupPublic";
+  
+  /**
+  *
+  */
+ public static final String PERSONAL_OPERATION = "org.sakaiproject.kernel.personal.operation";
+
 
 }

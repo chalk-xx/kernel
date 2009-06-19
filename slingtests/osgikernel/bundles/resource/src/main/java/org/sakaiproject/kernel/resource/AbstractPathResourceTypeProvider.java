@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.apache.sling.jcr.resource;
+package org.sakaiproject.kernel.resource;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.JcrResourceConstants;

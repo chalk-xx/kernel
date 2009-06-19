@@ -30,7 +30,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -69,9 +68,6 @@ import javax.jcr.version.VersionException;
  *                description="Post Processor for User and Group operations" metatype="no"
  * @scr.property name="service.description"
  *               value="Post Processes User and Group operations"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
  * @scr.reference name="EventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
  * 
@@ -85,11 +81,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private EventAdmin eventAdmin;
 
-  /**
-   * The JCR Repository we access to update profile.
-   * 
-   */
-  private SlingRepository slingRepository;
 
   /**
    * @param request
@@ -99,10 +90,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
     try {
-      LOGGER.debug("Starting process with reques session {}",request.getResourceResolver().adaptTo(Session.class));
-      String resourcePath = request.getRequestPathInfo().getResourcePath();
-      UserManager userManager = AccessControlUtil.getUserManager(request
+      LOGGER.debug("Starting process with reques session {}", request
           .getResourceResolver().adaptTo(Session.class));
+      String resourcePath = request.getRequestPathInfo().getResourcePath();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable authorizable = null;
       String principalName = null;
       LOGGER.info("resourcePath: " + resourcePath);
@@ -112,7 +104,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          updateProperties(authorizable, principalName, false, changes);
+          updateProperties(session, authorizable, principalName, false, changes);
         }
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
         RequestParameter rpid = request
@@ -120,7 +112,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          updateProperties(authorizable, principalName, true, changes);
+          updateProperties(session, authorizable, principalName, true, changes);
         }
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
@@ -128,14 +120,14 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           return;
         }
         authorizable = userManager.getAuthorizable(principalName);
-        updateProperties(authorizable, principalName, false, changes);
+        updateProperties(session, authorizable, principalName, false, changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
           return;
         }
         authorizable = userManager.getAuthorizable(principalName);
-        updateProperties(authorizable, principalName, true, changes);
+        updateProperties(session, authorizable, principalName, true, changes);
       }
       fireEvent(request, principalName, changes);
     } catch (Exception ex) {
@@ -153,68 +145,61 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @throws VersionException
    * @throws PathNotFoundException
    */
-  private void updateProperties(Authorizable authorizable, String principalName,
-      boolean isGroup, List<Modification> changes) throws PathNotFoundException,
-      VersionException, LockException, ConstraintViolationException, RepositoryException {
-    Session session = slingRepository.loginAdministrative(null);
-    LOGGER.debug("Using Session {} ",session);
-    try {
-      Node profileNode = null;
-      Iterator<?> inames = null;
-      if (authorizable != null) {
-        profileNode = createProfileNode(session, authorizable);
-        inames = authorizable.getPropertyNames();
+  private void updateProperties(Session session, Authorizable authorizable,
+      String principalName, boolean isGroup, List<Modification> changes)
+      throws PathNotFoundException, VersionException, LockException,
+      ConstraintViolationException, RepositoryException {
+    LOGGER.debug("Using Session {} ", session);
+    Node profileNode = null;
+    Iterator<?> inames = null;
+    if (authorizable != null) {
+      profileNode = createProfileNode(session, authorizable);
+      inames = authorizable.getPropertyNames();
+    }
+    for (Modification m : changes) {
+      String dest = m.getDestination();
+      if (dest == null) {
+        dest = m.getSource();
       }
-      for (Modification m : changes) {
-        String dest = m.getDestination();
-        if (dest == null) {
-          dest = m.getSource();
-        }
-        switch (m.getType()) {
-        case DELETE:
-          if (!dest.endsWith(principalName) && profileNode != null) {
-            String propertyName = PathUtils.lastElement(dest);
-            if (profileNode.hasProperty(propertyName)) {
-              Property prop = profileNode.getProperty(propertyName);
-              changes.add(Modification.onDeleted(prop.getPath()));
-              prop.remove();
-            }
-          } else {
-            deleteProfileNode(session, principalName, isGroup);
+      switch (m.getType()) {
+      case DELETE:
+        if (!dest.endsWith(principalName) && profileNode != null) {
+          String propertyName = PathUtils.lastElement(dest);
+          if (profileNode.hasProperty(propertyName)) {
+            Property prop = profileNode.getProperty(propertyName);
+            changes.add(Modification.onDeleted(prop.getPath()));
+            prop.remove();
           }
-          break;
+        } else {
+          deleteProfileNode(session, principalName, isGroup);
         }
+        break;
       }
+    }
 
-      if (profileNode == null) {
-        return;
-      }
+    if (profileNode == null) {
+      return;
+    }
 
-      // build a blacklist set of properties that should be kept private
-      Set<String> privateProperties = new HashSet<String>();
-      if (profileNode.hasProperty(PRIVATE_PROPERTIES)) {
-        Value[] pp = profileNode.getProperty(PRIVATE_PROPERTIES).getValues();
-        for (Value v : pp) {
-          privateProperties.add(v.getString());
+    // build a blacklist set of properties that should be kept private
+    Set<String> privateProperties = new HashSet<String>();
+    if (profileNode.hasProperty(PRIVATE_PROPERTIES)) {
+      Value[] pp = profileNode.getProperty(PRIVATE_PROPERTIES).getValues();
+      for (Value v : pp) {
+        privateProperties.add(v.getString());
+      }
+    }
+    // copy the non blacklist set of properties into the users profile.
+    while (inames.hasNext()) {
+      String propertyName = (String) inames.next();
+      if (!privateProperties.contains(propertyName)) {
+        Value[] v = authorizable.getProperty(propertyName);
+        if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
+            propertyName).getDefinition().isProtected())) {
+          Property prop = profileNode.setProperty(propertyName, v);
+          changes.add(Modification.onModified(prop.getPath()));
         }
       }
-      // copy the non blacklist set of properties into the users profile.
-      while (inames.hasNext()) {
-        String propertyName = (String) inames.next();
-        if (!privateProperties.contains(propertyName)) {
-          Value[] v = authorizable.getProperty(propertyName);
-          if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
-              propertyName).getDefinition().isProtected())) {
-            Property prop = profileNode.setProperty(propertyName, v);
-            changes.add(Modification.onModified(prop.getPath()));
-          }
-        }
-      }
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-    } finally {
-      session.logout();
     }
   }
 
@@ -268,21 +253,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return profileNodeForAuthorizable(authorizable.getID(), authorizable.isGroup());
   }
 
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   // event processing
   // -----------------------------------------------------------------------------
