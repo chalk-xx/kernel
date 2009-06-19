@@ -22,7 +22,7 @@ multivalue some are single value.
 One of the properties is "sakai:state"
 
 To create a new connection Aaron would POST to
-/_user/contacts/aaron.invite.html with a post parameter of 'nico'
+/_user/contacts.invite.html with a post parameter of 'nico'
 creates
 /_user/contacts/ed/3e/4d/cd/aaron/34/e2/f5/dd/nico
 +
@@ -35,13 +35,43 @@ sakai:state = 'invited'
 and any other properties you care to use.
 
 To accept Nico would POST to
-/_user/contacts/nico/aaron.accept.html
+/_user/contacts/aaron.accept.html
 
 any properties would appear on the .../nico/.../aaron/ node and the  
 state of both nodes would be changed to 'connected'
 
 To cancel Aaron would POST to
-/_user/contacts/aaron/nico.cancel.html 
+/_user/contacts/nico.cancel.html 
+
+More examples:
+Logged in as Aaron
+/_user/contacts.invite.html with nico as a post parameter
+
+/_user/contacts/nico.cancel.html
+
+Logged in as Nico
+/_user/contacts/aaron.accept.html
+/_user/contacts/aaron.reject.html
+/_user/contacts/aaron.block.html
+/_user/contacts/aaron.ignore.html
+
+If accepted Aaron
+/_user/contacts/nico.remove.html
+
+and Nico
+/_user/contacts/aaron.remove.html
+
+
+For nico to see a contact
+/_user/contacts/aaron.html
+
+
+To find all pendings we probably want
+/_user/contacts.invited.html
+
+The default view
+/_user/contacts.html
+
 
 It uses a bigstore underneath the users public space protected by a group to store 
 the connections.
