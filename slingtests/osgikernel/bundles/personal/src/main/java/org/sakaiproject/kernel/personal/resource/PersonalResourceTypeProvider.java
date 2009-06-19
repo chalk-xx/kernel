@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.personal.resource;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PUBLIC_RESOURCE_TYPE;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PRIVATE_RESOURCE_TYPE;
 
 import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
 
@@ -40,7 +40,7 @@ public class PersonalResourceTypeProvider extends AbstractPathResourceTypeProvid
    */
   @Override
   protected String getResourceType() {
-    return USER_PUBLIC_RESOURCE_TYPE;
+    return USER_PRIVATE_RESOURCE_TYPE;
   }
 
 

@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants.*;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -35,14 +35,12 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" valueref="TARGET_RESOURCE_TYPE"
- * @scr.property name="sling.servlet.methods" value.0="GET" value.1="POST" value.2="PUT"
- *               value.3="DELETE"
+ * @scr.property name="sling.servlet.resourceTypes" value="sakai/personalPrivate"
+ * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST" values.2="PUT"
+ *               values.3="DELETE"
  */
 public class PersonalServlet extends AbstractPersonalServlet {
 
-  @SuppressWarnings("unused")
-  private static final String TARGET_RESOURCE_TYPE = USER_PRIVATE_RESOURCE_TYPE;
   /**
    *
    */

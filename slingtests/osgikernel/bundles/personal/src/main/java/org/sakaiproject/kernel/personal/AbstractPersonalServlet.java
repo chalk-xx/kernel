@@ -76,7 +76,7 @@ public abstract class AbstractPersonalServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    LOGGER.info("Processing {}",request.getRequestURI());
+    LOGGER.info("Personal Servlet Processing {}",request.getRequestURI());
     hashRequest(request, response);
   }
   
