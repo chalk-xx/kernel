@@ -20,8 +20,6 @@ package org.sakaiproject.kernel.message.resource;
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
 import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the

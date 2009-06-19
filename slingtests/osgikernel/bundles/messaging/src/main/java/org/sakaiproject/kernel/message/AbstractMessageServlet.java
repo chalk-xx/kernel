@@ -17,10 +17,11 @@
  */
 package org.sakaiproject.kernel.message;
 
-import static org.sakaiproject.kernel.api.message.MessageConstants.*;
+import static org.sakaiproject.kernel.api.message.MessageConstants.MESSAGE_OPERATION;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 
 import java.io.IOException;
 
@@ -29,75 +30,28 @@ import javax.servlet.ServletException;
 /**
  * 
  */
-public abstract class AbstractMessageServlet extends SlingAllMethodsServlet {
+public abstract class AbstractMessageServlet extends AbstractVirtualPathServlet {
 
-  /**
-   *
-   */
   /**
    *
    */
   private static final long serialVersionUID = 7894134023341453341L;
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.message.AbstractMessageServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
-   */
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    hashRequest(request, response);
-  }
-
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#hashRequest(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doDelete(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
-    hashRequest(request, response);
+  public void hashRequest(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws IOException, ServletException {
+    String method = request.getMethod();
+    if ("GET|HEAD|OPTIONS".indexOf(method) > 0) {
+      request.setAttribute(MESSAGE_OPERATION, request.getMethod());
+    }
+    super.hashRequest(request, response);
   }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
-    hashRequest(request, response);
-  }
-  
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.SlingHttpServletResponse)
-   */
-  @Override
-  protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    request.setAttribute(MESSAGE_OPERATION, request.getMethod());
-    hashRequest(request, response);
-  }
-
-  /**
-   * @param request
-   * @param response
-   * @throws IOException 
-   * @throws ServletException 
-   */
-  protected abstract void hashRequest(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException;
-
-
 
 }
