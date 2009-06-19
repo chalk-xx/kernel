@@ -81,21 +81,14 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         System.out.println("Getting/creating private profile node with messages: "
             + pathPrivate);
         Node messageStore = null;
-        Session session = slingRepository.loginAdministrative(null);
-        try {
-          if (session.itemExists(pathPrivate)) {
-            messageStore = (Node) session.getItem(pathPrivate);
-          }
-          messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.SAKAI_MESSAGESTORE_RT);
-          // TODO - Set correct ACL's!
-          if (session.hasPendingChanges()) {
-            session.save();
-          }
-        } finally {
-          session.logout();
+        Session session = request.getResourceResolver().adaptTo(Session.class);
+        if (session.itemExists(pathPrivate)) {
+          messageStore = (Node) session.getItem(pathPrivate);
         }
+        messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            MessageConstants.SAKAI_MESSAGESTORE_RT);
+        // TODO - Set correct ACL's!
 
       }
     }
