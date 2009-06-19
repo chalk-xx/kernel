@@ -42,7 +42,7 @@
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Private-Package>org.sakaiproject.kernel.events</Private-Package>
-            <Import-Package>javax.jms,org.slf4j</Import-Package>
+            <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

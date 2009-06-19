@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiprojet.kernel.events;
+package org.sakaiproject.kernel.events;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.osgi.service.component.ComponentContext;
@@ -75,12 +75,13 @@ public class OsgiJmsBridge implements EventHandler {
 
     eventTopicName = (String) props.get(EVENT_JMS_TOPIC);
     transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
-    acknowledgeMode = Integer.parseInt((String) props.get(ACKNOWLEDGE_MODE));
+    acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
 
     String _brokerUrl = (String) props.get(EVENT_JMS_TOPIC);
     if (diff(brokerUrl, _brokerUrl)) {
       brokerUrl = _brokerUrl;
+      LOG.info("Creating a new ActiveMQ Connection Factory");
       connFactory = new ActiveMQConnectionFactory(brokerUrl);
     }
   }
@@ -101,6 +102,8 @@ public class OsgiJmsBridge implements EventHandler {
         msg.setObject(name, obj);
       }
       client.send(msg);
+      LOG.debug("Message sent [client ID: {}, topic name: {}, type: {}]", new String[] {
+          connectionClientId, eventTopicName, event.getTopic() });
     } catch (JMSException e) {
       LOG.error("Unable to cross post event from OSGi to JMS: " + e.getMessage(), e);
     } finally {
