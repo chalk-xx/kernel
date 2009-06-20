@@ -32,7 +32,15 @@ public interface SearchConstants {
   /**
   *
   */
-  public static final String PARAMS_ITEMS = "items";
+  public static final String PARAMS_ITEMS_PER_PAGE = "items";
+  /**
+  *
+  */
+  public static final String PARAMS_PAGE = "page";
+  /**
+  *
+  */
+  public static final String TOTAL = "total";
   /**
   *
   */

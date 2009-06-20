@@ -20,8 +20,8 @@ package org.sakaiproject.kernel.api.search;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.query.QueryResult;
 
 /**
  * 
@@ -32,9 +32,10 @@ public interface SearchResultProcessor {
    * @param write
    * @param result
    * @param nitems
+   * @param nitems2 
    * @throws JSONException 
    * @throws RepositoryException 
    */
-  void output(JSONWriter write, QueryResult result, int nitems) throws RepositoryException, JSONException;
+  void output(JSONWriter write, NodeIterator results, long start, long end) throws RepositoryException, JSONException;
 
 }
