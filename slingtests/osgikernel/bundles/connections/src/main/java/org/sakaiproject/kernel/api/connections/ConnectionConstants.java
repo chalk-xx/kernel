@@ -39,9 +39,6 @@ public interface ConnectionConstants {
    */
   public static final String SAKAI_CONTACT_USERCONTACT_RT = "sakai/contactusercontact";
 
-  /**
-   *
-   */
   public static final String CONNECTION_OPERATION = "org.sakaiproject.kernel.connection.operation";
 
   public static final String SAKAI_CONNECTION_STATE = "sakai:state";
@@ -63,10 +60,10 @@ public interface ConnectionConstants {
   }
 
   /**
-   * Indicates the operations which are valid for making connections
+   * Indicates the operations which are valid for dealing with connections
    */
   public enum ConnectionOperations {
-    REQUEST("request"), ACCEPT("accept"), REJECT("reject"), IGNORE("ignore"), BLOCK("block");
+    REQUEST("request"), ACCEPT("accept"), REJECT("reject"), IGNORE("ignore"), BLOCK("block"), CANCEL("cancel"), REMOVE("remove");
     private ConnectionOperations(String name) {
       this.name = name;
     }

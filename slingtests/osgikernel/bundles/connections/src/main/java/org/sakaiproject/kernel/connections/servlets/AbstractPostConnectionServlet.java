@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.connections.servlets;
 
+import static org.sakaiproject.kernel.api.connections.ConnectionConstants.CONNECTION_OPERATION;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -54,6 +56,7 @@ public abstract class AbstractPostConnectionServlet extends
   protected boolean preDispatch(SlingHttpServletRequest request,
       SlingHttpServletResponse response, Resource baseResource,
       Resource resource) {
+    request.setAttribute(CONNECTION_OPERATION, OPERATION);
     // POST request only
     String requesterUserId = request.getRemoteUser(); // current user
     String targetUserId = (String) request.getAttribute(TARGET_USERID);

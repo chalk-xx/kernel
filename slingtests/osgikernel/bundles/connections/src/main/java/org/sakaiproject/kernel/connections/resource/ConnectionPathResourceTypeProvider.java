@@ -25,9 +25,9 @@ import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
  * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="MessagePathResourceTypeProvider"
- *                description="Message Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Message resources"
+ * @scr.component immediate="true" label="ConnectionPathResourceTypeProvider"
+ *                description="Connections Service path resource type provider"
+ * @scr.property name="service.description" value="Handles requests for Connections resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */

@@ -83,6 +83,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (Exception e) {
       // other failures return false
+      LOGGER.debug("Failure checking for valid user ("+userId+"): " + e);
       valid = false;
     }
     return valid;
@@ -355,6 +356,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
                 ConnectionStates.REJECT.toString());
           }
           // TODO what should happen if there is no request?
+
+        } else if (ConnectionOperations.CANCEL.equals(operation)
+            || ConnectionOperations.REMOVE.equals(operation)) {
+          // get rid of the contacts nodes
+          requesterNode.remove();
+          targetNode.remove();
 
         } else {
           // TODO handle the other states?
