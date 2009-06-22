@@ -17,7 +17,9 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PRIVATE;
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PUBLIC;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
 import static org.sakaiproject.kernel.api.user.UserConstants.AUTH_PROFILE;
 import static org.sakaiproject.kernel.api.user.UserConstants.PRIVATE_PROPERTIES;
@@ -30,7 +32,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -82,15 +83,13 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private EventAdmin eventAdmin;
 
-
-
   /**
    * @param request
    * @param changes
    * @throws Exception
    */
-  public void process(Session session, SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception {
+  public void process(Session session, SlingHttpServletRequest request,
+      List<Modification> changes) throws Exception {
     try {
       LOGGER.debug("Starting process with reques session {}", request
           .getResourceResolver().adaptTo(Session.class));
@@ -155,6 +154,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     Iterator<?> inames = null;
     if (authorizable != null) {
       profileNode = createProfileNode(session, authorizable);
+
       inames = authorizable.getPropertyNames();
     }
     for (Modification m : changes) {
@@ -172,7 +172,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             prop.remove();
           }
         } else {
-          deleteProfileNode(session, principalName, isGroup);
+          deleteProfileNode(session, authorizable);
         }
         break;
       }
@@ -212,20 +212,27 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private Node createProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = profileNodeForAuthorizable(authorizable);
+    String path = hashPublicNode(authorizable, AUTH_PROFILE);
     System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
+    String publicPath = hashPrivateNode(authorizable, "");
+    if (!session.itemExists(publicPath)) {
+      Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
+      publicNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
+    }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
+    profileNode.getParent().setProperty(UserConstants.JCR_CREATED_BY,
+        authorizable.getID());
     return profileNode;
   }
 
-  private void deleteProfileNode(Session session, String principalName, boolean isGroup)
+  private void deleteProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = profileNodeForAuthorizable(principalName, isGroup);
+    String path = hashPublicNode(authorizable, AUTH_PROFILE);
     if (session.itemExists(path)) {
       Node node = (Node) session.getItem(path);
       node.remove();
@@ -240,20 +247,27 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
   }
 
-  private String profileNodeForAuthorizable(String principalName, boolean isGroup)
+  private String hashPublicNode(Authorizable authorizable, String path)
       throws RepositoryException {
-    if (isGroup) {
-      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, principalName, AUTH_PROFILE);
+    if (authorizable.isGroup()) {
+      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getPrincipal()
+          .getName(), path);
     } else {
-      return PathUtils.toInternalHashedPath(_USER_PUBLIC, principalName, AUTH_PROFILE);
+      return PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getPrincipal()
+          .getName(), path);
     }
   }
 
-  private String profileNodeForAuthorizable(Authorizable authorizable)
+  private String hashPrivateNode(Authorizable authorizable, String path)
       throws RepositoryException {
-    return profileNodeForAuthorizable(authorizable.getID(), authorizable.isGroup());
+    if (authorizable.isGroup()) {
+      return PathUtils.toInternalHashedPath(_GROUP_PRIVATE, authorizable.getPrincipal()
+          .getName(), path);
+    } else {
+      return PathUtils.toInternalHashedPath(_USER_PRIVATE, authorizable.getPrincipal()
+          .getName(), path);
+    }
   }
-
 
   // event processing
   // -----------------------------------------------------------------------------
@@ -327,7 +341,5 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
   }
-  
-  
 
 }
