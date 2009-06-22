@@ -34,6 +34,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.List;
@@ -110,6 +112,9 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
    */
   private static final long serialVersionUID = 6587376522316825454L;
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(CreateSakaiGroupServlet.class);
+
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
@@ -139,7 +144,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
     if (principalName == null) {
       throw new RepositoryException("Group name was not submitted");
     }
-    
+
     if (!principalName.startsWith("g-")) {
       throw new RepositoryException("Group names must begin with 'g-'");
     }
@@ -179,16 +184,17 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
 
         // update the group memberships
         updateGroupMembership(request, group, changes);
+        try {
+          for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+            userPostProcessor.process(session, request, changes);
+          }
+        } catch (Exception e) {
+          LOGGER.warn(e.getMessage(), e);
+          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
       }
     } catch (RepositoryException re) {
       throw new RepositoryException("Failed to create new group.", re);
-    }
-    try {
-      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(request, changes);
-      }
-    } catch (Exception e) {
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 

@@ -24,10 +24,13 @@ import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -86,6 +89,9 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
    */
   private static final long serialVersionUID = 3417673949322305891L;
 
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteAuthorizableServlet.class);
+
   
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
@@ -98,10 +104,13 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       List<Modification> changes) throws RepositoryException {
     super.handleOperation(request, response, changes);
     try {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(request, changes);
+        userPostProcessor.process(session, request, changes);
       }
     } catch (Exception e) {
+      LOGGER.warn(e.getMessage(),e);
+
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
