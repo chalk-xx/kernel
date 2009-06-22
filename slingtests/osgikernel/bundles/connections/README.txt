@@ -118,6 +118,3 @@ connect cancel
  
 connect remove
  Only on a local connection = remote = connected | rejected
- 
- 
-
