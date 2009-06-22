@@ -32,13 +32,6 @@ import org.sakaiproject.kernel.util.StringUtils;
 /**
  * This handles the connections servlet code that is shared between the various
  * servlets which are assigned to the connection operations
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" values.0="POST"
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
 public abstract class AbstractConnectionServlet extends
     AbstractVirtualPathServlet {

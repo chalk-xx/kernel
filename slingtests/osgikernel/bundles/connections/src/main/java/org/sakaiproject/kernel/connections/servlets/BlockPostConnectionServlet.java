@@ -30,7 +30,7 @@ import org.sakaiproject.kernel.api.connections.ConnectionConstants;
  * @scr.reference name="ConnectionManager"
  *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
-public abstract class BlockPostConnectionServlet extends
+public class BlockPostConnectionServlet extends
     AbstractPostConnectionServlet {
 
   private static final long serialVersionUID = 111L;

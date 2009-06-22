@@ -17,26 +17,21 @@
  */
 package org.sakaiproject.kernel.connections.servlets;
 
-import org.sakaiproject.kernel.api.connections.ConnectionConstants;
 
 /**
- * This handles POST requests for requesting connections
+ * This handles the connections requests which are not POST requests since they
+ * are all handled the same way (which is to say, there is nothing special that needs
+ * to be done)
  * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="cancel"
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
+ * @scr.property name="sling.servlet.methods" values.0="GET" values.1="PUT"
+ *               values.2="DELETE"
  */
-public class CancelPostConnectionServlet extends
-    AbstractPostConnectionServlet {
+public class StandardConnectionServlet extends
+    AbstractConnectionServlet {
 
-  private static final long serialVersionUID = 111L;
-
-  public CancelPostConnectionServlet() {
-    setOPERATION(ConnectionConstants.ConnectionOperations.CANCEL);
-  }
+  private static final long serialVersionUID = 333L;
 
 }

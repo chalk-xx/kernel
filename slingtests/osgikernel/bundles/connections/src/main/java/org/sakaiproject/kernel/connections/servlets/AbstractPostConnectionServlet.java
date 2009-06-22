@@ -33,22 +33,15 @@ import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOpe
 /**
  * This handles the connections servlet code that is shared between the POST
  * servlets which deal with connections
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" values.0="POST"
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
 public abstract class AbstractPostConnectionServlet extends
     AbstractConnectionServlet {
 
   private static final long serialVersionUID = 2222996718559864951L;
 
-  public ConnectionOperations OPERATION = ConnectionConstants.ConnectionOperations.REQUEST;
+  protected ConnectionOperations OPERATION = ConnectionConstants.ConnectionOperations.REQUEST;
 
-  public void setOPERATION(ConnectionOperations operation) {
+  protected void setOPERATION(ConnectionOperations operation) {
     OPERATION = operation;
   }
 
