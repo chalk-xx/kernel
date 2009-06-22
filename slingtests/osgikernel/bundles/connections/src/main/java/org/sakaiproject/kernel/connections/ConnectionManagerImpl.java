@@ -129,6 +129,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   // SERVICE INTERFACE METHODS
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.connections.ConnectionManager#request(org.apache.sling.api.resource.Resource, java.lang.String, java.lang.String[], java.lang.String)
+   */
   public String request(Resource resource, String userId, String[] types,
       String requesterUserId) throws ConnectionException {
     // node is the contacts node: e.g. /_user/contacts
@@ -166,20 +170,21 @@ public class ConnectionManagerImpl implements ConnectionManager {
       try {
         // get the contact userstore nodes
         Node requesterStoreNode = ConnectionUtils.getStorageNode(session,
-            contactsPath, requesterUserId, false,
+            contactsPath, requesterUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
         Node targetStoreNode = ConnectionUtils.getStorageNode(session,
-            contactsPath, targetUserId, false,
+            contactsPath, targetUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
         // get the user contact nodes
         Node requesterNode = ConnectionUtils.getStorageNode(requesterStoreNode
-            .getSession(), requesterStoreNode.getPath(), targetUserId, false,
+            .getSession(), requesterStoreNode.getPath(), targetUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERCONTACT_RT);
         Node targetNode = ConnectionUtils.getStorageNode(targetStoreNode
-            .getSession(), targetStoreNode.getPath(), requesterUserId, false,
+            .getSession(), targetStoreNode.getPath(), requesterUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERCONTACT_RT);
         // SPECIAL check - if the other user already requested this connection
         // then make both accepted
+        // check the current states
         ConnectionStates targetState = getConnectionState(targetNode);
         if (ConnectionStates.REQUEST.equals(targetState)) {
           // these users are requesting each other so set states to accept
@@ -192,19 +197,25 @@ public class ConnectionManagerImpl implements ConnectionManager {
               types);
           // no change to the other properties is needed
         } else {
-          // now add the properties to indicate the initial states
-          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
-              ConnectionStates.REQUEST.toString());
-          targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
-              ConnectionStates.PENDING.toString());
-          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
-              types);
-          targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
-              types);
-          requesterNode.setProperty(
-              ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
-          targetNode.setProperty(
-              ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
+          if (ConnectionStates.IGNORE.equals(targetState)
+              || ConnectionStates.REJECT.equals(targetState)
+              || ConnectionStates.BLOCK.equals(targetState)) {
+            // do not do anything since we want to be left alone (I think this is right)
+          } else {
+            // set to pending request states
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.REQUEST.toString());
+            targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.PENDING.toString());
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+                types);
+            targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+                types);
+            requesterNode.setProperty(
+                ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
+            targetNode.setProperty(
+                ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
+          }
         }
         path = targetNode.getPath();
         // save changes if any were actually made
@@ -216,102 +227,153 @@ public class ConnectionManagerImpl implements ConnectionManager {
         adminSession.logout();
       }
     } catch (RepositoryException e) {
-      // general failure
+      // general repo failure
       throw new ConnectionException(500, e.getMessage(), e);
     }
     return path;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.connections.ConnectionManager#connect(org.apache.sling.api.resource.Resource, java.lang.String, org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperations, java.lang.String)
+   */
   public String connect(Resource resource, String userId,
       ConnectionOperations operation, String requesterUserId)
       throws ConnectionException {
-    // TODO Auto-generated method stub
-    return null;
+    if (resource == null) {
+      throw new IllegalArgumentException("resource cannot be null");
+    }
+    if (userId == null || "".equals(userId)) {
+      throw new IllegalArgumentException("userId cannot be null");
+    }
+    String targetUserId = userId;
+    if (operation == null) {
+      throw new IllegalArgumentException("operation cannot be null");
+    }
+    String path;
+    try {
+      Session session = resource.getResourceResolver().adaptTo(Session.class);
+      if (requesterUserId == null || "".equals(requesterUserId)) {
+        // default to the current user
+        requesterUserId = getCurrentUserId(session);
+      }
+      String contactsPath = resource.getPath();
+      // fail is the supplied users are invalid
+      if (!checkValidUserId(session, requesterUserId)) {
+        throw new ConnectionException(404,
+            "Invalid requesterUserId specified for connection: "
+                + requesterUserId);
+      }
+      if (!checkValidUserId(session, targetUserId)) {
+        throw new ConnectionException(404,
+            "Invalid targetUserId specified for connection: " + targetUserId);
+      }
+      if (!checkValidUserId(session, userId)) {
+        throw new ConnectionException(404,
+            "Invalid userId specified for connection: " + userId);
+      }
+      Session adminSession = slingRepository.loginAdministrative(null);
+      try {
+        // get the contact userstore nodes
+        Node requesterStoreNode = ConnectionUtils.getStorageNode(session,
+            contactsPath, requesterUserId, false,
+            null);
+        if (requesterStoreNode == null) {
+          throw new ConnectionException(404, "No userStore node exists for user ("+requesterUserId+")");
+        }
+        Node targetStoreNode = ConnectionUtils.getStorageNode(session,
+            contactsPath, targetUserId, false,
+            null);
+        if (targetStoreNode == null) {
+          throw new ConnectionException(404, "No userStore node exists for user ("+targetUserId+")");
+        }
+        // get the user contact nodes
+        Node requesterNode = ConnectionUtils.getStorageNode(requesterStoreNode
+            .getSession(), requesterStoreNode.getPath(), targetUserId, false,
+            null);
+        if (requesterNode == null) {
+          throw new ConnectionException(404, "No requesterNode exists for user ("+requesterUserId+") in userstore for ("+targetUserId+")");
+        }
+        Node targetNode = ConnectionUtils.getStorageNode(targetStoreNode
+            .getSession(), targetStoreNode.getPath(), requesterUserId, false, null);
+        if (targetNode == null) {
+          throw new ConnectionException(404, "No targetNode exists for user ("+targetUserId+") in userstore for ("+requesterUserId+")");
+        }
+        // check the current states
+        ConnectionStates requesterState = getConnectionState(requesterNode);
+        ConnectionStates targetState = getConnectionState(targetNode);
+
+        if (ConnectionOperations.REQUEST.equals(operation)) {
+          if (ConnectionStates.REQUEST.equals(targetState)) {
+            // if we request each other then just accept both
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.ACCEPT.toString());
+            targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.ACCEPT.toString());
+          } else {
+            if (ConnectionStates.IGNORE.equals(targetState)
+                || ConnectionStates.REJECT.equals(targetState)
+                || ConnectionStates.BLOCK.equals(targetState)) {
+              // do not do anything (I think this is right)
+            } else {
+              // set to pending
+              requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                  ConnectionStates.REQUEST.toString());
+              targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                  ConnectionStates.PENDING.toString());
+            }
+          }
+
+        } else if (ConnectionOperations.ACCEPT.equals(operation)) {
+          if (ConnectionStates.REQUEST.equals(targetState)) {
+            if (ConnectionStates.PENDING.equals(requesterState)) {
+              requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                  ConnectionStates.ACCEPT.toString());
+              targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                  ConnectionStates.ACCEPT.toString());
+            }
+          }
+          // TODO what should happen if the states do not match?
+
+        } else if (ConnectionOperations.IGNORE.equals(operation)) {
+          if (ConnectionStates.REQUEST.equals(targetState)) {
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.IGNORE.toString());
+          }
+          // TODO what should happen if there is no request?
+
+        } else if (ConnectionOperations.BLOCK.equals(operation)) {
+          if (ConnectionStates.REQUEST.equals(targetState)) {
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.BLOCK.toString());
+          }
+          // TODO what should happen if there is no request?
+
+        } else if (ConnectionOperations.REJECT.equals(operation)) {
+          if (ConnectionStates.REQUEST.equals(targetState)) {
+            requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+                ConnectionStates.REJECT.toString());
+          }
+          // TODO what should happen if there is no request?
+
+        } else {
+          // TODO handle the other states?
+          throw new IllegalArgumentException(
+              "Don't know how to handle this operation (yet): " + operation);
+        }
+        path = targetNode.getPath();
+        // save changes if any were actually made
+        if (adminSession.hasPendingChanges()) {
+          adminSession.save();
+        }
+      } finally {
+        // destroy the admin session
+        adminSession.logout();
+      }
+    } catch (RepositoryException e) {
+      throw new ConnectionException(500, e.getMessage(), e);
+    }
+    return path;
   }
-
-
-  /**
-   * @param store
-   *          the resource from the request
-   * @param userId
-   *          id of the user the connection request is directed to
-   * @param operation
-   *          the connection operation to perform
-   * @param types
-   *          the types of this connection (e.g. friend of, professor of,
-   *          student of)
-   * @throws ConnectionException
-   */
-  // private void handleConnectionOperation(Resource store, String userId,
-  // ConnectionOperations operation, String[] types)
-  // throws ConnectionException {
-  // if (store == null) {
-  // throw new IllegalArgumentException("store cannot be null");
-  // }
-  // if (userId == null || "".equals(userId)) {
-  // throw new IllegalArgumentException("userId cannot be null");
-  // }
-  // if (operation == null) {
-  // throw new IllegalArgumentException("operation cannot be null");
-  // }
-  // try {
-  // Session session = store.getResourceResolver().adaptTo(Session.class);
-  // String currentUserId = getCurrentUserId(session);
-  // if (!checkValidUserId(session, userId)) {
-  // throw new ConnectionException(404,
-  // "Invalid userId specified for connection: " + userId);
-  // }
-  // // contacts node
-  // Node contactsNode = getStoreNode(session, store);
-  // // contacts node of the other user
-  // Node otherUserNode = getLocalStoreNode(session, contactsNode.getPath(),
-  // userId);
-  // // get the state of the connection with the given user for the given node
-  // ConnectionStates otherUserState = getConnectionState(otherUserNode,
-  // userId);
-  // // contacts node of the current user
-  // Node curUserNode = getLocalStoreNode(session, contactsNode.getPath(),
-  // currentUserId);
-  // // state of the node for the current user
-  // ConnectionStates curUserState = getConnectionState(curUserNode, userId);
-  // if (ConnectionOperations.REQUEST.equals(operation)) {
-  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
-  // // if we request each other then just accept both
-  // updateContactNodes(userId, currentUserId, otherUserNode, curUserNode,
-  // ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
-  // } else {
-  // if (ConnectionStates.IGNORE.equals(otherUserState)
-  // || ConnectionStates.REJECT.equals(otherUserState)
-  // || ConnectionStates.BLOCK.equals(otherUserState)) {
-  // // do not do anything (I think this is right)
-  // } else {
-  // // set to pending
-  // updateContactNodes(userId, currentUserId, otherUserNode,
-  // curUserNode, ConnectionStates.PENDING, ConnectionStates.REQUEST);
-  // }
-  // }
-  //
-  // } else if (ConnectionOperations.ACCEPT.equals(operation)) {
-  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
-  // if (ConnectionStates.PENDING.equals(curUserState)) {
-  // updateContactNodes(userId, currentUserId, otherUserNode,
-  // curUserNode, ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
-  // }
-  // }
-  //
-  // } else if (ConnectionOperations.IGNORE.equals(operation)) {
-  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
-  // setConnectionState(curUserNode, ConnectionStates.IGNORE, userId);
-  // }
-  //
-  // } else {
-  // // TODO handle the other states
-  // throw new IllegalArgumentException(
-  // "Don't know how to handle this operation (yet): " + operation);
-  // }
-  // } catch (RepositoryException e) {
-  // throw new ConnectionException(500, e.getMessage(), e);
-  // }
-  // }
 
 }

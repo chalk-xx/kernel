@@ -30,9 +30,9 @@ public class StringUtils {
   public static final String UTF8 = "UTF8";
 
   /**
-   * @param packageName
-   * @param c
-   * @return
+   * @param st
+   * @param sep
+   * @return an array of the strings between the separator
    */
   public static String[] split(String st, char sep) {
 
@@ -71,10 +71,14 @@ public class StringUtils {
   }
 
   /**
-   * @param resourceReference
-   * @param c
-   * @param i
-   * @return
+   * Split a string based on a character with limited number of items returned,
+   * this will return nothing if maxElements is 0,
+   * this will removing leading and trailing split chars
+   * 
+   * @param st the string to split
+   * @param sep the char to split on
+   * @param maxElements the max number of elements to return in the array
+   * @return an array of the strings between the separator
    */
   public static String[] split(String st, char sep, int maxElements) {
     if (st == null) {

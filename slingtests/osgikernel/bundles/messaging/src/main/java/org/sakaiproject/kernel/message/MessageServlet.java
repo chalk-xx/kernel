@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.util.PathUtils;
 
@@ -38,12 +39,12 @@ public class MessageServlet extends AbstractMessageServlet {
    * {@inheritDoc}
    * 
    * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getTargetPath(org.apache.sling.api.resource.Resource,
-   *      org.apache.sling.api.SlingHttpServletRequest, java.lang.String,
-   *      java.lang.String)
+   *      org.apache.sling.api.SlingHttpServletRequest, SlingHttpServletResponse,
+   *      java.lang.String, java.lang.String)
    */
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
-      String realPath, String virtualPath) {
+      SlingHttpServletResponse response, String realPath, String virtualPath) {
     String[] parts = PathUtils.getNodePathParts(virtualPath);
     return PathUtils.toInternalHashedPath(realPath, parts[0], parts[1]);
   }

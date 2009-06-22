@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.personal;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -43,7 +44,7 @@ public class PublicServlet extends AbstractVirtualPathServlet {
    *      org.apache.sling.api.SlingHttpServletRequest)
    */
   @Override
-  protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request, String realPath, String virtualPath) {
+  protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request, SlingHttpServletResponse response, String realPath, String virtualPath) {
     String[] pathParts = PathUtils.getNodePathParts(virtualPath);
     return PathUtils.toInternalHashedPath(realPath, pathParts[0], pathParts[1]);
   }
