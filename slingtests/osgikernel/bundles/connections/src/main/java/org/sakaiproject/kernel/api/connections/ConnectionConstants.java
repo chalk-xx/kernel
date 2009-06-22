@@ -44,15 +44,9 @@ public interface ConnectionConstants {
    */
   public static final String CONNECTION_OPERATION = "org.sakaiproject.kernel.connection.operation";
 
-  /**
-   * This is the prefix for the property which stored user connections state and user
-   */
-  public static final String SAKAI_CONNECTION_PREFIX = "sakai:connection:";
-
-  /**
-   * This is the suffix for the property which stored user connections types
-   */
-  public static final String SAKAI_CONNECTION_TYPES_SUFFIX = ":types";
+  public static final String SAKAI_CONNECTION_STATE = "sakai:state";
+  public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
+  public static final String SAKAI_CONNECTION_REQUESTER = "sakai:requester";
 
   /**
    * 

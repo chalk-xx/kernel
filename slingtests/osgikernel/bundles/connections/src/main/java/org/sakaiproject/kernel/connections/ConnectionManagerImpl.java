@@ -17,11 +17,6 @@
  */
 package org.sakaiproject.kernel.connections;
 
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONNECTION_PREFIX;
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONNECTION_TYPES_SUFFIX;
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONTACTSTORE_RT;
-
-import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -29,16 +24,13 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.connections.ConnectionConstants;
 import org.sakaiproject.kernel.api.connections.ConnectionException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperations;
 import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionStates;
-import org.sakaiproject.kernel.api.session.SessionManagerService;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
-import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,287 +44,94 @@ import org.slf4j.LoggerFactory;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
+ * @scr.reference name="SlingRepository"
+ *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class ConnectionManagerImpl implements ConnectionManager {
 
   private static final Logger LOGGER = LoggerFactory
-  .getLogger(ConnectionManagerImpl.class);
+      .getLogger(ConnectionManagerImpl.class);
 
-  protected UserFactoryService userFactoryService;
-
-  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = null;
+  protected SlingRepository slingRepository;
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
   }
-
-  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = userFactoryService;
-  }
-
-  /**
-   * @param store
-   *          the resource from the request
-   * @param userId
-   *          id of the user the connection request is directed to
-   * @param operation
-   *          the connection operation to perform
-   * @param types
-   *          the types of this connection (e.g. friend of, professor of, student of)
-   * @throws ConnectionException
-   */
-  private void handleConnectionOperation(Resource store, String userId,
-      ConnectionOperations operation, String[] types) throws ConnectionException {
-    if (store == null) {
-      throw new IllegalArgumentException("store cannot be null");
-    }
-    if (userId == null || "".equals(userId)) {
-      throw new IllegalArgumentException("userId cannot be null");
-    }
-    if (operation == null) {
-      throw new IllegalArgumentException("operation cannot be null");
-    }
-    try {
-      Session session = store.getResourceResolver().adaptTo(Session.class);
-      String currentUserId = getCurrentUserId(session);
-      if (!checkValidUserId(session, userId)) {
-        throw new ConnectionException(404,
-            "Invalid userId specified for connection: " + userId);
-      }
-      // contacts node
-      Node contactsNode = getStoreNode(session, store);
-      // contacts node of the other user
-      Node otherUserNode = getLocalStoreNode(session, contactsNode.getPath(),
-          userId);
-      // get the state of the connection with the given user for the given node
-      ConnectionStates otherUserState = getConnectionState(otherUserNode,
-          userId);
-      // contacts node of the current user
-      Node curUserNode = getLocalStoreNode(session, contactsNode.getPath(),
-          currentUserId);
-      // state of the node for the current user
-      ConnectionStates curUserState = getConnectionState(curUserNode, userId);
-      if (ConnectionOperations.REQUEST.equals(operation)) {
-        if (ConnectionStates.REQUEST.equals(otherUserState)) {
-          // if we request each other then just accept both
-          updateContactNodes(userId, currentUserId, otherUserNode, curUserNode,
-              ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
-        } else {
-          if (ConnectionStates.IGNORE.equals(otherUserState)
-              || ConnectionStates.REJECT.equals(otherUserState)
-              || ConnectionStates.BLOCK.equals(otherUserState)) {
-            // do not do anything (I think this is right)
-          } else {
-            // set to pending
-            updateContactNodes(userId, currentUserId, otherUserNode,
-                curUserNode, ConnectionStates.PENDING, ConnectionStates.REQUEST);
-          }
-        }
-
-      } else if (ConnectionOperations.ACCEPT.equals(operation)) {
-        if (ConnectionStates.REQUEST.equals(otherUserState)) {
-          if (ConnectionStates.PENDING.equals(curUserState)) {
-            updateContactNodes(userId, currentUserId, otherUserNode,
-                curUserNode, ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
-          }
-        }
-
-      } else if (ConnectionOperations.IGNORE.equals(operation)) {
-        if (ConnectionStates.REQUEST.equals(otherUserState)) {
-          setConnectionState(curUserNode, ConnectionStates.IGNORE, userId);
-        }
-
-      } else {
-        // TODO handle the other states
-        throw new IllegalArgumentException(
-            "Don't know how to handle this operation (yet): " + operation);
-      }
-    } catch (RepositoryException e) {
-      throw new ConnectionException(500, e.getMessage(), e);
-    }
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 
   /**
-   * This makes the setting of the states on 2 nodes more modular to reduce code
-   * repetition
-   * 
-   * @param otherUserId
-   *          id of the user the request is directed to
-   * @param currentUserId
-   *          the current requesting user
-   * @param otherUserNode
-   *          contacts node of the user the request is directed to
-   * @param curUserNode
-   *          contacts node of the current requesting user
-   * @param otherState
-   *          state to set the otherUserNode to
-   * @param curUserState
-   *          state to set the curUserNode to
-   * @throws ConnectionException
+   * Check to see if a userId is actually a valid one
+   * @param session the JCR session
+   * @param userId the userId to check
+   * @return
    */
-  private void updateContactNodes(String otherUserId, String currentUserId,
-      Node otherUserNode, Node curUserNode, ConnectionStates otherState,
-      ConnectionStates curUserState) throws ConnectionException {
-    try {
-      setConnectionState(curUserNode, curUserState, otherUserId);
-      setConnectionState(otherUserNode, otherState, currentUserId);
-      Session curUserSession = curUserNode.getSession();
-      if (curUserSession.hasPendingChanges()) {
-        curUserSession.save();
-      }
-    } catch (RepositoryException e) {
-      throw new ConnectionException(500, e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Set the state of a connection.
-   * 
-   * @param connectionNode
-   *          the connection node
-   * @param state
-   *          the state
-   * @param userId
-   *          the id of the other user
-   * @throws RepositoryException
-   */
-  private void setConnectionState(Node connectionNode, ConnectionStates state,
-      String userId) throws RepositoryException {
-    String userConnectionName = SAKAI_CONNECTION_PREFIX + userId;
-    connectionNode.setProperty(userConnectionName, state.toString());
-  }
-
-  /**
-   * Set the types for a connection
-   * 
-   * @param connectionNode
-   *          the connection node
-   * @param types
-   *          the connection types (friend, student, etc.)
-   * @param userId
-   *          the id of the other user
-   * @throws RepositoryException
-   */
-  private void setConnectionTypes(Node connectionNode, String[] types,
-      String userId) throws RepositoryException {
-    String userConnectionTypeName = SAKAI_CONNECTION_PREFIX + userId + SAKAI_CONNECTION_TYPES_SUFFIX;
-    connectionNode.setProperty(userConnectionTypeName, types);
-  }
-
-  private boolean checkValidUserId(Session session, String userId) {
+  private boolean checkValidUserId(Session session, String userId) throws ConnectionException {
     boolean valid = false;
     Authorizable authorizable;
     try {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
-      if ( authorizable.isGroup() ) {
+      if (authorizable.isGroup()) {
         // not a user
         valid = false;
       } else {
         valid = true;
       }
+    } catch (RepositoryException e) {
+      // general repo failure
+      throw new ConnectionException(500, e.getMessage(), e);
     } catch (Exception e) {
+      // other failures return false
       valid = false;
     }
     return valid;
   }
 
+  /**
+   * Get the current user id
+   * 
+   * @param session
+   *          the JCR session
+   * @return the current user OR null if there is no current user
+   */
   private String getCurrentUserId(Session session) {
     /*
      * use request.getRemoteUser() or session.getUserId() to get a session user
      * request.getResourceResolver().adaptTo(Session.class);
      */
     return session.getUserID();
-    //return sessionManagerService.getCurrentUserId();
+    // return sessionManagerService.getCurrentUserId();
   }
 
   /**
-   * @param localStore
-   * @return
+   * Get the connection state from a node
+   * 
+   * @param userContactNode
+   *          the node to check (should be a user contact node)
+   * @return the connection state (may be NONE)
    * @throws ConnectionException
    * @throws RepositoryException
    */
-  private ConnectionStates getConnectionState(Node connectionNode, String userId)
-  throws ConnectionException, RepositoryException {
-    if (connectionNode == null) {
-      throw new ConnectionException(404, "Cant find invitation from user "
-          + userId);
+  private ConnectionStates getConnectionState(Node userContactNode)
+      throws ConnectionException, RepositoryException {
+    if (userContactNode == null) {
+      throw new IllegalArgumentException(
+          "Node cannot be null to check for connection state");
     }
-
-    String userConnectionName = SAKAI_CONNECTION_PREFIX + userId;
-    if (!connectionNode.hasProperty(userConnectionName)) {
-      throw new ConnectionException(404, "Cant find invitation from user, "
-          + userId + " (not an invitation)");
+    ConnectionStates state = ConnectionStates.NONE;
+    if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
+      state = ConnectionStates.valueOf(userContactNode.getProperty(
+          ConnectionConstants.SAKAI_CONNECTION_STATE).getString());
     }
-    try {
-      return ConnectionStates.valueOf(connectionNode.getProperty(
-          userConnectionName).getString());
-    } catch (IllegalArgumentException e) {
-      return ConnectionStates.NONE;
-    }
-
+    return state;
   }
 
-  /**
-   * Get the a node within the store.
-   * 
-   * @param session
-   *          the current session.
-   * @param path
-   * @param userId
-   * @return
-   * @throws RepositoryException
-   */
-  private Node getLocalStoreNode(Session session, String path, String userId)
-  throws RepositoryException {
-    String localStorePath = path + PathUtils.getHashedPath(userId, 4);
-    if (session.itemExists(localStorePath)) {
-      Item storeItem = session.getItem(localStorePath); // JcrUtils.deepGetOrCreateNode(session, localStorePath);
-      if (storeItem.isNode()) {
-        return (Node) storeItem;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Gets the base node of the store.
-   * 
-   * @param session
-   *          the session to use to perform the search with.
-   * @param store
-   *          a resource within the store.
-   * @return the Node that is the root node of the store, or null if the
-   *         resource does not come from a store.
-   * @throws RepositoryException
-   */
-  private Node getStoreNode(Session session, Resource store)
-  throws RepositoryException {
-    String path = store.getPath();
-    Node node = JcrUtils.getFirstExistingNode(session, path);
-    while (!"/".equals(node.getPath())) {
-      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-          && SAKAI_CONTACTSTORE_RT.equals(node.getProperty(
-              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-        LOGGER.debug(" {} is a connection store file, base is {}  ", path, node
-            .getPath());
-        return node;
-      }
-      node = node.getParent();
-    }
-    return null;
-  }
-
-  public String connect(Resource resource, String userId,
-      ConnectionOperations operation, String requesterUserId)
-      throws ConnectionException {
-    // TODO Auto-generated method stub
-    return null;
-  }
+  // SERVICE INTERFACE METHODS
 
   public String request(Resource resource, String userId, String[] types,
       String requesterUserId) throws ConnectionException {
-    // node is the contacts node: /_user/contacts
+    // node is the contacts node: e.g. /_user/contacts
     if (resource == null) {
       throw new IllegalArgumentException("node cannot be null");
     }
@@ -345,6 +144,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       // is this ok?
       types = new String[] {};
     }
+    String path;
     try {
       Session session = resource.getResourceResolver().adaptTo(Session.class);
       if (requesterUserId == null || "".equals(requesterUserId)) {
@@ -355,43 +155,163 @@ public class ConnectionManagerImpl implements ConnectionManager {
       // fail is the supplied users are invalid
       if (!checkValidUserId(session, requesterUserId)) {
         throw new ConnectionException(404,
-            "Invalid requesterUserId specified for connection: " + requesterUserId);
+            "Invalid requesterUserId specified for connection: "
+                + requesterUserId);
       }
       if (!checkValidUserId(session, targetUserId)) {
         throw new ConnectionException(404,
             "Invalid targetUserId specified for connection: " + targetUserId);
       }
-      // get the contactstore nodes
-      Node requesterStoreNode = getStorageNode(session, contactsPath, requesterUserId);
-      Node targetStoreNode = getStorageNode(session, contactsPath, targetUserId);
-      // get the contact nodes
-      Node requesterNode = getStorageNode(requesterStoreNode.getSession(), requesterStoreNode.getPath(), targetUserId);
-      Node targetNode = getStorageNode(targetStoreNode.getSession(), targetStoreNode.getPath(), requesterUserId);
-      // TODO  many many things using the requester and target nodes
-    } catch (RepositoryException e) {
-      throw new ConnectionException(500, e.getMessage(), e);
-    }
-
-    throw new UnsupportedOperationException("need return");
-  }
-
-  private Node getStorageNode(Session session, String basePath, String nodeName) throws ConnectionException {
-    Node n = null;
-    String fullNodePath = basePath + PathUtils.getHashedPath(nodeName, 4);
-    try {
-      if (session.itemExists(fullNodePath)) {
-        Item storeItem = session.getItem(fullNodePath); // JcrUtils.deepGetOrCreateNode(session, localStorePath);
-        if (storeItem.isNode()) {
-          n = (Node) storeItem;
+      Session adminSession = slingRepository.loginAdministrative(null);
+      try {
+        // get the contact userstore nodes
+        Node requesterStoreNode = ConnectionUtils.getStorageNode(session,
+            contactsPath, requesterUserId, false,
+            ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
+        Node targetStoreNode = ConnectionUtils.getStorageNode(session,
+            contactsPath, targetUserId, false,
+            ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
+        // get the user contact nodes
+        Node requesterNode = ConnectionUtils.getStorageNode(requesterStoreNode
+            .getSession(), requesterStoreNode.getPath(), targetUserId, false,
+            ConnectionConstants.SAKAI_CONTACT_USERCONTACT_RT);
+        Node targetNode = ConnectionUtils.getStorageNode(targetStoreNode
+            .getSession(), targetStoreNode.getPath(), requesterUserId, false,
+            ConnectionConstants.SAKAI_CONTACT_USERCONTACT_RT);
+        // SPECIAL check - if the other user already requested this connection
+        // then make both accepted
+        ConnectionStates targetState = getConnectionState(targetNode);
+        if (ConnectionStates.REQUEST.equals(targetState)) {
+          // these users are requesting each other so set states to accept
+          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+              ConnectionStates.ACCEPT.toString());
+          targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+              ConnectionStates.ACCEPT.toString());
+          // store the types in case they actually matter
+          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+              types);
+          // no change to the other properties is needed
+        } else {
+          // now add the properties to indicate the initial states
+          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+              ConnectionStates.REQUEST.toString());
+          targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_STATE,
+              ConnectionStates.PENDING.toString());
+          requesterNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+              types);
+          targetNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+              types);
+          requesterNode.setProperty(
+              ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
+          targetNode.setProperty(
+              ConnectionConstants.SAKAI_CONNECTION_REQUESTER, requesterUserId);
         }
-      } else {
-        // create the node
-        JcrUtils.deepGetOrCreateNode(session, fullNodePath);
+        path = targetNode.getPath();
+        // save changes if any were actually made
+        if (adminSession.hasPendingChanges()) {
+          adminSession.save();
+        }
+      } finally {
+        // destroy the admin session
+        adminSession.logout();
       }
     } catch (RepositoryException e) {
+      // general failure
       throw new ConnectionException(500, e.getMessage(), e);
     }
-    return n;
+    return path;
   }
+
+  public String connect(Resource resource, String userId,
+      ConnectionOperations operation, String requesterUserId)
+      throws ConnectionException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  /**
+   * @param store
+   *          the resource from the request
+   * @param userId
+   *          id of the user the connection request is directed to
+   * @param operation
+   *          the connection operation to perform
+   * @param types
+   *          the types of this connection (e.g. friend of, professor of,
+   *          student of)
+   * @throws ConnectionException
+   */
+  // private void handleConnectionOperation(Resource store, String userId,
+  // ConnectionOperations operation, String[] types)
+  // throws ConnectionException {
+  // if (store == null) {
+  // throw new IllegalArgumentException("store cannot be null");
+  // }
+  // if (userId == null || "".equals(userId)) {
+  // throw new IllegalArgumentException("userId cannot be null");
+  // }
+  // if (operation == null) {
+  // throw new IllegalArgumentException("operation cannot be null");
+  // }
+  // try {
+  // Session session = store.getResourceResolver().adaptTo(Session.class);
+  // String currentUserId = getCurrentUserId(session);
+  // if (!checkValidUserId(session, userId)) {
+  // throw new ConnectionException(404,
+  // "Invalid userId specified for connection: " + userId);
+  // }
+  // // contacts node
+  // Node contactsNode = getStoreNode(session, store);
+  // // contacts node of the other user
+  // Node otherUserNode = getLocalStoreNode(session, contactsNode.getPath(),
+  // userId);
+  // // get the state of the connection with the given user for the given node
+  // ConnectionStates otherUserState = getConnectionState(otherUserNode,
+  // userId);
+  // // contacts node of the current user
+  // Node curUserNode = getLocalStoreNode(session, contactsNode.getPath(),
+  // currentUserId);
+  // // state of the node for the current user
+  // ConnectionStates curUserState = getConnectionState(curUserNode, userId);
+  // if (ConnectionOperations.REQUEST.equals(operation)) {
+  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
+  // // if we request each other then just accept both
+  // updateContactNodes(userId, currentUserId, otherUserNode, curUserNode,
+  // ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
+  // } else {
+  // if (ConnectionStates.IGNORE.equals(otherUserState)
+  // || ConnectionStates.REJECT.equals(otherUserState)
+  // || ConnectionStates.BLOCK.equals(otherUserState)) {
+  // // do not do anything (I think this is right)
+  // } else {
+  // // set to pending
+  // updateContactNodes(userId, currentUserId, otherUserNode,
+  // curUserNode, ConnectionStates.PENDING, ConnectionStates.REQUEST);
+  // }
+  // }
+  //
+  // } else if (ConnectionOperations.ACCEPT.equals(operation)) {
+  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
+  // if (ConnectionStates.PENDING.equals(curUserState)) {
+  // updateContactNodes(userId, currentUserId, otherUserNode,
+  // curUserNode, ConnectionStates.ACCEPT, ConnectionStates.ACCEPT);
+  // }
+  // }
+  //
+  // } else if (ConnectionOperations.IGNORE.equals(operation)) {
+  // if (ConnectionStates.REQUEST.equals(otherUserState)) {
+  // setConnectionState(curUserNode, ConnectionStates.IGNORE, userId);
+  // }
+  //
+  // } else {
+  // // TODO handle the other states
+  // throw new IllegalArgumentException(
+  // "Don't know how to handle this operation (yet): " + operation);
+  // }
+  // } catch (RepositoryException e) {
+  // throw new ConnectionException(500, e.getMessage(), e);
+  // }
+  // }
 
 }
