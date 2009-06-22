@@ -21,7 +21,6 @@ import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -49,9 +48,6 @@ import javax.jcr.Session;
  *                metatype="no"
  * @scr.property name="service.description"
  *               value="Post Processes User and Group operations"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
  * 
  */
 public class MessageUserPostProcessor implements UserPostProcessor {
@@ -59,11 +55,6 @@ public class MessageUserPostProcessor implements UserPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageUserPostProcessor.class);
 
-  /**
-   * The JCR Repository we access to update profile.
-   * 
-   */
-  private SlingRepository slingRepository;
 
   public void process(SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
@@ -95,20 +86,5 @@ public class MessageUserPostProcessor implements UserPostProcessor {
 
   }
 
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
 }

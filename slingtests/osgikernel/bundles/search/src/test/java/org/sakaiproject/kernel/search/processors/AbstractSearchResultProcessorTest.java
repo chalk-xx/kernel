@@ -24,6 +24,8 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     QueryResult queryResult = createMock(QueryResult.class);
     NodeIterator results = createMock(NodeIterator.class);
     expect(queryResult.getNodes()).andReturn(results);
+    results.skip(0);
+    expect(results.getSize()).andReturn(500L).anyTimes();
     Node dummyNode = createMock(Node.class);
     expect(results.hasNext()).andReturn(true).anyTimes();
     expect(results.nextNode()).andReturn(dummyNode).times(itemCount);
@@ -34,7 +36,8 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     replay();
     JSONWriter write = new JSONWriter(new PrintWriter(new ByteArrayOutputStream()));
     write.array();
-    processor.output(write, queryResult, itemCount);
+    NodeIterator resultNodes = queryResult.getNodes();
+    processor.output(write, resultNodes, 0, itemCount);
     write.endArray();
     verify();
   }
