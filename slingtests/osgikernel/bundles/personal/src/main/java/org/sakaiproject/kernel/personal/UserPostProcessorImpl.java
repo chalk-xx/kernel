@@ -27,6 +27,8 @@ import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -222,11 +224,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (!session.itemExists(publicPath)) {
       Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
       publicNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
+      addEntry(publicNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
     }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
-    profileNode.getParent().setProperty(UserConstants.JCR_CREATED_BY,
-        authorizable.getID());
+    addEntry(profileNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
     return profileNode;
   }
 
