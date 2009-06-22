@@ -105,6 +105,9 @@ public class StringUtils {
     if (s < end && j < e.length) {
       e[j++] = new String(pn, s, end - s);
     }
+    if ( j == 0 ) {
+      e[0] = "";
+    }
     return e;
   }
 

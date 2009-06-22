@@ -28,7 +28,6 @@ import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.query.QueryResult;
 
 /**
  * Formats message node search results
@@ -43,11 +42,11 @@ import javax.jcr.query.QueryResult;
 public class ChatMessageSearchResultProcessor extends
     MessageSearchResultProcessor implements SearchResultProcessor {
 
-  public void output(JSONWriter write, QueryResult result, int nitems)
+  public void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
       throws RepositoryException, JSONException {
-    NodeIterator resultNodes = result.getNodes();
-    int i = 1;
-    while (resultNodes.hasNext() && i <= nitems) {
+    resultNodes.skip(start);
+    long i = start;
+    while (resultNodes.hasNext() && i < end) {
       Node resultNode = resultNodes.nextNode();
       parseMessage(write, resultNode);
       i++;

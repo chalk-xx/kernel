@@ -22,6 +22,8 @@ import org.apache.sling.servlets.post.Modification;
 
 import java.util.List;
 
+import javax.jcr.Session;
+
 /**
  * 
  */
@@ -30,9 +32,10 @@ public interface UserPostProcessor {
   /**
    * @param request
    * @param changes
+   * @param session the administrative session used to create the user.
    * @throws Exception
    */
-  void process(SlingHttpServletRequest request, List<Modification> changes)
+  void process(Session session, SlingHttpServletRequest request, List<Modification> changes)
       throws Exception;
 
 }

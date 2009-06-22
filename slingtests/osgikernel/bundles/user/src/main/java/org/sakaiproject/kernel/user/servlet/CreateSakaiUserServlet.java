@@ -109,7 +109,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="self.registration.enabled" label="%self.registration.enabled.name"
  *               description="%self.registration.enabled.description"
  *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
- *  
+ * 
  * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
  *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
@@ -123,7 +123,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    */
   private static final long serialVersionUID = -5060795742204221361L;
 
-  
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
@@ -215,11 +214,11 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     if (principalName == null) {
       throw new RepositoryException("User name was not submitted");
     }
-    
+
     if (principalName.startsWith("g-")) {
       throw new RepositoryException("User name must not begin 'g-'");
     }
-    
+
     String pwd = request.getParameter("pwd");
     if (pwd == null) {
       throw new RepositoryException("Password was not submitted");
@@ -252,9 +251,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
-        
 
-        log.debug("The user path is: {} ",userPath);
+        log.debug("The user path is: {} ", userPath);
 
         response.setPath(userPath);
         response.setLocation(externalizePath(request, userPath));
@@ -265,6 +263,18 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
         // write content from form
         writeContent(selfRegSession, user, reqProperties, changes);
 
+        try {
+          log.info("Looping all the post processors");
+          for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+            log.info("Processor: " + userPostProcessor);
+            userPostProcessor.process(selfRegSession, request, changes);
+          }
+          log.info("Finished Looping all the post processors");
+        } catch (Exception e) {
+          log.warn(e.getMessage(), e);
+          response
+              .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
         if (selfRegSession.hasPendingChanges()) {
           selfRegSession.save();
         }
@@ -272,20 +282,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     } finally {
       ungetSession(selfRegSession);
     }
-
-    try {
-      log.info("Looping all the post processors");
-      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        log.info("Processor: " + userPostProcessor);
-        userPostProcessor.process(request, changes);
-      }
-      log.info("Finished Looping all the post processors");
-    } catch (Exception e) {
-      log.warn(e.getMessage(), e);
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    }
   }
-
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);
@@ -295,8 +292,5 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
-  
-  
-
 
 }

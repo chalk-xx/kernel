@@ -16,21 +16,21 @@
  ],
  "acl" : [
  	{
- 		"path":"/_private",
+ 		"path":"/_user/private",
  		"principal":"owner",
  		"privilege@jcr:read":"granted",
  		"privilege@jcr:write":"granted"
  		
  	},
  	{
- 		"path":"/public",
+ 		"path":"/_user/public",
  		"principal":"owner",
  		"privilege@jcr:read":"granted",
  		"privilege@jcr:write":"granted"
  		
  	},
  	{
- 		"path":"/public",
+ 		"path":"/_user/public",
  		"principal":"everyone",
  		"privilege@jcr:read":"granted"
  	}

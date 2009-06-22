@@ -21,7 +21,6 @@ import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -49,9 +48,6 @@ import javax.jcr.Session;
  *                metatype="no"
  * @scr.property name="service.description"
  *               value="Post Processes User and Group operations"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
  * 
  */
 public class MessageUserPostProcessor implements UserPostProcessor {
@@ -59,14 +55,8 @@ public class MessageUserPostProcessor implements UserPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageUserPostProcessor.class);
 
-  /**
-   * The JCR Repository we access to update profile.
-   * 
-   */
-  private SlingRepository slingRepository;
-
-  public void process(SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception {
+  public void process(Session session, SlingHttpServletRequest request,
+      List<Modification> changes) throws Exception {
     LOGGER.info("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     String principalName = null;
@@ -78,44 +68,20 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         String pathPrivate = PathUtils.toInternalHashedPath(
             PersonalConstants._USER_PRIVATE, principalName,
             MessageConstants.FOLDER_MESSAGES);
-        System.out.println("Getting/creating private profile node with messages: "
-            + pathPrivate);
+        LOGGER.debug("Getting/creating private profile node with messages: {}",
+            pathPrivate);
         Node messageStore = null;
-        Session session = slingRepository.loginAdministrative(null);
-        try {
-          if (session.itemExists(pathPrivate)) {
-            messageStore = (Node) session.getItem(pathPrivate);
-          }
-          messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.SAKAI_MESSAGESTORE_RT);
-          // TODO - Set correct ACL's!
-          if (session.hasPendingChanges()) {
-            session.save();
-          }
-        } finally {
-          session.logout();
+        if (session.itemExists(pathPrivate)) {
+          messageStore = (Node) session.getItem(pathPrivate);
         }
+        messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            MessageConstants.SAKAI_MESSAGESTORE_RT);
+        // TODO - Set correct ACL's!
 
       }
     }
 
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
   }
 
 }

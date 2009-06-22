@@ -52,4 +52,12 @@ public interface UserConstants {
    * changed once an instance has been loaded with users. 4 will give upto 2E9 users.
    */
   public static final int DEFAULT_HASH_LEVELS = 4;
+  
+  
+  /**
+   * A node property that indicates which use the node was created by, for ownership.
+   */
+  public static final String JCR_CREATED_BY = "jcr:createdBy";
+
+  
 }
