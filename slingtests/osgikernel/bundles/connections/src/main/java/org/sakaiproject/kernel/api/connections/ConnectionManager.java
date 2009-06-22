@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.kernel.api.connections;
 
-import javax.jcr.Node;
+import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperations;
 
 /**
@@ -29,24 +29,27 @@ public interface ConnectionManager {
    * Request a connection be made with a user in the store that contains the resource,
    * this will create a connection node which represents the connection between two users
    * 
-   * @param node a JCR node which represents the path to the contacts node (the base of the connections storage)
+   * @param resource a Sling resource (like a JCR node) which represents the path to the contacts node (the base of the connections storage)
    * @param userId
    *          the user to connect to.
    * @param types
    *          the types of this connection (e.g. friend of, professor of, student of)
+   * @param requesterUserId [OPTIONAL] leave this null to use the current user OR set to the userId of the user who is making the request
    * @return the path to the connection node
    */
-  String request(Node node, String requesterUserId, String targetUserId, String[] types) throws ConnectionException;
+  String request(Resource resource, String userId, String[] types, String requesterUserId) throws ConnectionException;
 
   /**
    * Handle a connection operation from the current user to another user
    * 
-   * @param node a JCR node which represents the path to the contacts node (the base of the connections storage)
+   * @param resource a Sling resource (like a JCR node) which represents the path to the contacts node (the base of the connections storage)
    * @param userId the id of the user sending the invitation.
    * @param operation the operation to perform when connecting (accept, reject, etc.)
+   * @param userId the id of the user we are connecting to
+   * @param requesterUserId [OPTIONAL] leave this null to use the current user OR set to the userId of the user who is making the request
    * @return the path to the connection node
    * @throws ConnectionException 
    */
-  String connect(Node node, String userId, ConnectionOperations operation) throws ConnectionException;
+  String connect(Resource resource, String userId, ConnectionOperations operation, String requesterUserId) throws ConnectionException;
 
 }

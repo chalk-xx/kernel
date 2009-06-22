@@ -54,8 +54,6 @@ import org.slf4j.LoggerFactory;
  *              interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  * @scr.reference name="UserFactoryService"
  *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
- * @scr.reference name="SessionManagerService"
- *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
  */
 public class ConnectionManagerImpl implements ConnectionManager {
 
@@ -70,18 +68,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   protected void bindUserFactoryService(UserFactoryService userFactoryService) {
     this.userFactoryService = userFactoryService;
-  }
-
-  protected SessionManagerService sessionManagerService;
-
-  protected void unbindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    this.sessionManagerService = null;
-  }
-
-  protected void bindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    this.sessionManagerService = sessionManagerService;
   }
 
   /**
@@ -106,9 +92,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     if (operation == null) {
       throw new IllegalArgumentException("operation cannot be null");
     }
-    String currentUserId = getCurrentUserId();
     try {
       Session session = store.getResourceResolver().adaptTo(Session.class);
+      String currentUserId = getCurrentUserId(session);
       if (!checkValidUserId(session, userId)) {
         throw new ConnectionException(404,
             "Invalid userId specified for connection: " + userId);
@@ -251,8 +237,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return valid;
   }
 
-  private String getCurrentUserId() {
-    return sessionManagerService.getCurrentUserId();
+  private String getCurrentUserId(Session session) {
+    /*
+     * use request.getRemoteUser() or session.getUserId() to get a session user
+     * request.getResourceResolver().adaptTo(Session.class);
+     */
+    return session.getUserID();
+    //return sessionManagerService.getCurrentUserId();
   }
 
   /**
@@ -332,31 +323,36 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return null;
   }
 
-  public String connect(Node node, String userId, ConnectionOperations operation)
+  public String connect(Resource resource, String userId,
+      ConnectionOperations operation, String requesterUserId)
       throws ConnectionException {
     // TODO Auto-generated method stub
     return null;
   }
 
-  public String request(Node node, String requesterUserId, String targetUserId,
-      String[] types) throws ConnectionException {
+  public String request(Resource resource, String userId, String[] types,
+      String requesterUserId) throws ConnectionException {
     // node is the contacts node: /_user/contacts
-    if (node == null) {
+    if (resource == null) {
       throw new IllegalArgumentException("node cannot be null");
     }
-    if (requesterUserId == null || "".equals(requesterUserId)) {
-      throw new IllegalArgumentException("requesterUserId cannot be null");
-    }
-    if (targetUserId == null || "".equals(targetUserId)) {
+    // userId is the target user
+    if (userId == null || "".equals(userId)) {
       throw new IllegalArgumentException("targetUserId cannot be null");
     }
+    String targetUserId = userId;
     if (types == null) {
       // is this ok?
       types = new String[] {};
     }
     try {
-      Session session = node.getSession(); // store.getResourceResolver().adaptTo(Session.class);
-      String contactsPath = node.getPath();
+      Session session = resource.getResourceResolver().adaptTo(Session.class);
+      if (requesterUserId == null || "".equals(requesterUserId)) {
+        // default to the current user
+        requesterUserId = getCurrentUserId(session);
+      }
+      String contactsPath = resource.getPath();
+      // fail is the supplied users are invalid
       if (!checkValidUserId(session, requesterUserId)) {
         throw new ConnectionException(404,
             "Invalid requesterUserId specified for connection: " + requesterUserId);
