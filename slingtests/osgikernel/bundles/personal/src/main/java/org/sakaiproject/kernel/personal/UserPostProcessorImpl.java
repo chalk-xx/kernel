@@ -30,6 +30,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -82,18 +83,18 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private EventAdmin eventAdmin;
 
 
+
   /**
    * @param request
    * @param changes
    * @throws Exception
    */
-  public void process(SlingHttpServletRequest request, List<Modification> changes)
+  public void process(Session session, SlingHttpServletRequest request, List<Modification> changes)
       throws Exception {
     try {
       LOGGER.debug("Starting process with reques session {}", request
           .getResourceResolver().adaptTo(Session.class));
       String resourcePath = request.getRequestPathInfo().getResourcePath();
-      Session session = request.getResourceResolver().adaptTo(Session.class);
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable authorizable = null;
       String principalName = null;
@@ -326,5 +327,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
   }
+  
+  
 
 }

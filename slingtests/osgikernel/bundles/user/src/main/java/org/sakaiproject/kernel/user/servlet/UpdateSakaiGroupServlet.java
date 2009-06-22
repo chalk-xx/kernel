@@ -24,22 +24,25 @@ import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * Sling Post Operation implementation for updating a group in the 
- * jackrabbit UserManager.
+ * Sling Post Operation implementation for updating a group in the jackrabbit UserManager.
  * </p>
  * <h2>Rest Service Description</h2>
  * <p>
- * Updates a group's properties. Maps on to nodes of resourceType <code>sling/groups</code> like
- * <code>/rep:system/rep:userManager/rep:groups/ae/3f/ed/testGroup</code> mapped to a resource url
- * <code>/system/userManager/group/testGroup</code>. This servlet responds at
+ * Updates a group's properties. Maps on to nodes of resourceType
+ * <code>sling/groups</code> like
+ * <code>/rep:system/rep:userManager/rep:groups/ae/3f/ed/testGroup</code> mapped to a
+ * resource url <code>/system/userManager/group/testGroup</code>. This servlet responds at
  * <code>/system/userManager/group/testGroup.update.html</code>
  * </p>
  * <h4>Methods</h4>
@@ -48,16 +51,16 @@ import javax.servlet.http.HttpServletResponse;
  * </ul>
  * <h4>Post Parameters</h4>
  * <dl>
- * <dt>*</dt>
+ * <dt></dt>
  * <dd>Any additional parameters become properties of the group node (optional)</dd>
- * <dt>*@Delete</dt>
+ * <dt>@Delete</dt>
  * <dd>The property is deleted, eg prop1@Delete</dd>
  * </dl>
  * <h4>Response</h4>
  * <dl>
  * <dt>200</dt>
- * <dd>Success, a redirect is sent to the group's resource locator. The redirect comes with
- * HTML describing the status.</dd>
+ * <dd>Success, a redirect is sent to the group's resource locator. The redirect comes
+ * with HTML describing the status.</dd>
  * <dt>404</dt>
  * <dd>The resource was not found</dd>
  * <dt>500</dt>
@@ -73,12 +76,13 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
- * @scr.property name="sling.servlet.methods" value="POST" 
- * @scr.property name="sling.servlet.selectors" value="update" 
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor" unbind="unbindUserPostProcessor"
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="update"
+ * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
+ *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  *                cardinality="0..n" policy="dynamic"
- *
+ * 
  */
 public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
 
@@ -87,27 +91,32 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
    */
   private static final long serialVersionUID = -2378929115784007976L;
 
-  
+  private static final Logger LOGGER = LoggerFactory.getLogger(UpdateGroupServlet.class);
+
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   * 
+   * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     super.handleOperation(request, response, changes);
     try {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(request, changes);
+        userPostProcessor.process(session, request, changes);
       }
     } catch (Exception e) {
+      LOGGER.warn(e.getMessage(), e);
+
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
   }
-  
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);
@@ -117,7 +126,7 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
-  
+
   /**
    * Activates this component.
    * 

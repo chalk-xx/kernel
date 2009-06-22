@@ -24,10 +24,13 @@ import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -36,8 +39,8 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  * <h2>Rest Service Description</h2>
  * <p>
- * Updates a users properties. Maps on to nodes of resourceType <code>sling/users</code> like
- * <code>/rep:system/rep:userManager/rep:users</code> mapped to a resource url
+ * Updates a users properties. Maps on to nodes of resourceType <code>sling/users</code>
+ * like <code>/rep:system/rep:userManager/rep:users</code> mapped to a resource url
  * <code>/system/userManager/user/ieb</code>. This servlet responds at
  * <code>/system/userManager/user/ieb.update.html</code>
  * </p>
@@ -47,9 +50,9 @@ import javax.servlet.http.HttpServletResponse;
  * </ul>
  * <h4>Post Parameters</h4>
  * <dl>
- * <dt>*</dt>
+ * <dt></dt>
  * <dd>Any additional parameters become properties of the user node (optional)</dd>
- * <dt>*@Delete</dt>
+ * <dt>@Delete</dt>
  * <dd>Delete the property eg prop3@Delete means prop3 will be deleted (optional)</dd>
  * </dl>
  * <h4>Response</h4>
@@ -75,10 +78,11 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor" unbind="unbindUserPostProcessor"
+ * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
+ *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  *                cardinality="0..n" policy="dynamic"
- *
+ * 
  */
 
 public class UpdateSakaiUserServlet extends UpdateUserServlet {
@@ -87,27 +91,33 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
    *
    */
   private static final long serialVersionUID = 8697964295729373458L;
-  
+
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(UpdateSakaiUserServlet.class);
+
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   * 
+   * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     super.handleOperation(request, response, changes);
     try {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(request, changes);
+        userPostProcessor.process(session, request, changes);
       }
     } catch (Exception e) {
+      LOGGER.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
   }
-  
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);
@@ -117,6 +127,7 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.unbindUserPostProcessor(serviceReference);
   }
+
   /**
    * Activates this component.
    * 

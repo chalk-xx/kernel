@@ -55,9 +55,8 @@ public class MessageUserPostProcessor implements UserPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageUserPostProcessor.class);
 
-
-  public void process(SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception {
+  public void process(Session session, SlingHttpServletRequest request,
+      List<Modification> changes) throws Exception {
     LOGGER.info("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     String principalName = null;
@@ -69,10 +68,9 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         String pathPrivate = PathUtils.toInternalHashedPath(
             PersonalConstants._USER_PRIVATE, principalName,
             MessageConstants.FOLDER_MESSAGES);
-        System.out.println("Getting/creating private profile node with messages: "
-            + pathPrivate);
+        LOGGER.debug("Getting/creating private profile node with messages: {}",
+            pathPrivate);
         Node messageStore = null;
-        Session session = request.getResourceResolver().adaptTo(Session.class);
         if (session.itemExists(pathPrivate)) {
           messageStore = (Node) session.getItem(pathPrivate);
         }
@@ -85,6 +83,5 @@ public class MessageUserPostProcessor implements UserPostProcessor {
     }
 
   }
-
 
 }
