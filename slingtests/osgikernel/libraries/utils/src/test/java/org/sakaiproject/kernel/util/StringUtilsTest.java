@@ -43,6 +43,23 @@ public class StringUtilsTest {
     assertEquals("ipsum", result[1]);
     assertEquals("dolor", result[2]);
 
+    // try without leading and trailing
+    s = "Lorem/ipsum/dolor/sit/amet.";
+    result = StringUtils.split(s, '/', 3);
+    assertEquals(3, result.length);
+    assertEquals("Lorem", result[0]);
+    assertEquals("ipsum", result[1]);
+    assertEquals("dolor", result[2]);
+
+    result = StringUtils.split(s, '/', 1);
+    assertEquals(1, result.length);
+    assertEquals("Lorem", result[0]);
+
+    s = "Lorem";
+    result = StringUtils.split(s, '/', 1);
+    assertEquals(1, result.length);
+    assertEquals("Lorem", result[0]);
+
     s = "";
     result = StringUtils.split(s, '/', 1);
     assertEquals(1, result.length);

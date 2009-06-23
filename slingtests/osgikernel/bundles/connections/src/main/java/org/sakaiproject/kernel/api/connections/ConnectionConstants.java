@@ -18,50 +18,59 @@
 package org.sakaiproject.kernel.api.connections;
 
 /**
- * 
+ * These are the constants related to contacts / connections for users
  */
 public interface ConnectionConstants {
-  
-  /**
-   *
-   */
-  public static final String SAKAI_CONNECTIONSTORE_RT = "sakai/connectionstore";
 
   /**
-   *
+   * This marks the base contacts node,
+   * this must match the one in /resources/SLING-INF/content/_user/contacts.json
    */
+  public static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
+
+  /**
+   * This marks the contact user store nodes (1 per user)
+   */
+  public static final String SAKAI_CONTACT_USERSTORE_RT = "sakai/contactuserstore";
+
+  /**
+   * This marks the contact nodes which are stored under the contact user store nodes
+   * (1 per connection, where connection is a contact user store)
+   */
+  public static final String SAKAI_CONTACT_USERCONTACT_RT = "sakai/contactusercontact";
+
   public static final String CONNECTION_OPERATION = "org.sakaiproject.kernel.connection.operation";
+
+  public static final String SAKAI_CONNECTION_STATE = "sakai:state";
+  public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
+  public static final String SAKAI_CONNECTION_REQUESTER = "sakai:requester";
+
   /**
-  *
-  */
-  public static final String PROP_SAKAI_MESSAGEBOX = "sakai:messagebox";
-  /**
- *
- */
-  public static final String PROP_SAKAI_SENDSTATE = "sakai:sendstate";
-  /**
-  *
-  */
-  public static final String BOX_OUTBOX = "outbox";
-  /**
-  *
-  */
-  public static final String STATE_NONE = "none";
-  /**
-  *
-  */
-  public static final String STATE_NOTIFIED = "notified";
-  /**
-  *
-  */
-  public static final String STATE_PENDING = "pending";
-  /**
-   *
+   * 
    */
-  public static final String PENDINGMESSAGE_EVENT = "org/sakaiproject/kernel/message/pending";
+  public enum ConnectionStates {
+    NONE(null), PENDING("pending"), REQUEST("requested"), ACCEPT("accepted"), REJECT("rejected"), IGNORE("ignored"), BLOCK("blocked");
+    private ConnectionStates(String name) {
+      this.name = name;
+    }
+    private final String name;
+    public String toString() {
+      return name;
+    }
+  }
+
   /**
-   *
+   * Indicates the operations which are valid for dealing with connections
    */
-  public static final String EVENT_LOCATION = "location";
+  public enum ConnectionOperations {
+    REQUEST("request"), ACCEPT("accept"), REJECT("reject"), IGNORE("ignore"), BLOCK("block"), CANCEL("cancel"), REMOVE("remove");
+    private ConnectionOperations(String name) {
+      this.name = name;
+    }
+    private final String name;
+    public String toString() {
+      return name;
+    }
+  }
 
 }
