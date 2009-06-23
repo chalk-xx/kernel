@@ -46,19 +46,20 @@ public class PublicServletTest {
 
   @Test
   public void testGetTargetPath() throws IOException, ServletException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);   
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     Resource resource = createMock(Resource.class);   
     
     replay(request,resource);
      
     PublicServlet ps = new PublicServlet();
     
-    Assert.assertEquals("/test/da/39/a3/ee",ps.getTargetPath(resource, request, "/test", ""));
-    Assert.assertEquals("/test/da/39/a3/ee",ps.getTargetPath(resource, request, "/test", "/"));
-    Assert.assertEquals("/test/9a/67/47/fc/sdf",ps.getTargetPath(resource, request, "/test", "/sdf"));
-    Assert.assertEquals("/test/9a/67/47/fc/sdf",ps.getTargetPath(resource, request, "/test", "sdf"));
-    Assert.assertEquals("/test/0b/1f/ec/29/sadsafds/ssd",ps.getTargetPath(resource, request, "/test", "/sadsafds/ssd"));
-    Assert.assertEquals("/0b/1f/ec/29/sadsafds/ssd",ps.getTargetPath(resource, request, "/", "/sadsafds/ssd"));
+    Assert.assertEquals("/test/da/39/a3/ee",ps.getTargetPath(resource, request, response, "/test", ""));
+    Assert.assertEquals("/test/da/39/a3/ee",ps.getTargetPath(resource, request, response, "/test", "/"));
+    Assert.assertEquals("/test/9a/67/47/fc/sdf",ps.getTargetPath(resource, request, response, "/test", "/sdf"));
+    Assert.assertEquals("/test/9a/67/47/fc/sdf",ps.getTargetPath(resource, request, response, "/test", "sdf"));
+    Assert.assertEquals("/test/0b/1f/ec/29/sadsafds/ssd",ps.getTargetPath(resource, request, response, "/test", "/sadsafds/ssd"));
+    Assert.assertEquals("/0b/1f/ec/29/sadsafds/ssd",ps.getTargetPath(resource, request, response, "/", "/sadsafds/ssd"));
     
     verify(request,resource);
   }

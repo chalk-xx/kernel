@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.personal;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -38,10 +39,10 @@ public class PersonalServlet extends AbstractVirtualPathServlet {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getTargetPath(org.apache.sling.api.resource.Resource, org.apache.sling.api.SlingHttpServletRequest, java.lang.String, java.lang.String)
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getTargetPath(org.apache.sling.api.resource.Resource, org.apache.sling.api.SlingHttpServletRequest, SlingHttpServletResponse, java.lang.String, java.lang.String)
    */
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
-      String realPath, String virtualPath) {
+      SlingHttpServletResponse response, String realPath, String virtualPath) {
     String userId = request.getRemoteUser();
     return PathUtils.toInternalHashedPath(realPath, userId, virtualPath);
 

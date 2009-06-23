@@ -47,7 +47,8 @@ public class PersonalServletTest {
 
   @Test
   public void testGetTargetPath() throws IOException, ServletException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);   
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     Resource resource = createMock(Resource.class);   
     
     expect(request.getRemoteUser()).andReturn("abcde").anyTimes();
@@ -55,12 +56,12 @@ public class PersonalServletTest {
      
     PersonalServlet ps = new PersonalServlet();
     
-    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, "/test", ""));
-    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, "/test", "/"));
-    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, "/test", "/sdf"));
-    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, "/test", "sdf"));
-    Assert.assertEquals("/test/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, "/test", "/sadsafds/ssd"));
-    Assert.assertEquals("/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, "/", "/sadsafds/ssd"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, response, "/test", ""));
+    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, response, "/test", "/"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, response, "/test", "/sdf"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, response, "/test", "sdf"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, response, "/test", "/sadsafds/ssd"));
+    Assert.assertEquals("/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, response, "/", "/sadsafds/ssd"));
     
     verify(request,resource);
   }
