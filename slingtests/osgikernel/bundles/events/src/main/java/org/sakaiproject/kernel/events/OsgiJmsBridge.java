@@ -107,9 +107,9 @@ public class OsgiJmsBridge implements EventHandler {
   }
 
   public void handleEvent(Event event) {
-    LOGGER.debug("Receiving event {}", event);
+    LOGGER.trace("Receiving event");
     if (processEvents && connFactory != null) {
-      LOGGER.debug("Processing event");
+      LOGGER.debug("Processing event {}", event);
       Connection conn = null;
       try {
         // post to JMS
