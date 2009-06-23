@@ -27,6 +27,7 @@ import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
+import static org.sakaiproject.kernel.util.ACLUtils.*;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
@@ -224,11 +225,13 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (!session.itemExists(privatePath)) {
       Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
       privateNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
-      addEntry(privateNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
+      addEntry(privateNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
+          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
     }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
-    addEntry(profileNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
+    addEntry(profileNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
+        REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
     return profileNode;
   }
 
