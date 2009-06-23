@@ -220,11 +220,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
-    String publicPath = hashPrivateNode(authorizable, "");
-    if (!session.itemExists(publicPath)) {
-      Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
-      publicNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
-      addEntry(publicNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
+    String privatePath = hashPrivateNode(authorizable, "created");
+    if (!session.itemExists(privatePath)) {
+      Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+      privateNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
+      addEntry(privateNode.getParent().getPath(), authorizable, session, WRITE_GRANTED);
     }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
