@@ -61,7 +61,6 @@
         <module>bundles/personal</module>
         <module>bundles/presence</module>
         <module>bundles/resource</module>
-        <module>bundles/ownerprincipalmanager</module>
      <!--   <module>bundles/shindig</module> -->
         <module>bundles/meservice</module>
         <module>bundles/server</module>
@@ -71,6 +70,7 @@
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
         <module>bundles/events</module>
+        <module>bundles/batchget</module>
         <module>bundles/specs/jms</module>
         <module>bundles/specs/jmx</module>
         <module>bundles/specs/ejb</module>

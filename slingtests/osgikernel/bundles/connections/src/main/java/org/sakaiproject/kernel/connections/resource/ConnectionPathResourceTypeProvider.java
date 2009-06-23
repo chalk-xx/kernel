@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.connections.resource;
 
 import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SAKAI_CONNECTIONSTORE_RT;
 
-import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
+import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 
 /**
  * This class checks resource paths to see if there is a prefered resoruce type, where the
@@ -35,7 +35,7 @@ public class ConnectionPathResourceTypeProvider extends AbstractPathResourceType
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider#getResourceType()
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   @Override
   protected String getResourceType() {

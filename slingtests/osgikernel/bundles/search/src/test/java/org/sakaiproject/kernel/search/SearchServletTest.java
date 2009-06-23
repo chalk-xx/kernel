@@ -2,6 +2,7 @@ package org.sakaiproject.kernel.search;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
@@ -79,6 +80,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
+    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
 
@@ -140,6 +142,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
+    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);
 
@@ -158,6 +161,8 @@ public class SearchServletTest extends AbstractEasyMockTest {
       expect(nodeIterator.nextNode()).andReturn(resultNode);
       expect(nodeIterator.hasNext()).andReturn(false);
     }
+    nodeIterator.skip(0);
+    expect(nodeIterator.getSize()).andReturn(500L).anyTimes();
 
     QueryResult queryResult = createMock(QueryResult.class);
     expect(queryResult.getNodes()).andReturn(nodeIterator);

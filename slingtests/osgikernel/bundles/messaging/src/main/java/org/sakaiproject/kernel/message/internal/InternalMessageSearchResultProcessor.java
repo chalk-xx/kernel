@@ -34,7 +34,6 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
-import javax.jcr.query.QueryResult;
 
 /**
  * Formats message node search results
@@ -52,11 +51,11 @@ public class InternalMessageSearchResultProcessor extends
   private static final Logger LOG = LoggerFactory
       .getLogger(InternalMessageSearchResultProcessor.class);
 
-  public void output(JSONWriter write, QueryResult result, int nitems)
+  public void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
       throws RepositoryException, JSONException {
-    NodeIterator resultNodes = result.getNodes();
-    int i = 1;
-    while (resultNodes.hasNext() && i <= nitems) {
+    resultNodes.skip(start);
+    long i = start;
+    while (resultNodes.hasNext() && i < end) {
       Node resultNode = resultNodes.nextNode();
       parseMessage(write, resultNode);
       i++;

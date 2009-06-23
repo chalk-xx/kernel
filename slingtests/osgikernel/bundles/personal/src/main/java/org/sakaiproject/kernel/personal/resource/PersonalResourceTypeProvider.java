@@ -17,9 +17,9 @@
  */
 package org.sakaiproject.kernel.personal.resource;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PUBLIC_RESOURCE_TYPE;
+import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PRIVATE_RESOURCE_TYPE;
 
-import org.apache.sling.jcr.resource.AbstractPathResourceTypeProvider;
+import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the
@@ -36,11 +36,11 @@ public class PersonalResourceTypeProvider extends AbstractPathResourceTypeProvid
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.personal.resource.AbstractPathResourceTypeProvider#getResourceType()
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   @Override
   protected String getResourceType() {
-    return USER_PUBLIC_RESOURCE_TYPE;
+    return USER_PRIVATE_RESOURCE_TYPE;
   }
 
 

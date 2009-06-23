@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
+import java.util.List;
+import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -38,38 +40,32 @@ import javax.jms.Session;
 /**
  * Bridge to pipe OSGi events into a JMS topic.
  *
- * @scr.component
+ * @scr.component label="%bridge.name" description="%bridge.description"
  * @scr.service
  */
 public class OsgiJmsBridge implements EventHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(OsgiJmsBridge.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  /**
-   * @scr.property value="*"
-   *               name="org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics"
-   *               description=
-   *               "%org.sakaiproject.kernel.events.OsgiJmsBridge.event.topics.description"
-   */
+  /** @scr.property value="*" private="true" */
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
   /** @scr.property value="tcp://localhost:61616" */
-  static final String BROKER_URL = "org.sakaiproject.kernel.events.OsgiJmsBridge.brokerUrl";
+  static final String BROKER_URL = "bridge.brokerUrl";
 
   /** @scr.property value="sakai.event.bridge" */
-  static final String CONNECTION_CLIENT_ID = "org.sakaiproject.kernel.events.OsgiJmsBridge.connectionClientId";
+  static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
   /** @scr.property value="sakai.event.bridge" */
-  static final String EVENT_JMS_TOPIC = "org.sakaiproject.kernel.events.OsgiJmsBridge.eventJmsTopic";
+  static final String EVENT_JMS_TOPIC = "bridge.eventJmsTopic";
+
+  /** @scr.property value="false" private="true" */
+  static final String SESSION_TRANSACTED = "bridge.sessionTransacted";
+
+  /** @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" private="true" */
+  static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
   /** @scr.property value="false" options true="true" false="false" */
-  static final String SESSION_TRANSACTED = "org.sakaiproject.kernel.events.OsgiJmsBridge.sessionTransacted";
-
-  /**
-   * @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" options
-   *               1="Auto Acknowledge" 2="Client Acknowledge"
-   *               3="Lazy Acknowledge"
-   */
-  static final String ACKNOWLEDGE_MODE = "org.sakaiproject.kernel.events.OsgiJmsBridge.acknowledgeMode";
+  static final String PROCESS_EVENTS = "bridge.processEvents";
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
@@ -77,6 +73,7 @@ public class OsgiJmsBridge implements EventHandler {
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
+  private boolean processEvents;
 
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) {
@@ -86,41 +83,68 @@ public class OsgiJmsBridge implements EventHandler {
     transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
+    processEvents = Boolean.parseBoolean((String) props.get(PROCESS_EVENTS));
+    String _brokerUrl = (String) props.get(BROKER_URL);
 
-    String _brokerUrl = (String) props.get(EVENT_JMS_TOPIC);
-    if (diff(brokerUrl, _brokerUrl)) {
-      brokerUrl = _brokerUrl;
-      LOG.info("Creating a new ActiveMQ Connection Factory");
-      connFactory = new ActiveMQConnectionFactory(brokerUrl);
+    LOGGER.debug("Broker URL: {}, JMS Topic: {}, Session Transacted: {}, Acknowledge Mode: {}, "
+        + "Client ID: {}, Process Events: {}", new Object[] { _brokerUrl, eventTopicName,
+        transacted, acknowledgeMode, connectionClientId, processEvents });
+
+    if (processEvents) {
+      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+      if (!urlEmpty) {
+        if (diff(brokerUrl, _brokerUrl)) {
+          LOGGER.info("Creating a new ActiveMQ Connection Factory");
+          connFactory = new ActiveMQConnectionFactory(_brokerUrl);
+        }
+      } else {
+        LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+      }
+    } else {
+      connFactory = null;
     }
+    brokerUrl = _brokerUrl;
   }
 
   public void handleEvent(Event event) {
-    Connection conn = null;
-    try {
-      // post to JMS
-      conn = connFactory.createConnection();
-      conn.setClientID(connectionClientId);
-      Session clientSession = conn.createSession(transacted, acknowledgeMode);
-      Destination emailTopic = clientSession.createTopic(eventTopicName);
-      MessageProducer client = clientSession.createProducer(emailTopic);
-      MapMessage msg = clientSession.createMapMessage();
-      msg.setJMSType(event.getTopic());
-      for (String name : event.getPropertyNames()) {
-        Object obj = event.getProperty(name);
-        msg.setObject(name, obj);
-      }
-      client.send(msg);
-      LOG.debug("Message sent [client ID: {}, topic name: {}, type: {}]", new String[] {
-          connectionClientId, eventTopicName, event.getTopic() });
-    } catch (JMSException e) {
-      LOG.error(e.getMessage(), e);
-    } finally {
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (JMSException e) {
-          LOG.warn(e.getMessage(), e);
+    LOGGER.debug("Receiving event {}", event);
+    if (processEvents && connFactory != null) {
+      LOGGER.debug("Processing event");
+      Connection conn = null;
+      try {
+        // post to JMS
+        conn = connFactory.createConnection();
+        conn.setClientID(connectionClientId);
+
+        Session clientSession = conn.createSession(transacted, acknowledgeMode);
+        Destination emailTopic = clientSession.createTopic(eventTopicName);
+        MessageProducer client = clientSession.createProducer(emailTopic);
+
+        MapMessage msg = clientSession.createMapMessage();
+        msg.setJMSType(event.getTopic());
+        for (String name : event.getPropertyNames()) {
+          Object obj = event.getProperty(name);
+          // "Only objectified primitive objects, String, Map and List types are
+          // allowed" as stated by an exception when putting something into the
+          // message that was not of one of these types.
+          if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Number
+              || obj instanceof Character || obj instanceof String || obj instanceof Map
+              || obj instanceof List) {
+            msg.setObject(name, obj);
+          }
+        }
+
+        conn.start();
+        client.send(msg);
+      } catch (JMSException e) {
+        LOGGER.error(e.getMessage(), e);
+      } finally {
+        if (conn != null) {
+          try {
+            conn.close();
+          } catch (JMSException e) {
+            LOGGER.warn(e.getMessage(), e);
+          }
         }
       }
     }

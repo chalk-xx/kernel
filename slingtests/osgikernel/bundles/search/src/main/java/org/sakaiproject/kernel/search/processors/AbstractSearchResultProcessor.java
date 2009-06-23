@@ -7,14 +7,13 @@ import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.query.QueryResult;
 
 public abstract class AbstractSearchResultProcessor implements SearchResultProcessor {
 
-  public void output(JSONWriter write, QueryResult result, int nitems) throws RepositoryException,
+  public void output(JSONWriter write, NodeIterator resultNodes, long start, long end) throws RepositoryException,
       JSONException {
-    NodeIterator resultNodes = result.getNodes();
-    for (int i = 0; i < nitems && resultNodes.hasNext(); i++) {
+    resultNodes.skip(start);
+    for (long i = start; i < end && resultNodes.hasNext(); i++) {
       Node resultNode = resultNodes.nextNode();
       writeNode(write, resultNode);
     }

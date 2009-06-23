@@ -19,12 +19,14 @@ package org.sakaiproject.kernel.search;
 
 import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_QUERY;
 import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_RESULTS;
-import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS;
+import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -38,6 +40,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.search.processors.AbstractSearchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,18 +84,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = 4130126304725079596L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
-  private SearchResultProcessor defaultSearchProcessor = new SearchResultProcessor() {
-
-    public void output(JSONWriter write, QueryResult result, int nitems)
-        throws RepositoryException, JSONException {
-      int i = 0;
-      for (NodeIterator ni = result.getNodes(); i < nitems && ni.hasNext();) {
-        Node resultNode = ni.nextNode();
-        write.value(resultNode);
-        i++;
-      }
+  private SearchResultProcessor defaultSearchProcessor = new AbstractSearchResultProcessor() {
+    @Override
+    protected void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+        RepositoryException {
+      write.value(resultNode);      
     }
-
   };
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
@@ -111,17 +108,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
         }
-        int nitems = 25;
-        RequestParameter nitemsRequestParameter = request
-            .getRequestParameter(PARAMS_ITEMS);
-        if (nitemsRequestParameter != null) {
-          try {
-            nitems = Integer.parseInt(nitemsRequestParameter.getString());
-          } catch (NumberFormatException e) {
-            LOGGER.warn("nitems parameter (" + nitemsRequestParameter.getString()
-                + ") is invalid defaulting to 25 items ", e);
-          }
-        }
+        int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
+        int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
         String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
         LOGGER.info("Posting Query {} ", queryString);
@@ -133,8 +121,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.object();
         write.key(JSON_QUERY);
         write.value(queryString);
-        write.key(PARAMS_ITEMS);
+        write.key(PARAMS_ITEMS_PER_PAGE);
         write.value(nitems);
+        NodeIterator resultNodes = result.getNodes();
+        write.key(TOTAL);
+        long total = resultNodes.getSize();
+        write.value(total);
         write.key(JSON_RESULTS);
         write.array();
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
@@ -145,7 +137,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
             searchProcessor = defaultSearchProcessor;
           }
         }
-        searchProcessor.output(write, result, nitems);
+        searchProcessor.output(write, resultNodes, Math.min(offset, total), Math.min(offset + nitems, total + 1));
         write.endArray();
         write.endObject();
       }
@@ -154,6 +146,19 @@ public class SearchServlet extends SlingAllMethodsServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
+  }
+
+  private int intRequestParameter(SlingHttpServletRequest request, String paramName, int defaultVal) {
+    RequestParameter param = request.getRequestParameter(paramName);
+    if (param != null) {
+      try {
+        return Integer.parseInt(param.getString());
+      } catch (NumberFormatException e) {
+        LOGGER.warn(paramName + "parameter (" + param.getString()
+            + ") is invalid defaulting to " + defaultVal + " items ", e);
+      }
+    }
+    return defaultVal;
   }
 
   /**

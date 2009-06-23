@@ -16,6 +16,8 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.sakaiproject.kernel.personal;
+
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -23,11 +25,14 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 
+import junit.framework.Assert;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.easymock.Capture;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,85 +46,24 @@ import javax.servlet.ServletException;
 public class PersonalServletTest {
 
   @Test
-  public void testHashRequest() throws IOException, ServletException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Resource finalResource = createMock(Resource.class);
-    RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
-
-    Resource resource = new NonExistingResource(resourceResolver,
-        _USER_PRIVATE + "/testpath.tidy.json");
-
-    expect(request.getResource()).andReturn(resource);
-    expect(request.getRemoteUser()).andReturn("ieb");
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
-        .andReturn(finalResource);
-    expect(request.getRequestDispatcher(finalResource)).andReturn(dispatcher);
-    dispatcher.forward(request, response);
-    expectLastCall();
-
-    replay(request, response, resourceResolver, finalResource, dispatcher);
-
+  public void testGetTargetPath() throws IOException, ServletException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);   
+    Resource resource = createMock(Resource.class);   
+    
+    expect(request.getRemoteUser()).andReturn("abcde").anyTimes();
+    replay(request,resource);
+     
     PersonalServlet ps = new PersonalServlet();
-
-    ps.hashRequest(request, response);
-    verify(request, response, resourceResolver, finalResource, dispatcher);
+    
+    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, "/test", ""));
+    Assert.assertEquals("/test/03/de/6c/57/abcde",ps.getTargetPath(resource, request, "/test", "/"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, "/test", "/sdf"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sdf",ps.getTargetPath(resource, request, "/test", "sdf"));
+    Assert.assertEquals("/test/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, "/test", "/sadsafds/ssd"));
+    Assert.assertEquals("/03/de/6c/57/abcde/sadsafds/ssd",ps.getTargetPath(resource, request, "/", "/sadsafds/ssd"));
+    
+    verify(request,resource);
   }
-
-  @Test
-  public void testNonHashRequest() throws IOException, ServletException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Resource finalResource = createMock(Resource.class);
-    RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
-
-    Resource resource = new NonExistingResource(resourceResolver,
-        _USER_PRIVATE + "/testpath.tidy.json");
-    Resource nonExistentResource = new NonExistingResource(resourceResolver,
-        "/_user/private/ed/fe/33/ieb/testpath.tidy.json");
-
-    expect(request.getResource()).andReturn(resource);
-    expect(request.getRemoteUser()).andReturn("ieb");
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
-        .andReturn(nonExistentResource);
-    response.sendError(404, "Resource does not exist (non existant)");
-    expectLastCall();
-    replay(request, response, resourceResolver, finalResource, dispatcher);
-
-    PersonalServlet ps = new PersonalServlet();
-
-    ps.hashRequest(request, response);
-    verify(request, response, resourceResolver, finalResource, dispatcher);
-  }
-
-  @Test
-  public void testNullHashRequest() throws IOException, ServletException {
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Resource finalResource = createMock(Resource.class);
-    RequestDispatcher dispatcher = createMock(RequestDispatcher.class);
-
-    Resource resource = new NonExistingResource(resourceResolver,
-        _USER_PRIVATE + "/testpath.tidy.json");
-
-    expect(request.getResource()).andReturn(resource);
-    expect(request.getRemoteUser()).andReturn("ieb");
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
-    expect(resourceResolver.resolve("/_user/private/ea/89/fa/4f/ieb/testpath.tidy.json"))
-        .andReturn(null);
-    response.sendError(404, "Resource does not exist (null)");
-    expectLastCall();
-    replay(request, response, resourceResolver, finalResource, dispatcher);
-
-    PersonalServlet ps = new PersonalServlet();
-
-    ps.hashRequest(request, response);
-    verify(request, response, resourceResolver, finalResource, dispatcher);
-  }
+  
 
 }
