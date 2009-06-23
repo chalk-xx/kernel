@@ -63,6 +63,8 @@ public interface SiteService {
   public static final String PARAM_START = "start";
   public static final String PARAM_ITEMS = "items";
   public static final String PARAM_SORT = "sort";
+  public static final String PARAM_ADD_GROUP = "addauth";
+  public static final String PARAM_REMOVE_GROUP = "removeauth";
 
   /**
    * The joinable property
