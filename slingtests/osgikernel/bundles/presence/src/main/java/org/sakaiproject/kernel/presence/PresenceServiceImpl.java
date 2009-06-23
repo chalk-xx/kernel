@@ -19,7 +19,12 @@ package org.sakaiproject.kernel.presence;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -35,19 +40,20 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The <code>PresenceServiceImpl</code>
  * 
- * @scr.component immediate="true" label="PresenceServiceImpl" description=
- *                "Implementation of the presence service that uses replicated cache."
- *                name="org.sakaiproject.kernel.api.presence.PresenceService"
- * @scr.service
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="service.description"
- *               value="Presence Service Implementation"
- * @scr.reference name="cacheManagerService"
- *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  */
+
+@Component(immediate = true, label = "PresenceServiceImpl", description = "Implementation of the presence service that uses replicated cache.", name = "org.sakaiproject.kernel.api.presence.PresenceService")
+@Service
+@Reference(name = "cacheManagerService", referenceInterface = org.sakaiproject.kernel.api.memory.CacheManagerService.class)
 public class PresenceServiceImpl implements PresenceService {
 
   private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Presence Service Implementation")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   private static final String LOCATION_CACHE = "presence.location";
   private static final String USER_STATUS_CACHE = "presence.status";
