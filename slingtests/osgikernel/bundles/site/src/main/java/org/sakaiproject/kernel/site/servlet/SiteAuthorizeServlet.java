@@ -27,7 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -35,6 +39,7 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -96,6 +101,8 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       }
       Property groupProperty = site.getProperty(SiteService.AUTHORIZABLE);
       Set<String> groups = new HashSet<String>();
+      Map<String, Authorizable> removed = new HashMap<String, Authorizable>();
+      Map<String, Authorizable> added = new HashMap<String, Authorizable>();
       for (Value v : groupProperty.getValues()) {
         groups.add(v.getString());
       }
@@ -103,25 +110,84 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       if (removeGroups != null) {
         for (String remove : removeGroups) {
           groups.remove(remove);
+          Authorizable auth = userManager.getAuthorizable(remove);
+          if (auth != null) {
+            removed.put(remove, auth);
+          }
           changes++;
         }
       }
       if (addGroups != null) {
         for (String add : addGroups) {
-          Authorizable auth;
-          auth = userManager.getAuthorizable(add);
+          Authorizable auth = userManager.getAuthorizable(add);
           if (auth == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The authorizable "
                 + add + " does not exist, nothing added ");
             return;
           }
+          added.put(add, auth);
           groups.add(add);
           changes++;
         }
       }
       if (changes > 0) {
+
+        // set the authorizables on the site
         site.setProperty(SiteService.AUTHORIZABLE, groups.toArray(new String[0]));
+
+        // adjst the sites on each group added or removed.
+        String path = site.getPath();
+        ValueFactory vf = session.getValueFactory();
+
+        // remove old sites.
+        for (Authorizable auth : removed.values()) {
+          Value[] v = auth.getProperty(SiteService.SITES);
+          if (v != null) {
+            List<Value> vnew = new ArrayList<Value>();
+            boolean r = false;
+            for (int i = 0; i < v.length; i++) {
+              if (!path.equals(v[i].getString())) {
+                vnew.add(v[i]);
+              } else {
+                r = true;
+              }
+            }
+            if (r) {
+              Value[] vnewa = vnew.toArray(new Value[0]);
+              auth.setProperty(SiteService.SITES, vnewa);
+            }
+          }
+        }
+
+        // add new sites
+        for (Authorizable auth : added.values()) {
+          Value[] v = auth.getProperty(SiteService.SITES);
+          Value[] vnew = null;
+          if (v == null) {
+            vnew = new Value[0];
+            vnew[0] = vf.createValue(path);
+          } else {
+            boolean a = true;
+            for (int i = 0; i < v.length; i++) {
+              if (path.equals(v[i].getString())) {
+                a = false;
+                break;
+              }
+            }
+            if (a) {
+              vnew = new Value[v.length + 1];
+              System.arraycopy(v, 0, vnew, 0, v.length);
+              vnew[v.length] = vf.createValue(path);
+            }
+
+          }
+          if (vnew != null) {
+            auth.setProperty(SiteService.SITES, vnew);
+          }
+        }
+
       }
+
       if (session.hasPendingChanges()) {
         session.save();
       }
