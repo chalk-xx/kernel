@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.site.servlet;
+package org.sakaiproject.kernel.site;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;

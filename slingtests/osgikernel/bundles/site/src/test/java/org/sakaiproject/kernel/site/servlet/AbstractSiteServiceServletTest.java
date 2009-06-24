@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.junit.Before;
+import org.sakaiproject.kernel.site.AbstractSiteServiceTest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
