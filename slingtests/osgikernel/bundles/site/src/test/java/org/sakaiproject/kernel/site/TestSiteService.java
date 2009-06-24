@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.site.servlet;
+package org.sakaiproject.kernel.site;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

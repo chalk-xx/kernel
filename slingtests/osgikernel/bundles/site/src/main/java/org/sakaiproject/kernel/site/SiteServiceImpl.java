@@ -348,11 +348,11 @@ public class SiteServiceImpl implements SiteService {
     return Joinable.no;
   }
 
-  public void bindEventAdmin(EventAdmin eventAdmin) {
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = eventAdmin;
   }
 
-  public void unbindEventAdmin(EventAdmin eventAdmin) {
+  protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
   }
 
@@ -671,11 +671,11 @@ public class SiteServiceImpl implements SiteService {
     }
   }
 
-  public void bindSlingRepository(SlingRepository slingRepository) {
+  protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
   
-  public void unbindSlingRepository(SlingRepository slingRepository) {
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
 

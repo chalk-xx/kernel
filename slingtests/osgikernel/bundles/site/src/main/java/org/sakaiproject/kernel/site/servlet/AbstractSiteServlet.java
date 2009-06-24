@@ -43,14 +43,14 @@ public class AbstractSiteServlet extends SlingAllMethodsServlet {
   /**
    * @param siteService
    */
-  public void bindSiteService(SiteService siteService) {
+  protected void bindSiteService(SiteService siteService) {
     this.siteService = siteService;
   }
 
   /**
    * @param siteService
    */
-  public void unbindSiteService(SiteService siteService) {
+  protected void unbindSiteService(SiteService siteService) {
     this.siteService = null;
   }
   

@@ -101,6 +101,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           if ( authorizable != null ) {
             createProfile(session, authorizable);
           }
+          fireEvent(request, principalName, changes);
         }
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
         RequestParameter rpid = request
@@ -111,6 +112,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           if ( authorizable != null ) {
             createProfile(session, authorizable);
           }
+          fireEvent(request, principalName, changes);
         }
         /*
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
@@ -129,7 +131,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         updateProperties(session, authorizable, principalName, true, changes);
         */
       }
-      fireEvent(request, principalName, changes);
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
     }
