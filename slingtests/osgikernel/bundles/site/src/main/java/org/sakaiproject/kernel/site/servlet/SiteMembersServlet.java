@@ -43,16 +43,19 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SiteServiceGetServlet</code>
  * 
- * @scr.component immediate="true" label="SiteGetServlet"
+ * @scr.component immediate="true" label="SiteMembersServlet"
  *                description="Get members servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Gets lists of members for a site"
+ * @scr.property name="service.description" value="Gets lists of members for a site"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
  * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.selectors" value="members"
+ * 
  */
+
+
+
 public class SiteMembersServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
@@ -68,7 +71,8 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       return;
     }
     if (!getSiteService().isSite(site)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Location does not represent site ");
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "Location does not represent site ");
       return;
     }
     RequestParameter startParam = request.getRequestParameter(SiteService.PARAM_START);
@@ -81,14 +85,16 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       try {
         start = Integer.parseInt(startParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START, startParam.getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START, startParam
+            .getString());
       }
     }
     if (itemsParam != null) {
       try {
         items = Integer.parseInt(itemsParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS, startParam.getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS, startParam
+            .getString());
       }
     }
     if (sortParam != null) {
@@ -103,22 +109,31 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       sort = sorts.toArray(new Sort[] {});
     }
 
-    Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
-
     try {
-      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
-      output.array();
-      for (; members.hasNext();) {
-        User u = members.next();
-        Resource resource = request.getResourceResolver().resolve(
-            "/system/userManager/user/" + u.getID());
-        ValueMap map = resource.adaptTo(ValueMap.class);
-        output.valueMap(map);
+      LOGGER.info("Finding members for  {}",site.getPath());
+      Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
+      LOGGER.info("Found members ");
+
+      try {
+        ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
+        output.array();
+        for (; members.hasNext();) {
+          User u = members.next();
+          Resource resource = request.getResourceResolver().resolve(
+              "/system/userManager/user/" + u.getID());
+          ValueMap map = resource.adaptTo(ValueMap.class);
+          output.valueMap(map);
+        }
+        output.endArray();
+      } catch (JSONException e) {
+        LOGGER.error(e.getMessage(), e);
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      } catch (RepositoryException e) {
+        LOGGER.error(e.getMessage(), e);
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       }
-      output.endArray();
-    } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    } catch (RepositoryException e) {
+    } catch (Exception e) {
+      LOGGER.info(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;
