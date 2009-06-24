@@ -22,12 +22,12 @@ import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PUBL
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
 import static org.sakaiproject.kernel.api.user.UserConstants.AUTH_PROFILE;
-import static org.sakaiproject.kernel.api.user.UserConstants.PRIVATE_PROPERTIES;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
-import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
-import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
-import static org.sakaiproject.kernel.util.ACLUtils.*;
+import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
@@ -48,20 +48,11 @@ import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 /**
  * This PostProcessor listens to post operations on User objects and processes the
@@ -107,7 +98,9 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          updateProperties(session, authorizable, principalName, false, changes);
+          if ( authorizable != null ) {
+            createProfile(session, authorizable);
+          }
         }
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
         RequestParameter rpid = request
@@ -115,8 +108,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          updateProperties(session, authorizable, principalName, true, changes);
+          if ( authorizable != null ) {
+            createProfile(session, authorizable);
+          }
         }
+        /*
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
@@ -131,6 +127,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         }
         authorizable = userManager.getAuthorizable(principalName);
         updateProperties(session, authorizable, principalName, true, changes);
+        */
       }
       fireEvent(request, principalName, changes);
     } catch (Exception ex) {
@@ -148,18 +145,22 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @throws VersionException
    * @throws PathNotFoundException
    */
+  /*
+   * 
+   * Pease leave this as it will be needed elsewhere soon
+   * 
   private void updateProperties(Session session, Authorizable authorizable,
       String principalName, boolean isGroup, List<Modification> changes)
       throws PathNotFoundException, VersionException, LockException,
       ConstraintViolationException, RepositoryException {
-    LOGGER.debug("Using Session {} ", session);
-    Node profileNode = null;
-    Iterator<?> inames = null;
+    
+    
     if (authorizable != null) {
-      profileNode = createProfileNode(session, authorizable);
+    }
 
       inames = authorizable.getPropertyNames();
     }
+    
     for (Modification m : changes) {
       String dest = m.getDestination();
       if (dest == null) {
@@ -206,6 +207,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       }
     }
   }
+    */
 
   /**
    * @param request
@@ -213,7 +215,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @return
    * @throws RepositoryException
    */
-  private Node createProfileNode(Session session, Authorizable authorizable)
+  private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = hashPublicNode(authorizable, AUTH_PROFILE);
     System.out.println("Getting/creating profile node: " + path);
@@ -235,6 +237,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return profileNode;
   }
 
+  /*
   private void deleteProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = hashPublicNode(authorizable, AUTH_PROFILE);
@@ -243,6 +246,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       node.remove();
     }
   }
+  */
 
   private String nodeTypeForAuthorizable(Authorizable authorizable) {
     if (authorizable.isGroup()) {
