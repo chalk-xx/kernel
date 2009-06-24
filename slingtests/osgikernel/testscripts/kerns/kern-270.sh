@@ -33,6 +33,8 @@ curl http://admin:admin@localhost:8080/system/userManager/group/${group1}.json
 echo " "
 curl http://admin:admin@localhost:8080/system/userManager/user/${user1}.json
 echo " "
+curl http://${user1}:testuser@localhost:8080/system/me
+echo " "
 
 
 

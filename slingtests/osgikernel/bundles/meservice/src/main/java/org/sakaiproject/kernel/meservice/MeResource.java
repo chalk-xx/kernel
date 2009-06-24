@@ -41,8 +41,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
@@ -53,6 +55,8 @@ import javax.jcr.Value;
 public class MeResource implements Resource {
 
   private static final Logger LOG = LoggerFactory.getLogger(MeResource.class);
+  private static final String LOCALE_FIELD = "locale";
+  private static final String TIMEZONE_FIELD = "timezone";
   private ResourceResolver resourceResolver;
   private String resourceType;
   private String path;
@@ -158,6 +162,47 @@ public class MeResource implements Resource {
       json.put("userStoragePrefix", userFactoryService.getUserPathPrefix(session.getUserID()));
       json.put("userProfilePath", userFactoryService.getUserProfilePath(session.getUserID()));
       json.put("superUser", getSubjects().contains("administrators"));
+      
+      HashMap<String, Object> localeMap = new HashMap<String, Object>();
+      
+      /* Get the correct locale */
+      
+      Locale l = Locale.getDefault();
+      if (getProperties().containsKey(LOCALE_FIELD)){
+    	  String locale = getProperties().get(LOCALE_FIELD).toString();
+    	  l = new Locale(locale.split("_")[0],locale.split("_")[1]);
+      }
+      
+      /* Get the correct time zone */
+      
+      TimeZone tz = TimeZone.getDefault();
+      if (getProperties().containsKey(TIMEZONE_FIELD)){
+    	  String timezone = getProperties().get(TIMEZONE_FIELD).toString();
+    	  tz = TimeZone.getTimeZone(timezone);
+      }
+      
+      /* Add the locale information into the output */
+      
+      localeMap.put("country", l.getCountry());
+      localeMap.put("displayCountry", l.getDisplayCountry(l));
+      localeMap.put("displayLanguage", l.getDisplayLanguage(l));
+      localeMap.put("displayName", l.getDisplayName(l));
+      localeMap.put("displayVariant", l.getDisplayVariant(l));
+      localeMap.put("ISO3Country", l.getISO3Country());
+      localeMap.put("ISO3Language", l.getISO3Language());
+      localeMap.put("language", l.getLanguage());
+      localeMap.put("variant", l.getVariant());
+      
+      /* Add the time zone information into the output */
+      
+      int offset = tz.getRawOffset() + tz.getDSTSavings();
+      Map<String, Object> timezoneMap = new HashMap<String, Object>();
+      timezoneMap.put("name", tz.getID());
+      timezoneMap.put("GMT", offset / 3600000);
+      localeMap.put("timezone", timezoneMap);
+      
+      json.put("locale", localeMap);
+      
     }
     return JSONObject.fromObject(json).toString();
   }
