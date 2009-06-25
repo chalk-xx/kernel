@@ -2,6 +2,7 @@ package org.sakaiproject.kernel.connections;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
@@ -24,6 +25,9 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     write.object();
     write.key("target");
     write.value(targetUser);
+    write.key("profile");
+    Node profileNode = (Node) node.getSession().getItem(PersonalUtils.getProfilePath(targetUser));
+    ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);
     write.endObject();

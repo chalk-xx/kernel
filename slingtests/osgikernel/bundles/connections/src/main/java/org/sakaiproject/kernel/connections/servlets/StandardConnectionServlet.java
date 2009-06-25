@@ -26,7 +26,7 @@ package org.sakaiproject.kernel.connections.servlets;
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" values.0="PUT" values.1="DELETE"
+ * @scr.property name="sling.servlet.methods" values.0="PUT" values.1="DELETE" values.2="GET"
  */
 public class StandardConnectionServlet extends
     AbstractConnectionServlet {

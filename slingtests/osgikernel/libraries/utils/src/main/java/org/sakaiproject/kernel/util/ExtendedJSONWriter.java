@@ -76,7 +76,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.NAME:
       return value.getString();
     case PropertyType.DATE:
-      return format.format(value.getDate());
+      return format.format(value.getDate().getTime());
     default:
       return value.toString();
     }

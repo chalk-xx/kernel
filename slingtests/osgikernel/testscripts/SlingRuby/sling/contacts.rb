@@ -17,7 +17,7 @@ module SlingContacts
     end
 
     def get_contacts()
-      return @sling.get_node_props("_user/contacts")
+      return @sling.get_node_props("_user/user_contacts")
     end
 
   end
