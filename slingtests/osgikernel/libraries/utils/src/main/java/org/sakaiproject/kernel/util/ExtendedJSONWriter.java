@@ -19,7 +19,7 @@ import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
 
-  private static DateFormat format = new SimpleDateFormat();
+  private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
   
   public ExtendedJSONWriter(Writer w) {
     super(w);
