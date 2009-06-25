@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 require 'net/http'
 require 'cgi'
-require 'json'
 require 'rubygems'
+require 'json'
 require 'curb'
 require 'sling/users'
 require 'sling/sites'
