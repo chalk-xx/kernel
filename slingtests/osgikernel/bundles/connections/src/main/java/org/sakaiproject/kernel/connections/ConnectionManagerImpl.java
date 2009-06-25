@@ -19,10 +19,6 @@ package org.sakaiproject.kernel.connections;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.JCR_CREATED_BY;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.Resource;
@@ -35,6 +31,10 @@ import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOpe
 import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionStates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * Service for doing operations with connections.
@@ -130,7 +130,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     }
     ConnectionStates state = ConnectionStates.NONE;
     if (userContactNode.hasProperty(ConnectionConstants.SAKAI_CONNECTION_STATE)) {
-      state = ConnectionStates.valueOf(userContactNode.getProperty(
+      state = ConnectionStates.lookup(userContactNode.getProperty(
           ConnectionConstants.SAKAI_CONNECTION_STATE).getString());
     }
     return state;
@@ -180,13 +180,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
       Session adminSession = slingRepository.loginAdministrative(null);
       try {
         // get the contact userstore nodes
-        Node requesterStoreNode = ConnectionUtils.getStorageNode(session,
+        Node requesterStoreNode = ConnectionUtils.getStorageNode(adminSession,
             contactsPath, requesterUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
         if (! requesterStoreNode.hasProperty(JCR_CREATED_BY)) {
           requesterStoreNode.setProperty(JCR_CREATED_BY, requesterUserId);
         }
-        Node targetStoreNode = ConnectionUtils.getStorageNode(session,
+        Node targetStoreNode = ConnectionUtils.getStorageNode(adminSession,
             contactsPath, targetUserId, true,
             ConnectionConstants.SAKAI_CONTACT_USERSTORE_RT);
         if (! targetStoreNode.hasProperty(JCR_CREATED_BY)) {
@@ -246,9 +246,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
         }
         path = targetNode.getPath();
         // save changes if any were actually made
-        if (adminSession.hasPendingChanges()) {
+//        if (adminSession.hasPendingChanges()) {
           adminSession.save();
-        }
+  //      }
       } finally {
         // destroy the admin session
         adminSession.logout();

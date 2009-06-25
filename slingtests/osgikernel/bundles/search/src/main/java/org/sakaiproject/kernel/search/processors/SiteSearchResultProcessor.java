@@ -2,6 +2,7 @@ package org.sakaiproject.kernel.search.processors;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import javax.jcr.RepositoryException;
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
-public class SiteSearchResultProcessor extends AbstractSearchResultProcessor {
+public class SiteSearchResultProcessor implements SearchResultProcessor {
 
   /**
    * @scr.reference
@@ -29,8 +30,7 @@ public class SiteSearchResultProcessor extends AbstractSearchResultProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteSearchResultProcessor.class);
   
-  @Override
-  protected void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+  public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
       RepositoryException {
     if (!siteService.isSite(resultNode)) {
       LOGGER.warn("Search result was not a site node: " + resultNode.getPath());

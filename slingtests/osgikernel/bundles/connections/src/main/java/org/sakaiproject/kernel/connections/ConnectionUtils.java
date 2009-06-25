@@ -70,6 +70,7 @@ public class ConnectionUtils {
     }
     Node n = null;
     String fullNodePath = basePath + PathUtils.getHashedPath(nodeName, 4);
+    fullNodePath = fullNodePath.substring(0, fullNodePath.length() - 1);
     try {
       if (session.itemExists(fullNodePath)) {
         Item storeItem = session.getItem(fullNodePath);

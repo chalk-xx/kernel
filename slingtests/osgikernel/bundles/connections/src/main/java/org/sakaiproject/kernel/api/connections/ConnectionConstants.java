@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.api.connections;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * These are the constants related to contacts / connections for users
  */
@@ -50,6 +53,19 @@ public interface ConnectionConstants {
    */
   public enum ConnectionStates {
     NONE(null), PENDING("pending"), REQUEST("requested"), ACCEPT("accepted"), REJECT("rejected"), IGNORE("ignored"), BLOCK("blocked");
+
+    private static Map<String, ConnectionStates> states = new HashMap<String,ConnectionStates>();
+    static {
+      for (ConnectionStates state : ConnectionStates.values()) {
+        states.put(state.name, state);
+      }
+    }
+    public static ConnectionStates lookup(String name) {
+      if (states.containsKey(name))
+        return states.get(name);
+      throw new IllegalArgumentException("No such enum constant '" + name + "'");
+    }
+
     private ConnectionStates(String name) {
       this.name = name;
     }
@@ -64,6 +80,18 @@ public interface ConnectionConstants {
    */
   public enum ConnectionOperations {
     REQUEST("request"), ACCEPT("accept"), REJECT("reject"), IGNORE("ignore"), BLOCK("block"), CANCEL("cancel"), REMOVE("remove");
+    private static Map<String, ConnectionOperations> operations = new HashMap<String,ConnectionOperations>();
+    static {
+      for (ConnectionOperations operation : ConnectionOperations.values()) {
+        operations.put(operation.name, operation);
+      }
+    }
+    public static ConnectionOperations lookup(String name) {
+      if (operations.containsKey(name))
+        return operations.get(name);
+      throw new IllegalArgumentException("No such enum constant '" + name + "'");
+    }
+
     private ConnectionOperations(String name) {
       this.name = name;
     }

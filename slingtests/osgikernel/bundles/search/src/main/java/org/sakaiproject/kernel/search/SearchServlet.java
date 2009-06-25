@@ -40,7 +40,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
-import org.sakaiproject.kernel.search.processors.AbstractSearchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,9 +83,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = 4130126304725079596L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
-  private SearchResultProcessor defaultSearchProcessor = new AbstractSearchResultProcessor() {
-    @Override
-    protected void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+  private SearchResultProcessor defaultSearchProcessor = new SearchResultProcessor() {
+    public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
         RepositoryException {
       write.value(resultNode);      
     }
@@ -95,6 +93,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
+
+  protected void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
+      throws RepositoryException, JSONException {
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -137,7 +139,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
             searchProcessor = defaultSearchProcessor;
           }
         }
-        searchProcessor.output(write, resultNodes, Math.min(offset, total), Math.min(offset + nitems, total + 1));
+        long start = Math.min(offset, total);
+        long end = Math.min(offset + nitems, total + 1);
+        resultNodes.skip(start);
+        for (long i = start; i < end && resultNodes.hasNext(); i++) {
+          Node resultNode = resultNodes.nextNode();
+          searchProcessor.writeNode(write, resultNode);
+        }
         write.endArray();
         write.endObject();
       }

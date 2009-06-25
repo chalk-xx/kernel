@@ -5,6 +5,8 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
@@ -17,6 +19,8 @@ import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
 
+  private static DateFormat format = new SimpleDateFormat();
+  
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
@@ -71,6 +75,8 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.STRING:
     case PropertyType.NAME:
       return value.getString();
+    case PropertyType.DATE:
+      return format.format(value.getDate());
     default:
       return value.toString();
     }

@@ -24,7 +24,6 @@ import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
@@ -42,18 +41,6 @@ import javax.jcr.RepositoryException;
 public class ChatMessageSearchResultProcessor extends
     MessageSearchResultProcessor implements SearchResultProcessor {
 
-  public void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
-      throws RepositoryException, JSONException {
-    resultNodes.skip(start);
-    long i = start;
-    while (resultNodes.hasNext() && i < end) {
-      Node resultNode = resultNodes.nextNode();
-      parseMessage(write, resultNode);
-      i++;
-    }
-
-  }
-
   /**
    * Parses the message to a usable JSON format for the UI. Once a message gets
    * fetched it automaticly gets marked as read.
@@ -63,7 +50,7 @@ public class ChatMessageSearchResultProcessor extends
    * @throws JSONException
    * @throws RepositoryException
    */
-  private void parseMessage(JSONWriter write, Node resultNode)
+  public void writeNode(JSONWriter write, Node resultNode)
       throws JSONException, RepositoryException {
     write.object();
 

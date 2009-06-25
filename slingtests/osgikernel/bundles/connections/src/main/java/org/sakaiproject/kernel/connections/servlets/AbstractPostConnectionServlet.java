@@ -65,14 +65,8 @@ public abstract class AbstractPostConnectionServlet extends
     }
 
     try {
-      if (ConnectionConstants.ConnectionOperations.REQUEST.equals(OPERATION)) {
-        String[] types = request
-            .getParameterValues(ConnectionConstants.SAKAI_CONNECTION_TYPES);
-        // handle the request operation since it is special
-        connectionManager.request(baseResource, targetUserId, types,
-            requesterUserId);
-      } else {
-        // handle all the other operations
+      if (!ConnectionConstants.ConnectionOperations.REQUEST.equals(OPERATION)) {
+        // Request is handled directly by the RequestPostConnection servlet
         connectionManager.connect(baseResource, targetUserId, OPERATION,
             requesterUserId);
       }

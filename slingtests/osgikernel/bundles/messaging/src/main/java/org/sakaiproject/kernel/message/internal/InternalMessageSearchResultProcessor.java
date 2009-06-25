@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
@@ -51,18 +50,6 @@ public class InternalMessageSearchResultProcessor extends
   private static final Logger LOG = LoggerFactory
       .getLogger(InternalMessageSearchResultProcessor.class);
 
-  public void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
-      throws RepositoryException, JSONException {
-    resultNodes.skip(start);
-    long i = start;
-    while (resultNodes.hasNext() && i < end) {
-      Node resultNode = resultNodes.nextNode();
-      parseMessage(write, resultNode);
-      i++;
-    }
-
-  }
-
   /**
    * Parses the message to a usable JSON format for the UI.
    * 
@@ -71,7 +58,7 @@ public class InternalMessageSearchResultProcessor extends
    * @throws JSONException
    * @throws RepositoryException
    */
-  private void parseMessage(JSONWriter write, Node resultNode)
+  public void writeNode(JSONWriter write, Node resultNode)
       throws JSONException, RepositoryException {
     write.object();
 
@@ -136,6 +123,6 @@ public class InternalMessageSearchResultProcessor extends
 
     Session s = node.getSession();
     Node previousMessage = (Node) s.getItem(path);
-    parseMessage(write, previousMessage);
+    writeNode(write, previousMessage);
   }
 }

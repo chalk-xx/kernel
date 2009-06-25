@@ -70,8 +70,7 @@ public abstract class AbstractConnectionServlet extends
         String targetUserId = virtualParts[0];
         request.setAttribute(TARGET_USERID, targetUserId);
         // build a user contact path e.g. contacts/..../nico/..../aaron
-        String userPath = realPath
-            + PathUtils.getHashedPath(requesterUserId, 4);
+        String userPath = generateUserPath(realPath, requesterUserId);
         // don't lose the virtual path
         String pathEnd = StringUtils.join(virtualParts, 1, '/');
         path = PathUtils.toInternalHashedPath(userPath, targetUserId, pathEnd);
@@ -83,4 +82,7 @@ public abstract class AbstractConnectionServlet extends
     return path;
   }
 
+  static String generateUserPath(String base, String userId) {
+    return base + PathUtils.getHashedPath(userId, 4);
+  }
 }
