@@ -161,6 +161,44 @@ public class OsgiJmsBridgeTest {
     assertEquals(props.size() + 1, namesCount);
   }
 
+  /**
+   * Test handling an event with full processing.
+   *
+   * @throws JMSException
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testHandleEventExceptionClosing() throws Exception {
+    // setup to do full processing
+    setUpFullProcessNoClose();
+
+    // expect to have exceptions when closing the session and connection
+    sess.close();
+    expectLastCall().andThrow(new JMSException("can't close session"));
+    conn.close();
+    expectLastCall().andThrow(new JMSException("can't close connection"));
+
+    // start the mocks
+    replay(ctx, connFactory, conn, sess, topic, prod);
+
+    // construct and send the message
+    Dictionary<Object, Object> props = buildEventProperties();
+    sendMessage(props);
+
+    // verify that all expected calls were made.
+    verify(ctx, connFactory, conn, sess, topic, prod);
+
+    int namesCount = 0;
+    Enumeration names = mapMessage.getMapNames();
+    while (names.hasMoreElements()) {
+      names.nextElement();
+      namesCount++;
+    }
+
+    // there should be an entry for each property plus the name of the topics
+    assertEquals(props.size() + 1, namesCount);
+  }
+
   @Test
   public void testJmsExceptionWhenCreatingConnection() throws Exception {
     setUpNoProcess();
@@ -323,55 +361,36 @@ public class OsgiJmsBridgeTest {
     connFactory = createMock(ConnectionFactory.class);
   }
 
-  private void setUpConnectionFactory() {
-
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
-  }
-
-  private void setUpConnection() {
-    setUpConnectionFactory();
-
-    // mock a connection for the factory to return and expect it
-    conn = createMock(Connection.class);
-  }
-
-  private void setUpSession() throws Exception {
-    setUpConnection();
-
-    expect(connFactory.createConnection()).andReturn(conn);
-
-    // expect the client id to be set
-    conn.setClientID((String) anyObject());
-    expectLastCall();
-
-    // expect the connection to get started
-    conn.start();
-    expectLastCall();
-
-    // expect the connection to get closed
-    conn.close();
-    expectLastCall();
-
-    // mock a session to be returned by the connection and expect it
-    sess = createMock(Session.class);
-  }
-
   /**
-   * Setup the needed objects for handling an enent with processing turned on.
+   * Setup the needed objects for handling an event with processing turned on.
    *
    * @throws JMSException
    */
-  private void setUpFullProcess() {
+  private void setUpFullProcessNoClose() {
     try {
+      setUpNoProcess();
+
+      // set event processing to false
+      compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+
+      // mock a connection for the factory to return and expect it
+      conn = createMock(Connection.class);
+      expect(connFactory.createConnection()).andReturn(conn);
+
+      // expect the client id to be set
+      conn.setClientID((String) anyObject());
+      expectLastCall();
+
+      // expect the connection to get started
+      conn.start();
+      expectLastCall();
+
+      // mock a session to be returned by the connection and expect it
+      sess = createMock(Session.class);
       expect(conn.createSession(false, Session.AUTO_ACKNOWLEDGE)).andReturn(sess);
 
       // expect the session to get run
       sess.run();
-      expectLastCall();
-
-      // expect the session to get closed
-      sess.close();
       expectLastCall();
 
       // mock a destination as a topic from the session and expect it
@@ -382,13 +401,30 @@ public class OsgiJmsBridgeTest {
       prod = createMock(MessageProducer.class);
       expect(sess.createProducer(topic)).andReturn(prod);
 
-      // expect the message to be sent
-      prod.send(mapMessage);
-      expectLastCall();
-
       // mock the return of a mapped message
       mapMessage = new ActiveMQMapMessage();
       expect(sess.createMapMessage()).andReturn(mapMessage);
+
+      // expect the message to be sent
+      prod.send(mapMessage);
+      expectLastCall();
+    }
+    catch (JMSException e) {
+      // this should never happen because the calls are on mock objects
+    }
+  }
+
+  private void setUpFullProcess() {
+    setUpFullProcessNoClose();
+
+    try {
+      // expect the session to get closed
+      sess.close();
+      expectLastCall();
+
+      // expect the connection to get closed
+      conn.close();
+      expectLastCall();
     } catch (JMSException e) {
       // this should never happen because the calls are on mock objects
     }
