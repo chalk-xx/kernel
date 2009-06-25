@@ -74,8 +74,9 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * @scr.reference name="SearchResultProcessor"
  *                interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
- *                cardinality="0..n" policy="dynamic"
+ *                bind="bindSearchResultProcessor"
+ *                unbind="unbindSearchResultProcessor" cardinality="0..n"
+ *                policy="dynamic"
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
@@ -83,12 +84,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
    *
    */
   private static final long serialVersionUID = 4130126304725079596L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SearchServlet.class);
   private SearchResultProcessor defaultSearchProcessor = new AbstractSearchResultProcessor() {
     @Override
-    protected void writeNode(JSONWriter write, Node resultNode) throws JSONException,
-        RepositoryException {
-      write.value(resultNode);      
+    protected void writeNode(JSONWriter write, Node resultNode)
+        throws JSONException, RepositoryException {
+      write.value(resultNode);
     }
   };
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
@@ -97,13 +99,14 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
-        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
+        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE)
+            .getString();
         String queryLanguage = Query.SQL;
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
@@ -111,9 +114,11 @@ public class SearchServlet extends SlingAllMethodsServlet {
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
+        String queryString = processQueryTemplate(request, queryTemplate,
+            queryLanguage);
         LOGGER.info("Posting Query {} ", queryString);
-        QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
+        QueryManager queryManager = node.getSession().getWorkspace()
+            .getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
         QueryResult result = query.execute();
 
@@ -131,24 +136,28 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.array();
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
         if (node.hasProperty(SAKAI_RESULTPROCESSOR)) {
-          searchProcessor = processors.get(node.getProperty(SAKAI_RESULTPROCESSOR)
-              .getString());
+          searchProcessor = processors.get(node.getProperty(
+              SAKAI_RESULTPROCESSOR).getString());
           if (searchProcessor == null) {
             searchProcessor = defaultSearchProcessor;
           }
         }
-        searchProcessor.output(write, resultNodes, Math.min(offset, total), Math.min(offset + nitems, total + 1));
+        searchProcessor.output(write, resultNodes, Math.min(offset, total),
+            Math.min(offset + nitems, total + 1));
         write.endArray();
         write.endObject();
       }
     } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
     } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
     }
   }
 
-  private int intRequestParameter(SlingHttpServletRequest request, String paramName, int defaultVal) {
+  private int intRequestParameter(SlingHttpServletRequest request,
+      String paramName, int defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -162,8 +171,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Processes a template of the form select * from y where x = {q} so that strings
-   * enclosed in { and } are replaced by the same property in the request.
+   * Processes a template of the form select * from y where x = {q} so that
+   * strings enclosed in { and } are replaced by the same property in the
+   * request.
    * 
    * @param request
    *          the request.
@@ -208,10 +218,17 @@ public class SearchServlet extends SlingAllMethodsServlet {
   }
 
   private String escapeString(String value, String queryLanguage) {
-    if (value == null) {
-      return "null";
+    String escaped = null;
+    if (value != null) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'",
+            "\\\\'").replaceAll("'", "''");
+      } else {
+        LOGGER.error("Unknown query language: " + queryLanguage);
+      }
     }
-    return value.replaceAll("\\\\", "\\\\").replaceAll("'", "\\\\'");
+    return escaped;
   }
 
   protected void bindSearchResultProcessor(ServiceReference serviceReference) {
@@ -282,5 +299,4 @@ public class SearchServlet extends SlingAllMethodsServlet {
       delayedReferences.clear();
     }
   }
-
 }

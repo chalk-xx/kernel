@@ -98,7 +98,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   public void testSqlEscaping() throws RepositoryException, IOException,
       ServletException {
     executeSimpleQueryWithNoResults("fo'o", "NAN",
-        "select * from y where x = 'fo\\'o'");
+        "select * from y where x = 'fo\\''o'");
   }
 
   @Test
@@ -124,7 +124,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     replay();
 
     searchServlet.doGet(request, response);
-    
+
     verify();
   }
 
