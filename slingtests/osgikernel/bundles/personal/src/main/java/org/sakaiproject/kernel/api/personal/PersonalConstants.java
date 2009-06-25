@@ -61,5 +61,10 @@ public interface PersonalConstants {
   */
  public static final String PERSONAL_OPERATION = "org.sakaiproject.kernel.personal.operation";
 
+ 
+ /**
+  * The node name of the authentication profile in public space.
+  */
+ public static final String AUTH_PROFILE = "authprofile";
 
 }

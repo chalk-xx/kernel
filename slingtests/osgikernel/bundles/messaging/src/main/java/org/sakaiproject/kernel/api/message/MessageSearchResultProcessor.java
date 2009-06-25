@@ -15,12 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.message;
+package org.sakaiproject.kernel.api.message;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -41,11 +45,11 @@ import javax.jcr.ValueFormatException;
  *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSearchResultProcessor {
-  
 
-  protected MessagingService messagingService;  
-  
-  
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(MessageSearchResultProcessor.class);
+
+  protected MessagingService messagingService;
 
   /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode
@@ -58,7 +62,7 @@ public class MessageSearchResultProcessor {
    * @param propertyName
    *          The propertyname that contains the userid.
    * @param jsonName
-   *          The json name that shouldbe used.
+   *          The json name that should be used.
    * @throws ValueFormatException
    * @throws PathNotFoundException
    * @throws RepositoryException
@@ -67,33 +71,54 @@ public class MessageSearchResultProcessor {
   protected void writeUserInfo(Node resultNode, JSONWriter write,
       String propertyName, String jsonName) throws ValueFormatException,
       PathNotFoundException, RepositoryException, JSONException {
-    String user = resultNode.getProperty(propertyName).getString();
-    write.key(jsonName);
 
-    write.object();
+    try {
+      String user = resultNode.getProperty(propertyName).getString();
 
-    String path = PersonalUtils.getProfilePath(user);
-    Node userNode = (Node) resultNode.getSession().getItem(path);
+      String path = PersonalUtils.getProfilePath(user);
+      Node userNode = (Node) resultNode.getSession().getItem(path);
 
-    PropertyIterator userPropertyIterator = userNode.getProperties();
-    while (userPropertyIterator.hasNext()) {
-      Property userProperty = userPropertyIterator.nextProperty();
-      write.key(userProperty.getName());
-      try {
-        write.value(userProperty.getString());
-      } catch (Exception ex) {
-        Value[] vals = userProperty.getValues();
-        write.array();
-        for (Value val : vals) {
-          write.value(val.getString());
+      PropertyIterator userPropertyIterator = userNode.getProperties();
+      Map<String, Object> mapPropertiesToWrite = new HashMap<String, Object>();
+
+      while (userPropertyIterator.hasNext()) {
+        Property userProperty = userPropertyIterator.nextProperty();
+        try {
+          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValue());
+        } catch (ValueFormatException ex) {
+          mapPropertiesToWrite.put(userProperty.getName(), userProperty
+              .getValues());
         }
-        write.endArray();
       }
-    }
 
-    write.endObject();
+      // We can't have anymore exceptions from now on.
+      write.key(jsonName);
+      write.object();
+      for (String s : mapPropertiesToWrite.keySet()) {
+        write.key(s);
+        if (mapPropertiesToWrite.get(s) instanceof Value) {
+          write.value(((Value)mapPropertiesToWrite.get(s)).getString());
+        } else {
+          write.array();
+
+          Value[] vals = (Value[]) mapPropertiesToWrite.get(s);
+          for (Value v : vals) {
+            write.value(v.getString());
+          }
+
+          write.endArray();
+        }
+      }
+      write.endObject();
+
+    } catch(PathNotFoundException pnfe) {
+      LOGGER.warn("Profile path not found for this user.");
+    }
+    catch (Exception ex) {
+      LOGGER.warn(ex.getMessage());
+    }
   }
-  
+
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
@@ -102,5 +127,5 @@ public class MessageSearchResultProcessor {
     this.messagingService = null;
   }
 
-  
+
 }

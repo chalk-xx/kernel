@@ -18,6 +18,10 @@
 package org.sakaiproject.kernel.events;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.PropertyOption;
+import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -31,40 +35,40 @@ import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.Topic;
 
 /**
- * Bridge to pipe OSGi events into a JMS topic.
- *
- * @scr.component label="%bridge.name" description="%bridge.description"
- * @scr.service
+ * Bridge to send OSGi events onto a JMS topic.
  */
+@Component(label = "%bridge.name", description = "%bridge.description")
+@Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  /** @scr.property value="*" private="true" */
+  @Property(value = { "*" }, propertyPrivate = true)
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
-  /** @scr.property value="tcp://localhost:61616" */
+  @Property(value = { "tcp://localhost:61616" })
   static final String BROKER_URL = "bridge.brokerUrl";
 
-  /** @scr.property value="sakai.event.bridge" */
+  @Property(value = { "sakai.event.bridge" })
   static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
-  /** @scr.property value="sakai.event.bridge" */
+  @Property(value = { "sakai.event.bridge" })
   static final String EVENT_JMS_TOPIC = "bridge.eventJmsTopic";
 
-  /** @scr.property value="false" private="true" */
+  @Property(boolValue = { false }, propertyPrivate = true)
   static final String SESSION_TRANSACTED = "bridge.sessionTransacted";
 
-  /** @scr.property valueRef="javax.jms.Session.AUTO_ACKNOWLEDGE" private="true" */
+  @Property(intValue = { Session.AUTO_ACKNOWLEDGE }, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
-  /** @scr.property value="false" options true="true" false="false" */
+  @Property(boolValue = { false }, options = { @PropertyOption(name = "true", value = "true"),
+      @PropertyOption(name = "false", value = "false") })
   static final String PROCESS_EVENTS = "bridge.processEvents";
 
   private ConnectionFactory connFactory;
@@ -75,6 +79,33 @@ public class OsgiJmsBridge implements EventHandler {
   private int acknowledgeMode;
   private boolean processEvents;
 
+  /**
+   * Default constructor.
+   */
+  public OsgiJmsBridge() {
+
+  }
+
+  /**
+   * Testing constructor to pass in a mocked connection factory.
+   *
+   * @param connFactory
+   *          Connection factory to use when activating.
+   * @param brokerUrl
+   *          Broker url to use for comparison. This has to match what is passed
+   *          in through the context properties or a new connection factory will
+   *          be created not using the one passed in.
+   */
+  protected OsgiJmsBridge(ConnectionFactory connFactory, String brokerUrl) {
+    this.connFactory = connFactory;
+    this.brokerUrl = brokerUrl;
+  }
+
+  /**
+   * Called by the OSGi container to activate this component.
+   *
+   * @param ctx
+   */
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
@@ -106,18 +137,25 @@ public class OsgiJmsBridge implements EventHandler {
     brokerUrl = _brokerUrl;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
+   */
+  @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
-    LOGGER.debug("Receiving event {}", event);
+    LOGGER.trace("Receiving event");
     if (processEvents && connFactory != null) {
-      LOGGER.debug("Processing event");
+      LOGGER.debug("Processing event {}", event);
       Connection conn = null;
+      Session clientSession = null;
       try {
         // post to JMS
         conn = connFactory.createConnection();
         conn.setClientID(connectionClientId);
 
-        Session clientSession = conn.createSession(transacted, acknowledgeMode);
-        Destination emailTopic = clientSession.createTopic(eventTopicName);
+        clientSession = conn.createSession(transacted, acknowledgeMode);
+        Topic emailTopic = clientSession.createTopic(eventTopicName);
         MessageProducer client = clientSession.createProducer(emailTopic);
 
         MapMessage msg = clientSession.createMapMessage();
@@ -134,11 +172,19 @@ public class OsgiJmsBridge implements EventHandler {
           }
         }
 
+        clientSession.run();
         conn.start();
         client.send(msg);
       } catch (JMSException e) {
         LOGGER.error(e.getMessage(), e);
       } finally {
+        if (clientSession != null) {
+          try {
+            clientSession.close();
+          } catch (JMSException e) {
+            LOGGER.warn(e.getMessage(), e);
+          }
+        }
         if (conn != null) {
           try {
             conn.close();
@@ -150,6 +196,14 @@ public class OsgiJmsBridge implements EventHandler {
     }
   }
 
+  /**
+   * Determine if there is a difference between two objects.
+   *
+   * @param obj1
+   * @param obj2
+   * @return true if the objects are different (only one is null or
+   *         !obj1.equals(obj2)). false otherwise.
+   */
   private boolean diff(Object obj1, Object obj2) {
     boolean diff = true;
 

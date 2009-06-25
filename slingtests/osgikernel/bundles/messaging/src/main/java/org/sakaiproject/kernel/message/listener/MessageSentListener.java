@@ -25,7 +25,6 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageHandler;
-import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.message.internal.InternalMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +53,6 @@ import javax.jcr.RepositoryException;
  *                interface="org.sakaiproject.kernel.api.message.MessageHandler"
  *                policy="dynamic" cardinality="0..n" bind="bindHandler"
  *                unbind="unbindHandler"
- * @scr.reference name="MessagingService" policy="dynamic"
- *                interface="org.sakaiproject.kernel.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory
@@ -93,7 +89,7 @@ public class MessageSentListener implements EventHandler {
       Node n = (Node) event.getProperty(MessageConstants.EVENT_LOCATION);
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
-      if (resourceType.equals(MessageConstants.PROP_SAKAI_MESSAGE)) {
+      if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
         Property msgTypeProp = n.getProperty(MessageConstants.PROP_SAKAI_TYPE);
         String msgType = msgTypeProp.getString();
         LOG.info("The type for this message is {}", msgType);
@@ -106,7 +102,6 @@ public class MessageSentListener implements EventHandler {
             LOG.info("Found a message handler for type [{}]", msgType);
             handler = handlers.get(msgType);
           }
-          handler.bindMessagingService(messagingService);
           handler.handle(event, n);
           handled = true;
         }
@@ -122,17 +117,6 @@ public class MessageSentListener implements EventHandler {
       e.printStackTrace();
     }
 
-  }
-
-  private MessagingService messagingService;
-
-  public void bindMessagingService(MessagingService messagingService) {
-    System.out.println("Bound MessageService : " + messagingService);
-    this.messagingService = messagingService;
-  }
-
-  public void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
   }
 
   protected void bindHandler(ServiceReference serviceReference) {

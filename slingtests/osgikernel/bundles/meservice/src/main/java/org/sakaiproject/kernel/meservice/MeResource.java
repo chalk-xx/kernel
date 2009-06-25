@@ -27,7 +27,10 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
+import org.sakaiproject.kernel.api.personal.PersonalConstants;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +68,9 @@ public class MeResource implements Resource {
   private Authorizable authorizable;
   private Session session;
   private Set<String> subjects;
-  private UserFactoryService userFactoryService;
   private JsonResourceWriter itemWriter;
 
-  public MeResource(ResourceResolver resolver, String path, String resourceType,
-      UserFactoryService userFactoryService) throws AccessDeniedException,
+  public MeResource(ResourceResolver resolver, String path, String resourceType) throws AccessDeniedException,
       UnsupportedRepositoryOperationException, RepositoryException {
     this.resourceResolver = resolver;
     this.session = this.resourceResolver.adaptTo(Session.class);
@@ -82,7 +83,6 @@ public class MeResource implements Resource {
       this.authorizable = AccessControlUtil.getUserManager(session).getAuthorizable(
           session.getUserID());
     }
-    this.userFactoryService = userFactoryService;
     this.itemWriter = new JsonResourceWriter(null);
   }
 
@@ -159,8 +159,8 @@ public class MeResource implements Resource {
       json.put("userid", session.getUserID());
       json.put("properties", getProperties());
       json.put("subjects", getSubjects());
-      json.put("userStoragePrefix", userFactoryService.getUserPathPrefix(session.getUserID()));
-      json.put("userProfilePath", userFactoryService.getUserProfilePath(session.getUserID()));
+      json.put("userStoragePrefix", PathUtils.getHashedPath(session.getUserID(), UserConstants.DEFAULT_HASH_LEVELS).substring(1));
+      json.put("userProfilePath", PersonalConstants._USER_PUBLIC+"/"+session.getUserID()+"/"+PersonalConstants.AUTH_PROFILE);
       json.put("superUser", getSubjects().contains("administrators"));
       
       HashMap<String, Object> localeMap = new HashMap<String, Object>();
@@ -216,7 +216,7 @@ public class MeResource implements Resource {
         Writer writer = new PrintWriter(baos);
         writer.append("{\"user\": ");
         writer.append(getUserJSON());
-        sendNodeAsJson("profile", userFactoryService.getUserProfilePath(session.getUserID()),
+        sendNodeAsJson("profile", PersonalUtils.getProfilePath(session.getUserID()),
             writer);
         writer.append("}");
         writer.close();

@@ -17,7 +17,10 @@
  */
 package org.sakaiproject.kernel.search;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -25,6 +28,8 @@ import org.apache.sling.api.request.RequestParameter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.jcr.query.Query;
 
 /**
  * 
@@ -46,7 +51,7 @@ public class SearchServletParsingTest {
 
     expect(request.getRequestParameter("a")).andReturn(rp_a).anyTimes();
     expect(rp_a.getString()).andReturn("again").anyTimes();
-   
+
     mocks = new Object[] { request, rp, rp_a };
     replay(mocks);
 
@@ -59,17 +64,22 @@ public class SearchServletParsingTest {
 
   @Test
   public void testQueryParsing() {
-    String result = searchServlet.processQueryTemplate(request, " {q}", "SQL");
+    String result = searchServlet.processQueryTemplate(request, " {q}",
+        Query.SQL);
     assertEquals(" testing", result);
   }
+
   @Test
   public void testQueryParsing1() {
-    String result = searchServlet.processQueryTemplate(request, "{q} ", "SQL");
+    String result = searchServlet.processQueryTemplate(request, "{q} ",
+        Query.SQL);
     assertEquals("testing ", result);
   }
+
   @Test
   public void testQueryParsing2() {
-    String result = searchServlet.processQueryTemplate(request, "{q} {a}", "SQL");
+    String result = searchServlet.processQueryTemplate(request, "{q} {a}",
+        Query.SQL);
     assertEquals("testing again", result);
   }
 }

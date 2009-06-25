@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.meservice;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,11 +43,9 @@ import javax.servlet.http.HttpServletRequest;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="provider.roots" value="/system/me/"
  * @scr.service interface="org.apache.sling.api.resource.ResourceProvider"
- * @scr.reference name="UserFactoryService" interface="org.sakaiproject.kernel.api.user.UserFactoryService"
  */
 public class MeServiceResourceProvider implements ResourceProvider  {
 
-  private UserFactoryService userFactoryService;
   
   private static Logger LOG = LoggerFactory.getLogger(MeServiceResourceProvider.class);  
 
@@ -61,7 +58,7 @@ public class MeServiceResourceProvider implements ResourceProvider  {
   {
     LOG.info("Looking for resource at " + path);
     try {
-      return new MeResource(resourceResolver, path, "sakai/user", userFactoryService);
+      return new MeResource(resourceResolver, path, "sakai/user");
     } catch (AccessDeniedException e) {
       LOG.error("Access denied retrieving Me information", e);
     } catch (UnsupportedRepositoryOperationException e) {
@@ -78,13 +75,4 @@ public class MeServiceResourceProvider implements ResourceProvider  {
     return null;
   }
 
-  public void bindUserFactoryService(UserFactoryService userFactoryService)
-  {
-    this.userFactoryService = userFactoryService;
-  }
-  
-  public void unbindUserFactoryService(UserFactoryService userFactoryService)
-  {
-    this.userFactoryService = null;
-  }
 }

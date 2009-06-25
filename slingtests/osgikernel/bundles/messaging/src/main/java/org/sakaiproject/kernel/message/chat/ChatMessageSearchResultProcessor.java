@@ -20,8 +20,8 @@ package org.sakaiproject.kernel.message.chat;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageSearchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
-import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 
 import javax.jcr.Node;
 import javax.jcr.Property;

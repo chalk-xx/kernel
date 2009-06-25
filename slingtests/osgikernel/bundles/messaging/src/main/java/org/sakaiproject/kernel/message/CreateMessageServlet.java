@@ -19,20 +19,28 @@ package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
+import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,6 +78,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     this.messagingService = null;
   }
 
+
   /**
    * {@inheritDoc}
    * 
@@ -90,6 +99,13 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     // This is the message store resource.
     Resource baseResource = request.getResource();
 
+    String user = request.getRemoteUser();
+    if (user == null || UserConstants.ANON_USERID.equals(request.getRemoteUser()) ) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "Anonymous users can't send messages.");
+      return;
+    }
+
     // Do some small checks before we actually write anything.
     if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE) == null) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -102,16 +118,42 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       return;
     }
 
+    RequestParameterMap mapRequest = request.getRequestParameterMap();
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Iterator<String> it = mapRequest.keySet().iterator();
+
+    while (it.hasNext()) {
+      String k = it.next();
+      mapProperties.put(k, mapRequest.get(k).toString());
+    }
+    mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        MessageConstants.SAKAI_MESSAGE_RT);
+    mapProperties.put(MessageConstants.PROP_SAKAI_READ, true);
+    mapProperties.put(MessageConstants.PROP_SAKAI_FROM, user);
+
     // Create the message.
+    Node msg = null;
     String path = null;
     try {
-      path = messagingService.create(baseResource);
+      msg = messagingService.create(baseResource, mapProperties);
+      if (msg == null) {
+        throw new MessagingException("Unable to create the message.");
+      }
+      path = msg.getPath();
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
       return;
+    } catch (RepositoryException e) {
+      LOGGER.warn("RepositoryException: " + e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
+      return;
     }
+
+    baseResource.getResourceMetadata().setResolutionPath("/");
+    baseResource.getResourceMetadata().setResolutionPathInfo(path);
 
     final String finalPath = path;
     final ResourceMetadata rm = baseResource.getResourceMetadata();

@@ -28,6 +28,7 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPRO
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -39,12 +40,14 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -86,7 +89,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private SearchResultProcessor defaultSearchProcessor = new SearchResultProcessor() {
     public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
         RepositoryException {
-      write.value(resultNode);      
+      write.value(resultNode);
     }
   };
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
@@ -114,6 +117,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
         String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
+
         LOGGER.info("Posting Query {} ", queryString);
         QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
@@ -156,7 +160,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
   }
 
-  private int intRequestParameter(SlingHttpServletRequest request, String paramName, int defaultVal) {
+  private int intRequestParameter(SlingHttpServletRequest request, String paramName,
+      int defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -169,6 +174,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
     return defaultVal;
   }
 
+
   /**
    * Processes a template of the form select * from y where x = {q} so that strings
    * enclosed in { and } are replaced by the same property in the request.
@@ -178,13 +184,17 @@ public class SearchServlet extends SlingAllMethodsServlet {
    * @param queryTemplate
    *          the query template.
    * @return A processed query template.
+   * @throws RepositoryException 
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       String queryTemplate, String queryLanguage) {
+    Map<String, String> propertiesMap = loadUserProperties(request);
+
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
     int vstart = -1;
     char[] ca = queryTemplate.toCharArray();
+    String defaultValue = null;
     for (int i = 0; i < ca.length; i++) {
       char c = ca[i];
       if (escape) {
@@ -193,9 +203,28 @@ public class SearchServlet extends SlingAllMethodsServlet {
       } else if (vstart >= 0) {
         if (c == '}') {
           String v = new String(ca, vstart + 1, i - vstart - 1);
-          RequestParameter rp = request.getRequestParameter(v);
-          if (rp != null) {
-            sb.append(escapeString(rp.getString(), queryLanguage));
+          defaultValue = null;
+          // Take care of default values
+          if (v.contains("|")) {
+            String[] val = v.split("\\|");
+            v = val[0];
+            defaultValue = val[1];
+          }
+          if (v.startsWith("_")) {
+            String value = propertiesMap.get(v);
+            if (v != null) {
+              sb.append(escapeString(value, queryLanguage));
+            } else if (v == null && defaultValue != null) {
+              sb.append(escapeString(defaultValue, queryLanguage));
+            }
+          } else {
+
+            RequestParameter rp = request.getRequestParameter(v);
+            if (rp != null) {
+              sb.append(escapeString(rp.getString(), queryLanguage));
+            } else if (rp == null && defaultValue != null) {
+              sb.append(escapeString(defaultValue, queryLanguage));
+            }
           }
           vstart = -1;
         }
@@ -215,11 +244,32 @@ public class SearchServlet extends SlingAllMethodsServlet {
     return sb.toString();
   }
 
+  /**
+   * @param request
+   * @return
+   * @throws RepositoryException 
+   */
+  private Map<String, String> loadUserProperties(SlingHttpServletRequest request)  {
+    Map<String, String> propertiesMap = new HashMap<String, String>();
+    String userId = request.getRemoteUser();
+    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
+    propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    propertiesMap.put("_userId", userId);
+    return propertiesMap;
+  }
+
   private String escapeString(String value, String queryLanguage) {
-    if (value == null) {
-      return "null";
+    String escaped = null;
+    if (value != null) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''");
+      } else {
+        LOGGER.error("Unknown query language: " + queryLanguage);
+      }
     }
-    return value.replaceAll("\\\\", "\\\\").replaceAll("'", "\\\\'");
+    return escaped;
   }
 
   protected void bindSearchResultProcessor(ServiceReference serviceReference) {
@@ -290,5 +340,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
       delayedReferences.clear();
     }
   }
+
+
 
 }
