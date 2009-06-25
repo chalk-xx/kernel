@@ -49,7 +49,10 @@ public abstract class AbstractPostConnectionServlet extends
   protected boolean preDispatch(SlingHttpServletRequest request,
       SlingHttpServletResponse response, Resource baseResource,
       Resource resource) {
-    request.setAttribute(CONNECTION_OPERATION, OPERATION);
+    if (request.getAttribute(CONNECTION_OPERATION) == null) {
+      request.setAttribute(CONNECTION_OPERATION, OPERATION);
+    }
+    ConnectionOperations operation = (ConnectionOperations) request.getAttribute(CONNECTION_OPERATION);
     // POST request only
     String requesterUserId = request.getRemoteUser(); // current user
     String targetUserId = (String) request.getAttribute(TARGET_USERID);
@@ -65,9 +68,9 @@ public abstract class AbstractPostConnectionServlet extends
     }
 
     try {
-      if (!ConnectionConstants.ConnectionOperations.REQUEST.equals(OPERATION)) {
+      if (!ConnectionConstants.ConnectionOperations.REQUEST.equals(operation)) {
         // Request is handled directly by the RequestPostConnection servlet
-        connectionManager.connect(baseResource, targetUserId, OPERATION,
+        connectionManager.connect(baseResource, targetUserId, operation,
             requesterUserId);
       }
     } catch (ConnectionException e) {
