@@ -53,9 +53,11 @@ public class CropItProcessor {
    * @param y
    *          Where to start cutting on the y-axis.
    * @param width
-   *          The width of the image to cut out. If <=0 then the entire image width will be used.
+   *          The width of the image to cut out. If <=0 then the entire image
+   *          width will be used.
    * @param height
-   *          The height of the image to cut out.If <=0 then the entire image height will be used.
+   *          The height of the image to cut out.If <=0 then the entire image
+   *          height will be used.
    * @param dimensions
    *          A JSONArray with the different dimensions.
    * @param urlSaveIn
@@ -72,7 +74,7 @@ public class CropItProcessor {
 
     InputStream in = null;
     ByteArrayOutputStream out = null;
-    
+
     // The array that will contain all the cropped and resized images.
     String[] arrFiles = new String[dimensions.size()];
 
@@ -97,11 +99,11 @@ public class CropItProcessor {
           in = jcrNodeFactoryService.getInputStream(nImgToCrop.getPath());
 
           BufferedImage img = ImageIO.read(in);
-          
+
           // Set the correct width & height.
           width = (width <= 0) ? img.getWidth() : width;
-          height = (height <= 0) ? img.getHeight() : height; 
-          
+          height = (height <= 0) ? img.getHeight() : height;
+
           // Cut the desired piece out of the image.
           BufferedImage subImage = img.getSubimage(x, y, width, height);
 
@@ -116,14 +118,14 @@ public class CropItProcessor {
             int iHeight = Integer.parseInt(o.get("height").toString());
 
             iWidth = (iWidth <= 0) ? img.getWidth() : iWidth;
-            iHeight = (iHeight <= 0) ? img.getHeight() : iHeight; 
+            iHeight = (iHeight <= 0) ? img.getHeight() : iHeight;
 
             // Create the image.
             out = scaleAndWriteToStream(iWidth, iHeight, subImage, sType, sImg);
 
             String sPath = urlSaveIn + iWidth + "x" + iHeight + "_" + sImg;
             // Save new image to JCR.
-            SaveImageToJCR(sPath, sType, out, nImgToCrop);
+            saveImageToJCR(sPath, sType, out, nImgToCrop);
 
             out.close();
             arrFiles[i] = sPath;
@@ -197,13 +199,13 @@ public class CropItProcessor {
    * @throws JCRNodeFactoryServiceException
    * @throws IOException
    */
-  public static void SaveImageToJCR(String sPath, String sType,
+  public static void saveImageToJCR(String sPath, String sType,
       ByteArrayOutputStream out, Node baseNode) throws RepositoryException,
       JCRNodeFactoryServiceException, IOException {
-    
+
     // Save image into the jcr
     Node n = jcrNodeFactoryService.getNode(sPath);
-    
+
     System.out.println(sPath);
 
     // This node doesn't exist yet. Create and save it.
