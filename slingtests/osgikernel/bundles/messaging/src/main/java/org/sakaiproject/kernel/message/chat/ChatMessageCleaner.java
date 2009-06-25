@@ -121,7 +121,7 @@ public class ChatMessageCleaner extends TimerTask {
 
       String queryPath = "/jcr:root/" + ISO9075.encodePath("_user/private")
           + "//element(*)[@" + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY + "='"
-          + MessageConstants.PROP_SAKAI_MESSAGE + "' and @"
+          + MessageConstants.SAKAI_MESSAGE_RT + "' and @"
           + MessageConstants.PROP_SAKAI_TYPE + "='" + MessageConstants.TYPE_CHAT
           + "' and @" + MessageConstants.PROP_SAKAI_READ + "='false' and @"
           + JCRConstants.JCR_CREATED + " < xs:dateTime('" + timestamp + "')]";

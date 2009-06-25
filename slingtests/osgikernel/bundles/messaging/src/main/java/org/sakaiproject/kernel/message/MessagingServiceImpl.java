@@ -36,6 +36,7 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
 
 /**
@@ -87,15 +88,14 @@ public class MessagingServiceImpl implements MessagingService {
     String finalPath = PathUtils.toInternalHashedPath(servletPath,
         pathParts[0], pathParts[1]);
 
-    Node n = (Node) baseResource.adaptTo(Node.class);
+    Session session = baseResource.adaptTo(Session.class);
     try {
-      msg = JcrUtils.deepGetOrCreateNode(n.getSession(), finalPath);
+      msg = JcrUtils.deepGetOrCreateNode(session, finalPath);
 
       for (String s : mapProperties.keySet()) {
         msg.setProperty(s, mapProperties.get(s).toString());
       }
 
-      n.getSession().save();
 
     } catch (RepositoryException e) {
       LOGGER.warn("RepositoryException on trying to save message." + e.getMessage());

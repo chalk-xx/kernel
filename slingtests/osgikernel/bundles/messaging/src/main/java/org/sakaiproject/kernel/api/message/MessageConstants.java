@@ -38,7 +38,7 @@ public interface MessageConstants {
   /**
   *
   */
-  public static final String PROP_SAKAI_MESSAGE = "sakai/message";
+  public static final String SAKAI_MESSAGE_RT = "sakai/message";
   /**
    * The property wether this message has been read or not.
    */

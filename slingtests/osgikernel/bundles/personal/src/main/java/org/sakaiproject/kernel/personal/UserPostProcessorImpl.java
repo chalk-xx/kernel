@@ -17,11 +17,6 @@
  */
 package org.sakaiproject.kernel.personal;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PRIVATE;
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._GROUP_PUBLIC;
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
-import static org.sakaiproject.kernel.api.user.UserConstants.AUTH_PROFILE;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
@@ -39,12 +34,12 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
 import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,13 +213,13 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = hashPublicNode(authorizable, AUTH_PROFILE);
+    String path = PersonalUtils.getProfilePath(authorizable.getID());
     System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
-    String privatePath = hashPrivateNode(authorizable, "created");
+    String privatePath = PersonalUtils.getPrivatePath(authorizable.getID(), "created");
     if (!session.itemExists(privatePath)) {
       Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
       privateNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
@@ -257,27 +252,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
   }
 
-  private String hashPublicNode(Authorizable authorizable, String path)
-      throws RepositoryException {
-    if (authorizable.isGroup()) {
-      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, authorizable.getPrincipal()
-          .getName(), path);
-    } else {
-      return PathUtils.toInternalHashedPath(_USER_PUBLIC, authorizable.getPrincipal()
-          .getName(), path);
-    }
-  }
 
-  private String hashPrivateNode(Authorizable authorizable, String path)
-      throws RepositoryException {
-    if (authorizable.isGroup()) {
-      return PathUtils.toInternalHashedPath(_GROUP_PRIVATE, authorizable.getPrincipal()
-          .getName(), path);
-    } else {
-      return PathUtils.toInternalHashedPath(_USER_PRIVATE, authorizable.getPrincipal()
-          .getName(), path);
-    }
-  }
 
   // event processing
   // -----------------------------------------------------------------------------

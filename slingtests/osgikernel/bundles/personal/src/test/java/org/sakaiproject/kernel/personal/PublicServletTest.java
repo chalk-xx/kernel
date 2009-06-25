@@ -18,24 +18,17 @@
 package org.sakaiproject.kernel.personal;
 
 import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLIC;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import javax.jcr.Session;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 
 /**

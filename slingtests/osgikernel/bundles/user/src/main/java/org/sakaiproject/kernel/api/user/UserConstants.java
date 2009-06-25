@@ -37,10 +37,6 @@ public interface UserConstants {
   public static final String GROUP_PROFILE_RESOURCE_TYPE = "sakai/group-profile";
 
   /**
-   * The node name of the authentication profile in public space.
-   */
-  public static final String AUTH_PROFILE = "authprofile";
-  /**
    * A list of private properties that will not be copied from the authorizable.
    */
   public static final String PRIVATE_PROPERTIES = "sakai:privateproperties";
@@ -58,6 +54,12 @@ public interface UserConstants {
    * A node property that indicates which use the node was created by, for ownership.
    */
   public static final String JCR_CREATED_BY = "jcr:createdBy";
+  
+  
+  /**
+   * The ID of an anon user.
+   */
+  public static final String ANON_USERID = "anonymous";
 
   
 }

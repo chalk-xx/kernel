@@ -40,15 +40,15 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.search.processors.AbstractSearchResultProcessor;
-import org.sakaiproject.kernel.api.session.SessionManagerService;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -77,17 +77,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * @scr.reference name="SearchResultProcessor"
  *                interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor"
- *                unbind="unbindSearchResultProcessor" cardinality="0..n"
- *                policy="dynamic"
- * @scr.reference name="SessionManagerService"
- *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
- *                bind="bindSessionManagerService"
- *                unbind="unbindSessionManagerService"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
- *                bind="bindUserFactoryService"
- *                unbind="unbindUserFactoryService"
+ *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
+ *                cardinality="0..n" policy="dynamic"
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
@@ -95,31 +86,27 @@ public class SearchServlet extends SlingAllMethodsServlet {
    *
    */
   private static final long serialVersionUID = 4130126304725079596L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(SearchServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
   private SearchResultProcessor defaultSearchProcessor = new AbstractSearchResultProcessor() {
     @Override
-    protected void writeNode(JSONWriter write, Node resultNode)
-        throws JSONException, RepositoryException {
+    protected void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+        RepositoryException {
       write.value(resultNode);
     }
   };
-  private SessionManagerService sessionManagerService;
-  private UserFactoryService userFactoryService;
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
 
   @Override
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
-        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE)
-            .getString();
+        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
         String queryLanguage = Query.SQL;
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
@@ -127,12 +114,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(queryTemplate, queryLanguage);
-        queryString = processQueryTemplate(request, queryString, queryLanguage);
+        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
 
         LOGGER.info("Posting Query {} ", queryString);
-        QueryManager queryManager = node.getSession().getWorkspace()
-            .getQueryManager();
+        QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
         QueryResult result = query.execute();
 
@@ -150,28 +135,26 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.array();
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
         if (node.hasProperty(SAKAI_RESULTPROCESSOR)) {
-          searchProcessor = processors.get(node.getProperty(
-              SAKAI_RESULTPROCESSOR).getString());
+          searchProcessor = processors.get(node.getProperty(SAKAI_RESULTPROCESSOR)
+              .getString());
           if (searchProcessor == null) {
             searchProcessor = defaultSearchProcessor;
           }
         }
-        searchProcessor.output(write, resultNodes, Math.min(offset, total),
-            Math.min(offset + nitems, total + 1));
+        searchProcessor.output(write, resultNodes, Math.min(offset, total), Math.min(
+            offset + nitems, total + 1));
         write.endArray();
         write.endObject();
       }
     } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
-  private int intRequestParameter(SlingHttpServletRequest request,
-      String paramName, int defaultVal) {
+  private int intRequestParameter(SlingHttpServletRequest request, String paramName,
+      int defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -183,41 +166,23 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
     return defaultVal;
   }
-  
 
-  protected String processQueryTemplate(String queryTemplate,
-      String queryLanguage) {
-
-    try {
-    // / Get the current user his userId and his private path.
-    String userId = sessionManagerService.getCurrentUserId();    
-    String userPrivatePath = "/jcr:root" + userFactoryService.getUserPrivatePath(userId);    
-    userPrivatePath = ISO9075.encodePath(userPrivatePath);
-    
-    queryTemplate = queryTemplate.replaceAll("\\{_userPrivatePath\\}", userPrivatePath);
-    queryTemplate = queryTemplate.replaceAll("\\{_userId\\}", userId);
-    
-    return queryTemplate;
-    }
-    catch (Exception ex) {
-      return queryTemplate;
-    }
-    
-  }
 
   /**
-   * Processes a template of the form select * from y where x = {q} so that
-   * strings enclosed in { and } are replaced by the same property in the
-   * request.
+   * Processes a template of the form select * from y where x = {q} so that strings
+   * enclosed in { and } are replaced by the same property in the request.
    * 
    * @param request
    *          the request.
    * @param queryTemplate
    *          the query template.
    * @return A processed query template.
+   * @throws RepositoryException 
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       String queryTemplate, String queryLanguage) {
+    Map<String, String> propertiesMap = loadUserProperties(request);
+
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
     int vstart = -1;
@@ -236,14 +201,23 @@ public class SearchServlet extends SlingAllMethodsServlet {
           if (v.contains("|")) {
             String[] val = v.split("\\|");
             v = val[0];
-            defaultValue = val[1];            
+            defaultValue = val[1];
           }
-          RequestParameter rp = request.getRequestParameter(v);
-          if (rp != null) {
-            sb.append(escapeString(rp.getString(), queryLanguage));
-          }
-          else if (rp == null && defaultValue != null) {
-            sb.append(escapeString(defaultValue, queryLanguage));
+          if (v.startsWith("_")) {
+            String value = propertiesMap.get(v);
+            if (v != null) {
+              sb.append(escapeString(value, queryLanguage));
+            } else if (v == null && defaultValue != null) {
+              sb.append(escapeString(defaultValue, queryLanguage));
+            }
+          } else {
+
+            RequestParameter rp = request.getRequestParameter(v);
+            if (rp != null) {
+              sb.append(escapeString(rp.getString(), queryLanguage));
+            } else if (rp == null && defaultValue != null) {
+              sb.append(escapeString(defaultValue, queryLanguage));
+            }
           }
           vstart = -1;
         }
@@ -263,13 +237,27 @@ public class SearchServlet extends SlingAllMethodsServlet {
     return sb.toString();
   }
 
+  /**
+   * @param request
+   * @return
+   * @throws RepositoryException 
+   */
+  private Map<String, String> loadUserProperties(SlingHttpServletRequest request)  {
+    Map<String, String> propertiesMap = new HashMap<String, String>();
+    String userId = request.getRemoteUser();
+    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
+    propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    propertiesMap.put("_userId", userId);
+    return propertiesMap;
+  }
+
   private String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'",
-            "\\\\'").replaceAll("'", "''");
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''");
       } else {
         LOGGER.error("Unknown query language: " + queryLanguage);
       }
@@ -346,22 +334,6 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
   }
 
-  protected void bindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    System.out.println("Bound sessionManagerService" + sessionManagerService);
-    this.sessionManagerService = sessionManagerService;
-  }
 
-  protected void unbindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    this.sessionManagerService = null;
-  }
 
-  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = userFactoryService;
-  }
-  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = null;
-  }
-  
 }

@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.api.message;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,17 +43,12 @@ import javax.jcr.ValueFormatException;
  * @scr.reference name="MessagingService"
  *                interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                bind="bindMessagingService" unbind="unbindMessagingService"
- * @scr.reference name="UserFactoryService"
- *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
- *                bind="bindUserFactoryService"
- *                unbind="unbindUserFactoryService"
  */
 public class MessageSearchResultProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageSearchResultProcessor.class);
 
-  protected UserFactoryService userFactoryService;
   protected MessagingService messagingService;
 
   /**
@@ -80,7 +75,7 @@ public class MessageSearchResultProcessor {
     try {
       String user = resultNode.getProperty(propertyName).getString();
 
-      String path = userFactoryService.getUserProfilePath(user);
+      String path = PersonalUtils.getProfilePath(user);
       Node userNode = (Node) resultNode.getSession().getItem(path);
 
       PropertyIterator userPropertyIterator = userNode.getProperties();
@@ -132,12 +127,5 @@ public class MessageSearchResultProcessor {
     this.messagingService = null;
   }
 
-  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = userFactoryService;
-  }
-
-  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
-    this.userFactoryService = userFactoryService;
-  }
 
 }

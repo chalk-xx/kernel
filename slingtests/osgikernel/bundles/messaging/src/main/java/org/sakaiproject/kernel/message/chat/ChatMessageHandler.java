@@ -26,7 +26,6 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageHandler;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalConstants;
-import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -158,7 +157,7 @@ public class ChatMessageHandler implements MessageHandler {
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
           n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.PROP_SAKAI_MESSAGE);
+              MessageConstants.SAKAI_MESSAGE_RT);
           n.save();
         }
       }
@@ -200,8 +199,4 @@ public class ChatMessageHandler implements MessageHandler {
     return path;
   }
 
-  public void bindUserFactoryService(UserFactoryService userFactory) {
-    // TODO Auto-generated method stub
-
-  }
 }

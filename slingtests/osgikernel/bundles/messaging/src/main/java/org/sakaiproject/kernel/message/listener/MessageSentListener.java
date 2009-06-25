@@ -89,7 +89,7 @@ public class MessageSentListener implements EventHandler {
       Node n = (Node) event.getProperty(MessageConstants.EVENT_LOCATION);
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
-      if (resourceType.equals(MessageConstants.PROP_SAKAI_MESSAGE)) {
+      if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
         Property msgTypeProp = n.getProperty(MessageConstants.PROP_SAKAI_TYPE);
         String msgType = msgTypeProp.getString();
         LOG.info("The type for this message is {}", msgType);

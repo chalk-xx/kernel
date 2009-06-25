@@ -29,7 +29,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
-import org.sakaiproject.kernel.api.session.SessionManagerService;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,10 +58,6 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="MessagingService"
  *                interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                bind="bindMessagingService" unbind="unbindMessagingService"
- * @scr.reference name="SessionManagerService"
- *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
- *                bind="bindSessionManagerService"
- *                unbind="unbindSessionManagerService"
  */
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
@@ -73,7 +69,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       .getLogger(CreateMessageServlet.class);
 
   private MessagingService messagingService;
-  private SessionManagerService sessionManagerService;
 
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
@@ -83,16 +78,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     this.messagingService = null;
   }
 
-  protected void bindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    System.out.println("Bound sessionManagerService" + sessionManagerService);
-    this.sessionManagerService = sessionManagerService;
-  }
-
-  protected void unbindSessionManagerService(
-      SessionManagerService sessionManagerService) {
-    this.sessionManagerService = null;
-  }
 
   /**
    * {@inheritDoc}
@@ -114,7 +99,8 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     // This is the message store resource.
     Resource baseResource = request.getResource();
 
-    if (sessionManagerService.getCurrentSession() == null) {
+    String user = request.getRemoteUser();
+    if (user == null || UserConstants.ANON_USERID.equals(request.getRemoteUser()) ) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Anonymous users can't send messages.");
       return;
@@ -141,10 +127,9 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       mapProperties.put(k, mapRequest.get(k).toString());
     }
     mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        MessageConstants.PROP_SAKAI_MESSAGE);
+        MessageConstants.SAKAI_MESSAGE_RT);
     mapProperties.put(MessageConstants.PROP_SAKAI_READ, true);
-    mapProperties.put(MessageConstants.PROP_SAKAI_FROM, sessionManagerService
-        .getCurrentUserId());
+    mapProperties.put(MessageConstants.PROP_SAKAI_FROM, user);
 
     // Create the message.
     Node msg = null;
