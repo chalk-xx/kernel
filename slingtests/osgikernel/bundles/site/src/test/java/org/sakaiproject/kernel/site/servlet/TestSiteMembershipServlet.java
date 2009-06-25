@@ -47,15 +47,15 @@ import javax.servlet.ServletException;
 
 public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
 
-  private final String TEST_USER = "testuser";
-  private final String TEST_SITE_GROUP = "some_site_group";
-  private final String TEST_SITE_PATH = "/some/test/site";
-  
+  private static final String TEST_USER = "testuser";
+  private static final String TEST_SITE_GROUP = "some_site_group";
+  private static final String TEST_SITE_PATH = "/some/test/site";
+
   private SlingHttpServletRequest request;
-  
+
   @Test
-  public void testUserNoMemberships() throws ServletException, IOException, RepositoryException, JSONException
-  {
+  public void testUserNoMemberships() throws ServletException, IOException,
+      RepositoryException, JSONException {
     request = createMock(SlingHttpServletRequest.class);
     createDummyUser(TEST_USER);
     expect(request.getRemoteUser()).andReturn(TEST_USER);
@@ -65,10 +65,10 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     JSONArray sites = makeGetRequestReturningJSON();
     assertEquals("Expected no sites back", 0, sites.length());
   }
-  
+
   @Test
-  public void testUserWithMemberships() throws ServletException, IOException, RepositoryException, JSONException
-  {
+  public void testUserWithMemberships() throws ServletException, IOException,
+      RepositoryException, JSONException {
     request = createMock(SlingHttpServletRequest.class);
     Group siteGroup = createDummySiteGroup(TEST_SITE_GROUP, TEST_SITE_PATH);
     List<Group> siteGroups = new ArrayList<Group>();
@@ -78,25 +78,30 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(resolver.resolve(eq(TEST_SITE_PATH))).andReturn(dummySiteResource(TEST_SITE_PATH));
+    expect(resolver.resolve(eq(TEST_SITE_PATH))).andReturn(
+        dummySiteResource(TEST_SITE_PATH));
     JSONArray sites = makeGetRequestReturningJSON();
     assertEquals("Expected 1 site back", 1, sites.length());
     JSONObject site = (JSONObject) sites.get(0);
-    assertEquals("Expected siteref to match path", TEST_SITE_PATH, site.get("siteref"));
+    assertEquals("Expected siteref to match path", TEST_SITE_PATH, site
+        .get("siteref"));
   }
 
   private Resource dummySiteResource(String path) {
     Resource result = createMock(Resource.class);
-    Map<String,Object> userValues = new HashMap<String,Object>();
+    Map<String, Object> userValues = new HashMap<String, Object>();
     userValues.put("path", path);
-    expect(result.adaptTo(ValueMap.class)).andReturn(new ValueMapDecorator(userValues)).anyTimes();
+    expect(result.adaptTo(ValueMap.class)).andReturn(
+        new ValueMapDecorator(userValues)).anyTimes();
     return result;
   }
 
-  private Group createDummySiteGroup(String groupName, String sitePath) throws RepositoryException {
+  private Group createDummySiteGroup(String groupName, String sitePath)
+      throws RepositoryException {
     Group result = createDummyGroup(groupName);
     expect(result.hasProperty(SiteService.SITES)).andReturn(true);
-    expect(result.getProperty(SiteService.SITES)).andReturn(new Value[] { new MockValue(sitePath) });
+    expect(result.getProperty(SiteService.SITES)).andReturn(
+        new Value[] { new MockValue(sitePath) });
     return result;
   }
 

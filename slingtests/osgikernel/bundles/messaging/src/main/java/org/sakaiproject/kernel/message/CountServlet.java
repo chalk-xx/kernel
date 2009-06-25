@@ -28,6 +28,7 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -72,10 +73,10 @@ public class CountServlet extends SlingAllMethodsServlet {
       // We do the query on the user his messageStore's path.
       String messageStorePath = ISO9075.encodePath(node.getPath());
       // String messageStorePath = node.getPath();
-      String queryString = "/jcr:root" + messageStorePath
-          + "//*[@sling:resourceType='sakai/message' and @"
+      StringBuilder queryString = new StringBuilder("/jcr:root"
+          + messageStorePath + "//*[@sling:resourceType='sakai/message' and @"
           + MessageConstants.PROP_SAKAI_TYPE + "='"
-          + MessageConstants.TYPE_INTERNAL + "'";
+          + MessageConstants.TYPE_INTERNAL + "'");
 
       // Get the filters
       if (request.getRequestParameter("filters") != null
@@ -91,16 +92,16 @@ public class CountServlet extends SlingAllMethodsServlet {
         }
 
         for (int i = 0; i < filters.length; i++) {
-          queryString += " and @" + filters[i] + "='" + values[i] + "'";
+          queryString.append(" and @" + filters[i] + "='" + values[i] + "'");
         }
       }
 
-      queryString += "]";
+      queryString.append("]");
 
       // Do the query and output how many results we have.
       QueryManager queryManager = node.getSession().getWorkspace()
           .getQueryManager();
-      Query query = queryManager.createQuery(queryString, "xpath");
+      Query query = queryManager.createQuery(queryString.toString(), "xpath");
       QueryResult result = query.execute();
       JSONWriter write = new JSONWriter(response.getWriter());
       NodeIterator resultNodes = result.getNodes();
@@ -133,13 +134,13 @@ public class CountServlet extends SlingAllMethodsServlet {
         write.object();
         write.key("count");
         write.array();
-        for (String k : mapCount.keySet()) {
+        for (Entry<String, Integer> e : mapCount.entrySet()) {
           write.object();
 
           write.key("group");
-          write.value(k);
+          write.value(e.getKey());
           write.key("count");
-          write.value(mapCount.get(k));
+          write.value(e.getValue());
 
           write.endObject();
         }
