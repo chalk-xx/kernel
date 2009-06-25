@@ -28,6 +28,7 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPRO
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -41,6 +42,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.search.processors.AbstractSearchResultProcessor;
+import org.sakaiproject.kernel.api.session.SessionManagerService;
+import org.sakaiproject.kernel.api.user.UserFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +80,14 @@ import javax.servlet.http.HttpServletResponse;
  *                bind="bindSearchResultProcessor"
  *                unbind="unbindSearchResultProcessor" cardinality="0..n"
  *                policy="dynamic"
+ * @scr.reference name="SessionManagerService"
+ *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
+ *                bind="bindSessionManagerService"
+ *                unbind="unbindSessionManagerService"
+ * @scr.reference name="UserFactoryService"
+ *                interface="org.sakaiproject.kernel.api.user.UserFactoryService"
+ *                bind="bindUserFactoryService"
+ *                unbind="unbindUserFactoryService"
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
@@ -93,6 +104,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
       write.value(resultNode);
     }
   };
+  private SessionManagerService sessionManagerService;
+  private UserFactoryService userFactoryService;
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
   private ComponentContext osgiComponentContext;
@@ -114,8 +127,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(request, queryTemplate,
-            queryLanguage);
+        String queryString = processQueryTemplate(queryTemplate, queryLanguage);
+        queryString = processQueryTemplate(request, queryString, queryLanguage);
+
         LOGGER.info("Posting Query {} ", queryString);
         QueryManager queryManager = node.getSession().getWorkspace()
             .getQueryManager();
@@ -169,6 +183,27 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
     return defaultVal;
   }
+  
+
+  protected String processQueryTemplate(String queryTemplate,
+      String queryLanguage) {
+
+    try {
+    // / Get the current user his userId and his private path.
+    String userId = sessionManagerService.getCurrentUserId();    
+    String userPrivatePath = "/jcr:root" + userFactoryService.getUserPrivatePath(userId);    
+    userPrivatePath = ISO9075.encodePath(userPrivatePath);
+    
+    queryTemplate = queryTemplate.replaceAll("\\{_userPrivatePath\\}", userPrivatePath);
+    queryTemplate = queryTemplate.replaceAll("\\{_userId\\}", userId);
+    
+    return queryTemplate;
+    }
+    catch (Exception ex) {
+      return queryTemplate;
+    }
+    
+  }
 
   /**
    * Processes a template of the form select * from y where x = {q} so that
@@ -187,6 +222,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
     boolean escape = false;
     int vstart = -1;
     char[] ca = queryTemplate.toCharArray();
+    String defaultValue = null;
     for (int i = 0; i < ca.length; i++) {
       char c = ca[i];
       if (escape) {
@@ -195,9 +231,19 @@ public class SearchServlet extends SlingAllMethodsServlet {
       } else if (vstart >= 0) {
         if (c == '}') {
           String v = new String(ca, vstart + 1, i - vstart - 1);
+          defaultValue = null;
+          // Take care of default values
+          if (v.contains("|")) {
+            String[] val = v.split("\\|");
+            v = val[0];
+            defaultValue = val[1];            
+          }
           RequestParameter rp = request.getRequestParameter(v);
           if (rp != null) {
             sb.append(escapeString(rp.getString(), queryLanguage));
+          }
+          else if (rp == null && defaultValue != null) {
+            sb.append(escapeString(defaultValue, queryLanguage));
           }
           vstart = -1;
         }
@@ -299,4 +345,23 @@ public class SearchServlet extends SlingAllMethodsServlet {
       delayedReferences.clear();
     }
   }
+
+  protected void bindSessionManagerService(
+      SessionManagerService sessionManagerService) {
+    System.out.println("Bound sessionManagerService" + sessionManagerService);
+    this.sessionManagerService = sessionManagerService;
+  }
+
+  protected void unbindSessionManagerService(
+      SessionManagerService sessionManagerService) {
+    this.sessionManagerService = null;
+  }
+
+  protected void bindUserFactoryService(UserFactoryService userFactoryService) {
+    this.userFactoryService = userFactoryService;
+  }
+  protected void unbindUserFactoryService(UserFactoryService userFactoryService) {
+    this.userFactoryService = null;
+  }
+  
 }

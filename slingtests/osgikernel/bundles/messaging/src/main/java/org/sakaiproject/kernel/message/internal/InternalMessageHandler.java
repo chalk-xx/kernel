@@ -62,13 +62,13 @@ public class InternalMessageHandler implements MessageHandler {
       .getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
-   private MessagingService messagingService;
+  private MessagingService messagingService;
 
-  public void bindMessagingService(MessagingService messagingService) {
+  protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
 
-  public void unbindMessagingService(MessagingService messagingService) {
+  protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
 
@@ -93,9 +93,7 @@ public class InternalMessageHandler implements MessageHandler {
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
-  
-  
-  
+
   /**
    * Default constructor
    */

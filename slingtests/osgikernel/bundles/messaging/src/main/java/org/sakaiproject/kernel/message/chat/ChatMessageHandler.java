@@ -19,9 +19,6 @@
 package org.sakaiproject.kernel.message.chat;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.sling.commons.json.JSONArray;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
@@ -34,8 +31,6 @@ import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Calendar;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -63,7 +58,6 @@ import javax.jcr.ValueFormatException;
  *                unbind="unbindSlingRepository"
  */
 public class ChatMessageHandler implements MessageHandler {
-  private static final String CHATLOG = "Chatlog";
   private static final Logger LOG = LoggerFactory
       .getLogger(ChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;
@@ -92,11 +86,11 @@ public class ChatMessageHandler implements MessageHandler {
 
   private MessagingService messagingService;
 
-  public void bindMessagingService(MessagingService messagingService) {
+  protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
 
-  public void unbindMessagingService(MessagingService messagingService) {
+  protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
 
@@ -115,7 +109,7 @@ public class ChatMessageHandler implements MessageHandler {
    */
   public void handle(Event event, Node originalMessage) {
     try {
-      LOG.info("Started handling the message.");
+      LOG.info("Started handling this chat message.");
 
       // Session session = originalMessage.getSession();
       Session session = slingRepository.loginAdministrative(null);
@@ -131,10 +125,6 @@ public class ChatMessageHandler implements MessageHandler {
 
       // Copy the message to each user his message store and place it in the
       // inbox.
-
-      String from = originalMessage.getProperty(
-          MessageConstants.PROP_SAKAI_FROM).getString();
-
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           // the path were we want to save messages in.
@@ -153,7 +143,7 @@ public class ChatMessageHandler implements MessageHandler {
            */
 
           Node n = (Node) session.getItem(toPath);
-          
+
           PropertyIterator pi = originalMessage.getProperties();
           while (pi.hasNext()) {
             Property p = pi.nextProperty();
@@ -162,108 +152,19 @@ public class ChatMessageHandler implements MessageHandler {
           }
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+          n.setProperty(MessageConstants.PROP_SAKAI_READ, "false");
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
+          n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+              MessageConstants.PROP_SAKAI_MESSAGE);
           n.save();
-
-          // Now save this message to the logs.
-          saveChatMessageInLog(from, rcpt, originalMessage, session);
-          saveChatMessageInLog(rcpt, from, originalMessage, session);
         }
       }
 
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Will save a chat message to the log.
-   * 
-   * @param user
-   * @param message
-   */
-  private void saveChatMessageInLog(String from, String to, Node message, Session session) {
-    // TODO
-    try {
-      Calendar cal = Calendar.getInstance();
-
-      String user1 = (from.compareTo(to) > 0) ? to : from;
-      String user2 = (user1.equals(to)) ? from : to;
-
-      // Construct the path to the message we want to save.
-      String usersMessageStore = PathUtils
-          .toInternalHashedPath(PersonalConstants._USER_PRIVATE, to,
-              MessageConstants.FOLDER_MESSAGES);
-
-      // The path from the message store to the message.
-      String pathToLogMessage = "/" + MessageConstants.FOLDER_CHATS + "/"
-          + cal.get(Calendar.YEAR) + "/" + cal.get(Calendar.MONTH) + "/"
-          + cal.get(Calendar.DAY_OF_MONTH) + "/";
-
-      // The filename for this message.
-      String logMessage = user1 + "_" + user2;
-      String fullPath = usersMessageStore + pathToLogMessage + logMessage;
-
-      Node nodeMessage = null;
-      // Get this message.
-      if (session.itemExists(fullPath)) {
-        nodeMessage = (Node) session.getItem(fullPath);
-      } else {
-        LOG.info("The log message did not exist yet. Start creating one.");
-
-        // This path does not exist. Create it.
-        // createPathToFile(s, to, pathToLogMessage + logMessage);
-        nodeMessage = JcrUtils.deepGetOrCreateNode(session, fullPath);
-
-        // Set the basic properties.
-        nodeMessage.setProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            MessageConstants.PROP_SAKAI_MESSAGE);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_FROM, from);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_TO, to);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-            MessageConstants.BOX_INBOX);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
-            MessageConstants.STATE_NOTIFIED);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_TYPE,
-            MessageConstants.TYPE_INTERNAL);
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_SUBJECT, CHATLOG);
-
-        // This array will hold all the chat messages.
-        JSONArray arr = new JSONArray();
-        nodeMessage.setProperty(MessageConstants.PROP_SAKAI_BODY, arr
-            .toString());
-        session.save();
-      }
-
-      LOG.info("Appending the information to the log.");
-      // Append the current chat to the message
-      JSONObject obj = new JSONObject();
-      obj.put("from", from);
-      obj.put("to", to);
-      obj.put("message", message.getProperty(MessageConstants.PROP_SAKAI_BODY)
-          .getString());
-      /*
-       * obj .put("date", message.getProperty(JCRConstants.JCR_CREATED)
-       * .getString());
-       */
-      JSONArray arr = new JSONArray(nodeMessage.getProperty(
-          MessageConstants.PROP_SAKAI_BODY).getString());
-      arr.put(obj);
-
-      nodeMessage.setProperty(MessageConstants.PROP_SAKAI_BODY, arr.toString());
-      nodeMessage.save();
-
-    } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     }
   }
 
