@@ -60,8 +60,14 @@ public class SlingRequestPathInfo implements RequestPathInfo {
       } else {
           // no selectors if splitting would give an empty array
           String tmpSel = suffix.substring(0, lastDot);
-          selectors = tmpSel.split("\\.");
-          selectorString = (selectors.length > 0) ? tmpSel : null;
+          int start = tmpSel.indexOf('.');
+          if (start > -1) {
+            selectors = tmpSel.substring(start).split("\\.");
+            selectorString = (selectors.length > 0) ? tmpSel : null;
+          } else {
+            selectors = NO_SELECTORS;
+            selectorString = null;
+          }
       }
 
       // extension only if lastDot is not trailing
