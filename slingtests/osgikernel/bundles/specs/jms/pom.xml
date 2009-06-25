@@ -38,6 +38,7 @@
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Export-Package>javax.jms.*;version=1.1</Export-Package>
+			<Import-Package>javax.transaction.xa</Import-Package>
           </instructions>
         </configuration>
       </plugin>
