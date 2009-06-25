@@ -2,6 +2,7 @@
 n=`date "+%Y%m%d%H%M%S"`
 user1=testuser${n}-1
 group1=g-testgroup${n}-1
+mkdir target
 echo "==================================================== create a users"
 curl -F:name=${user1} -Fpwd=testuser -FpwdConfirm=testuser http://localhost:8080/system/userManager/user.create.html
 echo "====================================================  create groups "
@@ -18,12 +19,12 @@ echo "====================================================  Update the user"
 x=1
 while [[ $x -lt 100 ]]
 do
-  curl -Ftestpropert=value${x} http://${user1}:testuser@localhost:8080/system/userManager/user/${user1}.update.html 1> errorfile 2> /dev/null
-  error=`grep -c 500 errorfile`
+  curl -Ftestpropert=value${x} http://${user1}:testuser@localhost:8080/system/userManager/user/${user1}.update.html 1> target/errorfile 2> /dev/null
+  error=`grep -c 500 target/errorfile`
   if [[ $error -ne 0 ]] 
   then
       echo Error Updating $user1
-      cat errorfile
+      cat target/errorfile
       exit
   fi 
   echo Updated $user1 $x
