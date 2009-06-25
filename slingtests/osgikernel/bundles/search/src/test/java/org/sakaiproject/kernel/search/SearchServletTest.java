@@ -79,6 +79,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     request = createMock(SlingHttpServletRequest.class);
+    expect(request.getRemoteUser()).andReturn("bob");
     expect(request.getResource()).andReturn(resource);
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", "25");
@@ -142,6 +143,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
+    expect(request.getRemoteUser()).andReturn("bob").anyTimes();
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);

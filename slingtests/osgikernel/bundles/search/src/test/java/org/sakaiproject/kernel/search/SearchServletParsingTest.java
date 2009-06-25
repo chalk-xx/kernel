@@ -45,6 +45,7 @@ public class SearchServletParsingTest {
     searchServlet = new SearchServlet();
     request = createMock(SlingHttpServletRequest.class);
     RequestParameter rp = createMock(RequestParameter.class);
+    expect(request.getRemoteUser()).andReturn("bob").anyTimes();
     expect(request.getRequestParameter("q")).andReturn(rp).anyTimes();
     expect(rp.getString()).andReturn("testing").anyTimes();
     RequestParameter rp_a = createMock(RequestParameter.class);
