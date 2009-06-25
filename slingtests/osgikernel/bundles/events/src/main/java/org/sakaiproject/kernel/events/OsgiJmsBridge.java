@@ -83,7 +83,6 @@ public class OsgiJmsBridge implements EventHandler {
    * Default constructor.
    */
   public OsgiJmsBridge() {
-
   }
 
   /**
@@ -165,8 +164,8 @@ public class OsgiJmsBridge implements EventHandler {
           // "Only objectified primitive objects, String, Map and List types are
           // allowed" as stated by an exception when putting something into the
           // message that was not of one of these types.
-          if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Number
-              || obj instanceof Character || obj instanceof String || obj instanceof Map
+          if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
+              || obj instanceof Number || obj instanceof Map || obj instanceof String
               || obj instanceof List) {
             msg.setObject(name, obj);
           }
