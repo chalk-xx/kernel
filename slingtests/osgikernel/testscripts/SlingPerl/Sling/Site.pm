@@ -34,7 +34,7 @@ Create, set up, and return a Site object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
@@ -42,7 +42,8 @@ sub new {
                  LWP => $lwpUserAgent,
 		 Message => "",
 		 Owners => "",
-		 Response => \$response };
+		 Response => \$response,
+		 Verbose => $verbose};
     bless( $site, $class );
     return $site;
 }
@@ -59,7 +60,7 @@ sub set_results {
 
 #{{{sub update
 sub update {
-    my ( $site, $id, $template, $joinable, $groups, $other_properties, $log ) = @_;
+    my ( $site, $id, $template, $joinable, $other_properties, $log ) = @_;
     my @properties = ("sling:resourceType=sakai/site");
     if ( defined $template ) {
         push ( @properties, "sakai:site-template=$template" );
@@ -67,18 +68,15 @@ sub update {
     if ( defined $joinable ) {
         push ( @properties, "sakai:joinable=$joinable" );
     }
-    foreach my $group ( @{ $groups } ) {
-        push ( @properties, "sakai:authorizables=$group" );
-    }
     foreach my $property ( @{ $other_properties } ) {
         push ( @properties, "$property" );
     }
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::ContentUtil::add_setup( $site->{ 'BaseURL' }, $id, \@properties ), $site->{ 'LWP' } ) );
-    my $success = Sling::ContentUtil::add_eval( \$res );
+    my $res = Sling::Request::request( \$site,
+        Sling::ContentUtil::add_setup( $site->{ 'BaseURL' }, $id, \@properties ) );
+    my $success = Sling::ContentUtil::add_eval( $res );
     my $message = ( $success ? "Action successful" : "Action not successful" );
     $message .= " for site \"$id\".";
-    $site->set_results( "$message", \$res );
+    $site->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -121,8 +119,8 @@ sub update_from_file {
                     my $value = $column_headings[ $i ] . "=" . $columns[ $i ];
 		    push ( @properties, $value );
 		}
-	        my $template; my $joinable; my $groups;
-                $site->update( $id, $template, $joinable, $groups, \@properties, $log );
+	        my $template; my $joinable;
+                $site->update( $id, $template, $joinable, \@properties, $log );
 		Sling::Print::print_lock( $site->{ 'Message' } ) if ( ! defined $log );
 	    }
 	    else {
@@ -138,8 +136,8 @@ sub update_from_file {
 #{{{sub add_member
 sub add_member {
     my ( $site, $id, $member, $role, $log ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::SiteUtil::add_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) ) );
+    my $res = Sling::Request::request( \$site,
+        Sling::SiteUtil::add_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
     my $success = Sling::SiteUtil::add_member_eval( \$res );
     my $message = "Site \"$id\", member \"$member\" ";
     $message .= ( $success ? "added!" : "was not added!" );
@@ -152,12 +150,12 @@ sub add_member {
 #{{{sub delete
 sub delete {
     my ( $site, $id, $log ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::ContentUtil::delete_setup( $site->{ 'BaseURL' }, $id ), $site->{ 'LWP' } ) );
-    my $success = Sling::ContentUtil::delete_eval( \$res );
+    my $res = Sling::Request::request( \$site,
+        Sling::ContentUtil::delete_setup( $site->{ 'BaseURL' }, $id ) );
+    my $success = Sling::ContentUtil::delete_eval( $res );
     my $message = "Site \"$id\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
-    $site->set_results( "$message", \$res );
+    $site->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -166,8 +164,8 @@ sub delete {
 #{{{sub exists
 sub exists {
     my ( $site, $id, $log ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ), $site->{ 'LWP' } ) );
+    my $res = Sling::Request::request( \$site,
+        Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ) );
     my $exists = Sling::ContentUtil::exists_eval( \$res );
     my $message = "Site \"$id\" ";
     $message .= ( $exists ? "exists!" : "does not exist!" );
@@ -180,18 +178,18 @@ sub exists {
 #{{{sub list_members
 sub list_members {
     my ( $site, $id ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::SiteUtil::list_members_setup( $site->{ 'BaseURL' }, $id ) ) );
+    my $res = Sling::Request::request( \$site,
+        Sling::SiteUtil::list_members_setup( $site->{ 'BaseURL' }, $id ) );
     if ( Sling::SiteUtil::list_members_eval( \$res ) ) {
-        my $content = $res->content;
+        my $content = $$res->content;
 	# $content =~ /^.*"owners":\[([^\]]+)\].*/;
 	# my $owners = $1;
-        $site->set_results( "Site \"$id\" members are: $content.", \$res );
+        $site->set_results( "Site \"$id\" members are: $content.", $res );
 	# $site->{ 'Members' } = "$members";
 	return 1;
     }
     else {
-        $site->set_results( "Unable to list members for site \"$id\"!", \$res );
+        $site->set_results( "Unable to list members for site \"$id\"!", $res );
 	# $site->{ 'Owners' } = "";
 	return 0
     }
@@ -201,14 +199,14 @@ sub list_members {
 #{{{sub remove_member
 sub remove_member {
     my ( $site, $id, $member, $role ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::SiteUtil::remove_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) ) );
-    if ( Sling::SiteUtil::remove_member_eval( \$res ) ) {
-        $site->set_results( "Site: \"$id\", member \"$member\" removed!", \$res );
+    my $res = Sling::Request::request( \$site,
+        Sling::SiteUtil::remove_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
+    if ( Sling::SiteUtil::remove_member_eval( $res ) ) {
+        $site->set_results( "Site: \"$id\", member \"$member\" removed!", $res );
 	return 1;
     }
     else {
-        $site->set_results( "Site: \"$id\", member \"$member\" was not removed!", \$res );
+        $site->set_results( "Site: \"$id\", member \"$member\" was not removed!", $res );
 	return 0;
     }
 }
@@ -217,11 +215,11 @@ sub remove_member {
 #{{{sub view
 sub view {
     my ( $site, $id, $log ) = @_;
-    my $res = ${ $site->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ), $site->{ 'LWP' } ) );
-    my $success = Sling::ContentUtil::exists_eval( \$res );
-    my $message = ( $success ? $res->content : "Problem viewing site: \"$id\"" );
-    $site->set_results( "$message", \$res );
+    my $res = Sling::Request::request( \$site,
+        Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ) );
+    my $success = Sling::ContentUtil::exists_eval( $res );
+    my $message = ( $success ? $$res->content : "Problem viewing site: \"$id\"" );
+    $site->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }

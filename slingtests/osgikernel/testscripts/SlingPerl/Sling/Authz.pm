@@ -90,14 +90,15 @@ Create, set up, and return an Authz object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
     my $content = { BaseURL => "$url",
                     LWP => $lwpUserAgent,
 		    Message => "",
-		    Response => \$response };
+		    Response => \$response,
+		    Verbose => $verbose };
     bless( $content, $class );
     return $content;
 }
@@ -133,11 +134,11 @@ Return the access control list for the node in JSON format
 
 sub get_acl {
     my ( $content, $remoteDest, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::AuthzUtil::get_acl_setup( $content->{ 'BaseURL' }, $remoteDest ), $content->{ 'LWP' } ) );
-    my $success = Sling::AuthzUtil::get_acl_eval( \$res );
+    my $res = Sling::Request::request( \$content,
+        Sling::AuthzUtil::get_acl_setup( $content->{ 'BaseURL' }, $remoteDest ) );
+    my $success = Sling::AuthzUtil::get_acl_eval( $res );
     my $message = ( $success ? $res->content : "Could not view ACL for \"$remoteDest\"" );
-    $content->set_results( "$message", \$res );
+    $content->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -155,12 +156,12 @@ Modify the privileges on a specified node for a specified principal.
 
 sub modify_privileges {
     my ( $content, $remoteDest, $principal, $grant_privileges, $deny_privileges, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::AuthzUtil::modify_privilege_setup( $content->{ 'BaseURL' }, $remoteDest, $principal, $grant_privileges, $deny_privileges ), $content->{ 'LWP' } ) );
-    my $success = Sling::AuthzUtil::modify_privilege_eval( \$res );
+    my $res = Sling::Request::request( \$content,
+        Sling::AuthzUtil::modify_privilege_setup( $content->{ 'BaseURL' }, $remoteDest, $principal, $grant_privileges, $deny_privileges ) );
+    my $success = Sling::AuthzUtil::modify_privilege_eval( $res );
     my $message = "Privileges on \"$remoteDest\" for \"$principal\" ";
     $message .= ( $success ? "modified." : "were not modified." );
-    $content->set_results( "$message", \$res );
+    $content->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -178,12 +179,12 @@ Delete the access controls for a given principal on a given node:
 
 sub delete {
     my ( $content, $remoteDest, $principal, $log ) = @_;
-    my $res = ${ $content->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::AuthzUtil::delete_setup( $content->{ 'BaseURL' }, $remoteDest, $principal ), $content->{ 'LWP' } ) );
-    my $success = Sling::AuthzUtil::delete_eval( \$res );
+    my $res = Sling::Request::request( \$content,
+        Sling::AuthzUtil::delete_setup( $content->{ 'BaseURL' }, $remoteDest, $principal ) );
+    my $success = Sling::AuthzUtil::delete_eval( $res );
     my $message = "Privileges on \"$remoteDest\" for \"$principal\" ";
     $message .= ( $success ? "removed." : "were not removed." );
-    $content->set_results( "$message", \$res );
+    $content->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }

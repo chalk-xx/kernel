@@ -33,7 +33,8 @@ The following options are accepted:
  --remote or -r (remoteNode)   - specify remote node under JCR root to act on.
  --url or -U (URL)             - URL for system being tested against.
  --user or -u (username)       - Name of user to perform content manipulations as.
- --view or -v                  - view access control list for node.
+ --verbose or -v               - Increase verbosity of output.
+ --view or -V                  - view access control list for node.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -45,23 +46,23 @@ For full details run: perl authz.pl --man
 
 =item Authenticate and view the ACL for the /data node:
 
- perl authz.pl -U http://localhost:8080 -r /data -v -u admin -p admin
+ perl authz.pl -U http://localhost:8080 -r /data -V -u admin -p admin
 
 =item Authenticate and grant the read privilege to the owner principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -r /testdata -P owner --read -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P owner --read -u admin -p admin -V
 
 =item Authenticate and grant the modifyProps privilege to the everyone principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -r /testdata -P everyone --modifyProps -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P everyone --modifyProps -u admin -p admin -V
 
 =item Authenticate and deny the addChildNodes privilege to the testuser principal, view the result:
 
- perl authz.pl -U http://localhost:8080 -r /testdata -P testuser --no-addChildNodes -u admin -p admin -v
+ perl authz.pl -U http://localhost:8080 -r /testdata -P testuser --no-addChildNodes -u admin -p admin -V
 
 =item Authenticate with form based authentication and grant the read and write privileges to the testgroup principal, log the results, including the resulting JSON, to authz.log:
 
- perl authz.pl -U http://localhost:8080 -r /testdata -P testgroup --read --write -u admin -p admin --auth form -v -L authz.log
+ perl authz.pl -U http://localhost:8080 -r /testdata -P testgroup --read --write -u admin -p admin --auth form -V -L authz.log
 
 =back
 
@@ -100,6 +101,7 @@ my $principal;
 my $remoteNode;
 my $url = "http://localhost";
 my $username;
+my $verbose;
 my $view;
 
 # privileges:
@@ -142,7 +144,8 @@ GetOptions (
     "url|U=s" => \$url,
     "user|u=s" => \$username,
     "versionManage!" => \$versionManage,
-    "view|v" => \$view,
+    "verbose|v+" => \$verbose,
+    "view|V" => \$view,
     "write!" => \$write
 ) or pod2usage(2);
 
@@ -157,10 +160,10 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{ main execution path
 my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-my $authz = new Sling::Authz( $url, $lwpUserAgent );
+my $authz = new Sling::Authz( $url, $lwpUserAgent, $verbose );
 if ( defined $delete ) {
     $authz->delete( $remoteNode, $principal, $log );
-    print $authz->{ 'Message' } . "\n";
+    Sling::Print::print_result( $authz );
 }
 my @grant_privileges;
 my @deny_privileges;
@@ -209,15 +212,11 @@ if ( defined $all ) {
 }
 if ( @grant_privileges || @deny_privileges ) {
     $authz->modify_privileges( $remoteNode, $principal, \@grant_privileges, \@deny_privileges, $log );
-    if ( ! defined $log ) {
-        print $authz->{ 'Message' } . "\n";
-    }
+    Sling::Print::print_result( $authz, $log );
 }
 if ( defined $view ) {
     $authz->get_acl( $remoteNode, $log );
-    if ( ! defined $log ) {
-        print $authz->{ 'Message' } . "\n";
-    }
+    Sling::Print::print_result( $authz, $log );
 }
 #}}}
 

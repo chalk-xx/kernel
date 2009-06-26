@@ -12,10 +12,10 @@ perl library.
 Usage: perl group.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --additions or -A (file)          - file containing list of group to be added.
+ --additions or -A (file)          - file containing list of groups to be added.
  --add or -a (actOnGroup)          - add specified group.
  --auth (type)                     - Specify auth type. If ommitted, default is used.
- --delete or - d (actOnGroup)      - delete specified group.
+ --delete or -d (actOnGroup)       - delete specified group.
  --exists or -e (actOnGroup)       - check whether specified group exists.
  --help or -?                      - view the script synopsis and options.
  --log or -L (log)                 - Log script output to specified log file.
@@ -26,7 +26,8 @@ The following options are accepted:
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.
  --user or -u (username)           - Name of user to perform any actions as.
- --view or -v (actOnGroup)         - view details for specified group in json format.
+ --verbose or -v                   - Increase verbosity of output.
+ --view or -V (actOnGroup)         - view details for specified group in json format.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -36,9 +37,25 @@ For full details run: perl group.pl --man
 
 =over
 
-=item Authenticate and add a group with id testgroup:
+=item Authenticate and add a group with id g-test:
 
- perl group.pl -U http://localhost:8080 -a testgroup -u admin -p admin
+ perl group.pl -U http://localhost:8080 -u admin -p admin -a g-test
+
+=item Authenticate and check whether group with id g-test exists:
+
+ perl group.pl -U http://localhost:8080 -u admin -p admin -a g-test
+
+=item Authenticate and view details for group with id g-test:
+
+ perl group.pl -U http://localhost:8080 -u admin -p admin -V g-test
+
+=item Authenticate and delete group with id g-test:
+
+ perl group.pl -U http://localhost:8080 -u admin -p admin -d g-test
+
+=item Authenticate and add a group with id g-test and property p1=v1:
+
+ perl group.pl -U http://localhost:8080 -u admin -p admin -a g-test -P p1=v1
 
 =back
 
@@ -68,6 +85,7 @@ my $password;
 my @properties,
 my $url = "http://localhost";
 my $username;
+my $verbose;
 my $viewGroup;
 
 GetOptions (
@@ -84,7 +102,8 @@ GetOptions (
     "threads|t=s" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
-    "view|v=s" => \$viewGroup
+    "verbose|v+" => \$verbose,
+    "view|V=s" => \$viewGroup
 ) or pod2usage(-exitstatus => 2, -verbose => 1);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
@@ -100,13 +119,8 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{main execution path
 if ( defined $additions ) {
-    my $message = "Adding groups from file:\n";
-    if ( defined $log ) {
-        Sling::Print::print_file_lock( "$message", $log );
-    }
-    else {
-        Sling::Print::print_lock( "$message" );
-    }
+    my $message = "Adding groups from file \"$additions\":\n";
+    Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -126,24 +140,20 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $group = new Sling::Group( $url, $lwpUserAgent );
-
+    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
     if ( defined $existsGroup ) {
         $group->exists( $existsGroup, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $addGroup ) {
         $group->add( $addGroup, \@properties, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $deleteGroup ) {
         $group->delete( $deleteGroup, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $viewGroup ) {
         $group->view( $viewGroup, $log );
-        print $group->{ 'Message' } . "\n";
     }
+    Sling::Print::print_result( $group, $log );
 }
 #}}}
 

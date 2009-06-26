@@ -95,6 +95,37 @@ sub print_lock {
 }
 #}}}
 
+#{{{sub print_result
+
+=pod
+
+=head2 print_result
+
+Takes an object (user, group, site, etc) and prints out it's Message value,
+appending a new line. Also looks at the verbosity level and if greater than or
+equal to 1 will print extra information extracted from the object's Response
+object. At the moment, won't print if log is defined, as the prints to log
+happen elsewhere. TODO tidy that up.
+
+=cut
+
+sub print_result {
+    my ( $object, $log ) = @_;
+    if ( ! defined $log ) {
+        print $object->{ 'Message' } . "\n";
+        if ( $object->{ 'Verbose' } >= 1 ) {
+	    print "**** Status line was: ";
+            print ${ $object->{ 'Response' } }->status_line. "\n";
+            if ( $object->{ 'Verbose' } >= 2 ) {
+	        print "**** Full Content of Response was: \n";
+                print ${ $object->{ 'Response' } }->content. "\n";
+            }
+        }
+    }
+    return 1;
+}
+#}}}
+
 #{{{sub dateTime
 
 =pod

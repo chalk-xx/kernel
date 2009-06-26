@@ -12,25 +12,25 @@ Sling::Site library.
 Usage: perl site.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- -a (actOnSite)    - add site.
- -d (actOnSite)    - delete site.
- -e (actOnSite)    - check whether site exists.
- -g (group)        - group(s) to add as site member.
- -j (joinable)     - Joinable status of site (yes|no|withauth).
- -p (password)     - Password of user performing actions.
- -t (threads)      - Used with -F, defines number of parallel
-                     processes to have running through file.
- -u (username)     - Name of user to perform any actions as.
- -v (actOnSite)    - view site.
- -A (actOnSite)    - alter (update) site.
- -F (File)         - File containing list of sites to add.
- --log or -L (log) - Log script output to specified log file.
- -P (property)     - Specify property to set on site.
- -T (template)     - Template location to use for site.
- --url or -U (URL) - URL for system being tested against.
- --auth (type)     - Specify auth type. If ommitted, default is used.
- --help or -?      - view the script synopsis and options.
- --man             - view the full script documentation.
+ --additions or -A (file)    - File containing list of sites to add.
+ --add or -a (actOnSite)     - add site.
+ --alter or -c (actOnSite)   - alter (update) site.
+ --auth (type)               - Specify auth type. If ommitted, default is used.
+ --delete or -d (actOnSite)  - delete site.
+ --exists or -e (actOnSite)  - check whether site exists.
+ --help or -?                - view the script synopsis and options.
+ --joinable or -j (joinable) - Joinable status of site (yes|no|withauth).
+ --log or -L (log)           - Log script output to specified log file.
+ --man or -M                 - view the full script documentation.
+ --pass or -p (password)     - Password of user performing actions.
+ --property or -P (property) - Specify property to set on site.
+ --template or -T (template) - Template location to use for site.
+ --threads or -t (threads)   - Used with -F, defines number of parallel
+                               processes to have running through file.
+ --url or -U (URL)           - URL for system being tested against.
+ --user or -u (username)     - Name of user to perform any actions as.
+ --verbose or -v             - Increase verbosity of output.
+ --view or -V (actOnSite)    - view site.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -42,7 +42,31 @@ For full details run: perl site.pl --man
 
 =item Authenticate and add a site with id testsite:
 
- perl site.pl -U http://localhost:8080 -a -s testsite -u admin -p admin
+ perl site.pl -U http://localhost:8080 --add testsite --user admin --pass admin
+
+=item Authenticate and check whether site with id testsite exists:
+
+ perl site.pl -U http://localhost:8080 --exists testsite --user admin --pass admin
+
+=item Authenticate and alter site testsite to set its joinable property to yes:
+
+ perl site.pl -U http://localhost:8080 --alter testsite --joinable yes --user admin --pass admin
+
+=item Authenticate and view site testsite details:
+
+ perl site.pl -U http://localhost:8080 --view testsite --user admin --pass admin
+
+=item Authenticate and delete site testsite with verbose output enabled:
+
+ perl site.pl -U http://localhost:8080 --delete testsite --user admin --pass admin --verbose
+
+=item Authenticate and add site testsite with property p1=v1 and property p2=v2:
+
+ perl site.pl -U http://localhost:8080 --add testsite2 --property p1=v1 --property p2=v2 --user admin --pass admin
+
+=item Authenticate and add site testsite with template /sitetemplate.html:
+
+ perl site.pl -U http://localhost:8080 --add testsite --template /sitetemplate.html --user admin --pass admin
 
 =back
 
@@ -60,13 +84,12 @@ use Sling::URL;
 #}}}
 
 #{{{options parsing
-my $add;
-my $alter;
+my $addSite;
+my $additions;
+my $alterSite;
 my $auth;
-my $delete;
-my $exists;
-my $file;
-my @groups;
+my $deleteSite;
+my $existsSite;
 my $help;
 my $joinable;
 my $log;
@@ -77,17 +100,29 @@ my @properties;
 my $template;
 my $url = "http://localhost";
 my $username;
-my $view;
+my $verbose;
+my $viewSite;
 
-GetOptions ( "a=s" => \$add,         "A=s" => \$alter, 
-             "d=s" => \$delete,      "T=s" => \$template,
-	     "e=s" => \$exists,      "v=s" => \$view,
-	     "j=s" => \$joinable,    "g=s" => \@groups,
-             "F=s" => \$file,        "P=s" => \@properties,
-             "t=i" => \$numberForks, "log|L=s" => \$log,
-             "u=s" => \$username,    "p=s" => \$password,
-	     "url|U=s" => \$url,         "auth=s" => \$auth,
-             "help|?" => \$help, "man" => \$man) or pod2usage(2);
+GetOptions (
+    "add|a=s" => \$addSite,
+    "addition|A=s" => \$additions,
+    "alter|A=s" => \$alterSite, 
+    "auth=s" => \$auth,
+    "delete|d=s" => \$deleteSite,
+    "exists|e=s" => \$existsSite,
+    "help|?" => \$help,
+    "joinable|j=s" => \$joinable,
+    "log|L=s" => \$log,
+    "man|M" => \$man,
+    "pass|p=s" => \$password,
+    "property|P=s" => \@properties,
+    "template|T=s" => \$template,
+    "threads|t=i" => \$numberForks,
+    "url|U=s" => \$url,
+    "user|u=s" => \$username,
+    "verbose|v+" => \$verbose,
+    "view|V=s" => \$viewSite
+) or pod2usage(-exitstatus => 2, -verbose => 1);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
@@ -106,26 +141,27 @@ if ( defined $joinable ) {
     }
 }
 
-$add = Sling::URL::strip_leading_slash( $add );
-$alter = Sling::URL::strip_leading_slash( $alter );
-$delete = Sling::URL::strip_leading_slash( $delete );
-$exists = Sling::URL::strip_leading_slash( $exists );
-$view = Sling::URL::strip_leading_slash( $view );
+$addSite = Sling::URL::strip_leading_slash( $addSite );
+$alterSite = Sling::URL::strip_leading_slash( $alterSite );
+$deleteSite = Sling::URL::strip_leading_slash( $deleteSite );
+$existsSite = Sling::URL::strip_leading_slash( $existsSite );
+$viewSite = Sling::URL::strip_leading_slash( $viewSite );
 $template = Sling::URL::add_leading_slash( $template );
 #}}}
 
 #{{{ main execution path
-if ( defined $file ) {
-    print "Running through all site actions in file:\n";
+if ( defined $additions ) {
+    my $message = "Running through all site actions in file \"$additions\":\n";
+    Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $site = new Sling::Site( $url, $lwpUserAgent );
+            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
 	    my $path;
-            $site->update_from_file( $file, $i, $numberForks, $log );
+            $site->update_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
 	else {
@@ -136,37 +172,23 @@ if ( defined $file ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $site = new Sling::Site( $url, $lwpUserAgent );
-    if ( defined $add ) {
-        $site->update( $add, $template, $joinable, \@groups, \@properties, $log );
-        if ( ! defined $log ) {
-            print $site->{ 'Message' } . "\n";
-        }
+    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
+    if ( defined $addSite ) {
+        $site->update( $addSite, $template, $joinable, \@properties, $log );
     }
-    elsif ( defined $alter ) {
-        $site->update( $alter, $template, $joinable, \@groups, \@properties, $log );
-	if ( ! defined $log ) {
-            print $site->{ 'Message' } . "\n";
-        }
+    elsif ( defined $alterSite ) {
+        $site->update( $alterSite, $template, $joinable, \@properties, $log );
     }
-    elsif ( defined $delete ) {
-        $site->delete( $delete, $log );
-        if ( ! defined $log ) {
-            print $site->{ 'Message' } . "\n";
-        }
+    elsif ( defined $deleteSite ) {
+        $site->delete( $deleteSite, $log );
     }
-    elsif ( defined $exists ) {
-        $site->exists( $exists, $log );
-        if ( ! defined $log ) {
-            print $site->{ 'Message' } . "\n";
-        }
+    elsif ( defined $existsSite ) {
+        $site->exists( $existsSite, $log );
     }
-    elsif ( defined $view ) {
-        $site->view( $view, $log );
-        if ( ! defined $log ) {
-            print $site->{ 'Message' } . "\n";
-        }
+    elsif ( defined $viewSite ) {
+        $site->view( $viewSite, $log );
     }
+    Sling::Print::print_result( $site, $log );
 }
 #}}}
 

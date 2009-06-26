@@ -31,6 +31,8 @@ The following options are accepted:
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.
  --user or -u (username)           - Name of user to perform content manipulations as.
+ --verbose or -v                   - Increase verbosity of output.
+ --view or -V (actOnGroup)         - view details for specified group in json format.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -54,11 +56,11 @@ For full details run: perl content.pl --man
 
 =item View json for node at /test:
 
- perl content.pl -U http://localhost:8080 -v -r /test
+ perl content.pl -U http://localhost:8080 -V -r /test
 
 =item Check whether node at /test exists:
 
- perl content.pl -U http://localhost:8080 -v -r /test
+ perl content.pl -U http://localhost:8080 -V -r /test
 
 =item Authenticate and delete content at /test
 
@@ -99,6 +101,7 @@ my $remoteNode;
 my $remoteSrc;
 my $url = "http://localhost";
 my $username;
+my $verbose;
 my $view;
 
 GetOptions (
@@ -121,7 +124,8 @@ GetOptions (
     "threads|t=s" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
-    "view|v" => \$view
+    "verbose|v+" => \$verbose,
+    "view|V" => \$view
 ) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
@@ -146,7 +150,7 @@ if ( defined $additions ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $content = new Sling::Content( $url, $lwpUserAgent );
+            my $content = new Sling::Content( $url, $lwpUserAgent, $verbose );
             $content->upload_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
@@ -158,51 +162,31 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $content = new Sling::Content( $url, $lwpUserAgent );
+    my $content = new Sling::Content( $url, $lwpUserAgent, $verbose );
     if ( defined $localPath && defined $remoteNode ) {
         $content->upload_file( $localPath, $remoteNode, $filename, $log );
-        if ( ! defined $log ) {
-            print $content->{ 'Message' } . "\n";
-        }
     }
     elsif ( defined $add ) {
         $content->add( $remoteNode, \@properties, $log );
-        if ( ! defined $log ) {
-            print $content->{ 'Message' } . "\n";
-        }
     }
     elsif ( defined $copy ) {
-        print "Not yet implemented!\n";
+        die "Not yet implemented!\n";
         # $content->copy( $remoteSrc, $remoteNode, \@properties, $log );
-        # if ( ! defined $log ) {
-            # print $content->{ 'Message' } . "\n";
-        # }
     }
     elsif ( defined $delete ) {
         $content->delete( $remoteNode, $log );
-        if ( ! defined $log ) {
-            print $content->{ 'Message' } . "\n";
-        }
     }
     elsif ( defined $exists ) {
         $content->exists( $remoteNode, $log );
-        if ( ! defined $log ) {
-            print $content->{ 'Message' } . "\n";
-        }
     }
     elsif ( defined $move ) {
-        print "Not yet implemented!\n";
+        die "Not yet implemented!\n";
         # $content->move( $remoteSrc, $remoteNode, \@properties, $log );
-        # if ( ! defined $log ) {
-            # print $content->{ 'Message' } . "\n";
-        # }
     }
     elsif ( defined $view ) {
         $content->view( $remoteNode, $log );
-        if ( ! defined $log ) {
-            print $content->{ 'Message' } . "\n";
-        }
     }
+    Sling::Print::print_result( $content, $log );
 }
 #}}}
 

@@ -56,12 +56,12 @@ sub set_results {
 #{{{sub basic_login
 sub basic_login {
     my ( $auth, $log ) = @_;
-    my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthnUtil::basic_login_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthnUtil::basic_login_eval( \$res );
+    my $res = Sling::Request::request( \$auth,
+        Sling::AuthnUtil::basic_login_setup( $auth->{ 'BaseURL' } ) );
+    my $success = Sling::AuthnUtil::basic_login_eval( $res );
     my $message = "Basic auth log in ";
     $message .= ( $success ? "succeeded!" : "failed!" );
-    $auth->set_results( "$message", \$res );
+    $auth->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -70,12 +70,12 @@ sub basic_login {
 #{{{sub form_login
 sub form_login {
     my ( $auth, $username, $password, $log ) = @_;
-    my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthnUtil::form_login_setup( $auth->{ 'BaseURL' }, $username, $password ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthnUtil::form_login_eval( \$res );
+    my $res = Sling::Request::request( \$auth,
+        Sling::AuthnUtil::form_login_setup( $auth->{ 'BaseURL' }, $username, $password ) );
+    my $success = Sling::AuthnUtil::form_login_eval( $res );
     my $message = "Form log in as user \"$username\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
-    $auth->set_results( "$message", \$res );
+    $auth->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -84,12 +84,12 @@ sub form_login {
 #{{{sub form_logout
 sub form_logout {
     my ( $auth, $log ) = @_;
-    my $res = ${ $auth->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::AuthnUtil::form_logout_setup( $auth->{ 'BaseURL' } ), $auth->{ 'LWP' } ) );
-    my $success = Sling::AuthnUtil::form_logout_eval( \$res );
+    my $res = Sling::Request::request( \$auth,
+        Sling::AuthnUtil::form_logout_setup( $auth->{ 'BaseURL' } ) );
+    my $success = Sling::AuthnUtil::form_logout_eval( $res );
     my $message = "Form log out ";
     $message .= ( $success ? "succeeded!" : "failed!" );
-    $auth->set_results( "$message", \$res );
+    $auth->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
