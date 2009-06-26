@@ -41,6 +41,7 @@ import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.QuerySyntaxException;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceUtil;
@@ -241,7 +242,9 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
             if ( resourceType == null ) {
               res = new NonExistingResource(this, absRealPath);
             } else {
+              final ResourceMetadata resourceMetaData = ResourceMetatdatFactory.createMetadata(absRealPath);
               res = new NonExistingResource(this, absRealPath) {
+                
                 /**
                  * {@inheritDoc}
                  * @see org.apache.sling.api.resource.NonExistingResource#getResourceType()
@@ -250,6 +253,17 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
                 public String getResourceType() {
                   return resourceType;
                 }
+                
+                /**
+                 * {@inheritDoc}
+                 * @see org.apache.sling.api.resource.SyntheticResource#getResourceMetadata()
+                 */
+                @Override
+                public ResourceMetadata getResourceMetadata() {
+                  return resourceMetaData;
+                }
+                
+                
               };
                 
             }
@@ -259,6 +273,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
         return res;
     }
+
 
 
     // calls map(HttpServletRequest, String) as map(null, resourcePath)
