@@ -57,7 +57,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOGGER.info("Processing {}", request.getRequestURI());
+    LOGGER.info("{} Processing {}", this.getClass(), request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -70,7 +70,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOGGER.info("Processing {}", request.getRequestURI());
+    LOGGER.info("{} Processing {}", this.getClass(), request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -83,7 +83,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOGGER.info("Personal Servlet Processing {}", request.getRequestURI());
+    LOGGER.info("{} Processing {}", this.getClass(), request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -96,7 +96,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   @Override
   protected void doPut(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    LOGGER.info("Processing {}", request.getRequestURI());
+    LOGGER.info("{} Processing {}", this.getClass(), request.getRequestURI());
     hashRequest(request, response);
   }
 
@@ -148,7 +148,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
     final String resourcePath = getTargetPath(baseResource, request, response,
         realPath, virtualPath);
 
-    LOGGER.info("Path is {} ", resourcePath);
+    LOGGER.info("{} final Path is {} ",this.getClass(), resourcePath);
 
     Resource resource = request.getResourceResolver().resolve(resourcePath);
     if (resource == null || resource instanceof NonExistingResource) {
@@ -187,10 +187,11 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
    *          the current sling resource from the target path
    * @return true if the request should be dispatched to sling OR false if the
    *         response should continue as is
+   * @throws IOException 
    */
   protected boolean preDispatch(SlingHttpServletRequest request,
       SlingHttpServletResponse response, Resource baseResource,
-      Resource resource) {
+      Resource resource) throws IOException {
     return true;
   }
 
