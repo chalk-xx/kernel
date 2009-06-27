@@ -18,11 +18,12 @@ class TC_MyContactTest < SlingTest
   end
 
   def test_connect_users
-    a = create_user("aaron")
-    n = create_user("nico")
-    i = create_user("ian")
+    m = Time.now.to_i.to_s
+    a = create_user("aaron"+m)
+    n = create_user("nico"+m)
+    i = create_user("ian"+m)
     @s.switch_user(a)
-    res = @cm.add_contact("nico", [ "coworker", "friend" ])
+    res = @cm.add_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("200", res.code, "Expected to be able to request contact addition")
     @s.debug = true
     contacts = @cm.get_contacts()
@@ -30,7 +31,7 @@ class TC_MyContactTest < SlingTest
     assert_not_nil(contacts, "Expected to get contacts back")
     assert_equal(contacts["results"].size, 1, "Expected single request back")
     contact = contacts["results"][0]
-    assert_equal("nico", contact["target"], "Expected nico to be my friend")
+    assert_equal("nico"+m, contact["target"], "Expected nico to be my friend")
     assert_equal("requested", contact["details"]["sakai:state"], "Expected state to be 'requested'")
   end
 
