@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.kernel.api.connections;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * These are the constants related to contacts / connections for users
@@ -42,63 +40,11 @@ public interface ConnectionConstants {
    */
   public static final String SAKAI_CONTACT_USERCONTACT_RT = "sakai/contactusercontact";
 
-  public static final String CONNECTION_OPERATION = "org.sakaiproject.kernel.connection.operation";
-
   public static final String SAKAI_CONNECTION_STATE = "sakai:state";
   public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
   public static final String SAKAI_CONNECTION_REQUESTER = "sakai:requester";
-
-  /**
-   * 
-   */
-  public enum ConnectionStates {
-    NONE(null), PENDING("pending"), REQUEST("requested"), ACCEPT("accepted"), REJECT("rejected"), IGNORE("ignored"), BLOCK("blocked");
-
-    private static Map<String, ConnectionStates> states = new HashMap<String,ConnectionStates>();
-    static {
-      for (ConnectionStates state : ConnectionStates.values()) {
-        states.put(state.name, state);
-      }
-    }
-    public static ConnectionStates lookup(String name) {
-      if (states.containsKey(name))
-        return states.get(name);
-      throw new IllegalArgumentException("No such enum constant '" + name + "'");
-    }
-
-    private ConnectionStates(String name) {
-      this.name = name;
-    }
-    private final String name;
-    public String toString() {
-      return name;
-    }
-  }
-
-  /**
-   * Indicates the operations which are valid for dealing with connections
-   */
-  public enum ConnectionOperations {
-    REQUEST("request"), ACCEPT("accept"), REJECT("reject"), IGNORE("ignore"), BLOCK("block"), CANCEL("cancel"), REMOVE("remove");
-    private static Map<String, ConnectionOperations> operations = new HashMap<String,ConnectionOperations>();
-    static {
-      for (ConnectionOperations operation : ConnectionOperations.values()) {
-        operations.put(operation.name, operation);
-      }
-    }
-    public static ConnectionOperations lookup(String name) {
-      if (operations.containsKey(name))
-        return operations.get(name);
-      throw new IllegalArgumentException("No such enum constant '" + name + "'");
-    }
-
-    private ConnectionOperations(String name) {
-      this.name = name;
-    }
-    private final String name;
-    public String toString() {
-      return name;
-    }
-  }
+  
+  public static final String PARAM_CONTACT = "contact";
+  public static final String PARAM_CONTACT_TYPES = "type";
 
 }

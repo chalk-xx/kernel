@@ -18,26 +18,11 @@
 package org.sakaiproject.kernel.api.connections;
 
 import org.apache.sling.api.resource.Resource;
-import org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperations;
 
 /**
  * The connection manager manages state changes on connections with friends.
  */
 public interface ConnectionManager {
-
-  /**
-   * Request a connection be made with a user in the store that contains the resource,
-   * this will create a connection node which represents the connection between two users
-   * 
-   * @param resource a Sling resource (like a JCR node) which represents the path to the contacts node (the base of the connections storage)
-   * @param userId
-   *          the user to connect to.
-   * @param types
-   *          the types of this connection (e.g. friend of, professor of, student of)
-   * @param requesterUserId [OPTIONAL] leave this null to use the current user OR set to the userId of the user who is making the request
-   * @return the path to the connection node
-   */
-  String request(Resource resource, String userId, String[] types, String requesterUserId) throws ConnectionException;
 
   /**
    * Handle a connection operation from the current user to another user
@@ -50,6 +35,6 @@ public interface ConnectionManager {
    * @return the path to the connection node
    * @throws ConnectionException 
    */
-  String connect(Resource resource, String userId, ConnectionOperations operation, String requesterUserId) throws ConnectionException;
+  String connect(Resource resource, String thisUser, String otherUser, ConnectionOperation operation) throws ConnectionException;
 
 }

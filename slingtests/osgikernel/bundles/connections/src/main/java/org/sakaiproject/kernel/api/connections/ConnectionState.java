@@ -15,22 +15,37 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.connections.servlets;
-
-
+package org.sakaiproject.kernel.api.connections;
 /**
- * This handles the connections requests which are not POST requests since they
- * are all handled the same way (which is to say, there is nothing special that needs
- * to be done)
  * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" values.0="PUT" values.1="DELETE" values.2="GET"
  */
-public class StandardConnectionServlet extends
-    AbstractConnectionServlet {
-
-  private static final long serialVersionUID = 333L;
-
+public enum ConnectionState {
+  /**
+   * The state is unknown
+   */
+  NONE(), 
+  /**
+   * The invite is pending.
+   */
+  PENDING(), 
+  /**
+   * The connection invited waiting for the invitee to accept.
+   */
+  INVITED(), 
+  /**
+   * The connection was accepted on both ends.
+   */
+  ACCEPTED(), 
+  /**
+   * The connection invitation was rejected.
+   */
+  REJECTED(), 
+  /**
+   * The connection invitation was ignored.
+   */
+  IGNORED(), 
+  /**
+   * The connection has been blocked from further invitations.
+   */
+  BLOCKED();
 }
