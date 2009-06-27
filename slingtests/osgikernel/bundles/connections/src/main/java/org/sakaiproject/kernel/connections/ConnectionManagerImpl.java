@@ -180,7 +180,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    */
   public String connect(Resource resource, String thisUserId, String otherUserId,
       ConnectionOperation operation) throws ConnectionException {
-    String contactsPath = resource.getPath();
+    String contactsPath = contactsPathForConnectResource(resource);
     Session session = resource.getResourceResolver().adaptTo(Session.class);
     // fail is the supplied users are invalid
     checkValidUserId(session, thisUserId);
@@ -191,8 +191,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
       try {
         // get the contact userstore nodes
-        Node thisNode = getConnectionNode(session, contactsPath, thisUserId, otherUserId);
-        Node otherNode = getConnectionNode(session, contactsPath, otherUserId, thisUserId);
+        Node thisNode = getConnectionNode(adminSession, contactsPath, thisUserId, otherUserId);
+        Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId, thisUserId);
+
         // check the current states
         ConnectionState thisState = getConnectionState(thisNode);
         ConnectionState otherState = getConnectionState(otherNode);
@@ -217,6 +218,14 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throw new ConnectionException(500, e.getMessage(), e);
     }
     return path;
+  }
+
+  private String contactsPathForConnectResource(Resource resource) {
+    String requestPath = resource.getPath();
+    int lastSlash = requestPath.lastIndexOf('/');
+    if (lastSlash > -1)
+      return requestPath.substring(0,lastSlash);
+    return requestPath;
   }
 
   /**

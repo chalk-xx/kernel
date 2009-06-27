@@ -9,7 +9,7 @@ module SlingContacts
     end
 
     def add_contact(name, types)
-      return @sling.execute_post(@sling.url_for("_user/contacts.invite.html"), "type" => types, "contact" => name)
+      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "type" => types)
     end
  
     def remove_contact(name)

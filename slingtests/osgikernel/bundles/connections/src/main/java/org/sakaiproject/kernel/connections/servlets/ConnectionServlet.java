@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.kernel.connections.servlets;
 
-import static org.sakaiproject.kernel.api.connections.ConnectionConstants.PARAM_CONTACT;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -33,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -127,13 +124,6 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
       switch (operation) {
       case noop:
         return true;
-      case invite: 
-        targetUserId = request.getParameter(PARAM_CONTACT);
-        if (targetUserId == null || "".equals(targetUserId)) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, MessageFormat.format(
-              "Need to supply {0} argument", PARAM_CONTACT));
-          return false;
-        }
       default: 
         targetUserId = (String) request.getAttribute(TARGET_USERID);
         if (targetUserId == null || "".equals(targetUserId)) {
