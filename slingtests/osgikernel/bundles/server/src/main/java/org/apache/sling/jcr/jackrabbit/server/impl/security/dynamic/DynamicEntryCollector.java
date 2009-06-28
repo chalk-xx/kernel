@@ -90,7 +90,9 @@ public class DynamicEntryCollector extends EntryCollectorImpl {
         boolean dynamic = false;
         UserManager manager = jcrSession.getUserManager();
         Authorizable principal = manager.getAuthorizable(principalName);
-        if (principal.hasProperty("dynamic")) {
+        if ( principal == null ) {
+          return false;
+        } else if (principal.hasProperty("dynamic")) {
           Value[] dyn = principal.getProperty("dynamic");
           if (dyn != null && dyn.length > 0 && ("true".equals(dyn[0].getString()))) {
             LOG.debug("Found dynamic principal " + principalName);
