@@ -44,6 +44,12 @@ public interface ConnectionConstants {
   public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
   public static final String SAKAI_CONNECTION_REQUESTER = "sakai:requester";
   
+  /**
+  *
+  */
+ public static final String SEARCH_PROP_CONNECTIONSTORE = "_connectionstore";
+
+  
   public static final String PARAM_CONTACT = "contact";
   public static final String PARAM_CONTACT_TYPES = "type";
 

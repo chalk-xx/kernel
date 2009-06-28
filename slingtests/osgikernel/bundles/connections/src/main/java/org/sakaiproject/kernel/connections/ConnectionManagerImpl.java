@@ -55,11 +55,9 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 
 /**
  * Service for doing operations with connections.
@@ -256,6 +254,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       addEntry(basePath, authorizable, session, WRITE_GRANTED,
           REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
           REMOVE_NODE_GRANTED);
+      LOGGER.info("Added ACL to [{}]",basePath);
     }
     return n;
   }
