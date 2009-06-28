@@ -66,21 +66,21 @@ public class SearchServletParsingTest {
   @Test
   public void testQueryParsing() {
     String result = searchServlet.processQueryTemplate(request, " {q}",
-        Query.SQL);
+        Query.SQL, null);
     assertEquals(" testing", result);
   }
 
   @Test
   public void testQueryParsing1() {
     String result = searchServlet.processQueryTemplate(request, "{q} ",
-        Query.SQL);
+        Query.SQL, null);
     assertEquals("testing ", result);
   }
 
   @Test
   public void testQueryParsing2() {
     String result = searchServlet.processQueryTemplate(request, "{q} {a}",
-        Query.SQL);
+        Query.SQL, null);
     assertEquals("testing again", result);
   }
 }

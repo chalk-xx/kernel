@@ -22,9 +22,12 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_RESULTS;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROCESSOR_NAMES;
+import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROVIDER_NAMES;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
@@ -41,6 +44,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +82,10 @@ import javax.servlet.http.HttpServletResponse;
  *                interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
  *                cardinality="0..n" policy="dynamic"
+ * @scr.reference name="SearchPropertyProvider"
+ *                interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
+ *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
+ *                cardinality="0..n" policy="dynamic"
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
@@ -94,8 +102,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
   };
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
+
+  private Map<String, SearchPropertyProvider> propertyProvider = new ConcurrentHashMap<String, SearchPropertyProvider>();
+  private Map<Long, SearchPropertyProvider> propertyProviderById = new ConcurrentHashMap<Long, SearchPropertyProvider>();
+
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
+  private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
 
   protected void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
       throws RepositoryException, JSONException {
@@ -113,10 +126,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
         }
+        String propertyProviderName = null;
+        if (node.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
+          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
+        }
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage);
+        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
+            propertyProviderName);
 
         LOGGER.info("Posting Query {} ", queryString);
         QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
@@ -142,6 +160,11 @@ public class SearchServlet extends SlingAllMethodsServlet {
           if (searchProcessor == null) {
             searchProcessor = defaultSearchProcessor;
           }
+        }
+
+        // if we didnt get a total,
+        if (total == -1) {
+          total = Integer.MAX_VALUE;
         }
         long start = Math.min(offset, total);
         long end = Math.min(offset + nitems, total + 1);
@@ -174,7 +197,6 @@ public class SearchServlet extends SlingAllMethodsServlet {
     return defaultVal;
   }
 
-
   /**
    * Processes a template of the form select * from y where x = {q} so that strings
    * enclosed in { and } are replaced by the same property in the request.
@@ -183,12 +205,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
    *          the request.
    * @param queryTemplate
    *          the query template.
+   * @param propertyProviderName
    * @return A processed query template.
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
-      String queryTemplate, String queryLanguage) {
-    Map<String, String> propertiesMap = loadUserProperties(request);
+      String queryTemplate, String queryLanguage, String propertyProviderName) {
+    Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
@@ -246,15 +269,29 @@ public class SearchServlet extends SlingAllMethodsServlet {
 
   /**
    * @param request
+   * @param propertyProviderName
    * @return
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
-  private Map<String, String> loadUserProperties(SlingHttpServletRequest request)  {
+  private Map<String, String> loadUserProperties(SlingHttpServletRequest request,
+      String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
     String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
     propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
     propertiesMap.put("_userId", userId);
+    if (propertyProviderName != null) {
+      LOGGER.info("Trying Provider Name {} ", propertyProviderName);
+      SearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
+      if (provider != null) {
+        LOGGER.info("Trying Provider {} ", provider);
+        provider.loadUserProperties(request, propertiesMap);
+      } else {
+        LOGGER.warn("No properties provider found for {} ", propertyProviderName);
+      }
+    } else {
+      LOGGER.info("No Provider ");
+    }
     return propertiesMap;
   }
 
@@ -289,6 +326,28 @@ public class SearchServlet extends SlingAllMethodsServlet {
         delayedReferences.remove(serviceReference);
       } else {
         removeProcessor(serviceReference);
+      }
+    }
+
+  }
+
+  protected void bindSearchPropertyProvider(ServiceReference serviceReference) {
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedPropertyReferences.add(serviceReference);
+      } else {
+        addProvider(serviceReference);
+      }
+    }
+
+  }
+
+  protected void unbindSearchPropertyProvider(ServiceReference serviceReference) {
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedPropertyReferences.remove(serviceReference);
+      } else {
+        removeProvider(serviceReference);
       }
     }
 
@@ -330,6 +389,42 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
   }
 
+  /**
+   * @param serviceReference
+   */
+  private void removeProvider(ServiceReference serviceReference) {
+    Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+    SearchPropertyProvider provider = propertyProviderById.remove(serviceId);
+    if (provider != null) {
+      List<String> toRemove = new ArrayList<String>();
+      for (Entry<String, SearchPropertyProvider> e : propertyProvider.entrySet()) {
+        if (provider.equals(e.getValue())) {
+          toRemove.add(e.getKey());
+        }
+      }
+      for (String r : toRemove) {
+        propertyProvider.remove(r);
+      }
+    }
+  }
+
+  /**
+   * @param serviceReference
+   */
+  private void addProvider(ServiceReference serviceReference) {
+    SearchPropertyProvider provider = (SearchPropertyProvider) osgiComponentContext
+        .locateService(SEARCH_PROPERTY_PROVIDER, serviceReference);
+    Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+
+    propertyProviderById.put(serviceId, provider);
+    String[] processorNames = OsgiUtil.toStringArray(serviceReference
+        .getProperty(REG_PROVIDER_NAMES));
+
+    for (String processorName : processorNames) {
+      propertyProvider.put(processorName, provider);
+    }
+  }
+
   protected void activate(ComponentContext componentContext) {
 
     synchronized (delayedReferences) {
@@ -339,8 +434,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
       }
       delayedReferences.clear();
     }
+    synchronized (delayedPropertyReferences) {
+      osgiComponentContext = componentContext;
+      for (ServiceReference ref : delayedPropertyReferences) {
+        addProvider(ref);
+      }
+      delayedPropertyReferences.clear();
+    }
   }
-
-
 
 }
