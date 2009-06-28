@@ -53,8 +53,17 @@ public class ConnectionUtils {
     if (remainderPath.startsWith(targetUser)) {
       remainderPath = remainderPath.substring(targetUser.length());
     }
-    String path = PathUtils.toInternalHashedPath(realPath, user, "");
+    String path = getConnectionPathBase(realPath, user);
     return PathUtils.toInternalHashedPath(path, targetUser, "") + remainderPath;
+  }
+
+  /**
+   * @param path
+   * @param user1
+   * @return
+   */
+  public static String getConnectionPathBase(String path, String user1) {
+    return PathUtils.toInternalHashedPath(path, user1, "");
   }
 
 }

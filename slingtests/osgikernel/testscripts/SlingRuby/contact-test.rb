@@ -24,7 +24,7 @@ class TC_MyContactTest < SlingTest
     i = create_user("ian"+m)
     @s.switch_user(a)
     res = @cm.add_contact("nico"+m, [ "coworker", "friend" ])
-    assert_equal("200", res.code, "Expected to be able to request contact addition")
+    assert_equal("201", res.code, "Expected to be able to request contact addition")
     @s.debug = true
     contacts = @cm.get_contacts()
     @s.debug = false

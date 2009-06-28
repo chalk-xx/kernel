@@ -31,6 +31,12 @@ import static org.sakaiproject.kernel.api.connections.ConnectionState.INVITED;
 import static org.sakaiproject.kernel.api.connections.ConnectionState.NONE;
 import static org.sakaiproject.kernel.api.connections.ConnectionState.PENDING;
 import static org.sakaiproject.kernel.api.connections.ConnectionState.REJECTED;
+import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -49,9 +55,11 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 
 /**
  * Service for doing operations with connections.
@@ -95,7 +103,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
     stateMap.put(tk(INVITED, PENDING, invite), sp(ACCEPTED, ACCEPTED)); // t20
   }
 
-
   /**
    * @param pending
    * @param invited
@@ -128,7 +135,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
-      if ( authorizable != null ) {
+      if (authorizable != null) {
         return true;
       }
     } catch (RepositoryException e) {
@@ -140,7 +147,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
     }
     return false;
   }
-
 
   /**
    * Get the connection state from a node
@@ -191,8 +197,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
       try {
         // get the contact userstore nodes
-        Node thisNode = getConnectionNode(adminSession, contactsPath, thisUserId, otherUserId);
-        Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId, thisUserId);
+        Node thisNode = getConnectionNode(adminSession, contactsPath, thisUserId,
+            otherUserId);
+        Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
+            thisUserId);
 
         // check the current states
         ConnectionState thisState = getConnectionState(thisNode);
@@ -224,7 +232,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     String requestPath = resource.getPath();
     int lastSlash = requestPath.lastIndexOf('/');
     if (lastSlash > -1)
-      return requestPath.substring(0,lastSlash);
+      return requestPath.substring(0, lastSlash);
     return requestPath;
   }
 
@@ -232,21 +240,32 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @param session
    * @param thisUserId
    * @param otherUserId
-   * @param otherUserId2 
+   * @param otherUserId2
    * @return
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
-  private Node getConnectionNode(Session session, String path, String user1, String user2) throws RepositoryException {
-    return JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(path, user1, user2,""));
+  private Node getConnectionNode(Session session, String path, String user1, String user2)
+      throws RepositoryException {
+    Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
+        path, user1, user2, ""));
+    if (n.isNew()) {
+      // setup the ACLs on the node.
+      String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
+      Authorizable authorizable = AccessControlUtil.getUserManager(session)
+          .getAuthorizable(user1);
+      addEntry(basePath, authorizable, session, WRITE_GRANTED,
+          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+          REMOVE_NODE_GRANTED);
+    }
+    return n;
   }
-  
-  
+
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
+
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
-
 
 }
