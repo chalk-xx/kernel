@@ -171,7 +171,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.launchpad.bundles</artifactId>
-      <version>6-incubator-SNAPSHOT</version>
+      <version>6-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
