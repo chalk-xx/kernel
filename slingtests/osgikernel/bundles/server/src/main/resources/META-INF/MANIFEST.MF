@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Note: Manifest File built by Maven Bundle Plugin
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.apache.sling.jcr.jackrabbit.server
-Bundle-Version: 2.0.3.SNAPSHOT
+Bundle-Version: 2.0.3.incubator-SNAPSHOT
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository
 Bundle-Description: Bundle providing support to embed Jackrabbit Repos
  itory instances and publish via RMI and/or JNDI
@@ -22,15 +22,15 @@ Bundle-ClassPath: .,nekohtml-1.9.7.jar,lucene-core-2.3.2.jar,jackrabbi
  .3.jar,jackrabbit-spi-1.5.0.jar,poi-scratchpad-3.0.2-FINAL.jar
 Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  "javax.jcr,javax.security.auth.callback,javax.security.auth.login,jav
- ax.security.auth";version="2.0.3.SNAPSHOT",org.apache.jackrabbit.core
- .security.principal;uses:="javax.jcr,org.slf4j,org.apache.commons.col
- lections.iterators,org.apache.jackrabbit.api.security.user,org.apache
- .commons.collections.map,javax.jcr.observation,org.apache.jackrabbit.
- api.security.principal,org.apache.commons.collections.set";version="2
- .0.3.SNAPSHOT",org.apache.sling.jcr.jackrabbit.server.security.access
- manager;uses:="javax.jcr,javax.security.auth";version="2.0.3.SNAPSHOT
- ",org.apache.sling.jcr.jackrabbit.server.security.dynamic;uses:="java
- x.jcr"
+ ax.security.auth";version="2.0.3.incubator-SNAPSHOT",org.apache.jackr
+ abbit.core.security.principal;uses:="javax.jcr,org.slf4j,org.apache.c
+ ommons.collections.iterators,org.apache.jackrabbit.api.security.user,
+ org.apache.commons.collections.map,javax.jcr.observation,org.apache.j
+ ackrabbit.api.security.principal,org.apache.commons.collections.set";
+ version="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.se
+ rver.security.accessmanager;uses:="javax.jcr,javax.security.auth";ver
+ sion="2.0.3.incubator-SNAPSHOT",org.apache.sling.jcr.jackrabbit.serve
+ r.security.dynamic;uses:="javax.jcr"
 Import-Package: javax.jcr,javax.jcr.lock,javax.jcr.nodetype,javax.jcr.
  observation,javax.jcr.query,javax.jcr.util,javax.jcr.version,javax.na
  ming,javax.naming.directory,javax.naming.spi,javax.security.auth,java
