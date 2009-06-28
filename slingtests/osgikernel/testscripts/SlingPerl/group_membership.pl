@@ -14,7 +14,7 @@ The following options are accepted:
  --additions or -A (file)   - file containing list of members to be added to groups.
  --add or -a (member)       - add specified member.
  --auth (type)              - Specify auth type. If ommitted, default is used.
- --delete or - d (member)   - delete specified group.
+ --delete or -d (member)    - delete specified group member.
  --exists or -e (member)    - check whether specified member exists in group.
  --group or -g (actOnGroup) - group to perform membership actions on.
  --help or -?               - view the script synopsis and options.
@@ -25,19 +25,32 @@ The following options are accepted:
                               processes to have running through file.
  --url or -U (URL)          - URL for system being tested against.
  --user or -u (username)    - Name of user to perform any actions as.
- --view or -v               - view members of specified group.
+ --verbose or -v            - Increase verbosity of output.
+ --view or -V               - view members of specified group.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
-For full details run: perl group.pl --man
+For full details run: perl group_membership.pl --man
 
 =head1 Example Usage
 
 =over
 
-=item Authenticate and add a member testmember to the group with id testgroup:
+=item Authenticate and add a member testuser to the group with id g-test:
 
- perl group.pl -U http://localhost:8080 -a testmember -g testgroup -u admin -p admin
+ perl group_membership.pl -U http://localhost:8080 -g g-test -u admin -p admin -a testuser
+
+=item Authenticate and view members of group with id g-test:
+
+ perl group_membership.pl -U http://localhost:8080 -g g-test -u admin -p admin -V
+
+=item Authenticate and check whether testuser is a member of group with id g-test:
+
+ perl group_membership.pl -U http://localhost:8080 -g g-test -u admin -p admin -e testuser 
+
+=item Authenticate and remove testuser from being a member of group with id g-test with very verbose output:
+
+ perl group_membership.pl -U http://localhost:8080 -g g-test -u admin -p admin -d testuser -vv
 
 =back
 
@@ -65,9 +78,9 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
-my @properties,
 my $url = "http://localhost";
 my $username;
+my $verbose;
 my $viewMembers;
 
 GetOptions (
@@ -81,11 +94,11 @@ GetOptions (
     "log|L=s" => \$log,
     "man|M" => \$man,
     "pass|p=s" => \$password,
-    "property|P=s" => \@properties,
     "threads|t=s" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
-    "view|v" => \$viewMembers
+    "verbose|v+" => \$verbose,
+    "view|V" => \$viewMembers
 ) or pod2usage(-exitstatus => 2, -verbose => 1);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
@@ -102,12 +115,7 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 #{{{main execution path
 if ( defined $additions ) {
     my $message = "Adding members to groups as specified in file \"$additions\":";
-    if ( defined $log ) {
-        Sling::Print::print_file_lock( "$message", $log );
-    }
-    else {
-        Sling::Print::print_lock( "$message" );
-    }
+    Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -115,7 +123,7 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $group = new Sling::Group( $url, $lwpUserAgent );
+            my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
             $group->member_add_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
@@ -127,24 +135,21 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $group = new Sling::Group( $url, $lwpUserAgent );
+    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
 
     if ( defined $existsMember ) {
         $group->member_exists( $actOnGroup, $existsMember, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $addMember ) {
         $group->member_add( $actOnGroup, $addMember, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $deleteMember ) {
         $group->member_delete( $actOnGroup, $deleteMember, $log );
-        print $group->{ 'Message' } . "\n";
     }
     elsif ( defined $viewMembers ) {
         $group->member_view( $actOnGroup, $log );
-        print $group->{ 'Message' } . "\n";
     }
+    Sling::Print::print_result( $group, $log );
 }
 #}}}
 

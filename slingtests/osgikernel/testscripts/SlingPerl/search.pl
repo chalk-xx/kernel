@@ -23,6 +23,7 @@ The following options are accepted:
                                processes to have running through file.
  --url or -U (URL)           - URL for system being tested against.
  --user or -u (username)     - Name of user to perform any searches as.
+ --verbose or -v             - Increase verbosity of output.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -61,6 +62,7 @@ my $password;
 my $searchTerm;
 my $url = "http://localhost";
 my $username;
+my $verbose;
 
 GetOptions (
     "auth=s" => \$auth,
@@ -72,7 +74,8 @@ GetOptions (
     "search|s=s" => \$searchTerm,
     "threads|t=i" => \$numberForks,
     "url|U=s" => \$url,
-    "user|u=s" => \$username
+    "user|u=s" => \$username,
+    "verbose|v+" => \$verbose
 ) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
@@ -96,7 +99,7 @@ if ( defined $file ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $search = new Sling::Search( $url, $lwpUserAgent );
+            my $search = new Sling::Search( $url, $lwpUserAgent, $verbose );
             $search->search_from_file( $file, $i, $numberForks, $log );
 	    exit( 0 );
 	}
@@ -108,13 +111,11 @@ if ( defined $file ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $search = new Sling::Search( $url, $lwpUserAgent );
+    my $search = new Sling::Search( $url, $lwpUserAgent, $verbose );
     if ( defined $searchTerm ) {
         $search->search( $searchTerm, $log );
-        if ( ! defined $log ) {
-            print $search->{ 'Message' } . "\n";
-        }
     }
+    Sling::Print::print_result( $search, $log );
 }
 #}}}
 

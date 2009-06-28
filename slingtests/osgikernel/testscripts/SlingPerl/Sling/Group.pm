@@ -34,14 +34,15 @@ Create, set up, and return a Group Object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
     my $group = { BaseURL => "$url",
-                 LWP => $lwpUserAgent,
-		 Message => "",
-		 Response => \$response };
+                  LWP => $lwpUserAgent,
+		  Message => "",
+		  Response => \$response,
+		  Verbose => $verbose };
     bless( $group, $class );
     return $group;
 }
@@ -59,13 +60,12 @@ sub set_results {
 #{{{sub add
 sub add {
     my ( $group, $actOnGroup, $properties, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' },
-	    $actOnGroup, $properties ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::add_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::add_setup( $group->{ 'BaseURL' }, $actOnGroup, $properties ) );
+    my $success = Sling::GroupUtil::add_eval( $res );
     my $message = "Group: \"$actOnGroup\" ";
     $message .= ( $success ? "added!" : "was not added!" );
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -127,12 +127,12 @@ sub add_from_file {
 #{{{sub delete
 sub delete {
     my ( $group, $actOnGroup, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::delete_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::delete_setup( $group->{ 'BaseURL' }, $actOnGroup ) );
+    my $success = Sling::GroupUtil::delete_eval( $res );
     my $message = "Group: \"$actOnGroup\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -141,12 +141,12 @@ sub delete {
 #{{{sub exists
 sub exists {
     my ( $group, $actOnGroup, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::GroupUtil::exists_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::exists_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::exists_setup( $group->{ 'BaseURL' }, $actOnGroup ) );
+    my $success = Sling::GroupUtil::exists_eval( $res );
     my $message = "Group \"$actOnGroup\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -155,14 +155,13 @@ sub exists {
 #{{{sub member_add
 sub member_add {
     my ( $group, $actOnGroup, $addMember, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::GroupUtil::member_add_setup( $group->{ 'BaseURL' },
-	    $actOnGroup, $addMember ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::member_add_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::member_add_setup( $group->{ 'BaseURL' }, $actOnGroup, $addMember ) );
+    my $success = Sling::GroupUtil::member_add_eval( $res );
     my $message = "Member: \"$addMember\" ";
     $message .= ( $success ? "added" : "was not added" );
     $message .= " to group \"$actOnGroup\"!";
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -223,15 +222,30 @@ sub member_add_from_file {
 }
 #}}}
 
+#{{{sub member_delete
+sub member_delete {
+    my ( $group, $actOnGroup, $deleteMember, $log ) = @_;
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::member_delete_setup( $group->{ 'BaseURL' }, $actOnGroup, $deleteMember ) );
+    my $success = Sling::GroupUtil::member_delete_eval( $res );
+    my $message = "Member: \"$deleteMember\" ";
+    $message .= ( $success ? "deleted" : "was not deleted" );
+    $message .= " from group \"$actOnGroup\"!";
+    $group->set_results( "$message", $res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
 #{{{sub member_exists
 sub member_exists {
     my ( $group, $actOnGroup, $existsMember, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::view_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ) );
+    my $success = Sling::GroupUtil::view_eval( $res );
     my $message;
     if ( $success ) {
-        my $group_info = from_json( $res->content );
+        my $group_info = from_json( $$res->content );
 	my $is_member = 0;
         foreach my $member ( @{ $group_info->{ 'members' } } ) {
             if ( $member =~ /^$existsMember$/ ) {
@@ -245,7 +259,7 @@ sub member_exists {
     else {
         $message = "Problem viewing group: \"$actOnGroup\"";
     }
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -254,12 +268,12 @@ sub member_exists {
 #{{{sub member_view
 sub member_view {
     my ( $group, $actOnGroup, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::view_eval( \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ) );
+    my $success = Sling::GroupUtil::view_eval( $res );
     my $message;
     if ( $success ) {
-        my $group_info = from_json( $res->content );
+        my $group_info = from_json( $$res->content );
         my $number_members = @{ $group_info->{ 'members' } };
         my $members = "Group \"$actOnGroup\" has $number_members member(s):";
         foreach my $member ( @{ $group_info->{ 'members' } } ) {
@@ -270,7 +284,7 @@ sub member_view {
     else {
         $message = "Problem viewing group: \"$actOnGroup\"";
     }
-    $group->set_results( "$message", \$res );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
@@ -279,11 +293,11 @@ sub member_view {
 #{{{sub view
 sub view {
     my ( $group, $actOnGroup, $log ) = @_;
-    my $res = ${ $group->{ 'LWP' } }->request( Sling::Request::string_to_request(
-                  Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ), $group->{ 'LWP' } ) );
-    my $success = Sling::GroupUtil::view_eval( \$res );
-    my $message = ( $success ? $res->content : "Problem viewing group: \"$actOnGroup\"" );
-    $group->set_results( "$message", \$res );
+    my $res = Sling::Request::request( \$group,
+        Sling::GroupUtil::view_setup( $group->{ 'BaseURL' }, $actOnGroup ) );
+    my $success = Sling::GroupUtil::view_eval( $res );
+    my $message = ( $success ? $$res->content : "Problem viewing group: \"$actOnGroup\"" );
+    $group->set_results( "$message", $res );
     Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }

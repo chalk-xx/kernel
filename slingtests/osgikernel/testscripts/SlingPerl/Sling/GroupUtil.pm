@@ -39,7 +39,6 @@ sub add_setup {
     my ( $baseURL, $actOnGroup, $properties ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No group name defined to add!" unless defined $actOnGroup;
-    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
     my $postVariables = "\$postVariables = [':name','$actOnGroup'";
     if ( $property_post_vars !~ /^$/ ) {
@@ -81,7 +80,6 @@ sub delete_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url defined to delete against!" unless defined $baseURL;
     die "No group name defined to delete!" unless defined $actOnGroup;
-    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     my $postVariables = "\$postVariables = []";
     return "post $baseURL/system/userManager/group/$actOnGroup.delete.html $postVariables";
 }
@@ -118,7 +116,6 @@ sub exists_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url to check existence against!" unless defined $actOnGroup;
     die "No group to check existence of defined!" unless defined $actOnGroup;
-    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     return "get $baseURL/system/userManager/group/$actOnGroup.json";
 }
 #}}}
@@ -147,8 +144,8 @@ sub exists_eval {
 
 =head2 member_add_setup
 
-Returns a textual representation of the request needed to add the group to the
-system.
+Returns a textual representation of the request needed to add add a member to a
+group in the system.
 
 =cut
 
@@ -157,8 +154,6 @@ sub member_add_setup {
     die "No base url defined to add against!" unless defined $baseURL;
     die "No group name defined to add member to!" unless defined $actOnGroup;
     die "No member name defined to add!" unless defined $addMember;
-    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
-    $addMember = Sling::URL::urlencode( $addMember );
     my $postVariables = "\$postVariables = [':member','/system/userManager/user/$addMember']";
     return "post $baseURL/system/userManager/group/$actOnGroup.update.html $postVariables";
 }
@@ -180,6 +175,43 @@ sub member_add_eval {
 }
 #}}}
 
+#{{{sub member_delete_setup
+
+=pod
+
+=head2 member_delete_setup
+
+Returns a textual representation of the request needed to delete a member from
+a group in the system.
+
+=cut
+
+sub member_delete_setup {
+    my ( $baseURL, $actOnGroup, $deleteMember ) = @_;
+    die "No base url defined to delete against!" unless defined $baseURL;
+    die "No group name defined to delete member to!" unless defined $actOnGroup;
+    die "No member name defined to delete!" unless defined $deleteMember;
+    my $postVariables = "\$postVariables = [':member\@Delete','/system/userManager/user/$deleteMember']";
+    return "post $baseURL/system/userManager/group/$actOnGroup.update.html $postVariables";
+}
+#}}}
+
+#{{{sub member_delete_eval
+
+=pod
+
+=head2 member_delete_eval
+
+Check result of deleting a member from a group in the system.
+
+=cut
+
+sub member_delete_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ && $$res->content !~ /^$/ );
+}
+#}}}
+
 #{{{sub view_setup
 
 =pod
@@ -195,7 +227,6 @@ sub view_setup {
     my ( $baseURL, $actOnGroup ) = @_;
     die "No base url to view with defined!" unless defined $baseURL;
     die "No group to view defined!" unless defined $actOnGroup;
-    $actOnGroup = Sling::URL::urlencode( $actOnGroup );
     return "get $baseURL/system/userManager/group/$actOnGroup.tidy.json";
 }
 #}}}
@@ -213,7 +244,7 @@ returning true if the result indicates the group view was returned, else false.
 
 sub view_eval {
     my ( $res ) = @_;
-    return ( $$res->code =~ /^200$/ );
+    return ( $$res->code =~ /^200$/ && $$res->content !~ /^$/ );
 }
 #}}}
 

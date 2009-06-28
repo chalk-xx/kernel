@@ -34,7 +34,7 @@ Create, set up, and return a Search object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
@@ -43,7 +43,8 @@ sub new {
 		   Hits => 0,
 		   Message => "",
 		   Response => \$response,
-		   TimeElapse => 0 };
+		   TimeElapse => 0,
+		   Verbose => $verbose };
     bless( $search, $class );
     return $search;
 }
@@ -64,12 +65,15 @@ sub set_results {
 sub search {
     my ( $search, $searchTerm, $log ) = @_;
     my $startTime = Time::HiRes::time;
-    my $res = ${ $search->{ 'LWP' } }->request( Sling::Request::string_to_request(
-        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm ), $search->{ 'LWP' } ) );
+    my $res = Sling::Request::request( \$search,
+        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
-    if ( Sling::SearchUtil::search_eval( \$res ) ) {
-	my $hits = () = ($res->content =~ /jcr:uuid/g);
+    if ( Sling::SearchUtil::search_eval( $res ) ) {
+	my $hits = ($$res->content);
+	$hits =~ s/.*?"total":([0-9]+).*/$1/;
+	# Check hits total was correctly extracted:
+	$hits = ( ( $hits =~ /^[0-9]+/ ) ? $hits : die "Problem calculating number of search hits!" );
 	my $message = Sling::Print::dateTime .
 	    " Searching for \"$searchTerm\": Search OK. Found $hits hits.";
 	if ( defined $log && open( LOG, ">>$log" ) ) {
@@ -79,12 +83,12 @@ sub search {
             flock( LOG, LOCK_UN );
 	    close( LOG );
 	}
-        $search->set_results( $hits, $message, \$res, $timeElapse );
+        $search->set_results( $hits, $message, $res, $timeElapse );
 	return 1;
     }
     else {
         my $message = Sling::Print::dateTime . " Searching for \"$searchTerm\": Search failed!";
-        $search->set_results( 0, $message, \$res, $timeElapse );
+        $search->set_results( 0, $message, $res, $timeElapse );
 	return 0;
     }
 }
