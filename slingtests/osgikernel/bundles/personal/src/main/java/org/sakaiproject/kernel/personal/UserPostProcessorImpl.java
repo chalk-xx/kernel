@@ -18,7 +18,9 @@
 package org.sakaiproject.kernel.personal;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
+import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
+import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
 import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
@@ -40,14 +42,24 @@ import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.version.VersionException;
 
 /**
  * This PostProcessor listens to post operations on User objects and processes the
@@ -93,8 +105,9 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          if ( authorizable != null ) {
-            createProfile(session, authorizable);
+          if (authorizable != null) {
+            Node profileNode = createProfile(session, authorizable);
+            updateProperties(session, profileNode, authorizable, principalName, changes);
           }
           fireEvent(request, principalName, changes);
         }
@@ -104,27 +117,34 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
-          if ( authorizable != null ) {
-            createProfile(session, authorizable);
+          if (authorizable != null) {
+            Node profileNode = createProfile(session, authorizable);
+            updateProperties(session, profileNode, authorizable, principalName, changes);
           }
           fireEvent(request, principalName, changes);
         }
-        /*
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
           return;
         }
         authorizable = userManager.getAuthorizable(principalName);
-        updateProperties(session, authorizable, principalName, false, changes);
+        if (authorizable != null) {
+          Node profileNode = createProfile(session, authorizable);
+          updateProperties(session, profileNode, authorizable, principalName, changes);
+        }
+        fireEvent(request, principalName, changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
           return;
         }
         authorizable = userManager.getAuthorizable(principalName);
-        updateProperties(session, authorizable, principalName, true, changes);
-        */
+        if (authorizable != null) {
+          Node profileNode = createProfile(session, authorizable);
+          updateProperties(session, profileNode, authorizable, principalName, changes);
+        }
+        fireEvent(request, principalName, changes);
       }
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
@@ -141,22 +161,10 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @throws VersionException
    * @throws PathNotFoundException
    */
-  /*
-   * 
-   * Pease leave this as it will be needed elsewhere soon
-   * 
-  private void updateProperties(Session session, Authorizable authorizable,
-      String principalName, boolean isGroup, List<Modification> changes)
-      throws PathNotFoundException, VersionException, LockException,
-      ConstraintViolationException, RepositoryException {
-    
-    
-    if (authorizable != null) {
-    }
+  private void updateProperties(Session session, Node profileNode,
+      Authorizable authorizable, String principalName, List<Modification> changes)
+      throws RepositoryException {
 
-      inames = authorizable.getPropertyNames();
-    }
-    
     for (Modification m : changes) {
       String dest = m.getDestination();
       if (dest == null) {
@@ -183,27 +191,34 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
 
     // build a blacklist set of properties that should be kept private
+
     Set<String> privateProperties = new HashSet<String>();
-    if (profileNode.hasProperty(PRIVATE_PROPERTIES)) {
-      Value[] pp = profileNode.getProperty(PRIVATE_PROPERTIES).getValues();
+    if (profileNode.hasProperty(UserConstants.PRIVATE_PROPERTIES)) {
+      Value[] pp = profileNode.getProperty(UserConstants.PRIVATE_PROPERTIES).getValues();
       for (Value v : pp) {
         privateProperties.add(v.getString());
       }
     }
     // copy the non blacklist set of properties into the users profile.
-    while (inames.hasNext()) {
-      String propertyName = (String) inames.next();
-      if (!privateProperties.contains(propertyName)) {
-        Value[] v = authorizable.getProperty(propertyName);
-        if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
-            propertyName).getDefinition().isProtected())) {
-          Property prop = profileNode.setProperty(propertyName, v);
-          changes.add(Modification.onModified(prop.getPath()));
+    if (authorizable != null) {
+      Iterator<?> inames = authorizable.getPropertyNames();
+      while (inames.hasNext()) {
+        String propertyName = (String) inames.next();
+        if (!propertyName.startsWith("rep:")) {
+          if (!privateProperties.contains(propertyName)) {
+            Value[] v = authorizable.getProperty(propertyName);
+            if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
+                propertyName).getDefinition().isProtected())) {
+              Property prop = profileNode.setProperty(propertyName, v);
+              changes.add(Modification.onModified(prop.getPath()));
+            }
+          }
+        } else {
+         LOGGER.info("Not Updating "+propertyName); 
         }
       }
     }
   }
-    */
 
   /**
    * @param request
@@ -224,25 +239,25 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
       privateNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
       addEntry(privateNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
-          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+          REMOVE_NODE_GRANTED);
     }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
     addEntry(profileNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
-        REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+        REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+        REMOVE_NODE_GRANTED);
     return profileNode;
   }
 
-  /*
   private void deleteProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String path = hashPublicNode(authorizable, AUTH_PROFILE);
+    String path = PersonalUtils.getProfilePath(authorizable.getID());
     if (session.itemExists(path)) {
       Node node = (Node) session.getItem(path);
       node.remove();
     }
   }
-  */
 
   private String nodeTypeForAuthorizable(Authorizable authorizable) {
     if (authorizable.isGroup()) {
@@ -251,8 +266,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       return UserConstants.USER_PROFILE_RESOURCE_TYPE;
     }
   }
-
-
 
   // event processing
   // -----------------------------------------------------------------------------
