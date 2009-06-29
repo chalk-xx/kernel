@@ -27,7 +27,7 @@ class TC_MyContactTest < SlingTest
     i = create_user("ian"+m)
     @s.switch_user(a)
     puts("Aaron Adding Nico as a coworker and friend")
-    res = @cm.add_contact("nico"+m, [ "coworker", "friend" ])
+    res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("201", res.code, "Expected to be able to request contact addition")
     @s.debug = true
     puts("Checking that The invitation to Nico is pending")
@@ -37,14 +37,40 @@ class TC_MyContactTest < SlingTest
     assert_equal(contacts["results"].size, 1, "Expected single request back")
     contact = contacts["results"][0]
     assert_equal("nico"+m, contact["target"], "Expected nico to be my friend")
-    assert_equal("PENDING", contact["details"]["sakai:state"], "Expected state to be 'requested'")
+    assert_equal("PENDING", contact["details"]["sakai:state"], "Expected state to be 'PENDING'")
+   
+
+    @s.switch_user(n)
+    contacts = @cm.get_invited()
+    assert_not_nil(contacts, "Expected to get an invite back ")
+    assert_equal(contacts["results"].size, 1, "Only expecting a single invite ")
+    contact = contacts["results"][0]
+    assert_equal("aaron"+m,contact["target"], "Expected Aaron to be asking ")
+    assert_equal("INVITED", contact["details"]["sakai:state"], "Expected state to be 'INVITED'") 
+    res = @cm.accept_contact("aaron"+m)
+    assert_equal("200", res.code, "Expecting acceptance of the contact")
+    contacts = @cm.get_accepted()
+    assert_not_nil(contacts, "Expected to get an accepted back ")
+    assert_equal(contacts["results"].size, 1, "Only expecting a single acceptance ")
+    contact = contacts["results"][0]
+    assert_equal("aaron"+m,contact["target"], "Expected Nico to have been accepted ")
+    assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
+
+    @s.switch_user(a)
+    contacts = @cm.get_accepted()
+    assert_not_nil(contacts, "Expected to get an accepted back ")
+    assert_equal(contacts["results"].size, 1, "Only expecting a single acceptance ")
+    contact = contacts["results"][0]
+    assert_equal("nico"+m,contact["target"], "Expected Aaron to have been accepted ")
+    assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
+
   end
 
   def teardown
     @created_users.each do |user|
       @s.debug = true
       @s.switch_user(user)
-      contacts = @cm.get_contacts()
+      contacts = @cm.get_all()
       contacts["results"].each do |result|
         assert_not_nil(result["target"], "Expected contacts to have names")
         res = @cm.remove_contact(result["target"])

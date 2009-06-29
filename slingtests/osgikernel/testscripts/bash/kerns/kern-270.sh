@@ -19,7 +19,7 @@ echo "====================================================  Update the user"
 x=1
 while [[ $x -lt 100 ]]
 do
-  curl -Ftestpropert=value${x} http://${user1}:testuser@localhost:8080/system/userManager/user/${user1}.update.html 1> target/errorfile 2> /dev/null
+  curl -Ftestpropery=value${x} http://${user1}:testuser@localhost:8080/system/userManager/user/${user1}.update.html 1> target/errorfile 2> /dev/null
   error=`grep -c 500 target/errorfile`
   if [[ $error -ne 0 ]] 
   then
@@ -36,6 +36,7 @@ curl http://admin:admin@localhost:8080/system/userManager/user/${user1}.json
 echo " "
 curl http://${user1}:testuser@localhost:8080/system/me
 echo " "
-
+echo "Auth Profile"
+curl http://localhost:8080/_user/public/${user1}/authprofile.json
 
 
