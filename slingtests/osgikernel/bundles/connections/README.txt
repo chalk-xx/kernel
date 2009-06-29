@@ -118,3 +118,20 @@ connect cancel
  
 connect remove
  Only on a local connection = remote = connected | rejected
+ 
+ 
+ 
+ Searching:
+ 
+ There are Search End points for each state available at 
+/_user/contacts/accepted.json
+/_user/contacts/blocked.json
+/_user/contacts/ignored.json
+/_user/contacts/invited.json
+/_user/contacts/pending.json
+/_user/contacts/rejected.json
+
+Which return the contacts for the current user in the state requested. E.g.
+
+
+ 
