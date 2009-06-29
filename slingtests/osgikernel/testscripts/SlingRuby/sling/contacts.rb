@@ -17,9 +17,12 @@ module SlingContacts
     end
 
     def get_contacts()
-      return @sling.get_node_props("_user/user_contacts")
+      return @sling.get_node_props("_user/contacts/accepted.json")
     end
 
+    def get_pending()
+      return @sling.get_node_props("_user/contacts/pending.json")
+    end
   end
 
 end

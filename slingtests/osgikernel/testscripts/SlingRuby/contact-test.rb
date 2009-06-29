@@ -19,20 +19,25 @@ class TC_MyContactTest < SlingTest
 
   def test_connect_users
     m = Time.now.to_i.to_s
+    puts("Creating user aaron"+m)
     a = create_user("aaron"+m)
+    puts("Creating user nico"+m)
     n = create_user("nico"+m)
+    puts("Creating user ian"+m)
     i = create_user("ian"+m)
     @s.switch_user(a)
+    puts("Aaron Adding Nico as a coworker and friend")
     res = @cm.add_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("201", res.code, "Expected to be able to request contact addition")
     @s.debug = true
-    contacts = @cm.get_contacts()
+    puts("Checking that The invitation to Nico is pending")
+    contacts = @cm.get_pending()
     @s.debug = false
     assert_not_nil(contacts, "Expected to get contacts back")
     assert_equal(contacts["results"].size, 1, "Expected single request back")
     contact = contacts["results"][0]
     assert_equal("nico"+m, contact["target"], "Expected nico to be my friend")
-    assert_equal("requested", contact["details"]["sakai:state"], "Expected state to be 'requested'")
+    assert_equal("PENDING", contact["details"]["sakai:state"], "Expected state to be 'requested'")
   end
 
   def teardown
