@@ -204,7 +204,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       Iterator<?> inames = authorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
-        if (!propertyName.startsWith("rep:")) {
+        if (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:") ) {
           if (!privateProperties.contains(propertyName)) {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
