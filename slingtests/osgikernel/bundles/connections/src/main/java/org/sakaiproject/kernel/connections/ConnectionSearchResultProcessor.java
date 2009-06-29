@@ -5,6 +5,8 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -20,12 +22,15 @@ import javax.jcr.RepositoryException;
  */
 public class ConnectionSearchResultProcessor implements SearchResultProcessor {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionSearchResultProcessor.class);
+
   public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
     String targetUser = node.getName();
     write.object();
     write.key("target");
     write.value(targetUser);
     write.key("profile");
+    LOGGER.info("Getting info for {} ", targetUser);
     Node profileNode = (Node) node.getSession().getItem(PersonalUtils.getProfilePath(targetUser));
     ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
     write.key("details");

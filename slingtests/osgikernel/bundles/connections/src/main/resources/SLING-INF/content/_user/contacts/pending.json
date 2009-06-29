@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_connectionstore}//*[@sakai:state=\"PENDING\"]",
+  "sakai:query-template": "/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"PENDING\"]",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
   "sakai:resultprocessor": "Connection"

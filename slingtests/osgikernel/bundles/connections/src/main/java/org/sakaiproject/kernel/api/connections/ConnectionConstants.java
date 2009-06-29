@@ -32,13 +32,8 @@ public interface ConnectionConstants {
   /**
    * This marks the contact user store nodes (1 per user)
    */
-  public static final String SAKAI_CONTACT_USERSTORE_RT = "sakai/contactuserstore";
+  public static final String SAKAI_CONTACT_RT = "sakai/contact";
 
-  /**
-   * This marks the contact nodes which are stored under the contact user store nodes
-   * (1 per connection, where connection is a contact user store)
-   */
-  public static final String SAKAI_CONTACT_USERCONTACT_RT = "sakai/contactusercontact";
 
   public static final String SAKAI_CONNECTION_STATE = "sakai:state";
   public static final String SAKAI_CONNECTION_TYPES = "sakai:types";

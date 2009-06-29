@@ -43,6 +43,7 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.connections.ConnectionConstants;
 import org.sakaiproject.kernel.api.connections.ConnectionException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
@@ -99,6 +100,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     stateMap.put(tk(NONE, BLOCKED, invite), sp(PENDING, BLOCKED)); // t17
     stateMap.put(tk(IGNORED, PENDING, invite), sp(PENDING, INVITED)); // t19
     stateMap.put(tk(INVITED, PENDING, invite), sp(ACCEPTED, ACCEPTED)); // t20
+    stateMap.put(tk(NONE, NONE, remove), sp(NONE, NONE)); // t21
+    stateMap.put(tk(NONE, BLOCKED, remove), sp(NONE, BLOCKED)); // t22
+    stateMap.put(tk(BLOCKED, NONE, remove), sp(NONE, NONE)); // t23
   }
 
   /**
@@ -207,7 +211,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         StatePair sp = stateMap.get(tk(thisState, otherState, operation));
         if (sp == null) {
           throw new ConnectionException(400, "Cant perform operation "
-              + thisState.toString() + " on " + thisState.toString());
+              + operation.toString() + " on " + thisState.toString() + ":" + otherState.toString());
         }
         sp.transition(thisNode, otherNode);
 
@@ -247,6 +251,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
         path, user1, user2, ""));
     if (n.isNew()) {
+      n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, ConnectionConstants.SAKAI_CONTACT_RT);
       // setup the ACLs on the node.
       String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
       Authorizable authorizable = AccessControlUtil.getUserManager(session)
