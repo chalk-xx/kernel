@@ -24,73 +24,111 @@ use lib qw ( .. );
 use Sling::URL;
 #}}}
 
-#{{{sub add_member_setup
+#{{{sub member_add_setup
 
 =pod
 
-=head2 add_member_setup
+=head2 member_add_setup
 
-Returns a textual representation of the request needed to add a member to a
+Returns a textual representation of the request needed to add add a member to a
 site in the system.
 
 =cut
 
-sub add_member_setup {
-    my ( $baseURL, $id, $member, $role ) = @_;
+sub member_add_setup {
+    my ( $baseURL, $actOnSite, $addMember, $currentMembers ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
-    die "No site id defined to add owner to!" unless defined $id;
-    die "No member to add defined for id $id!" unless defined $member;
-    die "No role to apply to added member $member defined for id $id!" unless defined $role;
-    $id = Sling::URL::urlencode( $id );
-    $member = Sling::URL::urlencode( $member );
-    $role = Sling::URL::urlencode( $role );
-
-    my $postVariables = "\$postVariables = ['uuserid','$member','membertoken','$role']";
-    return "post $baseURL/_rest/site/members/add/$id $postVariables";
+    die "No site name defined to add member to!" unless defined $actOnSite;
+    die "No member name defined to add!" unless defined $addMember;
+    die "No current members defined!" unless defined $currentMembers;
+    my $postVariables = "\$postVariables = ['sakai:authorizables','$addMember',";
+    foreach my $member ( @{ $currentMembers } ) {
+        $postVariables .= "'sakai:authorizables','" . $member->{ 'rep:userId' } . "',";
+    }
+    $postVariables =~ s/,$/]/;
+    return "post $baseURL/$actOnSite $postVariables";
 }
 #}}}
 
-#{{{sub add_member_eval
+#{{{sub member_add_eval
 
 =pod
 
-=head2 add_member_eval
+=head2 member_add_eval
 
 Check addition of member to site in the system.
 
 =cut
 
-sub add_member_eval {
+sub member_add_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }
 #}}}
 
-#{{{sub list_members_setup
+#{{{sub member_delete_setup
 
 =pod
 
-=head2 list_members_setup
+=head2 member_delete_setup
 
-Returns a textual representation of the request needed to test whether a given
-site exists in the system.
+Returns a textual representation of the request needed to remove a member from
+a site in the system.
 
 =cut
 
-sub list_members_setup {
-    my ( $baseURL, $id ) = @_;
-    die "No base url defined to check existence against!" unless defined $baseURL;
-    die "No site id to check existence of defined!" unless defined $id;
-    $id = Sling::URL::urlencode( $id );
-    return "get $baseURL/_rest/sites/list/$id";
+sub member_delete_setup {
+    my ( $baseURL, $id, $member, $role ) = @_;
+    die "No base url defined to remove against!" unless defined $baseURL;
+    die "No site id defined to remove owner from!" unless defined $id;
+    die "No member to remove defined for id $id!" unless defined $member;
+    die "No role defined for member $member being removed for id $id!" unless defined $role;
+
+    my $postVariables = "\$postVariables = ['uuserid','$member','membertoken','$role']";
+    return "post $baseURL/_rest/site/members/remove/$id $postVariables";
 }
 #}}}
 
-#{{{sub list_members_eval
+#{{{sub member_delete_eval
 
 =pod
 
-=head2 list_members_eval
+=head2 member_delete_eval
+
+Check removal of member of site in the system.
+
+=cut
+
+sub member_delete_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub member_view_setup
+
+=pod
+
+=head2 member_view_setup
+
+Returns a textual representation of the request needed to return a list of
+members for a given site.
+
+=cut
+
+sub member_view_setup {
+    my ( $baseURL, $id ) = @_;
+    die "No base url defined to check existence against!" unless defined $baseURL;
+    die "No site id to check existence of defined!" unless defined $id;
+    return "get $baseURL/$id.members.json";
+}
+#}}}
+
+#{{{sub member_view_eval
+
+=pod
+
+=head2 member_view_eval
 
 Inspects the result returned from issuing the request generated in exists_setup
 returning true if the result indicates the site does exist in the system, else
@@ -98,49 +136,7 @@ false.
 
 =cut
 
-sub list_members_eval {
-    my ( $res ) = @_;
-    return ( $$res->code =~ /^200$/ );
-}
-#}}}
-
-#{{{sub remove_member_setup
-
-=pod
-
-=head2 remove_member_setup
-
-Returns a textual representation of the request needed to remove a member from
-a site in the system.
-
-=cut
-
-sub remove_member_setup {
-    my ( $baseURL, $id, $member, $role ) = @_;
-    die "No base url defined to remove against!" unless defined $baseURL;
-    die "No site id defined to remove owner from!" unless defined $id;
-    die "No member to remove defined for id $id!" unless defined $member;
-    die "No role defined for member $member being removed for id $id!" unless defined $role;
-    $id = Sling::URL::urlencode( $id );
-    $member = Sling::URL::urlencode( $member );
-    $role = Sling::URL::urlencode( $role );
-
-    my $postVariables = "\$postVariables = ['uuserid','$member','membertoken','$role']";
-    return "post $baseURL/_rest/site/members/remove/$id $postVariables";
-}
-#}}}
-
-#{{{sub remove_member_eval
-
-=pod
-
-=head2 remove_member_eval
-
-Check removal of member of site in the system.
-
-=cut
-
-sub remove_member_eval {
+sub member_view_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
 }

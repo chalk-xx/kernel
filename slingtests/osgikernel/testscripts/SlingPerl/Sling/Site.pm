@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST site methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use JSON;
 use Text::CSV;
 use Sling::SiteUtil;
 use Sling::ContentUtil;
@@ -133,20 +134,6 @@ sub update_from_file {
 }
 #}}}
 
-#{{{sub add_member
-sub add_member {
-    my ( $site, $id, $member, $role, $log ) = @_;
-    my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::add_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
-    my $success = Sling::SiteUtil::add_member_eval( \$res );
-    my $message = "Site \"$id\", member \"$member\" ";
-    $message .= ( $success ? "added!" : "was not added!" );
-    $site->set_results( "$message", \$res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
-    return $success;
-}
-#}}}
-
 #{{{sub delete
 sub delete {
     my ( $site, $id, $log ) = @_;
@@ -175,33 +162,36 @@ sub exists {
 }
 #}}}
 
-#{{{sub list_members
-sub list_members {
-    my ( $site, $id ) = @_;
+#{{{sub member_add
+sub member_add {
+    my ( $site, $id, $member, $log ) = @_;
     my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::list_members_setup( $site->{ 'BaseURL' }, $id ) );
-    if ( Sling::SiteUtil::list_members_eval( \$res ) ) {
-        my $content = $$res->content;
-	# $content =~ /^.*"owners":\[([^\]]+)\].*/;
-	# my $owners = $1;
-        $site->set_results( "Site \"$id\" members are: $content.", $res );
-	# $site->{ 'Members' } = "$members";
-	return 1;
+        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
+    my $success = Sling::SiteUtil::member_view_eval( $res );
+    my $message;
+    if ( $success ) {
+        my $members = from_json( $$res->content );
+        $res = Sling::Request::request( \$site,
+            Sling::SiteUtil::member_add_setup( $site->{ 'BaseURL' }, $id, $member, $members ) );
+        my $success = Sling::SiteUtil::member_add_eval( $res );
+        $message = "Site \"$id\", member \"$member\" ";
+        $message .= ( $success ? "added!" : "was not added!" );
     }
     else {
-        $site->set_results( "Unable to list members for site \"$id\"!", $res );
-	# $site->{ 'Owners' } = "";
-	return 0
+        $message = "Problem retrieving current members for site: \"$id\"";
     }
+    $site->set_results( "$message", $res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
 }
 #}}}
 
-#{{{sub remove_member
-sub remove_member {
+#{{{sub member_delete
+sub member_delete {
     my ( $site, $id, $member, $role ) = @_;
     my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::remove_member_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
-    if ( Sling::SiteUtil::remove_member_eval( $res ) ) {
+        Sling::SiteUtil::member_delete_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
+    if ( Sling::SiteUtil::member_delete_eval( $res ) ) {
         $site->set_results( "Site: \"$id\", member \"$member\" removed!", $res );
 	return 1;
     }
@@ -209,6 +199,59 @@ sub remove_member {
         $site->set_results( "Site: \"$id\", member \"$member\" was not removed!", $res );
 	return 0;
     }
+}
+#}}}
+
+#{{{sub member_exists
+sub member_exists {
+    my ( $site, $actOnSite, $existsMember, $log ) = @_;
+    my $res = Sling::Request::request( \$site,
+        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $actOnSite ) );
+    my $success = Sling::SiteUtil::member_view_eval( $res );
+    my $message;
+    if ( $success ) {
+        my $site_info = from_json( $$res->content );
+	my $is_member = 0;
+        foreach my $member ( @{ $site_info } ) {
+            if ( $member->{ 'rep:userId' } =~ /^$existsMember$/ ) {
+	        $is_member = 1;
+		last;
+	    }
+        }
+	$message = "\"$existsMember\" is " . ( $is_member ? "" : "not " ) .
+	    "a member of site \"$actOnSite\"";
+    }
+    else {
+        $message = "Problem viewing site: \"$actOnSite\"";
+    }
+    $site->set_results( "$message", $res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
+}
+#}}}
+
+#{{{sub member_view
+sub member_view {
+    my ( $site, $actOnSite, $log ) = @_;
+    my $res = Sling::Request::request( \$site,
+        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $actOnSite ) );
+    my $success = Sling::SiteUtil::member_view_eval( $res );
+    my $message;
+    if ( $success ) {
+        my $site_info = from_json( $$res->content );
+        my $number_members = @{ $site_info };
+        my $members = "Site \"$actOnSite\" has $number_members member(s):";
+        foreach my $member ( @{ $site_info } ) {
+            $members .= "\n" . $member->{ 'rep:userId' };
+        }
+	$message = "$members";
+    }
+    else {
+        $message = "Problem viewing site: \"$actOnSite\"";
+    }
+    $site->set_results( "$message", $res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
 }
 #}}}
 

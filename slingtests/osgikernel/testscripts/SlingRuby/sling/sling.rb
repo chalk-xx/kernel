@@ -53,7 +53,7 @@ module SlingInterface
 
     attr_accessor :debug
 
-    def initialize(server="http://localhost:8080/", debug=false)
+    def initialize(server="http://192.168.101.146:8080/", debug=false)
       @server = server
       @debug = debug
       @user = SlingUsers::User.admin_user()
