@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/jcr:root{path}//element(*)Metadata[@sling:resourceType='sakai/message' and @sakai:type='internal' and jcr:contains(@sakai:from, '*{from}*')] order by @{sortOn|jcr:created} {sortOrder|descending}",
+  "sakai:query-template": "{_userPrivatePath}/message//element(*)Metadata[@sling:resourceType='sakai/message' and @sakai:type='internal' and jcr:contains(@sakai:from, '*{from}*')] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "InternalMessage"
 }
