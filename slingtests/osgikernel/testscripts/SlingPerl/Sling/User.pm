@@ -33,14 +33,15 @@ Create, set up, and return a User Agent.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
     my $user = { BaseURL => "$url",
                  LWP => $lwpUserAgent,
 		 Message => "",
-		 Response => \$response };
+		 Response => \$response,
+		 Verbose => $verbose };
     bless( $user, $class );
     return $user;
 }

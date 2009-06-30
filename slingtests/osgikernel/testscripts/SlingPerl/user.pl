@@ -31,7 +31,8 @@ The following options are accepted:
                                        processes to have running through file.
  --url or -U (URL)                   - URL for system being tested against.
  --user or -u (username)             - Name of user to perform any actions as.
- --view or -v (actOnUser)            - view details for specified user in json format.
+ --verbose or -v                     - Increase verbosity of output.
+ --view or -V (actOnUser)            - view details for specified user in json format.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -78,6 +79,7 @@ my @properties;
 my $sitesUser;
 my $url = "http://localhost";
 my $username;
+my $verbose;
 my $viewUser;
 
 GetOptions (
@@ -99,7 +101,8 @@ GetOptions (
     "threads|t=s" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
-    "view|v=s" => \$viewUser
+    "verbose|v+" => \$verbose,
+    "view|V=s" => \$viewUser
 ) or pod2usage(2);
 
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
@@ -130,7 +133,7 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $user = new Sling::User( $url, $lwpUserAgent );
+            my $user = new Sling::User( $url, $lwpUserAgent, $verbose );
             $user->add_from_file( $additions, $i, $numberForks, $log );
 	    exit( 0 );
 	}
@@ -142,36 +145,30 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $user = new Sling::User( $url, $lwpUserAgent );
+    my $user = new Sling::User( $url, $lwpUserAgent, $verbose );
 
     if ( defined $existsUser ) {
         $user->exists( $existsUser, $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $meUser ) {
         $user->me( $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $sitesUser ) {
         $user->sites( $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $addUser ) {
         $user->add( $addUser, $actOnPass, \@properties, $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $changePassUser ) {
         $user->change_password( $changePassUser, $actOnPass, $newPass, $newPass, $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $deleteUser ) {
         $user->delete( $deleteUser, $log );
-        print $user->{ 'Message' } . "\n";
     }
     elsif ( defined $viewUser ) {
         $user->view( $viewUser, $log );
-        print $user->{ 'Message' } . "\n";
     }
+    Sling::Print::print_result( $user, $log );
 }
 #}}}
 
