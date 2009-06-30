@@ -77,7 +77,8 @@ public class MessageUserPostProcessor implements UserPostProcessor {
         messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
         messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             MessageConstants.SAKAI_MESSAGESTORE_RT);
-        // TODO - Set correct ACL's!
+        // ACL's are managed by the Personal User Post processor.
+        // TODO: Check that the ACLS re set correctly, and set them if not.
 
       }
     }

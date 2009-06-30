@@ -106,7 +106,7 @@ public interface MessageConstants {
   /**
    * JCR folder name for messages.
    */
-  public static final String FOLDER_MESSAGES = "messages";
+  public static final String FOLDER_MESSAGES = "message";
   /**
    * JCR folder name for chat logs.
    */

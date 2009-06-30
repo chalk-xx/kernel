@@ -88,7 +88,7 @@ public class MessagingServiceImpl implements MessagingService {
     String finalPath = PathUtils.toInternalHashedPath(servletPath,
         pathParts[0], pathParts[1]);
 
-    Session session = baseResource.adaptTo(Session.class);
+    Session session = baseResource.getResourceResolver().adaptTo(Session.class);
     try {
       msg = JcrUtils.deepGetOrCreateNode(session, finalPath);
 
