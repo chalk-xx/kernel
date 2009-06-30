@@ -80,12 +80,14 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * @scr.reference name="SearchResultProcessor"
  *                interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
- *                cardinality="0..n" policy="dynamic"
+ *                bind="bindSearchResultProcessor"
+ *                unbind="unbindSearchResultProcessor" cardinality="0..n"
+ *                policy="dynamic"
  * @scr.reference name="SearchPropertyProvider"
  *                interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
- *                cardinality="0..n" policy="dynamic"
+ *                bind="bindSearchPropertyProvider"
+ *                unbind="unbindSearchPropertyProvider" cardinality="0..n"
+ *                policy="dynamic"
  */
 public class SearchServlet extends SlingAllMethodsServlet {
 
@@ -93,10 +95,11 @@ public class SearchServlet extends SlingAllMethodsServlet {
    *
    */
   private static final long serialVersionUID = 4130126304725079596L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SearchServlet.class);
   private SearchResultProcessor defaultSearchProcessor = new SearchResultProcessor() {
-    public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
-        RepositoryException {
+    public void writeNode(JSONWriter write, Node resultNode)
+        throws JSONException, RepositoryException {
       write.value(resultNode);
     }
   };
@@ -110,34 +113,37 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
 
-  protected void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
-      throws RepositoryException, JSONException {
+  protected void output(JSONWriter write, NodeIterator resultNodes, long start,
+      long end) throws RepositoryException, JSONException {
   }
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
-        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
+        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE)
+            .getString();
         String queryLanguage = Query.SQL;
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
         }
         String propertyProviderName = null;
         if (node.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
-          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
+          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER)
+              .getString();
         }
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
-            propertyProviderName);
+        String queryString = processQueryTemplate(request, queryTemplate,
+            queryLanguage, propertyProviderName);
 
         LOGGER.info("Posting Query {} ", queryString);
-        QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
+        QueryManager queryManager = node.getSession().getWorkspace()
+            .getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
         QueryResult result = query.execute();
 
@@ -155,8 +161,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.array();
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
         if (node.hasProperty(SAKAI_RESULTPROCESSOR)) {
-          searchProcessor = processors.get(node.getProperty(SAKAI_RESULTPROCESSOR)
-              .getString());
+          searchProcessor = processors.get(node.getProperty(
+              SAKAI_RESULTPROCESSOR).getString());
           if (searchProcessor == null) {
             searchProcessor = defaultSearchProcessor;
           }
@@ -177,14 +183,16 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
     } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
     }
   }
 
-  private int intRequestParameter(SlingHttpServletRequest request, String paramName,
-      int defaultVal) {
+  private int intRequestParameter(SlingHttpServletRequest request,
+      String paramName, int defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -198,8 +206,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Processes a template of the form select * from y where x = {q} so that strings
-   * enclosed in { and } are replaced by the same property in the request.
+   * Processes a template of the form select * from y where x = {q} so that
+   * strings enclosed in { and } are replaced by the same property in the
+   * request.
    * 
    * @param request
    *          the request.
@@ -211,7 +220,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       String queryTemplate, String queryLanguage, String propertyProviderName) {
-    Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
+    Map<String, String> propertiesMap = loadUserProperties(request,
+        propertyProviderName);
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
@@ -235,9 +245,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
           }
           if (v.startsWith("_")) {
             String value = propertiesMap.get(v);
-            if (v != null) {
+            if (value != null) {
               sb.append(escapeString(value, queryLanguage));
-            } else if (v == null && defaultValue != null) {
+            } else if (value == null && defaultValue != null) {
               sb.append(escapeString(defaultValue, queryLanguage));
             }
           } else {
@@ -273,21 +283,24 @@ public class SearchServlet extends SlingAllMethodsServlet {
    * @return
    * @throws RepositoryException
    */
-  private Map<String, String> loadUserProperties(SlingHttpServletRequest request,
-      String propertyProviderName) {
+  private Map<String, String> loadUserProperties(
+      SlingHttpServletRequest request, String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
-    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
+    String userPrivatePath = "/jcr:root"
+        + PersonalUtils.getPrivatePath(userId, "");
     propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
       LOGGER.info("Trying Provider Name {} ", propertyProviderName);
-      SearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
+      SearchPropertyProvider provider = propertyProvider
+          .get(propertyProviderName);
       if (provider != null) {
         LOGGER.info("Trying Provider {} ", provider);
         provider.loadUserProperties(request, propertiesMap);
       } else {
-        LOGGER.warn("No properties provider found for {} ", propertyProviderName);
+        LOGGER.warn("No properties provider found for {} ",
+            propertyProviderName);
       }
     } else {
       LOGGER.info("No Provider ");
@@ -300,8 +313,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
-            .replaceAll("'", "''");
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'",
+            "\\\\'").replaceAll("'", "''");
       } else {
         LOGGER.error("Unknown query language: " + queryLanguage);
       }
@@ -397,7 +410,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
     SearchPropertyProvider provider = propertyProviderById.remove(serviceId);
     if (provider != null) {
       List<String> toRemove = new ArrayList<String>();
-      for (Entry<String, SearchPropertyProvider> e : propertyProvider.entrySet()) {
+      for (Entry<String, SearchPropertyProvider> e : propertyProvider
+          .entrySet()) {
         if (provider.equals(e.getValue())) {
           toRemove.add(e.getKey());
         }

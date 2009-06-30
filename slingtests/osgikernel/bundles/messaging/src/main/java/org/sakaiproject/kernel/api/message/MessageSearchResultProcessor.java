@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -84,7 +85,8 @@ public class MessageSearchResultProcessor {
       while (userPropertyIterator.hasNext()) {
         Property userProperty = userPropertyIterator.nextProperty();
         try {
-          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValue());
+          mapPropertiesToWrite.put(userProperty.getName(), userProperty
+              .getValue());
         } catch (ValueFormatException ex) {
           mapPropertiesToWrite.put(userProperty.getName(), userProperty
               .getValues());
@@ -94,14 +96,14 @@ public class MessageSearchResultProcessor {
       // We can't have anymore exceptions from now on.
       write.key(jsonName);
       write.object();
-      for (String s : mapPropertiesToWrite.keySet()) {
-        write.key(s);
-        if (mapPropertiesToWrite.get(s) instanceof Value) {
-          write.value(((Value)mapPropertiesToWrite.get(s)).getString());
+      for (Entry<String, Object> e : mapPropertiesToWrite.entrySet()) {
+        write.key(e.getKey());
+        if (e.getValue() instanceof Value) {
+          write.value(((Value) e.getValue()).getString());
         } else {
           write.array();
 
-          Value[] vals = (Value[]) mapPropertiesToWrite.get(s);
+          Value[] vals = (Value[]) e.getValue();
           for (Value v : vals) {
             write.value(v.getString());
           }
@@ -111,10 +113,9 @@ public class MessageSearchResultProcessor {
       }
       write.endObject();
 
-    } catch(PathNotFoundException pnfe) {
+    } catch (PathNotFoundException pnfe) {
       LOGGER.warn("Profile path not found for this user.");
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       LOGGER.warn(ex.getMessage());
     }
   }
@@ -126,6 +127,5 @@ public class MessageSearchResultProcessor {
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
-
 
 }
