@@ -40,8 +40,6 @@ sub add_setup {
     die "No base url defined to add against!" unless defined $baseURL;
     die "No user name defined to add!" unless defined $actOnUser;
     die "No user password defined to add for user $actOnUser!" unless defined $actOnPass;
-    $actOnUser = Sling::URL::urlencode( $actOnUser );
-    $actOnPass = Sling::URL::urlencode( $actOnPass );
     my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
     my $postVariables = "\$postVariables = [':name','$actOnUser','pwd','$actOnPass','pwdConfirm','$actOnPass'";
     if ( $property_post_vars !~ /^$/ ) {
@@ -86,10 +84,6 @@ sub change_password_setup {
     die "No current password defined for $actOnUser!" unless defined $actOnPass;
     die "No new password defined for $actOnUser!" unless defined $newPass;
     die "No confirmation of new password defined for $actOnUser!" unless defined $newPassConfirm;
-    $actOnUser = Sling::URL::urlencode( $actOnUser );
-    $actOnPass = Sling::URL::urlencode( $actOnPass );
-    $newPass = Sling::URL::urlencode( $newPass );
-    $newPassConfirm = Sling::URL::urlencode( $newPassConfirm );
     my $postVariables = "\$postVariables = ['oldPwd','$actOnPass','newPwd','$newPass','newPwdConfirm','$newPassConfirm']";
     return "post $baseURL/system/userManager/user/$actOnUser.changePassword.html $postVariables";
 }
@@ -126,7 +120,6 @@ sub delete_setup {
     my ( $baseURL, $actOnUser ) = @_;
     die "No base url defined to delete against!" unless defined $baseURL;
     die "No user name defined to delete!" unless defined $actOnUser;
-    $actOnUser = Sling::URL::urlencode( $actOnUser );
     my $postVariables = "\$postVariables = []";
     return "post $baseURL/system/userManager/user/$actOnUser.delete.html $postVariables";
 }
@@ -163,7 +156,6 @@ sub exists_setup {
     my ( $baseURL, $actOnUser ) = @_;
     die "No base url to check existence against!" unless defined $baseURL;
     die "No user to check existence of defined!" unless defined $actOnUser;
-    $actOnUser = Sling::URL::urlencode( $actOnUser );
     return "get $baseURL/system/userManager/user/$actOnUser.tidy.json";
 }
 #}}}

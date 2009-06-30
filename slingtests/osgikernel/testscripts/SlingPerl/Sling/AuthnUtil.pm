@@ -67,8 +67,6 @@ sub form_login_setup {
     die "No base url defined!" unless defined $baseURL;
     die "No username supplied to attempt logging in with!" unless defined $username;
     die "No password supplied to attempt logging in with for user name: $username!" unless defined $password;
-    $username = Sling::URL::urlencode( $username );
-    $password = Sling::URL::urlencode( $password );
     my $postVariables = "\$postVariables = ['sakaiauth:un','$username','sakaiauth:pw','$password','sakaiauth:login','1']";
     return "post $baseURL/system/sling/formlogin $postVariables";
 }
