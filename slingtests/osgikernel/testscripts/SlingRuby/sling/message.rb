@@ -17,15 +17,15 @@ module SlingMessage
     end
 
     def list_all(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("var/messaging.all.json?sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("_user/message/all.json?sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
     def list_inbox(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("var/messaging/box.json?box=inbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("_user/message/box.json?box=inbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
     def list_outbox(sortOn = "jcr:created", sortOrder = "descending" )
-      return @sling.execute_get(@sling.url_for("var/messaging/box.json?box=outbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
+      return @sling.execute_get(@sling.url_for("_user/message/box.json?box=outbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 	
     
