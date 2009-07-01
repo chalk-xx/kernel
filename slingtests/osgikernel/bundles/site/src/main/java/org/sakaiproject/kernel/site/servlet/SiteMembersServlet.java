@@ -46,28 +46,28 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.component immediate="true" label="SiteMembersServlet"
  *                description="Get members servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Gets lists of members for a site"
+ * @scr.property name="service.description"
+ *               value="Gets lists of members for a site"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
  * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.selectors" value="members"
  * 
  */
-
-
-
 public class SiteMembersServlet extends AbstractSiteServlet {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
     LOGGER.info("Got get to SiteServiceGetServlet");
     Node site = request.getResource().adaptTo(Node.class);
     if (site == null) {
-      response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+          "Couldn't find site node");
       return;
     }
     if (!getSiteService().isSite(site)) {
@@ -75,9 +75,12 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           "Location does not represent site ");
       return;
     }
-    RequestParameter startParam = request.getRequestParameter(SiteService.PARAM_START);
-    RequestParameter itemsParam = request.getRequestParameter(SiteService.PARAM_ITEMS);
-    RequestParameter[] sortParam = request.getRequestParameters(SiteService.PARAM_SORT);
+    RequestParameter startParam = request
+        .getRequestParameter(SiteService.PARAM_START);
+    RequestParameter itemsParam = request
+        .getRequestParameter(SiteService.PARAM_ITEMS);
+    RequestParameter[] sortParam = request
+        .getRequestParameters(SiteService.PARAM_SORT);
     int start = 0;
     int items = 25;
     Sort[] sort = null;
@@ -85,16 +88,16 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       try {
         start = Integer.parseInt(startParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START, startParam
-            .getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_START,
+            startParam.getString());
       }
     }
     if (itemsParam != null) {
       try {
         items = Integer.parseInt(itemsParam.getString());
       } catch (NumberFormatException e) {
-        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS, startParam
-            .getString());
+        LOGGER.warn("Cant parse {} as  {} ", SiteService.PARAM_ITEMS,
+            startParam.getString());
       }
     }
     if (sortParam != null) {
@@ -110,8 +113,9 @@ public class SiteMembersServlet extends AbstractSiteServlet {
     }
 
     try {
-      LOGGER.info("Finding members for  {}",site.getPath());
-      Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
+      LOGGER.info("Finding members for  {}", site.getPath());
+      Iterator<User> members = getSiteService().getMembers(site, start, items,
+          sort);
       LOGGER.info("Found members ");
 
       try {
@@ -127,14 +131,17 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         output.endArray();
       } catch (JSONException e) {
         LOGGER.error(e.getMessage(), e);
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+            .getMessage());
       } catch (RepositoryException e) {
         LOGGER.error(e.getMessage(), e);
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+            .getMessage());
       }
     } catch (Exception e) {
       LOGGER.info(e.getMessage(), e);
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getMessage());
     }
     return;
   }

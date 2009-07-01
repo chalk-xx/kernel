@@ -22,3 +22,13 @@ property which points to a location in the JCR.
 
 By default this points to /sites/default.html 
  
+Some sample URLs for testing:
+# create some users
+curl -u admin:admin -F:name=aaron -Fpwd=aaron -FpwdConfirm=aaron http://localhost:8080/system/userManager/user.create.html
+curl -u admin:admin -F:name=nico -Fpwd=nico -FpwdConfirm=nico http://localhost:8080/system/userManager/user.create.html
+curl -u admin:admin -F:name=ian -Fpwd=ian -FpwdConfirm=ian http://localhost:8080/system/userManager/user.create.html
+# create site
+curl -u admin:admin -F"sakai:title=My Site" -F"sling:resourceType=sakai/site" http://localhost:8080/sites/site1
+# add a few members
+# this is not right
+#curl -u admin:admin -F"sakai:authorizables=aaron" http://localhost:8080/sites/site1
