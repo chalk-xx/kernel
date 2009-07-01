@@ -30,7 +30,7 @@ use Sling::URL;
 
 =head2 member_add_setup
 
-Returns a textual representation of the request needed to add add a member to a
+Returns a textual representation of the request needed to add a member to a
 site in the system.
 
 =cut
@@ -66,26 +66,38 @@ sub member_add_eval {
 }
 #}}}
 
-#{{{sub member_delete_setup
+#
 
 =pod
 
 =head2 member_delete_setup
 
-Returns a textual representation of the request needed to remove a member from
-a site in the system.
+Returns a textual representation of the request needed to delet a member from a
+site in the system.
 
 =cut
 
 sub member_delete_setup {
-    my ( $baseURL, $id, $member, $role ) = @_;
-    die "No base url defined to remove against!" unless defined $baseURL;
-    die "No site id defined to remove owner from!" unless defined $id;
-    die "No member to remove defined for id $id!" unless defined $member;
-    die "No role defined for member $member being removed for id $id!" unless defined $role;
-
-    my $postVariables = "\$postVariables = ['uuserid','$member','membertoken','$role']";
-    return "post $baseURL/_rest/site/members/remove/$id $postVariables";
+    my ( $baseURL, $actOnSite, $deleteMember, $currentMembers ) = @_;
+    die "No base url defined to delete against!" unless defined $baseURL;
+    die "No site name defined to delete member from!" unless defined $actOnSite;
+    die "No member name defined to delete!" unless defined $deleteMember;
+    die "No current members defined!" unless defined $currentMembers;
+    my $postVariables = "\$postVariables = [";
+    my $remainingMembers = 0;
+    foreach my $member ( @{ $currentMembers } ) {
+        # We put back all the members excep the one to be deleted:
+        if ( $member->{ 'rep:userId' } !~ /^$deleteMember$/ ) {
+            $postVariables .= "'sakai:authorizables','" . $member->{ 'rep:userId' } . "',";
+	    $remainingMembers++;
+	}
+    }
+    if ( ! $remainingMembers ) {
+        # If there are no remaining members, then delete the property altogether:
+        $postVariables .= "'sakai:authorizables\@Delete','',";
+    }
+    $postVariables =~ s/,$/]/;
+    return "post $baseURL/$actOnSite $postVariables";
 }
 #}}}
 

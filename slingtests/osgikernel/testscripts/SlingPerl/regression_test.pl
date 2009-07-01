@@ -107,7 +107,7 @@ my $auth; # Just use default auth
 # }
 # else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    Tests::User::run( $url, $lwpUserAgent, $log, $verbose );
+    Tests::User::run_regression_test( $url, $lwpUserAgent, $log, $verbose );
 # }
 #}}}
 

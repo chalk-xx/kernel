@@ -132,7 +132,7 @@ sub modify_privilege_setup {
         'all', 1
     );
     my $postVariables = "\$postVariables = ['principalId','$principal',";
-    foreach my $grant ( @{ $grant_privileges} ) {
+    foreach my $grant ( @{ $grant_privileges } ) {
         if ( $privileges{ $grant } ) {
             $postVariables .= "'privilege\@jcr:$grant','granted',";
 	}
