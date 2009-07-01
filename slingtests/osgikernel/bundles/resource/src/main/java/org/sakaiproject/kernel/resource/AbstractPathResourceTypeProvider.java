@@ -50,7 +50,6 @@ public abstract class AbstractPathResourceTypeProvider implements PathResourceTy
    */
   public AbstractPathResourceTypeProvider() {
     resourceType = getResourceType();
-    // TODO Auto-generated constructor stub
   }
 
   /**
