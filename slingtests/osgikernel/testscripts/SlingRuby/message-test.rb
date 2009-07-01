@@ -29,14 +29,59 @@ class TC_MyMessageTest < SlingTest
     @s.switch_user(a)
     puts("Sending a message to Nico")
     res = @mm.create("nico"+m, "internal")
-    assert_equal("302", res.code, "Expected to be able to create a message and get a redirect ")
-	assert_not_nil( res.header['location'],"Expected to be given a location ")
-	puts(res.header['location'])
-    @s.debug = true
-	res = @s.execute_get(res.header['location']+".json")
+	puts(res.body)
+    assert_equal("200", res.code, "Expected to create a message ")
+	message = JSON.parse(res.body)
+	puts(message)
+	assert_not_nil( message['id'],"Expected to be given a location ")
+	messageid = message['id']
+	@s.debug = true
+	messagelocation = "_user/message/"+messageid	
+	puts("==========getting location" + messagelocation)
+	message = @s.get_node_props(messagelocation)
+	
+	assert_not_nil(message,"No Response to a get on the message");
+	assert_equal("drafts",message['sakai:messagebox'],"Message Box Incorrect")
+	assert_equal("pending",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
+	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
+	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
+	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
+
+
+    res = @mm.send(messageid);	
 	assert_equal("200", res.code, "Expected to be able to view the message")
+
+
+	message = @s.get_node_props(messagelocation)
+	
+	assert_not_nil(message,"No Response to a get on the message");
+	assert_equal("outbox",message['sakai:messagebox'],"Message Box Incorrect")
+	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
+	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
+	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
+	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
+	res = @mm.list_outbox()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+
+    @s.switch_user(n)	
+	message = @s.get_node_props(messagelocation)
+	
+	assert_not_nil(message,"No Response to a get on the message");
+	assert_equal("inbox",message['sakai:messagebox'],"Message Box Incorrect")
+	assert_equal("notified",message['sakai:sendstate'],"Message State Incorrect")
+	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
+	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
+	assert_equal(false,message['sakai:read'],"Message Sould be marked read")
+	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
+
+	res = @mm.list_inbox()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
 	
     @s.debug = false
+	
+	
 #    puts("Checking that The invitation to Nico is pending")
 #    contacts = @cm.get_pending()
 #   @s.debug = false
