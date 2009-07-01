@@ -9,17 +9,17 @@ use Sling::User;
 use Test::More tests => 4;
 #}}}
 
-#{{{sub run
+#{{{sub run_regression_test
 
 =pod
 
-=head2 run
+=head2 run_regression_test
 
-Run the tests for the user object.
+Run regression tests for the user object.
 
 =cut
 
-sub run {
+sub run_regression_test {
     my ( $url, $lwpUserAgent, $log, $verbose ) = @_;
     # test user name:
     my $test_user = "testing_user_$$";

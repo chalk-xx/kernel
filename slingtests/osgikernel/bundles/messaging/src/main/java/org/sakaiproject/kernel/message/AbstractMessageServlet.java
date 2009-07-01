@@ -48,7 +48,7 @@ public abstract class AbstractMessageServlet extends AbstractVirtualPathServlet 
   public void hashRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException, ServletException {
     String method = request.getMethod();
-    if ("GET|HEAD|OPTIONS".indexOf(method) > 0) {
+    if ("GET|HEAD|OPTIONS".indexOf(method) < 0) {
       request.setAttribute(MESSAGE_OPERATION, request.getMethod());
     }
     super.hashRequest(request, response);

@@ -187,18 +187,26 @@ sub member_add {
 #}}}
 
 #{{{sub member_delete
-sub member_delete {
-    my ( $site, $id, $member, $role ) = @_;
+sub member_delete{
+    my ( $site, $id, $member, $log ) = @_;
     my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::member_delete_setup( $site->{ 'BaseURL' }, $id, $member, $role ) );
-    if ( Sling::SiteUtil::member_delete_eval( $res ) ) {
-        $site->set_results( "Site: \"$id\", member \"$member\" removed!", $res );
-	return 1;
+        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
+    my $success = Sling::SiteUtil::member_view_eval( $res );
+    my $message;
+    if ( $success ) {
+        my $members = from_json( $$res->content );
+        $res = Sling::Request::request( \$site,
+            Sling::SiteUtil::member_delete_setup( $site->{ 'BaseURL' }, $id, $member, $members ) );
+        my $success = Sling::SiteUtil::member_delete_eval( $res );
+        $message = "Site \"$id\", member \"$member\" ";
+        $message .= ( $success ? "deleted!" : "was not deleted!" );
     }
     else {
-        $site->set_results( "Site: \"$id\", member \"$member\" was not removed!", $res );
-	return 0;
+        $message = "Problem retrieving current members for site: \"$id\"";
     }
+    $site->set_results( "$message", $res );
+    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
+    return $success;
 }
 #}}}
 

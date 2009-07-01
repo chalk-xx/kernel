@@ -63,7 +63,9 @@ public interface MessagingService {
    * @throws AccessDeniedException
    * @throws RepositoryException
    */
+  /*
   public String getMessagePathFromMessageStore(Node msg)
       throws ValueFormatException, PathNotFoundException,
       ItemNotFoundException, AccessDeniedException, RepositoryException;
+      */
 }

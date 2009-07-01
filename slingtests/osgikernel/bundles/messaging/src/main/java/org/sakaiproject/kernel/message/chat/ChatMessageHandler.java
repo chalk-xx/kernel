@@ -24,22 +24,16 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageHandler;
-import org.sakaiproject.kernel.api.message.MessagingService;
-import org.sakaiproject.kernel.api.personal.PersonalConstants;
+import org.sakaiproject.kernel.message.MessageUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jcr.AccessDeniedException;
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
 
 /**
  * Handler for chat messages. This will also write to a logfile.
@@ -49,9 +43,6 @@ import javax.jcr.ValueFormatException;
  *                immediate="true"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessageHandler"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.kernel.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
  *                name="SlingRepository" bind="bindSlingRepository"
  *                unbind="unbindSlingRepository"
@@ -83,16 +74,6 @@ public class ChatMessageHandler implements MessageHandler {
     this.slingRepository = null;
   }
 
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
-
   /**
    * Default constructor
    */
@@ -113,8 +94,6 @@ public class ChatMessageHandler implements MessageHandler {
       // Session session = originalMessage.getSession();
       Session session = slingRepository.loginAdministrative(null);
 
-      String fromPath = messagingService
-          .getMessagePathFromMessageStore(originalMessage);
 
       // Get the recipients. (which are comma separated. )
       Property toProp = originalMessage
@@ -127,9 +106,9 @@ public class ChatMessageHandler implements MessageHandler {
       if (rcpts != null) {
         for (String rcpt : rcpts) {
           // the path were we want to save messages in.
-          String toPath = buildMessagesPath(rcpt, originalMessage);
+          String toPath = MessageUtils.getMessagePath(rcpt, originalMessage.getName());
 
-          LOG.info("Writing {} to {}", fromPath, toPath);
+          LOG.info("Writing {} to {}", originalMessage.getPath(), toPath);
 
           // Copy the node into the user his folder.
           JcrUtils.deepGetOrCreateNode(session, toPath);
@@ -176,27 +155,5 @@ public class ChatMessageHandler implements MessageHandler {
     return TYPE;
   }
 
-  /**
-   * Constructs a path along the lines of
-   * /_user/private/A1/B2/C3/user/messages/cf
-   * /df/e1/d4/a4d324a6s5d4a6s4d6a5s4d56as4d
-   * 
-   * @param user
-   * @return
-   * @throws RepositoryException
-   * @throws AccessDeniedException
-   * @throws ItemNotFoundException
-   * @throws PathNotFoundException
-   * @throws ValueFormatException
-   */
-  private String buildMessagesPath(String user, Node originalMessage)
-      throws ValueFormatException, PathNotFoundException,
-      ItemNotFoundException, AccessDeniedException, RepositoryException {
-    String path = PathUtils
-        .toInternalHashedPath(PersonalConstants._USER_PRIVATE, user,
-            MessageConstants.FOLDER_MESSAGES);
-    path += messagingService.getMessagePathFromMessageStore(originalMessage);
-    return path;
-  }
 
 }

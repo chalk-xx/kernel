@@ -18,14 +18,22 @@
 package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
+import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.personal.PersonalConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -59,27 +67,35 @@ public class MessageUserPostProcessor implements UserPostProcessor {
       List<Modification> changes) throws Exception {
     LOGGER.info("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+
     String principalName = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
         principalName = rpid.getString();
-        String pathPrivate = PathUtils.toInternalHashedPath(
-            PersonalConstants._USER_PRIVATE, principalName,
-            MessageConstants.FOLDER_MESSAGES);
-        LOGGER.debug("Getting/creating private profile node with messages: {}",
-            pathPrivate);
-        Node messageStore = null;
-        if (session.itemExists(pathPrivate)) {
-          messageStore = (Node) session.getItem(pathPrivate);
-        }
-        messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-        messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            MessageConstants.SAKAI_MESSAGESTORE_RT);
-        // ACL's are managed by the Personal User Post processor.
-        // TODO: Check that the ACLS re set correctly, and set them if not.
+        Authorizable authorizable = userManager.getAuthorizable(principalName);
+        if (authorizable != null) {
 
+          String pathPrivate = PathUtils.toInternalHashedPath(
+              MessageConstants._USER_MESSAGE, principalName, "");
+          LOGGER.debug("Getting/creating private profile node with messages: {}",
+              pathPrivate);
+
+          /*
+           * Node messageStore = null; if (session.itemExists(pathPrivate)) { messageStore
+           * = (Node) session.getItem(pathPrivate); }
+           */
+          Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+              MessageConstants.SAKAI_MESSAGESTORE_RT);
+          // ACL's are managed by the Personal User Post processor.
+
+          addEntry(messageStore.getPath(), authorizable, session, WRITE_GRANTED,
+              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+              ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+        }
       }
     }
 

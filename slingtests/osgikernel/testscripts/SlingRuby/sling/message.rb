@@ -8,55 +8,26 @@ module SlingMessage
       @sling = sling
     end
 
-    def create(name, types)
-      return @sling.execute_post(@sling.url_for("_user/private/message.create.html"), "sakai:type" => type, "sakai:to" => name)
+    def create(name, type)
+      return @sling.execute_post(@sling.url_for("_user/message.create.html"), "sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => "drafts" )
     end
  
-    def accept_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.accept.html"), {})
+    def send(messageId)
+      return @sling.execute_post(@sling.url_for("_user/message/#{messageId}.html"), "sakai:messagebox" => "outbox" )
     end
 
-    def reject_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.reject.html"), {})
+    def list_all(sortOn = "jcr:created", sortOrder = "descending" )
+      return @sling.execute_get(@sling.url_for("_user/message/all.json?sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
-    def ignore_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.ignore.html"), {})
+    def list_inbox(sortOn = "jcr:created", sortOrder = "descending" )
+      return @sling.execute_get(@sling.url_for("_user/message/box.json?box=inbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
 
-    def block_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.block.html"), {})
+    def list_outbox(sortOn = "jcr:created", sortOrder = "descending" )
+      return @sling.execute_get(@sling.url_for("_user/message/box.json?box=outbox&sortOn="+sortOn+"&sortOrder="+sortOrder))
     end
-
-    def remove_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.remove.html"), {})
-    end
-
-
-    def get_accepted()
-      return @sling.get_node_props("_user/contacts/accepted.json")
-    end
-
-    def get_pending()
-      return @sling.get_node_props("_user/contacts/pending.json")
-    end
-
-    def get_invited()
-      return @sling.get_node_props("_user/contacts/invited.json")
-    end
-
-    def get_blocked()
-      return @sling.get_node_props("_user/contacts/blocked.json")
-    end
-
-    def get_ignored()
-      return @sling.get_node_props("_user/contacts/ignored.json")
-    end
-
-
-    def get_all()
-      return @sling.get_node_props("_user/contacts/all.json")
-    end
+	
     
   end
 

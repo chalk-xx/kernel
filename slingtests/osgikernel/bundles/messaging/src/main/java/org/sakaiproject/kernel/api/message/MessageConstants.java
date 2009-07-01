@@ -107,6 +107,7 @@ public interface MessageConstants {
    * JCR folder name for messages.
    */
   public static final String FOLDER_MESSAGES = "message";
+  public static final String _USER_MESSAGE = "/_user/message";
   /**
    * JCR folder name for chat logs.
    */
@@ -126,5 +127,6 @@ public interface MessageConstants {
    * Cleanup chat messages every X minutes
    */
   public static final int CLEAUNUP_EVERY_X_MINUTES =  120;
+
 
 }
