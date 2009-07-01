@@ -2,27 +2,27 @@ Message Bundle
 
 This bundle manages messages.
 
-It stores messages under the users /_user/private space in a folder
+It stores messages under the users /_user/message space in a folder
 
-/_user/private/.../<userid>/messages
+/_user/message/.../<userid>
 
 where ... is a BigStore hash.
 
 This is setup when the user is created, with a resourceType of sakai/messagestore, 
 
 Individual messages are stored within this subtree in the form
-/_user/private/.../<userid>/messages/.../<messageid>
+/_user/message/.../<userid>/messages/.../<messageid>
 
 These JCR storage paths are mapped to the URL space
 
-/_user/private/messages/<messageid>
+/_user/message/<messageid>
 
 All the REST URL's request dispatch to the standard Sling servlets so respond 
 to all the form properties.
 
 Create a New Message
 POST to 
-/_user/private/message.create.html
+/_user/message.create.html
 with
 sakai:type - the message type.
 sakai:to - the recipient of the message
@@ -32,8 +32,22 @@ sakai:from - who the message is from
 The POST url may create other properties as desired.
 When the node is created it is given a resourcetype of sakai/message
 
-This creates the message and sends a redirect to the message 
-/_user/private/message/<sha1hash>
+This creates the message and sends a json response containing the path and id of the message,
+
+{
+  "id":"5bb73d71dc302f59d096fc29ac364ad110d447bc", 
+  "message": {
+      "sakai:sendstate":"pending", 
+      "sakai:messagebox":"drafts", 
+      "sakai:from":"aaron1246420381", 
+      "sakai:to":"nico1246420381", 
+      "sakai:read":"true", 
+      "sling:resourceType":"sakai/message", 
+      "jcr:created":"2009-07-01T04:53:01.980+01:00", 
+      "sakai:type":"internal", 
+      "jcr:primaryType":"sling:Folder"
+      }
+}
 
 Further posts to the URL will update properties on the message node.
 

@@ -25,6 +25,8 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
@@ -40,7 +42,12 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -89,7 +96,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
-    LOGGER.info("Creating message.");
+    LOGGER.info("Creating message.++++++++++++++++++++++++++++++++++++++++++");
 
     request.setAttribute(MessageConstants.MESSAGE_OPERATION, request
         .getMethod());
@@ -134,12 +141,16 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     // Create the message.
     Node msg = null;
     String path = null;
+    String messageId = null;
     try {
       msg = messagingService.create(baseResource, mapProperties);
       if (msg == null) {
         throw new MessagingException("Unable to create the message.");
       }
       path = msg.getPath();
+      messageId = msg.getName();
+      
+      LOGGER.info("Got message node as "+msg);
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
@@ -237,7 +248,39 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
         + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
     request.getRequestDispatcher(wrapper, options).forward(request,
         wrappedResponse);
+    
     response.reset();
-    response.sendRedirect(finalPath);
+    try {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node messageNode = (Node) session.getItem(path);
+      JSONWriter write = new JSONWriter(response.getWriter());
+      write.object();
+      write.key("id");
+      write.value(messageId);
+      write.key("message");
+      write.object();
+
+      PropertyIterator userPropertyIterator = messageNode.getProperties();
+      while (userPropertyIterator.hasNext()) {
+        Property userProperty = userPropertyIterator.nextProperty();
+        write.key(userProperty.getName());
+        try {
+          write.value(userProperty.getString());
+        } catch (Exception ex) {
+          Value[] vals = userProperty.getValues();
+          write.array();
+          for (Value val : vals) {
+            write.value(val.getString());
+          }
+          write.endArray();
+        }
+      }
+      write.endObject();
+      write.endObject();
+    } catch (JSONException e) {
+      throw new ServletException(e.getMessage(),e);
+    } catch (RepositoryException e) {
+      throw new ServletException(e.getMessage(),e);
+    }
   }
 }

@@ -19,33 +19,49 @@ package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
- * @scr.property name="sling.servlet.methods" value="GET"
+ * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
+ *               values.2="DELETE" values.3="GET"
  */
 public class MessageServlet extends AbstractMessageServlet {
-
-
 
   /**
    *
    */
   private static final long serialVersionUID = -2663916166760531044L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageServlet.class);
 
-  
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getTargetPath(org.apache.sling.api.resource.Resource, org.apache.sling.api.SlingHttpServletRequest, SlingHttpServletResponse, java.lang.String, java.lang.String)
+   * 
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getTargetPath(org.apache.sling.api.resource.Resource,
+   *      org.apache.sling.api.SlingHttpServletRequest, SlingHttpServletResponse,
+   *      java.lang.String, java.lang.String)
    */
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
       SlingHttpServletResponse response, String realPath, String virtualPath) {
-    String[] parts = PathUtils.getNodePathParts(virtualPath);
-    return PathUtils.toInternalHashedPath(realPath, parts[0], parts[1]);
+    RequestPathInfo rpi = request.getRequestPathInfo();
+    String resourcePath = rpi.getResourcePath();
+    String messageId = PathUtils.lastElement(resourcePath);
+    String selector = rpi.getSelectorString();
+    if (selector == null) {
+      selector = "";
+    }
+    LOGGER.info("Request [{}], ResourcePath [{}], Selector [{}], MessageId[{}]",
+        new Object[] {request.getRequestURI(), resourcePath, selector, messageId});
+    String finalPath = MessageUtils.getMessagePath(request.getRemoteUser(), messageId)
+        + selector;
+    LOGGER.info("Processed Path to {} ", finalPath);
+    return finalPath;
   }
-  
+
 }

@@ -20,12 +20,10 @@ package org.sakaiproject.kernel.message;
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,31 +64,20 @@ public class MessagingServiceImpl implements MessagingService {
 
     Node msg = null;
     
-    // Create a unique id for the message
-    // (08e2a6e89de23e61a101346e134f131f7a94b7ba)
-    ResourceMetadata rm = baseResource.getResourceMetadata();
 
-    String pathInfo = String.valueOf(Thread.currentThread().getId())
+    String messageId = String.valueOf(Thread.currentThread().getId())
         + String.valueOf(System.currentTimeMillis());
     try {
-      pathInfo = org.sakaiproject.kernel.util.StringUtils.sha1Hash(pathInfo);
+      messageId = org.sakaiproject.kernel.util.StringUtils.sha1Hash(messageId);
     } catch (Exception ex) {
       throw new MessagingException("Unable to create hash.");
     }
-    // /_private/D0/33/E2/admin/messages (The messagestore)
-    String servletPath = rm.getResolutionPath();
-
-    // 0 = 08e2a6e89de23e61a101346e134f131f7a94b7ba, 1 = ""
-    String[] pathParts = PathUtils.getNodePathParts(pathInfo);
-
-    // /_private/D0/33/E2/admin/messages/eb/6e/b7/c7/08e2a6e89de23e61a101346e134f131f7a94b7ba
-    // Create a unique path to the message.
-    String finalPath = PathUtils.toInternalHashedPath(servletPath,
-        pathParts[0], pathParts[1]);
 
     Session session = baseResource.getResourceResolver().adaptTo(Session.class);
+    String user = session.getUserID();
+    String messagePath = MessageUtils.getMessagePath(user, messageId);
     try {
-      msg = JcrUtils.deepGetOrCreateNode(session, finalPath);
+      msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
 
       for (String s : mapProperties.keySet()) {
         msg.setProperty(s, mapProperties.get(s).toString());
@@ -126,27 +113,5 @@ public class MessagingServiceImpl implements MessagingService {
     return null;
   }
 
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.api.message.MessagingService#getMessagePathFromMessageStore(javax.jcr.Node)
-   */
-  public String getMessagePathFromMessageStore(Node msg)
-      throws ValueFormatException, PathNotFoundException,
-      ItemNotFoundException, AccessDeniedException, RepositoryException {
-    String msgPath = "";
-    Node n = msg;
-    while (!"/".equals(n.getPath())) {
-      if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-          && SAKAI_MESSAGESTORE_RT.equals(n.getProperty(
-              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-        return msgPath;
-      }
-      msgPath = "/" + n.getName() + msgPath;
-      n = n.getParent();
-    }
-    return msgPath;
-  }
 
 }
