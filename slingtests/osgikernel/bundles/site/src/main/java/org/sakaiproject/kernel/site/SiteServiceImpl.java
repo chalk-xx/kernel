@@ -168,7 +168,7 @@ public class SiteServiceImpl implements SiteService {
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
       } else {
-        startJoinWorkfow(site, targetGroup);
+        startJoinWorkflow(site, targetGroup);
       }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
@@ -232,7 +232,7 @@ public class SiteServiceImpl implements SiteService {
    * @throws SiteException
    * @throws RepositoryException
    */
-  public void startJoinWorkfow(Node site, Group targetGroup) throws SiteException {
+  public void startJoinWorkflow(Node site, Group targetGroup) throws SiteException {
     postEvent(SiteEvent.startJoinWorkflow, site, targetGroup);
   }
 
@@ -258,7 +258,7 @@ public class SiteServiceImpl implements SiteService {
   /**
    * @param site
    * @param targetGroup
-   * @return
+   * @return true if the group is a member of this site
    */
   public boolean isMember(Node site, Authorizable targetGroup) {
     /*
@@ -306,7 +306,7 @@ public class SiteServiceImpl implements SiteService {
 
   /**
    * @param site
-   * @return
+   * @return true if the site is joinable
    * @throws RepositoryException
    * @throws PathNotFoundException
    * @throws ValueFormatException
@@ -327,7 +327,7 @@ public class SiteServiceImpl implements SiteService {
 
   /**
    * @param site
-   * @return
+   * @return true if the authz group is joinable
    * @throws RepositoryException
    * @throws PathNotFoundException
    * @throws ValueFormatException
@@ -536,10 +536,6 @@ public class SiteServiceImpl implements SiteService {
 
         /**
          * Compare the objects
-         * 
-         * @param o1
-         * @param o2
-         * @return
          */
         public int compare(T o1, T o2) {
           try {
