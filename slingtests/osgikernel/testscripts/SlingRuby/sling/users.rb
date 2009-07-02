@@ -31,6 +31,10 @@ module SlingUsers
               { ":member" => principal_path })
     end
 
+    def details(sling)
+      return sling.get_node_props(group_url)
+    end
+
     def remove_member(sling, principal, type)
       principal_path = "/#{$USERMANAGER_URI}#{type}/#{principal}"
       sling.execute_post(sling.url_for("#{group_url}.update.html"),
