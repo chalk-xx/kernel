@@ -151,7 +151,7 @@ module SlingInterface
     end
 
     def url_for(path)
-      if (path[0] == '/')
+      if (path.slice(0,1) == '/')
         path = path[1..-1]
       end
       return "#{@server}#{path}"
@@ -174,6 +174,7 @@ module SlingInterface
     end
 
     def get_node_props_json(path)
+      puts "Getting props for path: #{path}" if @debug
       return execute_get(url_for("#{path}.json")).body
     end
 

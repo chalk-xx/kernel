@@ -66,7 +66,7 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
       }
       write.key("profile");
-      write.value("/_user/public/"+authorizable.getPrincipal().getName()+"/authinfo");
+      write.value("/_group/public/"+authorizable.getPrincipal().getName()+"/authprofile");
       write.key("members");
       write.array();
       
