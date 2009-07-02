@@ -140,38 +140,8 @@ public class SiteMembersServlet extends AbstractSiteServlet {
               groupNames.add(group.getID());
             }
           }
-          /**
-          Object repGroups = map.get("rep:groups");
-          if (repGroups != null) {
-            if (repGroups.getClass().isArray()) {
-              Object[] groupUUIDs = (Object[]) repGroups;
-              groupNames = new String[groupUUIDs.length];
-              Session session = site.getSession();
-              Node g = request.getResourceResolver().getResource("/system/userManager/group/g-group1").adaptTo(Node.class);
-              LOGGER.info("node {}, uuid {}", g.getName(), g.getUUID());
-              for (int i = 0; i < groupUUIDs.length; i++) {
-                Node n = session.getNodeByUUID(groupUUIDs[i].toString());
-                if (n.hasProperty("rep:principalName")) {
-                  String name = n.getProperty("rep:principalName").getValue().getString();
-                  groupNames[i] = name;
-                }
-              }
-            } else {
-              // assume it is a single entry then?
-              Session session = site.getSession();
-              String UUID = repGroups.toString();
-              Node n = session.getNodeByUUID(UUID);
-              if (n.hasProperty("rep:principalName")) {
-                groupNames = new String[1];
-                String name = n.getProperty("rep:principalName").getValue().getString();
-                groupNames[0] = name;
-              }
-            }
-            if (groupNames != null) {
-              map.put(SiteService.MEMBER_GROUPS, groupNames);
-            }
-          }
-          **/
+          // TODO filter the groups so only the ones which are part of this site are shown
+          // create the JSON object
           output.object();
           output.valueMapInternals(map);
           // add in the extra fields if there are any
