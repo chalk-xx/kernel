@@ -6,7 +6,7 @@ package Tests::User;
 use strict;
 use lib qw ( .. );
 use Sling::User;
-use Test::More tests => 4;
+use Test::More;
 #}}}
 
 #{{{sub run_regression_test
@@ -28,17 +28,17 @@ sub run_regression_test {
     # test properties:
     my @test_properties;
     # Sling user object:
-    my $user = new Sling::User( $url, $lwpUserAgent, $verbose );
+    my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
 
     # Run tests:
     ok( defined $user,
-        "Sling User Object successfully created." );
+        "User Test: Sling User Object successfully created." );
     ok( $user->add( $test_user, $test_pass, \@test_properties, $log ),
-        "User \"$test_user\" added successfully." );
+        "User Test: User \"$test_user\" added successfully." );
     ok( ! $user->add( "g-$test_user", $test_pass, \@test_properties, $log ),
-        "User \"g-$test_user\" creation denied." );
+        "User Test: User \"g-$test_user\" creation denied." );
     ok( $user->delete( $test_user, $log ),
-        "User \"$test_user\" deleted successfully." );
+        "User Test: User \"$test_user\" deleted successfully." );
 }
 #}}}
 

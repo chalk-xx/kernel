@@ -24,6 +24,8 @@ import net.sf.json.JSONObject;
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
 import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
 import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -45,6 +47,7 @@ import javax.jcr.ValueFormatException;
 public class CropItProcessor {
 
   public static JCRNodeFactoryService jcrNodeFactoryService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(CropItProcessor.class);
 
   /**
    * 
@@ -67,10 +70,13 @@ public class CropItProcessor {
    * @param jcrNodeFactoryService
    * @return
    * @throws ImageException
+   * @throws IOException 
+   * @throws JCRNodeFactoryServiceException 
+   * @throws RepositoryException 
    */
   public static String[] crop(int x, int y, int width, int height,
       JSONArray dimensions, String urlSaveIn, Node nImgToCrop,
-      JCRNodeFactoryService jcrNodeFactoryService) throws ImageException {
+      JCRNodeFactoryService jcrNodeFactoryService) throws ImageException, IOException, RepositoryException {
 
     InputStream in = null;
     ByteArrayOutputStream out = null;
@@ -96,7 +102,12 @@ public class CropItProcessor {
             || sType.equalsIgnoreCase("image/jpeg")) {
 
           // Read the image
-          in = jcrNodeFactoryService.getInputStream(nImgToCrop.getPath());
+          try {
+            in = jcrNodeFactoryService.getInputStream(nImgToCrop.getPath());
+          } catch (JCRNodeFactoryServiceException e) {
+            LOGGER.error("Error opening input stream for image node", e);
+            throw new IOException("Unable to open input stream for image");
+          }
 
           BufferedImage img = ImageIO.read(in);
 
@@ -125,28 +136,25 @@ public class CropItProcessor {
 
             String sPath = urlSaveIn + iWidth + "x" + iHeight + "_" + sImg;
             // Save new image to JCR.
-            saveImageToJCR(sPath, sType, out, nImgToCrop);
+            try {
+              saveImageToJCR(sPath, sType, out, nImgToCrop);
+            } catch (JCRNodeFactoryServiceException e) {
+              LOGGER.error("Error saving cropped image", e);
+              throw new IOException("Unable to save cropped image");
+            }
 
             out.close();
             arrFiles[i] = sPath;
           }
         } else {
           // This is not a valid image.
-          throw new ImageException("Invalid filetype.");
+          LOGGER.error("Unknown image type: " + sType);
+          throw new ImageException("Invalid filetype: " + sType);
         }
       } else {
         throw new ImageException("No file found.");
       }
 
-    } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (JCRNodeFactoryServiceException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } finally {
       // close the streams
       if (in != null)
@@ -206,12 +214,9 @@ public class CropItProcessor {
     // Save image into the jcr
     Node n = jcrNodeFactoryService.getNode(sPath);
 
-    System.out.println(sPath);
-
-    // This node doesn't exist yet. Create and save it.
+    // This node doesn't exist yet. Create it.
     if (n == null) {
       n = jcrNodeFactoryService.createFile(sPath, sType);
-      n.getParent().save();
     }
 
     // convert stream to inputstream
@@ -219,10 +224,10 @@ public class CropItProcessor {
     try {
       jcrNodeFactoryService.setInputStream(sPath, bais, sType);
       n.setProperty(JCRConstants.JCR_MIMETYPE, sType);
-      n.save();
     } finally {
       bais.close();
     }
+    n.getSession().save();
   }
 
   /**

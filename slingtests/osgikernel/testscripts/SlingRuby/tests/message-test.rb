@@ -35,25 +35,35 @@ class TC_MyMessageTest < SlingTest
 	puts(message)
 	assert_not_nil( message['id'],"Expected to be given a location ")
 	messageid = message['id']
-	@s.debug = true
-	messagelocation = "_user/message/"+messageid	
+	messagelocation = "http://localhost:8080/_user/message/"+messageid+".json"	
 	puts("==========getting location" + messagelocation)
-	message = @s.get_node_props(messagelocation)
+	res = @s.execute_get(messagelocation)
+	assert_equal("200",res.code,"Expected to get Inbox Ok")
+	puts("Message from Aaron's outbox ")
+	puts(res.body)
+	message = JSON.parse(res.body)
 	
-	assert_not_nil(message,"No Response to a get on the message");
+	
+	assert_not_nil(message,"No Response to a get on the message")
 	assert_equal("drafts",message['sakai:messagebox'],"Message Box Incorrect")
 	assert_equal("pending",message['sakai:sendstate'],"Message State Incorrect")
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
 	assert_equal("true",message['sakai:read'],"Message Sould be marked read")
-	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
+	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct")
 
 
-    res = @mm.send(messageid);	
-	assert_equal("200", res.code, "Expected to be able to view the message")
+	puts("Sending Message ")
+    res = @mm.send(messageid)	
+	assert_equal("200", res.code, "Dispatched ok")
 
 
-	message = @s.get_node_props(messagelocation)
+	puts("==========getting location" + messagelocation)
+	res = @s.execute_get(messagelocation)
+	assert_equal("200",res.code,"Expected to get Inbox Ok")
+	puts("Message from Aaron's outbox after sending ")
+	puts(res.body)
+	message = JSON.parse(res.body)
 	
 	assert_not_nil(message,"No Response to a get on the message");
 	assert_equal("outbox",message['sakai:messagebox'],"Message Box Incorrect")
@@ -66,7 +76,12 @@ class TC_MyMessageTest < SlingTest
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
 
     @s.switch_user(n)	
-	message = @s.get_node_props(messagelocation)
+	puts("==========getting location" + messagelocation)
+	res = @s.execute_get(messagelocation)
+	assert_equal("200",res.code,"Expected to get Inbox Ok")
+	puts("Message from Nicos inbox after sending ")
+	puts(res.body)
+	message = JSON.parse(res.body)
 	
 	assert_not_nil(message,"No Response to a get on the message");
 	assert_equal("inbox",message['sakai:messagebox'],"Message Box Incorrect")
@@ -74,10 +89,51 @@ class TC_MyMessageTest < SlingTest
 	assert_equal("aaron"+m,message['sakai:from'],"Message From Incorrect")
 	assert_equal("nico"+m,message['sakai:to'],"Message To Incorrect")
 	assert_equal(false,message['sakai:read'],"Message Sould be marked read")
-	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct");
+	assert_equal("sakai/message",message['sling:resourceType'],"Resource Type not correct")
 
 	res = @mm.list_inbox()
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
+
+	puts("List Of the Inbox for user nico, should have 1 entry")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(1,box["total"],"Should have given 1 entry in the inbox for nico");
+
+	res = @mm.list_all()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of all for user nico, should have 1 entry")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(1,box["total"],"Should have given 1 entry in all boxes for nico");
+
+	res = @mm.list_outbox()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of outbox for user nico, should have 0 entrys")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(0,box["total"],"Should have given 0 entry in the outbox for nico");
+
+    @s.switch_user(a)	
+	res = @mm.list_inbox()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of the Inbox for user aaron 0 entries")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(0,box["total"],"Should have given 0 entry in all boxes for aarono");
+
+	res = @mm.list_all()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of all for user aaron, should have 1 entry")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(1,box["total"],"Should have given 1 entry in all boxes for aaron");
+
+	res = @mm.list_outbox()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of outbox for user aaron, should have 0 entrys")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(1,box["total"],"Should have given 1 entry in all boxes for aaron");
 	
     @s.debug = false
 	

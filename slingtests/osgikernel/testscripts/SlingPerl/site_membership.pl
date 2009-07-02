@@ -123,8 +123,8 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
-            $site->member_add_from_file( $additions, $i, $numberForks, $log );
+            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
+            $site->member_add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -135,21 +135,21 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
+    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
 
     if ( defined $existsMember ) {
-        $site->member_exists( $actOnSite, $existsMember, $log );
+        $site->member_exists( $actOnSite, $existsMember );
     }
     elsif ( defined $addMember ) {
-        $site->member_add( $actOnSite, $addMember, $log );
+        $site->member_add( $actOnSite, $addMember );
     }
     elsif ( defined $deleteMember ) {
-        $site->member_delete( $actOnSite, $deleteMember, $log );
+        $site->member_delete( $actOnSite, $deleteMember );
     }
     elsif ( defined $viewMembers ) {
-        $site->member_view( $actOnSite, $log );
+        $site->member_view( $actOnSite );
     }
-    Sling::Print::print_result( $site, $log );
+    Sling::Print::print_result( $site );
 }
 #}}}
 

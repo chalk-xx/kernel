@@ -160,9 +160,9 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{ main execution path
 my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-my $authz = new Sling::Authz( $url, $lwpUserAgent, $verbose );
+my $authz = new Sling::Authz( $url, $lwpUserAgent, $verbose, $log );
 if ( defined $delete ) {
-    $authz->delete( $remoteNode, $principal, $log );
+    $authz->delete( $remoteNode, $principal );
     Sling::Print::print_result( $authz );
 }
 my @grant_privileges;
@@ -211,12 +211,12 @@ if ( defined $all ) {
     $all ? push ( @grant_privileges, "all" ) : push ( @deny_privileges, "all" ); 
 }
 if ( @grant_privileges || @deny_privileges ) {
-    $authz->modify_privileges( $remoteNode, $principal, \@grant_privileges, \@deny_privileges, $log );
-    Sling::Print::print_result( $authz, $log );
+    $authz->modify_privileges( $remoteNode, $principal, \@grant_privileges, \@deny_privileges );
+    Sling::Print::print_result( $authz );
 }
 if ( defined $view ) {
-    $authz->get_acl( $remoteNode, $log );
-    Sling::Print::print_result( $authz, $log );
+    $authz->get_acl( $remoteNode );
+    Sling::Print::print_result( $authz );
 }
 #}}}
 

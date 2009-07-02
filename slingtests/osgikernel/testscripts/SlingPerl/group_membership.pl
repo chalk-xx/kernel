@@ -115,7 +115,7 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 #{{{main execution path
 if ( defined $additions ) {
     my $message = "Adding members to groups as specified in file \"$additions\":";
-    Sling::Print::print_with_lock( "$message", $log );
+    Sling::Print::print_with_lock( "$message" );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -123,8 +123,8 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
-            $group->member_add_from_file( $additions, $i, $numberForks, $log );
+            my $group = new Sling::Group( $url, $lwpUserAgent, $verbose, $log );
+            $group->member_add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -135,21 +135,21 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
+    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose, $log );
 
     if ( defined $existsMember ) {
-        $group->member_exists( $actOnGroup, $existsMember, $log );
+        $group->member_exists( $actOnGroup, $existsMember );
     }
     elsif ( defined $addMember ) {
-        $group->member_add( $actOnGroup, $addMember, $log );
+        $group->member_add( $actOnGroup, $addMember );
     }
     elsif ( defined $deleteMember ) {
-        $group->member_delete( $actOnGroup, $deleteMember, $log );
+        $group->member_delete( $actOnGroup, $deleteMember );
     }
     elsif ( defined $viewMembers ) {
-        $group->member_view( $actOnGroup, $log );
+        $group->member_view( $actOnGroup );
     }
-    Sling::Print::print_result( $group, $log );
+    Sling::Print::print_result( $group );
 }
 #}}}
 

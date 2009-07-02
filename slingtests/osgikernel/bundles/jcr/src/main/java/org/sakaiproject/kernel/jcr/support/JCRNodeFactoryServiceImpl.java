@@ -119,7 +119,8 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
       node.addMixin(JCRConstants.MIX_SAKAIPROPERTIES);
     }
     if (jcrService.needsMixin(node, JCRConstants.MIX_ACL)) {
-      node.addMixin(JCRConstants.MIX_ACL);
+      // Commenting out as per comment at line 92. The acl: namespace is not registered
+      //node.addMixin(JCRConstants.MIX_ACL);
     }
 
     // node.setProperty(JCRConstants.JCR_LASTMODIFIED, new GregorianCalendar());
@@ -337,9 +338,19 @@ public class JCRNodeFactoryServiceImpl implements JCRNodeFactoryService {
       Session session = jcrService.getSession();
       Node n = getNodeFromSession(session, id);
       if (n != null) {
-        Node contentNode = n.getNode(JCRConstants.JCR_CONTENT);
-        Property property = contentNode.getProperty(JCRConstants.JCR_DATA);
-        return property.getStream();
+        Node contentNode = null;
+        if (n.hasNode(JCRConstants.JCR_CONTENT)) {
+          contentNode = n.getNode(JCRConstants.JCR_CONTENT);
+        } else {
+          contentNode = n;
+        }
+        if (contentNode.hasProperty(JCRConstants.JCR_DATA)) {
+          Property property = contentNode.getProperty(JCRConstants.JCR_DATA);
+          return property.getStream();
+        } else {
+          throw new JCRNodeFactoryServiceException("Failed to open input stream for node " +id
+               + ", no " + JCRConstants.JCR_DATA + " property found");
+        }
       }
       throw new JCRNodeFactoryServiceException("Failed to open input stream for node, "
           + id + " as it does not exist");
