@@ -91,7 +91,7 @@ public class SiteJoinServlet extends AbstractSiteServlet {
 
       response.sendError(HttpServletResponse.SC_OK);
     } catch (SiteException ex) {
-      response.sendError(ex.getSatusCode(), ex.getMessage());
+      response.sendError(ex.getStatusCode(), ex.getMessage());
     }
     return;
 

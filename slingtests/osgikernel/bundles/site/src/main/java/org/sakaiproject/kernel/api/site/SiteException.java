@@ -24,50 +24,35 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SiteException extends Exception {
 
-  /**
-   *
-   */
   private static final long serialVersionUID = -1250513531124971284L;
   /**
-   * The status of the exception when it was thrown, this is a status code from {@link HttpServletResponse}
+   * The status of the exception when it was thrown, this is a status code from
+   * {@link HttpServletResponse}
    */
   private int status;
 
-  /**
-   * 
-   */
   public SiteException() {
   }
 
-  /**
-   * @param message
-   */
   public SiteException(int status, String message) {
     super(message);
     this.status = status;
   }
 
-  /**
-   * @param cause
-   */
   public SiteException(int status, Throwable cause) {
     super(cause);
     this.status = status;
   }
 
-  /**
-   * @param message
-   * @param cause
-   */
   public SiteException(int status, String message, Throwable cause) {
     super(message, cause);
     this.status = status;
   }
 
   /**
-   * @return
+   * @return the status code associated with the exception if there is one
    */
-  public int getSatusCode() {
+  public int getStatusCode() {
     return status;
   }
 
