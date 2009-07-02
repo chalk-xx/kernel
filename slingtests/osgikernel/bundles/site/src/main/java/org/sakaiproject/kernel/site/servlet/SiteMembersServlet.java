@@ -17,6 +17,19 @@
  */
 package org.sakaiproject.kernel.site.servlet;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -29,17 +42,6 @@ import org.sakaiproject.kernel.api.site.Sort;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGetServlet</code>
@@ -61,6 +63,7 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       .getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
+  @SuppressWarnings("unchecked")
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
@@ -128,15 +131,26 @@ public class SiteMembersServlet extends AbstractSiteServlet {
               "/system/userManager/user/" + u.getID());
           ValueMap map = resource.adaptTo(ValueMap.class);
           // add in the listing of member group names - http://jira.sakaiproject.org/browse/KERN-276
+          Set<String> groupNames = null;
+          Iterator<Group> groupsIterator = u.memberOf();
+          if (groupsIterator != null && groupsIterator.hasNext()) {
+            groupNames = new HashSet<String>();
+            for (Iterator<Group> iterator = groupsIterator; iterator.hasNext();) {
+              Group group = iterator.next();
+              groupNames.add(group.getID());
+            }
+          }
+          /**
           Object repGroups = map.get("rep:groups");
-          String[] groupNames = null;
           if (repGroups != null) {
             if (repGroups.getClass().isArray()) {
-              String[] groupUUIDs = (String[]) repGroups;
+              Object[] groupUUIDs = (Object[]) repGroups;
               groupNames = new String[groupUUIDs.length];
               Session session = site.getSession();
+              Node g = request.getResourceResolver().getResource("/system/userManager/group/g-group1").adaptTo(Node.class);
+              LOGGER.info("node {}, uuid {}", g.getName(), g.getUUID());
               for (int i = 0; i < groupUUIDs.length; i++) {
-                Node n = session.getNodeByUUID(groupUUIDs[i]);
+                Node n = session.getNodeByUUID(groupUUIDs[i].toString());
                 if (n.hasProperty("rep:principalName")) {
                   String name = n.getProperty("rep:principalName").getValue().getString();
                   groupNames[i] = name;
@@ -157,7 +171,20 @@ public class SiteMembersServlet extends AbstractSiteServlet {
               map.put(SiteService.MEMBER_GROUPS, groupNames);
             }
           }
-          output.valueMap(map);
+          **/
+          output.object();
+          output.valueMapInternals(map);
+          // add in the extra fields if there are any
+          if (groupNames != null 
+              && ! groupNames.isEmpty()) {
+            output.key(SiteService.MEMBER_GROUPS);
+            output.array();
+            for (String name : groupNames) {
+              output.value(name);
+            }
+            output.endArray();
+          }
+          output.endObject();
         }
         output.endArray();
       } catch (JSONException e) {
