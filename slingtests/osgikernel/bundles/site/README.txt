@@ -27,17 +27,20 @@ Some sample URLs for testing:
 curl -u admin:admin -F:name=aaron -Fpwd=aaron -FpwdConfirm=aaron http://localhost:8080/system/userManager/user.create.html
 curl -u admin:admin -F:name=nico -Fpwd=nico -FpwdConfirm=nico http://localhost:8080/system/userManager/user.create.html
 curl -u admin:admin -F:name=ian -Fpwd=ian -FpwdConfirm=ian http://localhost:8080/system/userManager/user.create.html
+# GET http://localhost:8080/system/userManager/aaron.json
 # create some groups
-curl -u admin:admin -F:name=group1 http://localhost:8080/system/userManager/group.create.html
-curl -u admin:admin -F:name=group2 http://localhost:8080/system/userManager/group.create.html
-curl -u admin:admin -F:name=group3 http://localhost:8080/system/userManager/group.create.html
+curl -u admin:admin -F:name=g-group1 http://localhost:8080/system/userManager/group.create.html
+curl -u admin:admin -F:name=g-group2 http://localhost:8080/system/userManager/group.create.html
+curl -u admin:admin -F:name=g-group3 http://localhost:8080/system/userManager/group.create.html
+# GET http://localhost:8080/system/userManager/group/g-group1.json to check it exists
 # put the users in some groups
-curl -u admin:admin -F:member=aaron -F:member=nico http://localhost:8080/system/userManager/group1.update.html
-curl -u admin:admin -F:member=aaron -F:member=ian http://localhost:8080/system/userManager/group2.update.html
-curl -u admin:admin -F:member=nico http://localhost:8080/system/userManager/group3.update.html
+# TODO this is not working! -AZ
+curl -u admin:admin -F:members=aaron -F:members=nico http://localhost:8080/system/userManager/g-group1.update.html
+curl -u admin:admin -F:members=aaron -F:members=ian http://localhost:8080/system/userManager/g-group2.update.html
+curl -u admin:admin -F:members=nico http://localhost:8080/system/userManager/g-group3.update.html
 # create site
-curl -u admin:admin -F"sakai:title=My Site" -F"sling:resourceType=sakai/site" http://localhost:8080/sites/site1
+curl -u admin:admin -F"sakai:title=My Site" -F"sling:resourceType=sakai/site" -F"sakai:authorizables=group1" -F"sakai:authorizables=group2" http://localhost:8080/sites/site1
 # add a few members
-curl -u admin:admin -F"targetGroup=group1" http://localhost:8080/sites/site1.join.html
+#curl -u admin:admin -F"targetGroup=group1" http://localhost:8080/sites/site1.join.html
 # this is not right
 #curl -u admin:admin -F"sakai:authorizables=aaron" http://localhost:8080/sites/site1
