@@ -113,10 +113,10 @@ public class SiteMembersServlet extends AbstractSiteServlet {
     }
 
     try {
-      LOGGER.info("Finding members for  {}", site.getPath());
+      LOGGER.info("Finding members for: {}", site.getPath());
       Iterator<User> members = getSiteService().getMembers(site, start, items,
           sort);
-      LOGGER.info("Found members ");
+      LOGGER.info("Found members: ", members.hasNext());
 
       try {
         ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
