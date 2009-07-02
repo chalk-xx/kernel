@@ -124,7 +124,7 @@ module SlingInterface
     end
 
     def write_log(s)
-      if (s)
+      if (@log)
         f = File.open("/tmp/sling-ruby.log","a")
         f.write(s + "\n")
         f.close
