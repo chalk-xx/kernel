@@ -31,8 +31,9 @@ Function taking a string and converting to a GET or POST HTTP request.
 =cut
 
 sub string_to_request {
-    my ( $string, $lwp, $verbose, $log ) = @_;
+    my ( $string, $auth, $verbose, $log ) = @_;
     die "No string defined to turn into request!" unless defined $string;
+    my $lwp = $$auth->{ 'LWP' };
     die "No reference to an lwp user agent supplied!" unless defined $lwp;
     my ( $action, $target, @reqVariables ) = split( ' ', $string );
     my $request;
@@ -77,9 +78,9 @@ sub string_to_request {
     else {
         $request = GET "$target";
     }
-    if ( defined $lwp ) {
-        my $realm = Sling::URL::url_to_realm( $target );
-        my ( $username, $password ) = $$lwp->credentials( $realm, 'Sling (Development)' );
+    if ( $$auth->{ 'Type' } =~ /^basic$/ ) {
+        my $username = $$auth->{ 'Username' };
+	my $password = $$auth->{ 'Password' };
         if ( defined $username && defined $password ) {
 	    # Always add an Authorization header to deal with application not
 	    # properly requesting authentication to be sent:
@@ -110,11 +111,12 @@ sub request {
     my ( $object, $string ) = @_;
     die "No string defined to turn into request!" unless defined $string;
     die "No reference to a suitable object supplied!" unless defined $object;
-    my $lwp = $$object->{ 'LWP' };
-    die "Object does not reference a suitable LWP object" unless defined $lwp;
+    my $auth = $$object->{ 'Auth' };
+    die "Object does not reference a suitable auth object" unless defined $auth;
     my $verbose = $$object->{ 'Verbose' };
     my $log = $$object->{ 'Log' };
-    my $res = $$lwp->request( string_to_request( $string, $lwp, $verbose, $log ) );
+    my $lwp = $$auth->{ 'LWP' };
+    my $res = $$lwp->request( string_to_request( $string, $auth, $verbose, $log ) );
     return \$res;
 }
 #}}}

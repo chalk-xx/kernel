@@ -50,7 +50,8 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
-use Sling::UserAgent;
+use Sling::Authn;
+use Sling::URL;
 use Tests::Group;
 use Tests::User;
 #}}}
@@ -63,7 +64,7 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $user_test;
 my $verbose;
@@ -85,10 +86,8 @@ GetOptions (
 pod2usage(-exitstatus => 0, -verbose => 1) if $help;
 pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 
-die "Test URL not defined" unless defined $url;
 die "Test super user username not defined" unless defined $username;
 die "Test super user password not defined" unless defined $password;
 
@@ -123,12 +122,12 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
     elsif ( $pid == 0 ) { # child
         for ( my $j = $i ; $j < @tests_selected ; $j += $numberForks ) {
             my $test = $tests_selected[ $j ];
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
 	    if ( $test =~ /^Group$/ ) {
-                Tests::Group::run_regression_test( $url, $lwpUserAgent, $log, $verbose );
+                Tests::Group::run_regression_test( $authn->{ 'Auth' }, $log, $verbose );
 	    }
 	    elsif ( $test =~ /^User$/ ) {
-                Tests::User::run_regression_test( $url, $lwpUserAgent, $log, $verbose );
+                Tests::User::run_regression_test( $authn->{ 'Auth' }, $log, $verbose );
 	    }
 	    else {
 	        die "Unknown regression test option: \"$test\"!";

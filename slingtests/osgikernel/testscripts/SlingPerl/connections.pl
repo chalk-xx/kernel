@@ -104,8 +104,9 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Connection;
-use Sling::UserAgent;
+use Sling::URL;
 #}}}
 
 #{{{options parsing
@@ -131,7 +132,7 @@ my $reject;
 my $remove;
 my $searchTerm;
 my @types;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 
@@ -169,8 +170,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{ main execution path
@@ -195,8 +195,8 @@ if ( defined $file ) {
     # foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $connection = new Sling::Connection( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $connection = new Sling::Connection( $authn->{ 'Auth' }, $verbose, $log );
     if ( defined $accept ) {
         $connection->accept( $accept );
     }

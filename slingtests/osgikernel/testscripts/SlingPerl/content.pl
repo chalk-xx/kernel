@@ -74,11 +74,11 @@ For full details run: perl content.pl --man
 #{{{imports
 use strict;
 use lib qw ( .. );
-use LWP::UserAgent ();
-use Sling::Content;
-use Sling::UserAgent;
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
+use Sling::Content;
+use Sling::URL;
 #}}}
 
 #{{{options parsing
@@ -99,7 +99,7 @@ my $password;
 my @properties;
 my $remoteNode;
 my $remoteSrc;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $view;
@@ -138,8 +138,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{ main execution path
@@ -149,8 +148,8 @@ if ( defined $additions ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $content = new Sling::Content( $url, $lwpUserAgent, $verbose, $log );
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+            my $content = new Sling::Content( $authn->{ 'Auth' }, $verbose, $log );
             $content->upload_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -161,8 +160,8 @@ if ( defined $additions ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $content = new Sling::Content( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $content = new Sling::Content( $authn->{ 'Auth' }, $verbose, $log );
     if ( defined $localPath && defined $remoteNode ) {
         $content->upload_file( $localPath, $remoteNode, $filename );
     }
