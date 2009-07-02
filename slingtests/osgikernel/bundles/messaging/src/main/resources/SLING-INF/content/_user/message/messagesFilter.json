@@ -1,6 +1,7 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "{_userPrivatePath}/message//element(*)[@sling:resourceType='sakai/message' and @{prop}='{val}']",
+  "sakai:query-template": "/{_userMessagePath}//element(*)[@sling:resourceType='sakai/message' and @{prop}='{val}']",
   "sling:resourceType": "sakai/search",
+  "sakai:propertyprovider" : "Message",
   "sakai:resultprocessor": "Message"
 }

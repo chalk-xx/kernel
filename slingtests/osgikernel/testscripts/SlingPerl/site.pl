@@ -159,9 +159,9 @@ if ( defined $additions ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
+            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
 	    my $path;
-            $site->update_from_file( $additions, $i, $numberForks, $log );
+            $site->update_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -172,23 +172,23 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose );
+    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
     if ( defined $addSite ) {
-        $site->update( $addSite, $template, $joinable, \@properties, $log );
+        $site->update( $addSite, $template, $joinable, \@properties );
     }
     elsif ( defined $alterSite ) {
-        $site->update( $alterSite, $template, $joinable, \@properties, $log );
+        $site->update( $alterSite, $template, $joinable, \@properties );
     }
     elsif ( defined $deleteSite ) {
-        $site->delete( $deleteSite, $log );
+        $site->delete( $deleteSite );
     }
     elsif ( defined $existsSite ) {
-        $site->exists( $existsSite, $log );
+        $site->exists( $existsSite );
     }
     elsif ( defined $viewSite ) {
-        $site->view( $viewSite, $log );
+        $site->view( $viewSite );
     }
-    Sling::Print::print_result( $site, $log );
+    Sling::Print::print_result( $site );
 }
 #}}}
 

@@ -150,8 +150,8 @@ if ( defined $additions ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $content = new Sling::Content( $url, $lwpUserAgent, $verbose );
-            $content->upload_from_file( $additions, $i, $numberForks, $log );
+            my $content = new Sling::Content( $url, $lwpUserAgent, $verbose, $log );
+            $content->upload_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -162,31 +162,31 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $content = new Sling::Content( $url, $lwpUserAgent, $verbose );
+    my $content = new Sling::Content( $url, $lwpUserAgent, $verbose, $log );
     if ( defined $localPath && defined $remoteNode ) {
-        $content->upload_file( $localPath, $remoteNode, $filename, $log );
+        $content->upload_file( $localPath, $remoteNode, $filename );
     }
     elsif ( defined $add ) {
-        $content->add( $remoteNode, \@properties, $log );
+        $content->add( $remoteNode, \@properties );
     }
     elsif ( defined $copy ) {
         die "Not yet implemented!\n";
-        # $content->copy( $remoteSrc, $remoteNode, \@properties, $log );
+        # $content->copy( $remoteSrc, $remoteNode, \@properties );
     }
     elsif ( defined $delete ) {
-        $content->delete( $remoteNode, $log );
+        $content->delete( $remoteNode );
     }
     elsif ( defined $exists ) {
-        $content->exists( $remoteNode, $log );
+        $content->exists( $remoteNode );
     }
     elsif ( defined $move ) {
         die "Not yet implemented!\n";
-        # $content->move( $remoteSrc, $remoteNode, \@properties, $log );
+        # $content->move( $remoteSrc, $remoteNode, \@properties );
     }
     elsif ( defined $view ) {
-        $content->view( $remoteNode, $log );
+        $content->view( $remoteNode );
     }
-    Sling::Print::print_result( $content, $log );
+    Sling::Print::print_result( $content );
 }
 #}}}
 

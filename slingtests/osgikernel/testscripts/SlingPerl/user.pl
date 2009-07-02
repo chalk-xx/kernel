@@ -119,13 +119,8 @@ $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
 
 #{{{main execution path
 if ( defined $additions ) {
-    my $message = "Adding users from file:\n";
-    if ( defined $log ) {
-        Sling::Print::print_file_lock( "$message", $log );
-    }
-    else {
-        Sling::Print::print_lock( "$message" );
-    }
+    my $message = "Adding users from file \"$additions\":\n";
+    Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
     for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	my $pid = fork();
@@ -133,8 +128,8 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $user = new Sling::User( $url, $lwpUserAgent, $verbose );
-            $user->add_from_file( $additions, $i, $numberForks, $log );
+            my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
+            $user->add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -145,30 +140,30 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $user = new Sling::User( $url, $lwpUserAgent, $verbose );
+    my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
 
     if ( defined $existsUser ) {
-        $user->exists( $existsUser, $log );
+        $user->exists( $existsUser );
     }
     elsif ( defined $meUser ) {
-        $user->me( $log );
+        $user->me();
     }
     elsif ( defined $sitesUser ) {
-        $user->sites( $log );
+        $user->sites();
     }
     elsif ( defined $addUser ) {
-        $user->add( $addUser, $actOnPass, \@properties, $log );
+        $user->add( $addUser, $actOnPass, \@properties );
     }
     elsif ( defined $changePassUser ) {
-        $user->change_password( $changePassUser, $actOnPass, $newPass, $newPass, $log );
+        $user->change_password( $changePassUser, $actOnPass, $newPass, $newPass );
     }
     elsif ( defined $deleteUser ) {
-        $user->delete( $deleteUser, $log );
+        $user->delete( $deleteUser );
     }
     elsif ( defined $viewUser ) {
-        $user->view( $viewUser, $log );
+        $user->view( $viewUser );
     }
-    Sling::Print::print_result( $user, $log );
+    Sling::Print::print_result( $user );
 }
 #}}}
 

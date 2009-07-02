@@ -128,8 +128,8 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $group = new Sling::Group( $url, $lwpUserAgent );
-            $group->add_from_file( $additions, $i, $numberForks, $log );
+            my $group = new Sling::Group( $url, $lwpUserAgent, $verbose, $log );
+            $group->add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -140,20 +140,20 @@ if ( defined $additions ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose );
+    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose, $log );
     if ( defined $existsGroup ) {
-        $group->exists( $existsGroup, $log );
+        $group->exists( $existsGroup );
     }
     elsif ( defined $addGroup ) {
-        $group->add( $addGroup, \@properties, $log );
+        $group->add( $addGroup, \@properties );
     }
     elsif ( defined $deleteGroup ) {
-        $group->delete( $deleteGroup, $log );
+        $group->delete( $deleteGroup );
     }
     elsif ( defined $viewGroup ) {
-        $group->view( $viewGroup, $log );
+        $group->view( $viewGroup );
     }
-    Sling::Print::print_result( $group, $log );
+    Sling::Print::print_result( $group );
 }
 #}}}
 
