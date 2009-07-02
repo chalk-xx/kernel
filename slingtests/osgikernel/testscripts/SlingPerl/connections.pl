@@ -196,47 +196,47 @@ if ( defined $file ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $connection = new Sling::Connection( $url, $lwpUserAgent, $verbose );
+    my $connection = new Sling::Connection( $url, $lwpUserAgent, $verbose, $log );
     if ( defined $accept ) {
-        $connection->accept( $accept, $log );
+        $connection->accept( $accept );
     }
     elsif ( defined $block ) {
-        $connection->block( $block, $log );
+        $connection->block( $block );
     }
     elsif ( defined $ignore ) {
-        $connection->ignore( $ignore, $log );
+        $connection->ignore( $ignore );
     }
     elsif ( defined $invite ) {
-        $connection->invite( $invite, \@types, $log );
+        $connection->invite( $invite, \@types );
     }
     elsif ( defined $reject ) {
-        $connection->reject( $reject, $log );
+        $connection->reject( $reject );
     }
     elsif ( defined $remove ) {
-        $connection->remove( $remove, $log );
+        $connection->remove( $remove );
     }
     elsif ( defined $list_accepted ) {
-        $connection->list_accepted( $log );
+        $connection->list_accepted();
     }
     elsif ( defined $list_all ) {
-        $connection->list_all( $log );
+        $connection->list_all();
     }
     elsif ( defined $list_blocked ) {
-        $connection->list_blocked( $log );
+        $connection->list_blocked();
     }
     elsif ( defined $list_ignored ) {
-        $connection->list_ignored( $log );
+        $connection->list_ignored();
     }
     elsif ( defined $list_invited ) {
-        $connection->list_invited( $log );
+        $connection->list_invited();
     }
     elsif ( defined $list_pending ) {
-        $connection->list_pending( $log );
+        $connection->list_pending();
     }
     elsif ( defined $list_rejected ) {
-        $connection->list_rejected( $log );
+        $connection->list_rejected();
     }
-    Sling::Print::print_result( $connection, $log );
+    Sling::Print::print_result( $connection );
 }
 #}}}
 

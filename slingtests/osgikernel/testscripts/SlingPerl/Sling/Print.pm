@@ -110,18 +110,17 @@ happen elsewhere. TODO tidy that up.
 =cut
 
 sub print_result {
-    my ( $object, $log ) = @_;
-    if ( ! defined $log ) {
-        print $object->{ 'Message' } . "\n";
-        if ( $object->{ 'Verbose' } >= 1 ) {
-	    print "**** Status line was: ";
-            print ${ $object->{ 'Response' } }->status_line. "\n";
-            if ( $object->{ 'Verbose' } >= 2 ) {
-	        print "**** Full Content of Response was: \n";
-                print ${ $object->{ 'Response' } }->content. "\n";
-            }
+    my ( $object ) = @_;
+    my $message = $object->{ 'Message' };
+    if ( $object->{ 'Verbose' } >= 1 ) {
+	$message .= "\n**** Status line was: ";
+        $message .= ${ $object->{ 'Response' } }->status_line;
+        if ( $object->{ 'Verbose' } >= 2 ) {
+	    $message .= "\n**** Full Content of Response was: ";
+            $message .= ${ $object->{ 'Response' } }->content;
         }
     }
+    print_with_lock( $message, $object->{ 'Log' } );
     return 1;
 }
 #}}}
