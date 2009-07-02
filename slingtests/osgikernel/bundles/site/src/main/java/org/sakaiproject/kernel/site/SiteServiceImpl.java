@@ -502,12 +502,19 @@ public class SiteServiceImpl implements SiteService {
             if (!users.containsKey(a)) {
               users.put(new UserKey((User) a), new Membership(null, a));
             }
+          } else if (a == null) {
+            // if a is null
+            LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
+          } else {
+            // if a is not one of the known types
+            LOGGER.warn("Cannot handle Authorizable {} of type {}", a, (a==null?"null":a.getClass()) );
           }
         }
 
         // might want to cache the unsorted lists at this point, although they are already
         // cached by JCR.
-
+      } else {
+        LOGGER.info("Site ({}) does not have Authorizable property ({}) and thus has no memberships", site.getPath(), SiteService.AUTHORIZABLE);
       }
     } catch (RepositoryException ex) {
       LOGGER.warn("Failed to build membership Tree for {} ", site, ex);

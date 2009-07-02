@@ -20,7 +20,7 @@ package org.sakaiproject.kernel.api.site;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Thown where there is a problem with the code.
+ * Thrown where there is a problem with the code in sites.
  */
 public class SiteException extends Exception {
 

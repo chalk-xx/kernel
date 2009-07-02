@@ -32,8 +32,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The <code>SiteServiceJoinServlet</code> supports Join, UnJoin for joinable sites and
- * initiates authorized Joining workflow.
+ * The <code>SiteServiceJoinServlet</code> supports Join for joinable
+ * sites and initiates authorized Joining workflow.
  * 
  * @scr.component immediate="true" label="SiteJoinServlet"
  *                description="Join servlet for site service"
@@ -47,15 +47,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SiteJoinServlet extends AbstractSiteServlet {
 
-  /**
-   *
-   */
   private static final long serialVersionUID = 7673360724593565303L;
-  /**
-   *
-   */
-  private static final Logger LOG = LoggerFactory.getLogger(SiteJoinServlet.class);
-
+  private static final Logger LOG = LoggerFactory
+      .getLogger(SiteJoinServlet.class);
 
   /**
    * {@inheritDoc}
@@ -64,12 +58,13 @@ public class SiteJoinServlet extends AbstractSiteServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doPost(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
     LOG.info("Got get to SiteServiceGetServlet");
     Node site = request.getResource().adaptTo(Node.class);
     if (site == null) {
-      response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+          "Couldn't find site node");
       return;
     }
     if (!getSiteService().isSite(site)) {
