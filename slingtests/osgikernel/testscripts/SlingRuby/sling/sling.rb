@@ -93,7 +93,21 @@ module SlingInterface
       return res
     end
 
-    def execute_get(path)
+    def execute_get(path, query_params=nil)
+      if (query_params != nil)
+        param_string = query_params.collect { |k,v|
+          val = case v
+          when String then
+            v
+          when Numeric then
+            v.to_s
+          else
+            v.to_json
+          end
+          CGI.escape(k) + "=" + CGI.escape(val)
+        }.join("&")
+        path = "#{path}?#{param_string}" 
+      end
       puts "URL: #{path}" if @debug
       uri = URI.parse(path)
       path = uri.path
@@ -125,6 +139,9 @@ module SlingInterface
     end
 
     def url_for(path)
+      if (path[0] == '/')
+        path = path[1..-1]
+      end
       return "#{@server}#{path}"
     end
 
@@ -133,19 +150,19 @@ module SlingInterface
     end
 
     def delete_node(path)
-      result = execute_post("#{@server}#{path}", ":operation" => "delete")
+      result = execute_post(url_for(path), ":operation" => "delete")
     end
     
     def create_file_node(path, fieldname, filename, content_type="text/plain")
-      result = execute_file_post("#{@server}#{path}", fieldname, filename, content_type)
+      result = execute_file_post(url_for(path), fieldname, filename, content_type)
     end
 
     def create_node(path, params)
-      result = execute_post("#{@server}#{path}", params.update("jcr:createdBy" => @user.name))
+      result = execute_post(url_for(path), params.update("jcr:createdBy" => @user.name))
     end
 
     def get_node_props_json(path)
-      return execute_get("#{@server}#{path}.json").body
+      return execute_get(url_for("#{path}.json")).body
     end
 
     def get_node_props(path)
@@ -153,11 +170,11 @@ module SlingInterface
     end
 
     def update_node_props(path, props)
-      return execute_post("#{@server}#{path}", props)
+      return execute_post(url_for(path), props)
     end
 
     def get_node_acl_json(path)
-      return execute_get("#{@server}#{path}.acl.json").body
+      return execute_get(url_for("#{path}.acl.json")).body
     end
 
     def get_node_acl(path)
@@ -166,7 +183,7 @@ module SlingInterface
 
     def set_node_acl_entries(path, principal, privs)
       puts "Setting node acl for: #{principal} to #{privs.dump}"
-      res = execute_post("#{@server}#{path}.modifyAce.html", 
+      res = execute_post(url_for("#{path}.modifyAce.html"), 
                 { "principalId" => principal.name }.update(
                     privs.keys.inject(Hash.new) do |n,k| 
                       n.update("privilege@#{k}" => privs[k])
@@ -175,7 +192,7 @@ module SlingInterface
     end
 
     def delete_node_acl_entries(path, principal)
-      res = execute_post("#{@server}#{path}.deleteAce.html", {
+      res = execute_post(url_for("#{path}.deleteAce.html"), {
               ":applyTo" => principal
               })
     end

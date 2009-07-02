@@ -31,11 +31,11 @@ class SlingTest < Test::Unit::TestCase
     @created_nodes << path
   end
 
-  def create_file_node(path, fieldname, data)
+  def create_file_node(path, fieldname, data, content_type="text/plain")
     temp_file = Tempfile.new('some_temp_file')
     temp_file.write(data)
     temp_file.close
-    @s.create_file_node(path, fieldname, temp_file.path)
+    @s.create_file_node(path, fieldname, temp_file.path, content_type)
     File.delete(temp_file.path)
     @created_nodes << path
   end
