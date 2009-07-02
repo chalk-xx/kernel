@@ -196,7 +196,7 @@ public interface SiteService {
 
   /**
    * Unjoin a site, only if the user is a member of the group and the group is associated
-   * with the site. The user mist also be a member of the group.
+   * with the site. The user must also be a member of the group.
    * 
    * @param site
    *          the site containing the group.
