@@ -45,7 +45,7 @@ public class MessageUtils {
    * @param user
    * @return
    */
-  public static String getConnectionPathBase(String user) {
+  public static String getMessagePathBase(String user) {
     return PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
   }
 
