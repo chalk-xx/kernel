@@ -37,6 +37,7 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -126,6 +127,36 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           Resource resource = request.getResourceResolver().resolve(
               "/system/userManager/user/" + u.getID());
           ValueMap map = resource.adaptTo(ValueMap.class);
+          // add in the listing of member group names - http://jira.sakaiproject.org/browse/KERN-276
+          Object repGroups = map.get("rep:groups");
+          String[] groupNames = null;
+          if (repGroups != null) {
+            if (repGroups.getClass().isArray()) {
+              String[] groupUUIDs = (String[]) repGroups;
+              groupNames = new String[groupUUIDs.length];
+              Session session = site.getSession();
+              for (int i = 0; i < groupUUIDs.length; i++) {
+                Node n = session.getNodeByUUID(groupUUIDs[i]);
+                if (n.hasProperty("rep:principalName")) {
+                  String name = n.getProperty("rep:principalName").getValue().getString();
+                  groupNames[i] = name;
+                }
+              }
+            } else {
+              // assume it is a single entry then?
+              Session session = site.getSession();
+              String UUID = repGroups.toString();
+              Node n = session.getNodeByUUID(UUID);
+              if (n.hasProperty("rep:principalName")) {
+                groupNames = new String[1];
+                String name = n.getProperty("rep:principalName").getValue().getString();
+                groupNames[0] = name;
+              }
+            }
+            if (groupNames != null) {
+              map.put(SiteService.MEMBER_GROUPS, groupNames);
+            }
+          }
           output.valueMap(map);
         }
         output.endArray();

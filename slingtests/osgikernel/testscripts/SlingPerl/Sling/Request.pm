@@ -77,8 +77,10 @@ sub string_to_request {
         $request = GET "$target";
     }
     if ( defined $lwp ) {
+print "FOO\n";
         my $realm = Sling::URL::url_to_realm( $target );
         my ( $username, $password ) = $$lwp->credentials( $realm, 'Sling (Development)' );
+print "BAR $username, $password $realm\n";
         if ( defined $username && defined $password ) {
 	    # Always add an Authorization header to deal with application not
 	    # properly requesting authentication to be sent:
@@ -90,6 +92,7 @@ sub string_to_request {
         print "**** String representation of compiled request:\n";
         print $request->as_string;
     }
+        print $request->as_string;
     return $request;
 }
 #}}}

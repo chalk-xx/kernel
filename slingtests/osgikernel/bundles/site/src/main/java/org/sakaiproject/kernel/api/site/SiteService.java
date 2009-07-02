@@ -51,6 +51,12 @@ public interface SiteService {
    * The property used to store the sites a group is associated with.
    */
   public static final String SITES = "sakai:site";
+  /**
+   * The property returned with the groups info in the members listing
+   * (this is not and should not actually be stored on the node,
+   * it is generated on demand)
+   */
+  public static final String MEMBER_GROUPS = "member:groups";
 
   /**
    * The muntivalued property to store the list of associated authorizables.

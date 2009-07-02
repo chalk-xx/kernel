@@ -44,8 +44,11 @@ sub get_user_agent {
         my $loginType = ( defined $type ? $type : "basic" );
 	if ( $loginType =~ /^basic$/ ) {
             my $realm = Sling::URL::url_to_realm( $url );
+            print "WAH $username, $password, $realm\n";
             $lwpUserAgent->credentials( $realm, 'Sling (Development)',
-	                                $username => $password, );
+	                                $username, $password );
+        my ( $a, $b ) = $lwpUserAgent->get_basic_credentials( 'Sling (Development)', '$realm'  );
+            print "WAHOO $a, $b, $realm\n";
 	    if ( defined $log ) {
                 Sling::Print::print_file_lock(
 		    "Basic auth credentials for realm: \"$realm\" " .
