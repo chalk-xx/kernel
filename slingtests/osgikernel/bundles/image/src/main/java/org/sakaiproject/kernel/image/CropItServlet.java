@@ -29,12 +29,15 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.jcr.JCRService;
 import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This servlet will crop and cut images.
@@ -51,6 +54,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
   // private static final Logger LOGGER = LoggerFactory
   // .getLogger(CropItServlet.class);
   private static final long serialVersionUID = 7893384805719426200L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(CropItServlet.class);
 
   /** @scr.reference */
   private JCRNodeFactoryService jcrNodeFactoryService;
@@ -112,6 +116,10 @@ public class CropItServlet extends SlingAllMethodsServlet {
       // Get the resource at the provided path. (for /var/image/cropit)
       ResourceResolver resourceResolver = request.getResourceResolver();
       Resource resource = resourceResolver.getResource(urlToCrop);
+      if (resource == null) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "No image found at location: " + urlToCrop);
+        return;
+      }
 
       // Get the resource from the path we are now. (for node.cropit.json)
       // Resource resource = request.getResource();
@@ -144,14 +152,13 @@ public class CropItServlet extends SlingAllMethodsServlet {
 
       System.out.println("Outputted: " + output.toString());
     } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error("Repository exception processing image {}", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error("JSON exception building result {}", e);
     } catch (ImageException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.error("Image exception processing image {}", e);
+      response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Invalid image supplied");
     }
     return;
 
