@@ -16,6 +16,10 @@ module SlingMessage
       return @sling.execute_post(@sling.url_for("_user/message/#{messageId}.html"), "sakai:messagebox" => "outbox" )
     end
 
+    def list_all_noopts()
+      return @sling.execute_get(@sling.url_for("_user/message/all.json"))
+    end
+
     def list_all(sortOn = "jcr:created", sortOrder = "descending" )
       return @sling.execute_get(@sling.url_for("_user/message/all.json?sortOn="+sortOn+"&sortOrder="+sortOrder))
     end

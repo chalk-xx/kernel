@@ -24,6 +24,8 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -48,6 +50,8 @@ import javax.servlet.http.HttpServletResponse;
  * filters: only nodes with the properties in filters and the values in values
  * get travers - groupedby: group the results by the values of this parameter.
  * 
+ * count.json?filters=sakai:read,sakai:messagebox&values=true,inbox&groupby=sakai:category
+ * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
@@ -60,10 +64,12 @@ public class CountServlet extends SlingAllMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -5714446506015596037L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(CountServlet.class);
 
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
+    LOGGER.info("In count servlet" );
 
     // Get this node so we can get the session off it.
     Node node = (Node) request.getResource().adaptTo(Node.class);
@@ -71,12 +77,12 @@ public class CountServlet extends SlingAllMethodsServlet {
     try {
       // Do the query
       // We do the query on the user his messageStore's path.
-      String messageStorePath = ISO9075.encodePath(node.getPath());
+      String messageStorePath = ISO9075.encodePath(MessageUtils.getMessagePathBase(request.getRemoteUser()));
       // String messageStorePath = node.getPath();
       StringBuilder queryString = new StringBuilder("/jcr:root"
-          + messageStorePath + "//*[@sling:resourceType='sakai/message' and @"
-          + MessageConstants.PROP_SAKAI_TYPE + "='"
-          + MessageConstants.TYPE_INTERNAL + "'");
+          + messageStorePath + "//*[@sling:resourceType=\"sakai/message\" and @"
+          + MessageConstants.PROP_SAKAI_TYPE + "=\""
+          + MessageConstants.TYPE_INTERNAL + "\"");
 
       // Get the filters
       if (request.getRequestParameter("filters") != null
@@ -92,12 +98,13 @@ public class CountServlet extends SlingAllMethodsServlet {
         }
 
         for (int i = 0; i < filters.length; i++) {
-          queryString.append(" and @" + filters[i] + "='" + values[i] + "'");
+          queryString.append(" and @" + filters[i] + "=\"" + values[i] + "\"");
         }
       }
 
       queryString.append("]");
 
+      LOGGER.info("Using QUery {} ",queryString.toString());
       // Do the query and output how many results we have.
       QueryManager queryManager = node.getSession().getWorkspace()
           .getQueryManager();
