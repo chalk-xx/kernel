@@ -33,7 +33,7 @@ Create, set up, and return a User Agent.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
@@ -41,7 +41,8 @@ sub new {
                  LWP => $lwpUserAgent,
 		 Message => "",
 		 Response => \$response,
-		 Verbose => $verbose };
+		 Verbose => $verbose,
+		 Log => $log };
     bless( $user, $class );
     return $user;
 }
@@ -58,21 +59,20 @@ sub set_results {
 
 #{{{sub add
 sub add {
-    my ( $user, $actOnUser, $actOnPass, $properties, $log ) = @_;
+    my ( $user, $actOnUser, $actOnPass, $properties ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::add_setup( $user->{ 'BaseURL' }, $actOnUser, $actOnPass, $properties ) );
     my $success = Sling::UserUtil::add_eval( $res );
     my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "added!" : "was not added!" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub add_from_file
 sub add_from_file {
-    my ( $user, $file, $forkId, $numberForks, $log ) = @_;
+    my ( $user, $file, $forkId, $numberForks ) = @_;
     my $csv = Text::CSV->new();
     my $count = 0;
     my $numberColumns = 0;
@@ -111,8 +111,8 @@ sub add_from_file {
                     my $value = $column_headings[ $i ] . "=" . $columns[ $i ];
 		    push ( @properties, $value );
 		}
-                $user->add( $id, $password, \@properties, $log );
-		Sling::Print::print_lock( $user->{ 'Message' } ) if ( ! defined $log );
+                $user->add( $id, $password, \@properties );
+		Sling::Print::print_result( $user );
 	    }
 	    else {
 	        die "CSV broken, failed to parse line: " . $csv->error_input;
@@ -126,81 +126,75 @@ sub add_from_file {
 
 #{{{sub change_password
 sub change_password {
-    my ( $user, $actOnUser, $actOnPass, $newPass, $newPassConfirm, $log ) = @_;
+    my ( $user, $actOnUser, $actOnPass, $newPass, $newPassConfirm ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::change_password_setup( $user->{ 'BaseURL' }, $actOnUser, $actOnPass, $newPass, $newPassConfirm ) );
     my $success = Sling::UserUtil::change_password_eval( $res );
     my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "password changed!" : "password not changed!" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub delete
 sub delete {
-    my ( $user, $actOnUser, $log ) = @_;
+    my ( $user, $actOnUser ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::delete_setup( $user->{ 'BaseURL' }, $actOnUser ) );
     my $success = Sling::UserUtil::delete_eval( $res );
     my $message = "User: \"$actOnUser\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub exists
 sub exists {
-    my ( $user, $actOnUser, $log ) = @_;
+    my ( $user, $actOnUser ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::exists_setup( $user->{ 'BaseURL' }, $actOnUser ) );
     my $success = Sling::UserUtil::exists_eval( $res );
     my $message = "User \"$actOnUser\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub me
 sub me {
-    my ( $user, $log ) = @_;
+    my ( $user ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::me_setup( $user->{ 'BaseURL' } ) );
     my $success = Sling::UserUtil::me_eval( \$res );
     my $message = ( $success ? $res->content : "Problem fetching details for current user" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub sites
 sub sites {
-    my ( $user, $log ) = @_;
+    my ( $user ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::sites_setup( $user->{ 'BaseURL' } ) );
     my $success = Sling::UserUtil::sites_eval( $res );
     my $message = ( $success ? $$res->content : "Problem fetching details for current user" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub view
 sub view {
-    my ( $user, $actOnUser, $log ) = @_;
+    my ( $user, $actOnUser ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::exists_setup( $user->{ 'BaseURL' }, $actOnUser ) );
     my $success = Sling::UserUtil::exists_eval( $res );
     my $message = ( $success ? $$res->content : "Problem viewing user: \"$actOnUser\"" );
     $user->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}

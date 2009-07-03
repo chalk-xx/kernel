@@ -99,8 +99,8 @@ if ( defined $file ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $search = new Sling::Search( $url, $lwpUserAgent, $verbose );
-            $search->search_from_file( $file, $i, $numberForks, $log );
+            my $search = new Sling::Search( $url, $lwpUserAgent, $verbose, $log );
+            $search->search_from_file( $file, $i, $numberForks );
 	    exit( 0 );
 	}
 	else {
@@ -111,11 +111,11 @@ if ( defined $file ) {
 }
 else {
     my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $search = new Sling::Search( $url, $lwpUserAgent, $verbose );
+    my $search = new Sling::Search( $url, $lwpUserAgent, $verbose, $log );
     if ( defined $searchTerm ) {
-        $search->search( $searchTerm, $log );
+        $search->search( $searchTerm );
     }
-    Sling::Print::print_result( $search, $log );
+    Sling::Print::print_result( $search );
 }
 #}}}
 

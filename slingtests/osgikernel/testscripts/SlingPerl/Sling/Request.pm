@@ -17,6 +17,7 @@ use strict;
 use lib qw ( .. );
 use HTTP::Request::Common qw(GET POST);
 use MIME::Base64;
+use Sling::Print;
 #}}}
 
 #{{{sub string_to_request
@@ -30,7 +31,7 @@ Function taking a string and converting to a GET or POST HTTP request.
 =cut
 
 sub string_to_request {
-    my ( $string, $lwp, $verbose ) = @_;
+    my ( $string, $lwp, $verbose, $log ) = @_;
     die "No string defined to turn into request!" unless defined $string;
     die "No reference to an lwp user agent supplied!" unless defined $lwp;
     my ( $action, $target, @reqVariables ) = split( ' ', $string );
@@ -89,8 +90,7 @@ print "BAR $username, $password $realm\n";
         }
     }
     if ( $verbose >= 3 ) {
-        print "**** String representation of compiled request:\n";
-        print $request->as_string;
+        Sling::Print::print_with_lock( "**** String representation of compiled request:\n" . $request->as_string, $log );
     }
         print $request->as_string;
     return $request;
@@ -116,7 +116,8 @@ sub request {
     my $lwp = $$object->{ 'LWP' };
     die "Object does not reference a suitable LWP object" unless defined $lwp;
     my $verbose = $$object->{ 'Verbose' };
-    my $res = $$lwp->request( string_to_request( $string, $lwp, $verbose ) );
+    my $log = $$object->{ 'Log' };
+    my $res = $$lwp->request( string_to_request( $string, $lwp, $verbose, $log ) );
     return \$res;
 }
 #}}}

@@ -127,6 +127,12 @@ public interface MessageConstants {
    * Cleanup chat messages every X minutes
    */
   public static final int CLEAUNUP_EVERY_X_MINUTES =  120;
-
+  
+ 
+  /**
+   * The user message path.
+   */
+   public static final String SEARCH_PROP_MESSAGESTORE = "_userMessagePath";
+ 
 
 }

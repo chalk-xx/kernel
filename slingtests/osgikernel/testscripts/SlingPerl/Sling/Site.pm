@@ -35,7 +35,7 @@ Create, set up, and return a Site object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
@@ -44,7 +44,8 @@ sub new {
 		 Message => "",
 		 Owners => "",
 		 Response => \$response,
-		 Verbose => $verbose};
+		 Verbose => $verbose,
+		 Log => $log };
     bless( $site, $class );
     return $site;
 }
@@ -61,7 +62,7 @@ sub set_results {
 
 #{{{sub update
 sub update {
-    my ( $site, $id, $template, $joinable, $other_properties, $log ) = @_;
+    my ( $site, $id, $template, $joinable, $other_properties ) = @_;
     my @properties = ("sling:resourceType=sakai/site");
     if ( defined $template ) {
         push ( @properties, "sakai:site-template=$template" );
@@ -78,14 +79,13 @@ sub update {
     my $message = ( $success ? "Action successful" : "Action not successful" );
     $message .= " for site \"$id\".";
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub update_from_file
 sub update_from_file {
-    my ( $site, $file, $forkId, $numberForks, $log ) = @_;
+    my ( $site, $file, $forkId, $numberForks ) = @_;
     my $csv = Text::CSV->new();
     my $count = 0;
     my $numberColumns = 0;
@@ -121,8 +121,8 @@ sub update_from_file {
 		    push ( @properties, $value );
 		}
 	        my $template; my $joinable;
-                $site->update( $id, $template, $joinable, \@properties, $log );
-		Sling::Print::print_lock( $site->{ 'Message' } ) if ( ! defined $log );
+                $site->update( $id, $template, $joinable, \@properties );
+		Sling::Print::print_result( $site );
 	    }
 	    else {
 	        die "CSV broken, failed to parse line: " . $csv->error_input;
@@ -136,35 +136,33 @@ sub update_from_file {
 
 #{{{sub delete
 sub delete {
-    my ( $site, $id, $log ) = @_;
+    my ( $site, $id ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::ContentUtil::delete_setup( $site->{ 'BaseURL' }, $id ) );
     my $success = Sling::ContentUtil::delete_eval( $res );
     my $message = "Site \"$id\" ";
     $message .= ( $success ? "deleted!" : "was not deleted!" );
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub exists
 sub exists {
-    my ( $site, $id, $log ) = @_;
+    my ( $site, $id ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ) );
     my $exists = Sling::ContentUtil::exists_eval( \$res );
     my $message = "Site \"$id\" ";
     $message .= ( $exists ? "exists!" : "does not exist!" );
     $site->set_results( "$message", \$res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined );
     return $exists;
 }
 #}}}
 
 #{{{sub member_add
 sub member_add {
-    my ( $site, $id, $member, $log ) = @_;
+    my ( $site, $id, $member ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
     my $success = Sling::SiteUtil::member_view_eval( $res );
@@ -181,14 +179,13 @@ sub member_add {
         $message = "Problem retrieving current members for site: \"$id\"";
     }
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub member_delete
 sub member_delete{
-    my ( $site, $id, $member, $log ) = @_;
+    my ( $site, $id, $member ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
     my $success = Sling::SiteUtil::member_view_eval( $res );
@@ -205,14 +202,13 @@ sub member_delete{
         $message = "Problem retrieving current members for site: \"$id\"";
     }
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub member_exists
 sub member_exists {
-    my ( $site, $actOnSite, $existsMember, $log ) = @_;
+    my ( $site, $actOnSite, $existsMember ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $actOnSite ) );
     my $success = Sling::SiteUtil::member_view_eval( $res );
@@ -233,14 +229,13 @@ sub member_exists {
         $message = "Problem viewing site: \"$actOnSite\"";
     }
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub member_view
 sub member_view {
-    my ( $site, $actOnSite, $log ) = @_;
+    my ( $site, $actOnSite ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $actOnSite ) );
     my $success = Sling::SiteUtil::member_view_eval( $res );
@@ -258,20 +253,18 @@ sub member_view {
         $message = "Problem viewing site: \"$actOnSite\"";
     }
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}
 
 #{{{sub view
 sub view {
-    my ( $site, $id, $log ) = @_;
+    my ( $site, $id ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ) );
     my $success = Sling::ContentUtil::exists_eval( $res );
     my $message = ( $success ? $$res->content : "Problem viewing site: \"$id\"" );
     $site->set_results( "$message", $res );
-    Sling::Print::print_file_lock( $message, $log ) if ( defined $log );
     return $success;
 }
 #}}}

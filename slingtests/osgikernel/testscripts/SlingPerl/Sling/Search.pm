@@ -34,7 +34,7 @@ Create, set up, and return a Search object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose ) = @_;
+    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
     die "url not defined!" unless defined $url;
     die "no lwp user agent provided!" unless defined $lwpUserAgent;
     my $response;
@@ -44,7 +44,8 @@ sub new {
 		   Message => "",
 		   Response => \$response,
 		   TimeElapse => 0,
-		   Verbose => $verbose };
+		   Verbose => $verbose,
+		   Log => $log };
     bless( $search, $class );
     return $search;
 }
@@ -63,7 +64,7 @@ sub set_results {
 
 #{{{sub search
 sub search {
-    my ( $search, $searchTerm, $log ) = @_;
+    my ( $search, $searchTerm ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = Sling::Request::request( \$search,
         Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm ) );
@@ -74,15 +75,9 @@ sub search {
 	$hits =~ s/.*?"total":([0-9]+).*/$1/;
 	# Check hits total was correctly extracted:
 	$hits = ( ( $hits =~ /^[0-9]+/ ) ? $hits : die "Problem calculating number of search hits!" );
+	# TODO make timeElapse significant to about 3 decimal places only in printed output.
 	my $message = Sling::Print::dateTime .
-	    " Searching for \"$searchTerm\": Search OK. Found $hits hits.";
-	if ( defined $log && open( LOG, ">>$log" ) ) {
-	    flock( LOG, LOCK_EX );
-            print LOG $message;
-	    printf LOG " Time: %.3f seconds.\n", $timeElapse;
-            flock( LOG, LOCK_UN );
-	    close( LOG );
-	}
+	    " Searching for \"$searchTerm\": Search OK. Found $hits hits. Time $timeElapse seconds.";
         $search->set_results( $hits, $message, $res, $timeElapse );
 	return 1;
     }
@@ -96,15 +91,15 @@ sub search {
 
 #{{{sub search_all
 sub search_all {
-    my ( $search, $searchTerm, $log ) = @_;
-    $search->search( $search, $searchTerm, "/", $log );
+    my ( $search, $searchTerm ) = @_;
+    $search->search( $search, $searchTerm, "/" );
 }
 #}}}
 
 #{{{sub search_user
 sub search_user {
-    my ( $search, $searchTerm, $log ) = @_;
-    my $content = $search->search( $search, $searchTerm, "/_private", $log );
+    my ( $search, $searchTerm ) = @_;
+    my $content = $search->search( $search, $searchTerm, "/_private" );
     my $firstName = $content;
     $firstName =~ s/.*"sakai:firstName":"([^"])*"/$1/;
     my $lastName = $content;
@@ -115,7 +110,7 @@ sub search_user {
 
 #{{{sub search_from_file
 sub search_from_file {
-    my ( $search, $file, $forkId, $numberForks, $log ) = @_;
+    my ( $search, $file, $forkId, $numberForks ) = @_;
     $forkId = 0 unless defined $forkId;
     $numberForks = 1 unless defined $numberForks;
     my $count = 0;
@@ -126,8 +121,8 @@ sub search_from_file {
 	    $_ =~ /^(.*?)$/;
 	    my $searchTerm = $1;
 	    if ( $searchTerm !~ /^$/ ) {
-                $search->search( $searchTerm, $log );
-		Sling::Print::print_lock( $search->{ 'Message' } ) if ( ! defined $log );
+                $search->search( $searchTerm );
+		Sling::Print::print_result( $search );
 	    }
 	}
     }

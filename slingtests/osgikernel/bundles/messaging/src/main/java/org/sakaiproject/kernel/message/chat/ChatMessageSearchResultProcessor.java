@@ -20,8 +20,7 @@ package org.sakaiproject.kernel.message.chat;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageSearchResultProcessor;
-import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 import org.sakaiproject.kernel.message.MessageUtils;
 
 import javax.jcr.Node;
@@ -36,23 +35,24 @@ import javax.jcr.RepositoryException;
  *                description="Formatter for message search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="ChatMessage"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.reference name="MessagingService"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
-public class ChatMessageSearchResultProcessor extends
-    MessageSearchResultProcessor implements SearchResultProcessor {
+public class ChatMessageSearchResultProcessor extends MessageSearchResultProcessor {
 
   /**
-   * Parses the message to a usable JSON format for the UI. Once a message gets
-   * fetched it automaticly gets marked as read.
+   * Parses the message to a usable JSON format for the UI. Once a message gets fetched it
+   * automaticly gets marked as read.
    * 
    * @param write
    * @param resultNode
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(JSONWriter write, Node resultNode)
-      throws JSONException, RepositoryException {
+  public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+      RepositoryException {
     write.object();
 
     // Add some extra properties.
@@ -68,8 +68,7 @@ public class ChatMessageSearchResultProcessor extends
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM,
-          "userFrom");
+      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
     }
 
     // List all of the properties on here.
@@ -84,8 +83,7 @@ public class ChatMessageSearchResultProcessor extends
 
     // Check if this message has been read already.
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_READ)
-        && resultNode.getProperty(MessageConstants.PROP_SAKAI_READ)
-            .getBoolean() != true) {
+        && resultNode.getProperty(MessageConstants.PROP_SAKAI_READ).getBoolean() != true) {
       resultNode.setProperty(MessageConstants.PROP_SAKAI_READ, true);
     }
   }

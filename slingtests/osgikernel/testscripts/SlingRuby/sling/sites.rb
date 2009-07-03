@@ -8,6 +8,7 @@ module SlingSites
       @sling = sling
       @path = path
     end
+	
 
     def add_group(groupname)
       auths = Site.get_groups(@path, @sling)
@@ -49,8 +50,8 @@ module SlingSites
       @sling = sling
     end
 
-    def create_site(path)
-      res = @sling.create_node(path, { "sling:resourceType" => "sakai/site" })
+    def create_site(path, title = "Test Site")
+      res = @sling.execute_post(path+".createsite.html", "sakai:title" => title )
       if (res.code != "201")
         puts "Unable to create site: #{res.code}"
         return nil
