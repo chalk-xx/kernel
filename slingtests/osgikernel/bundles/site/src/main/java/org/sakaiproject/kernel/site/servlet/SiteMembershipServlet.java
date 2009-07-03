@@ -91,7 +91,7 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (SiteException e) {
       LOGGER.warn(e.getMessage(),e);
-      response.sendError(e.getSatusCode(), e.getMessage());
+      response.sendError(e.getStatusCode(), e.getMessage());
     }
     return;
   }

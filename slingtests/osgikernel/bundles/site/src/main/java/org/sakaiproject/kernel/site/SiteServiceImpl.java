@@ -168,7 +168,7 @@ public class SiteServiceImpl implements SiteService {
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
       } else {
-        startJoinWorkfow(site, targetGroup);
+        startJoinWorkflow(site, targetGroup);
       }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
@@ -232,7 +232,7 @@ public class SiteServiceImpl implements SiteService {
    * @throws SiteException
    * @throws RepositoryException
    */
-  public void startJoinWorkfow(Node site, Group targetGroup) throws SiteException {
+  public void startJoinWorkflow(Node site, Group targetGroup) throws SiteException {
     postEvent(SiteEvent.startJoinWorkflow, site, targetGroup);
   }
 
@@ -258,7 +258,7 @@ public class SiteServiceImpl implements SiteService {
   /**
    * @param site
    * @param targetGroup
-   * @return
+   * @return true if the group is a member of this site
    */
   public boolean isMember(Node site, Authorizable targetGroup) {
     /*
@@ -295,7 +295,8 @@ public class SiteServiceImpl implements SiteService {
     return false;
   }
 
-  private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException, RepositoryException {
+  private Value[] getPropertyValues(Node site, String propName)
+      throws PathNotFoundException, RepositoryException {
     Property property = site.getProperty(propName);
     if (property.getDefinition().isMultiple()) {
       return property.getValues();
@@ -306,7 +307,7 @@ public class SiteServiceImpl implements SiteService {
 
   /**
    * @param site
-   * @return
+   * @return true if the site is joinable
    * @throws RepositoryException
    * @throws PathNotFoundException
    * @throws ValueFormatException
@@ -327,7 +328,7 @@ public class SiteServiceImpl implements SiteService {
 
   /**
    * @param site
-   * @return
+   * @return true if the authz group is joinable
    * @throws RepositoryException
    * @throws PathNotFoundException
    * @throws ValueFormatException
@@ -406,9 +407,8 @@ public class SiteServiceImpl implements SiteService {
     Iterator<GroupKey> unsortedIterator = finalList.listIterator(start);
     return unwrapGroups(Iterators.limit(unsortedIterator, nitems));
   }
-  
-  public Iterator<Group> unwrapGroups(final Iterator<GroupKey> underlying)
-  {
+
+  public Iterator<Group> unwrapGroups(final Iterator<GroupKey> underlying) {
     return new Iterator<Group>() {
 
       public boolean hasNext() {
@@ -435,8 +435,8 @@ public class SiteServiceImpl implements SiteService {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
       Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
-      List<UserKey> sortedList = Lists
-          .sortedCopy(membership.getUsers().keySet(), comparitor);
+      List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(),
+          comparitor);
       Iterator<UserKey> sortedIterator = sortedList.listIterator(start);
       return unwrapUsers(Iterators.limit(sortedIterator, nitems));
     }
@@ -447,8 +447,7 @@ public class SiteServiceImpl implements SiteService {
     return unwrapUsers(Iterators.limit(unsortedIterator, nitems));
   }
 
-  public Iterator<User> unwrapUsers(final Iterator<UserKey> underlying)
-  {
+  public Iterator<User> unwrapUsers(final Iterator<UserKey> underlying) {
     return new Iterator<User>() {
 
       public boolean hasNext() {
@@ -502,12 +501,23 @@ public class SiteServiceImpl implements SiteService {
             if (!users.containsKey(a)) {
               users.put(new UserKey((User) a), new Membership(null, a));
             }
+          } else if (a == null) {
+            // if a is null
+            LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
+          } else {
+            // if a is not one of the known types
+            LOGGER.warn("Cannot handle Authorizable {} of type {}", a,
+                (a == null ? "null" : a.getClass()));
           }
         }
 
         // might want to cache the unsorted lists at this point, although they are already
         // cached by JCR.
-
+      } else {
+        LOGGER
+            .info(
+                "Site ({}) does not have Authorizable property ({}) and thus has no memberships",
+                site.getPath(), SiteService.AUTHORIZABLE);
       }
     } catch (RepositoryException ex) {
       LOGGER.warn("Failed to build membership Tree for {} ", site, ex);
@@ -536,10 +546,6 @@ public class SiteServiceImpl implements SiteService {
 
         /**
          * Compare the objects
-         * 
-         * @param o1
-         * @param o2
-         * @return
          */
         public int compare(T o1, T o2) {
           try {
@@ -674,7 +680,7 @@ public class SiteServiceImpl implements SiteService {
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
-  
+
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }

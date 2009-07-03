@@ -51,6 +51,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
   protected void goodResourceResolverSetup() {
     resource = createMock(Resource.class);
     expect(request.getResource()).andReturn(resource);
+    expect(request.getContextPath()).andReturn(SITE_PATH).anyTimes();
   }
 
   protected void goodSiteNodeSetup() throws RepositoryException {
@@ -84,6 +85,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
     expect(siteNode.hasProperty(eq(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))).andReturn(
         false);
     response.sendError(eq(HttpServletResponse.SC_BAD_REQUEST), isA(String.class));
+    expect(siteNode.getPath()).andReturn(SITE_PATH).anyTimes();
 
     makeRequest();
   }
