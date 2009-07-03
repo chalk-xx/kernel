@@ -20,4 +20,5 @@ curl -u admin:admin -F"sakai:title=My Site1" -F"sling:resourceType=sakai/site" -
 curl -u admin:admin -F"sakai:title=My Site2" -F"sling:resourceType=sakai/site" -F"sakai:authorizables=g-group2" http://localhost:8080/sites/site2
 curl -u admin:admin -F"sakai:title=My Site3" -F"sling:resourceType=sakai/site" -F"sakai:authorizables=g-group3" http://localhost:8080/sites/site3
 # now we should be able to get the site and see the correct info for the users (no duplicates)
+# GET http://localhost:8080/sites/site1.json - check the site
 # GET http://localhost:8080/sites/site1.members.json - check the site members listing
