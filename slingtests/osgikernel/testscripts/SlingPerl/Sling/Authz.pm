@@ -90,12 +90,11 @@ Create, set up, and return an Authz object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
-    die "url not defined!" unless defined $url;
-    die "no lwp user agent provided!" unless defined $lwpUserAgent;
+    my ( $class, $auth, $verbose, $log ) = @_;
+    die "no auth provided!" unless defined $auth;
     my $response;
-    my $content = { BaseURL => "$url",
-                    LWP => $lwpUserAgent,
+    my $content = { BaseURL => $$auth->{ 'BaseURL' },
+                    Auth => $auth,
 		    Message => "",
 		    Response => \$response,
 		    Verbose => $verbose,

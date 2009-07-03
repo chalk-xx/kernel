@@ -47,8 +47,9 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Search;
-use Sling::UserAgent;
+use Sling::URL;
 #}}}
 
 #{{{options parsing
@@ -60,7 +61,7 @@ my $man;
 my $numberForks = 1;
 my $password;
 my $searchTerm;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 
@@ -85,8 +86,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{ main execution path
@@ -98,8 +98,8 @@ if ( defined $file ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $search = new Sling::Search( $url, $lwpUserAgent, $verbose, $log );
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+            my $search = new Sling::Search( $authn->{ 'Auth' }, $verbose, $log );
             $search->search_from_file( $file, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -110,8 +110,8 @@ if ( defined $file ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $search = new Sling::Search( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $search = new Sling::Search( $authn->{ 'Auth' }, $verbose, $log );
     if ( defined $searchTerm ) {
         $search->search( $searchTerm );
     }

@@ -82,10 +82,9 @@ The following privileges are not yet supported, but may be soon:
 #{{{imports
 use strict;
 use lib qw ( .. );
-use LWP::UserAgent ();
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Authz;
-use Sling::UserAgent;
 use Sling::URL;
 use Getopt::Long qw(:config bundling);
 #}}}
@@ -99,7 +98,7 @@ my $man;
 my $password;
 my $principal;
 my $remoteNode;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $view;
@@ -154,13 +153,12 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 $remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{ main execution path
-my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-my $authz = new Sling::Authz( $url, $lwpUserAgent, $verbose, $log );
+my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+my $authz = new Sling::Authz( $authn->{ 'Auth' }, $verbose, $log );
 if ( defined $delete ) {
     $authz->delete( $remoteNode, $principal );
     Sling::Print::print_result( $authz );

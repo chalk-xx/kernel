@@ -78,8 +78,8 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Site;
-use Sling::UserAgent;
 use Sling::URL;
 #}}}
 
@@ -98,7 +98,7 @@ my $numberForks = 1;
 my $password;
 my @properties;
 my $template;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $viewSite;
@@ -131,8 +131,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 
 my %joinableOptions = ( 'yes', 1, 'no', 1, 'withauth', 1 );
 if ( defined $joinable ) {
@@ -158,8 +157,8 @@ if ( defined $additions ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+            my $site = new Sling::Site( $authn->{ 'Auth' }, $verbose, $log );
 	    my $path;
             $site->update_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
@@ -171,8 +170,8 @@ if ( defined $additions ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $site = new Sling::Site( $authn->{ 'Auth' }, $verbose, $log );
     if ( defined $addSite ) {
         $site->update( $addSite, $template, $joinable, \@properties );
     }

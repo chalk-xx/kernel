@@ -19,11 +19,10 @@ use base qw(Term::Shell);
 use Shell::Search;
 # use Shell::Site;
 use Shell::User;
-use Sling::UserAgent;
 #}}}
 
 # Obtain reference to LWP user agent object:
-my $lwpUserAgent = Sling::UserAgent::get_user_agent;
+my $lwpUserAgent; # TODO fixup = Sling::UserAgent::get_user_agent;
 
 my %config = ( prompt => 'sling',
                user => 'anon',

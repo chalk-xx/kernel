@@ -56,8 +56,9 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
+use Sling::URL;
 use Sling::User;
-use Sling::UserAgent;
 #}}}
 
 #{{{options parsing
@@ -77,7 +78,7 @@ my $numberForks = 1;
 my $password;
 my @properties;
 my $sitesUser;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $viewUser;
@@ -112,8 +113,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 
 #}}}
 
@@ -126,9 +126,9 @@ if ( defined $additions ) {
 	my $pid = fork();
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
-	    # Create a separate user agent per fork:
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
+	    # Create a separate authorization per fork:
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+            my $user = new Sling::User( $authn->{ 'Auth' }, $verbose, $log );
             $user->add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -139,8 +139,8 @@ if ( defined $additions ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $user = new Sling::User( $authn->{ 'Auth' }, $verbose, $log );
 
     if ( defined $existsUser ) {
         $user->exists( $existsUser );

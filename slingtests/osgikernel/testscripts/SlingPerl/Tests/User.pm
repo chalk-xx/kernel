@@ -20,7 +20,7 @@ Run regression tests for the user object.
 =cut
 
 sub run_regression_test {
-    my ( $url, $lwpUserAgent, $log, $verbose ) = @_;
+    my ( $auth, $log, $verbose ) = @_;
     # test user name:
     my $test_user = "testing_user_$$";
     # test user pass:
@@ -28,7 +28,7 @@ sub run_regression_test {
     # test properties:
     my @test_properties;
     # Sling user object:
-    my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
+    my $user = new Sling::User( $auth, $verbose, $log );
 
     # Run tests:
     ok( defined $user,

@@ -21,20 +21,20 @@ Run regression tests for the group object.
 =cut
 
 sub run_regression_test {
-    my ( $url, $lwpUserAgent, $log, $verbose ) = @_;
+    my ( $auth, $log, $verbose ) = @_;
     # test group name:
     my $test_group = "g-test_group_$$";
     # test properties:
     my @test_properties;
     # Sling group object:
-    my $group = new Sling::Group( $url, $lwpUserAgent, $verbose, $log );
+    my $group = new Sling::Group( $auth, $verbose, $log );
 
     # test user name:
     my $test_user = "testing_user_$$";
     # test user pass:
     my $test_pass = "pass";
     # Sling user object:
-    my $user = new Sling::User( $url, $lwpUserAgent, $verbose, $log );
+    my $user = new Sling::User( $auth, $verbose, $log );
 
     # Run tests:
     ok( defined $group,

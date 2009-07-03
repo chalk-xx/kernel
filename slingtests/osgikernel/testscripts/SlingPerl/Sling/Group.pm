@@ -34,12 +34,11 @@ Create, set up, and return a Group Object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
-    die "url not defined!" unless defined $url;
-    die "no lwp user agent provided!" unless defined $lwpUserAgent;
+    my ( $class, $auth, $verbose, $log ) = @_;
+    die "no auth provided!" unless defined $auth;
     my $response;
-    my $group = { BaseURL => "$url",
-                  LWP => $lwpUserAgent,
+    my $group = { BaseURL => $$auth->{ 'BaseURL' },
+                  Auth => $auth,
 		  Message => "",
 		  Response => \$response,
 		  Verbose => $verbose,
