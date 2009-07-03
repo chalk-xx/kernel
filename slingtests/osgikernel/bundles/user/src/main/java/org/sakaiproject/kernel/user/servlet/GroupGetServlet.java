@@ -11,7 +11,9 @@ import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -66,16 +68,21 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
       }
       write.key("profile");
-      write.value("/_user/public/"+authorizable.getPrincipal().getName()+"/authinfo");
+      write.value("/_group/public/"+authorizable.getPrincipal().getName()+"/authprofile");
       write.key("members");
       write.array();
       
       Group group = (Group)authorizable;
+      Set<String> memberNames = new HashSet<String>();
       Iterator<Authorizable> members = group.getMembers();
       while (members.hasNext())
       {
         Authorizable member = members.next();
-        write.value(member.getPrincipal().getName());
+        String name = member.getPrincipal().getName();
+        if (!memberNames.contains(name)) {
+          write.value(name);
+        }
+        memberNames.add(name);
       }
       write.endArray();
       write.endObject();

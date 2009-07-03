@@ -5,6 +5,7 @@ require 'sling/search'
 require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
+include SlingUsers
 
 class TC_UserManagerTest < SlingTest
 
@@ -25,11 +26,11 @@ class TC_UserManagerTest < SlingTest
     details = @um.get_group_props(g.name)
     assert_equal("g-testgroup", details["properties"]["rep:principalName"], "Expected groupname to match")
     profile = details["profile"]
-    props = @s.get_node_props(profile[1..-1])
+    props = @s.get_node_props(profile)
     assert_not_nil(props, "Expected group profile")
     @um.delete_group(g.name)
-    res = @s.execute_get(@s.url_for(profile[1..-1] + ".json"))
-    assert_equal("404", res.code, "Expected no group profile")
+    res = @s.execute_get(@s.url_for(Group.url_for(g.name + ".json")))
+    assert_equal("404", res.code, "Expected no group node")
   end
 
   def test_invalid_group_create

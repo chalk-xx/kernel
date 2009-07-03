@@ -52,10 +52,12 @@ module SlingInterface
   class Sling
 
     attr_accessor :debug
+    attr_accessor :log
 
     def initialize(server="http://localhost:8080/", debug=false)
       @server = server
       @debug = debug
+      @log = false
       @user = SlingUsers::User.admin_user()
     end
 
@@ -84,6 +86,7 @@ module SlingInterface
 
     def execute_post(path, post_params)
       puts "URL: #{path} params: #{post_params.dump}" if @debug
+      write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
       @user.do_request_auth(req)
@@ -112,11 +115,20 @@ module SlingInterface
       uri = URI.parse(path)
       path = uri.path
       path = path + "?" + uri.query if uri.query
+      write_log("GET: #{path} (as '#{@user.name}')")
       req = Net::HTTP::Get.new(path)
       @user.do_request_auth(req)
       res = Net::HTTP.new(uri.host, uri.port).start { |http| http.request(req) }
       dump_response(res)
       return res
+    end
+
+    def write_log(s)
+      if (@log)
+        f = File.open("/tmp/sling-ruby.log","a")
+        f.write(s + "\n")
+        f.close
+      end
     end
 
     def execute_get_with_follow(url)
@@ -139,7 +151,7 @@ module SlingInterface
     end
 
     def url_for(path)
-      if (path[0] == '/')
+      if (path.slice(0,1) == '/')
         path = path[1..-1]
       end
       return "#{@server}#{path}"
@@ -162,6 +174,7 @@ module SlingInterface
     end
 
     def get_node_props_json(path)
+      puts "Getting props for path: #{path}" if @debug
       return execute_get(url_for("#{path}.json")).body
     end
 
