@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -63,7 +64,6 @@ public class MessagingServiceImpl implements MessagingService {
       throws MessagingException {
 
     Node msg = null;
-    
 
     String messageId = String.valueOf(Thread.currentThread().getId())
         + String.valueOf(System.currentTimeMillis());
@@ -79,13 +79,13 @@ public class MessagingServiceImpl implements MessagingService {
     try {
       msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
 
-      for (String s : mapProperties.keySet()) {
-        msg.setProperty(s, mapProperties.get(s).toString());
+      for (Entry<String, Object> e : mapProperties.entrySet()) {
+        msg.setProperty(e.getKey(), e.getValue().toString());
       }
 
-
     } catch (RepositoryException e) {
-      LOGGER.warn("RepositoryException on trying to save message." + e.getMessage());
+      LOGGER.warn("RepositoryException on trying to save message."
+          + e.getMessage());
       e.printStackTrace();
       throw new MessagingException("Unable to save message.");
     }

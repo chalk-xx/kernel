@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.message;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceMetadata;
@@ -38,8 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -85,7 +86,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     this.messagingService = null;
   }
 
-
   /**
    * {@inheritDoc}
    * 
@@ -107,7 +107,8 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     Resource baseResource = request.getResource();
 
     String user = request.getRemoteUser();
-    if (user == null || UserConstants.ANON_USERID.equals(request.getRemoteUser()) ) {
+    if (user == null
+        || UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Anonymous users can't send messages.");
       return;
@@ -127,11 +128,9 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
     RequestParameterMap mapRequest = request.getRequestParameterMap();
     Map<String, Object> mapProperties = new HashMap<String, Object>();
-    Iterator<String> it = mapRequest.keySet().iterator();
 
-    while (it.hasNext()) {
-      String k = it.next();
-      mapProperties.put(k, mapRequest.get(k).toString());
+    for (Entry<String, RequestParameter[]> e : mapRequest.entrySet()) {
+      mapProperties.put(e.getKey(), e.getValue().toString());
     }
     mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         MessageConstants.SAKAI_MESSAGE_RT);
