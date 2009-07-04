@@ -17,6 +17,13 @@
  */
 package org.sakaiproject.kernel.util;
 
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.jcr.JsonItemWriter;
+import org.slf4j.Logger;
+
+import java.io.StringWriter;
+import java.util.HashSet;
+
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -27,6 +34,7 @@ import javax.jcr.Session;
  * Utilities to make simple JCR operations easier and avoid duplication.
  */
 public class JcrUtils {
+
 
   /**
    * Deep creates a path.
@@ -128,6 +136,19 @@ public class JcrUtils {
     }
 
     return (Node) item;
+  }
+
+  /**
+   * @param logger
+   * @param node
+   * @throws JSONException 
+   * @throws RepositoryException 
+   */
+  public static void logItem(Logger logger, Node node) throws RepositoryException, JSONException {
+    StringWriter sw = new StringWriter();
+    JsonItemWriter dumpWriter = new JsonItemWriter(new HashSet<String>());
+    dumpWriter.dump(node, sw, 5,true);
+    logger.info("Node is {} ",sw.toString());
   }
 
 }
