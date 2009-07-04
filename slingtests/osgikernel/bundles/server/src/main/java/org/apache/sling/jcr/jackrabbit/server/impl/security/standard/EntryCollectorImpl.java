@@ -33,7 +33,6 @@ import java.util.Map;
 
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.Value;
 
 /**
@@ -58,9 +57,12 @@ public class EntryCollectorImpl implements EntryCollector {
    *          Map of key = principalName and value = ArrayList to be filled with ACEs
    *          matching the principal names.
    * @throws RepositoryException
+   * {@inheritDoc}
+   * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.EntryCollector#collectEntries(org.apache.jackrabbit.core.NodeImpl, java.util.Map, java.util.List)
    */
   public void collectEntries(NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> princToEntries) throws RepositoryException {
+      Map<String, List<AccessControlEntry>> principalNamesToEntries,
+      List<AccessControlEntry> orderedAccessControlEntries) throws RepositoryException {
     SessionImpl sImpl = (SessionImpl) aclNode.getSession();
     PrincipalManager principalMgr = sImpl.getPrincipalManager();
     AccessControlManager acMgr = sImpl.getAccessControlManager();
@@ -73,7 +75,7 @@ public class EntryCollectorImpl implements EntryCollector {
       // only process aceNode if 'principalName' is contained in the given set
       // or the dynamicPrincialManager says the user has the principal.
 
-      if (hasPrincipal(principalName, aclNode, princToEntries)) {
+      if (hasPrincipal(principalName, aclNode, principalNamesToEntries)) {
         Principal princ = principalMgr.getPrincipal(principalName);
 
         Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
@@ -86,14 +88,16 @@ public class EntryCollectorImpl implements EntryCollector {
         Entry ace = new Entry(princ, privs, aceNode
             .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
         // add it to the proper list (e.g. separated by principals)
-        List<AccessControlEntry> l = princToEntries.get(principalName);
+        List<AccessControlEntry> l = principalNamesToEntries.get(principalName);
         if (l == null) {
           l = new ArrayList<AccessControlEntry>();
           l.add(ace);
-          princToEntries.put(principalName, l);
+          principalNamesToEntries.put(principalName, l);
+         
         } else {
           l.add(ace);
         }
+        orderedAccessControlEntries.add(ace);
       }
     }
   }
@@ -112,5 +116,6 @@ public class EntryCollectorImpl implements EntryCollector {
       Map<String, List<AccessControlEntry>> princToEntries) {
     return princToEntries.containsKey(principalName);
   }
+
 
 }

@@ -515,33 +515,47 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       int parentAllows = PrivilegeRegistry.NO_PRIVILEGE;
       int parentDenies = PrivilegeRegistry.NO_PRIVILEGE;
 
+      // loop through all entries (for this node and ancestors for the principal name),unless allows grants everything.
       while (entries.hasNext() && allows != PrivilegeRegistry.ALL) {
         JackrabbitAccessControlEntry ace = (JackrabbitAccessControlEntry) entries.next();
         // Determine if the ACE is defined on the node at absPath (locally):
         // Except for READ-privileges the permissions must be determined
         // from privileges defined for the parent. Consequently aces
         // defined locally must be treated different than inherited entries.
+        // entryBits are the privileges defined at this entry.
         int entryBits = ace.getPrivilegeBits();
         boolean isLocal = localACEs.contains(ace);
         if (!isLocal) {
           if (ace.isAllow()) {
+            // remove privileges that have already been denied from the etryBits, and add them to the 
+            // allows, this makes the order of the entries significant
             parentAllows |= Permission.diff(entryBits, parentDenies);
           } else {
+            // remove privileges that have already been allowed from the entryBits and add them to the 
+            // denies, this makes the order of the entries significant
             parentDenies |= Permission.diff(entryBits, parentAllows);
           }
         }
         if (ace.isAllow()) {
+          // remove privileges that have allready been denied from the entry bits and add them to the allow
+          // privileges
           allowPrivileges |= Permission.diff(entryBits, denyPrivileges);
+          // apply rules to allowPrivileges merging with parentAllows (see impl of function)
           int permissions = Permission.calculatePermissions(allowPrivileges,
               parentAllows, true, isAcItem);
+          // remove permissions that have allready been denied from the permissions and add them 
+          // to the allows
           allows |= Permission.diff(permissions, denies);
         } else {
+          // remove privileges that have already been allowed from the entryBits and add them to the deny privileges
           denyPrivileges |= Permission.diff(entryBits, allowPrivileges);
+          // apply rules to denyPrivileges merging with parentAllows (see impl of function)
           int permissions = Permission.calculatePermissions(denyPrivileges, parentDenies,
               false, isAcItem);
           denies |= Permission.diff(permissions, allows);
         }
       }
+      //
       return new Result(allows, denies, allowPrivileges, denyPrivileges);
     }
 
@@ -652,10 +666,12 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class Entries {
 
     private final Map<String, List<AccessControlEntry>> principalNamesToEntries;
+    private final List<AccessControlEntry> orderedAccessControlEntries;
 
     @SuppressWarnings("unchecked")
     private Entries(NodeImpl node, Collection<String> principalNames)
         throws RepositoryException {
+      orderedAccessControlEntries = new ArrayList<AccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
@@ -670,7 +686,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
         // build acl for the access controlled node
         NodeImpl aclNode = node.getNode(N_POLICY);
         // get the collector and collect entries
-        getEntryCollector().collectEntries(aclNode, principalNamesToEntries);
+        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries);
       }
       // then, recursively look for access controlled parents up the hierarchy.
       if (!rootNodeId.equals(node.getId())) {
@@ -680,13 +696,14 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     }
 
     private AccessControlEntryIterator iterator() {
-      List<AccessControlEntry> entries = new ArrayList<AccessControlEntry>();
-      for (Iterator<?> it = ((ListOrderedMap) principalNamesToEntries).asList()
-          .iterator(); it.hasNext();) {
-        Object key = it.next();
-        entries.addAll(principalNamesToEntries.get(key));
-      }
-      return new AccessControlEntryIterator(entries);
+// Sakai removed to ensure that the Entries are processed in the correct order.
+//      List<AccessControlEntry> entries = new ArrayList<AccessControlEntry>();
+//      for (Iterator<?> it = ((ListOrderedMap) principalNamesToEntries).asList()
+//          .iterator(); it.hasNext();) {
+//        Object key = it.next();
+//        entries.addAll(principalNamesToEntries.get(key));
+//      }
+      return new AccessControlEntryIterator(orderedAccessControlEntries);
     }
   }
 
