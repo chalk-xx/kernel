@@ -219,10 +219,14 @@ class ACLTemplate implements JackrabbitAccessControlList {
         if (!principalMgr.hasPrincipal(principal.getName())) {
             throw new AccessControlException("Principal " + principal.getName() + " does not exist.");
         }
-        // additional validation: a group may not have 'denied' permissions
-        if (!isAllow && principal instanceof Group) {
-            throw new AccessControlException("For group principals permissions can only be added but not denied.");
-        }
+//        // additional validation: a group may not have 'denied' permissions
+//
+// Allow Group Denies for Sakai
+//         if (!isAllow && principal instanceof Group) {
+//
+//           throw new AccessControlException("For group principals permissions can only be added but not denied.");
+//       }
+//
     }
 
     //--------------------------------------------------< AccessControlList >---
