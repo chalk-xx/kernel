@@ -27,6 +27,18 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public void valueMap(ValueMap valueMap) throws JSONException {
     object();
+    valueMapInternals(valueMap);
+    endObject();
+  }
+
+  /**
+   * This will output the key value pairs of a value map as JSON without opening and
+   * closing braces, you will need to call object() and endObject() yourself but you
+   * can use this to allow appending onto the end of the existing data
+   * @param valueMap any ValueMap (cannot be null)
+   * @throws JSONException on failure
+   */
+  public void valueMapInternals(ValueMap valueMap) throws JSONException {
     for (Entry<String, Object> entry : valueMap.entrySet()) {
       key(entry.getKey());
       Object entryValue = entry.getValue();
@@ -42,7 +54,6 @@ public class ExtendedJSONWriter extends JSONWriter {
         value(entry.getValue());
       }
     }
-    endObject();
   }
 
   public static void writeNodeContentsToWriter(JSONWriter write, Node node) throws RepositoryException, JSONException {

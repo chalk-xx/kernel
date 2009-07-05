@@ -86,7 +86,7 @@ public class SiteGetServlet extends AbstractSiteServlet {
       response.setStatus(HttpServletResponse.SC_OK);
       return;
     } catch (SiteException e) {
-      response.sendError(e.getSatusCode(), e.getMessage());
+      response.sendError(e.getStatusCode(), e.getMessage());
       return;
     }
   }
