@@ -31,7 +31,7 @@ The following options are accepted:
                                        processes to have running through file.
  --url or -U (URL)                   - URL for system being tested against.
  --user or -u (username)             - Name of user to perform any actions as.
- --verbose or -v                     - Increase verbosity of output.
+ --verbose or -v or -vv or -vvv      - Increase verbosity of output.
  --view or -V (actOnUser)            - view details for specified user in json format.
 
 Options may be merged together. -- stops processing of options.
@@ -128,7 +128,7 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate authorization per fork:
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $user = new Sling::User( $authn->{ 'Auth' }, $verbose, $log );
+            my $user = new Sling::User( \$authn, $verbose, $log );
             $user->add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -140,7 +140,7 @@ if ( defined $additions ) {
 }
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $user = new Sling::User( $authn->{ 'Auth' }, $verbose, $log );
+    my $user = new Sling::User( \$authn, $verbose, $log );
 
     if ( defined $existsUser ) {
         $user->exists( $existsUser );

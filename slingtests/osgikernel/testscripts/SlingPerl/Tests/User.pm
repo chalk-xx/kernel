@@ -20,7 +20,7 @@ Run regression tests for the user object.
 =cut
 
 sub run_regression_test {
-    my ( $auth, $log, $verbose ) = @_;
+    my ( $authn, $verbose, $log ) = @_;
     # test user name:
     my $test_user = "testing_user_$$";
     # test user pass:
@@ -28,17 +28,23 @@ sub run_regression_test {
     # test properties:
     my @test_properties;
     # Sling user object:
-    my $user = new Sling::User( $auth, $verbose, $log );
+    my $user = new Sling::User( $authn, $verbose, $log );
 
     # Run tests:
     ok( defined $user,
         "User Test: Sling User Object successfully created." );
-    ok( $user->add( $test_user, $test_pass, \@test_properties, $log ),
+    ok( $user->add( $test_user, $test_pass, \@test_properties ),
         "User Test: User \"$test_user\" added successfully." );
-    ok( ! $user->add( "g-$test_user", $test_pass, \@test_properties, $log ),
+    ok( $user->exists( $test_user ),
+        "User Test: User \"$test_user\" exists." );
+    ok( ! $user->add( "g-$test_user", $test_pass, \@test_properties ),
         "User Test: User \"g-$test_user\" creation denied." );
-    ok( $user->delete( $test_user, $log ),
+    ok( ! $user->exists( "g-$test_user" ),
+        "User Test: User \"g-$test_user\" should not exist." );
+    ok( $user->delete( $test_user ),
         "User Test: User \"$test_user\" deleted successfully." );
+    ok( ! $user->exists( $test_user ),
+        "User Test: User \"$test_user\" should no longer exist." );
 }
 #}}}
 

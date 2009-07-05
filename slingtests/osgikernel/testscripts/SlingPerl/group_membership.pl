@@ -11,22 +11,22 @@ in sling from the command line.
 Usage: perl group_membership.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --additions or -A (file)   - file containing list of members to be added to groups.
- --add or -a (member)       - add specified member.
- --auth (type)              - Specify auth type. If ommitted, default is used.
- --delete or -d (member)    - delete specified group member.
- --exists or -e (member)    - check whether specified member exists in group.
- --group or -g (actOnGroup) - group to perform membership actions on.
- --help or -?               - view the script synopsis and options.
- --log or -L (log)          - Log script output to specified log file.
- --man or -M                - view the full script documentation.
- --pass or -p (password)    - Password of user performing actions.
- --threads or -t (threads)  - Used with -A, defines number of parallel
-                              processes to have running through file.
- --url or -U (URL)          - URL for system being tested against.
- --user or -u (username)    - Name of user to perform any actions as.
- --verbose or -v            - Increase verbosity of output.
- --view or -V               - view members of specified group.
+ --additions or -A (file)       - file containing list of members to be added to groups.
+ --add or -a (member)           - add specified member.
+ --auth (type)                  - Specify auth type. If ommitted, default is used.
+ --delete or -d (member)        - delete specified group member.
+ --exists or -e (member)        - check whether specified member exists in group.
+ --group or -g (actOnGroup)     - group to perform membership actions on.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --pass or -p (password)        - Password of user performing actions.
+ --threads or -t (threads)      - Used with -A, defines number of parallel
+                                  processes to have running through file.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u (username)        - Name of user to perform any actions as.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
+ --view or -V                   - view members of specified group.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -123,7 +123,7 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate authorization per fork:
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $group = new Sling::Group( $authn->{ 'Auth' }, $verbose, $log );
+            my $group = new Sling::Group( \$authn, $verbose, $log );
             $group->member_add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -135,7 +135,7 @@ if ( defined $additions ) {
 }
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $group = new Sling::Group( $authn->{ 'Auth' }, $verbose, $log );
+    my $group = new Sling::Group( \$authn, $verbose, $log );
 
     if ( defined $existsMember ) {
         $group->member_exists( $actOnGroup, $existsMember );

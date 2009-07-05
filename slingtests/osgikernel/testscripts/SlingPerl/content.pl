@@ -31,7 +31,7 @@ The following options are accepted:
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.
  --user or -u (username)           - Name of user to perform content manipulations as.
- --verbose or -v                   - Increase verbosity of output.
+ --verbose or -v or -vv or -vvv    - Increase verbosity of output.
  --view or -V (actOnGroup)         - view details for specified group in json format.
 
 Options may be merged together. -- stops processing of options.
@@ -149,7 +149,7 @@ if ( defined $additions ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $content = new Sling::Content( $authn->{ 'Auth' }, $verbose, $log );
+            my $content = new Sling::Content( \$authn, $verbose, $log );
             $content->upload_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -161,7 +161,7 @@ if ( defined $additions ) {
 }
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $content = new Sling::Content( $authn->{ 'Auth' }, $verbose, $log );
+    my $content = new Sling::Content( \$authn, $verbose, $log );
     if ( defined $localPath && defined $remoteNode ) {
         $content->upload_file( $localPath, $remoteNode, $filename );
     }

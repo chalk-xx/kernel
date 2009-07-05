@@ -11,18 +11,19 @@ testing of a Sling K2 system from the command line.
 Usage: perl regression_test.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --all or -a                  - run all regression tests.
- --group or -g                - run group regression tests.
- --help or -?                 - view the script synopsis and options.
- --log or -L (log)            - Log script output to specified log file.
- --man or -M                  - view the full script documentation.
- --pass or -p (password)      - Password of system super user.
- --superuser or -s (username) - User ID of system super user.
- --threads or -t (threads)    - Defines number of parallel processes
-                                to have running regression tests.
- --url or -U (URL)            - URL for system being tested against.
- --user or -u                 - run user regression tests.
- --verbose or -v              - Increase verbosity of output.
+ --all or -a                    - run all regression tests.
+ --group or -g                  - run group regression tests.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --pass or -p (password)        - Password of system super user.
+ --site or -s                   - run site regression tests.
+ --superuser or -S (username)   - User ID of system super user.
+ --threads or -t (threads)      - Defines number of parallel processes
+                                  to have running regression tests.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u                   - run user regression tests.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -38,7 +39,7 @@ For full details run: perl regression_test.pl --man
 
 =item Run all regression tests in four threads, specifying superuser to be admin and superuser password to be admin.
 
- perl regression_test.pl -U http://localhost:8080 --all --threads 4 -s admin -p admin
+ perl regression_test.pl -U http://localhost:8080 --all --threads 4 -S admin -p admin
 
 =back
 
@@ -53,6 +54,7 @@ use Pod::Usage;
 use Sling::Authn;
 use Sling::URL;
 use Tests::Group;
+use Tests::Site;
 use Tests::User;
 #}}}
 
@@ -64,6 +66,7 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
+my $site_test;
 my $url;
 my $username;
 my $user_test;
@@ -76,7 +79,8 @@ GetOptions (
     "log|L=s" => \$log,
     "man|M" => \$man,
     "pass|p=s" => \$password,
-    "superuser|s=s" => \$username,
+    "site|s" => \$site_test,
+    "superuser|S=s" => \$username,
     "threads|t=i" => \$numberForks,
     "url|U=s" => \$url,
     "user|u" => \$user_test,
@@ -93,7 +97,7 @@ die "Test super user password not defined" unless defined $password;
 
 my $auth; # Just use default auth
 
-my @all_tests_list = ( "Group", "User" );
+my @all_tests_list = ( "Group", "Site", "User" );
 my @tests_selected = ();
 
 if ( $all_tests ) {
@@ -102,6 +106,9 @@ if ( $all_tests ) {
 else {
     if ( $group_test ) {
         push ( @tests_selected, "Group" );
+    }
+    if ( $site_test ) {
+        push ( @tests_selected, "Site" );
     }
     if ( $user_test ) {
         push ( @tests_selected, "User" );
@@ -124,10 +131,13 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
             my $test = $tests_selected[ $j ];
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
 	    if ( $test =~ /^Group$/ ) {
-                Tests::Group::run_regression_test( $authn->{ 'Auth' }, $log, $verbose );
+                Tests::Group::run_regression_test( \$authn, $verbose, $log );
+	    }
+	    elsif ( $test =~ /^Site$/ ) {
+                Tests::Site::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    elsif ( $test =~ /^User$/ ) {
-                Tests::User::run_regression_test( $authn->{ 'Auth' }, $log, $verbose );
+                Tests::User::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    else {
 	        die "Unknown regression test option: \"$test\"!";

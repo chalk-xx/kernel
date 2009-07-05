@@ -35,11 +35,11 @@ Create, set up, and return a Site object.
 =cut
 
 sub new {
-    my ( $class, $auth, $verbose, $log ) = @_;
-    die "no auth provided!" unless defined $auth;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $site = { BaseURL => $$auth->{ 'BaseURL' },
-                 Auth => $auth,
+    my $site = { BaseURL => $$authn->{ 'BaseURL' },
+                 Authn => $authn,
 		 Message => "",
 		 Owners => "",
 		 Response => \$response,
@@ -151,10 +151,10 @@ sub exists {
     my ( $site, $id ) = @_;
     my $res = Sling::Request::request( \$site,
         Sling::ContentUtil::exists_setup( $site->{ 'BaseURL' }, $id ) );
-    my $exists = Sling::ContentUtil::exists_eval( \$res );
+    my $exists = Sling::ContentUtil::exists_eval( $res );
     my $message = "Site \"$id\" ";
     $message .= ( $exists ? "exists!" : "does not exist!" );
-    $site->set_results( "$message", \$res );
+    $site->set_results( "$message", $res );
     return $exists;
 }
 #}}}
@@ -221,6 +221,7 @@ sub member_exists {
 		last;
 	    }
         }
+	$success = $is_member;
 	$message = "\"$existsMember\" is " . ( $is_member ? "" : "not " ) .
 	    "a member of site \"$actOnSite\"";
     }

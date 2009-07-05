@@ -34,11 +34,11 @@ Create, set up, and return a Content object.
 =cut
 
 sub new {
-    my ( $class, $auth, $verbose, $log ) = @_;
-    die "no auth provided!" unless defined $auth;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $content = { BaseURL => $$auth->{ 'BaseURL' },
-                    Auth => $auth,
+    my $content = { BaseURL => $$authn->{ 'BaseURL' },
+                    Authn => $authn,
 		    Message => "",
 		    Response => \$response,
 		    Verbose => $verbose,

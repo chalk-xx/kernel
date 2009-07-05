@@ -13,28 +13,28 @@ Authz perl library.
 Usage: perl authz.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --auth (type)                 - Specify auth type. If ommitted, default is used.
- --delete or -d                - delete access control list for node for principal.
- --help or -?                  - view the script synopsis and options.
- --log or -L (log)             - Log script output to specified log file.
- --man or -M                   - view the full script documentation.
- --(no-)addChildNodes          - Grant or deny the addChildNodes privilege
- --(no-)all                    - Grant or deny all above privileges
- --(no-)modifyACL              - Grant or deny the modifyACL privilege
- --(no-)modifyProps            - Grant or deny the modifyProperties privilege
- --(no-)readACL                - Grant or deny the readACL privilege
- --(no-)read                   - Grant or deny the read privilege
- --(no-)removeChilds           - Grant or deny the removeChildNodes privilege
- --(no-)removeNode             - Grant or deny the removeNode privilege
- --(no-)write                  - Grant or deny the write privileges:
-                                 modifyProperties,addChildNodes,removeNode,removeChildNodes
- --pass or -p (password)       - Password of user performing content manipulations.
- --principal or -P (principal) - Principal to grant, deny, or delete privilege for.
- --remote or -r (remoteNode)   - specify remote node under JCR root to act on.
- --url or -U (URL)             - URL for system being tested against.
- --user or -u (username)       - Name of user to perform content manipulations as.
- --verbose or -v               - Increase verbosity of output.
- --view or -V                  - view access control list for node.
+ --auth (type)                  - Specify auth type. If ommitted, default is used.
+ --delete or -d                 - delete access control list for node for principal.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --(no-)addChildNodes           - Grant or deny the addChildNodes privilege
+ --(no-)all                     - Grant or deny all above privileges
+ --(no-)modifyACL               - Grant or deny the modifyACL privilege
+ --(no-)modifyProps             - Grant or deny the modifyProperties privilege
+ --(no-)readACL                 - Grant or deny the readACL privilege
+ --(no-)read                    - Grant or deny the read privilege
+ --(no-)removeChilds            - Grant or deny the removeChildNodes privilege
+ --(no-)removeNode              - Grant or deny the removeNode privilege
+ --(no-)write                   - Grant or deny the write privileges:
+                                  modifyProperties,addChildNodes,removeNode,removeChildNodes
+ --pass or -p (password)        - Password of user performing content manipulations.
+ --principal or -P (principal)  - Principal to grant, deny, or delete privilege for.
+ --remote or -r (remoteNode)    - specify remote node under JCR root to act on.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u (username)        - Name of user to perform content manipulations as.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
+ --view or -V                   - view access control list for node.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -158,7 +158,7 @@ $url = Sling::URL::url_input_sanitize( $url );
 
 #{{{ main execution path
 my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-my $authz = new Sling::Authz( $authn->{ 'Auth' }, $verbose, $log );
+my $authz = new Sling::Authz( \$authn, $verbose, $log );
 if ( defined $delete ) {
     $authz->delete( $remoteNode, $principal );
     Sling::Print::print_result( $authz );

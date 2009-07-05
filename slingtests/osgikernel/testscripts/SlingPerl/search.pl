@@ -12,18 +12,18 @@ Sling::Search library.
 Usage: perl search.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --auth (type)               - Specify auth type. If ommitted, default is used.
- --file or -F (File)         - File containing list of search terms to search through.
- --help or -?                - view the script synopsis and options.
- --log or -L (log)           - Log script output to specified log file.
- --man or -M                 - view the full script documentation.
- --pass or -p (password)     - Password of user performing searches.
- --search or -s (SearchTerm) - Term to search in the system for.
- --threads or -t (threads)   - Used with -F, defines number of parallel
-                               processes to have running through file.
- --url or -U (URL)           - URL for system being tested against.
- --user or -u (username)     - Name of user to perform any searches as.
- --verbose or -v             - Increase verbosity of output.
+ --auth (type)                  - Specify auth type. If ommitted, default is used.
+ --file or -F (File)            - File containing list of search terms to search through.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --pass or -p (password)        - Password of user performing searches.
+ --search or -s (SearchTerm)    - Term to search in the system for.
+ --threads or -t (threads)      - Used with -F, defines number of parallel
+                                  processes to have running through file.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u (username)        - Name of user to perform any searches as.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -99,7 +99,7 @@ if ( defined $file ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $search = new Sling::Search( $authn->{ 'Auth' }, $verbose, $log );
+            my $search = new Sling::Search( \$authn, $verbose, $log );
             $search->search_from_file( $file, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -111,7 +111,7 @@ if ( defined $file ) {
 }
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $search = new Sling::Search( $authn->{ 'Auth' }, $verbose, $log );
+    my $search = new Sling::Search( \$authn, $verbose, $log );
     if ( defined $searchTerm ) {
         $search->search( $searchTerm );
     }

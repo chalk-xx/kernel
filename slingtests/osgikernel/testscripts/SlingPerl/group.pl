@@ -26,7 +26,7 @@ The following options are accepted:
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.
  --user or -u (username)           - Name of user to perform any actions as.
- --verbose or -v                   - Increase verbosity of output.
+ --verbose or -v or -vv or -vvv    - Increase verbosity of output.
  --view or -V (actOnGroup)         - view details for specified group in json format.
 
 Options may be merged together. -- stops processing of options.
@@ -128,7 +128,7 @@ if ( defined $additions ) {
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $group = new Sling::Group( $authn->{ 'Auth' }, $verbose, $log );
+            my $group = new Sling::Group( \$authn, $verbose, $log );
             $group->add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -140,7 +140,7 @@ if ( defined $additions ) {
 }
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $group = new Sling::Group( $authn->{ 'Auth' }, $verbose, $log );
+    my $group = new Sling::Group( \$authn, $verbose, $log );
     if ( defined $existsGroup ) {
         $group->exists( $existsGroup );
     }

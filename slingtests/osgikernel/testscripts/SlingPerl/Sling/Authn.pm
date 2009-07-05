@@ -42,17 +42,17 @@ sub new {
     $lwpUserAgent->cookie_jar( { file => "/tmp/UserAgentCookies$$.txt" });
 
     my $response;
-    my $auth = { BaseURL => "$url",
-                 LWP => \$lwpUserAgent,
-		 Type => $type,
-		 Username => $username,
-		 Password => $password };
-
-    my $authn = { Message => "",
+    my $authn = { BaseURL => "$url",
+                  LWP => \$lwpUserAgent,
+                  Type => $type,
+                  Username => $username,
+                  Password => $password,
+                  Message => "",
 		  Response => \$response,
 		  Verbose => $verbose,
-		  Log => $log,
-		  Auth => \$auth };
+		  Log => $log };
+    # Authn references itself to be compatibile with Sling::Request::request
+    $authn->{ 'Authn' } = \$authn;
     bless( $authn, $class );
 
     # Apply basic authentication to the user agent if url, username and
@@ -93,9 +93,8 @@ sub set_results {
 #{{{sub basic_login
 sub basic_login {
     my ( $authn ) = @_;
-    my $auth = $authn->{ 'Auth' };
     my $res = Sling::Request::request( \$authn,
-        Sling::AuthnUtil::basic_login_setup( $$auth->{ 'BaseURL' } ) );
+        Sling::AuthnUtil::basic_login_setup( $authn->{ 'BaseURL' } ) );
     my $success = Sling::AuthnUtil::basic_login_eval( $res );
     my $message = "Basic auth log in ";
     $message .= ( $success ? "succeeded!" : "failed!" );
@@ -107,11 +106,10 @@ sub basic_login {
 #{{{sub form_login
 sub form_login {
     my ( $authn ) = @_;
-    my $auth = $authn->{ 'Auth' };
-    my $username = $$auth->{ 'Username' };
-    my $password = $$auth->{ 'Password' };
+    my $username = $authn->{ 'Username' };
+    my $password = $authn->{ 'Password' };
     my $res = Sling::Request::request( \$authn,
-        Sling::AuthnUtil::form_login_setup( $$auth->{ 'BaseURL' }, $username, $password ) );
+        Sling::AuthnUtil::form_login_setup( $authn->{ 'BaseURL' }, $username, $password ) );
     my $success = Sling::AuthnUtil::form_login_eval( $res );
     my $message = "Form log in as user \"$username\" ";
     $message .= ( $success ? "succeeded!" : "failed!" );
@@ -130,6 +128,56 @@ sub form_logout {
     $message .= ( $success ? "succeeded!" : "failed!" );
     $authn->set_results( "$message", $res );
     return $success;
+}
+#}}}
+
+#{{{sub switch_user 
+sub switch_user {
+    my ( $authn, $new_username, $new_password, $type, $check_basic ) = @_;
+    die "New username to switch to not defined" unless defined $new_username;
+    die "New password to use in switch not defined" unless defined $new_password;
+    if ( ( $authn->{ 'Username' } !~ /^$new_username$/ ) || ( $authn->{ 'Password' } !~ /^$new_password$/ ) ) {
+        $authn->{ 'Username' } = $new_username;
+        $authn->{ 'Password' } = $new_password;
+        if ( defined $type ) {
+            $authn->{ 'Type' } = $type;
+        }
+        $check_basic = ( defined $check_basic ? $check_basic : 0 );
+        if ( $authn ->{ 'Type' } =~ /^basic$/ ) {
+            if ( $check_basic ) {
+	        my $success = $authn->basic_login();
+	        if ( ! $success ) {
+	            die "Basic Auth log in for user \"$new_username\" at URL \"" .
+		        $authn->{ 'BaseURL' } . "\" was unsuccessful\n";
+	        }
+	    }
+	    else {
+	        $authn->{ 'Message' } = "Fast User Switch completed!";
+	    }
+        }
+        elsif ( $authn ->{ 'Type' } =~ /^form$/ ) {
+	    my $success = $authn->form_logout();
+	    if ( ! $success ) {
+	        die "Form Auth log out for user \"$new_username\" at URL \"" .
+	            $authn->{ 'BaseURL' } . "\" was unsuccessful\n";
+	    }
+	    $success = $authn->form_login();
+	    if ( ! $success ) {
+	        die "Form Auth log in for user \"$new_username\" at URL \"" .
+	            $authn->{ 'BaseURL' } . "\" was unsuccessful\n";
+	    }
+        }
+        else {
+            die "Unsupported auth type: \"" . $type . "\"\n"; 
+        }
+    }
+    else {
+        $authn->{ 'Message' } = "User already active, no need to switch!";
+    }
+    if ( $authn->{ 'Verbose' } >= 1 ) {
+        Sling::Print::print_result( $authn );
+    }
+    return 1;
 }
 #}}}
 

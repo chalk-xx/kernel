@@ -147,10 +147,15 @@ connect with a particular type or set of types defined for the connection.
 =cut
 
 sub invite_setup {
-    my ( $baseURL, $invite ) = @_;
+    my ( $baseURL, $invite, $types ) = @_;
     die "No base URL provided to connect at!" unless defined $baseURL;
     die "No connection to invite given!" unless defined $invite;
-    my $postVariables = "\$postVariables = []";
+    my $postVariables = "\$postVariables = [";
+    foreach my $type ( @{ $types } ) {
+        $postVariables .= "'types','$type',";
+    }
+    $postVariables =~ s/,$//;
+    $postVariables .= "]";
     return "post $baseURL/_user/contacts/$invite.invite.html $postVariables";
 }
 #}}}

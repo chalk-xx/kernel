@@ -31,9 +31,9 @@ Function taking a string and converting to a GET or POST HTTP request.
 =cut
 
 sub string_to_request {
-    my ( $string, $auth, $verbose, $log ) = @_;
+    my ( $string, $authn, $verbose, $log ) = @_;
     die "No string defined to turn into request!" unless defined $string;
-    my $lwp = $$auth->{ 'LWP' };
+    my $lwp = $$authn->{ 'LWP' };
     die "No reference to an lwp user agent supplied!" unless defined $lwp;
     my ( $action, $target, @reqVariables ) = split( ' ', $string );
     my $request;
@@ -78,17 +78,9 @@ sub string_to_request {
     else {
         $request = GET "$target";
     }
-<<<<<<< HEAD:slingtests/osgikernel/testscripts/SlingPerl/Sling/Request.pm
-    if ( $$auth->{ 'Type' } =~ /^basic$/ ) {
-        my $username = $$auth->{ 'Username' };
-	my $password = $$auth->{ 'Password' };
-=======
-    if ( defined $lwp ) {
-print "FOO\n";
-        my $realm = Sling::URL::url_to_realm( $target );
-        my ( $username, $password ) = $$lwp->credentials( $realm, 'Sling (Development)' );
-print "BAR $username, $password $realm\n";
->>>>>>> aaron/master:slingtests/osgikernel/testscripts/SlingPerl/Sling/Request.pm
+    if ( $$authn->{ 'Type' } =~ /^basic$/ ) {
+        my $username = $$authn->{ 'Username' };
+	my $password = $$authn->{ 'Password' };
         if ( defined $username && defined $password ) {
 	    # Always add an Authorization header to deal with application not
 	    # properly requesting authentication to be sent:
@@ -96,10 +88,9 @@ print "BAR $username, $password $realm\n";
             $request->header( 'Authorization' => $encoded );
         }
     }
-    if ( $verbose >= 3 ) {
+    if ( $verbose >= 2 ) {
         Sling::Print::print_with_lock( "**** String representation of compiled request:\n" . $request->as_string, $log );
     }
-        print $request->as_string;
     return $request;
 }
 #}}}
@@ -120,12 +111,12 @@ sub request {
     my ( $object, $string ) = @_;
     die "No string defined to turn into request!" unless defined $string;
     die "No reference to a suitable object supplied!" unless defined $object;
-    my $auth = $$object->{ 'Auth' };
-    die "Object does not reference a suitable auth object" unless defined $auth;
+    my $authn = $$object->{ 'Authn' };
+    die "Object does not reference a suitable auth object" unless defined $authn;
     my $verbose = $$object->{ 'Verbose' };
     my $log = $$object->{ 'Log' };
-    my $lwp = $$auth->{ 'LWP' };
-    my $res = $$lwp->request( string_to_request( $string, $auth, $verbose, $log ) );
+    my $lwp = $$authn->{ 'LWP' };
+    my $res = $$lwp->request( string_to_request( $string, $authn, $verbose, $log ) );
     return \$res;
 }
 #}}}

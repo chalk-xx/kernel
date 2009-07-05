@@ -33,11 +33,11 @@ Create, set up, and return a User Agent.
 =cut
 
 sub new {
-    my ( $class, $auth, $verbose, $log ) = @_;
-    die "no auth provided!" unless defined $auth;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $user = { BaseURL => $$auth->{ 'BaseURL' },
-                 Auth => $auth,
+    my $user = { BaseURL => $$authn->{ 'BaseURL' },
+                 Authn => $authn,
 		 Message => "",
 		 Response => \$response,
 		 Verbose => $verbose,

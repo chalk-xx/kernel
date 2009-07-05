@@ -34,11 +34,11 @@ Create, set up, and return a Search object.
 =cut
 
 sub new {
-    my ( $class, $auth, $verbose, $log ) = @_;
-    die "no auth provided!" unless defined $auth;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $search = { BaseURL => $$auth->{ 'BaseURL' },
-                   Auth => $auth,
+    my $search = { BaseURL => $$authn->{ 'BaseURL' },
+                   Authn => $authn,
 		   Hits => 0,
 		   Message => "",
 		   Response => \$response,
