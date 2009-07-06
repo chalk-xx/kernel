@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.InvalidItemStateException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -203,6 +205,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
             otherUserId);
         Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
             thisUserId);
+        // NOTE: this is for temp testing of KERN-284
+        LOGGER.info("KERL-284: connect operating on "+thisNode.getPath()+" ("+thisNode.getUUID()
+            +") and "+otherNode.getPath()+" ("+otherNode.getUUID()+")");
 
         // check the current states
         ConnectionState thisState = getConnectionState(thisNode);
@@ -224,6 +229,24 @@ public class ConnectionManagerImpl implements ConnectionManager {
         // destroy the admin session
         adminSession.logout();
       }
+    } catch (InvalidItemStateException e) {
+      // NOTE: this is for temp testing of KERN-284
+      String msg = e.getMessage();
+      if (msg.endsWith("has been modified externally")) {
+        try {
+          String uuid = msg.split(" ")[0];
+          try {
+            Node n = session.getNodeByUUID(uuid);
+            msg += ": node ("+uuid+") path for failure: " + n.getPath();
+          } catch (ItemNotFoundException e1) {
+            msg += ": no node found with uuid: " + uuid;
+          }
+        } catch (Exception e1) {
+          msg += ": could not get the uuid out of the message";
+        }
+        LOGGER.error("KERL-284: " + msg);
+      }
+      throw new ConnectionException(500, e.getMessage(), e);
     } catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     }
