@@ -1,0 +1,18 @@
+Sakoader Install instructions
+-----------------------------
+
+1) You may well need to install a number of perl modules if they are not
+   already installed on your system in order to make SlingPerl work:
+
+   $ perl -MCPAN -e shell
+   cpan> install Crypt::SSLeay
+   cpan> install GD::Graph
+   cpan> install Getopt::Long
+   cpan> install HTTP::DAV
+   cpan> install JSON
+   cpan> install LWP::UserAgent
+   cpan> install MIME::Base64
+   cpan> install Pod::Usage
+   cpan> install Term::ANSIColor
+   cpan> install Text::CSV
+   cpan> install Time::HiRes

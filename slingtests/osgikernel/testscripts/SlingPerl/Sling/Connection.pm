@@ -185,8 +185,11 @@ sub invite {
     my $res = Sling::Request::request( \$connection,
         Sling::ConnectionUtil::invite_setup( $connection->{ 'BaseURL' }, $invite, $types ) );
     my $success = Sling::ConnectionUtil::invite_eval( $res );
+    my $authn = $connection->{ 'Authn' };
+    my $username = $$authn->{ 'Username' };
     my $message = "Invitation: ";
-    $message .= ( $success ? "issued " : "was not issued " ) . "to \"$invite\"";
+    $message .= ( $success ? "issued " : "was not issued " ) .
+        "to \"$invite\" by \"$username\".";
     $connection->set_results( "$message", $res );
     return $success;
 }
