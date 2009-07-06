@@ -75,7 +75,7 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
 
     try {
       Writer writer = response.getWriter();
-      PresenceUtils.makePresenceJSON(writer, user, presenceService, false);
+      PresenceUtils.makePresenceJSON(writer, user, presenceService);
     } catch (JSONException e) {
       LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
