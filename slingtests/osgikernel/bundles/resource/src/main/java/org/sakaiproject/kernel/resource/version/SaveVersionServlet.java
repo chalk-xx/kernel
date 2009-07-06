@@ -24,7 +24,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.jcr.JsonItemWriter;
-import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +74,7 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
         response.setBufferSize(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-      JcrUtils.logItem(LOGGER,node);
+      //JcrUtils.logItem(LOGGER,node);
       Version version = null;
       try {
         version = node.checkin();
@@ -84,20 +83,21 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
         node.save();
         version = node.checkin();
       }
-      JcrUtils.logItem(LOGGER,node);
+      //JcrUtils.logItem(LOGGER,node);
 
       node.checkout();
       if ( node.getSession().hasPendingChanges() ) {
         node.getSession().save();
       }
-      JcrUtils.logItem(LOGGER,node);
+      //JcrUtils.logItem(LOGGER,node);
       JsonItemWriter itemWriter = new JsonItemWriter(new HashSet<String>());
       itemWriter.dump(version, response.getWriter(), 2);
     } catch (RepositoryException e) {
-      LOGGER.info("Failed to save versio ",e);
+      LOGGER.info("Failed to save version ",e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     } catch (JSONException e) {
+      LOGGER.info("Failed to save version ",e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
