@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.api.connections;
 
+import java.util.List;
+
 import org.apache.sling.api.resource.Resource;
 
 /**
@@ -28,13 +30,24 @@ public interface ConnectionManager {
    * Handle a connection operation from the current user to another user
    * 
    * @param resource a Sling resource (like a JCR node) which represents the path to the contacts node (the base of the connections storage)
-   * @param userId the id of the user sending the invitation.
+   * @param thisUser the id of the user sending the invitation.
+   * @param otherUser the id of the user we are connecting to
    * @param operation the operation to perform when connecting (accept, reject, etc.)
-   * @param userId the id of the user we are connecting to
-   * @param requesterUserId [OPTIONAL] leave this null to use the current user OR set to the userId of the user who is making the request
    * @return the path to the connection node
    * @throws ConnectionException 
    */
   String connect(Resource resource, String thisUser, String otherUser, ConnectionOperation operation) throws ConnectionException;
+
+  /**
+   * This will get the listing of all users which this user is connected to
+   * optionally limited by state of the connection
+   * 
+   * @param user the id of the user to get connections for
+   * @param state [OPTIONAL] if null then all connections are returned regardless of state, otherwise
+   * the connections are only returned when they match the indicated state
+   * @return a list of user ids for all users connected to the given user (with the given state)
+   * @throws IllegalStateException if there is a failure in the system
+   */
+  List<String> getConnectedUsers(String user, ConnectionState state);
 
 }

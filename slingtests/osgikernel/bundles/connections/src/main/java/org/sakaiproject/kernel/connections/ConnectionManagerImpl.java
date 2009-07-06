@@ -53,12 +53,18 @@ import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 
 /**
  * Service for doing operations with connections.
@@ -211,7 +217,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
         StatePair sp = stateMap.get(tk(thisState, otherState, operation));
         if (sp == null) {
           throw new ConnectionException(400, "Cant perform operation "
-              + operation.toString() + " on " + thisState.toString() + ":" + otherState.toString());
+              + operation.toString() + " on " + thisState.toString() + ":"
+              + otherState.toString());
         }
         sp.transition(thisNode, otherNode);
 
@@ -228,6 +235,51 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throw new ConnectionException(500, e.getMessage(), e);
     }
     return path;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.connections.ConnectionManager#getConnectedUsers(java.lang.String,
+   *      org.sakaiproject.kernel.api.connections.ConnectionState)
+   */
+  public List<String> getConnectedUsers(String user, ConnectionState state) {
+    ArrayList<String> l = new ArrayList<String>();
+    // search string should look something like this
+    // "/_user/contacts/a0/b0/c0/d0/aaron//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]"
+    try {
+      Session adminSession = slingRepository.loginAdministrative(null);
+      try {
+        // TODO probably better not to hard code /_user/contacts but I am not sure how to
+        // avoid it right now -AZ
+        // this will generate the bigstore path
+        String connectionPath = ConnectionUtils.getConnectionPathBase("/_user/contacts",
+            user);
+        // create the search query string
+        String search = connectionPath + "//*[@"
+            + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY + "=\""
+            + ConnectionConstants.SAKAI_CONTACT_RT + "\"";
+        if (state != null) {
+          search += " and @" + ConnectionConstants.SAKAI_CONNECTION_STATE + "=\""
+              + state.name() + "\"]";
+        } else {
+          search += "]";
+        }
+        QueryManager qm = adminSession.getWorkspace().getQueryManager();
+        Query query = qm.createQuery(search, Query.XPATH);
+        QueryResult result = query.execute();
+        NodeIterator nodeIterator = result.getNodes();
+        while (nodeIterator.hasNext()) {
+          Node node = nodeIterator.nextNode();
+          l.add(node.getName());
+        }
+      } finally {
+        adminSession.logout();
+      }
+    } catch (RepositoryException e) {
+      throw new IllegalStateException(e.getMessage(), e);
+    }
+    return l;
   }
 
   private String contactsPathForConnectResource(Resource resource) {
@@ -251,7 +303,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
         path, user1, user2, ""));
     if (n.isNew()) {
-      n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, ConnectionConstants.SAKAI_CONTACT_RT);
+      n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          ConnectionConstants.SAKAI_CONTACT_RT);
       // setup the ACLs on the node.
       String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
       Authorizable authorizable = AccessControlUtil.getUserManager(session)
@@ -259,7 +312,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       addEntry(basePath, authorizable, session, WRITE_GRANTED,
           REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
           REMOVE_NODE_GRANTED);
-      LOGGER.info("Added ACL to [{}]",basePath);
+      LOGGER.info("Added ACL to [{}]", basePath);
     }
     return n;
   }
