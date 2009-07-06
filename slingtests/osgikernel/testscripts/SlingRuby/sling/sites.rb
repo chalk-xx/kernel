@@ -50,10 +50,16 @@ module SlingSites
       @sling = sling
     end
 
-    def create_site(path, title = "Test Site")
-      res = @sling.execute_post(path+".createsite.html", "sakai:title" => title )
+    def create_site(siteid, title = "Test Site")
+	  path = @sling.url_for(siteid)
+	  res = @sling.execute_post(path, "sakai:title" => title )
       if (res.code != "201")
-        puts "Unable to create site: #{res.code}"
+        puts "Unable to create site: #{res.code} #{res.body}"
+        return nil
+      end
+      res = @sling.execute_post(path+".createsite.json", "sakai:title" => title )
+      if (res.code != "200")
+        puts "Unable to create site: #{res.code} #{res.body}"
         return nil
       end
       return Site.new(@sling, path)
