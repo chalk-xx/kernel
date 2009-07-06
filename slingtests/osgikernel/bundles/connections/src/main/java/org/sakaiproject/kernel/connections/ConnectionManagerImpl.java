@@ -206,8 +206,20 @@ public class ConnectionManagerImpl implements ConnectionManager {
         Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
             thisUserId);
         // NOTE: this is for temp testing of KERN-284
-        LOGGER.info("KERN-284: connect operating on "+thisNode.getPath()+" ("+thisNode.getUUID()
-            +") and "+otherNode.getPath()+" ("+otherNode.getUUID()+")");
+        String tnp = null;
+        String tnuuid = null;
+        String onp = null;
+        String onuuid = null;
+        try {
+          tnp = thisNode.getPath();
+          onp = otherNode.getPath();
+          tnuuid = thisNode.getUUID();
+          onuuid = otherNode.getUUID();
+        } catch (Exception e) {
+          LOGGER.warn("KERN-284: Unable to get the data for a complete log: " + e);
+        }
+        LOGGER.info("KERN-284: connect operating on "+tnp+" ("+tnuuid+") and "+onp+" ("+onuuid+")");
+        // END KERN-284
 
         // check the current states
         ConnectionState thisState = getConnectionState(thisNode);
@@ -229,8 +241,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
         // destroy the admin session
         adminSession.logout();
       }
+
+    // NOTE: this is for temp testing of KERN-284
     } catch (InvalidItemStateException e) {
-      // NOTE: this is for temp testing of KERN-284
       String msg = e.getMessage();
       if (msg.endsWith("has been modified externally")) {
         try {
@@ -247,6 +260,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
         LOGGER.error("KERN-284: " + msg);
       }
       throw new ConnectionException(500, e.getMessage(), e);
+    // END KERN-284
+
     } catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     }
