@@ -37,6 +37,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       assertEquals("JCR Session not found", e.getMessage());
     }
+    verify();    
   }
 
   @Test
@@ -71,6 +72,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       assertEquals(exception, e.getMessage());
     }
+    verify();
   }
 
   @Test
@@ -97,6 +99,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       assertEquals("Password was not submitted", e.getMessage());
     }
+    verify();
   }
 
   @Test
@@ -125,5 +128,6 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
       assertEquals("Password value does not match the confirmation password", e
           .getMessage());
     }
+    verify();
   }
 }

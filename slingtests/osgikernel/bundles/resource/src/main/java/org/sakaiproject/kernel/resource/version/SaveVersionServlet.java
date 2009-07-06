@@ -71,7 +71,7 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
       if (node == null) {
-        response.setBufferSize(HttpServletResponse.SC_NOT_FOUND);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
       //JcrUtils.logItem(LOGGER,node);

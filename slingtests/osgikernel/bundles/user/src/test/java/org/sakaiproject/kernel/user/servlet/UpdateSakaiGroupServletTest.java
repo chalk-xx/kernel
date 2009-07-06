@@ -64,5 +64,7 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     replay();
 
     usgs.handleOperation(request, response, changes);
+    
+    verify();
   }
 }

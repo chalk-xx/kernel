@@ -37,5 +37,6 @@ public class DeleteSakaiAuthorizableServletTest extends AbstractEasyMockTest {
 
     replay();
     dsas.handleOperation(request, response, changes);
+    verify();
   }
 }

@@ -28,6 +28,7 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
 
     replay();
     assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    verify();
   }
 
   @Test
@@ -43,7 +44,6 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     Node contextNode = createMock(Node.class);
     expect(contextNode.hasProperty(JCR_CREATED_BY)).andReturn(true);
     expect(contextNode.getProperty(JCR_CREATED_BY)).andReturn(owner);
-    expect(contextNode.getPath()).andReturn("");
     expect(contextNode.getSession()).andReturn(session);
 
     Node aclNode = createMock(Node.class);
@@ -51,6 +51,7 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
 
     replay();
     assertTrue(opm.hasPrincipalInContext("owner", aclNode));
+    verify();
   }
 
   @Test
@@ -66,7 +67,6 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     Node contextNode = createMock(Node.class);
     expect(contextNode.hasProperty(JCR_CREATED_BY)).andReturn(true);
     expect(contextNode.getProperty(JCR_CREATED_BY)).andReturn(owner);
-    expect(contextNode.getPath()).andReturn("");
     expect(contextNode.getSession()).andReturn(session);
 
     Node aclNode = createMock(Node.class);
@@ -74,6 +74,7 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
 
     replay();
     assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    verify();
   }
 
   @Test
@@ -88,5 +89,6 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
 
     replay();
     assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    verify();
   }
 }
