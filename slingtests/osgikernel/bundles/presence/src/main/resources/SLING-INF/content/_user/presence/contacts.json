@@ -1,7 +1,0 @@
-{
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]",
-  "sling:resourceType": "sakai/search",
-  "sakai:propertyprovider" : "Connection",
-  "sakai:resultprocessor": "Presence"
-}
