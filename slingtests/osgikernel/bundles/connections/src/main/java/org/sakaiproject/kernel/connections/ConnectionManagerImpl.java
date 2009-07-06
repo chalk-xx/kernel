@@ -252,10 +252,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
             Node n = session.getNodeByUUID(uuid);
             msg += ": node ("+uuid+") path for failure: " + n.getPath();
           } catch (ItemNotFoundException e1) {
-            msg += ": no node found with uuid: " + uuid;
+            msg += ": no node found with uuid: " + uuid + " :" + e1;
           }
         } catch (Exception e1) {
-          msg += ": could not get the uuid out of the message";
+          msg += ": could not get the uuid out of the message: " + e1;
         }
         LOGGER.error("KERN-284: " + msg);
       }
