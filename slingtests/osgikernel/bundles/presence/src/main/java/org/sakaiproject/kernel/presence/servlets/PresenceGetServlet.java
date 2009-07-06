@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
  * @scr.property name="sling.servlet.methods" value="GET"
- * No selector currently //scr.property name="sling.servlet.selectors" value="status"
+ *  //scr.property name="sling.servlet.selectors" value="current"
  * @scr.property name="sling.servlet.extensions" value="json"
  * 
  * @scr.reference name="PresenceService"

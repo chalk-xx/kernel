@@ -17,14 +17,12 @@
  */
 package org.sakaiproject.kernel.presence;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -33,26 +31,23 @@ import org.sakaiproject.kernel.api.presence.PresenceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 /**
  * The <code>PresenceServiceImpl</code>
- */
-@Component(immediate = true, label = "PresenceServiceImpl", description = "Implementation of the presence service that uses replicated cache.", name = "org.sakaiproject.kernel.api.presence.PresenceService")
-@Service
-@Reference(name = "cacheManagerService", referenceInterface = org.sakaiproject.kernel.api.memory.CacheManagerService.class)
+ * 
+ * @scr.component immediate="true" label="Sakai Presence Service"
+ *                description="Service for getting info about the presence status and locations of current users" 
+ *                name="org.sakaiproject.kernel.api.presence.PresenceService"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.service interface="org.sakaiproject.kernel.api.presence.PresenceService"
+ * @scr.reference name="cacheManagerService"
+ *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
+ **/
 public class PresenceServiceImpl implements PresenceService {
 
-  private Logger logger = LoggerFactory.getLogger(PresenceServiceImpl.class);
-
-  @Property(value = "The Sakai Foundation")
-  static final String SERVICE_VENDOR = "service.vendor";
-
-  @Property(value = "Presence Service Implementation")
-  static final String SERVICE_DESCRIPTION = "service.description";
+  private Logger LOGGER = LoggerFactory.getLogger(PresenceServiceImpl.class);
 
   private static final String LOCATION_CACHE = "presence.location";
   private static final String USER_STATUS_CACHE = "presence.status";
@@ -62,9 +57,11 @@ public class PresenceServiceImpl implements PresenceService {
   private static final int LOCATION_ELEMENT = 2;
   private static final int STATUS_ELEMENT = 3;
   private static final int STATUS_SIZE = 4;
-  private CacheManagerService cacheManagerService;
+
   private Cache<String> userStatusCache;
   private Cache<Map<String, String>> locationCache;
+
+  private CacheManagerService cacheManagerService;
 
   protected void bindCacheManagerService(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
@@ -175,7 +172,7 @@ public class PresenceServiceImpl implements PresenceService {
         }
       }
     } else {
-      logger.warn("User status cache is null, check the cacheManager");
+      LOGGER.warn("User status cache is null, check the cacheManager");
     }
     return result;
   }
@@ -214,7 +211,7 @@ public class PresenceServiceImpl implements PresenceService {
         return onlineMap;
       }
     } else {
-      logger.warn("Location cache is null, check the cacheManager");
+      LOGGER.warn("Location cache is null, check the cacheManager");
     }
     return ImmutableMap.of();
   }
@@ -315,7 +312,7 @@ public class PresenceServiceImpl implements PresenceService {
         }
       }
     } else {
-      logger.warn("User status cache is null, check the cacheManager");
+      LOGGER.warn("User status cache is null, check the cacheManager");
     }
     return update;
   }
