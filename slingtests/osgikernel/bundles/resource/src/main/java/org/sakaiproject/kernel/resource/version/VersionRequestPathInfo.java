@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.resource.version;
 
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.sakaiproject.kernel.util.StringUtils;
 
 /**
  * 
@@ -41,36 +42,11 @@ public class VersionRequestPathInfo implements RequestPathInfo {
 
     resourcePath = sourceRequestPathInfo.getResourcePath();
     suffix = sourceRequestPathInfo.getSuffix();
-    String pathToSplit = sourceRequestPathInfo.getSelectorString();
-    int i = pathToSplit.indexOf('.', 1);
-    if (i < 0) {
-      pathToSplit = pathToSplit.substring(i + 1);
-      selectorString = null;
-      selectors = NO_SELECTORS;
-      extension = null;
-    } else {
+    extension = sourceRequestPathInfo.getExtension();
 
-      int lastDot = pathToSplit.lastIndexOf('.');
+    selectorString = removeVersionName(sourceRequestPathInfo.getSelectorString());
+    selectors = StringUtils.split(selectorString, '.');
 
-      if (lastDot <= 1) {
-
-        // no selectors if only extension exists or selectors is empty
-        selectorString = null;
-        selectors = NO_SELECTORS;
-
-      } else {
-
-        // no selectors if splitting would give an empty array
-        String tmpSel = pathToSplit.substring(1, lastDot);
-        selectors = tmpSel.split("\\.");
-        selectorString = (selectors.length > 0) ? tmpSel : null;
-
-      }
-
-      // extension only if lastDot is not trailing
-      extension = (lastDot + 1 < pathToSplit.length()) ? pathToSplit
-          .substring(lastDot + 1) : null;
-    }
   }
 
   private VersionRequestPathInfo(String resourcePath, String selectorString,
@@ -137,7 +113,7 @@ public class VersionRequestPathInfo implements RequestPathInfo {
 
   @Override
   public String toString() {
-    return "SlingRequestPathInfo: path='" + resourcePath + "'" + ", selectorString='"
+    return "VersonRequestPathInfo: path='" + resourcePath + "'" + ", selectorString='"
         + selectorString + "'" + ", extension='" + extension + "'" + ", suffix='"
         + suffix + "'";
   }
@@ -161,4 +137,37 @@ public class VersionRequestPathInfo implements RequestPathInfo {
   public String getResourcePath() {
     return resourcePath;
   }
+
+  /**
+   * @param suffix
+   * @return
+   */
+  protected static String removeVersionName(String suffix) {
+    if (suffix != null && suffix.startsWith("version.")) {
+      char[] sc = suffix.toCharArray();
+      int i = "version.".length();
+      if (sc[i] == '.') {
+        i++;
+      }
+      if (sc[i] == ',') {
+        i++;
+        while (i < sc.length && sc[i] != ',') {
+          i++;
+        }
+      }
+      while (i < sc.length && sc[i] != '.') {
+        i++;
+      }
+      // i is now pointing to the start of the new suffix.
+      i++;
+      if (i >= suffix.length()) {
+        return null;
+      } else {
+        System.err.println("String at "+i);
+        return suffix.substring(i);
+      }
+    }
+    return suffix;
+  }
+
 }

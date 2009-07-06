@@ -25,12 +25,10 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.json.jcr.JsonItemWriter;
-import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashSet;
 
@@ -101,10 +99,24 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
       int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
       
-      JcrUtils.logItem(LOGGER,node);
+      //JcrUtils.logItem(LOGGER,node);
 
       VersionHistory versionHistory = node.getVersionHistory();
       VersionIterator versionIterator = versionHistory.getAllVersions();
+      
+      long total = versionIterator.getSize();
+      long[] range = getInvertedRange(total,offset,nitems);
+      nitems = (int)(range[1] - range[0]);
+      Version[] versions = new Version[nitems];
+      versionIterator.skip(range[0]);
+      
+      int i = 0;
+      while (i < nitems && versionIterator.hasNext()) {
+        versions[i++] = versionIterator.nextVersion();
+      }   
+      
+      
+
       Writer writer = response.getWriter();
       JSONWriter write = new JSONWriter(writer);
       write.object();
@@ -113,17 +125,18 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       write.key(JSON_ITEMS);
       write.value(nitems);
       write.key(JSON_TOTAL);
-      write.value(versionIterator.getSize());
-      write.key(JSON_VERSIONS);
-      write.array();
+      write.value(total);
+      writer.append(", \"").append(JSON_VERSIONS).append("\": {");
       versionIterator.skip(offset);
-      int i = 0;
-      while (i < nitems && versionIterator.hasNext()) {
-        Version version = versionIterator.nextVersion();
-        JsonItemWriter itemWriter = new JsonItemWriter(new HashSet<String>());
-        itemWriter.dump(version, writer, 2);
+      JsonItemWriter itemWriter = new JsonItemWriter(new HashSet<String>());
+      for ( int j = versions.length-1;  j >=0; j-- ) {
+        writer.append("\"").append(versions[j].getName()).append("\": ");
+        itemWriter.dump(versions[j], writer, 2);
+        if (j != 0) {
+          writer.append(",");
+        }
       }
-      write.endArray();
+      writer.append("}");
       write.endObject();
     } catch (UnsupportedRepositoryOperationException e) {
       Writer writer = response.getWriter();
@@ -156,10 +169,41 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     } catch (JSONException e) {
+      LOGGER.info("Failed to get version History ", e);
       response.reset();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
+  }
+
+  /**
+   * @param total
+   * @param offset
+   * @param nitems
+   * @return
+   */
+  protected long[] getInvertedRange(long total, int offset, int nitems) {
+    long[] range = new long[2];
+    if ( total < 0 || nitems < 0 ) {
+      range[0] = 0;
+      range[1] = 0;
+      return range;
+    }
+    if ( offset < 0 ) {
+      offset = 0;
+    }
+    range[1] = total-offset;
+    range[0] = 0;
+    if ( range[1] < 0 ) {
+      range[1] = 0;
+      range[0] = 0;
+    } else {
+      range[0] = range[1] - nitems;
+      if ( range[0] < 0 ) {
+        range[0] = 0;
+      }
+    }
+    return range;
   }
 
   private int intRequestParameter(SlingHttpServletRequest request, String paramName,

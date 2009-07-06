@@ -25,7 +25,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.sakaiproject.kernel.util.StringUtils;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 
 import java.io.IOException;
 
@@ -64,27 +64,48 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     RequestPathInfo requestPathInfo = request.getRequestPathInfo();
-    String suffix = requestPathInfo.getSuffix();
+    String selectorString = requestPathInfo.getSelectorString();
 
-    String[] suffixParts = StringUtils.split(suffix, '.');
-
+    // the version might be encapsulated in , at each end.
+    String versionName = getVersionName(selectorString);
+    if ( versionName == null ) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,"No version specified, url should of the form nodepath.version.,versionnumber,.json");
+      return;
+    }
     Resource resource = request.getResource();
     Node node = resource.adaptTo(Node.class);
     Version versionNode = null;
     try {
-      versionNode = node.getVersionHistory().getVersion(suffixParts[0]);
+      versionNode = node.getVersionHistory().getVersion(versionName);
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
     Node vnode = null;
+    String vpath = null;
+    String vresourceType = null;
+    String vresourceSuperType = null;
     try {
       vnode = versionNode.getNode(JcrConstants.JCR_FROZENNODE);
+      vpath = vnode.getPath();
+      if (vnode.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+        vresourceType = vnode.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
+      } else {
+        vresourceType = vnode.getPrimaryNodeType().getName();
+      }
+      if (vnode.hasProperty(JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY)) {
+        vresourceSuperType = vnode.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_SUPER_TYPE_PROPERTY).getString();
+      }
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
     final Node finalNode = vnode;
+    final String path = vpath;
+    final String resourceType = vresourceType;
+    final String resourceSuperType = vresourceSuperType;
     final VersionRequestPathInfo versionRequestPathInfo = new VersionRequestPathInfo(
         requestPathInfo);
     ResourceWrapper resourceWrapper = new ResourceWrapper(resource) {
@@ -100,6 +121,36 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
           return (AdapterType) finalNode;
         }
         return super.adaptTo(type);
+      }
+
+      /**
+       * {@inheritDoc}
+       * 
+       * @see org.apache.sling.api.resource.ResourceWrapper#getPath()
+       */
+      @Override
+      public String getPath() {
+        return path;
+      }
+
+      /**
+       * {@inheritDoc}
+       * 
+       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceType()
+       */
+      @Override
+      public String getResourceType() {
+        return resourceType;
+      }
+
+      /**
+       * {@inheritDoc}
+       * 
+       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceSuperType()
+       */
+      @Override
+      public String getResourceSuperType() {
+        return resourceSuperType;
       }
 
     };
@@ -118,7 +169,33 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
 
     };
     request.getRequestDispatcher(resourceWrapper).forward(requestWrapper, response);
-    
+
+  }
+
+  /**
+   * @param suffix
+   * @return
+   */
+  protected String getVersionName(String selectorString) {
+    if (selectorString.startsWith("version.")) {
+      char[] ca = selectorString.toCharArray();
+      int i = "version.".length();
+      int j = i;
+      if ( i < ca.length && ca[i] == '.' ) {
+        i++;
+      }
+      
+      if ( i < ca.length && ca[i] == ',' ) {
+        i++;
+        j = i;
+        while(i < ca.length && ca[i] != ',') i++;
+      } else {
+        j = i;
+        while(i < ca.length && ca[i] != '.') i++;
+      }
+      return new String(ca,j,i-j);
+    }
+    return null;
   }
 
 }
