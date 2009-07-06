@@ -27,14 +27,16 @@ import java.util.HashSet;
 import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.nodetype.PropertyDefinition;
 
 /**
  * Utilities to make simple JCR operations easier and avoid duplication.
  */
 public class JcrUtils {
-
 
   /**
    * Deep creates a path.
@@ -103,11 +105,11 @@ public class JcrUtils {
    * @return
    * @throws RepositoryException
    */
-  public static Node deepGetOrCreateNode(Session session, String path) throws RepositoryException {
+  public static Node deepGetOrCreateNode(Session session, String path)
+      throws RepositoryException {
     return deepGetOrCreateNode(session, path, null);
   }
-  
-  
+
   /**
    * @throws RepositoryException
    * 
@@ -141,14 +143,35 @@ public class JcrUtils {
   /**
    * @param logger
    * @param node
-   * @throws JSONException 
-   * @throws RepositoryException 
+   * @throws JSONException
+   * @throws RepositoryException
    */
-  public static void logItem(Logger logger, Node node) throws RepositoryException, JSONException {
+  public static void logItem(Logger logger, Node node) throws RepositoryException,
+      JSONException {
     StringWriter sw = new StringWriter();
     JsonItemWriter dumpWriter = new JsonItemWriter(new HashSet<String>());
-    dumpWriter.dump(node, sw, 5,true);
-    logger.info("Node is {} ",sw.toString());
+    dumpWriter.dump(node, sw, 5, true);
+    logger.info("Node is {} ", sw.toString());
+  }
+
+  /**
+   * @param node
+   * @param propertyName
+   * @return
+   * @throws RepositoryException
+   */
+  public static Value[] getValues(Node node, String propertyName)
+      throws RepositoryException {
+    if (node.hasProperty(propertyName)) {
+      Property property = node.getProperty(propertyName);
+      PropertyDefinition pd = property.getDefinition();
+      if (pd.isMultiple()) {
+        return property.getValues();
+      } else {
+        return new Value[] {property.getValue()};
+      }
+    }
+    return new Value[] {};
   }
 
 }
