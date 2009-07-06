@@ -26,6 +26,14 @@ import java.util.Map;
  */
 public interface PresenceService {
 
+  public static final String PRESENCE_RESOURCE_TYPE = "sakai/presence";
+
+  public static final String PRESENCE_SEARCH_PROP = "_presence";
+
+  public static final String PRESENCE_STATUS_PROP = "sakai:status";
+
+  public static final String PRESENCE_LOCATION_PROP = "sakai:location";
+
   /**
    * keep presence for this user alive.
    * 
@@ -53,11 +61,26 @@ public interface PresenceService {
   void setStatus(String uuid, String status);
 
   /**
+   * This will clear the status and location for the given user
+   * 
+   * @param uuid
+   *          the user id of the user.
+   */
+  void clear(String uuid);
+
+  /**
    * @param uuid
    *          the user id.
-   * @return the status for the user.
+   * @return the status for the user (free text or matches key from {@link PresenceStatus})
    */
   String getStatus(String uuid);
+
+  /**
+   * @param uuid
+   *          the user id.
+   * @return the location of the user (null indicates none)
+   */
+  String getLocation(String uuid);
 
   /**
    * @param connections

@@ -29,6 +29,7 @@ import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.api.presence.PresenceService;
+import org.sakaiproject.kernel.api.presence.PresenceStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The <code>PresenceServiceImpl</code>
- * 
  */
-
 @Component(immediate = true, label = "PresenceServiceImpl", description = "Implementation of the presence service that uses replicated cache.", name = "org.sakaiproject.kernel.api.presence.PresenceService")
 @Service
 @Reference(name = "cacheManagerService", referenceInterface = org.sakaiproject.kernel.api.memory.CacheManagerService.class)
@@ -87,7 +86,6 @@ public class PresenceServiceImpl implements PresenceService {
 
   /**
    * {@inheritDoc}
-   * 
    * @see org.sakaiproject.kernel.api.presence.PresenceService#setStatus(java.lang.String,
    *      java.lang.String)
    */
@@ -97,20 +95,66 @@ public class PresenceServiceImpl implements PresenceService {
 
   /**
    * {@inheritDoc}
-   * 
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#clear(java.lang.String)
+   */
+  public void clear(String uuid) {
+    // see if there is a current status to clear
+    String[] currentStatus = getCurrentStatus(uuid);
+    if (currentStatus != null) {
+      if (userStatusCache != null) {
+        // clear the user from the status cache
+        if (userStatusCache.containsKey(uuid)) {
+          userStatusCache.remove(uuid);
+        }
+      }
+      // try to find the location and clear the user from that
+      String location = null;
+      if (currentStatus.length > LOCATION_ELEMENT) {
+        location = currentStatus[LOCATION_ELEMENT];
+      }
+      if (location != null && locationCache != null) {
+        // found the location so clear the user from within this cache
+        Map<String, String> locationInstanceCache = locationCache.get(location);
+        if (locationInstanceCache != null) {
+          if (locationInstanceCache.containsKey(uuid)) {
+            locationInstanceCache.remove(uuid);
+            locationCache.put(location, locationInstanceCache);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
    * @see org.sakaiproject.kernel.api.presence.PresenceService#getStatus(java.lang.String)
    */
   public String getStatus(String uuid) {
-    String result = "offline";
+    String result = PresenceStatus.offline.name();
     String[] currentStatus = getCurrentStatus(uuid);
     if (currentStatus != null) {
       if (currentStatus.length > STATUS_ELEMENT) {
         result = currentStatus[STATUS_ELEMENT];
       } else {
-        result = "online";
+        result = PresenceStatus.online.name();
       }
     }
     return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.presence.PresenceService#getLocation(java.lang.String)
+   */
+  public String getLocation(String uuid) {
+    String location = null;
+    String[] currentStatus = getCurrentStatus(uuid);
+    if (currentStatus != null) {
+      if (currentStatus.length > LOCATION_ELEMENT) {
+        location = currentStatus[LOCATION_ELEMENT];
+      }
+    }
+    return location;
   }
 
   private String[] getCurrentStatus(String uuid) {
@@ -143,10 +187,8 @@ public class PresenceServiceImpl implements PresenceService {
    *      java.util.List)
    */
   public Map<String, String> online(List<String> connections) {
-
     Map<String, String> online = Maps.newHashMap();
     for (String uuid : connections) {
-
       online.put(uuid, getStatus(uuid));
     }
     return online;
