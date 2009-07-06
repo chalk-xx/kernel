@@ -22,6 +22,8 @@ curl -u becky:becky -X POST http://localhost:8080/_user/contacts/aaron.accept.ht
 # try to get the status of the current user
 curl -u aaron:aaron http://localhost:8080/_user/presence.json
 curl -u becky:becky http://localhost:8080/_user/presence.json
+# check getting the status of my contacts
+curl -u aaron:aaron http://localhost:8080/_user/presence.contacts.json
 # try to change my status
 curl -u aaron:aaron -X PUT http://localhost:8080/_user/presence.json?sakai:status=Testing
 # get the new status to check it

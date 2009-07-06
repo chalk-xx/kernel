@@ -94,8 +94,6 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
     }
     LOGGER.info("GET to PresenceContactsServlet ("+user+")");
 
-    Session session = request.getResource().adaptTo(Session.class);
-
     try {
       Writer writer = response.getWriter();
       ExtendedJSONWriter output = new ExtendedJSONWriter(writer);
@@ -103,6 +101,7 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
       output.object();
       PresenceUtils.makePresenceJSON(output, user, presenceService, true);
       // add in the list of contacts info
+      Session session = request.getResource().adaptTo(Node.class).getSession();
       List<String> userIds = connectionManager.getConnectedUsers(user, ConnectionState.ACCEPTED);
       output.key("contacts");
       output.array();
