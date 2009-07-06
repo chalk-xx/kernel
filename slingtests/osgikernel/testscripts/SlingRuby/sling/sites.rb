@@ -50,13 +50,19 @@ module SlingSites
       @sling = sling
     end
 
-    def create_site(path, title = "Test Site")
-      res = @sling.execute_post(path+".createsite.html", "sakai:title" => title )
-      if (res.code != "201")
-        puts "Unable to create site: #{res.code}"
+# This will only create sites on nodes that already exist or nodes that 
+# are under a sakai/sites node
+# If posting to an existing node sitepath is ignored, if posting to sakai/site node
+# sitepath is used.
+
+    def create_site(sitecontainer, title = "Test Site", sitepath = "" )
+	  path = @sling.url_for(sitecontainer)
+      res = @sling.execute_post(path+".createsite.json", "sakai:title" => title, ":sitepath" => sitepath )
+      if (res.code != "200" && res.code != "201")
+        puts "Unable to create site: #{res.code} #{res.body}"
         return nil
       end
-      return Site.new(@sling, path)
+      return Site.new(@sling, sitecontainer+sitepath)
     end
 
     def delete_site(path)

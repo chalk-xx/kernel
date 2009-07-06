@@ -100,32 +100,24 @@ sub urlencode {
 }
 #}}}
 
-#{{{sub url_to_realm
+#{{{sub url_input_sanitize
 
 =pod
 
-=head2 url_to_realm
+=head2 url_input_sanitize
 
-Function to convert an url to a realm - Strips away the http or https and any
-query string or trailing path. Adds a port number definition.
+Sanitizes input url by removing trailing slashes and adding a protocol if
+missing.
 
 =cut
 
-sub url_to_realm {
+sub url_input_sanitize {
     my ( $url ) = @_;
-    my $realm = $url;
-    # Strip any query string:
-    $realm =~ s/(.*)\?.*?$/$1/;
-    # Strip everything after a first slash - including the slash:
-    $realm =~ s#(https?://|)([^/]*).*#$1$2#;
-    # Test if port is defined:
-    if ( $realm !~ /:[0-9]+$/ ) {
-        # No port specified yet, need to add one:
-        $realm = ( $realm =~ /^http:/ ? "$realm:80" : "$realm:443" );
-    }
-    # Strip the protocol for the realm:
-    $realm =~ s#https?://(.*)#$1#;
-    return $realm;
+    $url = ( defined $url ? $url : "http://localhost:8080" );
+    $url = ( $url !~ /^$/ ? $url : "http://localhost:8080" );
+    $url =~ s/(.*)\/$/$1/;
+    $url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+    return ( $url );
 }
 #}}}
 

@@ -33,12 +33,11 @@ Create, set up, and return a User Agent.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
-    die "url not defined!" unless defined $url;
-    die "no lwp user agent provided!" unless defined $lwpUserAgent;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $user = { BaseURL => "$url",
-                 LWP => $lwpUserAgent,
+    my $user = { BaseURL => $$authn->{ 'BaseURL' },
+                 Authn => $authn,
 		 Message => "",
 		 Response => \$response,
 		 Verbose => $verbose,
@@ -168,8 +167,8 @@ sub me {
     my ( $user ) = @_;
     my $res = Sling::Request::request( \$user,
         Sling::UserUtil::me_setup( $user->{ 'BaseURL' } ) );
-    my $success = Sling::UserUtil::me_eval( \$res );
-    my $message = ( $success ? $res->content : "Problem fetching details for current user" );
+    my $success = Sling::UserUtil::me_eval( $res );
+    my $message = ( $success ? $$res->content : "Problem fetching details for current user" );
     $user->set_results( "$message", $res );
     return $success;
 }

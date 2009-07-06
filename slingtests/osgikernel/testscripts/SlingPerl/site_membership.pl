@@ -11,22 +11,22 @@ in sling from the command line.
 Usage: perl site_membership.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --additions or -A (file)   - file containing list of members to be added to sites.
- --add or -a (member)       - add specified member.
- --auth (type)              - Specify auth type. If ommitted, default is used.
- --delete or -d (member)    - delete specified site member.
- --exists or -e (member)    - check whether specified member exists in site.
- --help or -?               - view the script synopsis and options.
- --log or -L (log)          - Log script output to specified log file.
- --man or -M                - view the full script documentation.
- --pass or -p (password)    - Password of user performing actions.
- --site or -s (actOnSite)   - site to perform membership actions on.
- --threads or -t (threads)  - Used with -A, defines number of parallel
-                              processes to have running through file.
- --url or -U (URL)          - URL for system being tested against.
- --user or -u (username)    - Name of user to perform any actions as.
- --verbose or -v            - Increase verbosity of output.
- --view or -V               - view members of specified site.
+ --additions or -A (file)       - file containing list of members to be added to sites.
+ --add or -a (member)           - add specified member.
+ --auth (type)                  - Specify auth type. If ommitted, default is used.
+ --delete or -d (member)        - delete specified site member.
+ --exists or -e (member)        - check whether specified member exists in site.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --pass or -p (password)        - Password of user performing actions.
+ --site or -s (actOnSite)       - site to perform membership actions on.
+ --threads or -t (threads)      - Used with -A, defines number of parallel
+                                  processes to have running through file.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u (username)        - Name of user to perform any actions as.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
+ --view or -V                   - view members of specified site.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -62,8 +62,9 @@ use strict;
 use lib qw ( .. );
 use Getopt::Long qw(:config bundling);
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Site;
-use Sling::UserAgent;
+use Sling::URL;
 #}}}
 
 #{{{options parsing
@@ -78,7 +79,7 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $viewMembers;
@@ -108,8 +109,7 @@ $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
 $numberForks = ( $numberForks < 32 ? $numberForks : 1 );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{main execution path
@@ -122,8 +122,8 @@ if ( defined $additions ) {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
 	    # Create a separate user agent per fork:
-            my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-            my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
+            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+            my $site = new Sling::Site( \$authn, $verbose, $log );
             $site->member_add_from_file( $additions, $i, $numberForks );
 	    exit( 0 );
 	}
@@ -134,8 +134,8 @@ if ( defined $additions ) {
     foreach ( @childs ) { waitpid( $_, 0 ); }
 }
 else {
-    my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-    my $site = new Sling::Site( $url, $lwpUserAgent, $verbose, $log );
+    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $site = new Sling::Site( \$authn, $verbose, $log );
 
     if ( defined $existsMember ) {
         $site->member_exists( $actOnSite, $existsMember );

@@ -65,7 +65,8 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
   /**
    *
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(SiteAuthorizeServlet.class);;
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SiteAuthorizeServlet.class);;
 
   /**
    * {@inheritDoc}
@@ -100,7 +101,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
         return;
       }
       Value[] groupValues = new Value[0];
-      if ( site.hasProperty(SiteService.AUTHORIZABLE)) {
+      if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Property groupProperty = site.getProperty(SiteService.AUTHORIZABLE);
         groupValues = groupProperty.getValues();
       }
@@ -143,49 +144,57 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
         // adjst the sites on each group added or removed.
         ValueFactory vf = session.getValueFactory();
-        LOGGER.info("Removing {} Site references to Site {} ",removed.size(),site.getPath());
-        
+        LOGGER.info("Removing {} Site references to Site {} ", removed.size(), site
+            .getPath());
+
         // remove old sites.
         for (Authorizable auth : removed.values()) {
-          Value[] v = auth.getProperty(SiteService.SITES);
-          if (v != null) {
-            List<Value> vnew = new ArrayList<Value>();
-            boolean r = false;
-            for (int i = 0; i < v.length; i++) {
-              if (!path.equals(v[i].getString())) {
-                vnew.add(v[i]);
-              } else {
-                LOGGER.info("Removing {}",path);
-                r = true;
+          if (auth.hasProperty(SiteService.SITES)) {
+            Value[] v = auth.getProperty(SiteService.SITES);
+            if (v != null) {
+              List<Value> vnew = new ArrayList<Value>();
+              boolean r = false;
+              for (int i = 0; i < v.length; i++) {
+                if (!path.equals(v[i].getString())) {
+                  vnew.add(v[i]);
+                } else {
+                  LOGGER.info("Removing {}", path);
+                  r = true;
+                }
               }
-            }
-            if (r) {
-              Value[] vnewa = vnew.toArray(new Value[0]);
-              auth.setProperty(SiteService.SITES, vnewa);
+              if (r) {
+                Value[] vnewa = vnew.toArray(new Value[0]);
+                auth.setProperty(SiteService.SITES, vnewa);
+              }
             }
           }
         }
 
-        LOGGER.info("Adding Site {} references to Site {} ",added.size(),site.getPath());
+        LOGGER
+            .info("Adding Site {} references to Site {} ", added.size(), site.getPath());
         // add new sites
         for (Authorizable auth : added.values()) {
-          Value[] v = auth.getProperty(SiteService.SITES);
+          Value[] v = null;
+          if ( auth.hasProperty(SiteService.SITES) ) {
+            v = auth.getProperty(SiteService.SITES);
+          }
           Value[] vnew = null;
           if (v == null) {
             vnew = new Value[1];
             vnew[0] = vf.createValue(path);
-            LOGGER.info("Adding Site {} to Group {} ",path,auth.getID());
+            LOGGER.info("Adding Site {} to Group {} ", path, auth.getID());
           } else {
             boolean a = true;
             for (int i = 0; i < v.length; i++) {
               if (path.equals(v[i].getString())) {
                 a = false;
-                LOGGER.info("Site {} already is present in Group {} ",path,auth.getID());
+                LOGGER
+                    .info("Site {} already is present in Group {} ", path, auth.getID());
                 break;
               }
             }
             if (a) {
-              LOGGER.info("Appending Site {} to Group {} ",path,auth.getID());
+              LOGGER.info("Appending Site {} to Group {} ", path, auth.getID());
               vnew = new Value[v.length + 1];
               System.arraycopy(v, 0, vnew, 0, v.length);
               vnew[v.length] = vf.createValue(path);
@@ -196,10 +205,10 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
             auth.setProperty(SiteService.SITES, vnew);
           }
         }
-        LOGGER.info("Done processing  Site {} ",path);
+        LOGGER.info("Done processing  Site {} ", path);
 
       } else {
-        LOGGER.info("No change to  Site {} ",path);
+        LOGGER.info("No change to  Site {} ", path);
 
       }
 
@@ -208,7 +217,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       }
       return;
     } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to service request: " + e.getMessage());
       return;

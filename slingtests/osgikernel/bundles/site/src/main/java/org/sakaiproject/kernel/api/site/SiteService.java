@@ -51,6 +51,12 @@ public interface SiteService {
    * The property used to store the sites a group is associated with.
    */
   public static final String SITES = "sakai:site";
+  /**
+   * The property returned with the groups info in the members listing
+   * (this is not and should not actually be stored on the node,
+   * it is generated on demand)
+   */
+  public static final String MEMBER_GROUPS = "member:groups";
 
   /**
    * The muntivalued property to store the list of associated authorizables.
@@ -184,7 +190,7 @@ public interface SiteService {
    * @throws SiteException
    *           thrown if there was a problem initiating the join workflow.
    */
-  void startJoinWorkfow(Node site, Group group) throws SiteException;
+  void startJoinWorkflow(Node site, Group group) throws SiteException;
 
   /**
    * @param site
@@ -196,7 +202,7 @@ public interface SiteService {
 
   /**
    * Unjoin a site, only if the user is a member of the group and the group is associated
-   * with the site. The user mist also be a member of the group.
+   * with the site. The user must also be a member of the group.
    * 
    * @param site
    *          the site containing the group.

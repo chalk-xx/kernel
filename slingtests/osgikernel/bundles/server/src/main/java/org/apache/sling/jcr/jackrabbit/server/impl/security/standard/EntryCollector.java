@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 /**
  * Implementations of this class collect together ACE's based on instance of the object
@@ -39,10 +38,11 @@ public interface EntryCollector {
    * 
    * @param aclNode
    * @param principalNamesToEntries
+   * @param orderedAccessControlEntries 
    * @throws RepositoryException
    */
   void collectEntries(NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> principalNamesToEntries)
+      Map<String, List<AccessControlEntry>> principalNamesToEntries, List<AccessControlEntry> orderedAccessControlEntries)
       throws RepositoryException;
 
 }

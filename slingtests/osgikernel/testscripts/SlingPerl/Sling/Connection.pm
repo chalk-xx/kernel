@@ -17,6 +17,7 @@ Perl library providing a layer of abstraction to the REST connection methods
 use strict;
 use lib qw ( .. );
 use JSON;
+use Text::CSV;
 use Sling::Print;
 use Sling::Request;
 use Sling::ConnectionUtil;
@@ -33,12 +34,11 @@ Create, set up, and return a Search object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
-    die "url not defined!" unless defined $url;
-    die "no lwp user agent provided!" unless defined $lwpUserAgent;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $connection = { BaseURL => "$url",
-                       LWP => $lwpUserAgent,
+    my $connection = { BaseURL => $$authn->{ 'BaseURL' },
+                       Authn => $authn,
 		       Message => "",
 		       Response => \$response,
 		       Verbose => $verbose,
@@ -80,6 +80,89 @@ sub block {
     $message .= ( $success ? "blocked " : "was not blocked " ) . "for \"$block\"";
     $connection->set_results( "$message", $res );
     return $success;
+}
+#}}}
+
+#{{{sub connect_from_file
+sub connect_from_file {
+    my ( $connection, $file, $forkId, $numberForks ) = @_;
+    my $csv = Text::CSV->new();
+    my $count = 0;
+    my $numberColumns = 0;
+    my @column_headings;
+    open ( FILE, $file );
+    while ( <FILE> ) {
+        if ( $count++ == 0 ) {
+	    # Parse file column headings first to determine field names:
+	    if ( $csv->parse( $_ ) ) {
+	        @column_headings = $csv->fields();
+		my @expected_column_headings = ( "user", "password", "action", "contact", "types" );
+		for ( my $i = 0 ; $i < @expected_column_headings; $i++ ) {
+		    my $expected = $expected_column_headings[$i];
+		    if ( $column_headings[$i] !~ /^$expected$/i ) {
+		        die "CSV column $i expected to be \"" . $expected . "\"" .
+		            "Found: \"" . $column_headings[$i] . "\".\n";
+		    }
+	        }
+		# First field must be group:
+		$numberColumns = @column_headings;
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+        elsif ( $forkId == ( $count++ % $numberForks ) ) {
+	    my @properties;
+	    if ( $csv->parse( $_ ) ) {
+	        my @columns = $csv->fields();
+		my $columns_size = @columns;
+		# Check row has same number of columns as there were column headings:
+		if ( $columns_size != $numberColumns ) {
+		    die "Found \"$columns_size\" columns. There should have been \"$numberColumns\".\n".
+		        "Row contents was: $_";
+		}
+		my $username = $columns[ 0 ];
+		my $password = $columns[ 1 ];
+		my $action = $columns[ 2 ];
+		my $contact = $columns[ 3 ];
+		my $connection_types = $columns[ 4 ];
+
+                my $authn = $connection->{ 'Authn' };
+                $$authn->switch_user( $username, $password );
+
+		if ( $action =~ /^accept$/ ) {
+                    $connection->accept( $contact );
+		}
+		elsif ( $action =~ /^block$/ ) {
+                    $connection->block( $contact );
+		}
+		elsif ( $action =~ /^ignore$/ ) {
+                    $connection->ignore( $contact );
+		}
+		elsif ( $action =~ /^invite$/ ) {
+		    my @types = split ( /,/, $connection_types );
+                    $connection->invite( $contact, \@types );
+		}
+		elsif ( $action =~ /^reject$/ ) {
+                    $connection->reject( $contact );
+		}
+		elsif ( $action =~ /^remove$/ ) {
+                    $connection->remove( $contact );
+		}
+		else {
+		    die "Invalid action type: \"$action\".\n" .
+		        "Row contents was: $_";
+		}
+
+		Sling::Print::print_result( $connection );
+	    }
+	    else {
+	        die "CSV broken, failed to parse line: " . $csv->error_input;
+	    }
+	}
+    }
+    close ( FILE ); 
+    return 1;
 }
 #}}}
 

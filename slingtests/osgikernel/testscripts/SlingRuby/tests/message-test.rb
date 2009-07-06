@@ -121,7 +121,15 @@ class TC_MyMessageTest < SlingTest
 	box = JSON.parse(res.body)
 	assert_equal(0,box["total"],"Should have given 0 entry in all boxes for aarono");
 
+
 	res = @mm.list_all()
+	assert_equal("200", res.code, "Expected to be able to list the outbox")
+	puts("List Of all for user aaron, should have 1 entry")
+	puts(res.body)
+	box = JSON.parse(res.body)
+	assert_equal(1,box["total"],"Should have given 1 entry in all boxes for aaron");
+
+	res = @mm.list_all_noopts()
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
 	puts("List Of all for user aaron, should have 1 entry")
 	puts(res.body)

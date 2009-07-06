@@ -90,7 +90,7 @@ public class SiteUnJoinServlet extends AbstractSiteServlet {
       getSiteService().unjoinSite(site, requestedGroup.getString());
       response.sendError(HttpServletResponse.SC_OK);
     } catch (SiteException ex) {
-      response.sendError(ex.getSatusCode(), ex.getMessage());
+      response.sendError(ex.getStatusCode(), ex.getMessage());
     }
     return;
 

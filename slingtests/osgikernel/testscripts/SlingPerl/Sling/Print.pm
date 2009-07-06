@@ -115,8 +115,8 @@ sub print_result {
     if ( $object->{ 'Verbose' } >= 1 ) {
 	$message .= "\n**** Status line was: ";
         $message .= ${ $object->{ 'Response' } }->status_line;
-        if ( $object->{ 'Verbose' } >= 2 ) {
-	    $message .= "\n**** Full Content of Response was: ";
+        if ( $object->{ 'Verbose' } >= 3 ) {
+	    $message .= "\n**** Full Content of Response was: \n";
             $message .= ${ $object->{ 'Response' } }->content;
         }
     }

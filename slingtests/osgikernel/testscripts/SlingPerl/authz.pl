@@ -13,28 +13,28 @@ Authz perl library.
 Usage: perl authz.pl [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 The following options are accepted:
 
- --auth (type)                 - Specify auth type. If ommitted, default is used.
- --delete or -d                - delete access control list for node for principal.
- --help or -?                  - view the script synopsis and options.
- --log or -L (log)             - Log script output to specified log file.
- --man or -M                   - view the full script documentation.
- --(no-)addChildNodes          - Grant or deny the addChildNodes privilege
- --(no-)all                    - Grant or deny all above privileges
- --(no-)modifyACL              - Grant or deny the modifyACL privilege
- --(no-)modifyProps            - Grant or deny the modifyProperties privilege
- --(no-)readACL                - Grant or deny the readACL privilege
- --(no-)read                   - Grant or deny the read privilege
- --(no-)removeChilds           - Grant or deny the removeChildNodes privilege
- --(no-)removeNode             - Grant or deny the removeNode privilege
- --(no-)write                  - Grant or deny the write privileges:
-                                 modifyProperties,addChildNodes,removeNode,removeChildNodes
- --pass or -p (password)       - Password of user performing content manipulations.
- --principal or -P (principal) - Principal to grant, deny, or delete privilege for.
- --remote or -r (remoteNode)   - specify remote node under JCR root to act on.
- --url or -U (URL)             - URL for system being tested against.
- --user or -u (username)       - Name of user to perform content manipulations as.
- --verbose or -v               - Increase verbosity of output.
- --view or -V                  - view access control list for node.
+ --auth (type)                  - Specify auth type. If ommitted, default is used.
+ --delete or -d                 - delete access control list for node for principal.
+ --help or -?                   - view the script synopsis and options.
+ --log or -L (log)              - Log script output to specified log file.
+ --man or -M                    - view the full script documentation.
+ --(no-)addChildNodes           - Grant or deny the addChildNodes privilege
+ --(no-)all                     - Grant or deny all above privileges
+ --(no-)modifyACL               - Grant or deny the modifyACL privilege
+ --(no-)modifyProps             - Grant or deny the modifyProperties privilege
+ --(no-)readACL                 - Grant or deny the readACL privilege
+ --(no-)read                    - Grant or deny the read privilege
+ --(no-)removeChilds            - Grant or deny the removeChildNodes privilege
+ --(no-)removeNode              - Grant or deny the removeNode privilege
+ --(no-)write                   - Grant or deny the write privileges:
+                                  modifyProperties,addChildNodes,removeNode,removeChildNodes
+ --pass or -p (password)        - Password of user performing content manipulations.
+ --principal or -P (principal)  - Principal to grant, deny, or delete privilege for.
+ --remote or -r (remoteNode)    - specify remote node under JCR root to act on.
+ --url or -U (URL)              - URL for system being tested against.
+ --user or -u (username)        - Name of user to perform content manipulations as.
+ --verbose or -v or -vv or -vvv - Increase verbosity of output.
+ --view or -V                   - view access control list for node.
 
 Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
@@ -82,10 +82,9 @@ The following privileges are not yet supported, but may be soon:
 #{{{imports
 use strict;
 use lib qw ( .. );
-use LWP::UserAgent ();
 use Pod::Usage;
+use Sling::Authn;
 use Sling::Authz;
-use Sling::UserAgent;
 use Sling::URL;
 use Getopt::Long qw(:config bundling);
 #}}}
@@ -99,7 +98,7 @@ my $man;
 my $password;
 my $principal;
 my $remoteNode;
-my $url = "http://localhost";
+my $url;
 my $username;
 my $verbose;
 my $view;
@@ -154,13 +153,12 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 $remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
 
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
+$url = Sling::URL::url_input_sanitize( $url );
 #}}}
 
 #{{{ main execution path
-my $lwpUserAgent = Sling::UserAgent::get_user_agent( $log, $url, $username, $password, $auth );
-my $authz = new Sling::Authz( $url, $lwpUserAgent, $verbose, $log );
+my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+my $authz = new Sling::Authz( \$authn, $verbose, $log );
 if ( defined $delete ) {
     $authz->delete( $remoteNode, $principal );
     Sling::Print::print_result( $authz );

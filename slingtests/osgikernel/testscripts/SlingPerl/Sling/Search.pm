@@ -34,12 +34,11 @@ Create, set up, and return a Search object.
 =cut
 
 sub new {
-    my ( $class, $url, $lwpUserAgent, $verbose, $log ) = @_;
-    die "url not defined!" unless defined $url;
-    die "no lwp user agent provided!" unless defined $lwpUserAgent;
+    my ( $class, $authn, $verbose, $log ) = @_;
+    die "no authn provided!" unless defined $authn;
     my $response;
-    my $search = { BaseURL => "$url",
-                   LWP => $lwpUserAgent,
+    my $search = { BaseURL => $$authn->{ 'BaseURL' },
+                   Authn => $authn,
 		   Hits => 0,
 		   Message => "",
 		   Response => \$response,

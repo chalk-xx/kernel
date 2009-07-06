@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.site.servlet;
 
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -27,16 +28,20 @@ import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -53,14 +58,12 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.selectors" value="members"
  * 
  */
-
-
-
 public class SiteMembersServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
+  @SuppressWarnings("unchecked")
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -71,8 +74,14 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       return;
     }
     if (!getSiteService().isSite(site)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "Location does not represent site ");
+      String loc = request.getContextPath();
+      try {
+        loc = site.getPath();
+      } catch (RepositoryException e) {
+        // NOTHING to do here but keep going
+      }
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Location (" + loc
+          + ") does not represent site");
       return;
     }
     RequestParameter startParam = request.getRequestParameter(SiteService.PARAM_START);
@@ -110,9 +119,18 @@ public class SiteMembersServlet extends AbstractSiteServlet {
     }
 
     try {
-      LOGGER.info("Finding members for  {}",site.getPath());
+      LOGGER.info("Finding members for: {} ", site.getPath());
       Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
-      LOGGER.info("Found members ");
+      // LOGGER.info("Found members: ", members.hasNext());
+
+      // get the list of group ids in this site
+      Set<String> siteGroupIds = new HashSet<String>();
+      Value[] vs = JcrUtils.getValues(site, SiteService.AUTHORIZABLE);
+      for (Value value : vs) {
+        if (value != null) {
+          siteGroupIds.add(value.getString());
+        }
+      }
 
       try {
         ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
@@ -122,7 +140,42 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           Resource resource = request.getResourceResolver().resolve(
               "/system/userManager/user/" + u.getID());
           ValueMap map = resource.adaptTo(ValueMap.class);
-          output.valueMap(map);
+          // add in the listing of member group names -
+          // http://jira.sakaiproject.org/browse/KERN-276
+          Set<String> groupIds = null;
+          Iterator<Group> groupsIterator = u.memberOf();
+          if (groupsIterator != null && groupsIterator.hasNext()) {
+            groupIds = new HashSet<String>();
+            for (Iterator<Group> iterator = groupsIterator; iterator.hasNext();) {
+              Group group = iterator.next();
+              groupIds.add(group.getID());
+            }
+          }
+
+          // create the JSON object
+          output.object();
+          output.valueMapInternals(map);
+          // add in the extra fields if there are any
+          if (groupIds != null && !groupIds.isEmpty()) {
+            // filter the group ids so only the ones which are part of this site are shown
+            for (Iterator<String> iterator = groupIds.iterator(); iterator.hasNext();) {
+              String groupId = iterator.next();
+              if (groupId.startsWith("g-")) {
+                // only filtering group names
+                if (!siteGroupIds.contains(groupId)) {
+                  iterator.remove();
+                }
+              }
+            }
+            // now output the array of group ids
+            output.key(SiteService.MEMBER_GROUPS);
+            output.array();
+            for (String name : groupIds) {
+              output.value(name);
+            }
+            output.endArray();
+          }
+          output.endObject();
         }
         output.endArray();
       } catch (JSONException e) {
@@ -133,9 +186,11 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       }
     } catch (Exception e) {
-      LOGGER.info(e.getMessage(), e);
+      LOGGER.warn(e.getMessage(), e);
+      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;
   }
+
 }

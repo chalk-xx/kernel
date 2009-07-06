@@ -59,7 +59,7 @@ my $man;
 my $numberForks = 1;
 my $password;
 my $remotePath;
-my $url = "http://localhost";
+my $url = "http://localhost:8080";
 my $username;
 
 GetOptions ( "a" => \$add,           "l=s" => \$localPath,
