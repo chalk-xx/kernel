@@ -27,7 +27,6 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +41,6 @@ import org.slf4j.LoggerFactory;
  * Not using the selector ///scr.property name="sling.servlet.selectors" value="current"
  * @scr.property name="sling.servlet.extensions" value="html"
  * 
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  * @scr.reference name="PresenceService"
  *                interface="org.sakaiproject.kernel.api.presence.PresenceService"
  */
@@ -62,16 +59,6 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   protected void unbindPresenceService(PresenceService presenceService) {
     this.presenceService = null;
-  }
-
-  protected ConnectionManager connectionManager;
-
-  protected void bindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  protected void unbindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = null;
   }
 
   @Override

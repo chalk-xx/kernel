@@ -144,7 +144,7 @@ public class PresenceServiceImpl implements PresenceService {
    * @see org.sakaiproject.kernel.api.presence.PresenceService#getLocation(java.lang.String)
    */
   public String getLocation(String uuid) {
-    String location = null;
+    String location = "none";
     String[] currentStatus = getCurrentStatus(uuid);
     if (currentStatus != null) {
       if (currentStatus.length > LOCATION_ELEMENT) {

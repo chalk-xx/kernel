@@ -19,6 +19,7 @@
 package org.sakaiproject.kernel.presence.servlets;
 
 import java.io.IOException;
+import java.io.Writer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +29,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.presence.PresenceService;
-import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.presence.PresenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,17 +74,8 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     LOGGER.info("GET to PresenceServlet ("+user+")");
 
     try {
-      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
-      output.object();
-      output.key("user");
-      output.value(user);
-      output.key(PresenceService.PRESENCE_STATUS_PROP);
-      String status = presenceService.getStatus(user);
-      output.value( status );
-      output.key(PresenceService.PRESENCE_LOCATION_PROP);
-      String location = presenceService.getLocation(user);
-      output.value( location );
-      output.endObject();
+      Writer writer = response.getWriter();
+      PresenceUtils.makePresenceJSON(writer, user, presenceService, false);
     } catch (JSONException e) {
       LOGGER.error(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
