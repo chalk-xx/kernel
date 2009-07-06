@@ -206,7 +206,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
             thisUserId);
         // NOTE: this is for temp testing of KERN-284
-        LOGGER.info("KERL-284: connect operating on "+thisNode.getPath()+" ("+thisNode.getUUID()
+        LOGGER.info("KERN-284: connect operating on "+thisNode.getPath()+" ("+thisNode.getUUID()
             +") and "+otherNode.getPath()+" ("+otherNode.getUUID()+")");
 
         // check the current states
@@ -244,7 +244,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         } catch (Exception e1) {
           msg += ": could not get the uuid out of the message";
         }
-        LOGGER.error("KERL-284: " + msg);
+        LOGGER.error("KERN-284: " + msg);
       }
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (RepositoryException e) {
