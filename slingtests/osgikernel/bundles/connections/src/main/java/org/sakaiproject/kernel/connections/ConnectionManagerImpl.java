@@ -40,6 +40,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -246,7 +247,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
   public List<String> getConnectedUsers(String user, ConnectionState state) {
     ArrayList<String> l = new ArrayList<String>();
     // search string should look something like this
-    // "/_user/contacts/a0/b0/c0/d0/aaron//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]"
+    // "//_user/contacts/a0/b0/c0/d0/aaron/*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\"]"
     try {
       Session adminSession = slingRepository.loginAdministrative(null);
       try {
@@ -256,9 +257,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
         String connectionPath = ConnectionUtils.getConnectionPathBase("/_user/contacts",
             user);
         // create the search query string
-        String search = connectionPath + "//*[@"
-            + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY + "=\""
-            + ConnectionConstants.SAKAI_CONTACT_RT + "\"";
+        String search = "/jcr:root" + ISO9075.encodePath(connectionPath)
+            + "//element(*)[@" + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY
+            + "=\"" + ConnectionConstants.SAKAI_CONTACT_RT + "\"";
         if (state != null) {
           search += " and @" + ConnectionConstants.SAKAI_CONNECTION_STATE + "=\""
               + state.name() + "\"]";
