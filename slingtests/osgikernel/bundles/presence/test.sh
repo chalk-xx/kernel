@@ -32,7 +32,11 @@ curl -u aaron:aaron http://localhost:8080/_user/presence.json
 curl -u aaron:aaron -X POST http://localhost:8080/_user/presence.json?sakai:location=Testing
 # get the new status to check it
 curl -u aaron:aaron http://localhost:8080/_user/presence.json
+# try to set both at once
+curl -u aaron:aaron -X PUT http://localhost:8080/_user/presence.json?sakai:status=Testing2&sakai:location=Testing2
+# get the new status to check it
+curl -u aaron:aaron http://localhost:8080/_user/presence.json
 # try to clear my status
 curl -u aaron:aaron -X DELETE http://localhost:8080/_user/presence.json
-# get the new status to check it
+# get the new status to check it is cleared
 curl -u aaron:aaron http://localhost:8080/_user/presence.json

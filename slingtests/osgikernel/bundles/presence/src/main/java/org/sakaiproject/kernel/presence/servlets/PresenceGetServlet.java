@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" value="GET"
- *  //scr.property name="sling.servlet.selectors" value="current"
+ * @scr.property name="sling.servlet.methods" value="GET" 
  * @scr.property name="sling.servlet.extensions" value="json"
  * 
  * @scr.reference name="PresenceService"
@@ -48,8 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PresenceGetServlet extends SlingAllMethodsServlet {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PresenceGetServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(PresenceGetServlet.class);
 
   private static final long serialVersionUID = 11111111L;
 
@@ -69,9 +67,10 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     // get current user
     String user = request.getRemoteUser();
     if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User must be logged in to check their status");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "User must be logged in to check their status");
     }
-    LOGGER.info("GET to PresenceServlet ("+user+")");
+    LOGGER.info("GET to PresenceServlet (" + user + ")");
 
     try {
       Writer writer = response.getWriter();

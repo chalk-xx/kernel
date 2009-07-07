@@ -42,8 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This servlet deals with GET and JSON only and outputs the contacts listing presence related to the current user,
- * only includes accepted contacts
+ * This servlet deals with GET and JSON only and outputs the contacts listing presence
+ * related to the current user, only includes accepted contacts
  * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
@@ -90,9 +90,10 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
     // get current user
     String user = request.getRemoteUser();
     if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User must be logged in to check their status");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "User must be logged in to check their status");
     }
-    LOGGER.info("GET to PresenceContactsServlet ("+user+")");
+    LOGGER.info("GET to PresenceContactsServlet (" + user + ")");
 
     try {
       Writer writer = response.getWriter();
@@ -102,7 +103,8 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
       PresenceUtils.makePresenceJSON(output, user, presenceService, true);
       // add in the list of contacts info
       Session session = request.getResource().adaptTo(Node.class).getSession();
-      List<String> userIds = connectionManager.getConnectedUsers(user, ConnectionState.ACCEPTED);
+      List<String> userIds = connectionManager.getConnectedUsers(user,
+          ConnectionState.ACCEPTED);
       output.key("contacts");
       output.array();
       for (String userId : userIds) {

@@ -34,11 +34,14 @@ import org.slf4j.LoggerFactory;
 /**
  * This servlet deals with HTML inputs only and the presence POST/DELETE requests
  * 
+ * Not using the sling selector here ///scr.property name="sling.servlet.selectors"
+ * value="current"
+ * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT" values.2="DELETE"
- * Not using the selector ///scr.property name="sling.servlet.selectors" value="current"
+ * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
+ *               values.2="DELETE"
  * @scr.property name="sling.servlet.extensions" value="html"
  * 
  * @scr.reference name="PresenceService"
@@ -67,17 +70,27 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     // get current user
     String user = request.getRemoteUser();
     if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User must be logged in to ping their status");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "User must be logged in to ping their status and set location");
     }
-    LOGGER.info("POST to PresenceServlet ("+user+")");
+    LOGGER.info("POST to PresenceControlServlet (" + user + ")");
 
     String location = null; // null location will clear the location
-    RequestParameter locationParam = request.getRequestParameter(PresenceService.PRESENCE_LOCATION_PROP);
+    RequestParameter locationParam = request
+        .getRequestParameter(PresenceService.PRESENCE_LOCATION_PROP);
     if (locationParam != null) {
       // update the status to something from the request parameter
       location = locationParam.getString("UTF-8");
     }
-    presenceService.ping(user, location);
+    try {
+      presenceService.ping(user, location);
+    } catch (Exception e) {
+      response
+          .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+              "Failure setting current user (" + user + ") location (" + location + "): "
+                  + e);
+    }
+    response.sendError(HttpServletResponse.SC_NO_CONTENT);
   }
 
   @Override
@@ -86,17 +99,37 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     // get current user
     String user = request.getRemoteUser();
     if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User must be logged in to set their status");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "User must be logged in to set their status");
     }
-    LOGGER.info("PUT to PresenceServlet ("+user+")");
+    LOGGER.info("PUT to PresenceControlServlet (" + user + ")");
 
     String status = null; // null status will clear the status
-    RequestParameter statusParam = request.getRequestParameter(PresenceService.PRESENCE_STATUS_PROP);
+    RequestParameter statusParam = request
+        .getRequestParameter(PresenceService.PRESENCE_STATUS_PROP);
     if (statusParam != null) {
       // update the status to something from the request parameter
       status = statusParam.getString("UTF-8");
     }
-    presenceService.setStatus(user, status);
+    // PUT allows a ping to happen as well to reduce number of requests
+    String location = null; // null location will cause no change
+    RequestParameter locationParam = request
+        .getRequestParameter(PresenceService.PRESENCE_LOCATION_PROP);
+    if (locationParam != null) {
+      // update the status to something from the request parameter
+      location = locationParam.getString("UTF-8");
+    }
+    try {
+      if (location != null) {
+        presenceService.ping(user, location);
+      }
+      presenceService.setStatus(user, status);
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failure setting current user (" + user + ") status (" + status + ")"
+              + (location == null ? "" : " and location (" + location + ")") + ": " + e);
+    }
+    response.sendError(HttpServletResponse.SC_NO_CONTENT);
   }
 
   @Override
@@ -105,11 +138,18 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     // get current user
     String user = request.getRemoteUser();
     if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User must be logged in to control their status");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "User must be logged in to control their status");
     }
-    LOGGER.info("DELETE to PresenceServlet ("+user+")");
+    LOGGER.info("DELETE to PresenceControlServlet (" + user + ")");
 
-    presenceService.clear(user);
+    try {
+      presenceService.clear(user);
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failure deleting current user (" + user + ") status: " + e);
+    }
+    response.sendError(HttpServletResponse.SC_NO_CONTENT);
   }
 
 }

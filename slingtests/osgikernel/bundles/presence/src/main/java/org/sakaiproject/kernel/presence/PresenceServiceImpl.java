@@ -127,6 +127,7 @@ public class PresenceServiceImpl implements PresenceService {
    * @see org.sakaiproject.kernel.api.presence.PresenceService#getStatus(java.lang.String)
    */
   public String getStatus(String uuid) {
+    // TODO should the default status really be offline if not set? -AZ
     String result = PresenceStatus.offline.name();
     String[] currentStatus = getCurrentStatus(uuid);
     if (currentStatus != null) {
