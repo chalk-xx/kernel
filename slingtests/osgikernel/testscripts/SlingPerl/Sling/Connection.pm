@@ -83,6 +83,19 @@ sub block {
 }
 #}}}
 
+#{{{sub cancel
+sub cancel {
+    my ( $connection, $cancel ) = @_;
+    my $res = Sling::Request::request( \$connection,
+        Sling::ConnectionUtil::cancel_setup( $connection->{ 'BaseURL' }, $cancel ) );
+    my $success = Sling::ConnectionUtil::cancel_eval( $res );
+    my $message = "Invitation: ";
+    $message .= ( $success ? "cancelled " : "was not cancelled " ) . "for \"$cancel\"";
+    $connection->set_results( "$message", $res );
+    return $success;
+}
+#}}}
+
 #{{{sub connect_from_file
 sub connect_from_file {
     my ( $connection, $file, $forkId, $numberForks ) = @_;

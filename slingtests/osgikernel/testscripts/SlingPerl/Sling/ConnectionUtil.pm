@@ -98,6 +98,43 @@ sub block_eval {
 }
 #}}}
 
+#{{{sub cancel_setup
+
+=pod
+
+=head2 cancel_setup
+
+Returns a textual representation of the request needed to cancel an invitation
+to connect.
+
+=cut
+
+sub cancel_setup {
+    my ( $baseURL, $cancel ) = @_;
+    die "No base URL provided to connect at!" unless defined $baseURL;
+    die "No connection to cancel given!" unless defined $cancel;
+    my $postVariables = "\$postVariables = []";
+    return "post $baseURL/_user/contacts/$cancel.cancel.html $postVariables";
+}
+#}}}
+
+#{{{sub cancel_eval
+
+=pod
+
+=head2 cancel_eval
+
+Returns true if the result returned from issuing the request generated in
+cancel_setup indicates cancelling the invitation was successful, else false.
+
+=cut
+
+sub cancel_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 #{{{sub ignore_setup
 
 =pod

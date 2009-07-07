@@ -139,6 +139,15 @@ sub switch_user {
     if ( ( $authn->{ 'Username' } !~ /^$new_username$/ ) || ( $authn->{ 'Password' } !~ /^$new_password$/ ) ) {
         $authn->{ 'Username' } = $new_username;
         $authn->{ 'Password' } = $new_password;
+        if ( $authn->{ 'Type' } =~ /^form$/ ) {
+	    # If we were previously using form auth then we must log
+	    # out with form auth, even if we are switching to basic auth.
+	    my $success = $authn->form_logout();
+	    if ( ! $success ) {
+	        die "Form Auth log out for user \"". $authn->{ 'Username' } .
+		    "\" at URL \"" . $authn->{ 'BaseURL' } . "\" was unsuccessful\n";
+	    }
+	}
         if ( defined $type ) {
             $authn->{ 'Type' } = $type;
         }
@@ -156,12 +165,7 @@ sub switch_user {
 	    }
         }
         elsif ( $authn ->{ 'Type' } =~ /^form$/ ) {
-	    my $success = $authn->form_logout();
-	    if ( ! $success ) {
-	        die "Form Auth log out for user \"$new_username\" at URL \"" .
-	            $authn->{ 'BaseURL' } . "\" was unsuccessful\n";
-	    }
-	    $success = $authn->form_login();
+	    my $success = $authn->form_login();
 	    if ( ! $success ) {
 	        die "Form Auth log in for user \"$new_username\" at URL \"" .
 	            $authn->{ 'BaseURL' } . "\" was unsuccessful\n";

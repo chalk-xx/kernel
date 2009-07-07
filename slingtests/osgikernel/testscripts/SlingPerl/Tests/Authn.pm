@@ -22,8 +22,9 @@ Run regression tests for the authn object.
 
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
-    # test user name:
-    my $test_user = "testing_user_$$";
+    # test user names:
+    my $test_user1 = "testing_user_1_$$";
+    my $test_user2 = "testing_user_2_$$";
     # test user pass:
     my $test_pass = "pass";
     # test properties:
@@ -39,30 +40,30 @@ sub run_regression_test {
         "Authn Test: Sling User Object successfully created." );
 
     # Add two users:
-    ok( $user->add( $test_user . "_1", $test_pass, \@test_properties ),
-        "Authn Test: User \"$test_user\" added successfully." );
-    ok( $user->exists( $test_user . "_1" ),
-        "Authn Test: User \"$test_user\" exists." );
-    ok( $user->add( $test_user . "_2", $test_pass, \@test_properties ),
-        "Authn Test: User \"$test_user\" added successfully." );
-    ok( $user->exists( $test_user . "_2" ),
-        "Authn Test: User \"$test_user\" exists." );
+    ok( $user->add( $test_user1, $test_pass, \@test_properties ),
+        "Authn Test: User \"$test_user1\" added successfully." );
+    ok( $user->exists( $test_user1 ),
+        "Authn Test: User \"$test_user1\" exists." );
+    ok( $user->add( $test_user2, $test_pass, \@test_properties ),
+        "Authn Test: User \"$test_user2\" added successfully." );
+    ok( $user->exists( $test_user2 ),
+        "Authn Test: User \"$test_user2\" exists." );
 
-    ok( $$authn->switch_user( $test_user . "_1", $test_pass, "basic", 1 ),
-        "Authn Test: Successfully switched to user: \"" . $test_user . "_1\" with basic auth" );
-    ok( $$authn->switch_user( $test_user . "_2", $test_pass, "form", 1 ),
-        "Authn Test: Successfully switched to user: \"" . $test_user . "_2\" with form auth" );
+    ok( $$authn->switch_user( $test_user1, $test_pass, "basic", 1 ),
+        "Authn Test: Successfully switched to user: \"$test_user1\" with basic auth" );
+    ok( $$authn->switch_user( $test_user2, $test_pass, "form", 1 ),
+        "Authn Test: Successfully switched to user: \"$test_user2\" with form auth" );
     ok( $$authn->switch_user( $super_user, $super_pass, "basic", 1 ),
-        "Authn Test: Successfully switched back to user: \"" . $super_user . "_1\" with basic auth" );
+        "Authn Test: Successfully switched back to user: \"$super_user\" with basic auth" );
 
-    ok( $user->delete( $test_user . "_1" ),
-        "Authn Test: User \"" . $test_user . "_1\" deleted successfully." );
-    ok( ! $user->exists( $test_user . "_1" ),
-        "Authn Test: User \"" . $test_user . "_1\" should no longer exist." );
-    ok( $user->delete( $test_user . "_2" ),
-        "Authn Test: User \"" . $test_user . "_2\" deleted successfully." );
-    ok( ! $user->exists( $test_user . "_2" ),
-        "Authn Test: User \"" . $test_user . "_2\" should no longer exist." );
+    ok( $user->delete( $test_user1 ),
+        "Authn Test: User \"$test_user1\" deleted successfully." );
+    ok( ! $user->exists( $test_user1 ),
+        "Authn Test: User \"$test_user1\" should no longer exist." );
+    ok( $user->delete( $test_user2 ),
+        "Authn Test: User \"$test_user2\" deleted successfully." );
+    ok( ! $user->exists( $test_user2 ),
+        "Authn Test: User \"$test_user2\" should no longer exist." );
 }
 #}}}
 

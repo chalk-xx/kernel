@@ -15,7 +15,8 @@ The following options are accepted:
  --accept (actOnUser)           - accept connection request from specified user.
  --additions or -A (file)       - file containing list of connections to be added.
  --auth (type)                  - Specify auth type. If ommitted, default is used.
- --block  (actOnUser)           - block connection request from specified user.
+ --block (actOnUser)            - block connection request from specified user.
+ --cancel (actOnUser)           - cancel connection request issued to specified user.
  --help or -?                   - view the script synopsis and options.
  --ignore (actOnUser)           - ignore connection request from specified user.
  --invite (actOnUser)           - invite specified user to connect.
@@ -52,23 +53,27 @@ For full details run: perl connection.pl --man
 
 =item Authenticate as testuser2 and accept invitation to connect from testuser1:
 
- perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --accept testuser2
+ perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --accept testuser1
 
 =item Authenticate as testuser2 and block invitation to connect from testuser1:
 
- perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --block testuser2
+ perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --block testuser1
+
+=item Authenticate as testuser1 and cancel invitation to connect issued to testuser2:
+
+ perl connection.pl -U http://localhost:8080 -u testuser1 -p pass --cancel testuser2
 
 =item Authenticate as testuser2 and ignore invitation to connect from testuser1:
 
- perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --ignore testuser2
+ perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --ignore testuser1
 
 =item Authenticate as testuser2 and reject invitation to connect from testuser1:
 
- perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --reject testuser2
+ perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --reject testuser1
 
 =item Authenticate as testuser2 and remove invitation to connect from testuser1:
 
- perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --remove testuser2
+ perl connection.pl -U http://localhost:8080 -u testuser2 -p pass --remove testuser1
 
 =item Authenticate as testuser and list accepted connections:
 
@@ -114,6 +119,7 @@ my $accept;
 my $additions;
 my $auth;
 my $block;
+my $cancel;
 my $help;
 my $ignore;
 my $invite;
@@ -141,6 +147,7 @@ GetOptions (
     "additions|A=s" => \$additions,
     "auth=s" => \$auth,
     "block=s" => \$block,
+    "cancel=s" => \$cancel,
     "help|?" => \$help,
     "ignore=s" => \$ignore,
     "invite=s" => \$invite,
@@ -201,6 +208,9 @@ else {
     }
     elsif ( defined $block ) {
         $connection->block( $block );
+    }
+    elsif ( defined $cancel ) {
+        $connection->cancel( $cancel );
     }
     elsif ( defined $ignore ) {
         $connection->ignore( $ignore );
