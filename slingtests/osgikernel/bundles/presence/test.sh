@@ -33,7 +33,7 @@ curl -u aaron:aaron -X POST http://localhost:8080/_user/presence.json?sakai:loca
 # get the new status to check it
 curl -u aaron:aaron http://localhost:8080/_user/presence.json
 # try to set both at once
-curl -u aaron:aaron -X PUT http://localhost:8080/_user/presence.json?sakai:status=Testing2&sakai:location=Testing2
+curl -u aaron:aaron -X PUT "http://localhost:8080/_user/presence.json?sakai:status=Testing2&sakai:location=Testing2"
 # get the new status to check it
 curl -u aaron:aaron http://localhost:8080/_user/presence.json
 # try to clear my status

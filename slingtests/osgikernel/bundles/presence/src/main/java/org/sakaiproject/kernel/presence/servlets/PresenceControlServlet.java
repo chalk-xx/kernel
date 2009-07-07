@@ -90,7 +90,8 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
               "Failure setting current user (" + user + ") location (" + location + "): "
                   + e);
     }
-    response.sendError(HttpServletResponse.SC_NO_CONTENT);
+    response.setContentLength(0);
+    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
   @Override
@@ -129,7 +130,8 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
           "Failure setting current user (" + user + ") status (" + status + ")"
               + (location == null ? "" : " and location (" + location + ")") + ": " + e);
     }
-    response.sendError(HttpServletResponse.SC_NO_CONTENT);
+    response.setContentLength(0);
+    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
   @Override
@@ -149,7 +151,8 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failure deleting current user (" + user + ") status: " + e);
     }
-    response.sendError(HttpServletResponse.SC_NO_CONTENT);
+    response.setContentLength(0);
+    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
 }
