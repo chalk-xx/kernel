@@ -54,10 +54,10 @@ class SlingTest < Test::Unit::TestCase
     return g
   end
 
-  def create_site(path)
-    s = @sm.create_site(path)
+  def create_site(path,title,id)
+    s = @sm.create_site(path,title,id)
     assert_not_nil(s, "Expected site to be created: #{path}")
-    @created_sites << path
+    @created_sites << (path+id)
     return s
   end
 
