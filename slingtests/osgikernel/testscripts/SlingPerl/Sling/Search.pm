@@ -78,7 +78,7 @@ sub search {
 	my $message = Sling::Print::dateTime .
 	    " Searching for \"$searchTerm\": Search OK. Found $hits hits. Time $timeElapse seconds.";
         $search->set_results( $hits, $message, $res, $timeElapse );
-	return 1;
+	return $hits;
     }
     else {
         my $message = Sling::Print::dateTime . " Searching for \"$searchTerm\": Search failed!";
