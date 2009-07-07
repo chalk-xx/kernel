@@ -56,6 +56,7 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
 
     replay();
     ggs.doGet(request, response);
+    verify();
   }
 
   @Test
@@ -82,6 +83,7 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
 
     replay();
     ggs.doGet(request, response);
+    verify();
   }
 
   @Test
@@ -90,12 +92,6 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
 
     Principal principal = createMock(Principal.class);
     expect(principal.getName()).andReturn("g-foo");
-
-    Principal member = createMock(Principal.class);
-    expect(member.getName()).andReturn("bar");
-
-    Authorizable memberAuth = createMock(Authorizable.class);
-    expect(memberAuth.getPrincipal()).andReturn(member);
 
     ArrayList<Authorizable> al = new ArrayList<Authorizable>();
 
@@ -132,6 +128,7 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
 
     replay();
     ggs.doGet(request, response);
+    verify();
   }
 
   @Test
@@ -175,5 +172,6 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
 
     replay();
     ggs.doGet(request, response);
+    verify();
   }
 }

@@ -58,6 +58,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       assertEquals(expectedMessage, e.getMessage());
     }
+    verify();
   }
 
   @Test
@@ -81,6 +82,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       assertEquals("JCR Session not found", e.getMessage());
     }
+    verify();
   }
 
   @Test
@@ -122,6 +124,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
           "Failed to create new group.: A principal already exists with the requested name: g-foo",
           e.getMessage());
     }
+    verify();
   }
 
   @Test
@@ -182,5 +185,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     } catch (RepositoryException e) {
       e.printStackTrace();
     }
+    verify();
   }
 }
