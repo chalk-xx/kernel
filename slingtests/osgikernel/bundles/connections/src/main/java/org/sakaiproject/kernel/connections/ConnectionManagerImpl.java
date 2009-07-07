@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.InvalidItemStateException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -203,6 +205,21 @@ public class ConnectionManagerImpl implements ConnectionManager {
             otherUserId);
         Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
             thisUserId);
+        // NOTE: this is for temp testing of KERN-284
+        String tnp = null;
+        String tnuuid = null;
+        String onp = null;
+        String onuuid = null;
+        try {
+          tnp = thisNode.getPath();
+          onp = otherNode.getPath();
+          tnuuid = thisNode.getUUID();
+          onuuid = otherNode.getUUID();
+        } catch (Exception e) {
+          LOGGER.warn("KERN-284: Unable to get the data for a complete log: " + e);
+        }
+        LOGGER.info("KERN-284: connect operating on "+tnp+" ("+tnuuid+") and "+onp+" ("+onuuid+")");
+        // END KERN-284
 
         // check the current states
         ConnectionState thisState = getConnectionState(thisNode);
@@ -224,6 +241,27 @@ public class ConnectionManagerImpl implements ConnectionManager {
         // destroy the admin session
         adminSession.logout();
       }
+
+    // NOTE: this is for temp testing of KERN-284
+    } catch (InvalidItemStateException e) {
+      String msg = e.getMessage();
+      if (msg.endsWith("has been modified externally")) {
+        try {
+          String uuid = msg.split(" ")[0];
+          try {
+            Node n = session.getNodeByUUID(uuid);
+            msg += ": node ("+uuid+") path for failure: " + n.getPath();
+          } catch (ItemNotFoundException e1) {
+            msg += ": no node found with uuid: " + uuid + " :" + e1;
+          }
+        } catch (Exception e1) {
+          msg += ": could not get the uuid out of the message: " + e1;
+        }
+        LOGGER.error("KERN-284: " + msg);
+      }
+      throw new ConnectionException(500, e.getMessage(), e);
+    // END KERN-284
+
     } catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     }
