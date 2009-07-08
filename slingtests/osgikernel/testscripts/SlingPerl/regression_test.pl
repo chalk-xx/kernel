@@ -20,6 +20,7 @@ The following options are accepted:
  --log or -L (log)              - Log script output to specified log file.
  --man or -M                    - view the full script documentation.
  --pass or -p (password)        - Password of system super user.
+ --presence                     - run presence regression tests.
  --site                         - run site regression tests.
  --superuser or -u (username)   - User ID of system super user.
  --threads or -t (threads)      - Defines number of parallel processes
@@ -60,6 +61,7 @@ use Tests::Authn;
 use Tests::Connection;
 use Tests::Content;
 use Tests::Group;
+use Tests::Presence;
 use Tests::Search;
 use Tests::Site;
 use Tests::User;
@@ -76,6 +78,7 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
+my $presence_test;
 my $search_test;
 my $site_test;
 my $url;
@@ -93,6 +96,7 @@ GetOptions (
     "log|L=s" => \$log,
     "man|M" => \$man,
     "pass|p=s" => \$password,
+    "presence" => \$presence_test,
     "search" => \$search_test,
     "site" => \$site_test,
     "superuser|u=s" => \$username,
@@ -112,7 +116,7 @@ die "Test super user password not defined" unless defined $password;
 
 my $auth; # Just use default auth
 
-my @all_tests_list = ( "Authn", "Connection", "Content", "Group", "Search", "Site", "User" );
+my @all_tests_list = ( "Authn", "Connection", "Content", "Group", "Presence", "Search", "Site", "User" );
 my @tests_selected = ();
 
 if ( $all_tests ) {
@@ -130,6 +134,9 @@ else {
     }
     if ( $group_test ) {
         push ( @tests_selected, "Group" );
+    }
+    if ( $presence_test ) {
+        push ( @tests_selected, "Presence" );
     }
     if ( $search_test ) {
         push ( @tests_selected, "Search" );
@@ -168,6 +175,9 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	    }
 	    elsif ( $test =~ /^Group$/ ) {
                 Tests::Group::run_regression_test( \$authn, $verbose, $log );
+	    }
+	    elsif ( $test =~ /^Presence$/ ) {
+                Tests::Presence::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    elsif ( $test =~ /^Search$/ ) {
                 Tests::Search::run_regression_test( \$authn, $verbose, $log );

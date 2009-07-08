@@ -45,6 +45,8 @@ sub run_regression_test {
     # Run tests:
     ok( defined $user,
         "Connection Test: Sling User Object successfully created." );
+    ok( defined $connection,
+        "Connection Test: Sling Connection Object successfully created." );
 
     ok( $user->add( $test_user1, $test_pass, \@test_properties ),
         "Connection Test: User \"$test_user1\" added successfully." );

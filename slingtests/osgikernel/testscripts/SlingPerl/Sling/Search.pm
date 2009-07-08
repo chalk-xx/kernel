@@ -16,7 +16,6 @@ Perl library providing a layer of abstraction to the REST search methods
 #{{{imports
 use strict;
 use lib qw ( .. );
-use Fcntl ':flock';
 use Time::HiRes;
 use Sling::Print;
 use Sling::Request;
