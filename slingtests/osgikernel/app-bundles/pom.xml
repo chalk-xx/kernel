@@ -214,6 +214,11 @@
       <artifactId>org.apache.sling.jcr.resource</artifactId>
       <version>2.0.5-sakai-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
+      <version>2.0.3-sakai-SNAPSHOT</version>
+    </dependency>
     
     
     <!--  OSGi bundles -->
@@ -372,7 +377,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>

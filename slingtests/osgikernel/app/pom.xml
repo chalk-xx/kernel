@@ -73,6 +73,7 @@
             <configuration>
               <includeArtifactIds> org.apache.sling.launchpad.bundles </includeArtifactIds>
               <excludes> resources/bundles/**/org.apache.sling.jcr.jackrabbit.usermanager*,
+                         resources/bundles/**/org.apache.sling.jcr.jackrabbit.accessmanager*,
                          resources/bundles/**/org.apache.sling.jcr.jackrabbit.server*,
                          resources/bundles/**/org.apache.sling.api*,
                          resources/bundles/**/org.apache.sling.jcr.resource*  </excludes>

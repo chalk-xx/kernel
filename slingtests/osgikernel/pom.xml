@@ -78,6 +78,7 @@
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/api</module>
         <module>bundles/sling/resource</module>
+        <module>bundles/sling/accessmanager</module>
       </modules>
     </profile>
     <profile>
