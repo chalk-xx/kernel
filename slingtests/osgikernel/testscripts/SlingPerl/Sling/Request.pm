@@ -15,7 +15,7 @@ Utility library providing useful utility functions for general Request functiona
 #{{{imports
 use strict;
 use lib qw ( .. );
-use HTTP::Request::Common qw(GET POST);
+use HTTP::Request::Common qw(DELETE GET POST PUT);
 use MIME::Base64;
 use Sling::Print;
 #}}}
@@ -74,6 +74,12 @@ sub string_to_request {
 	}
 	push ( @{ $postVariables }, $filename => [ "$file" ] );
 	$request = POST ( "$target", $postVariables, 'Content_Type' => 'form-data' );
+    }
+    elsif ( $action =~ /^put$/ ) {
+        $request = PUT "$target";
+    }
+    elsif ( $action =~ /^delete$/ ) {
+        $request = DELETE "$target";
     }
     else {
         $request = GET "$target";
