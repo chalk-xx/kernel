@@ -29,7 +29,7 @@ use Sling::ConnectionUtil;
 
 =head2 new
 
-Create, set up, and return a Search object.
+Create, set up, and return a Connection object.
 
 =cut
 
