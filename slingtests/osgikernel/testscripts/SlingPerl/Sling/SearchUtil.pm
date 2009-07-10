@@ -59,4 +59,74 @@ sub search_eval {
 }
 #}}}
 
+#{{{sub search_sites_setup
+
+=pod
+
+=head2 search_sites_setup
+
+Returns a textual representation of the request needed to search the system.
+
+=cut
+
+sub search_sites_setup {
+    my ( $baseURL, $searchTerm ) = @_;
+    die "No base URL provided to search against!" unless defined $baseURL;
+    die "No search term provided!" unless defined $searchTerm;
+    $searchTerm = Sling::URL::urlencode( $searchTerm );
+    return "get $baseURL/var/search/sites.json?q=$searchTerm";
+}
+#}}}
+
+#{{{sub search_sites_eval
+
+=pod
+
+=head2 search_sites_eval
+
+Check result of system search.
+
+=cut
+
+sub search_sites_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub search_users_setup
+
+=pod
+
+=head2 search_users_setup
+
+Returns a textual representation of the request needed to search the system.
+
+=cut
+
+sub search_users_setup {
+    my ( $baseURL, $searchTerm ) = @_;
+    die "No base URL provided to search against!" unless defined $baseURL;
+    die "No search term provided!" unless defined $searchTerm;
+    $searchTerm = Sling::URL::urlencode( $searchTerm );
+    return "get $baseURL/var/search/users.json?username=$searchTerm";
+}
+#}}}
+
+#{{{sub search_users_eval
+
+=pod
+
+=head2 search_users_eval
+
+Check result of system search.
+
+=cut
+
+sub search_users_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 1;

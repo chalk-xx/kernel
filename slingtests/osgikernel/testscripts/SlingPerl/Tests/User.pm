@@ -22,7 +22,7 @@ Run regression tests for the user object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test user name:
-    my $test_user = "testing_user_$$";
+    my $test_user = "user_test_user_$$";
     # test user pass:
     my $test_pass = "pass";
     # test properties:

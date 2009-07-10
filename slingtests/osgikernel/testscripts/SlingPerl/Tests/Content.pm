@@ -22,7 +22,7 @@ Run regression tests for the content object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test content name:
-    my $test_content = "testing_content_$$";
+    my $test_content = "content_test_content_$$";
     # test properties:
     my @test_properties;
     # Sling content object:

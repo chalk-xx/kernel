@@ -29,7 +29,7 @@ use Sling::PresenceUtil;
 
 =head2 new
 
-Create, set up, and return a Search object.
+Create, set up, and return a Presence object.
 
 =cut
 

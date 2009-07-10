@@ -23,13 +23,13 @@ Run regression tests for the user object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test users:
-    my $test_user1 = "testing_user_1_$$";
-    my $test_user2 = "testing_user_2_$$";
-    my $test_user3 = "testing_user_3_$$";
-    my $test_user4 = "testing_user_4_$$";
-    my $test_user5 = "testing_user_5_$$";
-    my $test_user6 = "testing_user_6_$$";
-    my $test_user7 = "testing_user_7_$$";
+    my $test_user1 = "connection_test_user_1_$$";
+    my $test_user2 = "connection_test_user_2_$$";
+    my $test_user3 = "connection_test_user_3_$$";
+    my $test_user4 = "connection_test_user_4_$$";
+    my $test_user5 = "connection_test_user_5_$$";
+    my $test_user6 = "connection_test_user_6_$$";
+    my $test_user7 = "connection_test_user_7_$$";
     # test user pass:
     my $test_pass = "pass";
     # test properties:

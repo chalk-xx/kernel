@@ -22,7 +22,7 @@ Run regression tests for the site object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test site name:
-    my $test_site = "testing_site_$$";
+    my $test_site = "site_test_site_$$";
     # test template:
     my $test_template;
     # test properties:
@@ -33,7 +33,7 @@ sub run_regression_test {
     my $site = new Sling::Site( $authn, $verbose, $log );
 
     # test user name:
-    my $test_user = "testing_user_$$";
+    my $test_user = "site_test_user_$$";
     # test user pass:
     my $test_pass = "pass";
     # Sling user object:

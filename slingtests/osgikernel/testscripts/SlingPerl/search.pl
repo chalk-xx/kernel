@@ -18,7 +18,9 @@ The following options are accepted:
  --log or -L (log)              - Log script output to specified log file.
  --man or -M                    - view the full script documentation.
  --pass or -p (password)        - Password of user performing searches.
- --search or -s (SearchTerm)    - Term to search in the system for.
+ --search-content or -s (term)  - Search for term within the content space.
+ --search-users (term)          - Search for term within the user space.
+ --search-sites (term)          - Search for term within the site space.
  --threads or -t (threads)      - Used with -F, defines number of parallel
                                   processes to have running through file.
  --url or -U (URL)              - URL for system being tested against.
@@ -60,7 +62,9 @@ my $log;
 my $man;
 my $numberForks = 1;
 my $password;
-my $searchTerm;
+my $search_content;
+my $search_sites;
+my $search_users;
 my $url;
 my $username;
 my $verbose;
@@ -72,7 +76,9 @@ GetOptions (
     "log|L=s" => \$log,
     "man|M" => \$man,
     "pass|p=s" => \$password,
-    "search|s=s" => \$searchTerm,
+    "search-content|s=s" => \$search_content,
+    "search-sites=s" => \$search_sites,
+    "search-users=s" => \$search_users,
     "threads|t=i" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
@@ -112,8 +118,14 @@ if ( defined $file ) {
 else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
     my $search = new Sling::Search( \$authn, $verbose, $log );
-    if ( defined $searchTerm ) {
-        $search->search( $searchTerm );
+    if ( defined $search_content ) {
+        $search->search( $search_content );
+    }
+    elsif ( defined $search_sites ) {
+        $search->search_sites( $search_sites );
+    }
+    elsif ( defined $search_users ) {
+        $search->search_users( $search_users );
     }
     Sling::Print::print_result( $search );
 }

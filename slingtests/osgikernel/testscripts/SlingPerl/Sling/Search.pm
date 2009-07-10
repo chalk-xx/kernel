@@ -16,6 +16,7 @@ Perl library providing a layer of abstraction to the REST search methods
 #{{{imports
 use strict;
 use lib qw ( .. );
+use JSON;
 use Time::HiRes;
 use Sling::Print;
 use Sling::Request;
@@ -69,13 +70,10 @@ sub search {
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_eval( $res ) ) {
-	my $hits = ($$res->content);
-	$hits =~ s/.*?"total":([0-9]+).*/$1/;
-	# Check hits total was correctly extracted:
-	$hits = ( ( $hits =~ /^[0-9]+/ ) ? $hits : die "Problem calculating number of search hits!" );
+        my $hits = from_json( $$res->content )->{ 'total' };
 	# TODO make timeElapse significant to about 3 decimal places only in printed output.
 	my $message = Sling::Print::dateTime .
-	    " Searching for \"$searchTerm\": Search OK. Found $hits hits. Time $timeElapse seconds.";
+	    " Searching for \"$searchTerm\": Search OK. Found $hits hit(s). Time $timeElapse seconds.";
         $search->set_results( $hits, $message, $res, $timeElapse );
 	return $hits;
     }
@@ -87,22 +85,59 @@ sub search {
 }
 #}}}
 
-#{{{sub search_all
-sub search_all {
+#{{{sub search_sites
+sub search_sites {
     my ( $search, $searchTerm ) = @_;
-    $search->search( $search, $searchTerm, "/" );
+    my $startTime = Time::HiRes::time;
+    my $res = Sling::Request::request( \$search,
+        Sling::SearchUtil::search_sites_setup( $search->{ 'BaseURL' }, $searchTerm ) );
+    my $endTime = Time::HiRes::time;
+    my $timeElapse = $endTime - $startTime;
+    if ( Sling::SearchUtil::search_sites_eval( $res ) ) {
+        my $hits = from_json( $$res->content )->{ 'total' };
+	# TODO make timeElapse significant to about 3 decimal places only in printed output.
+	my $message = Sling::Print::dateTime .
+	    " Searching for \"$searchTerm\": Search OK. Found $hits hit(s). Time $timeElapse seconds.";
+	my $results = from_json( $$res->content )->{ 'results' };
+        foreach my $result ( @{ $results } ) {
+	    $message .= "\n" . $result->{ 'path' };
+	}
+        $search->set_results( $hits, $message, $res, $timeElapse );
+	return $hits;
+    }
+    else {
+        my $message = Sling::Print::dateTime . " Searching for \"$searchTerm\": Search failed!";
+        $search->set_results( 0, $message, $res, $timeElapse );
+	return 0;
+    }
 }
 #}}}
 
-#{{{sub search_user
-sub search_user {
+#{{{sub search_users
+sub search_users {
     my ( $search, $searchTerm ) = @_;
-    my $content = $search->search( $search, $searchTerm, "/_private" );
-    my $firstName = $content;
-    $firstName =~ s/.*"sakai:firstName":"([^"])*"/$1/;
-    my $lastName = $content;
-    $lastName =~ s/.*"sakai:lastName":"([^"])*"/$1/;
-    print "FirstName: $firstName, LastName: $lastName\n";
+    my $startTime = Time::HiRes::time;
+    my $res = Sling::Request::request( \$search,
+        Sling::SearchUtil::search_users_setup( $search->{ 'BaseURL' }, $searchTerm ) );
+    my $endTime = Time::HiRes::time;
+    my $timeElapse = $endTime - $startTime;
+    if ( Sling::SearchUtil::search_users_eval( $res ) ) {
+        my $hits = from_json( $$res->content )->{ 'total' };
+	# TODO make timeElapse significant to about 3 decimal places only in printed output.
+	my $message = Sling::Print::dateTime .
+	    " Searching for \"$searchTerm\": Search OK. Found $hits hit(s). Time $timeElapse seconds.";
+	my $results = from_json( $$res->content )->{ 'results' };
+        foreach my $result ( @{ $results } ) {
+	    $message .= "\n" . $result->{ 'rep:userId' }[0];
+	}
+        $search->set_results( $hits, $message, $res, $timeElapse );
+	return $hits;
+    }
+    else {
+        my $message = Sling::Print::dateTime . " Searching for \"$searchTerm\": Search failed!";
+        $search->set_results( 0, $message, $res, $timeElapse );
+	return 0;
+    }
 }
 #}}}
 
