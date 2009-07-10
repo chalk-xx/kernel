@@ -23,8 +23,8 @@ Run regression tests for the authn object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test user names:
-    my $test_user1 = "testing_user_1_$$";
-    my $test_user2 = "testing_user_2_$$";
+    my $test_user1 = "authn_test_user_1_$$";
+    my $test_user2 = "authn_test_user_2_$$";
     # test user pass:
     my $test_pass = "pass";
     # test properties:

@@ -64,7 +64,14 @@ sub create {
         Sling::MessagingUtil::create_setup( $messaging->{ 'BaseURL' }, $name, $type ) );
     my $success = Sling::MessagingUtil::create_eval( $res );
     my $message = "Message of type \"$type\" for \"$name\" was ";
-    $message .= ( $success ? "" : "not " ) . "successfully created!";
+    if ( $success ) {
+        my $messageId = from_json( $$res->content )->{ 'id' };
+        $message .= "successfully created with id: \"$messageId\"!";
+        $success = $messageId;
+    }
+    else {
+        $message .= "not successfully created!";
+    }
     $messaging->set_results( "$message", $res );
     return $success;
 }

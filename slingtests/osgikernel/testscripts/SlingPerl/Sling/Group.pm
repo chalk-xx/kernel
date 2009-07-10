@@ -275,6 +275,7 @@ sub member_view {
             $members .= "\n$member";
         }
 	$message = "$members";
+	$success = $number_members;
     }
     else {
         $message = "Problem viewing group: \"$actOnGroup\"";
