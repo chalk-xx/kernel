@@ -1,6 +1,8 @@
 package org.sakaiproject.kernel.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -77,7 +79,7 @@ public class StringUtilsTest {
 
   @Test
   public void testAddString() {
-    String[] a = { "Lorem" };
+    String[] a = {"Lorem"};
     String v = "ipsum";
 
     String[] result = StringUtils.addString(a, v);
@@ -93,7 +95,7 @@ public class StringUtilsTest {
 
   @Test
   public void testRemoveString() {
-    String[] a = { "Lorem", "ipsum" };
+    String[] a = {"Lorem", "ipsum"};
     String v = "ipsum";
 
     String[] result = StringUtils.removeString(a, v);
@@ -121,8 +123,15 @@ public class StringUtilsTest {
 
   @Test
   public void testStripBlanks() {
-    assertEquals("Loremipsumdolor", StringUtils
-        .stripBlanks(" Lorem ipsum dolor "));
+    assertEquals("Loremipsumdolor", StringUtils.stripBlanks(" Lorem ipsum dolor "));
     assertEquals("Lorem", StringUtils.stripBlanks("Lorem"));
+  }
+
+  @Test
+  public void testJoin() {
+    String[] elements = new String[] {"foo", "bar"};
+    assertEquals("/foo/bar", StringUtils.join(elements, 0, '/'));
+    elements = new String[] {};
+    assertEquals(",", StringUtils.join(elements, 0, ','));
   }
 }

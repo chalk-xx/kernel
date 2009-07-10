@@ -71,13 +71,16 @@ public class StringUtils {
   }
 
   /**
-   * Split a string based on a character with limited number of items returned,
-   * this will return nothing if maxElements is 0,
-   * this will removing leading and trailing split chars
+   * Split a string based on a character with limited number of items returned, this will
+   * return nothing if maxElements is 0, this will removing leading and trailing split
+   * chars
    * 
-   * @param st the string to split
-   * @param sep the char to split on
-   * @param maxElements the max number of elements to return in the array
+   * @param st
+   *          the string to split
+   * @param sep
+   *          the char to split on
+   * @param maxElements
+   *          the max number of elements to return in the array
    * @return an array of the strings between the separator
    */
   public static String[] split(String st, char sep, int maxElements) {
@@ -109,14 +112,14 @@ public class StringUtils {
     if (s < end && j < e.length) {
       e[j++] = new String(pn, s, end - s);
     }
-    if ( j == 0 ) {
+    if (j == 0) {
       e[0] = "";
     }
     return e;
   }
 
-  public static String sha1Hash(String tohash)
-      throws UnsupportedEncodingException, NoSuchAlgorithmException {
+  public static String sha1Hash(String tohash) throws UnsupportedEncodingException,
+      NoSuchAlgorithmException {
     byte[] b = tohash.getBytes("UTF-8");
     MessageDigest sha1 = MessageDigest.getInstance("SHA");
     b = sha1.digest(b);
@@ -207,7 +210,7 @@ public class StringUtils {
       sb.append(c).append(elements[j]);
     }
     if (sb.length() == 0) {
-      sb.append("/");
+      sb.append(c);
     }
     return sb.toString();
   }
@@ -237,6 +240,7 @@ public class StringUtils {
 
   /**
    * Removes all space chars, useful for test comparisons, not much use elsewhere.
+   * 
    * @param after
    * @return
    */
@@ -244,13 +248,12 @@ public class StringUtils {
     char[] cb = before.toCharArray();
     char[] ca = new char[cb.length];
     int i = 0;
-    for ( char c: cb) {
+    for (char c : cb) {
       if (!Character.isSpaceChar(c)) {
         ca[i++] = c;
       }
     }
-    return new String(ca,0,i);
+    return new String(ca, 0, i);
   }
-
 
 }
