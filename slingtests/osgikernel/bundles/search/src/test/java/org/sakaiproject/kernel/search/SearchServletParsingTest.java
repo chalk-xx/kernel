@@ -47,13 +47,14 @@ public class SearchServletParsingTest {
     RequestParameter rp = createMock(RequestParameter.class);
     expect(request.getRemoteUser()).andReturn("bob").anyTimes();
     expect(request.getRequestParameter("q")).andReturn(rp).anyTimes();
+    expect(request.getRequestParameter("null")).andReturn(null).anyTimes();
     expect(rp.getString()).andReturn("testing").anyTimes();
     RequestParameter rp_a = createMock(RequestParameter.class);
 
     expect(request.getRequestParameter("a")).andReturn(rp_a).anyTimes();
     expect(rp_a.getString()).andReturn("again").anyTimes();
 
-    mocks = new Object[] { request, rp, rp_a };
+    mocks = new Object[] {request, rp, rp_a};
     replay(mocks);
 
   }
@@ -65,22 +66,29 @@ public class SearchServletParsingTest {
 
   @Test
   public void testQueryParsing() {
-    String result = searchServlet.processQueryTemplate(request, " {q}",
-        Query.SQL, null);
+    String result = searchServlet.processQueryTemplate(request, " {q}", Query.SQL, null);
     assertEquals(" testing", result);
   }
 
   @Test
   public void testQueryParsing1() {
-    String result = searchServlet.processQueryTemplate(request, "{q} ",
-        Query.SQL, null);
+    String result = searchServlet.processQueryTemplate(request, "{q} ", Query.SQL, null);
     assertEquals("testing ", result);
   }
 
   @Test
   public void testQueryParsing2() {
-    String result = searchServlet.processQueryTemplate(request, "{q} {a}",
-        Query.SQL, null);
+    String result = searchServlet.processQueryTemplate(request, "{q} {a}", Query.SQL,
+        null);
     assertEquals("testing again", result);
+  }
+
+  @Test
+  public void testQueryParsingDefaultVals() {
+    String result = searchServlet.processQueryTemplate(request, "{q|foo}", Query.SQL,
+        null);
+    assertEquals("testing", result);
+    result = searchServlet.processQueryTemplate(request, "{null|foo}", Query.SQL, null);
+    assertEquals("foo", result);
   }
 }
