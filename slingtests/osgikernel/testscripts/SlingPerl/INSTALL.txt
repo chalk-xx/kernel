@@ -16,3 +16,6 @@ Sakoader Install instructions
    cpan> install Term::ANSIColor
    cpan> install Text::CSV
    cpan> install Time::HiRes
+The following 2 need to be updated on OSX 10.5
+   cpan> install HTTP::Request::Common
+   cpan> install Test::More

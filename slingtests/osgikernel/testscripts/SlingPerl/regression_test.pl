@@ -43,7 +43,7 @@ For full details run: perl regression_test.pl --man
 
 =item Run all regression tests in four threads, specifying superuser to be admin and superuser password to be admin.
 
- perl regression_test.pl -U http://localhost:8080 --all --threads 4 -S admin -p admin
+ perl regression_test.pl -U http://localhost:8080 --all --threads 4 -u admin -p admin
 
 =back
 
