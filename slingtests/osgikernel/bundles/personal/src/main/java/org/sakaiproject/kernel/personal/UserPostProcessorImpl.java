@@ -92,7 +92,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(Session session, SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
     try {
-      LOGGER.debug("Starting process with reques session {}", request
+      LOGGER.debug("Starting process with request session {}", request
           .getResourceResolver().adaptTo(Session.class));
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -204,7 +204,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       Iterator<?> inames = authorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
-        if (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:") ) {
+        if (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:")) {
           if (!privateProperties.contains(propertyName)) {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
@@ -214,7 +214,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             }
           }
         } else {
-         LOGGER.info("Not Updating "+propertyName); 
+          LOGGER.info("Not Updating " + propertyName);
         }
       }
     }
