@@ -70,6 +70,19 @@ sub add {
 }
 #}}}
 
+#{{{sub copy
+sub copy {
+    my ( $content, $remoteSrc, $remoteDest, $replace ) = @_;
+    my $res = Sling::Request::request( \$content,
+        Sling::ContentUtil::copy_setup( $content->{ 'BaseURL' }, $remoteSrc, $remoteDest, $replace ) );
+    my $success = Sling::ContentUtil::copy_eval( $res );
+    my $message = "Content copy from \"$remoteSrc\" to \"$remoteDest\" ";
+    $message .= ( $success ? "completed!" : "did not complete successfully!" );
+    $content->set_results( "$message", $res );
+    return $success;
+}
+#}}}
+
 #{{{sub delete
 sub delete {
     my ( $content, $remoteDest ) = @_;
@@ -91,6 +104,19 @@ sub exists {
     my $success = Sling::ContentUtil::exists_eval( $res );
     my $message = "Content \"$remoteDest\" ";
     $message .= ( $success ? "exists!" : "does not exist!" );
+    $content->set_results( "$message", $res );
+    return $success;
+}
+#}}}
+
+#{{{sub move
+sub move {
+    my ( $content, $remoteSrc, $remoteDest, $replace ) = @_;
+    my $res = Sling::Request::request( \$content,
+        Sling::ContentUtil::move_setup( $content->{ 'BaseURL' }, $remoteSrc, $remoteDest, $replace ) );
+    my $success = Sling::ContentUtil::move_eval( $res );
+    my $message = "Content move from \"$remoteSrc\" to \"$remoteDest\" ";
+    $message .= ( $success ? "completed!" : "did not complete successfully!" );
     $content->set_results( "$message", $res );
     return $success;
 }

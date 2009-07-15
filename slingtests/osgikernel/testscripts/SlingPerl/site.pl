@@ -106,7 +106,7 @@ my $viewSite;
 GetOptions (
     "add|a=s" => \$addSite,
     "addition|A=s" => \$additions,
-    "alter|A=s" => \$alterSite, 
+    "alter|c=s" => \$alterSite, 
     "auth=s" => \$auth,
     "delete|d=s" => \$deleteSite,
     "exists|e=s" => \$existsSite,

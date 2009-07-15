@@ -19,6 +19,7 @@ The following options are accepted:
  --help or -?                   - view the script synopsis and options.
  --log or -L (log)              - Log script output to specified log file.
  --man or -M                    - view the full script documentation.
+ --messaging                    - run messaging regression tests.
  --pass or -p (password)        - Password of system super user.
  --presence                     - run presence regression tests.
  --site                         - run site regression tests.
@@ -61,6 +62,7 @@ use Tests::Authn;
 use Tests::Connection;
 use Tests::Content;
 use Tests::Group;
+use Tests::Messaging;
 use Tests::Presence;
 use Tests::Search;
 use Tests::Site;
@@ -76,6 +78,7 @@ my $group_test;
 my $help;
 my $log;
 my $man;
+my $messaging_test;
 my $numberForks = 1;
 my $password;
 my $presence_test;
@@ -95,6 +98,7 @@ GetOptions (
     "help|?" => \$help,
     "log|L=s" => \$log,
     "man|M" => \$man,
+    "messaging" => \$messaging_test,
     "pass|p=s" => \$password,
     "presence" => \$presence_test,
     "search" => \$search_test,
@@ -116,7 +120,7 @@ die "Test super user password not defined" unless defined $password;
 
 my $auth; # Just use default auth
 
-my @all_tests_list = ( "Authn", "Connection", "Content", "Group", "Presence", "Search", "Site", "User" );
+my @all_tests_list = ( "Authn", "Connection", "Content", "Group", "Messaging", "Presence", "Search", "Site", "User" );
 my @tests_selected = ();
 
 if ( $all_tests ) {
@@ -134,6 +138,9 @@ else {
     }
     if ( $group_test ) {
         push ( @tests_selected, "Group" );
+    }
+    if ( $messaging_test ) {
+        push ( @tests_selected, "Messaging" );
     }
     if ( $presence_test ) {
         push ( @tests_selected, "Presence" );
@@ -175,6 +182,9 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	    }
 	    elsif ( $test =~ /^Group$/ ) {
                 Tests::Group::run_regression_test( \$authn, $verbose, $log );
+	    }
+	    elsif ( $test =~ /^Messaging$/ ) {
+                Tests::Messaging::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    elsif ( $test =~ /^Presence$/ ) {
                 Tests::Presence::run_regression_test( \$authn, $verbose, $log );

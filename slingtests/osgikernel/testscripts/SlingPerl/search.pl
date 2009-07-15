@@ -15,9 +15,11 @@ The following options are accepted:
  --auth (type)                  - Specify auth type. If ommitted, default is used.
  --file or -F (File)            - File containing list of search terms to search through.
  --help or -?                   - view the script synopsis and options.
+ --items or -i (items)          - Number of items to list per search page.
  --log or -L (log)              - Log script output to specified log file.
  --man or -M                    - view the full script documentation.
  --pass or -p (password)        - Password of user performing searches.
+ --page or -P (page)            - Page of search results to return.
  --search-content or -s (term)  - Search for term within the content space.
  --search-users (term)          - Search for term within the user space.
  --search-sites (term)          - Search for term within the site space.
@@ -58,9 +60,11 @@ use Sling::URL;
 my $auth;
 my $file;
 my $help;
+my $items;
 my $log;
 my $man;
 my $numberForks = 1;
+my $page;
 my $password;
 my $search_content;
 my $search_sites;
@@ -73,8 +77,10 @@ GetOptions (
     "auth=s" => \$auth,
     "file|F=s" => \$file,
     "help|?" => \$help,
+    "items|i=i" => \$items,
     "log|L=s" => \$log,
     "man|M" => \$man,
+    "page|P=i" => \$page,
     "pass|p=s" => \$password,
     "search-content|s=s" => \$search_content,
     "search-sites=s" => \$search_sites,
@@ -119,13 +125,13 @@ else {
     my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
     my $search = new Sling::Search( \$authn, $verbose, $log );
     if ( defined $search_content ) {
-        $search->search( $search_content );
+        $search->search( $search_content, $page, $items );
     }
     elsif ( defined $search_sites ) {
-        $search->search_sites( $search_sites );
+        $search->search_sites( $search_sites, $page, $items );
     }
     elsif ( defined $search_users ) {
-        $search->search_users( $search_users );
+        $search->search_users( $search_users, $page, $items );
     }
     Sling::Print::print_result( $search );
 }

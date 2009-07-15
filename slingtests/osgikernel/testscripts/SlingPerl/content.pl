@@ -27,6 +27,7 @@ The following options are accepted:
  --property or -P (property)       - Specify property to set on node.
  --remote or -r (remoteNode)       - specify remote destination under JCR root to act on.
  --remote-source or -S (remoteSrc) - specify remote source node under JCR root to act on.
+ --replace or -R                   - when copying or moving, overwrite remote destination if it exists.
  --threads or -t (threads)         - Used with -A, defines number of parallel
                                      processes to have running through file.
  --url or -U (URL)                 - URL for system being tested against.
@@ -99,6 +100,7 @@ my $password;
 my @properties;
 my $remoteNode;
 my $remoteSrc;
+my $replace;
 my $url;
 my $username;
 my $verbose;
@@ -121,6 +123,7 @@ GetOptions (
     "property|P=s" => \@properties,
     "remote|r=s" => \$remoteNode,
     "remote-source|S=s" => \$remoteSrc,
+    "replace|R" => \$replace,
     "threads|t=s" => \$numberForks,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
@@ -169,8 +172,7 @@ else {
         $content->add( $remoteNode, \@properties );
     }
     elsif ( defined $copy ) {
-        die "Not yet implemented!\n";
-        # $content->copy( $remoteSrc, $remoteNode, \@properties );
+        $content->copy( $remoteSrc, $remoteNode, $replace );
     }
     elsif ( defined $delete ) {
         $content->delete( $remoteNode );
@@ -179,8 +181,7 @@ else {
         $content->exists( $remoteNode );
     }
     elsif ( defined $move ) {
-        die "Not yet implemented!\n";
-        # $content->move( $remoteSrc, $remoteNode, \@properties );
+        $content->move( $remoteSrc, $remoteNode, $replace );
     }
     elsif ( defined $view ) {
         $content->view( $remoteNode );
