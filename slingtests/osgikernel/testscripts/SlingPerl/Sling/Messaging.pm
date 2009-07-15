@@ -83,7 +83,19 @@ sub list {
     my $res = Sling::Request::request( \$messaging,
         Sling::MessagingUtil::list_setup( $messaging->{ 'BaseURL' }, $box, $sort_by, $order ) );
     my $success = Sling::MessagingUtil::list_eval( $res );
-    my $message = ( $success ? $$res->content : "Problem fetching message list for box \"$box\"!" );
+    my $message;
+    if ( $success ) {
+        my $messages = from_json( $$res->content );
+	my $message_count = $messages->{ 'total' };
+	$message = "Found \"$message_count\" message(s):";
+	foreach my $message_details ( @{ $messages->{ 'results' } } ) {
+            $message .= "\n* " . $message_details->{ 'id' };
+	}
+	$success = $message_count;
+    }
+    else {
+        $message = "Problem fetching message list for box \"$box\"!";
+    }
     $messaging->set_results( "$message", $res );
     return $success;
 }

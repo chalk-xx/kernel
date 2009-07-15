@@ -61,6 +61,47 @@ sub add_eval {
 }
 #}}}
 
+#{{{sub copy_setup
+
+=pod
+
+=head2 copy_setup
+
+Returns a textual representation of the request needed to copy content within
+the system.
+
+=cut
+
+sub copy_setup {
+    my ( $baseURL, $remoteSrc, $remoteDest, $replace ) = @_;
+    die "No base url defined!" unless defined $baseURL;
+    die "No content destination to copy to defined!" unless defined $remoteDest;
+    die "No content source to copy from defined!" unless defined $remoteSrc;
+    my $postVariables = "\$postVariables = [':dest','$remoteDest',':operation','copy'";
+    $postVariables .= ( defined $replace ? ",':replace','true'" : "" );
+    $postVariables .= "]";
+    return "post $baseURL/$remoteSrc $postVariables";
+}
+#}}}
+
+#{{{sub copy_eval
+
+=pod
+
+=head2 copy_eval
+
+Inspects the result returned from issuing the request generated in copy_setup
+returning true if the result indicates the content was copied successfully,
+else false.
+
+=cut
+
+sub copy_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^20(0|1)$/ );
+}
+#}}}
+
 #{{{sub delete_setup
 
 =pod
@@ -133,6 +174,47 @@ else false.
 sub exists_eval {
     my ( $res ) = @_;
     return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
+#{{{sub move_setup
+
+=pod
+
+=head2 move_setup
+
+Returns a textual representation of the request needed to move content within
+the system.
+
+=cut
+
+sub move_setup {
+    my ( $baseURL, $remoteSrc, $remoteDest, $replace ) = @_;
+    die "No base url defined!" unless defined $baseURL;
+    die "No content destination to move to defined!" unless defined $remoteDest;
+    die "No content source to move from defined!" unless defined $remoteSrc;
+    my $postVariables = "\$postVariables = [':dest','$remoteDest',':operation','move'";
+    $postVariables .= ( defined $replace ? ",':replace','true'" : "" );
+    $postVariables .= "]";
+    return "post $baseURL/$remoteSrc $postVariables";
+}
+#}}}
+
+#{{{sub move_eval
+
+=pod
+
+=head2 move_eval
+
+Inspects the result returned from issuing the request generated in move_setup
+returning true if the result indicates the content was moved successfully,
+else false.
+
+=cut
+
+sub move_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^20(0|1)$/ );
 }
 #}}}
 

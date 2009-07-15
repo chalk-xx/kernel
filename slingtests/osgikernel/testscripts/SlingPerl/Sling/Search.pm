@@ -63,10 +63,10 @@ sub set_results {
 
 #{{{sub search
 sub search {
-    my ( $search, $searchTerm ) = @_;
+    my ( $search, $searchTerm, $page, $items ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = Sling::Request::request( \$search,
-        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm ) );
+        Sling::SearchUtil::search_setup( $search->{ 'BaseURL' }, $searchTerm, $page, $items ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_eval( $res ) ) {
@@ -87,10 +87,10 @@ sub search {
 
 #{{{sub search_sites
 sub search_sites {
-    my ( $search, $searchTerm ) = @_;
+    my ( $search, $searchTerm, $page, $items ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = Sling::Request::request( \$search,
-        Sling::SearchUtil::search_sites_setup( $search->{ 'BaseURL' }, $searchTerm ) );
+        Sling::SearchUtil::search_sites_setup( $search->{ 'BaseURL' }, $searchTerm, $page, $items ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_sites_eval( $res ) ) {
@@ -115,10 +115,10 @@ sub search_sites {
 
 #{{{sub search_users
 sub search_users {
-    my ( $search, $searchTerm ) = @_;
+    my ( $search, $searchTerm, $page, $items ) = @_;
     my $startTime = Time::HiRes::time;
     my $res = Sling::Request::request( \$search,
-        Sling::SearchUtil::search_users_setup( $search->{ 'BaseURL' }, $searchTerm ) );
+        Sling::SearchUtil::search_users_setup( $search->{ 'BaseURL' }, $searchTerm, $page, $items ) );
     my $endTime = Time::HiRes::time;
     my $timeElapse = $endTime - $startTime;
     if ( Sling::SearchUtil::search_users_eval( $res ) ) {

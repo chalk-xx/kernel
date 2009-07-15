@@ -35,11 +35,13 @@ Returns a textual representation of the request needed to search the system.
 =cut
 
 sub search_setup {
-    my ( $baseURL, $searchTerm ) = @_;
+    my ( $baseURL, $searchTerm, $page, $items ) = @_;
     die "No base URL provided to search against!" unless defined $baseURL;
     die "No search term provided!" unless defined $searchTerm;
     $searchTerm = Sling::URL::urlencode( $searchTerm );
-    return "get $baseURL/var/search/content.json?q=$searchTerm";
+    my $specify_page = ( defined $page ? "&page=$page" : "" );
+    my $specify_items = ( defined $items ? "&items=$items" : "" );
+    return "get $baseURL/var/search/content.json?q=$searchTerm$specify_page$specify_items";
 }
 #}}}
 
@@ -70,11 +72,13 @@ Returns a textual representation of the request needed to search the system.
 =cut
 
 sub search_sites_setup {
-    my ( $baseURL, $searchTerm ) = @_;
+    my ( $baseURL, $searchTerm, $page, $items ) = @_;
     die "No base URL provided to search against!" unless defined $baseURL;
     die "No search term provided!" unless defined $searchTerm;
     $searchTerm = Sling::URL::urlencode( $searchTerm );
-    return "get $baseURL/var/search/sites.json?q=$searchTerm";
+    my $specify_page = ( defined $page ? "&page=$page" : "" );
+    my $specify_items = ( defined $items ? "&items=$items" : "" );
+    return "get $baseURL/var/search/sites.json?q=$searchTerm$specify_page$specify_items";
 }
 #}}}
 
@@ -105,11 +109,13 @@ Returns a textual representation of the request needed to search the system.
 =cut
 
 sub search_users_setup {
-    my ( $baseURL, $searchTerm ) = @_;
+    my ( $baseURL, $searchTerm, $page, $items ) = @_;
     die "No base URL provided to search against!" unless defined $baseURL;
     die "No search term provided!" unless defined $searchTerm;
     $searchTerm = Sling::URL::urlencode( $searchTerm );
-    return "get $baseURL/var/search/users.json?username=$searchTerm";
+    my $specify_page = ( defined $page ? "&page=$page" : "" );
+    my $specify_items = ( defined $items ? "&items=$items" : "" );
+    return "get $baseURL/var/search/users.json?username=$searchTerm$specify_page$specify_items";
 }
 #}}}
 
