@@ -19,8 +19,9 @@ package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.locking.LockManager;
+import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -49,6 +50,9 @@ import javax.jcr.ValueFormatException;
  */
 public class MessagingServiceImpl implements MessagingService {
 
+  /** @scr.reference */
+  private LockManager lockManager;
+  
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
 
@@ -60,7 +64,7 @@ public class MessagingServiceImpl implements MessagingService {
    * 
    * @see org.sakaiproject.kernel.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
-  public Node create(Resource baseResource, Map<String, Object> mapProperties)
+  public Node create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
 
     Node msg = null;
@@ -73,23 +77,32 @@ public class MessagingServiceImpl implements MessagingService {
       throw new MessagingException("Unable to create hash.");
     }
 
-    Session session = baseResource.getResourceResolver().adaptTo(Session.class);
     String user = session.getUserID();
-    String messagePath = MessageUtils.getMessagePath(user, messageId);
+    String messagePathBase = MessageUtils.getMessagePathBase(user);
     try {
-      msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
-
-      for (Entry<String, Object> e : mapProperties.entrySet()) {
-        msg.setProperty(e.getKey(), e.getValue().toString());
-      }
-
-    } catch (RepositoryException e) {
-      LOGGER.warn("RepositoryException on trying to save message."
-          + e.getMessage());
-      e.printStackTrace();
-      throw new MessagingException("Unable to save message.");
+      lockManager.waitForLock(messagePathBase);
+    } catch (LockTimeoutException e1) {
+      throw new MessagingException("Unable to lock user mailbox");
     }
-    return msg;
+    try {
+      String messagePath = MessageUtils.getMessagePath(user, messageId);
+      try {
+        msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
+        
+        for (Entry<String, Object> e : mapProperties.entrySet()) {
+          msg.setProperty(e.getKey(), e.getValue().toString());
+        }
+        
+      } catch (RepositoryException e) {
+        LOGGER.warn("RepositoryException on trying to save message."
+            + e.getMessage());
+        e.printStackTrace();
+        throw new MessagingException("Unable to save message.");
+      }
+      return msg;
+    } finally {
+      lockManager.clearLocks();
+    }
   }
 
   /**

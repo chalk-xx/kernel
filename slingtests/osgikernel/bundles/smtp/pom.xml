@@ -18,12 +18,11 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-  <packaging>jar</packaging>
-  <version>2.0.5-sakai-SNAPSHOT</version>
-  <name>Sakai Kernel Server Extension Bundle</name>
-  <description>Extension bundle that provides additional functionality in the repository
-    area as required by Sakai.</description>
+  <artifactId>org.sakaiproject.kernel.smtp</artifactId>
+  <packaging>bundle</packaging>
+  <version>0.1-SNAPSHOT</version>
+  <name>Sakai Kernel User Extension Bundle</name>
+  <description>Adds SMTP support for incoming e-mail</description>
   <build>
     <plugins>
       <plugin>
@@ -31,30 +30,30 @@
         <artifactId>maven-scr-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
-          <archive>
-            <manifestFile> ${project.build.outputDirectory}/META-INF/MANIFEST.MF </manifestFile>
-          </archive>
+          <instructions>
+            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Private-Package> org.sakaiproject.kernel.smtp.* </Private-Package>
+            <Import-Package>!org.subethamail.smtp.*,!junit.framework,!javax.mail.internet,*</Import-Package>
+            <Embed-Dependency>subethasmtp,activation,mail</Embed-Dependency>
+          </instructions>
         </configuration>
-      </plugin>
+      </plugin>        
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <id>Expand Server</id>
+            <id>embed-dependencies</id>
             <goals>
-              <goal>unpack-dependencies</goal>
+              <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,repository.xml 
-              </excludes>
+              <includeArtifactIds>subethasmtp,activation,mail</includeArtifactIds>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>
         </executions>
@@ -76,19 +75,9 @@
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.5-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-    
-    <!-- Jackrabbbit dependencies
-     -->
-            <!-- The core repository implementation -->
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-core</artifactId>
-      <version>1.5.6</version>
-      <scope>compile</scope>
+      <artifactId>org.apache.sling.api</artifactId>
+      <version>2.0.4-incubator</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -97,10 +86,6 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.jcr</groupId>
-      <artifactId>jcr</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -123,6 +108,32 @@
       <artifactId>slf4j-simple</artifactId>
       <version>1.5.2</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.subethamail</groupId>
+      <artifactId>subethasmtp</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>       
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1</version>             
+    </dependency>                        
+    <dependency>                         
+      <groupId>javax.mail</groupId>      
+      <artifactId>mail</artifactId>      
+      <version>1.4</version>             
     </dependency>
   </dependencies>
 </project>
