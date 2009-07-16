@@ -19,7 +19,6 @@ package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
@@ -65,7 +64,7 @@ public class MessagingServiceImpl implements MessagingService {
    * 
    * @see org.sakaiproject.kernel.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
    */
-  public Node create(Resource baseResource, Map<String, Object> mapProperties)
+  public Node create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
 
     Node msg = null;
@@ -78,7 +77,6 @@ public class MessagingServiceImpl implements MessagingService {
       throw new MessagingException("Unable to create hash.");
     }
 
-    Session session = baseResource.getResourceResolver().adaptTo(Session.class);
     String user = session.getUserID();
     String messagePathBase = MessageUtils.getMessagePathBase(user);
     try {

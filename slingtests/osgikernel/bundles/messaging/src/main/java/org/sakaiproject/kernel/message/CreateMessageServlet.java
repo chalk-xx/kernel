@@ -142,7 +142,8 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     String path = null;
     String messageId = null;
     try {
-      msg = messagingService.create(baseResource, mapProperties);
+      Session session = baseResource.adaptTo(Session.class);
+      msg = messagingService.create(session, mapProperties);
       if (msg == null) {
         throw new MessagingException("Unable to create the message.");
       }

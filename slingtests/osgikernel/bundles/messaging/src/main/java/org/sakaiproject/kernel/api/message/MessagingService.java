@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-import org.apache.sling.api.resource.Resource;
-
 import java.util.Map;
 
 import javax.jcr.AccessDeniedException;
@@ -26,18 +24,19 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
 
 public interface MessagingService {
   /**
-   * Creates a message for the current user. Will take all the resource meta
-   * data from the provided resource and create a new node.
+   * Creates a new message for the user associated with the provided session.
+   * Message properties are extracted from the supplied map
    * @param resource
    * @param mapProperties
    * @return
    * @throws MessagingException
    */
-  public Node create(Resource resource, Map<String, Object> mapProperties) throws MessagingException;
+  public Node create(Session session, Map<String, Object> mapProperties) throws MessagingException;
 
   /**
    * Gets the absolute path to the message store from a message. ex:
