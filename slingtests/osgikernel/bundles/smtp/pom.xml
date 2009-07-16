@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.kernel.smtp</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Kernel User Extension Bundle</name>
+  <name>Sakai Kernel SMTP Server</name>
   <description>Adds SMTP support for incoming e-mail</description>
   <build>
     <plugins>
