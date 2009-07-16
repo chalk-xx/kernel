@@ -50,6 +50,8 @@ import org.sakaiproject.kernel.api.connections.ConnectionException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.connections.ConnectionOperation;
 import org.sakaiproject.kernel.api.connections.ConnectionState;
+import org.sakaiproject.kernel.api.locking.LockManager;
+import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,7 @@ import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -83,6 +86,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionManagerImpl.class);
 
+  /** @scr.reference */
+  protected LockManager lockManager;
+  
   protected SlingRepository slingRepository;
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
@@ -301,21 +307,42 @@ public class ConnectionManagerImpl implements ConnectionManager {
    */
   private Node getConnectionNode(Session session, String path, String user1, String user2)
       throws RepositoryException {
-    Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
-        path, user1, user2, ""));
-    if (n.isNew()) {
-      n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          ConnectionConstants.SAKAI_CONTACT_RT);
-      // setup the ACLs on the node.
-      String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
-      Authorizable authorizable = AccessControlUtil.getUserManager(session)
-          .getAuthorizable(user1);
-      addEntry(basePath, authorizable, session, WRITE_GRANTED,
-          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-          REMOVE_NODE_GRANTED);
-      LOGGER.info("Added ACL to [{}]", basePath);
+    String nodePath = ConnectionUtils.getConnectionPath(path, user1, user2, "");
+    try {
+      return (Node) session.getItem(nodePath);
+    } catch (PathNotFoundException pnfe) {
+      // Fall through and create node
     }
-    return n;
+    String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
+    try {
+      lockManager.waitForLock(basePath);
+    } catch (LockTimeoutException e) {
+      LOGGER.error("Unable to obtain lock on base node");
+      throw new RepositoryException("Unable to get connection node - lock timed out");
+    }
+    try {
+      try {
+        session.getItem(basePath);
+      } catch (PathNotFoundException pnfe) {
+        JcrUtils.deepGetOrCreateNode(session, basePath);
+        Authorizable authorizable = AccessControlUtil.getUserManager(session)
+            .getAuthorizable(user1);
+        addEntry(basePath, authorizable, session, WRITE_GRANTED,
+            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+            REMOVE_NODE_GRANTED);
+        LOGGER.info("Added ACL to [{}]", basePath);
+      }
+      Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
+          path, user1, user2, ""));
+      if (n.isNew()) {
+        n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            ConnectionConstants.SAKAI_CONTACT_RT);
+      }
+      return n;
+    } finally {
+      session.save();
+      lockManager.clearLocks();
+    }
   }
 
   protected void bindSlingRepository(SlingRepository slingRepository) {
