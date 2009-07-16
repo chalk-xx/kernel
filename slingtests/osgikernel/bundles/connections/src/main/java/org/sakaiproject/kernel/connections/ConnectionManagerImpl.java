@@ -338,9 +338,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
         n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
       }
+      session.save();
       return n;
     } finally {
-      session.save();
       lockManager.clearLocks();
     }
   }
