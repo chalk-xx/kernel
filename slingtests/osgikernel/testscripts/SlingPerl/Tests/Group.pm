@@ -23,8 +23,8 @@ Run regression tests for the group object.
 sub run_regression_test {
     my ( $authn, $verbose, $log ) = @_;
     # test group name:
-    my $test_group1 = "g-test_group_1_$$";
-    my $test_group2 = "g-test_group_2_$$";
+    my $test_group1 = "g-group_test_group_1_$$";
+    my $test_group2 = "g-group_test_group_2_$$";
     # test properties:
     my @test_properties;
     # Sling group object:
@@ -128,6 +128,10 @@ sub run_regression_test {
         "Group Test: Group \"$test_group1\" deleted successfully." );
     ok( ! $group->exists( $test_group1 ),
         "Group Test: Group \"$test_group1\" should no longer exist." );
+    ok( $group->delete( $test_group2 ),
+        "Group Test: Group \"$test_group2\" deleted successfully." );
+    ok( ! $group->exists( $test_group2 ),
+        "Group Test: Group \"$test_group2\" should no longer exist." );
 }
 #}}}
 

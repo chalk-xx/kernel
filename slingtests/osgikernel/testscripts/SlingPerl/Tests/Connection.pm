@@ -133,7 +133,7 @@ sub run_regression_test {
     ok( ! $connection->remove( $test_user6 ),
         "Connection Test: User \"$test_user1\" found connection to user \"$test_user6\" already removed" );
     ok( $connection->cancel( $test_user7 ),
-        "Connection Test: User \"$test_user1\" successfully canecelled connection to user \"$test_user7\"" );
+        "Connection Test: User \"$test_user1\" successfully cancelled connection to user \"$test_user7\"" );
 
     ok( $$authn->switch_user( $super_user, $super_pass ),
         "Connection Test: Successfully switched to user: \"$super_user\" with basic auth" );

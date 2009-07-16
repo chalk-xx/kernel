@@ -58,7 +58,7 @@ sub generate {
     Sling::Print::print_with_lock( "\"group\",\"sakai:joinable\"", $group_data_file );
 
     for ( my $i = 1 ; $i <= 10000 ; $i++ ) {
-        Sling::Print::print_with_lock( "\"testgroup$i\",\"yes\"", $group_data_file );
+        Sling::Print::print_with_lock( "\"g-testgroup$i\",\"yes\"", $group_data_file );
     }
 
     Sling::Print::print_with_lock( "Group test data created.", $group->{ 'Log' });
@@ -95,7 +95,7 @@ sub generate {
 	my $number_in_group = $group_membership_number->{ 'size' };
         for ( my $i = 1 ; $i <= $number_groups ; $i++ ) {
 	    for ( my $j = 1 ; $j <= $number_in_group ; $j++ ) {
-                Sling::Print::print_with_lock( "\"testgroup$group_count\",\"testuser$user_count\"", $group_member_data_file );
+                Sling::Print::print_with_lock( "\"g-testgroup$group_count\",\"testuser$user_count\"", $group_member_data_file );
 	        $user_count++;
 	    }
 	    $group_count++;

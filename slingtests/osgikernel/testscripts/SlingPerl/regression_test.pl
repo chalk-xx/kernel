@@ -13,6 +13,7 @@ The following options are accepted:
 
  --all                          - run all regression tests.
  --authn                        - run authentication regression tests.
+ --authz                        - run authorization regression tests.
  --connection                   - run connection regression tests.
  --content                      - run content regression tests.
  --group                        - run group regression tests.
@@ -59,6 +60,7 @@ use Pod::Usage;
 use Sling::Authn;
 use Sling::URL;
 use Tests::Authn;
+use Tests::Authz;
 use Tests::Connection;
 use Tests::Content;
 use Tests::Group;
@@ -72,6 +74,7 @@ use Tests::User;
 #{{{options parsing
 my $all_tests;
 my $authn_test;
+my $authz_test;
 my $connection_test;
 my $content_test;
 my $group_test;
@@ -92,6 +95,7 @@ my $verbose;
 GetOptions (
     "all" => \$all_tests,
     "authn" => \$authn_test,
+    "authz" => \$authz_test,
     "connection" => \$connection_test,
     "content" => \$content_test,
     "group" => \$group_test,
@@ -120,7 +124,10 @@ die "Test super user password not defined" unless defined $password;
 
 my $auth; # Just use default auth
 
-my @all_tests_list = ( "Authn", "Connection", "Content", "Group", "Messaging", "Presence", "Search", "Site", "User" );
+my @all_tests_list = (
+    "Authn", "Authz", "Connection", "Content", "Group", "Messaging",
+    "Presence", "Search", "Site", "User"
+);
 my @tests_selected = ();
 
 if ( $all_tests ) {
@@ -129,6 +136,9 @@ if ( $all_tests ) {
 else {
     if ( $authn_test ) {
         push ( @tests_selected, "Authn" );
+    }
+    if ( $authz_test ) {
+        push ( @tests_selected, "Authz" );
     }
     if ( $connection_test ) {
         push ( @tests_selected, "Connection" );
@@ -173,6 +183,9 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
             my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
 	    if ( $test =~ /^Authn$/ ) {
                 Tests::Authn::run_regression_test( \$authn, $verbose, $log );
+	    }
+	    elsif ( $test =~ /^Authz$/ ) {
+                Tests::Authz::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    elsif ( $test =~ /^Connection$/ ) {
                 Tests::Connection::run_regression_test( \$authn, $verbose, $log );

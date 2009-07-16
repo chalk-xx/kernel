@@ -163,20 +163,10 @@ sub exists {
 sub member_add {
     my ( $site, $id, $member ) = @_;
     my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
-    my $success = Sling::SiteUtil::member_view_eval( $res );
-    my $message;
-    if ( $success ) {
-        my $members = from_json( $$res->content );
-        $res = Sling::Request::request( \$site,
-            Sling::SiteUtil::member_add_setup( $site->{ 'BaseURL' }, $id, $member, $members ) );
-        my $success = Sling::SiteUtil::member_add_eval( $res );
-        $message = "Site \"$id\", member \"$member\" ";
-        $message .= ( $success ? "added!" : "was not added!" );
-    }
-    else {
-        $message = "Problem retrieving current members for site: \"$id\"";
-    }
+        Sling::SiteUtil::member_add_setup( $site->{ 'BaseURL' }, $id, $member ) );
+    my $success = Sling::SiteUtil::member_add_eval( $res );
+    my $message = "Site \"$id\", member \"$member\" ";
+    $message .= ( $success ? "added!" : "was not added!" );
     $site->set_results( "$message", $res );
     return $success;
 }
@@ -186,20 +176,10 @@ sub member_add {
 sub member_delete{
     my ( $site, $id, $member ) = @_;
     my $res = Sling::Request::request( \$site,
-        Sling::SiteUtil::member_view_setup( $site->{ 'BaseURL' }, $id ) );
-    my $success = Sling::SiteUtil::member_view_eval( $res );
-    my $message;
-    if ( $success ) {
-        my $members = from_json( $$res->content );
-        $res = Sling::Request::request( \$site,
-            Sling::SiteUtil::member_delete_setup( $site->{ 'BaseURL' }, $id, $member, $members ) );
-        my $success = Sling::SiteUtil::member_delete_eval( $res );
-        $message = "Site \"$id\", member \"$member\" ";
-        $message .= ( $success ? "deleted!" : "was not deleted!" );
-    }
-    else {
-        $message = "Problem retrieving current members for site: \"$id\"";
-    }
+        Sling::SiteUtil::member_delete_setup( $site->{ 'BaseURL' }, $id, $member ) );
+    my $success = Sling::SiteUtil::member_delete_eval( $res );
+    my $message = "Site \"$id\", member \"$member\" ";
+    $message .= ( $success ? "deleted!" : "was not deleted!" );
     $site->set_results( "$message", $res );
     return $success;
 }
@@ -248,6 +228,7 @@ sub member_view {
             $members .= "\n" . $member->{ 'rep:userId' };
         }
 	$message = "$members";
+	$success = $number_members;
     }
     else {
         $message = "Problem viewing site: \"$actOnSite\"";

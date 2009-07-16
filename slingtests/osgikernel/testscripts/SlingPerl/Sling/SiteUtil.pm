@@ -36,17 +36,12 @@ site in the system.
 =cut
 
 sub member_add_setup {
-    my ( $baseURL, $actOnSite, $addMember, $currentMembers ) = @_;
+    my ( $baseURL, $actOnSite, $addMember ) = @_;
     die "No base url defined to add against!" unless defined $baseURL;
     die "No site name defined to add member to!" unless defined $actOnSite;
     die "No member name defined to add!" unless defined $addMember;
-    die "No current members defined!" unless defined $currentMembers;
-    my $postVariables = "\$postVariables = ['sakai:authorizables','$addMember',";
-    foreach my $member ( @{ $currentMembers } ) {
-        $postVariables .= "'sakai:authorizables','" . $member->{ 'rep:userId' } . "',";
-    }
-    $postVariables =~ s/,$/]/;
-    return "post $baseURL/$actOnSite $postVariables";
+    my $postVariables = "\$postVariables = ['addauth','$addMember']";
+    return "post $baseURL/$actOnSite.authorize.json $postVariables";
 }
 #}}}
 
@@ -72,32 +67,18 @@ sub member_add_eval {
 
 =head2 member_delete_setup
 
-Returns a textual representation of the request needed to delet a member from a
+Returns a textual representation of the request needed to delete a member from a
 site in the system.
 
 =cut
 
 sub member_delete_setup {
-    my ( $baseURL, $actOnSite, $deleteMember, $currentMembers ) = @_;
+    my ( $baseURL, $actOnSite, $deleteMember ) = @_;
     die "No base url defined to delete against!" unless defined $baseURL;
     die "No site name defined to delete member from!" unless defined $actOnSite;
     die "No member name defined to delete!" unless defined $deleteMember;
-    die "No current members defined!" unless defined $currentMembers;
-    my $postVariables = "\$postVariables = [";
-    my $remainingMembers = 0;
-    foreach my $member ( @{ $currentMembers } ) {
-        # We put back all the members excep the one to be deleted:
-        if ( $member->{ 'rep:userId' } !~ /^$deleteMember$/ ) {
-            $postVariables .= "'sakai:authorizables','" . $member->{ 'rep:userId' } . "',";
-	    $remainingMembers++;
-	}
-    }
-    if ( ! $remainingMembers ) {
-        # If there are no remaining members, then delete the property altogether:
-        $postVariables .= "'sakai:authorizables\@Delete','',";
-    }
-    $postVariables =~ s/,$/]/;
-    return "post $baseURL/$actOnSite $postVariables";
+    my $postVariables = "\$postVariables = ['removeauth','$deleteMember']";
+    return "post $baseURL/$actOnSite.authorize.json $postVariables";
 }
 #}}}
 
