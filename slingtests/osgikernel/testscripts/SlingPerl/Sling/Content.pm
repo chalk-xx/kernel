@@ -169,7 +169,7 @@ sub view {
     my $res = Sling::Request::request( \$content,
         Sling::ContentUtil::exists_setup( $content->{ 'BaseURL' }, $remoteDest ) );
     my $success = Sling::ContentUtil::exists_eval( $res );
-    my $message = ( $success ? $res->content : "Problem viewing content: \"$remoteDest\"" );
+    my $message = ( $success ? $$res->content : "Problem viewing content: \"$remoteDest\"" );
     $content->set_results( "$message", $res );
     return $success;
 }

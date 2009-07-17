@@ -41,6 +41,18 @@ For full details run: perl search.pl --man
 
  perl search.pl -U http://localhost:8080 -s test -u admin -p admin
 
+=item Authenticate and search for the user "bob":
+
+ perl search.pl -U http://localhost:8080 --search-users bob -u admin -p admin
+
+=item Authenticate and search for the term test in all sites, list 10 items per page and reurn page 4:
+
+ perl search.pl -U http://localhost:8080 --search-sites test -i 10 -P 4 -u admin -p admin
+
+=item Authenticate and search for all users beginning with 'a' with verbose output: 
+
+ perl search.pl -U http://localhost:8080 --search-users "a*" -u admin -p admin -v
+
 =back
 
 =cut

@@ -60,9 +60,9 @@ For full details run: perl authz.pl --man
 
  perl authz.pl -U http://localhost:8080 -r /testdata -P testuser --no-addChildNodes -u admin -p admin -V
 
-=item Authenticate with form based authentication and grant the read and write privileges to the testgroup principal, log the results, including the resulting JSON, to authz.log:
+=item Authenticate with form based authentication and grant the read and write privileges to the g-testgroup principal, log the results, including the resulting JSON, to authz.log:
 
- perl authz.pl -U http://localhost:8080 -r /testdata -P testgroup --read --write -u admin -p admin --auth form -V -L authz.log
+ perl authz.pl -U http://localhost:8080 -r /testdata -P g-testgroup --read --write -u admin -p admin --auth form -V -L authz.log
 
 =back
 

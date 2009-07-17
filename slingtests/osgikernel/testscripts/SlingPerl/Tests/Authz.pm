@@ -18,7 +18,7 @@ use Test::More;
 
 =head2 run_regression_test
 
-Run regression tests for the user object.
+Run regression tests for the authz object.
 
 =cut
 
