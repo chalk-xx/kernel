@@ -18,6 +18,7 @@ The following options are accepted:
  --content                      - run content regression tests.
  --group                        - run group regression tests.
  --help or -?                   - view the script synopsis and options.
+ --image-crop                   - run image crop regression tests.
  --log or -L (log)              - Log script output to specified log file.
  --man or -M                    - view the full script documentation.
  --messaging                    - run messaging regression tests.
@@ -39,9 +40,33 @@ For full details run: perl regression_test.pl --man
 
 =over
 
-=item Run user regression tests, specifying superuser to be admin and superuser password to be admin.
+=item Run all regression tests single threaded, specifying superuser to be admin and superuser password to be admin.
 
- perl regression_test.pl -U http://localhost:8080 --user --superuser admin --pass admin
+ perl regression_test.pl -U http://localhost:8080 --all -u admin -p admin
+
+=item Run authn regression tests, specifying superuser to be admin and superuser password to be admin.
+
+ perl regression_test.pl -U http://localhost:8080 --authn --superuser admin --pass admin
+
+=item Run authz regression tests, specifying superuser to be admin and superuser password to be admin with verbose output.
+
+ perl regression_test.pl -U http://localhost:8080 --authz --superuser admin --pass admin -v
+
+=item Run image crop regression tests, specifying superuser to be admin and superuser password to be admin with very verbose output.
+
+ perl regression_test.pl -U http://localhost:8080 --image-crop --superuser admin --pass admin -vvv
+
+=item Run connection and content regression tests, specifying superuser to be admin and superuser password to be admin.
+
+ perl regression_test.pl -U http://localhost:8080 --connection --content --superuser admin --pass admin
+
+=item Run group, messaging, presence and site regression tests, specifying superuser to be admin and superuser password to be admin.
+
+ perl regression_test.pl -U http://localhost:8080 --group --messaging --presence --site --superuser admin --pass admin
+
+=item Run user regression tests, specifying superuser to be admin and superuser password to be admin and log output to log.txt.
+
+ perl regression_test.pl -U http://localhost:8080 --user --superuser admin --pass admin --log log.txt
 
 =item Run all regression tests in four threads, specifying superuser to be admin and superuser password to be admin.
 
@@ -64,6 +89,7 @@ use Tests::Authz;
 use Tests::Connection;
 use Tests::Content;
 use Tests::Group;
+use Tests::ImageCrop;
 use Tests::Messaging;
 use Tests::Presence;
 use Tests::Search;
@@ -79,6 +105,7 @@ my $connection_test;
 my $content_test;
 my $group_test;
 my $help;
+my $image_crop_test;
 my $log;
 my $man;
 my $messaging_test;
@@ -100,6 +127,7 @@ GetOptions (
     "content" => \$content_test,
     "group" => \$group_test,
     "help|?" => \$help,
+    "image-crop" => \$image_crop_test,
     "log|L=s" => \$log,
     "man|M" => \$man,
     "messaging" => \$messaging_test,
@@ -125,8 +153,8 @@ die "Test super user password not defined" unless defined $password;
 my $auth; # Just use default auth
 
 my @all_tests_list = (
-    "Authn", "Authz", "Connection", "Content", "Group", "Messaging",
-    "Presence", "Search", "Site", "User"
+    "Authn", "Authz", "Connection", "Content", "Group", "ImageCrop",
+    "Messaging", "Presence", "Search", "Site", "User"
 );
 my @tests_selected = ();
 
@@ -148,6 +176,9 @@ else {
     }
     if ( $group_test ) {
         push ( @tests_selected, "Group" );
+    }
+    if ( $image_crop_test ) {
+        push ( @tests_selected, "ImageCrop" );
     }
     if ( $messaging_test ) {
         push ( @tests_selected, "Messaging" );
@@ -195,6 +226,9 @@ for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
 	    }
 	    elsif ( $test =~ /^Group$/ ) {
                 Tests::Group::run_regression_test( \$authn, $verbose, $log );
+	    }
+	    elsif ( $test =~ /^ImageCrop$/ ) {
+                Tests::ImageCrop::run_regression_test( \$authn, $verbose, $log );
 	    }
 	    elsif ( $test =~ /^Messaging$/ ) {
                 Tests::Messaging::run_regression_test( \$authn, $verbose, $log );

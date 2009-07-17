@@ -63,6 +63,14 @@ For full details run: perl content.pl --man
 
  perl content.pl -U http://localhost:8080 -V -r /test
 
+=item Authenticate and copy content at /test to /test2
+
+ perl content.pl -U http://localhost:8080 -c -S /test -r /test2 -u admin -p admin
+
+=item Authenticate and move content at /test to /test2, replacing test2 if it already exists
+
+ perl content.pl -U http://localhost:8080 -m -S /test -r /test2 -R -u admin -p admin
+
 =item Authenticate and delete content at /test
 
  perl content.pl -U http://localhost:8080 -d -r /test -u admin -p admin
