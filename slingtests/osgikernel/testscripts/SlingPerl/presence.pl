@@ -41,6 +41,18 @@ For full details run: perl presence.pl --man
 
  perl presence.pl -U http://localhost:8080 -u testuser -p pass --status
 
+=item Authenticate as testuser and clear presence status:
+
+ perl presence.pl -U http://localhost:8080 -u testuser -p pass --delete
+
+=item Authenticate as testuser and retrieve presence status of contacts:
+
+ perl presence.pl -U http://localhost:8080 -u testuser -p pass --contacts
+
+=item Authenticate as testuser and set status to online, and location to office:
+
+ perl presence.pl -U http://localhost:8080 -u testuser -p pass --set-status online --set-location office
+
 =back
 
 =cut

@@ -250,4 +250,45 @@ sub sites_eval {
 }
 #}}}
 
+#{{{sub update_setup
+
+=pod
+
+=head2 update_setup
+
+Returns a textual representation of the request needed to update the user in the
+system.
+
+=cut
+
+sub update_setup {
+    my ( $baseURL, $actOnUser, $properties ) = @_;
+    die "No base url defined to update against!" unless defined $baseURL;
+    die "No user name defined to update!" unless defined $actOnUser;
+    my $property_post_vars = Sling::URL::properties_array_to_string( $properties );
+    my $postVariables = "\$postVariables = [";
+    if ( $property_post_vars !~ /^$/ ) {
+        $postVariables .= "$property_post_vars";
+    }
+    $postVariables .= "]";
+    return "post $baseURL/system/userManager/user/$actOnUser.update.html $postVariables";
+}
+#}}}
+
+#{{{sub update_eval
+
+=pod
+
+=head2 update_eval
+
+Check result of updateing user to the system.
+
+=cut
+
+sub update_eval {
+    my ( $res ) = @_;
+    return ( $$res->code =~ /^200$/ );
+}
+#}}}
+
 1;

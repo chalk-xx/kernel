@@ -29,6 +29,7 @@ The following options are accepted:
  --sites or -s                       - list sites authenticated user is a member of.
  --threads or -t (threads)           - Used with -A, defines number of parallel
                                        processes to have running through file.
+ --update (actOnUser)                - update specified user name, used with -P.
  --url or -U (URL)                   - URL for system being tested against.
  --user or -u (username)             - Name of user to perform any actions as.
  --verbose or -v or -vv or -vvv      - Increase verbosity of output.
@@ -42,9 +43,29 @@ For full details run: perl user.pl --man
 
 =over
 
-=item Authenticate and add user "testuser" with password "test"
+=item Add user "testuser" with password "test"
 
- perl user.pl -U http://localhost:8080 -a testuser -w test -u admin -p admin
+ perl user.pl -U http://localhost:8080 -a testuser -w test
+
+=item View information about authenticated user "testuser"
+
+ perl user.pl -U http://localhost:8080 --me -u testuser -p test
+
+=item View sites authenticated user "testuser" is a member of:
+
+ perl user.pl -U http://localhost:8080 --sites -u testuser -p test
+
+=item Authenticate as admin and check whether user "testuser" exists
+
+ perl user.pl -U http://localhost:8080 -e testuser -u admin -p admin
+
+=item Authenticate and update "testuser" to set property p1=v1
+
+ perl user.pl -U http://localhost:8080 --update testuser -P "p1=v1" -u admin -p admin
+
+=item Authenticate and delete "testuser"
+
+ perl user.pl -U http://localhost:8080 -d testuser -u admin -p admin
 
 =back
 
@@ -78,6 +99,7 @@ my $numberForks = 1;
 my $password;
 my @properties;
 my $sitesUser;
+my $updateUser;
 my $url;
 my $username;
 my $verbose;
@@ -100,6 +122,7 @@ GetOptions (
     "property|P=s" => \@properties,
     "sites|s" => \$sitesUser,
     "threads|t=s" => \$numberForks,
+    "update=s" => \$updateUser,
     "url|U=s" => \$url,
     "user|u=s" => \$username,
     "verbose|v+" => \$verbose,
@@ -153,6 +176,9 @@ else {
     }
     elsif ( defined $addUser ) {
         $user->add( $addUser, $actOnPass, \@properties );
+    }
+    elsif ( defined $updateUser ) {
+        $user->update( $updateUser, \@properties );
     }
     elsif ( defined $changePassUser ) {
         $user->change_password( $changePassUser, $actOnPass, $newPass, $newPass );

@@ -186,6 +186,19 @@ sub sites {
 }
 #}}}
 
+#{{{sub update
+sub update {
+    my ( $user, $actOnUser, $properties ) = @_;
+    my $res = Sling::Request::request( \$user,
+        Sling::UserUtil::update_setup( $user->{ 'BaseURL' }, $actOnUser, $properties ) );
+    my $success = Sling::UserUtil::update_eval( $res );
+    my $message = "User: \"$actOnUser\" ";
+    $message .= ( $success ? "updated!" : "was not updated!" );
+    $user->set_results( "$message", $res );
+    return $success;
+}
+#}}}
+
 #{{{sub view
 sub view {
     my ( $user, $actOnUser ) = @_;
