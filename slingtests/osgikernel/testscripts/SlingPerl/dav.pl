@@ -68,8 +68,8 @@ GetOptions ( "a" => \$add,           "l=s" => \$localPath,
 	     "F=s" => \$file,        "url|U=s" => \$url,
              "help|?" => \$help,     "man" => \$man) or pod2usage(2);
 
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
 
 $url =~ s/(.*)\/$/$1/;
 $url = ( $url !~ /^http/ ? "http://$url" : "$url" );

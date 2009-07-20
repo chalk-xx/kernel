@@ -139,8 +139,8 @@ GetOptions (
     "view|V" => \$view
 ) or pod2usage(2);
 
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
 
 $remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
 $remoteSrc = Sling::URL::strip_leading_slash( $remoteSrc );

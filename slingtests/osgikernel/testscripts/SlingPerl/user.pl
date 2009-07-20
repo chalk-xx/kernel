@@ -129,8 +129,8 @@ GetOptions (
     "view|V=s" => \$viewUser
 ) or pod2usage(2);
 
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
 
 $numberForks = ( $numberForks || 1 );
 $numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
