@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,7 +51,7 @@ public class CropItProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(CropItProcessor.class);
 
   /**
-   * 
+   *
    * @param x
    *          Where to start cutting on the x-axis.
    * @param y
@@ -70,9 +71,9 @@ public class CropItProcessor {
    * @param jcrNodeFactoryService
    * @return
    * @throws ImageException
-   * @throws IOException 
-   * @throws JCRNodeFactoryServiceException 
-   * @throws RepositoryException 
+   * @throws IOException
+   * @throws JCRNodeFactoryServiceException
+   * @throws RepositoryException
    */
   public static String[] crop(int x, int y, int width, int height,
       JSONArray dimensions, String urlSaveIn, Node nImgToCrop,
@@ -157,27 +158,29 @@ public class CropItProcessor {
 
     } finally {
       // close the streams
-      if (in != null)
+      if (in != null) {
         try {
           in.close();
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
-      if (out != null)
+      }
+      if (out != null) {
         try {
           out.close();
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
+      }
     }
     return arrFiles;
   }
 
   /**
    * Generate a JSON response.
-   * 
+   *
    * @param response
    *          ERROR or OK
    * @param typeOfResponse
@@ -196,7 +199,7 @@ public class CropItProcessor {
 
   /**
    * Will save a stream of an image to the JCR.
-   * 
+   *
    * @param sPath
    *          The JCR path to save the image in.
    * @param sType
@@ -233,7 +236,7 @@ public class CropItProcessor {
   /**
    * This method will scale an image to a desired width and height and shall
    * output the stream of that scaled image.
-   * 
+   *
    * @param width
    *          The desired width of the scaled image.
    * @param height
@@ -252,8 +255,7 @@ public class CropItProcessor {
       throws IOException {
     ByteArrayOutputStream out = null;
     try {
-      Image imgScaled = img.getScaledInstance(width, height,
-          Image.SCALE_AREA_AVERAGING);
+      Image imgScaled = getScaledInstance(img, width, height);
 
       Map<String, Integer> mapExtensionsToRGBType = new HashMap<String, Integer>();
       mapExtensionsToRGBType.put("image/jpg", BufferedImage.TYPE_INT_RGB);
@@ -282,8 +284,9 @@ public class CropItProcessor {
 
       ImageIO.write(biScaled, sIOtype, out);
     } finally {
-      if (out != null)
+      if (out != null) {
         out.close();
+      }
     }
 
     return out;
@@ -292,7 +295,7 @@ public class CropItProcessor {
   /**
    * Tries to fetch the mime type for a node. If the node lacks on, the mimetype
    * will be determined via the extension.
-   * 
+   *
    * @param imgToCrop
    *          Node of the image.
    * @param sImg
@@ -340,7 +343,7 @@ public class CropItProcessor {
   /**
    * Returns the extension of a filename. If no extension is found, the entire
    * filename is returned.
-   * 
+   *
    * @param img
    * @return
    */
@@ -351,7 +354,7 @@ public class CropItProcessor {
 
   /**
    * Takes an Image and converts it to a BufferedImage.
-   * 
+   *
    * @param image
    *          The image you want to convert.
    * @param type
@@ -369,4 +372,53 @@ public class CropItProcessor {
     return result;
   }
 
+  /**
+   * Image scaling routine as prescribed by
+   * http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html.
+   * Image.getScaledInstance() is not very efficient or fast and
+this leverages the graphics
+   * classes directly for a better and faster image scaling algorithm.
+   *
+   * @param img
+   * @param targetWidth
+   * @param targetHeight
+   * @return
+   */
+  private static BufferedImage getScaledInstance(BufferedImage img, int targetWidth,
+      int targetHeight) {
+    BufferedImage ret = (BufferedImage) img;
+
+    // Use multi-step technique: start with original size, then
+    // scale down in multiple passes with drawImage()
+    // until the target size is reached
+    int w = img.getWidth();
+    int h = img.getHeight();
+
+    while (w > targetWidth || h > targetHeight) {
+      // Bit shifting by one is faster than dividing by 2.
+      w >>= 1;
+      if (w < targetWidth) {
+        w = targetWidth;
+      }
+
+      // Bit shifting by one is faster than dividing by 2.
+      h >>= 1;
+      if (h < targetHeight) {
+        h = targetHeight;
+      }
+
+      BufferedImage tmp = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+      Graphics2D g2 = tmp.createGraphics();
+      g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+          RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2.drawImage(ret, 0, 0, w, h, null);
+      g2.dispose();
+
+      ret = tmp;
+    }
+
+    return ret;
+  }
 }
