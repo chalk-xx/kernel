@@ -86,7 +86,7 @@ if ( defined $additions ) {
     my $message = "Adding connections specified in file $additions";
     Sling::Print::print_with_lock( "$message", $log );
     my @childs = ();
-    for ( my $i = 0 ; $i < $number_forks ; $i++ ) {
+    for my $i ( 0 .. $number_forks ) {
         my $pid = fork;
         if ($pid) { push @childs, $pid; }    # parent
         elsif ( $pid == 0 ) {                # child

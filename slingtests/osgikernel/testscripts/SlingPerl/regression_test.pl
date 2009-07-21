@@ -142,9 +142,10 @@ else {
     }
 }
 
+my $max_allowed_forks = '32';
 $number_forks = ( $number_forks || 1 );
-$number_forks = ( $number_forks =~ /^[0-9]+$/sxm ? $number_forks : 1 );
-$number_forks = ( $number_forks < 32 ? $number_forks : 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
 $number_forks =
   ( @tests_selected < $number_forks ? @tests_selected : $number_forks );
 

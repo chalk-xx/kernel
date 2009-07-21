@@ -1,5 +1,126 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use HTTP::DAV;
+use Pod::Usage;
+use Sling::DAV;
+
+#}}}
+
+#{{{options parsing
+my $add;
+my $file;
+my $help;
+my $local_path;
+my $man;
+my $number_forks = 1;
+my $password;
+my $remote_path;
+my $url = 'http://localhost:8080';
+my $username;
+
+GetOptions(
+    'a'       => \$add,
+    'l=s'     => \$local_path,
+    'p=s'     => \$password,
+    'r=s'     => \$remote_path,
+    't=i'     => \$number_forks,
+    'u=s'     => \$username,
+    'F=s'     => \$file,
+    'url|U=s' => \$url,
+    'help|?'  => \$help,
+    'man'     => \$man
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url =~ s/(.*)\/$/$1/x;
+$url = ( $url !~ /^http/x ? "http://$url" : "$url" );
+$url = ( $url =~ /^https/x ? "$url:443" : "$url" );
+
+#}}}
+
+#{{{main execution path
+if ( defined $file ) {
+    print "Adding local content paths specified in file:\n";
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+                # Create a separate dav connection per fork:
+            my $dav_conn = new HTTP::DAV;
+            $dav_conn->credentials(
+                -user  => $username,
+                -pass  => $password,
+                -url   => $url,
+                -realm => 'Jackrabbit Webdav Server'
+            );
+            my $dav = new Sling::DAV( \$dav_conn, $url );
+            $dav->upload_from_file( $file, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $dav_conn = new HTTP::DAV;
+    $dav_conn->credentials(
+        -user  => $username,
+        -pass  => $password,
+        -url   => $url,
+        -realm => 'Jackrabbit Webdav Server'
+    );
+
+    my $dav = new Sling::DAV( \$dav_conn, $url );
+
+    if ( defined $add ) {
+        my $type;
+        if ( -f $local_path ) {
+            $type = "file";
+        }
+        elsif ( -d $local_path ) {
+            $type = "directory";
+        }
+        else {
+            croak "ERROR: Unsupported Local path type for \"$local_path\"";
+        }
+        print "Uploading $type $local_path";
+        if ( defined $remote_path ) {
+            print " to $remote_path";
+        }
+        print ": ";
+        if ( $dav->upload( $local_path, $remote_path ) ) {
+            print "Done!\n";
+        }
+        else {
+            print "Failed!\n";
+            print $dav_conn->message . "\n";
+        }
+    }
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -40,96 +161,3 @@ For full details run: perl dav.pl
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use HTTP::DAV;
-use Pod::Usage;
-use Sling::DAV;
-#}}}
-
-#{{{options parsing
-my $add;
-my $file;
-my $help;
-my $localPath;
-my $man;
-my $numberForks = 1;
-my $password;
-my $remotePath;
-my $url = "http://localhost:8080";
-my $username;
-
-GetOptions ( "a" => \$add,           "l=s" => \$localPath,
-             "p=s" => \$password,    "r=s" => \$remotePath,
-             "t=i" => \$numberForks, "u=s" => \$username,
-	     "F=s" => \$file,        "url|U=s" => \$url,
-             "help|?" => \$help,     "man" => \$man) or pod2usage(2);
-
-if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
-if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
-
-$url =~ s/(.*)\/$/$1/;
-$url = ( $url !~ /^http/ ? "http://$url" : "$url" );
-$url = ( $url =~ /^https/ ? "$url:443" : "$url" );
-#}}}
-
-#{{{main execution path
-if ( defined $file ) {
-    print "Adding local content paths specified in file:\n";
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-	    # Create a separate dav connection per fork:
-            my $davConn = new HTTP::DAV;
-            $davConn->credentials( -user=>"$username", -pass =>"$password",
-	        -url =>"$url", -realm => "Jackrabbit Webdav Server" );
-            my $dav = new Sling::DAV( \$davConn, $url );
-            $dav->upload_from_file( $file, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $davConn = new HTTP::DAV;
-    $davConn->credentials( -user=>"$username", -pass =>"$password",
-        -url =>"$url", -realm => "Jackrabbit Webdav Server" );
-
-    my $dav = new Sling::DAV( \$davConn, $url );
-
-    if ( defined $add ) {
-        my $type;
-        if ( -f $localPath ) {
-            $type = "file";
-        }
-        elsif ( -d $localPath ) {
-            $type = "directory";
-        }
-        else {
-            die "ERROR: Unsupported Local path type for \"$localPath\"";
-        }
-        print "Uploading $type $localPath";
-	if ( defined $remotePath ) {
-	    print " to $remotePath";
-	}
-	print ": ";
-        if( $dav->upload( $localPath, $remotePath ) ) {
-            print "Done!\n";
-        }
-        else {
-            print "Failed!\n";
-	    print $davConn->message . "\n";
-        }
-    }
-}
-#}}}
-
-1;

@@ -14,6 +14,7 @@ use TestDataBuilder::Group();
 use TestDataBuilder::Presence();
 use TestDataBuilder::Site();
 use TestDataBuilder::User();
+
 #}}}
 
 #{{{options parsing
@@ -21,34 +22,34 @@ my $all_data;
 my $connection_data;
 my $content_data;
 my $directory = 'data';
-my $group_data;;
+my $group_data;
 my $help;
 my $log;
 my $man;
-my $number_forks = '1';
+my $number_forks   = '1';
 my $number_of_dirs = '1024';
 my $presence_data;
 my $site_data;
 my $test_data_size_mb = '8';
-my $type = 'all';
+my $type              = 'all';
 my $user_data;
 my $verbose;
 
-GetOptions (
-    'all|a' => \$all_data,
-    'connection|c' => \$connection_data,
-    'content|C' => \$content_data,
+GetOptions(
+    'all|a'            => \$all_data,
+    'connection|c'     => \$connection_data,
+    'content|C'        => \$content_data,
     'content-size|S=s' => \$test_data_size_mb,
-    'directory|d' => \$directory,
-    'group|g' => \$group_data,
-    'help|?' => \$help,
-    'log|L=s' => \$log,
-    'man|M' => \$man,
-    'presence|p' => \$presence_data,
-    'site|s' => \$site_data,
-    'threads|t=i' => \$number_forks,
-    'user|u' => \$user_data,
-    'verbose|v+' => \$verbose
+    'directory|d'      => \$directory,
+    'group|g'          => \$group_data,
+    'help|?'           => \$help,
+    'log|L=s'          => \$log,
+    'man|M'            => \$man,
+    'presence|p'       => \$presence_data,
+    'site|s'           => \$site_data,
+    'threads|t=i'      => \$number_forks,
+    'user|u'           => \$user_data,
+    'verbose|v+'       => \$verbose
 ) or pod2usage(2);
 
 if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
@@ -57,26 +58,26 @@ if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
 my @all_test_data_list = qw(Connection Content Group Presence Site User);
 my @test_data_selected = ();
 
-if ( $all_data ) {
+if ($all_data) {
     @test_data_selected = @all_test_data_list;
 }
 else {
-    if ( $connection_data ) {
+    if ($connection_data) {
         push @test_data_selected, 'Connection';
     }
-    elsif ( $content_data ) {
+    elsif ($content_data) {
         push @test_data_selected, 'Content';
     }
-    elsif ( $group_data ) {
+    elsif ($group_data) {
         push @test_data_selected, 'Group';
     }
-    elsif ( $presence_data ) {
+    elsif ($presence_data) {
         push @test_data_selected, 'Presence';
     }
-    elsif ( $site_data ) {
+    elsif ($site_data) {
         push @test_data_selected, 'Site';
     }
-    elsif ( $user_data ) {
+    elsif ($user_data) {
         push @test_data_selected, 'User';
     }
 }
@@ -85,20 +86,26 @@ my $max_allowed_forks = '32';
 $number_forks = ( $number_forks || 1 );
 $number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
 $number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
 #}}}
 
 #{{{ main execution path
-foreach my $data ( @test_data_selected ) {
-    if ( ! -d $directory ) {
+foreach my $data (@test_data_selected) {
+    if ( !-d $directory ) {
         my $success = mkdir $directory;
-	if ( ! $success ) { croak "Could not make test data directory: \"$data\"!"; }
+        if ( !$success ) {
+            croak "Could not make test data directory: \"$data\"!";
+        }
     }
     if ( $data eq 'Connection' ) {
-        my $connection = new TestDataBuilder::Connection( $directory, $verbose, $log );
+        my $connection =
+          new TestDataBuilder::Connection( $directory, $verbose, $log );
         $connection->generate();
     }
     elsif ( $data eq 'Content' ) {
-        my $content = new TestDataBuilder::Content( $directory, $test_data_size_mb, $type, $number_of_dirs, $verbose, $log );
+        my $content =
+          new TestDataBuilder::Content( $directory, $test_data_size_mb, $type,
+            $number_of_dirs, $verbose, $log );
         $content->generate();
     }
     elsif ( $data eq 'Group' ) {
@@ -106,7 +113,8 @@ foreach my $data ( @test_data_selected ) {
         $group->generate();
     }
     elsif ( $data eq 'Presence' ) {
-        my $presence = new TestDataBuilder::Presence( $directory, $verbose, $log );
+        my $presence =
+          new TestDataBuilder::Presence( $directory, $verbose, $log );
         $presence->generate();
     }
     elsif ( $data eq 'Site' ) {
@@ -121,6 +129,7 @@ foreach my $data ( @test_data_selected ) {
         croak "Could not generate test data for data type: \"$data\"";
     }
 }
+
 #}}}
 
 1;

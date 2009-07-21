@@ -1,5 +1,110 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Search;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $auth;
+my $file;
+my $help;
+my $items;
+my $log;
+my $man;
+my $number_forks = 1;
+my $page;
+my $password;
+my $search_content;
+my $search_sites;
+my $search_users;
+my $url;
+my $username;
+my $verbose;
+
+GetOptions(
+    'auth=s'             => \$auth,
+    'file|F=s'           => \$file,
+    'help|?'             => \$help,
+    'items|i=i'          => \$items,
+    'log|L=s'            => \$log,
+    'man|M'              => \$man,
+    'page|P=i'           => \$page,
+    'pass|p=s'           => \$password,
+    'search-content|s=s' => \$search_content,
+    'search-sites=s'     => \$search_sites,
+    'search-users=s'     => \$search_users,
+    'threads|t=i'        => \$number_forks,
+    'url|U=s'            => \$url,
+    'user|u=s'           => \$username,
+    'verbose|v+'         => \$verbose
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{ main execution path
+if ( defined $file ) {
+    my $message = "Searching through all words in file: \"$file\":";
+    Sling::Print::print_with_lock( "$message", $log );
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $search = new Sling::Search( \$authn, $verbose, $log );
+            $search->search_from_file( $file, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $search = new Sling::Search( \$authn, $verbose, $log );
+    if ( defined $search_content ) {
+        $search->search( $search_content, $page, $items );
+    }
+    elsif ( defined $search_sites ) {
+        $search->search_sites( $search_sites, $page, $items );
+    }
+    elsif ( defined $search_users ) {
+        $search->search_users( $search_users, $page, $items );
+    }
+    Sling::Print::print_result($search);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -57,96 +162,3 @@ For full details run: perl search.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Search;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $auth;
-my $file;
-my $help;
-my $items;
-my $log;
-my $man;
-my $numberForks = 1;
-my $page;
-my $password;
-my $search_content;
-my $search_sites;
-my $search_users;
-my $url;
-my $username;
-my $verbose;
-
-GetOptions (
-    "auth=s" => \$auth,
-    "file|F=s" => \$file,
-    "help|?" => \$help,
-    "items|i=i" => \$items,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "page|P=i" => \$page,
-    "pass|p=s" => \$password,
-    "search-content|s=s" => \$search_content,
-    "search-sites=s" => \$search_sites,
-    "search-users=s" => \$search_users,
-    "threads|t=i" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose
-) or pod2usage(2);
-
-if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
-if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{ main execution path
-if ( defined $file ) {
-    my $message = "Searching through all words in file: \"$file\":";
-    Sling::Print::print_with_lock( "$message", $log );
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $search = new Sling::Search( \$authn, $verbose, $log );
-            $search->search_from_file( $file, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $search = new Sling::Search( \$authn, $verbose, $log );
-    if ( defined $search_content ) {
-        $search->search( $search_content, $page, $items );
-    }
-    elsif ( defined $search_sites ) {
-        $search->search_sites( $search_sites, $page, $items );
-    }
-    elsif ( defined $search_users ) {
-        $search->search_users( $search_users, $page, $items );
-    }
-    Sling::Print::print_result( $search );
-}
-#}}}
-
-1;
