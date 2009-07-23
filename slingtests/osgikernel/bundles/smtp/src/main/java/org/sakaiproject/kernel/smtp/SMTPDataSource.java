@@ -1,7 +1,5 @@
 package org.sakaiproject.kernel.smtp;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,11 +12,15 @@ public class SMTPDataSource implements DataSource {
   private String contentType;
   private InputStream inputStream;
 
-  public SMTPDataSource(Map<String,Object> properties, String body) {
-    this.contentType = (String) properties.get("content-type");
-    this.inputStream = IOUtils.toInputStream(body);
+  public SMTPDataSource(Map<String,Object> properties, InputStream inputStream) {
+    this((String) properties.get("content-type"), inputStream);
   }
   
+  public SMTPDataSource(String contentType, InputStream inputStream) {
+    this.contentType = contentType;
+    this.inputStream = inputStream;
+  }
+
   public String getContentType() {
     return contentType;
   }

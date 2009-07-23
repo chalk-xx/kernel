@@ -66,15 +66,33 @@ public class MessagingServiceImpl implements MessagingService {
    */
   public Node create(Session session, Map<String, Object> mapProperties)
       throws MessagingException {
-
-    Node msg = null;
-
+    return create(session, mapProperties, null);
+  }
+  
+  private String generateMessageId() {
     String messageId = String.valueOf(Thread.currentThread().getId())
         + String.valueOf(System.currentTimeMillis());
     try {
-      messageId = org.sakaiproject.kernel.util.StringUtils.sha1Hash(messageId);
+      return messageId = org.sakaiproject.kernel.util.StringUtils.sha1Hash(messageId);
     } catch (Exception ex) {
       throw new MessagingException("Unable to create hash.");
+    }
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @throws MessagingException
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#create(org.apache.sling.api.resource.Resource)
+   */
+  public Node create(Session session, Map<String, Object> mapProperties, String messageId)
+      throws MessagingException {
+
+    Node msg = null;
+    if (messageId == null) {
+      messageId = generateMessageId();
     }
 
     String user = session.getUserID();

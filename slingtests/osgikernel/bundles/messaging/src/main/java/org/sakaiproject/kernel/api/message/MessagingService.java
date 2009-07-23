@@ -28,6 +28,21 @@ import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
 
 public interface MessagingService {
+  
+  /**
+   * Creates a new message for the user associated with the provided session.
+   * Message properties are extracted from the supplied map.
+   * The messageId supplied must be guaranteed unique
+   * 
+   * @param resource
+   * @param mapProperties
+   * @param messageId Globally unique message identifier
+   * @return
+   * @throws MessagingException
+   */
+  public Node create(Session session, Map<String, Object> mapProperties, String messageId)
+  throws MessagingException;
+  
   /**
    * Creates a new message for the user associated with the provided session.
    * Message properties are extracted from the supplied map
