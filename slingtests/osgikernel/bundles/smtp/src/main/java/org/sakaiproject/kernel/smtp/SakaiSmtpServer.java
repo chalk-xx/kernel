@@ -1,10 +1,7 @@
 package org.sakaiproject.kernel.smtp;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.message.MessageConstants;
@@ -21,6 +18,8 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Node;
@@ -36,8 +35,6 @@ import javax.mail.internet.MimeMultipart;
  *                description="Receives incoming mail." name
  *                ="org.sakaiproject.kernel.smtp.SmptServer"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class SakaiSmtpServer implements SimpleMessageListener {
 
@@ -49,6 +46,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   /** @scr.reference */
   private MessagingService messagingService;
   
+  /** @scr.reference */
   private SlingRepository slingRepository;
   
   public void activate(ComponentContext context) throws Exception {
@@ -69,17 +67,11 @@ public class SakaiSmtpServer implements SimpleMessageListener {
    * @see org.subethamail.smtp.helper.SimpleMessageListener#accept(java.lang.String, java.lang.String)
    */
   public boolean accept(String from, String recipient) {
-    String principalName = parseRecipient(recipient);
     Session session = null;
     try {
       session = slingRepository.loginAdministrative(null);
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(principalName);
-      if (authorizable != null) {
-        return true;
-      } else {
-        LOGGER.warn("Rejecting e-mail for unknown user: " + recipient);
-      }
+      List<String> mailboxen = messagingService.getMailboxesForEmailAddress(session, recipient);
+      return mailboxen.size() > 0;
     } catch (RepositoryException e) {
       LOGGER.error("Unable to look up user", e);
     } finally {
@@ -90,32 +82,35 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     return false;
   }
 
-  private String parseRecipient(String recipient) {
-    String[] parts = recipient.split("@", 2);
-    return parts[0];
-  }
-
   public void deliver(String from, String recipient, InputStream data)
       throws TooMuchDataException, IOException {
     LOGGER.info("Got message FROM: " + from + " TO: " + recipient);
-    String principalName = parseRecipient(recipient);
     Session session = null;
     try {
       session = slingRepository.loginAdministrative(null);
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(principalName);
-      if (authorizable != null) {
-        Map<String, Object> mapProperties = new HashMap<String, Object>();
-        mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            MessageConstants.SAKAI_MESSAGE_RT);
-        mapProperties.put(MessageConstants.PROP_SAKAI_READ, false);
-        mapProperties.put(MessageConstants.PROP_SAKAI_FROM, from);
-        mapProperties.put(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
-        Session userSession = session.impersonate(new SimpleCredentials(authorizable.getID(), "dummy".toCharArray()));
-        writeMessage(userSession, mapProperties, data);
-        userSession.save();
-      } else {
-        LOGGER.warn("Rejecting e-mail for unknown user: " + recipient);
+      List<String> mailboxen = messagingService.getMailboxesForEmailAddress(session, recipient);
+      if (mailboxen.size() == 0) {
+        throw new IOException("Unexpectedly few mailboxes for delivery");
+      }
+      String firstTarget = mailboxen.remove(0);
+      Map<String, Object> mapProperties = new HashMap<String, Object>();
+      mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          MessageConstants.SAKAI_MESSAGE_RT);
+      mapProperties.put(MessageConstants.PROP_SAKAI_READ, false);
+      mapProperties.put(MessageConstants.PROP_SAKAI_FROM, from);
+      mapProperties.put(MessageConstants.PROP_SAKAI_MESSAGEBOX, MessageConstants.BOX_INBOX);
+      Session userSession = session.impersonate(new SimpleCredentials(firstTarget, "dummy".toCharArray()));
+      Node createdMessage = writeMessage(userSession, mapProperties, data);
+      LOGGER.info("Created message at: " + createdMessage.getPath());
+      String messageId = createdMessage.getProperty("message-id").getString();
+      LOGGER.info("Message id was: " + messageId);
+      userSession.save();
+      for (Iterator<String> iter = mailboxen.iterator(); iter.hasNext();) {
+        String ccPrincipal = iter.next();
+        messagingService.copyMessage(session, ccPrincipal, firstTarget, messageId);
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
       }
     } catch (RepositoryException e) {
       LOGGER.error("Unable to write message", e);
@@ -127,7 +122,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
     }
   }
 
-  private void writeMessage(Session session, Map<String, Object> mapProperties,
+  private Node writeMessage(Session session, Map<String, Object> mapProperties,
       InputStream data) throws IOException, RepositoryException {
     parseSMTPHeaders(mapProperties, data);
     StreamCopier streamCopier = new StreamCopier(data);
@@ -135,9 +130,10 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       MimeMultipart multipart = new MimeMultipart(new SMTPDataSource(mapProperties, streamCopier));
       Node message = messagingService.create(session, mapProperties, (String)mapProperties.get("message-id"));
       writeMultipartToNode(session, message, multipart);
+      return message;
     } catch (MessagingException e) {
       mapProperties.put(MessageConstants.PROP_SAKAI_BODY, streamCopier.getContents());
-      messagingService.create(session, mapProperties);
+      return messagingService.create(session, mapProperties);
     }
   }
 
@@ -225,14 +221,6 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         string.append((char)c);
       }
     }
-  }
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
   }
 
 }

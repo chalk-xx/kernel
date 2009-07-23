@@ -47,7 +47,8 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
     String user = request.getRemoteUser();
     String path = request.getResource().getPath();
     path = PathUtils.removeLastElement(path);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075.encodePath(MessageUtils.getMessagePathBase(user)));    
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075.encodePath(MessageUtils.getMessagePathBase(user)));
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075.encodePath(MessageConstants._USER_MESSAGE));
   }
 
   

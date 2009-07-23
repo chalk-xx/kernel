@@ -19,25 +19,33 @@ package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
+import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryResult;
 
 /**
  * Service for doing operations with messages.
@@ -56,6 +64,19 @@ public class MessagingServiceImpl implements MessagingService {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
 
+  public List<String> getMailboxesForEmailAddress(Session session, String emailAddress) throws InvalidQueryException, RepositoryException {
+    String queryString = "/" + MessageConstants._USER_MESSAGE + "//element(*)MetaData[@sling:resourceType='" 
+                             + MessageConstants.SAKAI_MESSAGESTORE_RT + "' and @" 
+                             + MessageConstants.SAKAI_EMAIL_ADDRESS + "='" + emailAddress + "']";
+    Query query = session.getWorkspace().getQueryManager().createQuery(queryString, "xpath");
+    QueryResult result = query.execute();
+    NodeIterator iter = result.getNodes();
+    List<String> mailboxes = new ArrayList<String>();
+    while (iter.hasNext()) {
+      mailboxes.add(iter.nextNode().getName());
+    }
+    return mailboxes;
+  }
   /**
    * 
    * {@inheritDoc}
@@ -103,7 +124,7 @@ public class MessagingServiceImpl implements MessagingService {
       throw new MessagingException("Unable to lock user mailbox");
     }
     try {
-      String messagePath = MessageUtils.getMessagePath(user, messageId);
+      String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
@@ -142,6 +163,24 @@ public class MessagingServiceImpl implements MessagingService {
       n = n.getParent();
     }
     return null;
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * @throws RepositoryException 
+   * @throws PathNotFoundException 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#copyMessage(java.lang.String, java.lang.String, java.lang.String)
+   */
+  public void copyMessage(Session adminSession, String target, String source, String messageId) throws PathNotFoundException, RepositoryException {
+    String encodedMessageId = ISO9075.encodePath(messageId);
+    String sourceNodePath = MessageUtils.getMessagePath(source, encodedMessageId);
+    String targetNodePath = MessageUtils.getMessagePath(target, encodedMessageId);
+    String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
+    Node parentNode = JcrUtils.deepGetOrCreateNode(adminSession, parent);
+    LOGGER.info("Created parent node at: " + parentNode.getPath());
+    adminSession.save();
+    adminSession.getWorkspace().copy(sourceNodePath, targetNodePath);
   }
 
 
