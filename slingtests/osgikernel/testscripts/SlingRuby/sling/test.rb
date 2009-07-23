@@ -27,8 +27,10 @@ class SlingTest < Test::Unit::TestCase
   end
 
   def create_node(path, props)
-    @s.create_node(path, props)
+    res = @s.create_node(path, props)
+    assert_not_equal("500", res.code, "Expected to be able to create node")
     @created_nodes << path
+    return path
   end
 
   def create_file_node(path, fieldname, data, content_type="text/plain")
