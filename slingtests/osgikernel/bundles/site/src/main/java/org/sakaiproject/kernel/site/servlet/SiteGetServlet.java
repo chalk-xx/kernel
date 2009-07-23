@@ -81,9 +81,10 @@ public class SiteGetServlet extends AbstractSiteServlet {
         templatePath = getSiteService().getDefaultSiteTemplate(site);
         siteTemplate = request.getResourceResolver().getResource(templatePath);
       }
+      response.setContentType("text/html");
+      response.setStatus(HttpServletResponse.SC_OK);
       IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
       LOG.info("Streamed site template");
-      response.setStatus(HttpServletResponse.SC_OK);
       return;
     } catch (SiteException e) {
       response.sendError(e.getStatusCode(), e.getMessage());

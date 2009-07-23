@@ -15,7 +15,7 @@ path = $ARGV[0]
 @s = Sling.new()
 @sm = SiteManager.new(@s)
 @um = UserManager.new(@s)
-site = @sm.create_site(path)
+site = @sm.create_site("sites", "Site #{path}", path)
 puts "Site created... making joinable"
 site.set_joinable("yes")
 if ($ARGV.size > 1)
