@@ -24,6 +24,8 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Private-Package>org.sakaiproject.kernel.email.outgoing</Private-Package>
+            <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -38,6 +40,18 @@
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
       <version>0.9.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+    <!-- commons -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
     </dependency>
 
     <!-- osgi -->
@@ -58,6 +72,13 @@
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-core</artifactId>
+    </dependency>
+
+    <!-- jcr -->
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.apache.sling.jcr.resource</artifactId>
+      <version>2.0.5-sakai-SNAPSHOT</version>
     </dependency>
 
     <!-- testing -->

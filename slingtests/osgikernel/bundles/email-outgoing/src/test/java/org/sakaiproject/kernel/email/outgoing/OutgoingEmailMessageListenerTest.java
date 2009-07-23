@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.org.sakaiproject.kernel.email.outgoing;
+package org.sakaiproject.kernel.email.outgoing;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
