@@ -1,5 +1,78 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::ImageCrop;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $auth;
+my $file;
+my $final_height;
+my $final_width;
+my $help;
+my $log;
+my $man;
+my $number_forks = 1;
+my $password;
+my $remote_dest;
+my $remote_source;
+my $url;
+my $username;
+my $verbose;
+my $x_coordinate;
+my $y_coordinate;
+
+GetOptions(
+    'auth=s'            => \$auth,
+    'file|F=s'          => \$file,
+    'final-height|H=i'  => \$final_height,
+    'final-width|W=i'   => \$final_width,
+    'help|?'            => \$help,
+    'log|L=s'           => \$log,
+    'man|M'             => \$man,
+    'pass|p=s'          => \$password,
+    'remote|r=s'        => \$remote_dest,
+    'remote-source|S=s' => \$remote_source,
+    'threads|t=i'       => \$number_forks,
+    'url|U=s'           => \$url,
+    'user|u=s'          => \$username,
+    'verbose|v+'        => \$verbose,
+    'x-coordinate|x=i'  => \$x_coordinate,
+    'y-coordinate|y=i'  => \$y_coordinate
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$remote_dest   = Sling::URL::strip_leading_slash($remote_dest);
+$remote_source = Sling::URL::strip_leading_slash($remote_source);
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{ main execution path
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -48,68 +121,3 @@ For full details run: perl image_crop.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::ImageCrop;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $auth;
-my $file;
-my $final_height;
-my $final_width;
-my $help;
-my $log;
-my $man;
-my $numberForks = 1;
-my $password;
-my $remote_dest;
-my $remote_source;
-my $url;
-my $username;
-my $verbose;
-my $x_coordinate;
-my $y_coordinate;
-
-GetOptions (
-    "auth=s" => \$auth,
-    "file|F=s" => \$file,
-    "final-height|H=i" => \$final_height,
-    "final-width|W=i" => \$final_width,
-    "help|?" => \$help,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "pass|p=s" => \$password,
-    "remote|r=s" => \$remote_dest,
-    "remote-source|S=s" => \$remote_source,
-    "threads|t=i" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose,
-    "x-coordinate|x=i" => \$x_coordinate,
-    "y-coordinate|y=i" => \$y_coordinate
-) or pod2usage(2);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$remote_dest = Sling::URL::strip_leading_slash( $remote_dest );
-$remote_source = Sling::URL::strip_leading_slash( $remote_source );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{ main execution path
-#}}}
-
-1;

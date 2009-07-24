@@ -175,4 +175,15 @@ sub view {
 }
 #}}}
 
+#{{{sub view_file
+sub view_file {
+    my ( $content, $remoteDest ) = @_;
+    my $res  = Sling::Request::request( \$content, "get $content->{ 'BaseURL' }/$remoteDest");
+    my $success = Sling::ContentUtil::exists_eval( $res );
+    my $message = ( $success ? ${$res}->content : "Problem viewing content: \"$remoteDest\"" );
+    $content->set_results( "$message", $res );
+    return $success;
+}
+#}}}
+
 1;

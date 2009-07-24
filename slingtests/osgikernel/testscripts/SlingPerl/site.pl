@@ -1,5 +1,136 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Site;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $add_site;
+my $additions;
+my $alter_site;
+my $auth;
+my $delete_site;
+my $exists_site;
+my $help;
+my $joinable;
+my $log;
+my $man;
+my $number_forks = 1;
+my $password;
+my @properties;
+my $template;
+my $url;
+my $username;
+my $verbose;
+my $view_site;
+
+GetOptions(
+    'add|a=s'      => \$add_site,
+    'addition|A=s' => \$additions,
+    'alter|c=s'    => \$alter_site,
+    'auth=s'       => \$auth,
+    'delete|d=s'   => \$delete_site,
+    'exists|e=s'   => \$exists_site,
+    'help|?'       => \$help,
+    'joinable|j=s' => \$joinable,
+    'log|L=s'      => \$log,
+    'man|M'        => \$man,
+    'pass|p=s'     => \$password,
+    'property|P=s' => \@properties,
+    'template|T=s' => \$template,
+    'threads|t=i'  => \$number_forks,
+    'url|U=s'      => \$url,
+    'user|u=s'     => \$username,
+    'verbose|v+'   => \$verbose,
+    'view|V=s'     => \$view_site
+) or pod2usage( -exitstatus => 2, -verbose => 1 );
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+my %joinable_options = ( 'yes', 1, 'no', 1, 'withauth', 1 );
+if ( defined $joinable ) {
+    if ( !$joinable_options{$joinable} ) {
+        croak "Joinable option must be one of yes, no, or withauth!";
+    }
+}
+
+$add_site    = Sling::URL::strip_leading_slash($add_site);
+$alter_site  = Sling::URL::strip_leading_slash($alter_site);
+$delete_site = Sling::URL::strip_leading_slash($delete_site);
+$exists_site = Sling::URL::strip_leading_slash($exists_site);
+$view_site   = Sling::URL::strip_leading_slash($view_site);
+$template    = Sling::URL::add_leading_slash($template);
+
+#}}}
+
+#{{{ main execution path
+if ( defined $additions ) {
+    my $message = "Running through all site actions in file \"$additions\":\n";
+    Sling::Print::print_with_lock( "$message", $log );
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $site = new Sling::Site( \$authn, $verbose, $log );
+            $site->update_from_file( $additions, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $site = new Sling::Site( \$authn, $verbose, $log );
+    if ( defined $add_site ) {
+        $site->update( $add_site, $template, $joinable, \@properties );
+    }
+    elsif ( defined $alter_site ) {
+        $site->update( $alter_site, $template, $joinable, \@properties );
+    }
+    elsif ( defined $delete_site ) {
+        $site->delete($delete_site);
+    }
+    elsif ( defined $exists_site ) {
+        $site->exists($exists_site);
+    }
+    elsif ( defined $view_site ) {
+        $site->view($view_site);
+    }
+    Sling::Print::print_result($site);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -72,123 +203,3 @@ For full details run: perl site.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Site;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $addSite;
-my $additions;
-my $alterSite;
-my $auth;
-my $deleteSite;
-my $existsSite;
-my $help;
-my $joinable;
-my $log;
-my $man;
-my $numberForks = 1;
-my $password;
-my @properties;
-my $template;
-my $url;
-my $username;
-my $verbose;
-my $viewSite;
-
-GetOptions (
-    "add|a=s" => \$addSite,
-    "addition|A=s" => \$additions,
-    "alter|c=s" => \$alterSite, 
-    "auth=s" => \$auth,
-    "delete|d=s" => \$deleteSite,
-    "exists|e=s" => \$existsSite,
-    "help|?" => \$help,
-    "joinable|j=s" => \$joinable,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "pass|p=s" => \$password,
-    "property|P=s" => \@properties,
-    "template|T=s" => \$template,
-    "threads|t=i" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose,
-    "view|V=s" => \$viewSite
-) or pod2usage(-exitstatus => 2, -verbose => 1);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-
-my %joinableOptions = ( 'yes', 1, 'no', 1, 'withauth', 1 );
-if ( defined $joinable ) {
-    if ( ! $joinableOptions{ $joinable } ) {
-        die "Joinable option must be one of yes, no, or withauth!";
-    }
-}
-
-$addSite = Sling::URL::strip_leading_slash( $addSite );
-$alterSite = Sling::URL::strip_leading_slash( $alterSite );
-$deleteSite = Sling::URL::strip_leading_slash( $deleteSite );
-$existsSite = Sling::URL::strip_leading_slash( $existsSite );
-$viewSite = Sling::URL::strip_leading_slash( $viewSite );
-$template = Sling::URL::add_leading_slash( $template );
-#}}}
-
-#{{{ main execution path
-if ( defined $additions ) {
-    my $message = "Running through all site actions in file \"$additions\":\n";
-    Sling::Print::print_with_lock( "$message", $log );
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $site = new Sling::Site( \$authn, $verbose, $log );
-	    my $path;
-            $site->update_from_file( $additions, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $site = new Sling::Site( \$authn, $verbose, $log );
-    if ( defined $addSite ) {
-        $site->update( $addSite, $template, $joinable, \@properties );
-    }
-    elsif ( defined $alterSite ) {
-        $site->update( $alterSite, $template, $joinable, \@properties );
-    }
-    elsif ( defined $deleteSite ) {
-        $site->delete( $deleteSite );
-    }
-    elsif ( defined $existsSite ) {
-        $site->exists( $existsSite );
-    }
-    elsif ( defined $viewSite ) {
-        $site->view( $viewSite );
-    }
-    Sling::Print::print_result( $site );
-}
-#}}}
-
-1;

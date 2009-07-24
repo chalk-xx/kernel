@@ -1,5 +1,147 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Messaging;
+
+#}}}
+
+#{{{options parsing
+my $ascending;
+my $auth;
+my $chat;
+my $create;
+my $descending;
+my $file;
+my $help;
+my $inbox;
+my $internal;
+my $list;
+my $log;
+my $man;
+my $number_forks = 1;
+my $outbox;
+my $password;
+my $send;
+my $sort_by;
+my $url;
+my $username;
+my $verbose;
+
+GetOptions(
+    'ascending|a'  => \$ascending,
+    'auth=s'       => \$auth,
+    'chat|C'       => \$chat,
+    'create|c=s'   => \$create,
+    'descending|d' => \$descending,
+    'file|F=s'     => \$file,
+    'help|?'       => \$help,
+    'inbox|i'      => \$inbox,
+    'internal|I'   => \$internal,
+    'list|l'       => \$list,
+    'log|L=s'      => \$log,
+    'man|M'        => \$man,
+    'outbox|o'     => \$outbox,
+    'pass|p=s'     => \$password,
+    'send|s=s'     => \$send,
+    'sort-by|S=s'  => \$sort_by,
+    'threads|t=i'  => \$number_forks,
+    'url|U=s'      => \$url,
+    'user|u=s'     => \$username,
+    'verbose|v+'   => \$verbose
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{ main execution path
+if ( defined $file ) {
+    my $message = "Performing messaging actions specified in file: \"$file\":";
+    Sling::Print::print_with_lock( "$message", $log );
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $messaging = new Sling::Messaging( \$authn, $verbose, $log );
+            $messaging->update_from_file( $file, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $messaging = new Sling::Messaging( \$authn, $verbose, $log );
+
+    if ( defined $create ) {
+        my $type;
+        if ( defined $internal ) {
+            $type = 'internal';
+        }
+        elsif ( defined $chat ) {
+            $type = 'chat';
+        }
+        else {
+            $type = 'internal';    # default type is internal
+        }
+        $messaging->create( $create, $type );
+    }
+    elsif ( defined $send ) {
+        $messaging->send($send);
+    }
+    elsif ( ( defined $list ) || ( defined $inbox ) || ( defined $outbox ) ) {
+        my $order;
+        if ( defined $ascending ) {
+            $order = 'ascending';
+        }
+        elsif ( defined $descending ) {
+            $order = 'descending';
+        }
+        my $box;
+        if ( defined $list ) {
+            $box = 'all';
+        }
+        elsif ( defined $inbox ) {
+            $box = 'inbox';
+        }
+        elsif ( defined $outbox ) {
+            $box = 'outbox';
+        }
+        $messaging->list( $box, $sort_by, $order );
+    }
+    Sling::Print::print_result($messaging);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -50,133 +192,3 @@ For full details run: perl messaging.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Messaging;
-#}}}
-
-#{{{options parsing
-my $ascending;
-my $auth;
-my $chat;
-my $create;
-my $descending;
-my $file;
-my $help;
-my $inbox;
-my $internal;
-my $list;
-my $log;
-my $man;
-my $numberForks = 1;
-my $outbox;
-my $password;
-my $send;
-my $sort_by;
-my $url;
-my $username;
-my $verbose;
-
-GetOptions (
-    "ascending|a" => \$ascending,
-    "auth=s" => \$auth,
-    "chat|C" => \$chat,
-    "create|c=s" => \$create,
-    "descending|d" => \$descending,
-    "file|F=s" => \$file,
-    "help|?" => \$help,
-    "inbox|i" => \$inbox,
-    "internal|I" => \$internal,
-    "list|l" => \$list,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "outbox|o" => \$outbox,
-    "pass|p=s" => \$password,
-    "send|s=s" => \$send,
-    "sort-by|S=s" => \$sort_by,
-    "threads|t=i" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose
-) or pod2usage(2);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{ main execution path
-if ( defined $file ) {
-    my $message = "Performing messaging actions specified in file: \"$file\":";
-    Sling::Print::print_with_lock( "$message", $log );
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $messaging = new Sling::Messaging( \$authn, $verbose, $log );
-            $messaging->update_from_file( $file, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $messaging = new Sling::Messaging( \$authn, $verbose, $log );
-
-    if ( defined $create ) {
-        my $type;
-	if ( defined $internal ) {
-	    $type = "internal";
-	}
-	elsif ( defined $chat ) {
-	    $type = "chat";
-	}
-	else {
-	    $type = "internal"; # default type is internal
-	}
-        $messaging->create( $create, $type );
-    }
-    elsif ( defined $send ) {
-        $messaging->send( $send );
-    }
-    elsif ( ( defined $list ) || ( defined $inbox ) || ( defined $outbox ) ) {
-        my $order;
-	if ( defined $ascending ) {
-	    $order = "ascending";
-	}
-	elsif ( defined $descending ) {
-            $order = "descending";
-	}
-	my $box;
-	if ( defined $list ) {
-            $box = "all";
-	}
-	elsif ( defined $inbox ) {
-            $box = "inbox";
-	}
-	elsif ( defined $outbox ) {
-            $box = "outbox";
-	}
-        $messaging->list( $box, $sort_by, $order );
-    }
-    Sling::Print::print_result( $messaging );
-}
-#}}}
-
-1;

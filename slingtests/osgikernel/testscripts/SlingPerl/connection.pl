@@ -1,6 +1,170 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Connection;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $accept;
+my $additions;
+my $auth;
+my $block;
+my $cancel;
+my $help;
+my $ignore;
+my $invite;
+my $list_accepted;
+my $list_all;
+my $list_blocked;
+my $list_ignored;
+my $list_invited;
+my $list_pending;
+my $list_rejected;
+my $log;
+my $man;
+my $number_forks = 1;
+my $password;
+my $reject;
+my $remove;
+my @types;
+my $url;
+my $username;
+my $verbose;
+
+GetOptions(
+    'accept=s'      => \$accept,
+    'additions|A=s' => \$additions,
+    'auth=s'        => \$auth,
+    'block=s'       => \$block,
+    'cancel=s'      => \$cancel,
+    'help|?'        => \$help,
+    'ignore=s'      => \$ignore,
+    'invite=s'      => \$invite,
+    'list-accepted' => \$list_accepted,
+    'list-all'      => \$list_all,
+    'list-blocked'  => \$list_blocked,
+    'list-ignored'  => \$list_ignored,
+    'list-invited'  => \$list_invited,
+    'list-pending'  => \$list_pending,
+    'list-rejected' => \$list_rejected,
+    'log|L=s'       => \$log,
+    'man|M'         => \$man,
+    'pass|p=s'      => \$password,
+    'reject=s'      => \$reject,
+    'remove=s'      => \$remove,
+    'threads|t=i'   => \$number_forks,
+    'type|T=s'      => \@types,
+    'url|U=s'       => \$url,
+    'user|u=s'      => \$username,
+    'verbose|v+'    => \$verbose
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{ main execution path
+if ( defined $additions ) {
+    my $message = "Adding connections specified in file $additions";
+    Sling::Print::print_with_lock( "$message", $log );
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $connection = new Sling::Connection( \$authn, $verbose, $log );
+            $connection->connect_from_file( $additions, $i, $number_forks,
+                $log );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $connection = new Sling::Connection( \$authn, $verbose, $log );
+    if ( defined $accept ) {
+        $connection->accept($accept);
+    }
+    elsif ( defined $block ) {
+        $connection->block($block);
+    }
+    elsif ( defined $cancel ) {
+        $connection->cancel($cancel);
+    }
+    elsif ( defined $ignore ) {
+        $connection->ignore($ignore);
+    }
+    elsif ( defined $invite ) {
+        $connection->invite( $invite, \@types );
+    }
+    elsif ( defined $reject ) {
+        $connection->reject($reject);
+    }
+    elsif ( defined $remove ) {
+        $connection->remove($remove);
+    }
+    elsif ( defined $list_accepted ) {
+        $connection->list_accepted();
+    }
+    elsif ( defined $list_all ) {
+        $connection->list_all();
+    }
+    elsif ( defined $list_blocked ) {
+        $connection->list_blocked();
+    }
+    elsif ( defined $list_ignored ) {
+        $connection->list_ignored();
+    }
+    elsif ( defined $list_invited ) {
+        $connection->list_invited();
+    }
+    elsif ( defined $list_pending ) {
+        $connection->list_pending();
+    }
+    elsif ( defined $list_rejected ) {
+        $connection->list_rejected();
+    }
+    Sling::Print::print_result($connection);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
+
+=head1 NAME
+
+connection.pl
+
 =head1 SYNOPSIS
 
 connection perl script. Provides a means of managing user connections in a
@@ -43,7 +207,7 @@ Options may be merged together. -- stops processing of options.
 Space is not required between options and their arguments.
 For full details run: perl connection.pl --man
 
-=head1 Example Usage
+=head1 USAGE
 
 =over
 
@@ -101,152 +265,60 @@ For full details run: perl connection.pl --man
 
 =back
 
+=head1 DESCRIPTION
+
+connection perl script. Provides a means of managing user connections in a
+system from the command line. Additionally serves as a reference example for
+using the Sling::Connections library.
+
+=head1 REQUIRED ARGUMENTS
+
+None.
+
+=head1 DIAGNOSTICS
+
+Run with multiple -v options to enable verbose output.
+
+=head1 EXIT STATUS
+
+1 on success, otherwise failure.
+
+=head1 CONFIGURATION
+
+None needed.
+
+=head1 DEPENDENCIES
+
+Carp; Getopt::Long; Pod::Usage; Sling::Authn; Sling::Connection; Sling::URL;
+
+=head1 INCOMPATIBILITIES
+
+None known (^_-)
+
+=head1 BUGS AND LIMITATIONS
+
+None known (^_-)
+
+=head1 AUTHOR
+
+Daniel Parry -- daniel@caret.cam.ac.uk
+
+=head1 LICENSE AND COPYRIGHT
+
+   Copyright 2009 Daniel David Parry
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
 =cut
+
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Connection;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $accept;
-my $additions;
-my $auth;
-my $block;
-my $cancel;
-my $help;
-my $ignore;
-my $invite;
-my $list_accepted;
-my $list_all;
-my $list_blocked;
-my $list_ignored;
-my $list_invited;
-my $list_pending;
-my $list_rejected;
-my $log;
-my $man;
-my $numberForks = 1;
-my $password;
-my $reject;
-my $remove;
-my $searchTerm;
-my @types;
-my $url;
-my $username;
-my $verbose;
-
-GetOptions (
-    "accept=s" => \$accept,
-    "additions|A=s" => \$additions,
-    "auth=s" => \$auth,
-    "block=s" => \$block,
-    "cancel=s" => \$cancel,
-    "help|?" => \$help,
-    "ignore=s" => \$ignore,
-    "invite=s" => \$invite,
-    "list-accepted" => \$list_accepted,
-    "list-all" => \$list_all,
-    "list-blocked" => \$list_blocked,
-    "list-ignored" => \$list_ignored,
-    "list-invited" => \$list_invited,
-    "list-pending" => \$list_pending,
-    "list-rejected" => \$list_rejected,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "pass|p=s" => \$password,
-    "reject=s" => \$reject,
-    "remove=s" => \$remove,
-    "threads|t=i" => \$numberForks,
-    "type|T=s" => \@types,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose
-) or pod2usage(2);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{ main execution path
-if ( defined $additions ) {
-    my $message = "Adding connections specified in file $additions";
-    Sling::Print::print_with_lock( "$message", $log );
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $connection = new Sling::Connection( \$authn, $verbose, $log );
-            $connection->connect_from_file( $additions, $i, $numberForks, $log );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $connection = new Sling::Connection( \$authn, $verbose, $log );
-    if ( defined $accept ) {
-        $connection->accept( $accept );
-    }
-    elsif ( defined $block ) {
-        $connection->block( $block );
-    }
-    elsif ( defined $cancel ) {
-        $connection->cancel( $cancel );
-    }
-    elsif ( defined $ignore ) {
-        $connection->ignore( $ignore );
-    }
-    elsif ( defined $invite ) {
-        $connection->invite( $invite, \@types );
-    }
-    elsif ( defined $reject ) {
-        $connection->reject( $reject );
-    }
-    elsif ( defined $remove ) {
-        $connection->remove( $remove );
-    }
-    elsif ( defined $list_accepted ) {
-        $connection->list_accepted();
-    }
-    elsif ( defined $list_all ) {
-        $connection->list_all();
-    }
-    elsif ( defined $list_blocked ) {
-        $connection->list_blocked();
-    }
-    elsif ( defined $list_ignored ) {
-        $connection->list_ignored();
-    }
-    elsif ( defined $list_invited ) {
-        $connection->list_invited();
-    }
-    elsif ( defined $list_pending ) {
-        $connection->list_pending();
-    }
-    elsif ( defined $list_rejected ) {
-        $connection->list_rejected();
-    }
-    Sling::Print::print_result( $connection );
-}
-#}}}
-
-1;

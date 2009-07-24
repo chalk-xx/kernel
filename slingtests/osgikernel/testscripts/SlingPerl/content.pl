@@ -1,5 +1,137 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Content;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $add;
+my $auth;
+my $copy;
+my $delete;
+my $exists;
+my $additions;
+my $filename = '';
+my $help;
+my $local_path;
+my $log;
+my $man;
+my $move;
+my $number_forks = 1;
+my $password;
+my @properties;
+my $remote_node;
+my $remote_src;
+my $replace;
+my $url;
+my $username;
+my $verbose;
+my $view;
+
+GetOptions(
+    'add|a'             => \$add,
+    'additions|A=s'     => \$additions,
+    'auth=s'            => \$auth,
+    'copy|c'            => \$copy,
+    'delete|d'          => \$delete,
+    'exists|e'          => \$exists,
+    'filename|n=s'      => \$filename,
+    'help|?'            => \$help,
+    'local|l=s'         => \$local_path,
+    'log|L=s'           => \$log,
+    'man|M'             => \$man,
+    'move|m'            => \$move,
+    'pass|p=s'          => \$password,
+    'property|P=s'      => \@properties,
+    'remote|r=s'        => \$remote_node,
+    'remote-source|S=s' => \$remote_src,
+    'replace|R'         => \$replace,
+    'threads|t=s'       => \$number_forks,
+    'url|U=s'           => \$url,
+    'user|u=s'          => \$username,
+    'verbose|v+'        => \$verbose,
+    'view|V'            => \$view
+) or pod2usage(2);
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+$remote_node = Sling::URL::strip_leading_slash($remote_node);
+$remote_src  = Sling::URL::strip_leading_slash($remote_src);
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{ main execution path
+if ( defined $additions ) {
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $content = new Sling::Content( \$authn, $verbose, $log );
+            $content->upload_from_file( $additions, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $content = new Sling::Content( \$authn, $verbose, $log );
+    if ( defined $local_path && defined $remote_node ) {
+        $content->upload_file( $local_path, $remote_node, $filename );
+    }
+    elsif ( defined $add ) {
+        $content->add( $remote_node, \@properties );
+    }
+    elsif ( defined $copy ) {
+        $content->copy( $remote_src, $remote_node, $replace );
+    }
+    elsif ( defined $delete ) {
+        $content->delete($remote_node);
+    }
+    elsif ( defined $exists ) {
+        $content->exists($remote_node);
+    }
+    elsif ( defined $move ) {
+        $content->move( $remote_src, $remote_node, $replace );
+    }
+    elsif ( defined $view ) {
+        $content->view($remote_node);
+    }
+    Sling::Print::print_result($content);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -79,123 +211,3 @@ For full details run: perl content.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Content;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $add;
-my $auth;
-my $copy;
-my $delete;
-my $exists;
-my $additions;
-my $filename = "";
-my $help;
-my $localPath;
-my $log;
-my $man;
-my $move;
-my $numberForks = 1;
-my $password;
-my @properties;
-my $remoteNode;
-my $remoteSrc;
-my $replace;
-my $url;
-my $username;
-my $verbose;
-my $view;
-
-GetOptions (
-    "add|a" => \$add,
-    "additions|A=s" => \$additions,
-    "auth=s" => \$auth,
-    "copy|c" => \$copy,
-    "delete|d" => \$delete,
-    "exists|e" => \$exists,
-    "filename|n=s" => \$filename,
-    "help|?" => \$help,
-    "local|l=s" => \$localPath,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "move|m" => \$move,
-    "pass|p=s" => \$password,
-    "property|P=s" => \@properties,
-    "remote|r=s" => \$remoteNode,
-    "remote-source|S=s" => \$remoteSrc,
-    "replace|R" => \$replace,
-    "threads|t=s" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose,
-    "view|V" => \$view
-) or pod2usage(2);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$remoteNode = Sling::URL::strip_leading_slash( $remoteNode );
-$remoteSrc = Sling::URL::strip_leading_slash( $remoteSrc );
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{ main execution path
-if ( defined $additions ) {
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $content = new Sling::Content( \$authn, $verbose, $log );
-            $content->upload_from_file( $additions, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $content = new Sling::Content( \$authn, $verbose, $log );
-    if ( defined $localPath && defined $remoteNode ) {
-        $content->upload_file( $localPath, $remoteNode, $filename );
-    }
-    elsif ( defined $add ) {
-        $content->add( $remoteNode, \@properties );
-    }
-    elsif ( defined $copy ) {
-        $content->copy( $remoteSrc, $remoteNode, $replace );
-    }
-    elsif ( defined $delete ) {
-        $content->delete( $remoteNode );
-    }
-    elsif ( defined $exists ) {
-        $content->exists( $remoteNode );
-    }
-    elsif ( defined $move ) {
-        $content->move( $remoteSrc, $remoteNode, $replace );
-    }
-    elsif ( defined $view ) {
-        $content->view( $remoteNode );
-    }
-    Sling::Print::print_result( $content );
-}
-#}}}
-
-1;

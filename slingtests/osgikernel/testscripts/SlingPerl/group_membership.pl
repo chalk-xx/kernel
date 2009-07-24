@@ -1,5 +1,116 @@
 #!/usr/bin/perl
 
+#{{{imports
+use warnings;
+use strict;
+use Carp;
+use lib qw ( .. );
+use version; our $VERSION = qv('0.0.1');
+use Getopt::Long qw(:config bundling);
+use Pod::Usage;
+use Sling::Authn;
+use Sling::Group;
+use Sling::URL;
+
+#}}}
+
+#{{{options parsing
+my $act_on_group;
+my $add_member;
+my $additions;
+my $auth;
+my $delete_member;
+my $exists_member;
+my $help;
+my $log;
+my $man;
+my $number_forks = 1;
+my $password;
+my $url;
+my $username;
+my $verbose;
+my $view_members;
+
+GetOptions(
+    'add|a=s'       => \$add_member,
+    'additions|A=s' => \$additions,
+    'auth=s'        => \$auth,
+    'delete|d=s'    => \$delete_member,
+    'exists|e=s'    => \$exists_member,
+    'group|g=s'     => \$act_on_group,
+    'help|?'        => \$help,
+    'log|L=s'       => \$log,
+    'man|M'         => \$man,
+    'pass|p=s'      => \$password,
+    'threads|t=s'   => \$number_forks,
+    'url|U=s'       => \$url,
+    'user|u=s'      => \$username,
+    'verbose|v+'    => \$verbose,
+    'view|V'        => \$view_members
+) or pod2usage( -exitstatus => 2, -verbose => 1 );
+
+if ($help) { pod2usage( -exitstatus => 0, -verbose => 1 ); }
+if ($man)  { pod2usage( -exitstatus => 0, -verbose => 2 ); }
+
+my $max_allowed_forks = '32';
+$number_forks = ( $number_forks || 1 );
+$number_forks = ( $number_forks =~ /^[0-9]+$/xms ? $number_forks : 1 );
+$number_forks = ( $number_forks < $max_allowed_forks ? $number_forks : 1 );
+
+$url = Sling::URL::url_input_sanitize($url);
+
+#}}}
+
+#{{{main execution path
+if ( defined $additions ) {
+    my $message =
+      "Adding members to groups as specified in file \"$additions\":";
+    Sling::Print::print_with_lock("$message");
+    my @childs = ();
+    for my $i ( 0 .. $number_forks ) {
+        my $pid = fork;
+        if ($pid) { push @childs, $pid; }    # parent
+        elsif ( $pid == 0 ) {                # child
+                # Create a separate authorization per fork:
+            my $authn =
+              new Sling::Authn( $url, $username, $password, $auth, $verbose,
+                $log );
+            my $group = new Sling::Group( \$authn, $verbose, $log );
+            $group->member_add_from_file( $additions, $i, $number_forks );
+            exit 0;
+        }
+        else {
+            croak "Could not fork $i!";
+        }
+    }
+    foreach (@childs) { waitpid $_, 0; }
+}
+else {
+    my $authn =
+      new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
+    my $group = new Sling::Group( \$authn, $verbose, $log );
+
+    if ( defined $exists_member ) {
+        $group->member_exists( $act_on_group, $exists_member );
+    }
+    elsif ( defined $add_member ) {
+        $group->member_add( $act_on_group, $add_member );
+    }
+    elsif ( defined $delete_member ) {
+        $group->member_delete( $act_on_group, $delete_member );
+    }
+    elsif ( defined $view_members ) {
+        $group->member_view($act_on_group);
+    }
+    Sling::Print::print_result($group);
+}
+
+#}}}
+
+1;
+
+__END__
+
 #{{{Documentation
 =head1 SYNOPSIS
 
@@ -56,101 +167,3 @@ For full details run: perl group_membership.pl --man
 
 =cut
 #}}}
-
-#{{{imports
-use strict;
-use lib qw ( .. );
-use Getopt::Long qw(:config bundling);
-use Pod::Usage;
-use Sling::Authn;
-use Sling::Group;
-use Sling::URL;
-#}}}
-
-#{{{options parsing
-my $actOnGroup;
-my $addMember;
-my $additions;
-my $auth;
-my $deleteMember;
-my $existsMember;
-my $help;
-my $log;
-my $man;
-my $numberForks = 1;
-my $password;
-my $url;
-my $username;
-my $verbose;
-my $viewMembers;
-
-GetOptions (
-    "add|a=s" => \$addMember,
-    "additions|A=s" => \$additions,
-    "auth=s" => \$auth,
-    "delete|d=s" => \$deleteMember,
-    "exists|e=s" => \$existsMember,
-    "group|g=s" => \$actOnGroup,
-    "help|?" => \$help,
-    "log|L=s" => \$log,
-    "man|M" => \$man,
-    "pass|p=s" => \$password,
-    "threads|t=s" => \$numberForks,
-    "url|U=s" => \$url,
-    "user|u=s" => \$username,
-    "verbose|v+" => \$verbose,
-    "view|V" => \$viewMembers
-) or pod2usage(-exitstatus => 2, -verbose => 1);
-
-pod2usage(-exitstatus => 0, -verbose => 1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
-
-$numberForks = ( $numberForks || 1 );
-$numberForks = ( $numberForks =~ /^[0-9]+$/ ? $numberForks : 1 );
-$numberForks = ( $numberForks < 32 ? $numberForks : 1 );
-
-$url = Sling::URL::url_input_sanitize( $url );
-#}}}
-
-#{{{main execution path
-if ( defined $additions ) {
-    my $message = "Adding members to groups as specified in file \"$additions\":";
-    Sling::Print::print_with_lock( "$message" );
-    my @childs = ();
-    for ( my $i = 0 ; $i < $numberForks ; $i++ ) {
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-	    # Create a separate authorization per fork:
-            my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-            my $group = new Sling::Group( \$authn, $verbose, $log );
-            $group->member_add_from_file( $additions, $i, $numberForks );
-	    exit( 0 );
-	}
-	else {
-            die "Could not fork $i!";
-	}
-    }
-    foreach ( @childs ) { waitpid( $_, 0 ); }
-}
-else {
-    my $authn = new Sling::Authn( $url, $username, $password, $auth, $verbose, $log );
-    my $group = new Sling::Group( \$authn, $verbose, $log );
-
-    if ( defined $existsMember ) {
-        $group->member_exists( $actOnGroup, $existsMember );
-    }
-    elsif ( defined $addMember ) {
-        $group->member_add( $actOnGroup, $addMember );
-    }
-    elsif ( defined $deleteMember ) {
-        $group->member_delete( $actOnGroup, $deleteMember );
-    }
-    elsif ( defined $viewMembers ) {
-        $group->member_view( $actOnGroup );
-    }
-    Sling::Print::print_result( $group );
-}
-#}}}
-
-1;
