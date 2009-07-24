@@ -82,13 +82,13 @@ public class OutgoingEmailMessageListener implements MessageListener {
       ResourceResolver resolver = jcrResourceResolverFactory
           .getResourceResolver(adminSession);
 
-      Node messageNode = (Node) resolver.getResource(nodePath);
+      Node messageNode = resolver.getResource(nodePath).adaptTo(Node.class);
 
       // validate the message
       if (messageNode != null) {
         if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
-            && messageNode.getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
-                .getString() == MessageConstants.BOX_OUTBOX) {
+            && MessageConstants.BOX_OUTBOX.equals(messageNode.getProperty(
+                MessageConstants.PROP_SAKAI_MESSAGEBOX).getString())) {
           if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
             // We're retrying this message, so clear the errors
             messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR,
@@ -218,5 +218,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
       diff = false;
     }
     return diff;
+  }
+
+  protected void bindRepository(SlingRepository repository) {
+    this.repository = repository;
+  }
+
+  protected void bindJcrResourceResolverFactory(
+      JcrResourceResolverFactory jcrResourceResolverFactory) {
+    this.jcrResourceResolverFactory = jcrResourceResolverFactory;
   }
 }
