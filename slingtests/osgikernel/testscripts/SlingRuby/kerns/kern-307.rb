@@ -19,16 +19,14 @@ class TC_Kern307Test < SlingTest
                                              "jcr:removeChildNodes" => "granted",
                                              "jcr:write" => "granted", 
                                              "jcr:addChildNodes" => "granted" })
-#    @s.set_node_acl_entries(node, readers, { "jcr:read" => "granted" })
-#    everyone = SlingUsers::Group.new("everyone")
-#    @s.set_node_acl_entries(node, everyone, { "jcr:read" => "granted" })
+    @s.set_node_acl_entries(node, readers, { "jcr:read" => "granted" })
+    everyone = SlingUsers::Group.new("everyone")
+    @s.set_node_acl_entries(node, everyone, { "jcr:read" => "granted" })
     puts @s.get_node_acl_json(node)
-    user = create_user("testwriter")
+    user = create_user("testwriter#{m}")
     writers.add_member(@s, user.name, "user")
     @s.switch_user(user)
-    @s.debug = true
     child = create_node("#{node}/child", {})
-    @s.debug = false
     assert_not_nil(child, "Expected node to be created")
   end
 
