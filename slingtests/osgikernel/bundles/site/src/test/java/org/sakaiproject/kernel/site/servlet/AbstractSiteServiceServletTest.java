@@ -66,7 +66,6 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
   public JSONArray makeGetRequestReturningJSON() throws IOException, ServletException, JSONException
   {
     String jsonString = new String(makeGetRequestReturningBytes());
-    System.out.println("Json: " + jsonString);
     return new JSONArray(jsonString);
   }
 

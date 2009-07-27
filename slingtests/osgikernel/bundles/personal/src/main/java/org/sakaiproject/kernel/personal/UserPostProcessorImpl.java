@@ -229,7 +229,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = PersonalUtils.getProfilePath(authorizable.getID());
-    System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);

@@ -79,7 +79,6 @@ public class MessageSentListener implements EventHandler {
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
   public void handleEvent(Event event) {
-    System.out.println("Handled event in MessageSentListener - " + event);
 
     // Get the message
     // get the node, call up the appropriate handler and pass off based on
@@ -120,7 +119,6 @@ public class MessageSentListener implements EventHandler {
   }
 
   protected void bindHandler(ServiceReference serviceReference) {
-    System.out.println("Binding a serviceReference.");
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
         delayedReferences.add(serviceReference);
@@ -157,7 +155,6 @@ public class MessageSentListener implements EventHandler {
   private void addHandler(ServiceReference serviceReference) {
     MessageHandler handler = (MessageHandler) osgiComponentContext
         .locateService("MessageHandler", serviceReference);
-    System.out.println("Binding handler in addHandler - " + handler.getType());
     handlers.put(handler.getType(), handler);
   }
 

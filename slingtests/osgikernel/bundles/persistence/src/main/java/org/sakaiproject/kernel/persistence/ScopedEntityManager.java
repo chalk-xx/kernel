@@ -29,6 +29,8 @@ import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.guice.RequiresStop;
 import org.sakaiproject.kernel.guice.ServiceExportDescription;
 import org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map.Entry;
 
@@ -47,6 +49,7 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
 
   private static final String JPA_CACHE = "jpa.cache";
   private static final String ENTITY_MANAGER = "em";
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScopedEntityManager.class);
   private CacheManagerService cacheManagerService;
   private ReferenceMap<String, EntityManagerHolder> entityManagerReferenceMap = new ReferenceMap<String, EntityManagerHolder>(
       ReferenceType.STRONG, ReferenceType.WEAK);
@@ -115,7 +118,7 @@ public class ScopedEntityManager implements EntityManager, RequiresStop {
         sb.append("\t").append(eh.getEntityManager()).append(" on ").append(
             eh.getSourceThread()).append("\n");
       }
-      System.err.println(sb.toString());
+      LOGGER.info(sb.toString());
     }
     return entityManagerHolder.getEntityManager();
   }
