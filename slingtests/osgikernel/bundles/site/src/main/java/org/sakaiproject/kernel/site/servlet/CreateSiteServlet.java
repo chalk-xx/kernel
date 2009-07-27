@@ -22,6 +22,9 @@ import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_ACL_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_ACL_GRANTED;
+
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -167,7 +170,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // setup the ACL's on the node.
         addEntry(siteNode.getPath(), currentUser, createSession, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED, MODIFY_ACL_GRANTED);
 
         try {
           JcrUtils.logItem(LOGGER, siteNode);
