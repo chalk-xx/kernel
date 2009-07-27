@@ -65,12 +65,11 @@ public class MessageUserPostProcessor implements UserPostProcessor {
 
   public void process(Session session, SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
-    LOGGER.info("Starting MessageUserPostProcessor process");
+    LOGGER.debug("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-
-    String principalName = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+      String principalName = null;
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
