@@ -23,8 +23,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  */
 public class UserPostProcessorRegister {
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(UserPostProcessorRegister.class);
   private Map<Long, UserPostProcessor> processors = new ConcurrentHashMap<Long, UserPostProcessor>();
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
@@ -45,10 +41,8 @@ public class UserPostProcessorRegister {
     
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
-        LOGGER.info("+++++++++++++++++ Delayed bind  {} ",serviceReference);
         delayedReferences.add(serviceReference);
       } else {
-        LOGGER.info("+++++++++++++++++ Active bind  {} ",serviceReference);
         addProcessor(serviceReference);
       }
     }
@@ -58,10 +52,8 @@ public class UserPostProcessorRegister {
   protected void unbindUserPostProcessor(ServiceReference serviceReference) {
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
-        LOGGER.info("+++++++++++++++++ Delayed unbind  {} ",serviceReference);
         delayedReferences.remove(serviceReference);
       } else {
-        LOGGER.info("+++++++++++++++++ Active unbind  {} ",serviceReference);
         removeProcessor(serviceReference);
       }
     }
@@ -84,14 +76,12 @@ public class UserPostProcessorRegister {
         USER_POST_PROCESSOR, serviceReference);
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
     processors.put(serviceId, processor);
-    LOGGER.info("+++++++++++++++++++Processor {}  has been registered as {} ",processor,serviceId);
   }
 
   /**
    * @param componentContext
    */
   public void setComponentContext(ComponentContext componentContext) {
-    LOGGER.info("+++++++++++++++++++ Set context {} ",componentContext);
     synchronized (delayedReferences) {
       osgiComponentContext = componentContext;
       for (ServiceReference ref : delayedReferences) {
@@ -105,7 +95,6 @@ public class UserPostProcessorRegister {
    * @return
    */
   public Iterable<UserPostProcessor> getProcessors() {
-    LOGGER.info("Found {} user processors ", processors.size());
     return processors.values();
   }
 

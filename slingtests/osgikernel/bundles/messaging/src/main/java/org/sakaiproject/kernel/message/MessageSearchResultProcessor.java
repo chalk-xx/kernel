@@ -174,7 +174,16 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
       } else {
         // These are normal properties.., just parse them.
         write.key(p.getName());
-        write.value(p.getString());
+        if (p.getDefinition().isMultiple()) {
+          Value[] values = p.getValues();
+          write.array();
+          for (Value value : values) {
+            write.value(value.getString());
+          }
+          write.endArray();
+        } else {
+          write.value(p.getString());
+        }
       }
     }
     write.endObject();

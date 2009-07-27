@@ -20,15 +20,17 @@ class SlingTest < Test::Unit::TestCase
 
   def teardown
     @s.switch_user(SlingUsers::User.admin_user)
-    @created_nodes.each { |n| assert(@s.delete_node(n), "Expected node delete to succeed") }
+    @created_nodes.reverse.each { |n| assert(@s.delete_node(n), "Expected node delete to succeed") }
     @created_users.each { |u| assert(@um.delete_user(u.name), "Expected user delete to succeed") }
     @created_groups.each { |g| assert(@um.delete_group(g), "Expected group delete to succeed") }
     @created_sites.each { |s| assert(@sm.delete_site(s), "Expected site delete to succeed") }
   end
 
   def create_node(path, props)
-    @s.create_node(path, props)
+    res = @s.create_node(path, props)
+    assert_not_equal("500", res.code, "Expected to be able to create node")
     @created_nodes << path
+    return path
   end
 
   def create_file_node(path, fieldname, data, content_type="text/plain")

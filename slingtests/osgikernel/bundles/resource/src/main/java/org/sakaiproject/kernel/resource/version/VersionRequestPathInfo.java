@@ -163,7 +163,6 @@ public class VersionRequestPathInfo implements RequestPathInfo {
       if (i >= suffix.length()) {
         return null;
       } else {
-        System.err.println("String at "+i);
         return suffix.substring(i);
       }
     }

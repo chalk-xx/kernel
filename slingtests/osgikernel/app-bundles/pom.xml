@@ -186,6 +186,12 @@
       <artifactId>org.sakaiproject.kernel.batchget</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
 <!-- spec bundles -->
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
@@ -394,7 +400,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth,org.sakaiproject.kernel.email.outgoing</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>

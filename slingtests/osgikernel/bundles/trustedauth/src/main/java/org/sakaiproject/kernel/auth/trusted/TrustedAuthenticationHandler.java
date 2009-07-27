@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
@@ -42,10 +45,9 @@ import javax.servlet.http.HttpSession;
  * Authentication handler for trusted authentication sources. These sources will
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
- * 
- * @scr.component
- * @scr.service
  */
+@Component
+@Service
 public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
   /**
    * Authentication type name
@@ -59,15 +61,14 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
 
   /**
    * Path on which this authentication should be activated.
-   *
-   * @scr.property value="/"
    */
+  @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
-  /** @scr.property value="Trusted Authentication Handler" */
+  @Property(value = "Trusted Authentication Handler")
   static final String DESCRIPTION_PROPERTY = "service.description";
 
-  /** @scr.property value="The Sakai Foundation" */
+  @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
 
   /**

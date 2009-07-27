@@ -66,12 +66,6 @@ public class MessagePostProcessor implements SlingPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePostProcessor.class);
 
-  // public void activate(ComponentContext cc) {
-  // System.err.println("This takes the place of an activator so do what I say!");
-  // BundleContext bc = cc.getBundleContext();
-  // System.err.println("Just like normal with bc: " + bc);
-  // }
-
   private EventAdmin eventAdmin;
 
   /**

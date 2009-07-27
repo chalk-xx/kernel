@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.api.message;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.jcr.AccessDeniedException;
@@ -26,8 +27,24 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.InvalidQueryException;
 
 public interface MessagingService {
+  
+  /**
+   * Creates a new message for the user associated with the provided session.
+   * Message properties are extracted from the supplied map.
+   * The messageId supplied must be guaranteed unique
+   * 
+   * @param resource
+   * @param mapProperties
+   * @param messageId Globally unique message identifier
+   * @return
+   * @throws MessagingException
+   */
+  public Node create(Session session, Map<String, Object> mapProperties, String messageId)
+  throws MessagingException;
+  
   /**
    * Creates a new message for the user associated with the provided session.
    * Message properties are extracted from the supplied map
@@ -67,4 +84,24 @@ public interface MessagingService {
       throws ValueFormatException, PathNotFoundException,
       ItemNotFoundException, AccessDeniedException, RepositoryException;
       */
+
+  /**
+   * Searches for mailboxes on the system associated with a supplied e-mail address
+   * @param session The session from which to execute the search
+   * @param emailAddress The email address for which to search
+   * @return A list of the mailbox / principal names
+   */
+  public List<String> getMailboxesForEmailAddress(Session session, String emailAddress) throws InvalidQueryException, RepositoryException;
+
+  /**
+   * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>
+   * @param adminSession
+   * @param target
+   * @param source
+   * @param messageId
+   * @throws RepositoryException 
+   * @throws PathNotFoundException 
+   */
+  public void copyMessage(Session adminSession, String target, String source, String messageId) throws PathNotFoundException, RepositoryException;
+  
 }

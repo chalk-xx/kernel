@@ -65,12 +65,11 @@ public class MessageUserPostProcessor implements UserPostProcessor {
 
   public void process(Session session, SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
-    LOGGER.info("Starting MessageUserPostProcessor process");
+    LOGGER.debug("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-
-    String principalName = null;
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+      String principalName = null;
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
@@ -88,6 +87,7 @@ public class MessageUserPostProcessor implements UserPostProcessor {
            * = (Node) session.getItem(pathPrivate); }
            */
           Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+          messageStore.setProperty(MessageConstants.SAKAI_EMAIL_ADDRESS, principalName + "@localhost");
           messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGESTORE_RT);
           // ACL's are managed by the Personal User Post processor.

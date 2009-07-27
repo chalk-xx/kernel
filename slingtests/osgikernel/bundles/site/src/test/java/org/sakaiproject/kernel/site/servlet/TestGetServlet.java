@@ -49,6 +49,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     expect(request.getResourceResolver()).andReturn(resourceResolver);
     Resource resource = createMock(Resource.class);
     expect(resourceResolver.getResource(eq(SiteServiceImpl.DEFAULT_SITE))).andReturn(resource);
+    response.setContentType(eq("text/html"));
     expect(response.getOutputStream()).andReturn(null);
     expect(resource.adaptTo(eq(InputStream.class))).andReturn(new InputStream() {
       @Override

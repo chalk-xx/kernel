@@ -92,14 +92,12 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(Session session, SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
     try {
-      LOGGER.debug("Starting process with request session {}", request
-          .getResourceResolver().adaptTo(Session.class));
       String resourcePath = request.getRequestPathInfo().getResourcePath();
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = null;
       String principalName = null;
-      LOGGER.info("resourcePath: " + resourcePath);
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+        UserManager userManager = AccessControlUtil.getUserManager(session);
+        Authorizable authorizable = null;
+        LOGGER.info("resourcePath: " + resourcePath);
         RequestParameter rpid = request
             .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
         if (rpid != null) {
@@ -112,6 +110,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           fireEvent(request, principalName, changes);
         }
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
+        UserManager userManager = AccessControlUtil.getUserManager(session);
+        Authorizable authorizable = null;
         RequestParameter rpid = request
             .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
         if (rpid != null) {
@@ -124,6 +124,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           fireEvent(request, principalName, changes);
         }
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
+        UserManager userManager = AccessControlUtil.getUserManager(session);
+        Authorizable authorizable = null;
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_USER_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
           return;
@@ -135,6 +137,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         }
         fireEvent(request, principalName, changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
+        UserManager userManager = AccessControlUtil.getUserManager(session);
+        Authorizable authorizable = null;
         principalName = resourcePath.substring(SYSTEM_USER_MANAGER_GROUP_PREFIX.length());
         if (principalName.indexOf('/') != -1) {
           return;
@@ -229,7 +233,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = PersonalUtils.getProfilePath(authorizable.getID());
-    System.out.println("Getting/creating profile node: " + path);
     String type = nodeTypeForAuthorizable(authorizable);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);

@@ -129,8 +129,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
       Node imgToCrop = resource.adaptTo(Node.class);
 
       Session s = imgToCrop.getSession();
-      System.out.println("Session: " + s);
-      System.out.println("Session userid: " + s.getUserID());
 
       jcrService.setSession(s);
 
@@ -150,7 +148,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
       output.value("OK");
       output.endObject();
 
-      System.out.println("Outputted: " + output.toString());
     } catch (RepositoryException e) {
       LOGGER.error("Repository exception processing image {}", e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

@@ -29,10 +29,8 @@ class TC_MyContactTest < SlingTest
     puts("Aaron Adding Nico as a coworker and friend")
     res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("201", res.code, "Expected to be able to request contact addition")
-    @s.debug = true
     puts("Checking that The invitation to Nico is pending")
     contacts = @cm.get_pending()
-    @s.debug = false
     assert_not_nil(contacts, "Expected to get contacts back")
     assert_equal(contacts["results"].size, 1, "Expected single request back")
     contact = contacts["results"][0]
@@ -68,7 +66,6 @@ class TC_MyContactTest < SlingTest
 
   def teardown
     @created_users.each do |user|
-      @s.debug = true
       @s.switch_user(user)
       contacts = @cm.get_all()
       contacts["results"].each do |result|
@@ -76,7 +73,6 @@ class TC_MyContactTest < SlingTest
         res = @cm.remove_contact(result["target"])
         assert_equal("200", res.code, "Expected removal to succeed")
       end
-      @s.debug = false
     end
     super
   end

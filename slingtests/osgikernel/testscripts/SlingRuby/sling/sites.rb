@@ -4,6 +4,8 @@ module SlingSites
 
   class Site
 
+    attr_reader :path
+
     def initialize(sling, path)
       @sling = sling
       @path = path
@@ -11,9 +13,7 @@ module SlingSites
 	
 
     def add_group(groupname)
-      auths = Site.get_groups(@path, @sling)
-      auths << groupname
-      @sling.execute_post(@sling.url_for(@path), "sakai:authorizables" => auths)
+      return @sling.execute_post(@sling.url_for("#{@path}.authorize.json"), "addauth" => groupname)
     end
 
     def set_joinable(joinable)
@@ -67,6 +67,10 @@ module SlingSites
 
     def delete_site(path)
       return @sling.delete_node(path)
+    end
+
+    def get_membership
+      return @sling.get_node_props("system/sling/membership")
     end
 
   end

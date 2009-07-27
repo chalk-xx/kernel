@@ -27,7 +27,7 @@ module SlingUsers
 
     def add_member(sling, principal, type)
       principal_path = "/#{$USERMANAGER_URI}#{type}/#{principal}"
-      sling.execute_post(sling.url_for("#{group_url}.update.html"),
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
               { ":member" => principal_path })
     end
 
@@ -37,7 +37,7 @@ module SlingUsers
 
     def remove_member(sling, principal, type)
       principal_path = "/#{$USERMANAGER_URI}#{type}/#{principal}"
-      sling.execute_post(sling.url_for("#{group_url}.update.html"),
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
               { ":member@Delete" => principal_path })
     end
 
@@ -46,7 +46,7 @@ module SlingUsers
     end
 
     def members(sling)
-      props = s.get_node_props("#{group_url}.json")
+      props = sling.get_node_props("#{group_url}.json")
       return props["members"]
     end
 
