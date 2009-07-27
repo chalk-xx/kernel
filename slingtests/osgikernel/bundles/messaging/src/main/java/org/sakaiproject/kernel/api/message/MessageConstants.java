@@ -49,8 +49,8 @@ public interface MessageConstants {
   public static final String PROP_SAKAI_SENDSTATE = "sakai:sendstate";
 
   /**
-   * The value for this property will define what kind of message this is. ex:
-   * internal, email, ..
+   * The value for this property will define what kind of message this is. ex: internal,
+   * email, ..
    */
   public static final String PROP_SAKAI_TYPE = "sakai:type";
   /**
@@ -70,8 +70,8 @@ public interface MessageConstants {
    */
   public static final String PROP_SAKAI_BODY = "sakai:body";
   /**
-   * This property will hold the path to the previous message (starts after the
-   * message store.)
+   * This property will hold the path to the previous message (starts after the message
+   * store.)
    */
   public static final String PROP_SAKAI_PREVIOUS_MESSAGE = "sakai:previousmessage";
 
@@ -88,6 +88,10 @@ public interface MessageConstants {
    * The name for the inbox box.
    */
   public static final String BOX_INBOX = "inbox";
+  /**
+   * The name for the sent box.
+   */
+  public static final String BOX_SENT = "sent";
   /**
   *
   */
@@ -131,13 +135,13 @@ public interface MessageConstants {
   /**
    * Cleanup chat messages every X minutes
    */
-  public static final int CLEAUNUP_EVERY_X_MINUTES =  120;
-  
- 
+  public static final int CLEAUNUP_EVERY_X_MINUTES = 120;
+
   /**
    * The user message path.
    */
-   public static final String SEARCH_PROP_MESSAGESTORE = "_userMessagePath";
-   public static final String SEARCH_PROP_MESSAGEROOT = "_messageStoreRoot";
+  public static final String SEARCH_PROP_MESSAGESTORE = "_userMessagePath";
+  public static final String SEARCH_PROP_MESSAGEROOT = "_messageStoreRoot";
 
+  public static final String PROP_SAKAI_MESSAGEERROR = "sakai:messageError";
 }
