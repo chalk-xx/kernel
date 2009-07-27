@@ -16,6 +16,10 @@
  */
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.NamespaceException;
@@ -44,22 +48,21 @@ import javax.servlet.http.HttpSession;
  * information is then stored in the session for use by the authentication
  * handler on subsequent calls.
  * </p>
- *
- * @scr.component
- * @scr.service interface="javax.servlet.Servlet"
  */
+@Component
+@Service
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
   private static final long serialVersionUID = 1L;
-  private static final String REGISTRATION_PATH = "/trusted";
+  public static final String REGISTRATION_PATH = "/trusted";
 
-  /** @scr.property value="Trusted Authentication Servlet" */
+  @Property(value = "Trusted Authentication Servlet")
   static final String DESCRIPTION_PROPERTY = "service.description";
 
-  /** @scr.property value="The Sakai Foundation" */
+  @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
 
-  /** @scr.reference */
+  @Reference
   private WebContainer webContainer;
 
   protected void bindWebContainer(WebContainer webContainer) {
