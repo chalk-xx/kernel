@@ -9,7 +9,6 @@ include SlingSearch
 class TC_Kern270Test < SlingTest
 
   def test_modify_user_after_group_join
-    @s.debug = true
     u = create_user("testuser")
     puts @s.get_node_props_json(SlingUsers::User.url_for(u.name))
     g = create_group("g-testgroup2")

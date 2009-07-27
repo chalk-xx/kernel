@@ -856,10 +856,10 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
       PathResourceTypeProvider[] pathResourceTypeProviders = factory.getPathResourceTypeProviders();
       if ( pathResourceTypeProviders != null ) {
         for ( PathResourceTypeProvider prp : factory.getPathResourceTypeProviders()) {
-          log.info("Trying  {}",prp);
+          log.debug("Trying  {}",prp);
           String resourceType = prp.getResourceTypeFromPath(this,absRealPath);
           if ( resourceType != null ) {
-            log.info("Got  {}",resourceType);
+            log.debug("Got  {}",resourceType);
                   return resourceType;
           }
         }

@@ -65,7 +65,7 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
       }
     }
     long en = System.currentTimeMillis();
-    LOGGER.info("Resource Type Processing added {} ms ", (en - st));
+    LOGGER.debug("Resource Type Processing added {} ms ", (en - st));
   }
 
   /**
@@ -73,14 +73,14 @@ public abstract class AbstractResourceTypePostProcessor implements SlingPostProc
    * @return
    */
   private boolean isMatching(SlingHttpServletRequest request, Modification m) {
-    LOGGER.info("Matching operation {} ", m.getType());
+    LOGGER.debug("Matching operation {} ", m.getType());
     if (ModificationType.CREATE.equals(m.getType())) {
       RequestParameter resourceType = request
           .getRequestParameter(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY);
-      LOGGER.info("This is a create operation with resourceType {} matches {} ?",
+      LOGGER.debug("This is a create operation with resourceType {} matches {} ?",
           resourceType, targetResourceType);
       if (resourceType != null && targetResourceType.equals(resourceType.getString())) {
-        LOGGER.info("Post Processing for {}  on {} ", targetResourceType, request
+        LOGGER.debug("Post Processing for {}  on {} ", targetResourceType, request
             .getRequestURI());
         return true;
       }
