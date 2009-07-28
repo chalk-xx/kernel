@@ -5,6 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -12,8 +15,10 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.junit.Test;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 
 public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
 
@@ -22,10 +27,14 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     CreateSakaiUserServlet csus = new CreateSakaiUserServlet();
 
     ResourceResolver rr = createMock(ResourceResolver.class);
-    expect(rr.adaptTo(Session.class)).andReturn(null);
+    Session session = createMock(Session.class);
+    
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResourceResolver()).andReturn(rr);
+    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
+    expect(rr.adaptTo(Session.class)).andReturn(session);
+
+    expect(rr.adaptTo(Session.class)).andReturn(null);
 
     HtmlResponse response = new HtmlResponse();
 
@@ -41,25 +50,33 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testNoPrincipalName() {
+  public void testNoPrincipalName() throws RepositoryException {
     badNodeNameParam(null, "User name was not submitted");
   }
 
   @Test
-  public void testBadPrefix() {
+  public void testBadPrefix() throws RepositoryException {
     badNodeNameParam("g-foo", "User name must not begin 'g-'");
   }
 
-  private void badNodeNameParam(String name, String exception) {
+  private void badNodeNameParam(String name, String exception) throws  RepositoryException {
     CreateSakaiUserServlet csus = new CreateSakaiUserServlet();
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
 
     ResourceResolver rr = createMock(ResourceResolver.class);
-    expect(rr.adaptTo(Session.class)).andReturn(session);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResourceResolver()).andReturn(rr);
+    UserManager userManager = createMock(UserManager.class);
+    User user = createMock(User.class);
+    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
+    expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
+    
+    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserID()).andReturn("userID");
+    expect(userManager.getAuthorizable("userID")).andReturn(user);
+    expect(user.isAdmin()).andReturn(false);
+    
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn(name);
 
     HtmlResponse response = new HtmlResponse();
@@ -76,7 +93,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testNoPwd() {
+  public void testNoPwd() throws RepositoryException {
     CreateSakaiUserServlet csus = new CreateSakaiUserServlet();
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
@@ -85,7 +102,19 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     expect(rr.adaptTo(Session.class)).andReturn(session);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResourceResolver()).andReturn(rr);
+    UserManager userManager = createMock(UserManager.class);
+    User user = createMock(User.class);
+    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
+    expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
+
+    
+    
+    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserID()).andReturn("userID");
+    expect(userManager.getAuthorizable("userID")).andReturn(user);
+    expect(user.isAdmin()).andReturn(false);
+
+    
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("foo");
     expect(request.getParameter("pwd")).andReturn(null);
 
@@ -103,7 +132,7 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testNotPwdEqualsPwdConfirm() {
+  public void testNotPwdEqualsPwdConfirm() throws RepositoryException {
     CreateSakaiUserServlet csus = new CreateSakaiUserServlet();
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
@@ -112,7 +141,18 @@ public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
     expect(rr.adaptTo(Session.class)).andReturn(session);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResourceResolver()).andReturn(rr);
+    UserManager userManager = createMock(UserManager.class);
+    User user = createMock(User.class);
+    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
+    expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
+
+    
+    
+    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserID()).andReturn("userID");
+    expect(userManager.getAuthorizable("userID")).andReturn(user);
+    expect(user.isAdmin()).andReturn(false);
+    
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("foo");
     expect(request.getParameter("pwd")).andReturn("bar");
     expect(request.getParameter("pwdConfirm")).andReturn("baz");
