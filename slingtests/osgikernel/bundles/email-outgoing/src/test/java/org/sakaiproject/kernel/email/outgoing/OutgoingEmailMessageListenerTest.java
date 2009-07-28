@@ -9,8 +9,9 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.subethamail.wiser.Wiser;
@@ -18,9 +19,11 @@ import org.subethamail.wiser.WiserMessage;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+import javax.jms.JMSException;
 import javax.jms.Message;
 
 public class OutgoingEmailMessageListenerTest {
@@ -30,7 +33,7 @@ public class OutgoingEmailMessageListenerTest {
   private OutgoingEmailMessageListener oeml;
   private Session adminSession;
   private Node messageNode;
-  private Wiser wiser;
+  private static Wiser wiser;
 
   @Before
   public void setup() throws Exception {
@@ -57,13 +60,18 @@ public class OutgoingEmailMessageListenerTest {
 
     replay(adminSession, res, rr, jrrf, repository);
 
+    wiser.getMessages().clear();
+  }
+
+  @BeforeClass
+  public static void startWiser() {
     wiser = new Wiser();
     wiser.setPort(OutgoingEmailMessageListener.SMTP_PORT);
     wiser.start();
   }
 
-  @After
-  public void cleanUp() {
+  @AfterClass
+  public static void stopWiser() {
     wiser.stop();
   }
 
@@ -138,7 +146,7 @@ public class OutgoingEmailMessageListenerTest {
   }
 
   @Test
-  public void testNoFalse() throws Exception {
+  public void testNoFrom() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
 
@@ -259,5 +267,125 @@ public class OutgoingEmailMessageListenerTest {
       assertEquals("tonobody" + i++ + "@example.com", m.getEnvelopeReceiver());
       assertEquals("fromnobody@example.com", m.getEnvelopeSender());
     }
+  }
+
+  @Test
+  public void testBody() throws Exception {
+    Message message = createMock(Message.class);
+    expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+
+    Property boxName = createMock(Property.class);
+    expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
+
+    Property toProp = createMock(Property.class);
+    expect(toProp.getString()).andReturn("tonobody@example.com");
+
+    Property fromProp = createMock(Property.class);
+    expect(fromProp.getString()).andReturn("fromnobody@example.com");
+
+    Property bodyProp = createMock(Property.class);
+    expect(bodyProp.getString()).andReturn("Message body looks like this.");
+
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
+        true);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
+        boxName);
+    expect(
+        messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
+        .andReturn(null);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
+        false).times(2);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
+    expect(
+        messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+            MessageConstants.BOX_SENT)).andReturn(null);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(bodyProp);
+
+    replay(message, messageNode, boxName, toProp, fromProp, bodyProp);
+
+    oeml.onMessage(message);
+
+    for (WiserMessage m : wiser.getMessages()) {
+      assertEquals("tonobody@example.com", m.getEnvelopeReceiver());
+      assertEquals("fromnobody@example.com", m.getEnvelopeSender());
+      assertEquals("Message body looks like this.", m.getMimeMessage().getContent());
+    }
+  }
+
+  @Test
+  public void testSubject() throws Exception {
+    Message message = createMock(Message.class);
+    expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+
+    Property boxName = createMock(Property.class);
+    expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
+
+    Property toProp = createMock(Property.class);
+    expect(toProp.getString()).andReturn("tonobody@example.com");
+
+    Property fromProp = createMock(Property.class);
+    expect(fromProp.getString()).andReturn("fromnobody@example.com");
+
+    Property subjProp = createMock(Property.class);
+    expect(subjProp.getString()).andReturn("Message subject looks like this.");
+
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
+        true);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
+        boxName);
+    expect(
+        messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
+        .andReturn(null);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
+        false).times(2);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(true);
+    expect(
+        messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+            MessageConstants.BOX_SENT)).andReturn(null);
+    expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(
+        subjProp);
+
+    replay(message, messageNode, boxName, toProp, fromProp, subjProp);
+
+    oeml.onMessage(message);
+
+    for (WiserMessage m : wiser.getMessages()) {
+      assertEquals("tonobody@example.com", m.getEnvelopeReceiver());
+      assertEquals("fromnobody@example.com", m.getEnvelopeSender());
+      assertEquals("Message subject looks like this.", m.getMimeMessage().getSubject());
+    }
+  }
+
+  @Test
+  public void testJMSExceptionHandling() throws Exception {
+    Message message = createMock(Message.class);
+    expect(message.getStringProperty(NODE_PATH_PROPERTY)).andThrow(
+        new JMSException("Test JMS Exception"));
+
+    replay(message);
+
+    oeml.onMessage(message);
+  }
+
+  @Test
+  public void testRepoExceptionHandling() throws Exception {
+    Message message = createMock(Message.class);
+    expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
+
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andThrow(
+        new RepositoryException("Test Repository Exception"));
+    replay(message, messageNode);
+
+    oeml.onMessage(message);
   }
 }

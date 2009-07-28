@@ -192,12 +192,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
-  private void setError(Node node, String error) {
-    try {
-      node.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, error);
-    } catch (RepositoryException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
+  private void setError(Node node, String error) throws RepositoryException {
+    node.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, error);
   }
 
   /**
