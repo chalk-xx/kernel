@@ -39,10 +39,11 @@ public interface EntryCollector {
    * @param aclNode
    * @param principalNamesToEntries
    * @param orderedAccessControlEntries 
+   * @param userId the user the entries are being collected for (may be null)
    * @throws RepositoryException
    */
   void collectEntries(NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> principalNamesToEntries, List<AccessControlEntry> orderedAccessControlEntries)
+      Map<String, List<AccessControlEntry>> principalNamesToEntries, List<AccessControlEntry> orderedAccessControlEntries, String userId)
       throws RepositoryException;
 
 }

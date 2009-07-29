@@ -84,6 +84,8 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     private static final Logger log = LoggerFactory.getLogger(DynamicSecurityManager.class);
 
+    private static final ThreadLocal<AMContext> amContextHolder = new ThreadLocal<AMContext>();
+
     /**
      *
      */
@@ -283,8 +285,17 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             } else {
                 accessMgr = (AccessManager) amConfig.newInstance();
             }
-
-            accessMgr.init(amContext, pp, workspaceAccessManager);
+            
+            // place the AMContext in a thread local to make it available to underlying classes
+            // we have to do this since this is going through API's
+            DynamicSecurityManager.amContextHolder.set(amContext);
+            try {
+              accessMgr.init(amContext, pp, workspaceAccessManager);
+            } finally {
+              DynamicSecurityManager.amContextHolder.set(null);
+            }
+            
+            
             return accessMgr;
         } catch (AccessDeniedException e) {
             // re-throw
@@ -498,5 +509,13 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
                 return false;
             }
         }
+    }
+
+    /**
+     * Gets the AMContext, which may be null if none was bound.
+     * @return
+     */
+    public static AMContext getThreadBoundAMContext() {
+      return DynamicSecurityManager.amContextHolder.get();
     }
 }

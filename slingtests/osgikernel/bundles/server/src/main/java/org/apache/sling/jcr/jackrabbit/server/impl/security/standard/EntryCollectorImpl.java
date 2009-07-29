@@ -56,13 +56,14 @@ public class EntryCollectorImpl implements EntryCollector {
    * @param princToEntries
    *          Map of key = principalName and value = ArrayList to be filled with ACEs
    *          matching the principal names.
+   * @param userId the user id to collect entries for, may be null.
    * @throws RepositoryException
    * {@inheritDoc}
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.EntryCollector#collectEntries(org.apache.jackrabbit.core.NodeImpl, java.util.Map, java.util.List)
    */
   public void collectEntries(NodeImpl aclNode,
       Map<String, List<AccessControlEntry>> principalNamesToEntries,
-      List<AccessControlEntry> orderedAccessControlEntries) throws RepositoryException {
+      List<AccessControlEntry> orderedAccessControlEntries, String userId) throws RepositoryException {
     SessionImpl sImpl = (SessionImpl) aclNode.getSession();
     PrincipalManager principalMgr = sImpl.getPrincipalManager();
     AccessControlManager acMgr = sImpl.getAccessControlManager();
@@ -75,7 +76,7 @@ public class EntryCollectorImpl implements EntryCollector {
       // only process aceNode if 'principalName' is contained in the given set
       // or the dynamicPrincialManager says the user has the principal.
 
-      if (hasPrincipal(principalName, aclNode, principalNamesToEntries)) {
+      if (hasPrincipal(principalName, aclNode, principalNamesToEntries, userId)) {
         Principal princ = principalMgr.getPrincipal(principalName);
 
         Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
@@ -110,10 +111,11 @@ public class EntryCollectorImpl implements EntryCollector {
    * @param principalName the name to check
    * @param aclNode the aclNode being constructed
    * @param princToEntries the processed ACE map.
+   * @param userId the userID of the request, may be null.
    * @return true if the user has the principal.
    */
   protected boolean hasPrincipal(String principalName, NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> princToEntries) {
+      Map<String, List<AccessControlEntry>> princToEntries, String userId) {
     return princToEntries.containsKey(principalName);
   }
 

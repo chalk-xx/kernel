@@ -68,8 +68,8 @@ public class DynamicEntryCollector extends EntryCollectorImpl {
    */
   @Override
   protected boolean hasPrincipal(String principalName, NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> princToEntries) {
-    if (super.hasPrincipal(principalName, aclNode, princToEntries)) {
+      Map<String, List<AccessControlEntry>> princToEntries, String userId) {
+    if (super.hasPrincipal(principalName, aclNode, princToEntries, userId)) {
       return true;
     }
     /*
@@ -112,7 +112,7 @@ public class DynamicEntryCollector extends EntryCollectorImpl {
         LOG.error("Unable to access user manager", e);
       }
     }
-    return dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode);
+    return dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode, userId);
   }
 
 }
