@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -15,10 +14,8 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.junit.Test;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
-import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 
 public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
 
