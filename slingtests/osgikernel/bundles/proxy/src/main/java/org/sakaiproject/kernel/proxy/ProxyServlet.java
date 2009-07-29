@@ -1,0 +1,188 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.kernel.proxy;
+
+import net.sf.json.JSONArray;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.jcr.JCRService;
+import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
+import org.sakaiproject.kernel.util.PathUtils;
+
+import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * This servlet will proxy through to other websites and fetch its data.
+ * 
+ * @scr.component immediate="true" label="%cropit.get.operation.name"
+ *                description="%cropit.get.operation.description"
+ * @scr.service interface="javax.servlet.Servlet"
+ * @scr.property name="sling.servlet.paths" value="/system/proxy"
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.extensions" value="json"
+ */
+public class ProxyServlet extends SlingAllMethodsServlet {
+
+  private static final String PARAMETER_USER = "user";
+  private static final String PARAMETER_URL = "url";
+  private static final String PARAMETER_METHOD = "method";
+  private static final String PARAMETER_POST = "post";
+  private static final String PARAMETER_TIMEOUT = "timeout";
+  private static final String PARAMETER_PASSWORD = "password";  
+  
+  private static final String AUTHORIZATION = "Authorization";
+  private static final String LOCATION = "Location";
+	
+  /**
+   * Perform the actual request. {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  protected void doPost(SlingHttpServletRequest req,
+      SlingHttpServletResponse resp) throws IOException {
+
+		URL url = null;
+		String user = null, password = null, method = "GET", post = null;
+		int timeout = 0;
+
+		Set entrySet = req.getParameterMap().entrySet();
+		Map<String, String> headers = new HashMap<String, String>();
+		for (Object anEntrySet : entrySet) {
+			Map.Entry header = (Map.Entry) anEntrySet;
+			String key = (String) header.getKey();
+			String value = ((String[]) header.getValue())[0];
+			if (PARAMETER_USER.equals(key)) {
+				user = value;
+			} else if (PARAMETER_PASSWORD.equals(key)) {
+				password = value;
+			} else if (PARAMETER_TIMEOUT.equals(key)) {
+				timeout = Integer.parseInt(value);
+			} else if (PARAMETER_METHOD.equals(key)) {
+				method = value;
+			} else if (PARAMETER_POST.equals(key)) {
+				post = URLDecoder.decode(value);
+			} else if (PARAMETER_URL.equals(key)) {
+				url = new URL(value);
+			} else {
+				headers.put(key, value);
+			}
+		}
+
+		if (url != null) {
+
+			String digest = null;
+			if (user != null && password != null) {
+				digest = "Basic "
+						+ new String(Base64Converter.encode((user + ":" + password).getBytes()));
+			}
+
+			boolean foundRedirect = false;
+			do {
+
+				HttpURLConnection urlConnection = (HttpURLConnection) url
+						.openConnection();
+				if (digest != null) {
+					urlConnection.setRequestProperty(AUTHORIZATION, digest);
+				}
+				urlConnection.setDoOutput(true);
+				urlConnection.setDoInput(true);
+				urlConnection.setUseCaches(false);
+				urlConnection.setInstanceFollowRedirects(false);
+				urlConnection.setRequestMethod(method);
+				if (timeout > 0) {
+					urlConnection.setConnectTimeout(timeout);
+				}
+
+				// set headers
+				Set headersSet = headers.entrySet();
+				for (Object aHeadersSet : headersSet) {
+					Map.Entry header = (Map.Entry) aHeadersSet;
+					urlConnection.setRequestProperty((String) header.getKey(),
+							(String) header.getValue());
+				}
+
+				// send post
+				if (post != null) {
+					OutputStreamWriter outRemote = new OutputStreamWriter(
+							urlConnection.getOutputStream());
+					outRemote.write(post);
+					outRemote.flush();
+				}
+
+				// get content type
+				String contentType = urlConnection.getContentType();
+				if (contentType != null) {
+					resp.setContentType(contentType);
+				}
+
+				// get reponse code
+				int responseCode = urlConnection.getResponseCode();
+
+				if (responseCode == 302) {
+					// follow redirects
+					String location = urlConnection.getHeaderField(LOCATION);
+					url = new URL(location);
+					foundRedirect = true;
+				} else {
+					resp.setStatus(responseCode);
+					BufferedInputStream in;
+					if (responseCode == 200 || responseCode == 201) {
+						in = new BufferedInputStream(urlConnection
+								.getInputStream());
+					} else {
+						in = new BufferedInputStream(urlConnection
+								.getErrorStream());
+					}
+
+					// send output to client
+					BufferedOutputStream out = new BufferedOutputStream(resp
+							.getOutputStream());
+					int c;
+					while ((c = in.read()) >= 0) {
+						out.write(c);
+					}
+					out.flush();
+				}
+			} while (foundRedirect);
+
+		} else {
+			resp.sendError(SlingHttpServletResponse.SC_BAD_REQUEST , "Please specify a URL in the " + PARAMETER_URL + " parameter");
+		}
+
+		return;   
+
+  }
+
+}
