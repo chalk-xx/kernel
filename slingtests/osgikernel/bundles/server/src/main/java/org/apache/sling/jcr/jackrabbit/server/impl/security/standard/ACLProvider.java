@@ -23,12 +23,14 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.core.DynamicSecurityManager;
 import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.NodeId;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.PropertyImpl;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
+import org.apache.jackrabbit.core.security.AMContext;
 import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AbstractCompiledPermissions;
@@ -211,7 +213,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     } else if (isReadOnly(principals)) {
       return getReadOnlyPermissions();
     } else {
-      return new AclPermissions(principals);
+      return new AclPermissions(principals,DynamicSecurityManager.getThreadBoundAMContext());
     }
   }
 
@@ -374,9 +376,16 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * {@link #grants(Path, int)} in case of permissions == READ
      */
     private boolean readAllowed = false;
+    /**
+     * The user ID of the user that the AclPermissions are bound to.
+     */
+    private String userId;
 
-    private AclPermissions(Set<Principal> principals) throws RepositoryException {
+    private AclPermissions(Set<Principal> principals, AMContext amContext) throws RepositoryException {
       this(principals, true);
+      if ( amContext != null ) {
+        userId = amContext.getSession().getUserID();
+      }
     }
 
     private AclPermissions(Set<Principal> principals, boolean listenToEvents)
@@ -492,7 +501,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 
       // retrieve all ACEs at path or at the direct ancestor of path that
       // apply for the principal names.
-      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames)
+      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames, userId)
           .iterator();
       // build a list of ACEs that are defined locally at the node
       List<AccessControlEntry> localACEs;
@@ -668,30 +677,41 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     private final Map<String, List<AccessControlEntry>> principalNamesToEntries;
     private final List<AccessControlEntry> orderedAccessControlEntries;
 
+    /**
+     * @param node The Access control node from which the entries are to be taken.
+     * @param principalNames a set of static principal names for the user.
+     * @param userId userId is the user the entires are for, or null if none is bound.
+     * @throws RepositoryException
+     */
     @SuppressWarnings("unchecked")
-    private Entries(NodeImpl node, Collection<String> principalNames)
+    private Entries(NodeImpl node, Collection<String> principalNames, String userId)
         throws RepositoryException {
       orderedAccessControlEntries = new ArrayList<AccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
       }
-      collectEntries(node);
+      collectEntries(node, userId);
     }
 
-    private void collectEntries(NodeImpl node) throws RepositoryException {
+    /**
+     * @param node the acl node
+     * @param userId the userId which may be null
+     * @throws RepositoryException
+     */
+    private void collectEntries(NodeImpl node, String userId) throws RepositoryException {
       // if the given node is access-controlled, construct a new ACL and add
       // it to the list
       if (isAccessControlled(node)) {
         // build acl for the access controlled node
         NodeImpl aclNode = node.getNode(N_POLICY);
         // get the collector and collect entries
-        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries);
+        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries, userId);
       }
       // then, recursively look for access controlled parents up the hierarchy.
       if (!rootNodeId.equals(node.getId())) {
         NodeImpl parentNode = (NodeImpl) node.getParent();
-        collectEntries(parentNode);
+        collectEntries(parentNode, userId);
       }
     }
 
