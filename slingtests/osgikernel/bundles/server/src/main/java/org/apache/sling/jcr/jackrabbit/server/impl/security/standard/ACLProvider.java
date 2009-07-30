@@ -49,7 +49,6 @@ import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
 import org.apache.jackrabbit.spi.Path;
 import org.apache.jackrabbit.spi.commons.name.PathFactoryImpl;
 import org.apache.jackrabbit.util.Text;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +101,7 @@ import javax.jcr.query.QueryManager;
  */
 
 public class ACLProvider extends AbstractAccessControlProvider implements
-    AccessControlConstants, EventListener {
+    AccessControlConstants {
 
   /**
    * the default logger
@@ -174,10 +173,6 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     }
     securitySession = (SessionImpl) repoImpl.login(workspaceName);
     securityObservationMgr = securitySession.getWorkspace().getObservationManager();
-    int events = Event.PROPERTY_ADDED | Event.PROPERTY_CHANGED | Event.PROPERTY_REMOVED;
-    //String[] nodeType = new String[] { "rep:Group" };
-    securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
-    //securitySession.logout();
 
     rootNodeId = root.getNodeId();
     systemEditor = new ACLEditor(systemSession, this);
@@ -390,13 +385,46 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class AclPermissions extends AbstractCompiledPermissions implements
       SynchronousEventListener {
 
+    private class PrincipalChangeListener implements SynchronousEventListener {
+
+      public PrincipalChangeListener() throws RepositoryException {
+        int events = Event.PROPERTY_CHANGED;
+        securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
+      }
+      
+      public void onEvent(EventIterator events) {
+        while (events.hasNext()) {
+          try {
+            Event ev = events.nextEvent();
+            String path = ev.getPath();
+            PropertyImpl p = (PropertyImpl) securitySession.getProperty(path);
+            NodeImpl parent = (NodeImpl) p.getParent();
+            if (parent.isNodeType("rep:User")) {
+              Value[] values = p.getValues();
+              List<String> groups = new ArrayList<String>(values.length);
+              for (Value value : values) {
+                Node n = securitySession.getNodeByUUID(value.getString());
+                log.info("Got node:"  + n);
+                groups.add(n.getName());
+              }
+              updatePrincipals(groups);
+              break;
+            }
+          } catch (RepositoryException e) {
+            log.warn("Internal error: ", e.getMessage());
+          }
+        }
+      }
+
+      public void close() throws RepositoryException {
+        if (securityObservationMgr != null) {
+          securityObservationMgr.removeEventListener(this);
+        }
+      }
+    }
+    
     private List<String> principalNames;
     private final String jcrReadPrivilegeName;
-
-    @Override
-    public Result getResult(Path absPath) throws RepositoryException {
-      return buildResult(absPath);
-    }
 
     /**
      * flag indicating that there is not 'deny READ'. -> simplify
@@ -411,15 +439,12 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * A reference to the AccessManagerContext to allow us to refresh
      * the list of principals
      */
-    private AMContext amContext;
+    private PrincipalChangeListener principalEventListener;
 
     private AclPermissions(Set<Principal> principals, AMContext amContext) throws RepositoryException {
       this(principals, true);
-      this.amContext = amContext;
-      
-      //String[] nodeType = new String[] { "rep:Group" };
-      int events = Event.PROPERTY_CHANGED;
-      securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
+
+      this.principalEventListener = new PrincipalChangeListener();
       if ( amContext != null ) {
         userId = amContext.getSession().getUserID();
       }
@@ -457,32 +482,15 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       }
     }
     
-    @SuppressWarnings("unchecked")
-    private void updatePrincipals() {
+    private void updatePrincipals(List<String> groups) {
       if (userId == null) {
         return;
       }
-      try {
-        PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(securitySession);
-        Principal user = principalManager.getPrincipal(userId);
-        Iterator<Principal> iter = principalManager.getGroupMembership(user);
-        principalNames = new ArrayList<String>();
-        principalNames.add(userId);
-        while (iter.hasNext()) {
-          String newName = iter.next().getName();
-          if (!principalNames.contains(newName)) {
-            principalNames.add(newName);
-          }
+      for (String group : groups) {
+        if (!principalNames.contains(group)) {
+          principalNames.add(group);
         }
-      } catch (RepositoryException e) {
-        log.error("Unable to update principals", e);
       }
-      /*
-      Subject subject = amContext.getSubject();
-      Set<Principal> principals = (subject == null) ? Collections.EMPTY_SET : subject.getPrincipals();
-      for (Principal principal : principals) {
-        principalNames.add(principal.getName());
-      } */
     }
 
     /**
@@ -640,9 +648,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     public void close() {
       try {
         observationMgr.removeEventListener(this);
-        if (securityObservationMgr != null) {
-          securityObservationMgr.removeEventListener(this);
-        }
+        principalEventListener.close();
       } catch (RepositoryException e) {
         log.debug("Unable to unregister listener: ", e.getMessage());
       }
@@ -673,8 +679,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       // only invalidate cache if any of the events affects the
       // nodes defining permissions for principals compiled here.
       boolean clearCache = false;
-      boolean updatePrincipals = false;
-      while (events.hasNext()) { //&& !clearCache) {
+      while (events.hasNext() && !clearCache) {
         try {
           Event ev = events.nextEvent();
           String path = ev.getPath();
@@ -710,7 +715,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // test if the added/changed prop belongs to an ACe
             // node and affects the permission of any of the
             // principals listed in principalNames.
-            PropertyImpl p = (PropertyImpl) (path.startsWith("/rep") ? securitySession.getProperty(path) : session.getProperty(path));
+            PropertyImpl p = (PropertyImpl) session.getProperty(path);
             NodeImpl parent = (NodeImpl) p.getParent();
             if (parent.isNodeType(NT_REP_ACE)) {
               String principalName = null;
@@ -725,12 +730,6 @@ public class ACLProvider extends AbstractAccessControlProvider implements
                 readAllowed = isReadAllowed(principalNames);
                 clearCache = true;
               }
-            } else if (parent.isNodeType("rep:User")) {
-              updatePrincipals = true;
-              clearCache = true;
-            } else {
-              String type = parent.getProperty("jcr:primaryType").getString();
-              log.info("Node type was: " + type);
             }
             break;
           default:
@@ -740,9 +739,6 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // should not get here
           log.warn("Internal error: ", e.getMessage());
         }
-      }
-      if (updatePrincipals) {
-        updatePrincipals();
       }
       if (clearCache) {
         clearCache();
@@ -802,24 +798,6 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 //        entries.addAll(principalNamesToEntries.get(key));
 //      }
       return new AccessControlEntryIterator(orderedAccessControlEntries);
-    }
-  }
-
-  public void onEvent(EventIterator evi) {
-    while (evi.hasNext()) {
-      Event next = evi.nextEvent();
-      try {
-        log.info("Got event: " + next.getPath());
-        Node node = (Node) securitySession.getItem(next.getPath());
-        log.info("Node: " + node);
-        String type = node.getProperty("jcr:primaryType").getString();
-        log.info("Type: " + type);
-        if ("rep:Group".equals(type)) {
-          log.info("Should be refreshing principals");
-        }
-      } catch (RepositoryException e) {
-        log.error("Unable to get path for event");
-      }
     }
   }
 
