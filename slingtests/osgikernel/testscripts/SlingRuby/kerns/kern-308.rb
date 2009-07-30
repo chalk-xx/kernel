@@ -15,9 +15,8 @@ class TC_Kern308Test < SlingTest
   def test_308
     @m = Time.now.to_i.to_s
 	u = create_user("ian"+@m)
-	r = @s.execute_get(@s.url_for("rep:security/rep:authorizables/rep:groups.acl.json"))
-	puts(r.body)
-	ga = Group.new("groupadmin")
+	g1t = create_group("g-group1-"+@m)
+	ga = Group.new("everyone")
 	ga.add_member(@s,u.name,"user")
 	@s.switch_user(u)
 	g = create_group("g-group"+@m)

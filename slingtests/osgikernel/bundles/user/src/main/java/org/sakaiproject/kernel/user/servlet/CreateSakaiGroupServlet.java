@@ -19,18 +19,23 @@ package org.sakaiproject.kernel.user.servlet;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractGroupPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -38,6 +43,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +112,8 @@ import javax.servlet.http.HttpServletResponse;
  * 
  */
 
-public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
+public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
+    ManagedService {
 
   /**
    *
@@ -118,6 +126,50 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
+   * The JCR Repository we access to resolve resources
+   * 
+   * @scr.reference
+   */
+  protected SlingRepository repository;
+
+  /**
+   * 
+   * @scr.property value="authenticated,everyone" type="String"
+   *               name="Groups who are allowed to create other groups" description=
+   *               "A comma separated list of groups who area allowed to create other groups"
+   */
+  public static final String GROUP_AUTHORISED_TOCREATE = "groups.authorized.tocreate";
+
+  private String[] authorizedGroups = {"authenticated","everyone"};
+
+  /** Returns the JCR repository used by this service. */
+  protected SlingRepository getRepository() {
+    return repository;
+  }
+
+  /**
+   * Returns an administrative session to the default workspace.
+   */
+  private Session getSession() throws RepositoryException {
+    return getRepository().loginAdministrative(null);
+  }
+
+  /**
+   * Return the administrative session and close it.
+   */
+  private void ungetSession(final Session session) {
+    if (session != null) {
+      try {
+        session.logout();
+      } catch (Throwable t) {
+        LOGGER.error("Unable to log out of session: " + t.getMessage(), t);
+      }
+    }
+  }
+
+  // ---------- SCR integration ---------------------------------------------
+
+  /**
    * Activates this component.
    * 
    * @param componentContext
@@ -126,6 +178,24 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
     postProcessorTracker.setComponentContext(componentContext);
+    String groupList = (String) componentContext.getProperties().get(
+        GROUP_AUTHORISED_TOCREATE);
+    if (groupList != null) {
+      authorizedGroups = StringUtils.split(groupList, ',');
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.service.cm.ManagedService#updated(java.util.Dictionary)
+   */
+  @SuppressWarnings("unchecked")
+  public void updated(Dictionary dictionary) throws ConfigurationException {
+    String groupList = (String) dictionary.get(GROUP_AUTHORISED_TOCREATE);
+    if (groupList != null) {
+      authorizedGroups = StringUtils.split(groupList, ',');
+    }
   }
 
   /*
@@ -149,10 +219,43 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
       throw new RepositoryException("Group names must begin with 'g-'");
     }
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    if (session == null) {
-      throw new RepositoryException("JCR Session not found");
+    // check for allow create Group
+    boolean allowCreateGroup = false;
+    try {
+      Session currentSession = request.getResourceResolver().adaptTo(Session.class);
+      UserManager um = AccessControlUtil.getUserManager(currentSession);
+      User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
+      if (currentUser.isAdmin()) {
+        LOGGER.info("User is an admin ");
+        allowCreateGroup = true;
+      } else {
+        LOGGER.info("============= checking for membership of one of {} ", Arrays
+            .toString(authorizedGroups));
+        for (String groupName : authorizedGroups) {
+          Group group = (Group) um.getAuthorizable(groupName);
+          LOGGER.info("============= checking for group  {} {} ", groupName, group);
+
+          if (group != null && group.isMember(currentUser)) {
+            allowCreateGroup = true;
+            LOGGER.info("============= user is a member  of {} {} ", groupName, group);
+            break;
+          }
+        }
+      }
+    } catch (Exception ex) {
+      LOGGER.warn("Failed to determin if the user is an admin, assuming not. Cause: "
+          + ex.getMessage());
+      allowCreateGroup = false;
     }
+
+    if (!allowCreateGroup) {
+      LOGGER.info("============= user is not allowed to create groups ");
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN,
+          "User is not allowed to create groups");
+      return;
+    }
+
+    Session session = getSession();
 
     try {
       UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -190,11 +293,18 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet {
           }
         } catch (Exception e) {
           LOGGER.warn(e.getMessage(), e);
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+          response
+              .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+        if (session.hasPendingChanges()) {
+          session.save();
+        }
+
       }
     } catch (RepositoryException re) {
       throw new RepositoryException("Failed to create new group.", re);
+    } finally {
+      ungetSession(session);
     }
   }
 
