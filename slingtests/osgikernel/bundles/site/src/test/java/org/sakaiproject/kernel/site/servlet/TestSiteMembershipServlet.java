@@ -50,6 +50,7 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
   private static final String TEST_USER = "testuser";
   private static final String TEST_SITE_GROUP = "some_site_group";
   private static final String TEST_SITE_PATH = "/some/test/site";
+  private static final String TEST_SITE_RESOURCE_TYPE = "sakai/site";
 
   private SlingHttpServletRequest request;
 
@@ -91,6 +92,7 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     Resource result = createMock(Resource.class);
     Map<String, Object> userValues = new HashMap<String, Object>();
     userValues.put("path", path);
+    expect(result.getResourceType()).andReturn(TEST_SITE_RESOURCE_TYPE);
     expect(result.adaptTo(ValueMap.class)).andReturn(
         new ValueMapDecorator(userValues)).anyTimes();
     return result;
