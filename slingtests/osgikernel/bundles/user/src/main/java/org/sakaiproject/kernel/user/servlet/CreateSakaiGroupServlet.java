@@ -226,18 +226,18 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
       UserManager um = AccessControlUtil.getUserManager(currentSession);
       User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
       if (currentUser.isAdmin()) {
-        LOGGER.info("User is an admin ");
+        LOGGER.debug("User is an admin ");
         allowCreateGroup = true;
       } else {
-        LOGGER.info("============= checking for membership of one of {} ", Arrays
+        LOGGER.debug("Checking for membership of one of {} ", Arrays
             .toString(authorizedGroups));
         for (String groupName : authorizedGroups) {
           Group group = (Group) um.getAuthorizable(groupName);
-          LOGGER.info("============= checking for group  {} {} ", groupName, group);
+          LOGGER.debug("Checking for group  {} {} ", groupName, group);
 
           if (group != null && group.isMember(currentUser)) {
             allowCreateGroup = true;
-            LOGGER.info("============= user is a member  of {} {} ", groupName, group);
+            LOGGER.debug("User is a member  of {} {} ", groupName, group);
             break;
           }
         }
@@ -249,7 +249,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
     }
 
     if (!allowCreateGroup) {
-      LOGGER.info("============= user is not allowed to create groups ");
+      LOGGER.debug("User is not allowed to create groups ");
       response.setStatus(HttpServletResponse.SC_FORBIDDEN,
           "User is not allowed to create groups");
       return;
