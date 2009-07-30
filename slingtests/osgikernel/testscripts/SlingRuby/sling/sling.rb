@@ -72,6 +72,7 @@ module SlingInterface
     end
 
     def execute_file_post(path, fieldname, filepath, content_type)
+      write_log("POSTFILE: #{path}/#{fieldname} (as '#{@user.name}')")
       post_data = Curl::PostField.file(fieldname, filepath)
       post_data.content_type = content_type
       c = Curl::Easy.new(path)
@@ -80,6 +81,17 @@ module SlingInterface
       c.http_auth_types = Curl::CURLAUTH_BASIC
       c.http_post(post_data)
       res = WrappedCurlResponse.new(c)
+      dump_response(res)
+      return res
+    end
+
+    def execute_put_file(path, data)
+      puts "URL: #{path}" if @debug
+      write_log("PUTFILE: #{path} (as '#{@user.name}')")
+      uri = URI.parse(path)
+      req = Net::HTTP::Put.new(uri.path)
+      @user.do_request_auth(req)
+      res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req, data) }
       dump_response(res)
       return res
     end

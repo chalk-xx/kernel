@@ -28,7 +28,9 @@ import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.NodeId;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.PropertyImpl;
+import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.SessionImpl;
+import org.apache.jackrabbit.core.config.SecurityManagerConfig;
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
 import org.apache.jackrabbit.core.security.AMContext;
 import org.apache.jackrabbit.core.security.SecurityConstants;
@@ -61,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -68,6 +71,7 @@ import javax.jcr.Value;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
+import javax.jcr.observation.ObservationManager;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 
@@ -122,6 +126,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 
   private EntryCollector entryCollector;
 
+  private SessionImpl securitySession;
+
+  private ObservationManager securityObservationMgr;
+
   // -------------------------------------------------< AccessControlUtils >---
   /**
    * @see AbstractAccessControlProvider#isAcItem(Path)
@@ -157,6 +165,15 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     // make sure the workspace of the given systemSession has a
     // minimal protection on the root node.
     NodeImpl root = (NodeImpl) session.getRootNode();
+    RepositoryImpl repoImpl = (RepositoryImpl) session.getRepository();
+    SecurityManagerConfig smc = repoImpl.getConfig().getSecurityConfig().getSecurityManagerConfig();
+    String workspaceName = repoImpl.getConfig().getDefaultWorkspaceName();
+    if (smc != null && smc.getWorkspaceName() != null) {
+        workspaceName = smc.getWorkspaceName();
+    }
+    securitySession = (SessionImpl) repoImpl.login(workspaceName);
+    securityObservationMgr = securitySession.getWorkspace().getObservationManager();
+
     rootNodeId = root.getNodeId();
     systemEditor = new ACLEditor(systemSession, this);
     initializedWithDefaults = !configuration.containsKey(PARAM_OMIT_DEFAULT_PERMISSIONS);
@@ -368,7 +385,45 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class AclPermissions extends AbstractCompiledPermissions implements
       SynchronousEventListener {
 
-    private final List<String> principalNames;
+    private class PrincipalChangeListener implements SynchronousEventListener {
+
+      public PrincipalChangeListener() throws RepositoryException {
+        int events = Event.PROPERTY_CHANGED;
+        securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
+      }
+      
+      public void onEvent(EventIterator events) {
+        while (events.hasNext()) {
+          try {
+            Event ev = events.nextEvent();
+            String path = ev.getPath();
+            PropertyImpl p = (PropertyImpl) securitySession.getProperty(path);
+            NodeImpl parent = (NodeImpl) p.getParent();
+            if (parent.isNodeType("rep:User")) {
+              Value[] values = p.getValues();
+              List<String> groups = new ArrayList<String>(values.length);
+              for (Value value : values) {
+                Node n = securitySession.getNodeByUUID(value.getString());
+                log.info("Got node:"  + n);
+                groups.add(n.getName());
+              }
+              updatePrincipals(groups);
+              break;
+            }
+          } catch (RepositoryException e) {
+            log.warn("Internal error: ", e.getMessage());
+          }
+        }
+      }
+
+      public void close() throws RepositoryException {
+        if (securityObservationMgr != null) {
+          securityObservationMgr.removeEventListener(this);
+        }
+      }
+    }
+    
+    private List<String> principalNames;
     private final String jcrReadPrivilegeName;
 
     /**
@@ -380,9 +435,16 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * The user ID of the user that the AclPermissions are bound to.
      */
     private String userId;
+    /**
+     * A reference to the AccessManagerContext to allow us to refresh
+     * the list of principals
+     */
+    private PrincipalChangeListener principalEventListener;
 
     private AclPermissions(Set<Principal> principals, AMContext amContext) throws RepositoryException {
       this(principals, true);
+
+      this.principalEventListener = new PrincipalChangeListener();
       if ( amContext != null ) {
         userId = amContext.getSession().getUserID();
       }
@@ -417,6 +479,17 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             resolver.getJCRName(NT_REP_ACL)};
         observationMgr.addEventListener(this, events, session.getRootNode().getPath(),
             true, null, ntNames, true);
+      }
+    }
+    
+    private void updatePrincipals(List<String> groups) {
+      if (userId == null) {
+        return;
+      }
+      for (String group : groups) {
+        if (!principalNames.contains(group)) {
+          principalNames.add(group);
+        }
       }
     }
 
@@ -575,6 +648,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     public void close() {
       try {
         observationMgr.removeEventListener(this);
+        principalEventListener.close();
       } catch (RepositoryException e) {
         log.debug("Unable to unregister listener: ", e.getMessage());
       }
@@ -614,7 +688,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // test if the new node is an ACE node that affects
             // the permission of any of the principals listed in
             // principalNames.
-            NodeImpl n = (NodeImpl) session.getNode(path);
+            NodeImpl n = (NodeImpl) session.getNode(path); 
             if (n.isNodeType(NT_REP_ACE)) {
               // and reset the readAllowed flag, if the new
               // ACE denies READ.
