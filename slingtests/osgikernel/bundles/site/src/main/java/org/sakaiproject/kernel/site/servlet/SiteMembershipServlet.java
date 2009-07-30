@@ -51,49 +51,61 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SiteMembershipServlet extends AbstractSiteServlet {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(SiteMembershipServlet.class);
-  private static final long serialVersionUID = 4874392318687088747L;
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(SiteMembershipServlet.class);
+	private static final long serialVersionUID = 4874392318687088747L;
 
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+	@Override
+	protected void doGet(SlingHttpServletRequest request,
+			SlingHttpServletResponse response) throws ServletException,
+			IOException {
 
-    try {
-      String u = request.getRemoteUser();
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      Map<String, List<Group>> membership = getSiteService().getMembership(session, u);
+		try {
 
-      ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
-      output.array();
-      for (Entry<String, List<Group>> site : membership.entrySet()) {
-        Resource resource = request.getResourceResolver().resolve(site.getKey());
+			String u = request.getRemoteUser();
+			Session session = request.getResourceResolver().adaptTo(
+					Session.class);
+			Map<String, List<Group>> membership = getSiteService()
+					.getMembership(session, u);
 
-        output.object();
-        output.key("siteref");
-        output.value(site.getKey());
+			ExtendedJSONWriter output = new ExtendedJSONWriter(response
+					.getWriter());
+			output.array();
+			for (Entry<String, List<Group>> site : membership.entrySet()) {
+				Resource resource = request.getResourceResolver().resolve(
+						site.getKey());
 
-        output.key("groups");
+				if (resource.getResourceType() != Resource.RESOURCE_TYPE_NON_EXISTING) {
 
-        output.array();
-        for (Group g : site.getValue()) {
-          output.value(g);
-        }
-        output.endArray();
+					output.object();
 
-        output.key("site");
-        output.valueMap(resource.adaptTo(ValueMap.class));
-        output.endObject();
+					output.key("siteref");
+					output.value(site.getKey());
 
-      }
-      output.endArray();
-    } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    } catch (SiteException e) {
-      LOGGER.warn(e.getMessage(),e);
-      response.sendError(e.getStatusCode(), e.getMessage());
-    }
-    return;
-  }
+					output.key("groups");
+
+					output.array();
+					for (Group g : site.getValue()) {
+						output.value(g);
+					}
+					output.endArray();
+
+					output.key("site");
+					output.valueMap(resource.adaptTo(ValueMap.class));
+					
+					output.endObject();
+
+				}
+			}
+			output.endArray();
+		} catch (JSONException e) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+					.getMessage());
+		} catch (SiteException e) {
+			LOGGER.warn(e.getMessage(), e);
+			response.sendError(e.getStatusCode(), e.getMessage());
+		}
+		return;
+	}
 
 }
