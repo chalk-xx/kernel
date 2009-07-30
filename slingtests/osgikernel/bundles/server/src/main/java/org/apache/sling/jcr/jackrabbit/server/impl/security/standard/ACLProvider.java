@@ -28,7 +28,9 @@ import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.NodeId;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.PropertyImpl;
+import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.SessionImpl;
+import org.apache.jackrabbit.core.config.SecurityManagerConfig;
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
 import org.apache.jackrabbit.core.security.AMContext;
 import org.apache.jackrabbit.core.security.SecurityConstants;
@@ -47,6 +49,7 @@ import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
 import org.apache.jackrabbit.spi.Path;
 import org.apache.jackrabbit.spi.commons.name.PathFactoryImpl;
 import org.apache.jackrabbit.util.Text;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -68,6 +72,7 @@ import javax.jcr.Value;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
+import javax.jcr.observation.ObservationManager;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 
@@ -97,7 +102,7 @@ import javax.jcr.query.QueryManager;
  */
 
 public class ACLProvider extends AbstractAccessControlProvider implements
-    AccessControlConstants {
+    AccessControlConstants, EventListener {
 
   /**
    * the default logger
@@ -121,6 +126,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private boolean initializedWithDefaults;
 
   private EntryCollector entryCollector;
+
+  private SessionImpl securitySession;
+
+  private ObservationManager securityObservationMgr;
 
   // -------------------------------------------------< AccessControlUtils >---
   /**
@@ -157,6 +166,19 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     // make sure the workspace of the given systemSession has a
     // minimal protection on the root node.
     NodeImpl root = (NodeImpl) session.getRootNode();
+    RepositoryImpl repoImpl = (RepositoryImpl) session.getRepository();
+    SecurityManagerConfig smc = repoImpl.getConfig().getSecurityConfig().getSecurityManagerConfig();
+    String workspaceName = repoImpl.getConfig().getDefaultWorkspaceName();
+    if (smc != null && smc.getWorkspaceName() != null) {
+        workspaceName = smc.getWorkspaceName();
+    }
+    securitySession = (SessionImpl) repoImpl.login(workspaceName);
+    securityObservationMgr = securitySession.getWorkspace().getObservationManager();
+    int events = Event.PROPERTY_ADDED | Event.PROPERTY_CHANGED | Event.PROPERTY_REMOVED;
+    //String[] nodeType = new String[] { "rep:Group" };
+    securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
+    //securitySession.logout();
+
     rootNodeId = root.getNodeId();
     systemEditor = new ACLEditor(systemSession, this);
     initializedWithDefaults = !configuration.containsKey(PARAM_OMIT_DEFAULT_PERMISSIONS);
@@ -368,8 +390,13 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class AclPermissions extends AbstractCompiledPermissions implements
       SynchronousEventListener {
 
-    private final List<String> principalNames;
+    private List<String> principalNames;
     private final String jcrReadPrivilegeName;
+
+    @Override
+    public Result getResult(Path absPath) throws RepositoryException {
+      return buildResult(absPath);
+    }
 
     /**
      * flag indicating that there is not 'deny READ'. -> simplify
@@ -380,9 +407,19 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * The user ID of the user that the AclPermissions are bound to.
      */
     private String userId;
+    /**
+     * A reference to the AccessManagerContext to allow us to refresh
+     * the list of principals
+     */
+    private AMContext amContext;
 
     private AclPermissions(Set<Principal> principals, AMContext amContext) throws RepositoryException {
       this(principals, true);
+      this.amContext = amContext;
+      
+      //String[] nodeType = new String[] { "rep:Group" };
+      int events = Event.PROPERTY_CHANGED;
+      securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
       if ( amContext != null ) {
         userId = amContext.getSession().getUserID();
       }
@@ -418,6 +455,34 @@ public class ACLProvider extends AbstractAccessControlProvider implements
         observationMgr.addEventListener(this, events, session.getRootNode().getPath(),
             true, null, ntNames, true);
       }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void updatePrincipals() {
+      if (userId == null) {
+        return;
+      }
+      try {
+        PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(securitySession);
+        Principal user = principalManager.getPrincipal(userId);
+        Iterator<Principal> iter = principalManager.getGroupMembership(user);
+        principalNames = new ArrayList<String>();
+        principalNames.add(userId);
+        while (iter.hasNext()) {
+          String newName = iter.next().getName();
+          if (!principalNames.contains(newName)) {
+            principalNames.add(newName);
+          }
+        }
+      } catch (RepositoryException e) {
+        log.error("Unable to update principals", e);
+      }
+      /*
+      Subject subject = amContext.getSubject();
+      Set<Principal> principals = (subject == null) ? Collections.EMPTY_SET : subject.getPrincipals();
+      for (Principal principal : principals) {
+        principalNames.add(principal.getName());
+      } */
     }
 
     /**
@@ -575,6 +640,9 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     public void close() {
       try {
         observationMgr.removeEventListener(this);
+        if (securityObservationMgr != null) {
+          securityObservationMgr.removeEventListener(this);
+        }
       } catch (RepositoryException e) {
         log.debug("Unable to unregister listener: ", e.getMessage());
       }
@@ -605,7 +673,8 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       // only invalidate cache if any of the events affects the
       // nodes defining permissions for principals compiled here.
       boolean clearCache = false;
-      while (events.hasNext() && !clearCache) {
+      boolean updatePrincipals = false;
+      while (events.hasNext()) { //&& !clearCache) {
         try {
           Event ev = events.nextEvent();
           String path = ev.getPath();
@@ -614,7 +683,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // test if the new node is an ACE node that affects
             // the permission of any of the principals listed in
             // principalNames.
-            NodeImpl n = (NodeImpl) session.getNode(path);
+            NodeImpl n = (NodeImpl) session.getNode(path); 
             if (n.isNodeType(NT_REP_ACE)) {
               // and reset the readAllowed flag, if the new
               // ACE denies READ.
@@ -641,7 +710,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // test if the added/changed prop belongs to an ACe
             // node and affects the permission of any of the
             // principals listed in principalNames.
-            PropertyImpl p = (PropertyImpl) session.getProperty(path);
+            PropertyImpl p = (PropertyImpl) (path.startsWith("/rep") ? securitySession.getProperty(path) : session.getProperty(path));
             NodeImpl parent = (NodeImpl) p.getParent();
             if (parent.isNodeType(NT_REP_ACE)) {
               String principalName = null;
@@ -656,6 +725,12 @@ public class ACLProvider extends AbstractAccessControlProvider implements
                 readAllowed = isReadAllowed(principalNames);
                 clearCache = true;
               }
+            } else if (parent.isNodeType("rep:User")) {
+              updatePrincipals = true;
+              clearCache = true;
+            } else {
+              String type = parent.getProperty("jcr:primaryType").getString();
+              log.info("Node type was: " + type);
             }
             break;
           default:
@@ -665,6 +740,9 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // should not get here
           log.warn("Internal error: ", e.getMessage());
         }
+      }
+      if (updatePrincipals) {
+        updatePrincipals();
       }
       if (clearCache) {
         clearCache();
@@ -724,6 +802,24 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 //        entries.addAll(principalNamesToEntries.get(key));
 //      }
       return new AccessControlEntryIterator(orderedAccessControlEntries);
+    }
+  }
+
+  public void onEvent(EventIterator evi) {
+    while (evi.hasNext()) {
+      Event next = evi.nextEvent();
+      try {
+        log.info("Got event: " + next.getPath());
+        Node node = (Node) securitySession.getItem(next.getPath());
+        log.info("Node: " + node);
+        String type = node.getProperty("jcr:primaryType").getString();
+        log.info("Type: " + type);
+        if ("rep:Group".equals(type)) {
+          log.info("Should be refreshing principals");
+        }
+      } catch (RepositoryException e) {
+        log.error("Unable to get path for event");
+      }
     }
   }
 
