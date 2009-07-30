@@ -16,23 +16,33 @@
  */
 package org.sakaiproject.kernel.auth.external;
 
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.kernel.auth.external.LdapAuthenticationHandler.LdapAuthentication;
 
 import java.io.IOException;
 
-import javax.jcr.Credentials;
-import javax.jcr.SimpleCredentials;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Servlet for handling authentication requests from trusted mechanisms.
+ * Servlet for handling authentication requests for ldap authentication.
  */
-public class LdapAuthenticationServlet extends HttpServlet {
+@Service
+@SlingServlet(paths = "/system/sling/ldaplogin", methods = "POST")
+public class LdapAuthenticationServlet extends SlingAllMethodsServlet {
+  public static final String USER_CREDENTIALS = LdapAuthenticationServlet.class.getName();
   private static final long serialVersionUID = 1L;
+
+  @Property(value = "Form Login Servlet")
+  static final String DESCRIPTION = "service.description";
+
+  @Property(value = "The Sakai Foundation")
+  static final String VENDOR = "service.vendor";
 
   /**
    * {@inheritDoc}
@@ -41,75 +51,17 @@ public class LdapAuthenticationServlet extends HttpServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-      IOException {
+  protected void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp)
+      throws ServletException, IOException {
     HttpSession session = req.getSession(true);
 
     LdapAuthentication auth = (LdapAuthentication) req
-        .getAttribute(LdapAuthenticationHandler.USER_CREDENTIALS);
+        .getAttribute(LdapAuthenticationHandler.USER_AUTH);
     // check for authentication on request. if found, store on request
-    if (auth != null && auth.isValid()) {
-      session.setAttribute(LdapAuthenticationHandler.USER_CREDENTIALS, auth.getCredentials());
-    }
-    // if authentication missing or invalid in session, get the information from
-    // the request.
-    else {
-      Credentials cred = getCredentials(req);
-      session.setAttribute(LdapAuthenticationHandler.USER_CREDENTIALS, cred);
-    }
-  }
+    if (auth != null && auth.getCredentials() != null) {
+      session.setAttribute(USER_CREDENTIALS, auth.getCredentials());
 
-  /**
-   * Get the user ID from the request. Currently checks getRemoteUser() and
-   * getUserPrincipal() but may need to change based on how the external
-   * authentication passes the user information back. Once the user is
-   * determined, {@link Credentials} are constructed with the user and a trusted
-   * attribute.
-   *
-   * @param req
-   *          The request to sniff for a user.
-   * @return
-   */
-  private Credentials getCredentials(HttpServletRequest req) {
-    String userId = null;
-    if (req.getUserPrincipal() != null) {
-      userId = req.getUserPrincipal().getName();
-    } else if (req.getRemoteUser() != null) {
-      userId = req.getRemoteUser();
-    }
-    SimpleCredentials sc = new SimpleCredentials(userId, null);
-    LdapUser user = new LdapUser(userId);
-    sc.setAttribute(LdapAuthenticationHandler.class.getName(), user);
-    return sc;
-  }
-
-  /**
-   * "Trusted" inner class for passing the user on to the authentication
-   * handler.<br/>
-   * <br/>
-   * By being a static, inner class with a private constructor, it is harder for
-   * an external source to inject into the authentication chain.
-   */
-  static final class LdapUser {
-    private final String user;
-
-    /**
-     * Constructor.
-     *
-     * @param user
-     *          The user to represent.
-     */
-    private LdapUser(String user) {
-      this.user = user;
-    }
-
-    /**
-     * Get the user that is being represented.
-     *
-     * @return The represented user.
-     */
-    String getUser() {
-      return user;
+      // TODO Should this forward to a landing page or some other resource?
     }
   }
 }

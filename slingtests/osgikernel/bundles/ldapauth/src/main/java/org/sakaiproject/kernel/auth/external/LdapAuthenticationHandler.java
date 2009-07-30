@@ -17,11 +17,13 @@
  */
 package org.sakaiproject.kernel.auth.external;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.sakaiproject.kernel.auth.external.LdapAuthenticationServlet.LdapUser;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -42,33 +44,30 @@ import javax.servlet.http.HttpSession;
  * Authentication handler for trusted authentication sources. These sources will
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
- *
- * @scr.component immediate="false" label="%auth.http.name"
- *                description="%auth.http.description"
- * @scr.service
  */
+@Component(label = "%auth.http.name", description = "%auth.http.description")
+@Service
 public class LdapAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
-  /**
-   * Authentication type name
-   */
-  public static final String TRUSTED_AUTH = LdapAuthenticationHandler.class.getName();
+  /** Authentication type name */
+  public static final String LDAP_AUTH = LdapAuthenticationHandler.class.getName();
 
-  /**
-   * Attribute name for storage of authentication
-   */
-  public static final String USER_CREDENTIALS = LdapAuthentication.class.getName();
+  /** Attribute name for storage of authentication info on the request */
+  public static final String USER_AUTH = LdapAuthentication.class.getName();
 
-  /**
-   * Path on which this authentication should be activated.
-   *
-   * @scr.property value="/trusted"
-   */
+  /** Field name to expect username */
+  public static final String PARAM_USERNAME = "sakaiauth:un";
+
+  /** Field name to expect password */
+  public static final String PARAM_PASSWORD = "sakaiauth:pw";
+
+  /** Path on which this authentication should be activated. */
+  @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
-  /** @scr.property value="Trusted Authentication Handler" */
+  @Property(value = "Trusted Authentication Handler")
   static final String DESCRIPTION_PROPERTY = "service.description";
 
-  /** @scr.property value="The Sakai Foundation" */
+  @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
 
   /**
@@ -78,13 +77,15 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    *      javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo authenticate(HttpServletRequest req, HttpServletResponse resp) {
-    // check for existing authentication information in session
-    LdapAuthentication auth = new LdapAuthentication(req);
-    req.setAttribute(USER_CREDENTIALS, auth);
-
     // construct the authentication info and store credentials on the request
+    LdapAuthentication auth = new LdapAuthentication(req);
     Credentials cred = auth.getCredentials();
-    AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH, cred);
+
+    AuthenticationInfo authInfo = null;
+    if (cred != null) {
+      req.setAttribute(USER_AUTH, auth);
+      authInfo = new AuthenticationInfo(LDAP_AUTH, cred);
+    }
 
     return authInfo;
   }
@@ -106,14 +107,8 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
   public boolean canHandle(Credentials cred) {
-    boolean hasAttribute = false;
-
-    if (cred != null && cred instanceof SimpleCredentials) {
-      Object attr = ((SimpleCredentials) cred).getAttribute(getClass().getName());
-      hasAttribute = (attr != null);
-    }
-
-    return hasAttribute;
+    boolean canHandle = LdapAuthenticationPlugin.canHandle(cred);
+    return canHandle;
   }
 
   /**
@@ -125,6 +120,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
   @SuppressWarnings("unchecked")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
+    // nothing to do
     return;
   }
 
@@ -136,7 +132,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    */
   public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
       throws RepositoryException {
-    return new LdapAuthenticationPlugin(principal);
+    return new LdapAuthenticationPlugin();
   }
 
   /**
@@ -147,11 +143,14 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
   public Principal getPrincipal(Credentials credentials) {
     Principal principal = null;
     if (credentials != null && credentials instanceof SimpleCredentials) {
-      SimpleCredentials sc = (SimpleCredentials) credentials;
-      LdapUser user = (LdapUser) sc.getAttribute(getClass().getName());
-      if (user != null) {
-        principal = new LdapPrincipal(user);
-      }
+      final SimpleCredentials sc = (SimpleCredentials) credentials;
+
+      principal = new Principal() {
+        public String getName() {
+          return sc.getUserID();
+        }
+      };
+
     }
     return principal;
   }
@@ -177,20 +176,24 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
     private final Credentials cred;
 
     private LdapAuthentication(HttpServletRequest req) {
+      Credentials _cred = null;
       HttpSession session = req.getSession(false);
       if (session != null) {
-        cred = (Credentials) session.getAttribute(USER_CREDENTIALS);
-      } else {
-        cred = null;
+        _cred = (Credentials) session.getAttribute(LdapAuthenticationServlet.USER_CREDENTIALS);
+        if (_cred == null) {
+          String username = req.getParameter(PARAM_USERNAME);
+          String password = req.getParameter(PARAM_PASSWORD);
+          if (username != null && password != null) {
+            char[] passChars = (password != null) ? password.toCharArray() : null;
+            _cred = new SimpleCredentials(username, passChars);
+          }
+        }
       }
+      cred = _cred;
     }
 
     Credentials getCredentials() {
       return cred;
-    }
-
-    boolean isValid() {
-      return cred != null;
     }
   }
 }
