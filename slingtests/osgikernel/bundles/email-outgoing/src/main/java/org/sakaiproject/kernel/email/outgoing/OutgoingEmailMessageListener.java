@@ -55,10 +55,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
   static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = {"sakai.email.outgoing"})
   static final String QUEUE_NAME = "email.out.queueName";
-  @Property(value = {"sakai.smtp.server"})
-  static final String SMTP_SERVER = "localhost";
-  @Property(value = {"sakai.smtp.port"})
-  static final int SMTP_PORT = 8025;
+  @Property(value = {"localhost"})
+  static final String SMTP_SERVER = "sakai.smtp.server";
+  @Property(intValue = 8025)
+  static final String SMTP_PORT = "sakai.smtp.port";
+  @Property(intValue = 240)
+  static final String MAX_RETRIES = "sakai.email.maxRetries";
+  @Property(intValue = 30)
+  static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
 
   @Reference
   protected SlingRepository repository;
