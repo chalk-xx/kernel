@@ -35,7 +35,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.activation.* , com.sun.activation.*
+            <Export-Package> javax.activation.*;version=1.1 , com.sun.activation.*;version=1.1
             </Export-Package>
           </instructions>
         </configuration>
