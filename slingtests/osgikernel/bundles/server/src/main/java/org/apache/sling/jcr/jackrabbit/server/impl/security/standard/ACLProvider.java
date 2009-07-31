@@ -399,7 +399,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             String path = ev.getPath();
             PropertyImpl p = (PropertyImpl) securitySession.getProperty(path);
             NodeImpl parent = (NodeImpl) p.getParent();
-            if (parent.isNodeType("rep:User")) {
+            if (parent.isNodeType("rep:User") && userId != null && userId.equals(parent.getName())) {
               Value[] values = p.getValues();
               List<String> groups = new ArrayList<String>(values.length);
               for (Value value : values) {
