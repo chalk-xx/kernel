@@ -43,6 +43,7 @@
         <module>bundles/configuration</module>
         <module>bundles/connections</module>
         <module>bundles/memory</module>
+        <module>bundles/mail</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxrs</module>
