@@ -128,6 +128,28 @@ public class OutgoingEmailMessageListener implements MessageListener {
               email.send();
             } catch (EmailException e) {
               setError(messageNode, e.getMessage());
+              // There has to be a better way to do this
+              if (e.getCause() != null && e.getCause().getMessage() != null) {
+                String smtpError = e.getCause().getMessage().trim();
+                try {
+                  int errorCode = Integer.parseInt(smtpError.substring(0, 3));
+                  // All retry-able SMTP errors should have codes starting with 4
+                  if ((int) (errorCode / 100) == 4) {
+                    // FIXME schedule a retry
+                  }
+                } catch (NumberFormatException nfe) {
+                  // smtpError didn't start with an error code, let's dig for it
+                  String searchFor = "response:";
+                  int rindex = smtpError.indexOf(searchFor);
+                  if (rindex > -1 && (rindex + searchFor.length()) < smtpError.length()) {
+                    int errorCode = Integer.parseInt(smtpError.substring(searchFor
+                        .length(), searchFor.length() + 3));
+                    if ((int) (errorCode / 100) == 4) {
+                      // FIXME schedule a retry
+                    }
+                  }
+                }
+              }
             }
           } else {
             setError(messageNode, "Message must have a to and from set");
