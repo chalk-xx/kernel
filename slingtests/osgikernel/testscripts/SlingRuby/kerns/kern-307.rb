@@ -8,26 +8,43 @@ include SlingSearch
 
 class TC_Kern307Test < SlingTest
 
-  def test_node_edit
-    m = Time.now.to_i.to_s
-    @s.log = true
+  def create_test_node_with_permissions(user, m)
+    @s.switch_user(SlingUsers::User.admin_user)
     node = create_node("some/test/path#{m}", {})
     writers = create_group("g-test-writers-#{m}")
-    readers = create_group("g-test-readers-#{m}")
-    @s.set_node_acl_entries(node, writers, { "jcr:removeNode" => "granted",
-                                             "jcr:modifyProperties" => "granted",
-                                             "jcr:removeChildNodes" => "granted",
-                                             "jcr:write" => "granted", 
-                                             "jcr:addChildNodes" => "granted" })
-    @s.set_node_acl_entries(node, readers, { "jcr:read" => "granted" })
-    everyone = SlingUsers::Group.new("everyone")
-    @s.set_node_acl_entries(node, everyone, { "jcr:read" => "granted" })
-    puts @s.get_node_acl_json(node)
-    user = create_user("testwriter#{m}")
     writers.add_member(@s, user.name, "user")
+    @s.set_node_acl_entries(node, writers, { "jcr:addChildNodes" => "granted" })
+    return node
+  end
+
+  def add_test_child_node(user, node)
     @s.switch_user(user)
     child = create_node("#{node}/child", {})
     assert_not_nil(child, "Expected node to be created")
+  end
+
+  def test_dirty_acl_cache
+    m = Time.now.to_i.to_s
+    @s.log = true
+    randomuser = create_user("randomuser#{m}")
+
+    node1 = create_test_node_with_permissions(randomuser, "#{m}1")
+    add_test_child_node(randomuser, node1)
+
+    node2 = create_test_node_with_permissions(randomuser, "#{m}2")
+    add_test_child_node(randomuser, node2)
+  end
+
+  def test_clean_acl_cache
+    m = Time.now.to_i.to_s
+    @s.log = true
+    randomuser = create_user("randomuser#{m}")
+
+    node1 = create_test_node_with_permissions(randomuser, "#{m}1")
+    node2 = create_test_node_with_permissions(randomuser, "#{m}2")
+
+    add_test_child_node(randomuser, node1)
+    add_test_child_node(randomuser, node2)
   end
 
 end

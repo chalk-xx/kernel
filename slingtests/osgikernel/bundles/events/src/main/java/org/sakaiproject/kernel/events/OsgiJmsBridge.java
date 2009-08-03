@@ -58,9 +58,6 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(value = { "sakai.event.bridge" })
   static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
-  @Property(value = { "sakai.event.bridge" })
-  static final String EVENT_JMS_TOPIC = "bridge.eventJmsTopic";
-
   @Property(boolValue = { false }, propertyPrivate = true)
   static final String SESSION_TRANSACTED = "bridge.sessionTransacted";
 
@@ -73,7 +70,6 @@ public class OsgiJmsBridge implements EventHandler {
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
-  private String eventTopicName;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
@@ -109,15 +105,14 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-    eventTopicName = (String) props.get(EVENT_JMS_TOPIC);
     transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
     processEvents = Boolean.parseBoolean((String) props.get(PROCESS_EVENTS));
     String _brokerUrl = (String) props.get(BROKER_URL);
 
-    LOGGER.debug("Broker URL: {}, JMS Topic: {}, Session Transacted: {}, Acknowledge Mode: {}, "
-        + "Client ID: {}, Process Events: {}", new Object[] { _brokerUrl, eventTopicName,
+    LOGGER.debug("Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, "
+        + "Client ID: {}, Process Events: {}", new Object[] { _brokerUrl,
         transacted, acknowledgeMode, connectionClientId, processEvents });
 
     if (processEvents) {
@@ -154,7 +149,7 @@ public class OsgiJmsBridge implements EventHandler {
         conn.setClientID(connectionClientId);
 
         clientSession = conn.createSession(transacted, acknowledgeMode);
-        Topic emailTopic = clientSession.createTopic(eventTopicName);
+        Topic emailTopic = clientSession.createTopic(event.getTopic());
         MessageProducer client = clientSession.createProducer(emailTopic);
 
         MapMessage msg = clientSession.createMapMessage();

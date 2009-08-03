@@ -69,22 +69,27 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       for (Entry<String, List<Group>> site : membership.entrySet()) {
         Resource resource = request.getResourceResolver().resolve(site.getKey());
 
-        output.object();
-        output.key("siteref");
-        output.value(site.getKey());
+        if (resource.getResourceType() != Resource.RESOURCE_TYPE_NON_EXISTING) {
 
-        output.key("groups");
+          output.object();
 
-        output.array();
-        for (Group g : site.getValue()) {
-          output.value(g);
+          output.key("groups");
+
+          output.array();
+          for (Group g : site.getValue()) {
+            output.value(g);
+          }
+          output.endArray();
+
+          output.key("siteref");
+          output.value(site.getKey());
+          
+          output.key("site");
+          output.valueMap(resource.adaptTo(ValueMap.class));
+
+          output.endObject();
+
         }
-        output.endArray();
-
-        output.key("site");
-        output.valueMap(resource.adaptTo(ValueMap.class));
-        output.endObject();
-
       }
       output.endArray();
     } catch (JSONException e) {
@@ -95,5 +100,5 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
     }
     return;
   }
-
+  
 }

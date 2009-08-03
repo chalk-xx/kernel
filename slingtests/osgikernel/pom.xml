@@ -45,6 +45,7 @@
         <module>bundles/configuration</module>
         <module>bundles/connections</module>
         <module>bundles/memory</module>
+        <module>bundles/mail</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxrs</module>
@@ -67,6 +68,7 @@
         <module>bundles/meservice</module>
         <module>bundles/server</module>
         <module>bundles/image</module>
+	<module>bundles/proxy</module>
         <module>bundles/site</module>
         <module>bundles/search</module>
         <module>bundles/smtp</module>

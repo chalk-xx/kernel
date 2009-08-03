@@ -27,7 +27,7 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     expect(aclNode.getParent()).andReturn(contextNode);
 
     replay();
-    assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    assertFalse(opm.hasPrincipalInContext("owner", aclNode,"ian"));
     verify();
   }
 
@@ -38,19 +38,15 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     Property owner = createMock(Property.class);
     expect(owner.getString()).andReturn("foo");
 
-    Session session = createMock(Session.class);
-    expect(session.getUserID()).andReturn("foo");
-
     Node contextNode = createMock(Node.class);
     expect(contextNode.hasProperty(JCR_CREATED_BY)).andReturn(true);
     expect(contextNode.getProperty(JCR_CREATED_BY)).andReturn(owner);
-    expect(contextNode.getSession()).andReturn(session);
 
     Node aclNode = createMock(Node.class);
     expect(aclNode.getParent()).andReturn(contextNode);
 
     replay();
-    assertTrue(opm.hasPrincipalInContext("owner", aclNode));
+    assertTrue(opm.hasPrincipalInContext("owner", aclNode, "foo"));
     verify();
   }
 
@@ -61,19 +57,16 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     Property owner = createMock(Property.class);
     expect(owner.getString()).andReturn("foo");
 
-    Session session = createMock(Session.class);
-    expect(session.getUserID()).andReturn("bar");
 
     Node contextNode = createMock(Node.class);
     expect(contextNode.hasProperty(JCR_CREATED_BY)).andReturn(true);
     expect(contextNode.getProperty(JCR_CREATED_BY)).andReturn(owner);
-    expect(contextNode.getSession()).andReturn(session);
 
     Node aclNode = createMock(Node.class);
     expect(aclNode.getParent()).andReturn(contextNode);
 
     replay();
-    assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    assertFalse(opm.hasPrincipalInContext("owner", aclNode, "bar"));
     verify();
   }
 
@@ -88,7 +81,7 @@ public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
     expect(aclNode.getParent()).andReturn(contextNode);
 
     replay();
-    assertFalse(opm.hasPrincipalInContext("owner", aclNode));
+    assertFalse(opm.hasPrincipalInContext("owner", aclNode, "bar"));
     verify();
   }
 }
