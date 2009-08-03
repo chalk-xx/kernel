@@ -199,7 +199,18 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     // make sure user self-registration is enabled
-    if (!selfRegistrationEnabled) {
+    boolean administrator = false;
+    try {
+      Session currentSession = request.getResourceResolver().adaptTo(Session.class);
+      UserManager um = AccessControlUtil.getUserManager(currentSession);
+      User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
+      administrator = currentUser.isAdmin();
+    } catch ( Exception ex ) {
+      log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
+      administrator = false;
+    }
+    
+    if (!administrator && !selfRegistrationEnabled) {
       throw new RepositoryException(
           "Sorry, registration of new users is not currently enabled.  Please try again later.");
     }

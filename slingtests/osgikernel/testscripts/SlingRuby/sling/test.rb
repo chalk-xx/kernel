@@ -37,9 +37,10 @@ class SlingTest < Test::Unit::TestCase
     temp_file = Tempfile.new('some_temp_file')
     temp_file.write(data)
     temp_file.close
-    @s.create_file_node(path, fieldname, temp_file.path, content_type)
+    res = @s.create_file_node(path, fieldname, temp_file.path, content_type)
     File.delete(temp_file.path)
-    @created_nodes << path
+    @created_nodes << path unless @created_nodes.include?(path)
+    return res
   end
 
   def create_user(username)

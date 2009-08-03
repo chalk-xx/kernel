@@ -37,6 +37,7 @@ import java.io.IOException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -159,6 +160,18 @@ public class CropItServlet extends SlingAllMethodsServlet {
     }
     return;
 
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    this.doGet(request, response);
   }
 
   private int checkIntBiggerThanZero(int val, int defaultVal) {

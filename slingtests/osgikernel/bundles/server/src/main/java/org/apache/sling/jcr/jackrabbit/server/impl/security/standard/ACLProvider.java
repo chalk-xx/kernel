@@ -23,12 +23,16 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.core.DynamicSecurityManager;
 import org.apache.jackrabbit.core.ItemImpl;
 import org.apache.jackrabbit.core.NodeId;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.PropertyImpl;
+import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.SessionImpl;
+import org.apache.jackrabbit.core.config.SecurityManagerConfig;
 import org.apache.jackrabbit.core.observation.SynchronousEventListener;
+import org.apache.jackrabbit.core.security.AMContext;
 import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.jackrabbit.core.security.authorization.AbstractAccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AbstractCompiledPermissions;
@@ -59,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -66,6 +71,7 @@ import javax.jcr.Value;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
+import javax.jcr.observation.ObservationManager;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 
@@ -120,6 +126,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 
   private EntryCollector entryCollector;
 
+  private SessionImpl securitySession;
+
+  private ObservationManager securityObservationMgr;
+
   // -------------------------------------------------< AccessControlUtils >---
   /**
    * @see AbstractAccessControlProvider#isAcItem(Path)
@@ -155,6 +165,15 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     // make sure the workspace of the given systemSession has a
     // minimal protection on the root node.
     NodeImpl root = (NodeImpl) session.getRootNode();
+    RepositoryImpl repoImpl = (RepositoryImpl) session.getRepository();
+    SecurityManagerConfig smc = repoImpl.getConfig().getSecurityConfig().getSecurityManagerConfig();
+    String workspaceName = repoImpl.getConfig().getDefaultWorkspaceName();
+    if (smc != null && smc.getWorkspaceName() != null) {
+        workspaceName = smc.getWorkspaceName();
+    }
+    securitySession = (SessionImpl) repoImpl.login(workspaceName);
+    securityObservationMgr = securitySession.getWorkspace().getObservationManager();
+
     rootNodeId = root.getNodeId();
     systemEditor = new ACLEditor(systemSession, this);
     initializedWithDefaults = !configuration.containsKey(PARAM_OMIT_DEFAULT_PERMISSIONS);
@@ -211,7 +230,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     } else if (isReadOnly(principals)) {
       return getReadOnlyPermissions();
     } else {
-      return new AclPermissions(principals);
+      return new AclPermissions(principals,DynamicSecurityManager.getThreadBoundAMContext());
     }
   }
 
@@ -366,7 +385,45 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class AclPermissions extends AbstractCompiledPermissions implements
       SynchronousEventListener {
 
-    private final List<String> principalNames;
+    private class PrincipalChangeListener implements SynchronousEventListener {
+
+      public PrincipalChangeListener() throws RepositoryException {
+        int events = Event.PROPERTY_CHANGED;
+        securityObservationMgr.addEventListener(this, events, "/", true, null, null, false);
+      }
+      
+      public void onEvent(EventIterator events) {
+        while (events.hasNext()) {
+          try {
+            Event ev = events.nextEvent();
+            String path = ev.getPath();
+            PropertyImpl p = (PropertyImpl) securitySession.getProperty(path);
+            NodeImpl parent = (NodeImpl) p.getParent();
+            if (parent.isNodeType("rep:User") && userId != null && userId.equals(parent.getName())) {
+              Value[] values = p.getValues();
+              List<String> groups = new ArrayList<String>(values.length);
+              for (Value value : values) {
+                Node n = securitySession.getNodeByUUID(value.getString());
+                log.info("Got node:"  + n);
+                groups.add(n.getName());
+              }
+              updatePrincipals(groups);
+              break;
+            }
+          } catch (RepositoryException e) {
+            log.warn("Internal error: ", e.getMessage());
+          }
+        }
+      }
+
+      public void close() throws RepositoryException {
+        if (securityObservationMgr != null) {
+          securityObservationMgr.removeEventListener(this);
+        }
+      }
+    }
+    
+    private List<String> principalNames;
     private final String jcrReadPrivilegeName;
 
     /**
@@ -374,9 +431,23 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * {@link #grants(Path, int)} in case of permissions == READ
      */
     private boolean readAllowed = false;
+    /**
+     * The user ID of the user that the AclPermissions are bound to.
+     */
+    private String userId;
+    /**
+     * A reference to the AccessManagerContext to allow us to refresh
+     * the list of principals
+     */
+    private PrincipalChangeListener principalEventListener;
 
-    private AclPermissions(Set<Principal> principals) throws RepositoryException {
+    private AclPermissions(Set<Principal> principals, AMContext amContext) throws RepositoryException {
       this(principals, true);
+
+      this.principalEventListener = new PrincipalChangeListener();
+      if ( amContext != null ) {
+        userId = amContext.getSession().getUserID();
+      }
     }
 
     private AclPermissions(Set<Principal> principals, boolean listenToEvents)
@@ -408,6 +479,17 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             resolver.getJCRName(NT_REP_ACL)};
         observationMgr.addEventListener(this, events, session.getRootNode().getPath(),
             true, null, ntNames, true);
+      }
+    }
+    
+    private void updatePrincipals(List<String> groups) {
+      if (userId == null) {
+        return;
+      }
+      for (String group : groups) {
+        if (!principalNames.contains(group)) {
+          principalNames.add(group);
+        }
       }
     }
 
@@ -492,7 +574,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 
       // retrieve all ACEs at path or at the direct ancestor of path that
       // apply for the principal names.
-      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames)
+      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames, userId)
           .iterator();
       // build a list of ACEs that are defined locally at the node
       List<AccessControlEntry> localACEs;
@@ -566,6 +648,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     public void close() {
       try {
         observationMgr.removeEventListener(this);
+        principalEventListener.close();
       } catch (RepositoryException e) {
         log.debug("Unable to unregister listener: ", e.getMessage());
       }
@@ -605,7 +688,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // test if the new node is an ACE node that affects
             // the permission of any of the principals listed in
             // principalNames.
-            NodeImpl n = (NodeImpl) session.getNode(path);
+            NodeImpl n = (NodeImpl) session.getNode(path); 
             if (n.isNodeType(NT_REP_ACE)) {
               // and reset the readAllowed flag, if the new
               // ACE denies READ.
@@ -668,30 +751,41 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     private final Map<String, List<AccessControlEntry>> principalNamesToEntries;
     private final List<AccessControlEntry> orderedAccessControlEntries;
 
+    /**
+     * @param node The Access control node from which the entries are to be taken.
+     * @param principalNames a set of static principal names for the user.
+     * @param userId userId is the user the entires are for, or null if none is bound.
+     * @throws RepositoryException
+     */
     @SuppressWarnings("unchecked")
-    private Entries(NodeImpl node, Collection<String> principalNames)
+    private Entries(NodeImpl node, Collection<String> principalNames, String userId)
         throws RepositoryException {
       orderedAccessControlEntries = new ArrayList<AccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
       }
-      collectEntries(node);
+      collectEntries(node, userId);
     }
 
-    private void collectEntries(NodeImpl node) throws RepositoryException {
+    /**
+     * @param node the acl node
+     * @param userId the userId which may be null
+     * @throws RepositoryException
+     */
+    private void collectEntries(NodeImpl node, String userId) throws RepositoryException {
       // if the given node is access-controlled, construct a new ACL and add
       // it to the list
       if (isAccessControlled(node)) {
         // build acl for the access controlled node
         NodeImpl aclNode = node.getNode(N_POLICY);
         // get the collector and collect entries
-        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries);
+        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries, userId);
       }
       // then, recursively look for access controlled parents up the hierarchy.
       if (!rootNodeId.equals(node.getId())) {
         NodeImpl parentNode = (NodeImpl) node.getParent();
-        collectEntries(parentNode);
+        collectEntries(parentNode, userId);
       }
     }
 

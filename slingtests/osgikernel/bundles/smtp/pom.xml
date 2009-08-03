@@ -36,9 +36,9 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Private-Package> org.sakaiproject.kernel.smtp.* </Private-Package>
-            <Import-Package>!org.subethamail.smtp.*,!junit.framework,!javax.mail.internet,*</Import-Package>
-            <Embed-Dependency>subethasmtp,activation,mail</Embed-Dependency>
+            <Private-Package> org.sakaiproject.kernel.smtp.*  </Private-Package>
+            <Import-Package>!org.subethamail.smtp.*,!junit.framework,*</Import-Package>
+            <Embed-Dependency>subethasmtp</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>        
@@ -52,7 +52,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>subethasmtp,activation,mail</includeArtifactIds>
+              <includeArtifactIds>subethasmtp</includeArtifactIds>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>

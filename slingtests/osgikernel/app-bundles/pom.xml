@@ -265,6 +265,12 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.4.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.jaxp-api</artifactId>
       <version>1.3.0</version>
       <scope>provided</scope>
@@ -364,7 +370,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,activemq-core</includeArtifactIds>
+                  <includeArtifactIds>javax.activation,javax.mail,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,activemq-core</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>

@@ -35,7 +35,9 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.xml.stream.* 
+            <Export-Package> 
+               javax.xml.stream.*;version=1.0.0,
+               javax.xml.namespace.*;version=1.0.0 
             </Export-Package>
           </instructions>
         </configuration>
