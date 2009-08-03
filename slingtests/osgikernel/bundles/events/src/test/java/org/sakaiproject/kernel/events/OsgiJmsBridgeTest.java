@@ -334,7 +334,6 @@ public class OsgiJmsBridgeTest {
     dict.put(OsgiJmsBridge.ACKNOWLEDGE_MODE, Session.AUTO_ACKNOWLEDGE);
     dict.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
     dict.put(OsgiJmsBridge.CONNECTION_CLIENT_ID, "sakai.event.bridge");
-    dict.put(OsgiJmsBridge.EVENT_JMS_TOPIC, "sakai.event.bridge");
     dict.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
     dict.put(OsgiJmsBridge.SESSION_TRANSACTED, "false");
     dict.put(OsgiJmsBridge.TOPICS, "*");
