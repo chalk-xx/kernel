@@ -66,6 +66,13 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
 
+<!-- jldap -->
+    <dependency>
+      <groupId>com.novell.ldap</groupId>
+      <artifactId>jldap</artifactId>
+      <version>4.3</version>
+    </dependency>
+
 <!-- Sling -->
     <dependency>
       <groupId>org.apache.sling</groupId>
