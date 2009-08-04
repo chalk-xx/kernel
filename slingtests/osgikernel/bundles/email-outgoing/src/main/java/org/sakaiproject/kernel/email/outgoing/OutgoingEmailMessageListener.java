@@ -24,14 +24,24 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.scheduler.Job;
+import org.apache.sling.commons.scheduler.JobContext;
+import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.util.Date;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -68,6 +78,10 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected SlingRepository repository;
   @Reference
   protected JcrResourceResolverFactory jcrResourceResolverFactory;
+  @Reference
+  protected Scheduler scheduler;
+  @Reference
+  protected EventAdmin eventAdmin;
 
   private static final String NODE_PATH_PROPERTY = "nodePath";
 
@@ -145,9 +159,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                 try {
                   int errorCode = Integer.parseInt(smtpError.substring(0, 3));
                   // All retry-able SMTP errors should have codes starting with 4
-                  if ((int) (errorCode / 100) == 4) {
-                    // FIXME schedule a retry
-                  }
+                  scheduleRetry(errorCode, messageNode);
                 } catch (NumberFormatException nfe) {
                   // smtpError didn't start with an error code, let's dig for it
                   String searchFor = "response:";
@@ -155,9 +167,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
                   if (rindex > -1 && (rindex + searchFor.length()) < smtpError.length()) {
                     int errorCode = Integer.parseInt(smtpError.substring(searchFor
                         .length(), searchFor.length() + 3));
-                    if ((int) (errorCode / 100) == 4) {
-                      // FIXME schedule a retry
-                    }
+                    scheduleRetry(errorCode, messageNode);
                   }
                 }
               }
@@ -177,6 +187,48 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
+    }
+  }
+
+  private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
+    // All retry-able SMTP errors should have codes starting with 4
+    if ((int) (errorCode / 100) == 4) {
+      long retryCount = 0;
+      if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)) {
+        retryCount = messageNode.getProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)
+            .getLong();
+      }
+
+      if (retryCount < maxRetries) {
+        Job job = new Job() {
+
+          public void execute(JobContext jc) {
+            Map<String, Serializable> config = jc.getConfiguration();
+            Properties eventProps = new Properties();
+            eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
+
+            Event retryEvent = new Event(queueName, eventProps);
+            eventAdmin.postEvent(retryEvent);
+
+          }
+        };
+
+        HashMap<String, Serializable> jobConfig = new HashMap<String, Serializable>();
+        jobConfig.put(NODE_PATH_PROPERTY, messageNode.getPath());
+
+        int retryIntervalMillis = retryInterval * 60000;
+        Date nextTry = new Date(System.currentTimeMillis() + (retryIntervalMillis));
+
+        try {
+          scheduler.fireJobAt(null, job, jobConfig, nextTry);
+        } catch (Exception e) {
+          LOGGER.error(e.getMessage(), e);
+        }
+      } else {
+        setError(messageNode, "Unable to send message, exhausted SMTP retries.");
+      }
+    } else {
+      LOGGER.warn("Not scheduling a retry for error code not of the form 4xx.");
     }
   }
 
