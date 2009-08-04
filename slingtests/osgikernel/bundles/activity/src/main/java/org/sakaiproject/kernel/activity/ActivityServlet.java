@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.activity;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -39,15 +43,13 @@ import javax.servlet.http.HttpServletResponse;
  * bundleId: (i.e. you know - the bundleId. Language codes will be prepended to the
  * bundleId for resolution.)
  * 
- * @scr.component immediate="true" label="ActivityServlet"
- *                description="Records the activity related to a particular node"
- * @scr.property name="service.description"
- *               value="Records the activity related to a particular node"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.selectors" value="activity"
- * @scr.property name="sling.servlet.methods" values.0="POST"
  */
+@Component(immediate=true, label="ActivityServlet", description="Records the activity related to a particular node")
+@Properties({
+  @Property(name="service.description", value="Records the activity related to a particular node"),
+  @Property(name="service.vendor", value="The Sakai Foundation")
+})
+@SlingServlet(selectors={"activity"}, methods={"POST"}, extensions={"html"})
 public class ActivityServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityServlet.class);

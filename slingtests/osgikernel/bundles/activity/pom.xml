@@ -109,5 +109,10 @@
     	<version>2.0.4-incubator</version>
     	<type>bundle</type>
     </dependency>
+	<dependency>
+		<groupId>org.apache.felix</groupId>
+		<artifactId>org.apache.felix.scr.annotations</artifactId>
+		<version>0.9.0</version>
+	</dependency>
   </dependencies>
 </project>
