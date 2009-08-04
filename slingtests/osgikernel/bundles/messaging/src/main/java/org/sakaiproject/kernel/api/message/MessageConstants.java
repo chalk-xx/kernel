@@ -74,12 +74,16 @@ public interface MessageConstants {
    * store.)
    */
   public static final String PROP_SAKAI_PREVIOUS_MESSAGE = "sakai:previousmessage";
+  /**
+   * This property will hold the number of times message delivery has been retried
+   */
+  public static final String PROP_SAKAI_RETRY_COUNT = "sakai:retrycount";
 
-  /** 
+  /**
    * This property will hold the e-mail address for the mailbox
    */
   public static final String SAKAI_EMAIL_ADDRESS = "sakai:email";
-  
+
   /**
    * The name for the outbox box.
    */

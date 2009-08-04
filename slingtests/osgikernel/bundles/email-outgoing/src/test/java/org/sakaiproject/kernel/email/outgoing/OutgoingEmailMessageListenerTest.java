@@ -13,9 +13,13 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
+
+import java.net.BindException;
+import java.util.Properties;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -34,10 +38,22 @@ public class OutgoingEmailMessageListenerTest {
   private Session adminSession;
   private Node messageNode;
   private static Wiser wiser;
+  private static int smtpPort;
 
   @Before
   public void setup() throws Exception {
     oeml = new OutgoingEmailMessageListener();
+
+    Properties props = new Properties();
+    props.put("email.out.brokerUrl", "tcp://localhost:61616");
+    props.put("email.out.queueName", "sakai.email.outgoing");
+    props.put("sakai.smtp.server", "localhost");
+    props.put("sakai.smtp.port", smtpPort);
+    props.put("sakai.email.maxRetries", 240);
+    props.put("sakai.email.retryIntervalMinutes", 30);
+
+    ComponentContext ctx = createMock(ComponentContext.class);
+    expect(ctx.getProperties()).andReturn(props);
 
     adminSession = createMock(Session.class);
 
@@ -58,16 +74,28 @@ public class OutgoingEmailMessageListenerTest {
     oeml.bindJcrResourceResolverFactory(jrrf);
     oeml.bindRepository(repository);
 
-    replay(adminSession, res, rr, jrrf, repository);
+    replay(ctx, adminSession, res, rr, jrrf, repository);
 
+    oeml.activate(ctx);
     wiser.getMessages().clear();
   }
 
   @BeforeClass
   public static void startWiser() {
     wiser = new Wiser();
-    wiser.setPort(OutgoingEmailMessageListener.SMTP_PORT);
-    wiser.start();
+    smtpPort = 8025;
+    boolean started = false;
+    while (!started) {
+      wiser.setPort(smtpPort);
+      try {
+        wiser.start();
+        started = true;
+      } catch (RuntimeException re) {
+        if (re.getCause() instanceof BindException) {
+          smtpPort++;
+        }
+      }
+    }
   }
 
   @AfterClass

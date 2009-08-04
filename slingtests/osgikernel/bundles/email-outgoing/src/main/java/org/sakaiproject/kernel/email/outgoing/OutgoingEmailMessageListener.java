@@ -77,6 +77,12 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private String brokerUrl;
   private ConnectionFactory connectionFactory = null;
   private Queue dest = null;
+  private String queueName;
+  private Integer maxRetries;
+  private Integer smtpPort;
+  private String smtpServer;
+
+  private Integer retryInterval;
 
   public void onMessage(Message message) {
     try {
@@ -126,12 +132,13 @@ public class OutgoingEmailMessageListener implements MessageListener {
                     MessageConstants.PROP_SAKAI_SUBJECT).getString());
               }
 
-              email.setSmtpPort(SMTP_PORT);
-              email.setHostName(SMTP_SERVER);
+              email.setSmtpPort(smtpPort);
+              email.setHostName(smtpServer);
 
               email.send();
             } catch (EmailException e) {
               setError(messageNode, e.getMessage());
+              // Get the SMTP error code
               // There has to be a better way to do this
               if (e.getCause() != null && e.getCause().getMessage() != null) {
                 String smtpError = e.getCause().getMessage().trim();
@@ -176,6 +183,49 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected void activate(ComponentContext ctx) {
     @SuppressWarnings("unchecked")
     Dictionary props = ctx.getProperties();
+
+    Integer _maxRetries = (Integer) props.get(MAX_RETRIES);
+    if (_maxRetries != null) {
+      if (diff(maxRetries, _maxRetries)) {
+        maxRetries = _maxRetries;
+      }
+    } else {
+      LOGGER.error("Maximum times to retry messages not set.");
+    }
+
+    Integer _retryInterval = (Integer) props.get(RETRY_INTERVAL);
+    if (_retryInterval != null) {
+      if (diff(_retryInterval, retryInterval)) {
+        retryInterval = _retryInterval;
+      }
+    } else {
+      LOGGER.error("SMTP retry interval not set.");
+    }
+
+    if (maxRetries * retryInterval < 4320 /* minutes in 3 days */) {
+      LOGGER.warn("SMTP retry window is very short.");
+    }
+
+    Integer _smtpPort = (Integer) props.get(SMTP_PORT);
+    boolean validPort = _smtpPort != null && _smtpPort >= 0 && _smtpPort <= 65535;
+    if (validPort) {
+      if (diff(smtpPort, _smtpPort)) {
+        smtpPort = _smtpPort;
+      }
+    } else {
+      LOGGER.error("Invalid port set for SMTP");
+    }
+
+    String _smtpServer = (String) props.get(SMTP_SERVER);
+    boolean smtpServerEmpty = _smtpServer == null || _smtpServer.trim().length() == 0;
+    if (!smtpServerEmpty) {
+      if (diff(smtpServer, _smtpServer)) {
+        smtpServer = _smtpServer;
+      }
+    } else {
+      LOGGER.error("No SMTP server set");
+    }
+
     String _brokerUrl = (String) props.get(BROKER_URL);
 
     try {
@@ -186,13 +236,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
           connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
         }
       } else {
-        LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+        LOGGER.error("Cannot create JMS connection factory with an empty URL.");
       }
 
       brokerUrl = _brokerUrl;
       connection = connectionFactory.createConnection();
       session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      dest = session.createQueue(QUEUE_NAME);
+      queueName = (String) props.get(QUEUE_NAME);
+      dest = session.createQueue(queueName);
       consumer = session.createConsumer(dest);
       consumer.setMessageListener(this);
       connection.start();
