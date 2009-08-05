@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -82,15 +83,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
         } else {
           LDAPConnection.setSocketFactory(new LDAPJSSESecureSocketFactory(sslSocketFactory));
         }
-      } catch (KeyManagementException e) {
-        log.error(e.getMessage(), e);
-      } catch (NoSuchAlgorithmException e) {
-        log.error(e.getMessage(), e);
-      } catch (NoSuchProviderException e) {
-        log.error(e.getMessage(), e);
-      } catch (KeyStoreException e) {
-        log.error(e.getMessage(), e);
-      } catch (CertificateException e) {
+      } catch (GeneralSecurityException e) {
         log.error(e.getMessage(), e);
       } catch (IOException e) {
         log.error(e.getMessage(), e);
@@ -205,8 +198,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    *           if a non-null keystore location cannot be resolved
    */
   protected SSLContext initKeystore(String keystoreLocation, String keystorePassword)
-      throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException,
-      CertificateException, IOException, KeyManagementException {
+      throws GeneralSecurityException, IOException {
     // M_log.debug("initKeystoreLocation()");
     // String sysKeystoreLocation =
     // System.getProperty(KEYSTORE_LOCATION_SYS_PROP_KEY);

@@ -24,27 +24,72 @@ import com.novell.ldap.LDAPConnection;
  */
 public interface LdapConnectionBroker {
   /**
-   * Gets a connection from a named holder. If the holder does not already
-   * exist, a new one is created using system level configuration defaults.
+   * Gets a connection from a named manager. If the manager does not already
+   * exist, a new one is created using system level configuration defaults. Same
+   * as calling getConnection(name, null).
    *
    * @param name
-   *          The name of the connection holder.
-   * @return {@link LDAPConnection} from the named holder.
+   *          The name of the connection manager.
+   */
+  void create(String name);
+
+  /**
+   * Gets a connection from a named manager. If the manager does not already
+   * exist, a new one is created using the provided configuration settings. Same
+   * as calling getConnection(name, config, false).
+   *
+   * @param name
+   *          The name of the connection manager.
+   * @param config
+   * @return {@link LDAPConnection} from the named manager.
+   */
+  void create(String name, LdapConnectionManagerConfig config);
+
+  /**
+   * Destroy a named connection manager.
+   *
+   * @param name
+   *          The name of the connection manager to destroy.
+   */
+  void destroy(String name);
+
+  /**
+   * Check if a named manager exists.
+   *
+   * @param name
+   *          The name of the manager to check.
+   * @return true if exists, false otherwise.
+   */
+  boolean exists(String name);
+
+  /**
+   * Gets a connection from a named manager. If the manager does not already
+   * exist, an {@link LdapException} is thrown.
+   *
+   * @param name
+   *          The name of the connection manager.
+   * @return {@link LDAPConnection} from the named manager.
    * @throws LdapException
+   *           If named connection manager is not found. Also wraps underlying
+   *           exceptions.
    */
   LDAPConnection getConnection(String name) throws LdapException;
 
   /**
-   * Gets a connection from a named holder. If the holder does not already
-   * exist, a new one is created using the provided configuration settings.
+   * Gets a bound connection from a named manager. If the manager does not
+   * already exist, an {@link LdapException} is thrown.
    *
    * @param name
-   *          The name of the connection holder.
-   * @return {@link LDAPConnection} from the named holder.
-   * @param config
-   * @return
+   *          The name of the connection manager.
+   * @param loginDn
+   *          The DN to which to bind.
+   * @param password
+   *          The password with which to bind.
+   * @return {@link LDAPConnection} from the named manager.
    * @throws LdapException
+   *           If named connection manager is not found. Also wraps underlying
+   *           exceptions.
    */
-  LDAPConnection getConnection(String name, LdapConnectionManagerConfig config)
+  LDAPConnection getBoundConnection(String name, String loginDn, String password)
       throws LdapException;
 }

@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.ldap.api;
 
+
 /**
  * Bean interface for collecting {@link LdapConnectionManager} configuration.
  */
