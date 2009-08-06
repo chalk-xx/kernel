@@ -15,13 +15,23 @@ class TC_Kern308Test < SlingTest
   def test_308
     @m = Time.now.to_i.to_s
 	u = create_user("ian"+@m)
+	n = create_user("nico"+@m)
 	g1t = create_group("g-group1-"+@m)
-	ga = Group.new("everyone")
-	ga.add_member(@s,u.name,"user")
 	@s.switch_user(u)
 	g = create_group("g-group"+@m)
-	@s.debug = false
+        puts(g.details(@s))
 	assert_not_nil(g,"Failed to create group node ")
+        @s.debug = true
+        g.add_member(@s, n.name, "user")
+        @s.debug = false
+
+        details = g.details(@s)
+        members = details["members"]
+        assert_not_nil(members, "Expected a list of members")
+        assert_not_nul(members[n.name],"Expected to find nico as a member ")
+
+
+        
   end
 
 
