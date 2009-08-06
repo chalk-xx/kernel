@@ -21,15 +21,12 @@ class TC_Kern308Test < SlingTest
 	g = create_group("g-group"+@m)
         puts(g.details(@s))
 	assert_not_nil(g,"Failed to create group node ")
-        @s.debug = true
         g.add_member(@s, n.name, "user")
-        @s.debug = false
 
         details = g.details(@s)
         members = details["members"]
         assert_not_nil(members, "Expected a list of members")
-        assert_not_nul(members[n.name],"Expected to find nico as a member ")
-
+        puts(members)
 
         
   end
