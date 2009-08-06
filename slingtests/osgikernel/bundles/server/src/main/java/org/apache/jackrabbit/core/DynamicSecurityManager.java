@@ -417,6 +417,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             throws NoSuchWorkspaceException, RepositoryException {
         checkInitialized();
         synchronized (acProviders) {
+           log.info("Getting Access Control provider for "+workspaceName);
             AccessControlProvider provider = (AccessControlProvider) acProviders.get(workspaceName);
             if (provider == null) {
                 SystemSession systemSession = repository.getSystemSession(workspaceName);
@@ -425,6 +426,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
                 provider = acProviderFactory.createProvider(systemSession, secConf);
                 acProviders.put(workspaceName, provider);
             }
+            log.info("Got "+provider);
             return provider;
         }
     }
