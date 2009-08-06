@@ -123,6 +123,7 @@ import javax.servlet.http.HttpServletResponse;
 public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
     ManagedService {
 
+  
   /**
    *
    */
@@ -130,6 +131,8 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateSakaiGroupServlet.class);
+  
+  public static final String ADMIN_PRINCIPALS_PROPERTY = "sakai:delegatedGroupAdmin";
 
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
@@ -356,9 +359,9 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
   protected void updateOwnership(Session session, SlingHttpServletRequest request,
       Group group, String[] principalChange, List<Modification> changes) throws RepositoryException {
     Set<String> adminPrincipals = new HashSet<String>();
-    if (group.hasProperty(DelegatedUserAccessControlProvider.ADMIN_PRINCIPALS_PROPERTY)) {
+    if (group.hasProperty(ADMIN_PRINCIPALS_PROPERTY)) {
       Value[] adminPrincipalsProperties = group
-          .getProperty(DelegatedUserAccessControlProvider.ADMIN_PRINCIPALS_PROPERTY);
+          .getProperty(ADMIN_PRINCIPALS_PROPERTY);
       for (Value adminPricipal : adminPrincipalsProperties) {
         adminPrincipals.add(adminPricipal.toString());
       }
@@ -387,7 +390,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
       for (String adminPrincipalName : adminPrincipals) {
         newAdminPrincipals[i++] = valueFactory.createValue(adminPrincipalName);
       }
-      group.setProperty(DelegatedUserAccessControlProvider.ADMIN_PRINCIPALS_PROPERTY,
+      group.setProperty(ADMIN_PRINCIPALS_PROPERTY,
           newAdminPrincipals);
     }
   }

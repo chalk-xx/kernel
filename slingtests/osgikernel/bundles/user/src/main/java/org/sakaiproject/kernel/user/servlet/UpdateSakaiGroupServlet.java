@@ -17,9 +17,20 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
+import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.NodeImpl;
+import org.apache.jackrabbit.core.security.authorization.Permission;
+import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateGroupServlet;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -27,10 +38,17 @@ import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -102,20 +120,106 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
-  protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
+  protected void handleOperation(SlingHttpServletRequest request, HtmlResponse htmlResponse,
       List<Modification> changes) throws RepositoryException {
-    super.handleOperation(request, response, changes);
-    try {
+    boolean modifyGroup = false;
+    Principal authorizablePrincipal = null;
+    
+    { // check if the user can modify the group
+
+      Authorizable authorizable = null;
+      Resource resource = request.getResource();
+
+      if (resource != null) {
+        authorizable = resource.adaptTo(Authorizable.class);
+      }
+
+      // check that the group was located.
+      if (authorizable == null) {
+        throw new ResourceNotFoundException("Group to update could not be determined");
+      }
+      authorizablePrincipal = authorizable.getPrincipal();
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      if (session == null) {
+        throw new RepositoryException("JCR Session not found");
+      }
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      User currentUser = (User) userManager.getAuthorizable(session.getUserID());
+      if (currentUser == null) {
+        throw new RepositoryException("Cant locate the current user ");
+      }
+      if (currentUser.isAdmin()) {
+        modifyGroup = true;
+      } else {
+
+        Set<String> userPrincipals = new HashSet<String>();
+        for (PrincipalIterator pi = currentUser.getPrincipals(); pi.hasNext();) {
+          userPrincipals.add(pi.nextPrincipal().getName());
+        }
+        if (authorizable.hasProperty(CreateSakaiGroupServlet.ADMIN_PRINCIPALS_PROPERTY)) {
+          Value[] groups = authorizable
+              .getProperty(CreateSakaiGroupServlet.ADMIN_PRINCIPALS_PROPERTY);
+          for (Value group : groups) {
+            String groupName = group.getString();
+            if (userPrincipals.contains(groupName)) {
+              modifyGroup = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (!modifyGroup) {
+      throw new RepositoryException("Not Allowed to modify the group ");
+    }
+    // switch to the admin
+    Session session = getSession();
+    try {
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    Authorizable authorizable = userManager.getAuthorizable(authorizablePrincipal);
+
+    Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse);
+    try {
+      // cleanup any old content (@Delete parameters)
+      processDeletes(authorizable, reqProperties, changes);
+
+      // write content from form
+      writeContent(session, authorizable, reqProperties, changes);
+
+      // update the group memberships
+      if (authorizable.isGroup()) {
+        updateGroupMembership(request, authorizable, changes);
+      }
+    } catch (RepositoryException re) {
+      throw new RepositoryException("Failed to update group.", re);
+    }
+
+    
+    try {
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
         userPostProcessor.process(session, request, changes);
       }
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);
 
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
+    
+    if ( session.hasPendingChanges() ) {
+      session.save();
+    }
+    } finally {
+      session.logout();
+    }
+  }
+
+  /**
+   * @return
+   */
+  private Session getSession() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
