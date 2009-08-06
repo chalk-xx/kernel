@@ -9,7 +9,11 @@ module SlingContacts
     end
 
     def invite_contact(name, types)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "type" => types)
+      case types
+        when String
+          types = [types]
+      end
+      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "sakai:types" => types)
     end
  
     def accept_contact(name)
@@ -32,30 +36,34 @@ module SlingContacts
       return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.remove.html"), {})
     end
 
+    def cancel_invitation(name)
+      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.cancel.html"))
+    end
+
 
     def get_accepted()
-      return @sling.get_node_props("_user/contacts/accepted.json")
+      return @sling.get_node_props("_user/contacts/accepted")
     end
 
     def get_pending()
-      return @sling.get_node_props("_user/contacts/pending.json")
+      return @sling.get_node_props("_user/contacts/pending")
     end
 
     def get_invited()
-      return @sling.get_node_props("_user/contacts/invited.json")
+      return @sling.get_node_props("_user/contacts/invited")
     end
 
     def get_blocked()
-      return @sling.get_node_props("_user/contacts/blocked.json")
+      return @sling.get_node_props("_user/contacts/blocked")
     end
 
     def get_ignored()
-      return @sling.get_node_props("_user/contacts/ignored.json")
+      return @sling.get_node_props("_user/contacts/ignored")
     end
 
 
     def get_all()
-      return @sling.get_node_props("_user/contacts/all.json")
+      return @sling.get_node_props("_user/contacts/all")
     end
     
   end

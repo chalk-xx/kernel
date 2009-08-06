@@ -24,13 +24,12 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.commons.json.jcr.JsonItemWriter;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashSet;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -99,8 +98,6 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
       int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
       
-      //JcrUtils.logItem(LOGGER,node);
-
       VersionHistory versionHistory = node.getVersionHistory();
       VersionIterator versionIterator = versionHistory.getAllVersions();
       
@@ -114,11 +111,9 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       while (i < nitems && versionIterator.hasNext()) {
         versions[i++] = versionIterator.nextVersion();
       }   
-      
-      
 
       Writer writer = response.getWriter();
-      JSONWriter write = new JSONWriter(writer);
+      ExtendedJSONWriter write = new ExtendedJSONWriter(writer);
       write.object();
       write.key(JSON_PATH);
       write.value(node.getPath());
@@ -126,17 +121,14 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       write.value(nitems);
       write.key(JSON_TOTAL);
       write.value(total);
-      writer.append(", \"").append(JSON_VERSIONS).append("\": {");
+      write.key(JSON_VERSIONS);
+      write.object();
       versionIterator.skip(offset);
-      JsonItemWriter itemWriter = new JsonItemWriter(new HashSet<String>());
       for ( int j = versions.length-1;  j >=0; j-- ) {
-        writer.append("\"").append(versions[j].getName()).append("\": ");
-        itemWriter.dump(versions[j], writer, 2);
-        if (j != 0) {
-          writer.append(",");
-        }
+        write.key(versions[j].getName());
+        write.node(versions[j]);
       }
-      writer.append("}");
+      write.endObject();
       write.endObject();
     } catch (UnsupportedRepositoryOperationException e) {
       Writer writer = response.getWriter();
@@ -154,8 +146,8 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
             + "either becuase the repository does not support it "
             + "or becuase the Resource is not versionable");
         write.key(JSON_VERSIONS);
-        write.array();
-        write.endArray();
+        write.object();
+        write.endObject();
         write.endObject();
       } catch (JSONException e1) {
         response.reset();
