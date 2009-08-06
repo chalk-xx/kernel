@@ -29,6 +29,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.mail.internet.MimeMultipart;
 
 public class OutgoingEmailMessageListenerTest {
   private static final String NODE_PATH_PROPERTY = "nodePath";
@@ -230,6 +231,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
+    expect(messageNode.hasNodes()).andReturn(false);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -282,6 +284,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
+    expect(messageNode.hasNodes()).andReturn(false);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -329,6 +332,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(true);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(false);
+    expect(messageNode.hasNodes()).andReturn(false);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);
@@ -341,7 +345,8 @@ public class OutgoingEmailMessageListenerTest {
     for (WiserMessage m : wiser.getMessages()) {
       assertEquals("tonobody@example.com", m.getEnvelopeReceiver());
       assertEquals("fromnobody@example.com", m.getEnvelopeSender());
-      assertEquals("Message body looks like this.", m.getMimeMessage().getContent());
+      MimeMultipart content = (MimeMultipart) m.getMimeMessage().getContent();
+      assertEquals("Message body looks like this.", content.getBodyPart(0).getContent());
     }
   }
 
@@ -377,6 +382,7 @@ public class OutgoingEmailMessageListenerTest {
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(fromProp);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)).andReturn(false);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)).andReturn(true);
+    expect(messageNode.hasNodes()).andReturn(false);
     expect(
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
             MessageConstants.BOX_SENT)).andReturn(null);

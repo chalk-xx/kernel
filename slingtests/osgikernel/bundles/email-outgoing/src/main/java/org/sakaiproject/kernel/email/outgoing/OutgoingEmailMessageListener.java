@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.email.outgoing;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.SimpleEmail;
+import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -44,6 +44,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
@@ -121,30 +123,9 @@ public class OutgoingEmailMessageListener implements MessageListener {
           if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
               && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
             // make a commons-email message from the message
-            SimpleEmail email = new SimpleEmail();
+            MultiPartEmail email;
             try {
-              try {
-                email.addTo(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)
-                    .getString());
-              } catch (ValueFormatException e) {
-                for (Value address : messageNode.getProperty(
-                    MessageConstants.PROP_SAKAI_TO).getValues()) {
-                  email.addTo(address.getString());
-                }
-              }
-
-              email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)
-                  .getString());
-
-              if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
-                email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)
-                    .getString());
-              }
-
-              if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
-                email.setSubject(messageNode.getProperty(
-                    MessageConstants.PROP_SAKAI_SUBJECT).getString());
-              }
+              email = constructMessage(messageNode);
 
               email.setSmtpPort(smtpPort);
               email.setHostName(smtpServer);
@@ -188,6 +169,46 @@ public class OutgoingEmailMessageListener implements MessageListener {
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
+  }
+
+  private MultiPartEmail constructMessage(Node messageNode) throws EmailException,
+      RepositoryException, PathNotFoundException, ValueFormatException {
+    MultiPartEmail email = new MultiPartEmail();
+    try {
+      email.addTo(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString());
+    } catch (ValueFormatException e) {
+      for (Value address : messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)
+          .getValues()) {
+        email.addTo(address.getString());
+      }
+    }
+
+    email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString());
+
+    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
+      email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString());
+    }
+
+    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
+      email.setSubject(messageNode.getProperty(MessageConstants.PROP_SAKAI_SUBJECT)
+          .getString());
+    }
+
+    if (messageNode.hasNodes()) {
+      NodeIterator ni = messageNode.getNodes();
+      while (ni.hasNext()) {
+        Node childNode = ni.nextNode();
+        String description = null;
+        if (childNode.hasProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION)) {
+          description = childNode.getProperty(
+              MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION).getString();
+        }
+        JcrEmailDataSource ds = new JcrEmailDataSource(childNode);
+        email.attach(ds, childNode.getName(), description);
+      }
+    }
+
+    return email;
   }
 
   private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
