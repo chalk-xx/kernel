@@ -17,19 +17,27 @@
  */
 package org.sakaiproject.kernel.activity;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.activity.ActivityConstants;
+import org.sakaiproject.kernel.api.activity.ActivityUtils;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.UUID;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,21 +46,28 @@ import javax.servlet.http.HttpServletResponse;
  * to fill the bundle (i.e. macro expansions).
  * <p>
  * Required parameters:<br/>
- * actor: (i.e. the person taking the action)<br/>
- * appId: (i.e. used to locate the bundles)<br/>
- * bundleId: (i.e. you know - the bundleId. Language codes will be prepended to the
- * bundleId for resolution.)
+ * applicationId: (i.e. used to locate the bundles)<br/>
+ * templateId: (i.e. you know - the templateId. Locale will be appended to the templateId
+ * for resolution.)
  * 
+ * @scr.component immediate="true" label="ActivityServlet"
+ *                description="Records the activity related to a particular node"
+ * @scr.property name="service.description"
+ *               value="Records the activity related to a particular node"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.service interface="javax.servlet.Servlet"
+ * @scr.property name="sling.servlet.selectors" value="activity"
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.resourceTypes" value="sling/servlet/default"
+ * @scr.reference name="EventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
+ *                interface="org.osgi.service.event.EventAdmin"
  */
-@Component(immediate=true, label="ActivityServlet", description="Records the activity related to a particular node")
-@Properties({
-  @Property(name="service.description", value="Records the activity related to a particular node"),
-  @Property(name="service.vendor", value="The Sakai Foundation")
-})
-@SlingServlet(selectors={"activity"}, methods={"POST"}, extensions={"html"})
 public class ActivityServlet extends SlingAllMethodsServlet {
+  private static final String ACTIVITY_STORE_NAME = "activity";
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityServlet.class);
+  private static final String ACTOR = "actor";
+  private EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
@@ -67,26 +82,128 @@ public class ActivityServlet extends SlingAllMethodsServlet {
       LOG.debug("doPost(SlingHttpServletRequest " + request
           + ", SlingHttpServletResponse " + response + ")");
     }
-    RequestParameter actor = request.getRequestParameter("actor");
-    if (actor == null || "".equals(actor)) {
+    RequestParameter applicationId = request.getRequestParameter("applicationId");
+    if (applicationId == null || "".equals(applicationId.getString())) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "The actor parameter must not be null");
+          "The applicationId parameter must not be null");
       return;
     }
-    RequestParameter appId = request.getRequestParameter("appId");
-    if (appId == null || "".equals(appId)) {
+    RequestParameter templateId = request.getRequestParameter("templateId");
+    if (templateId == null || "".equals(templateId.getString())) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "The appId parameter must not be null");
+          "The templateId parameter must not be null");
       return;
     }
-    RequestParameter bundleId = request.getRequestParameter("bundleId");
-    if (bundleId == null || "".equals(bundleId)) {
+    final String currentUser = request.getUserPrincipal().getName();
+    if (currentUser == null || "".equals(currentUser)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "The bundleId parameter must not be null");
+          "CurrentUser could not be determined, user must be identifiable");
       return;
     }
-    super.doPost(request, response);
-    // TODO fire OSGi event to trigger JMS listener for delivery of activity
+
+    Node location = request.getResource().adaptTo(Node.class);
+    Node activityStoreNode = null;
+    Session session = null;
+    String path = null;
+    try {
+      session = location.getSession();
+      if (location.hasNode(ACTIVITY_STORE_NAME)) { // activityStore exists already
+        activityStoreNode = location.getNode(ACTIVITY_STORE_NAME);
+      } else { // need to create an activityStore
+        path = location.getPath() + "/" + ACTIVITY_STORE_NAME;
+        activityStoreNode = JcrUtils.deepGetOrCreateNode(session, path);
+        activityStoreNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE);
+      }
+      path = ActivityStoreServlet.getHashedPath(activityStoreNode.getPath(), UUID
+          .randomUUID().toString());
+      // for some odd reason I must manually create the Node before dispatching to
+      // Sling...
+      JcrUtils.deepGetOrCreateNode(session, path);
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+      if (!response.isCommitted()) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
+      return;
+    }
+
+    final String activityItemPath = path;
+    final RequestPathInfo requestPathInfo = request.getRequestPathInfo();
+    // need to remove the .activity selector from PathInfo to avoid infinite loop
+    final RequestPathInfo wrappedPathInfo = new RequestPathInfo() {
+      @Override
+      public String getSuffix() {
+        return requestPathInfo.getSuffix();
+      }
+
+      @Override
+      public String[] getSelectors() {
+        // TODO Probably should just *remove* the ".activity" selector from array
+        return new String[0];
+      }
+
+      @Override
+      public String getSelectorString() {
+        // TODO Probably should just *remove* the ".activity" selector from string
+        return null;
+      }
+
+      @Override
+      public String getResourcePath() {
+        // LOG.debug("requestPathInfo.getResourcePath()=" + resourcePath);
+        return activityItemPath;
+      }
+
+      @Override
+      public String getExtension() {
+        return requestPathInfo.getExtension();
+      }
+    };
+
+    SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(request) {
+      @Override
+      public RequestPathInfo getRequestPathInfo() {
+        return wrappedPathInfo;
+      }
+    };
+
+    // let Sling do it's thing...
+    Resource target = request.getResourceResolver().resolve(activityItemPath);
+    LOG.debug("dispatch to {}  ", target);
+    request.getRequestDispatcher(target).forward(wrappedRequest, response);
+
+    // now add the current user to the actor property
+    try {
+      Node activity = (Node) session.getItem(activityItemPath);
+      activity.setProperty(ACTOR, currentUser);
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+      if (!response.isCommitted()) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
+      return;
+    }
+    // post the asynchronous OSGi event
+    eventAdmin.postEvent(ActivityUtils.createEvent(activityItemPath));
   }
 
+  /**
+   * @param eventAdmin
+   *          the new EventAdmin service to bind to this service.
+   */
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
+
+  /**
+   * @param eventAdmin
+   *          the EventAdminService to be unbound from this service.
+   */
+  protected void unbindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = null;
+  }
 }

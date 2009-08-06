@@ -21,13 +21,14 @@
   <artifactId>org.sakaiproject.kernel.activity</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Activity Bundle</name>
+  <name>Sakai Kernel Activity Bundle</name>
   <description>Provides activity creation, and aggregation capabilities.</description>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-scr-plugin</artifactId>
+        <version>1.2.0</version>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -48,15 +49,8 @@
   <dependencies>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <artifactId>org.sakaiproject.kernel.session</artifactId>
       <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
