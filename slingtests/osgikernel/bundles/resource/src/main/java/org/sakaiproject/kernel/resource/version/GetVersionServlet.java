@@ -30,6 +30,7 @@ import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -122,7 +123,7 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
         if (type.equals(Node.class)) {
           return (AdapterType) finalNode;
         }
-        if (type.equals(ValueMap.class)) {
+        if (type.equals(ValueMap.class) || type.equals(Map.class)) {
           return (AdapterType) new JcrPropertyMap(finalNode);
         }
         return super.adaptTo(type);
