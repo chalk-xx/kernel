@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -199,8 +200,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *      org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperation,
    *      java.lang.String)
    */
-  public String connect(Resource resource, String thisUserId, String otherUserId,
-      ConnectionOperation operation) throws ConnectionException {
+  public String connect(Map<String,String[]> requestProperties, Resource resource,
+      String thisUserId, String otherUserId, ConnectionOperation operation)
+      throws ConnectionException {
     String contactsPath = contactsPathForConnectResource(resource);
     Session session = resource.getResourceResolver().adaptTo(Session.class);
     // fail is the supplied users are invalid
@@ -212,9 +214,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
       try {
         // get the contact userstore nodes
-        Node thisNode = getConnectionNode(adminSession, contactsPath, thisUserId,
+        Node thisNode = getConnectionNode(requestProperties, adminSession, contactsPath, thisUserId,
             otherUserId);
-        Node otherNode = getConnectionNode(adminSession, contactsPath, otherUserId,
+        Node otherNode = getConnectionNode(requestProperties, adminSession, contactsPath, otherUserId,
             thisUserId);
 
         // check the current states
@@ -305,7 +307,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @return
    * @throws RepositoryException
    */
-  private Node getConnectionNode(Session session, String path, String user1, String user2)
+  private Node getConnectionNode(Map<String,String[]> requestProperties, Session session, String path, String user1, String user2)
       throws RepositoryException {
     String nodePath = ConnectionUtils.getConnectionPath(path, user1, user2, "");
     try {
@@ -337,6 +339,14 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (n.isNew()) {
         n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
+        for (Entry<String,String[]> param: requestProperties.entrySet()) {
+          String[] values = param.getValue();
+          if (values.length == 1) {
+            n.setProperty(param.getKey(), values[0]);
+          } else {
+            n.setProperty(param.getKey(), values);
+          }
+        }
       }
       session.save();
       return n;

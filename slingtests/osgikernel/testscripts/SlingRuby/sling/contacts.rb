@@ -9,7 +9,11 @@ module SlingContacts
     end
 
     def invite_contact(name, types)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "type" => types)
+      case types
+        when String
+          types = [types]
+      end
+      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "sakai:types" => types)
     end
  
     def accept_contact(name)

@@ -105,6 +105,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
    *      org.apache.sling.api.SlingHttpServletResponse,
    *      org.apache.sling.api.resource.Resource, org.apache.sling.api.resource.Resource)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected boolean preDispatch(SlingHttpServletRequest request,
       SlingHttpServletResponse response, Resource baseResource, Resource resource)
@@ -133,7 +134,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
           return false;
         }
       }
-      connectionManager.connect(baseResource, user, targetUserId, operation);
+      connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
     } catch (ConnectionException e) {
       LOGGER.error("Connection exception: {}", e);
       response.sendError(e.getCode(), e.getMessage());
