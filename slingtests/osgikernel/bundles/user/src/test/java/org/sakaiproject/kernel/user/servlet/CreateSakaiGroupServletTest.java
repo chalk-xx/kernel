@@ -18,12 +18,12 @@ import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.DelegatedUserAccessControlProvider;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.security.Principal;
@@ -172,7 +172,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(group.getID()).andReturn("g-foo").times(2);
     expect(group.isGroup()).andReturn(true);
 
-    expect(rr.adaptTo(Session.class)).andReturn(session);
     expect(rr.map("/system/userManager/group/g-foo")).andReturn("");
     expect(rr.map("/system/userManager/group")).andReturn("");
 
@@ -194,7 +193,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     expect(user.getID()).andReturn("admin");
     expect(
-        group.hasProperty(DelegatedUserAccessControlProvider.ADMIN_PRINCIPALS_PROPERTY))
+        group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY))
         .andReturn(false);
     expect(session.getValueFactory()).andReturn(valueFactory);
     Capture<String> valueCapture = new Capture<String>();
@@ -225,7 +224,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     assertTrue(valuesCapture.hasCaptured());
     assertTrue(propertyName.hasCaptured());
     assertEquals("admin", valueCapture.getValue());
-    assertEquals(DelegatedUserAccessControlProvider.ADMIN_PRINCIPALS_PROPERTY,
+    assertEquals(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
         propertyName.getValue());
     assertEquals(1, valuesCapture.getValue().length);
     verify();

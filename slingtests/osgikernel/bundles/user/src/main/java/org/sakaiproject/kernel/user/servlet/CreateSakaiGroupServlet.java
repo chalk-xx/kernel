@@ -30,11 +30,9 @@ import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
-import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractGroupPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.DelegatedUserAccessControlProvider;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.ServiceReference;
@@ -56,8 +54,6 @@ import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -120,7 +116,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  */
 
-public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
+public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {
 
   
@@ -132,7 +128,6 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateSakaiGroupServlet.class);
   
-  public static final String ADMIN_PRINCIPALS_PROPERTY = "sakai:delegatedGroupAdmin";
 
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
@@ -323,7 +318,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
         // only
         // does so for finding authorizables, so its ok that we are using an admin session
         // here.
-        updateGroupMembership(request, group, changes);
+        updateGroupMembership(session, request, group, changes);
         updateOwnership(session, request, group, new String[] {currentUser.getID()},
             changes);
 
@@ -348,52 +343,6 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
     }
   }
 
-  /**
-   * @param session the session used to create the group
-   * @param request the request
-   * @param group the group
-   * @param principalChange a list of principals who are allowed to admin the group.
-   * @param changes changes made
-   * @throws RepositoryException 
-   */
-  protected void updateOwnership(Session session, SlingHttpServletRequest request,
-      Group group, String[] principalChange, List<Modification> changes) throws RepositoryException {
-    Set<String> adminPrincipals = new HashSet<String>();
-    if (group.hasProperty(ADMIN_PRINCIPALS_PROPERTY)) {
-      Value[] adminPrincipalsProperties = group
-          .getProperty(ADMIN_PRINCIPALS_PROPERTY);
-      for (Value adminPricipal : adminPrincipalsProperties) {
-        adminPrincipals.add(adminPricipal.toString());
-      }
-    }
-    boolean changed = false;
-    for (String principal : principalChange) {
-      if (principal.startsWith("delete@")) {
-        String principalToDelete = principal.substring("delete@".length());
-        if (adminPrincipals.contains(principalToDelete)) {
-          adminPrincipals.remove(principalToDelete);
-          changed = true;
-        }
-
-      } else {
-
-        if (!adminPrincipals.contains(principal)) {
-          adminPrincipals.add(principal);
-          changed = true;
-        }
-      }
-    }
-    if (changed) {
-      ValueFactory valueFactory = session.getValueFactory();
-      Value[] newAdminPrincipals = new Value[adminPrincipals.size()];
-      int i = 0;
-      for (String adminPrincipalName : adminPrincipals) {
-        newAdminPrincipals[i++] = valueFactory.createValue(adminPrincipalName);
-      }
-      group.setProperty(ADMIN_PRINCIPALS_PROPERTY,
-          newAdminPrincipals);
-    }
-  }
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);
