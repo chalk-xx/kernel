@@ -21,18 +21,18 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.configuration.ConfigurationListener;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.ldap.api.LdapException;
 
-import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * Simple implementation of an {@link LdapConnectionBroker}. Maintains an
@@ -42,28 +42,71 @@ import java.util.Hashtable;
  */
 @Component
 @Service
-public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
+public class PoolingLdapConnectionBroker implements LdapConnectionBroker, ConfigurationListener {
   private Hashtable<String, LdapConnectionManager> factories;
-  private Dictionary defaults;
+  private LdapConnectionManagerConfig defaults;
 
   @Reference
   protected ConfigurationService configService;
 
-  @Property(value = "[default]")
-  protected final String LDAP_HOST = "sakai.ldap.host";
+  static final String AUTO_BIND = "sakai.ldap.autobind";
+  static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
+  static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+  static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
+  static final String HOST = "sakai.ldap.host";
+  static final String PORT = "sakai.ldap.port";
+  static final String USER = "sakai.ldap.user";
+  static final String PASSWORD = "sakai.ldap.password";
+  static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
+  static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
+  static final String POOLING = "sakai.ldap.pooling";
+  static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
+  static final String TLS = "sakai.ldap.tls";
 
-  protected void activate(ComponentContext ctx) {
-    factories = new Hashtable<String, LdapConnectionManager>();
-
-    Dictionary props = ctx.getProperties();
+  /**
+   * Default constructor for normal usage.
+   */
+  public PoolingLdapConnectionBroker() {
 
   }
 
+  /**
+   * Parameterized constructor for use in testing.
+   *
+   * @param configService
+   */
+  protected PoolingLdapConnectionBroker(ConfigurationService configService) {
+    this.configService = configService;
+  }
+
+  /**
+   * Activate/initialize the instance. Normally called by OSGi.
+   *
+   * @param ctx
+   */
+  protected void activate(ComponentContext ctx) {
+    factories = new Hashtable<String, LdapConnectionManager>();
+
+    // Do we want to listen for changes from the central config service?
+    // configService.addListener(this);
+
+    // read up properties for defaults
+    Map<String, String> config = configService.getProperties();
+    update(config);
+  }
+
+  /**
+   * Deactivate/finalize the instance. Normally called by OSGi.
+   *
+   * @param ctx
+   */
   protected void deactivate(ComponentContext ctx) {
     for (LdapConnectionManager conns : factories.values()) {
       conns.destroy();
     }
     factories = null;
+
+    defaults = null;
   }
 
   /**
@@ -82,8 +125,9 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    *      org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig)
    */
   public void create(String name, LdapConnectionManagerConfig config) {
-    // TODO setup config with default options
-    // TODO check for non-null user config and override defaults
+    if (config == null) {
+      config = defaults;
+    }
 
     // create a new connection manager, set the config and initialize it.
     PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager();
@@ -127,7 +171,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     try {
       // get a connection manager from the local store. if not found, create a
       // new one and store it locally for reuse.
-      if (factories.contains(name)) {
+      if (factories.containsKey(name)) {
         LdapConnectionManager mgr = factories.get(name);
 
         // get a connection from the manager and return it
@@ -170,45 +214,59 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @see
-   *      org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#getConnection(java
-   *      .lang.String,
-   *      org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig, boolean
-   *      replace)
-   */
-  public LDAPConnection getConnection(String name, LdapConnectionManagerConfig config,
-      boolean replace) throws LdapException {
-    // TODO setup config with default options
-    // TODO check for non-null config and override defaults
+  public LdapConnectionManagerConfig getDefaultConfig() {
+    return defaults;
+  }
 
-    try {
-      // get a connection manager from the local store. if not found, create a
-      // new one and store it locally for reuse.
-      LdapConnectionManager mgr = null;
-      synchronized (factories) {
-        if (factories.contains(name) && !replace) {
-          mgr = factories.get(name);
-        } else {
-          // create a new connection manager, set the config and initialize it.
-          PoolingLdapConnectionManager _mgr = new PoolingLdapConnectionManager();
-          _mgr.setConfig(config);
-          _mgr.init();
+  public void update(Map<String, String> props) {
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    if (props != null) {
+      String autoBind = props.get(AUTO_BIND);
+      String followReferrals = props.get(FOLLOW_REFERRALS);
+      String keystoreLocation = props.get(KEYSTORE_LOCATION);
+      String keystorePassword = props.get(KEYSTORE_PASSWORD);
+      String secureConnection = props.get(SECURE_CONNECTION);
+      String host = props.get(HOST);
+      String port = props.get(PORT);
+      String user = props.get(USER);
+      String password = props.get(PASSWORD);
+      String operationTimeout = props.get(OPERATION_TIMEOUT);
+      String pooling = props.get(POOLING);
+      String maxConns = props.get(POOLING_MAX_CONNS);
+      String tls = props.get(TLS);
 
-          // put the new connection manager in the store and set it to be
-          // available outside of this block.
-          factories.put(name, _mgr);
-          mgr = _mgr;
-        }
+      if (autoBind != null) {
+        config.setAutoBind(Boolean.parseBoolean(autoBind));
       }
-
-      // get a connection from the manager and return it
-      LDAPConnection conn = mgr.getBoundConnection(config.getLdapUser(), config.getLdapPassword());
-      return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
+      if (followReferrals != null) {
+        config.setFollowReferrals(Boolean.parseBoolean(followReferrals));
+      }
+      config.setKeystoreLocation(keystoreLocation);
+      config.setKeystorePassword(keystorePassword);
+      config.setLdapHost(host);
+      config.setLdapPassword(password);
+      if (port != null) {
+        config.setLdapPort(Integer.parseInt(port));
+      }
+      config.setLdapUser(user);
+      if (operationTimeout != null) {
+        config.setOperationTimeout(Integer.parseInt(operationTimeout));
+      }
+      if (pooling != null) {
+        config.setPooling(Boolean.parseBoolean(pooling));
+      }
+      if (maxConns != null) {
+        config.setPoolMaxConns(Integer.parseInt(maxConns));
+      }
+      if (secureConnection != null) {
+        config.setSecureConnection(Boolean.parseBoolean(secureConnection));
+      }
+      if (tls != null) {
+        config.setTLS(Boolean.parseBoolean(tls));
+      }
     }
+
+    // set the default configuration
+    defaults = config;
   }
 }

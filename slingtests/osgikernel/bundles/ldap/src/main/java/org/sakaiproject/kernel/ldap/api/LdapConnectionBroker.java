@@ -92,4 +92,12 @@ public interface LdapConnectionBroker {
    */
   LDAPConnection getBoundConnection(String name, String loginDn, String password)
       throws LdapException;
+
+  /**
+   * Gets the default configuration settings for LDAP connections.
+   * 
+   * @return The default configuration settings as set in the central property
+   *         manager.
+   */
+  LdapConnectionManagerConfig getDefaultConfig();
 }

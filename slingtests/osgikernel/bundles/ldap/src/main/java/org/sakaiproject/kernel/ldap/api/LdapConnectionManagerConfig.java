@@ -17,13 +17,14 @@
  */
 package org.sakaiproject.kernel.ldap.api;
 
+import com.novell.ldap.LDAPConnection;
 
 /**
- * Bean interface for collecting {@link LdapConnectionManager} configuration.
+ * Bean for collecting {@link LdapConnectionManager} configuration.
  */
 public class LdapConnectionManagerConfig {
   /** Whether to create secure connections. */
-  private boolean secureConnection = true;
+  private boolean secureConnection = false;
 
   /** Where to connect using TLS. */
   private boolean tls;
@@ -41,7 +42,7 @@ public class LdapConnectionManagerConfig {
   private String ldapHost;
 
   /** The port on which to connect. */
-  private int ldapPort;
+  private int ldapPort = LDAPConnection.DEFAULT_PORT;
 
   /** The user/account to use for connections. */
   private String loginUser;
@@ -96,6 +97,10 @@ public class LdapConnectionManagerConfig {
    */
   public void setSecureConnection(boolean secureConnection) {
     this.secureConnection = secureConnection;
+
+    if (secureConnection && ldapPort <= 0) {
+      ldapPort = LDAPConnection.DEFAULT_SSL_PORT;
+    }
   }
 
   public boolean isTLS() {
