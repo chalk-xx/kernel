@@ -228,15 +228,19 @@ module SlingInterface
     end
 
     def save_node(path)
-      return execute_post(url_for("#{path}.save.json"), {})
+      res = execute_post(url_for("#{path}.save.json"), {})
+      if (res.code == "200")
+        return JSON.parse(res.body)["versionName"]
+      end
+      return nil
     end
 
     def versions(path)
       return get_node_props("#{path}.versions.json")["versions"].keys
     end
 
-    def version(path, version)
-      return get_node_props("#{path}.version.#{version}")
+    def version(path, version, extension)
+      return execute_get(url_for("#{path}.version.,#{version},.#{extension}"))
     end
 
   end
