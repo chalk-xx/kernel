@@ -4,6 +4,7 @@ require 'cgi'
 require 'rubygems'
 require 'json'
 require 'curb'
+require 'yaml'
 require 'sling/users'
 require 'sling/sites'
 

@@ -41,7 +41,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
  *               values.2="DELETE" values.3="GET"
  * @scr.property name="sling.servlet.selectors" values.0="invite" values.1="accept"
- *               values.2="reject" values.3="ignore" values.4="block" values.5="remove"
+ *               values.2="reject" values.3="ignore" values.4="block" values.5="remove" 
+ *               values.6="cancel"
  * @scr.reference name="ConnectionManager"
  *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
