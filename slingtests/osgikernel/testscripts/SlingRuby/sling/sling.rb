@@ -96,7 +96,7 @@ module SlingInterface
       return res
     end
 
-    def execute_post(path, post_params)
+    def execute_post(path, post_params={})
       puts "URL: #{path} params: #{post_params.dump}" if @debug
       write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
@@ -225,6 +225,18 @@ module SlingInterface
     def clear_acl(path)
       acl = JSON.parse(get_node_acl_json(path))
       acl.keys.each { |p| delete_node_acl_entries(path, p) }
+    end
+
+    def save_node(path)
+      return execute_post(url_for("#{path}.save.json"), {})
+    end
+
+    def versions(path)
+      return get_node_props("#{path}.versions.json")["versions"].keys
+    end
+
+    def version(path, version)
+      return get_node_props("#{path}.version.#{version}")
     end
 
   end

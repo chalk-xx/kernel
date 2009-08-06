@@ -23,8 +23,10 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
+import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 
 import java.io.IOException;
@@ -119,6 +121,9 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
       public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
         if (type.equals(Node.class)) {
           return (AdapterType) finalNode;
+        }
+        if (type.equals(ValueMap.class)) {
+          return (AdapterType) new JcrPropertyMap(finalNode);
         }
         return super.adaptTo(type);
       }
