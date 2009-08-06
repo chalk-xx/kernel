@@ -22,6 +22,7 @@ import org.apache.jackrabbit.core.config.BeanConfig;
 import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
+import org.apache.jackrabbit.core.security.user.UserAccessControlProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +76,6 @@ public class DynamicAccessControlProviderFactoryImpl implements
    */
   public AccessControlProvider createProvider(Session systemSession,
       WorkspaceSecurityConfig config) throws RepositoryException {
-    log.info("============================Getting Access Control provider ");
-
     String workspaceName = systemSession.getWorkspace().getName();
     AccessControlProvider prov;
     Map props;
@@ -92,7 +91,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
         // UserAccessControlProvider is designed to work with an extra
         // workspace storing user and groups. therefore avoid returning
         // this ac provider for the default workspace.
-        prov = new DelegatedUserAccessControlProvider();
+        prov = new UserAccessControlProvider();
       } else {
         prov = new DynamicACLProvider();
       }
