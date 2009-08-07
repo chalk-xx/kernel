@@ -16,8 +16,15 @@
  */
 package org.sakaiproject.kernel.ldap;
 
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 
 import java.net.InetAddress;
@@ -33,35 +40,35 @@ import java.net.UnknownHostException;
  * @author dmccallum
  *
  */
-public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest extends MockObjectTestCase {
+public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest {
 
 	private static final String UNIQUE_SEARCH_FILTER_TERM = "TESTING";
 	private SearchExecutingLdapConnectionLivenessValidator validator;
-	private Mock mockServerConfigService;
   private ConfigurationService configService;
 
-	@Override
-  protected void setUp() {
-		validator = new SearchExecutingLdapConnectionLivenessValidator() {
-			// we need this to be a predictable value
-			@Override
+  @Before
+  public void setUp() {
+    validator = new SearchExecutingLdapConnectionLivenessValidator() {
+      // we need this to be a predictable value
+      @Override
       protected String generateUniqueToken() {
-				return UNIQUE_SEARCH_FILTER_TERM;
-			}
-		};
-    mockServerConfigService = new Mock(ConfigurationService.class);
-    configService = (ConfigurationService) mockServerConfigService.proxy();
+        return UNIQUE_SEARCH_FILTER_TERM;
+      }
+    };
+    configService = createMock(ConfigurationService.class);
     validator.setConfigService(configService);
 	}
 
-	public void testInitHonorsExplicitlyInjectedHostName() {
+  @Test
+  public void testInitHonorsExplicitlyInjectedHostName() {
 		final String EXPECTED_HOST_NAME = "EXPECTED_HOST_NAME";
 		validator.setHostName(EXPECTED_HOST_NAME);
 		validator.init();
 		assertEquals(EXPECTED_HOST_NAME, validator.getHostName());
 	}
 
-	public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjected()
+  @Test
+  public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjected()
 	throws UnknownHostException {
 		final String EXPECTED_HOST_NAME = InetAddress.getLocalHost().toString();
     validator.setConfigService(configService);
@@ -69,7 +76,8 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest ex
 		assertEquals(EXPECTED_HOST_NAME, validator.getHostName());
 	}
 
-	public void testInitDefaultsHostNameToSakaiServerNameIfNoHostNameExplicitlyInjectedAndLocalHostLookupFails() {
+  @Test
+  public void testInitDefaultsHostNameToSakaiServerNameIfNoHostNameExplicitlyInjectedAndLocalHostLookupFails() {
 		validator = new SearchExecutingLdapConnectionLivenessValidator() {
 			// we need this to be a predictable value
 			@Override
@@ -83,14 +91,15 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest ex
 			}
 		};
 		final String EXPECTED_HOST_NAME = "EXPECTED_HOST_NAME";
-    mockServerConfigService.expects(once()).method("getProperty").will(
-        returnValue(EXPECTED_HOST_NAME));
+    expect(configService.getProperty((String) anyObject())).andReturn(EXPECTED_HOST_NAME);
+    replay(configService);
     validator.setConfigService(configService);
 		validator.init();
 		assertEquals(EXPECTED_HOST_NAME, validator.getHostName());
 	}
 
-	public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjectedAndNoSakaiServerNameInjected()
+  @Test
+  public void testInitDefaultsHostNameToInetAddressLocalhostIfNoHostNameExplicitlyInjectedAndNoSakaiServerNameInjected()
 	throws UnknownHostException {
     validator.setConfigService(null);
 		assertNull(validator.getServerConfigService()); // sanity check
@@ -99,7 +108,8 @@ public class SearchExecutingLdapConnectionLivenessValidatorInitializationTest ex
 				validator.getHostName());
 	}
 
-	public void testDefaultsHostNameToConstantDefaultIfNeitherInitNorSetHostNameCalled() {
+  @Test
+  public void testDefaultsHostNameToConstantDefaultIfNeitherInitNorSetHostNameCalled() {
 		assertEquals(SearchExecutingLdapConnectionLivenessValidator.DEFAULT_HOST_NAME,
 				validator.getHostName());
 	}

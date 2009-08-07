@@ -21,31 +21,39 @@
 
 package org.sakaiproject.kernel.ldap;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.replay;
+
 import com.novell.ldap.LDAPConnection;
 
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import org.easymock.classextension.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
 
-public class NativeLdapConnectionLivenessValidatorTest extends MockObjectTestCase {
+public class NativeLdapConnectionLivenessValidatorTest {
 
 	private NativeLdapConnectionLivenessValidator validator;
-	private Mock mockConn;
 	private LDAPConnection conn;
 
-	@Override
-  protected void setUp() {
+  @Before
+  public void setUp() {
 		validator = new NativeLdapConnectionLivenessValidator();
-		mockConn = mock(PooledLDAPConnection.class, "mockConn");
-        conn = (PooledLDAPConnection)mockConn.proxy();
+    conn = EasyMock.createMock(PooledLDAPConnection.class);
 	}
 
+  @Test
 	public void testDelegatesLivenessTestToConnectionsOwnLivenessTest() {
-		mockConn.expects(once()).method("isConnectionAlive").will(returnValue(true));
-		assertTrue(validator.isConnectionAlive(conn));
+    expect(conn.isConnectionAlive()).andReturn(true);
+    replay(conn);
+    assertTrue(validator.isConnectionAlive(conn));
 	}
 
+  @Test
 	public void testDelegatesLivenessTestToConnectionsOwnLivenessTest_Negative() {
-		mockConn.expects(once()).method("isConnectionAlive").will(returnValue(false));
+    expect(conn.isConnectionAlive()).andReturn(false);
+    replay(conn);
 		assertFalse(validator.isConnectionAlive(conn));
 	}
 

@@ -16,11 +16,15 @@
  */
 package org.sakaiproject.kernel.ldap;
 
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
+
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import org.junit.Before;
+import org.junit.Test;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
 
 /**
@@ -29,50 +33,48 @@ import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
  * @author Dan McCallum (dmccallum@unicon.net)
  *
  */
-public class PooledLDAPConnectionTest extends MockObjectTestCase {
+public class PooledLDAPConnectionTest {
 
-    private PooledLDAPConnection conn;
-    private LdapConnectionManager connMgr;
-    private Mock mockConnMgr;
+  private PooledLDAPConnection conn;
+  private LdapConnectionManager connMgr;
 
-    @Override
-    protected void setUp() throws Exception {
-        conn = new PooledLDAPConnection();
-        mockConnMgr = new Mock(LdapConnectionManager.class);
-        connMgr = (LdapConnectionManager)mockConnMgr.proxy();
-        conn.setConnectionManager(connMgr);
-        super.setUp();
-    }
+  @Before
+  public void setUp() throws Exception {
+    conn = new PooledLDAPConnection();
+    connMgr = createMock(LdapConnectionManager.class);
+    conn.setConnectionManager(connMgr);
+  }
 
-    /**
-     * Verifies that active {@link PooledLDAPConnection}s are returned to the
-     * assigned {@link LdapConnectionManager}.
-     *
-     * @see #testFinalizeAbandonsInactiveConnections() for handling of
-     *   inactive connections
-     * @throws LDAPException test error
-     */
-    public void testFinalizeReturnsActiveConnectionToTheConnectionManager() throws LDAPException {
-        conn.setActive(true);
-        mockConnMgr.expects(once()).method("returnConnection").with(same(conn));
-        conn.finalize();
-    }
+  /**
+   * Verifies that active {@link PooledLDAPConnection}s are returned to the
+   * assigned {@link LdapConnectionManager}.
+   *
+   * @see #testFinalizeAbandonsInactiveConnections() for handling of inactive
+   *      connections
+   * @throws LDAPException
+   *           test error
+   */
+  @Test
+  public void testFinalizeReturnsActiveConnectionToTheConnectionManager() throws LDAPException {
+    conn.setActive(true);
+    connMgr.returnConnection(conn);
+    expectLastCall();
+    replay(connMgr);
+    conn.finalize();
+  }
 
-    /**
-     * Verifies the inverse of {@link #testFinalizeReturnsActiveConnectionToTheConnectionManager()}
-     *
-     * @throws LDAPException test error
-     */
-    public void testFinalizeDoesNotReturnInactiveConnectionToTheConnectionManager() throws LDAPException {
-        conn.setActive(false); // just to be sure
-        conn.finalize();
-        // rely on jMock to refuse any calls to the connection mgr
-    }
-
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
+  /**
+   * Verifies the inverse of
+   * {@link #testFinalizeReturnsActiveConnectionToTheConnectionManager()}
+   *
+   * @throws LDAPException
+   *           test error
+   */
+  @Test
+  public void testFinalizeDoesNotReturnInactiveConnectionToTheConnectionManager()
+      throws LDAPException {
+    conn.setActive(false); // just to be sure
+    conn.finalize();
+    // rely on jMock to refuse any calls to the connection mgr
+  }
 }

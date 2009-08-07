@@ -16,49 +16,46 @@
  */
 package org.sakaiproject.kernel.ldap;
 
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConsensusLdapConnectionLivenessValidatorTest extends MockObjectTestCase {
+public class ConsensusLdapConnectionLivenessValidatorTest {
 
 	private ConsensusLdapConnectionLivenessValidator validator;
-	private Mock mockDelegateValidator1;
-	private Mock mockDelegateValidator2;
-	private Mock mockDelegateValidator3;
 	private LdapConnectionLivenessValidator delegateValidator1;
 	private LdapConnectionLivenessValidator delegateValidator2;
 	private LdapConnectionLivenessValidator delegateValidator3;
 
-	@Override
-  protected void setUp() {
+  @Before
+  public void setUp() {
 		validator = new ConsensusLdapConnectionLivenessValidator();
-		mockDelegateValidator1 = new Mock(LdapConnectionLivenessValidator.class, "mockDelegateValidator1");
-		mockDelegateValidator2 = new Mock(LdapConnectionLivenessValidator.class, "mockDelegateValidator2");
-		mockDelegateValidator3 = new Mock(LdapConnectionLivenessValidator.class, "mockDelegateValidator3");
-		delegateValidator1 = (LdapConnectionLivenessValidator) mockDelegateValidator1.proxy();
-		delegateValidator2 = (LdapConnectionLivenessValidator) mockDelegateValidator2.proxy();
-		delegateValidator3 = (LdapConnectionLivenessValidator) mockDelegateValidator3.proxy();
+    delegateValidator1 = createMock(LdapConnectionLivenessValidator.class);
+    delegateValidator2 = createMock(LdapConnectionLivenessValidator.class);
+    delegateValidator3 = createMock(LdapConnectionLivenessValidator.class);
 	}
 
+  @Test
 	public void testValidatesConnectionIfNoDelegatesRegistered() {
 		PooledLDAPConnection conn = new PooledLDAPConnection();
-		assertTrue(validator.isConnectionAlive(conn));
+    assertTrue(validator.isConnectionAlive(conn));
 	}
 
 	public void testValidatesConnectionIfAllDelegatesValidateConnection() {
 		PooledLDAPConnection conn = new PooledLDAPConnection();
-		mockDelegateValidator1.expects(once()).method("isConnectionAlive").
-		    with(same(conn)).will(returnValue(true));
-		mockDelegateValidator2.expects(once()).method("isConnectionAlive").
-		    with(same(conn)).after(mockDelegateValidator1, "isConnectionAlive").
-		    will(returnValue(true));
-		mockDelegateValidator3.expects(once()).method("isConnectionAlive").
-		    with(same(conn)).after(mockDelegateValidator2, "isConnectionAlive").
-	        will(returnValue(true));
+    expect(delegateValidator1.isConnectionAlive(conn)).andReturn(true);
+    expect(delegateValidator2.isConnectionAlive(conn)).andReturn(true);
+    expect(delegateValidator3.isConnectionAlive(conn)).andReturn(true);
+    replay(delegateValidator1, delegateValidator2, delegateValidator3);
 		List<LdapConnectionLivenessValidator> delegates =
 			new ArrayList<LdapConnectionLivenessValidator>(3);
 		delegates.add(delegateValidator1);
@@ -68,13 +65,12 @@ public class ConsensusLdapConnectionLivenessValidatorTest extends MockObjectTest
 		assertTrue(validator.isConnectionAlive(conn));
 	}
 
+  @Test
 	public void testInvalidatesConnectionIfOneDelegateInvalidatesConnection() {
 		PooledLDAPConnection conn = new PooledLDAPConnection();
-		mockDelegateValidator1.expects(once()).method("isConnectionAlive").
-		    with(same(conn)).will(returnValue(true));
-		mockDelegateValidator2.expects(once()).method("isConnectionAlive").
-		    with(same(conn)).after(mockDelegateValidator1, "isConnectionAlive").
-		    will(returnValue(false));
+    expect(delegateValidator1.isConnectionAlive(conn)).andReturn(true);
+    expect(delegateValidator2.isConnectionAlive(conn)).andReturn(false);
+    replay(delegateValidator1, delegateValidator2, delegateValidator3);
 		List<LdapConnectionLivenessValidator> delegates =
 			new ArrayList<LdapConnectionLivenessValidator>(3);
 		delegates.add(delegateValidator1);
@@ -84,6 +80,7 @@ public class ConsensusLdapConnectionLivenessValidatorTest extends MockObjectTest
 		assertFalse(validator.isConnectionAlive(conn));
 	}
 
+  @Test
 	public void testTreatsNullDelegateListInjectionAsEmptyList() {
 		validator.setDelegates(null);
 		testValidatesConnectionIfNoDelegatesRegistered();

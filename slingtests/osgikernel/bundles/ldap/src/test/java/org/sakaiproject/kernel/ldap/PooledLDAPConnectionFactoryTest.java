@@ -16,15 +16,23 @@
  */
 package org.sakaiproject.kernel.ldap;
 
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.anyInt;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPSearchResults;
-import com.novell.ldap.LDAPTLSSocketFactory;
 
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
@@ -40,7 +48,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Dan McCallum (dmccallum@unicon.net)
  */
-public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
+public class PooledLDAPConnectionFactoryTest {
 
   private PooledLDAPConnectionFactory factory;
   private PooledLDAPConnection conn;
@@ -49,18 +57,11 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
   private LdapConnectionLivenessValidator livenessValidator;
   private LdapConnectionManager connMgr;
   private LdapConnectionManagerConfig connMgrConfig;
-  private Mock mockConn;
-  private Mock mockLDAPSearchResults;
-  private Mock mockLDAPEntry;
-  private Mock mockLivenessValidator;
-  private Mock mockConnMgr;
-  private Mock mockConnMgrConfig;
 
-  @Override
-  protected void setUp() throws Exception {
+  @Before
+  public void setUp() throws Exception {
 
-    mockConn = mock(PooledLDAPConnection.class, "mockConn");
-    conn = (PooledLDAPConnection) mockConn.proxy();
+    conn = createMock(PooledLDAPConnection.class);
 
     factory = new PooledLDAPConnectionFactory() {
       @Override
@@ -69,20 +70,14 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
       }
     };
 
-    mockLDAPSearchResults = mock(LDAPSearchResults.class, "mockLDAPSearchResults");
-    ldapSearchResults = (LDAPSearchResults) mockLDAPSearchResults.proxy();
-    mockLDAPEntry = mock(LDAPEntry.class, "mockLDAPEntry");
-    ldapEntry = (LDAPEntry) mockLDAPEntry.proxy();
-    mockLivenessValidator = new Mock(LdapConnectionLivenessValidator.class);
-    livenessValidator = (LdapConnectionLivenessValidator) mockLivenessValidator.proxy();
+    ldapSearchResults = createMock(LDAPSearchResults.class);
+    ldapEntry = createMock(LDAPEntry.class);
+    livenessValidator = createMock(LdapConnectionLivenessValidator.class);
     factory.setConnectionLivenessValidator(livenessValidator);
-    mockConnMgr = new Mock(LdapConnectionManager.class);
-    connMgr = (LdapConnectionManager) mockConnMgr.proxy();
-    mockConnMgrConfig = new Mock(LdapConnectionManagerConfig.class);
-    connMgrConfig = (LdapConnectionManagerConfig) mockConnMgrConfig.proxy();
+    connMgr = createMock(LdapConnectionManager.class);
+    connMgrConfig = createMock(LdapConnectionManagerConfig.class);
     // don't call setConnectionManager() b/c we don't know what expectations to
     // set
-    super.setUp();
   }
 
   @Test
@@ -94,6 +89,7 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * Verifies that {@link PooledLDAPConnectionFactory} defaults its
    * {@link LdapConnectionLivenessValidator} instance at construction time,
    */
+  @Test
   public void testDefaultsToNativeLdapConnectionLivenessValidator() {
     Object livenessValidator = new PooledLDAPConnectionFactory().getConnectionLivenessValidator();
     assertTrue("Expected a NativeLdapConnectionLivenessValidator but was [" + livenessValidator
@@ -104,6 +100,7 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * Verifies that {@link PooledLDAPConnectionFactory} is never without a
    * {@link LdapConnectionLivenessValidator}.
    */
+  @Test
   public void testDefaultsToNativeLdapConnectionLivenessValidatorIfThatPropertySetToNull() {
     factory.setConnectionLivenessValidator(null);
     Object livenessValidator = factory.getConnectionLivenessValidator();
@@ -111,26 +108,32 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
         + "]", livenessValidator instanceof NativeLdapConnectionLivenessValidator);
   }
 
+  @Test
   public void testMakeObjectConnectsAndOtherwiseInitializesConnections() throws LDAPException,
       UnsupportedEncodingException {
 
     setConnectionManagerConfigExpectations();
+    replay(connMgr, connMgrConfig);
+
     factory.setConnectionManager(connMgr);
-    mockConn.expects(once()).method("setConnectionManager").with(same(connMgr));
-    mockConn.expects(once()).method("setConstraints").with(NOT_NULL); // TODO
-    // make
-    // more
-    // specific
-    mockConn.expects(once()).method("connect").with(eq(connMgrConfig.getLdapHost()),
-        eq(connMgrConfig.getLdapPort())).after("setConstraints");
-    mockConn.expects(once()).method("startTLS").after("connect");
-    mockConn.expects(once()).method("bind").with(eq(LDAPConnection.LDAP_V3),
-        eq(connMgrConfig.getLdapUser()), eq(connMgrConfig.getLdapPassword().getBytes("UTF-8")))
-        .after("connect");
-    mockConn.expects(once()).method("setBindAttempted").with(eq(false)).after("bind");
+    conn.setConnectionManager(connMgr);
+
+    conn.setConstraints((LDAPConstraints) anyObject());
+    expectLastCall().once();
+    // make more specific
+    conn.connect(connMgrConfig.getLdapHost(), connMgrConfig.getLdapPort());
+    expectLastCall().once();
+    conn.startTLS();
+    expectLastCall().once();
+    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
+    expectLastCall().once();
+    conn.setBindAttempted(false);
+    expectLastCall().once();
+
+    replay(conn);
 
     // the actual code exercise
-    assertSame(conn, factory.makeObject());
+    assertEquals(conn, factory.makeObject());
 
     // TODO how to test socket factory assignment (static call)
   }
@@ -141,23 +144,19 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
     final int LDAP_PORT = 389;
     final String LDAP_USER = "ldap-user";
     final String LDAP_PASS = "ldap-pass";
-    final LDAPTLSSocketFactory LDAP_SOCKET_FACTORY = new LDAPJSSEStartTLSFactory();
     final int LDAP_TIMEOUT = 5000;
     final boolean LDAP_FOLLOW_REFERRALS = true;
 
-    mockConnMgr.expects(atLeastOnce()).method("getConfig").will(returnValue(connMgrConfig));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getLdapHost").will(returnValue(LDAP_HOST));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getLdapPort").will(returnValue(LDAP_PORT));
-    mockConnMgrConfig.expects(atLeastOnce()).method("isAutoBind").will(returnValue(true));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getLdapUser").will(returnValue(LDAP_USER));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getLdapPassword").will(returnValue(LDAP_PASS));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getSecureSocketFactory").will(
-        returnValue(LDAP_SOCKET_FACTORY));
-    mockConnMgrConfig.expects(atLeastOnce()).method("isSecureConnection").will(returnValue(true));
-    mockConnMgrConfig.expects(atLeastOnce()).method("getOperationTimeout").will(
-        returnValue(LDAP_TIMEOUT));
-    mockConnMgrConfig.expects(atLeastOnce()).method("isFollowReferrals").will(
-        returnValue(LDAP_FOLLOW_REFERRALS));
+    expect(connMgr.getConfig()).andReturn(connMgrConfig).anyTimes();
+    expect(connMgrConfig.getLdapHost()).andReturn(LDAP_HOST).anyTimes();
+    expect(connMgrConfig.getLdapPort()).andReturn(LDAP_PORT).anyTimes();
+    expect(connMgrConfig.isAutoBind()).andReturn(true).anyTimes();
+    expect(connMgrConfig.getLdapUser()).andReturn(LDAP_USER).anyTimes();
+    expect(connMgrConfig.getLdapPassword()).andReturn(LDAP_PASS).anyTimes();
+    expect(connMgrConfig.isSecureConnection()).andReturn(true).anyTimes();
+    expect(connMgrConfig.getOperationTimeout()).andReturn(LDAP_TIMEOUT).anyTimes();
+    expect(connMgrConfig.isFollowReferrals()).andReturn(LDAP_FOLLOW_REFERRALS).anyTimes();
+    expect(connMgrConfig.isTLS()).andReturn(false).anyTimes();
   }
 
   /**
@@ -168,11 +167,15 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * @throws LDAPException
    *           test error
    */
+  @Test
   public void testActivateObject() throws LDAPException {
 
     // TODO validate constraint assignment
-    mockConn.expects(once()).method("setConstraints").with(ANYTHING);
-    mockConn.expects(once()).method("setActive").with(eq(true));
+    conn.setConstraints((LDAPConstraints) anyObject());
+    expectLastCall().once();
+    conn.setActive(true);
+    expectLastCall().once();
+    replay(conn);
     factory.activateObject(conn);
 
   }
@@ -181,11 +184,14 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * If the client has bound the connection but the factory is not running in
    * auto-bind mode, the connection must be invalidated.
    */
+  @Test
   public void testValidateObjectLowersActiveFlagIfConnectionHasBeenBoundButAutoBindIsNotSet() {
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(true));
+    expect(conn.isBindAttempted()).andReturn(true);
     // we assume autoBind defaults to false (we'd rather not go through the
     // whole process of mocking up the connection manager again)
-    mockConn.expects(once()).method("setActive").with(eq(false));
+    conn.setActive(false);
+    expectLastCall().once();
+    replay(conn);
     assertFalse(factory.validateObject(conn));
   }
 
@@ -195,19 +201,22 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * only relevant if the client has bound the connection as another user and
    * the autoBind behavior has been enabled.
    */
+  @Test
   public void testValidateObjectRebindsAsAutoBindUserIfNecessaryPriorToTestingConnectionLiveness()
-      throws UnsupportedEncodingException {
+      throws Exception {
 
     setConnectionManagerConfigExpectations();
+    replay(connMgr, connMgrConfig);
     factory.setConnectionManager(connMgr);
 
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(true));
-    mockConn.expects(once()).method("bind").with(eq(LDAPConnection.LDAP_V3),
-        eq(connMgrConfig.getLdapUser()), eq(connMgrConfig.getLdapPassword().getBytes("UTF-8")))
-        .after("isBindAttempted");
-    mockConn.expects(once()).method("setBindAttempted").with(eq(false)).after("bind");
+    expect(conn.isBindAttempted()).andReturn(true);
+    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
+    expectLastCall().once();
+    conn.setBindAttempted(false);
+    expectLastCall().once();
 
-    mockLivenessValidator.expects(once()).method("isConnectionAlive").will(returnValue(true));
+    expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(true);
+    replay(conn, livenessValidator);
     factory.setConnectionLivenessValidator(livenessValidator);
     assertTrue(factory.validateObject(conn));
 
@@ -223,17 +232,20 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * oneself caught in an endless loop of validating stale connections.
    *
    */
-  public void testValidateObjectLowersActiveFlagIfRebindFails() throws UnsupportedEncodingException {
+  @Test
+  public void testValidateObjectLowersActiveFlagIfRebindFails() throws Exception {
 
     setConnectionManagerConfigExpectations();
+    replay(connMgr, connMgrConfig);
     factory.setConnectionManager(connMgr);
     LDAPException bindFailure = new LDAPException();
 
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(true));
-    mockConn.expects(once()).method("bind").with(eq(LDAPConnection.LDAP_V3),
-        eq(connMgrConfig.getLdapUser()), eq(connMgrConfig.getLdapPassword().getBytes("UTF-8")))
-        .after("isBindAttempted").will(throwException(bindFailure));
-    mockConn.expects(once()).method("setActive").with(eq(false)).after("bind");
+    expect(conn.isBindAttempted()).andReturn(true);
+    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
+    expectLastCall().andThrow(bindFailure);
+    conn.setActive(false);
+    expectLastCall().once();
+    replay(conn);
 
     assertFalse(factory.validateObject(conn));
 
@@ -250,12 +262,14 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    *
    * @throws LDAPException
    */
+  @Test
   public void testValidateObjectKeepsActiveFlagUpIfConnectionIsAlive() throws LDAPException {
 
     // will fail if the factory attempts to monkey with the active flag
     factory.setConnectionLivenessValidator(livenessValidator);
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(false));
-    mockLivenessValidator.expects(once()).method("isConnectionAlive").will(returnValue(true));
+    expect(conn.isBindAttempted()).andReturn(false);
+    expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(true);
+    replay(conn, livenessValidator);
 
     assertTrue(factory.validateObject(conn));
 
@@ -270,29 +284,34 @@ public class PooledLDAPConnectionFactoryTest extends MockObjectTestCase {
    * @throws LDAPException
    *           test failure
    */
+  @Test
   public void testValidateObjectLowersActiveFlagIfConnectionIsNotAlive() throws LDAPException {
 
     factory.setConnectionLivenessValidator(livenessValidator);
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(false));
-    mockLivenessValidator.expects(once()).method("isConnectionAlive").will(returnValue(false));
-    mockConn.expects(once()).method("setActive").with(eq(false)).after(mockLivenessValidator,
-        "isConnectionAlive");
+    expect(conn.isBindAttempted()).andReturn(false);
+    expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(false);
+    conn.setActive(false);
+    expectLastCall().once();
+    replay(conn, livenessValidator);
     assertFalse(factory.validateObject(conn));
 
   }
 
+  @Test
   public void testValidateObjectLowersActiveFlagIfLivenessValidationThrowsException() {
 
     factory.setConnectionLivenessValidator(livenessValidator);
-    mockConn.expects(once()).method("isBindAttempted").will(returnValue(false));
-    mockLivenessValidator.expects(once()).method("isConnectionAlive").will(
-        throwException(new RuntimeException("catch me")));
-    mockConn.expects(once()).method("setActive").with(eq(false)).after(mockLivenessValidator,
-        "isConnectionAlive");
+    expect(conn.isBindAttempted()).andReturn(false);
+    expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andThrow(
+        new RuntimeException("catch me"));
+    conn.setActive(false);
+    expectLastCall().once();
+    replay(conn, livenessValidator);
     assertFalse(factory.validateObject(conn));
 
   }
 
+  @Test
   public void testInvalidatesNullObjects() {
 
     assertFalse(factory.validateObject(null));

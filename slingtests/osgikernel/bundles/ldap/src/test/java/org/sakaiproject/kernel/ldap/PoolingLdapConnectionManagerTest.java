@@ -16,33 +16,37 @@
  */
 package org.sakaiproject.kernel.ldap;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
+
 import org.apache.commons.pool.ObjectPool;
-import org.jmock.Mock;
-import org.jmock.MockObjectTestCase;
+import org.junit.Before;
+import org.junit.Test;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 
-public class PoolingLdapConnectionManagerTest extends MockObjectTestCase {
+public class PoolingLdapConnectionManagerTest {
 
-	private Mock mockPool;
-	private ObjectPool pool;
-	private Mock mockConfig;
-	private LdapConnectionManagerConfig config;
-	private PoolingLdapConnectionManager poolingConnMgr;
+  private ObjectPool pool;
+  private LdapConnectionManagerConfig config;
+  private PoolingLdapConnectionManager poolingConnMgr;
 
-	@Override
-  protected void setUp() {
-		mockPool = new Mock(ObjectPool.class);
-		pool = (ObjectPool) mockPool.proxy();
-		mockConfig = new Mock(LdapConnectionManagerConfig.class);
-		config = (LdapConnectionManagerConfig) mockConfig.proxy();
-		poolingConnMgr = new PoolingLdapConnectionManager();
-		poolingConnMgr.setConfig(config);
-		poolingConnMgr.setPool(pool);
-		mockConfig.expects(once()).method("isSecureConnection").will(returnValue(false)); // some white box awkwardness
-		poolingConnMgr.init();
-	}
+  @Before
+  public void setUp() {
+    pool = createMock(ObjectPool.class);
+    config = createMock(LdapConnectionManagerConfig.class);
+    poolingConnMgr = new PoolingLdapConnectionManager();
+    poolingConnMgr.setConfig(config);
+    poolingConnMgr.setPool(pool);
+    // some white box awkwardness
+    expect(config.isSecureConnection()).andReturn(false);
+    replay(pool, config);
+    poolingConnMgr.init();
+  }
 
-	public void testDoesNotReturnNullReferencesToPool() {
-		poolingConnMgr.returnConnection(null); // mockPool will throw a fit if any method called
-	}
+  @Test
+  public void testDoesNotReturnNullReferencesToPool() {
+    // mockPool will throw a fit if any method called
+    poolingConnMgr.returnConnection(null);
+  }
 }
