@@ -28,13 +28,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/activityStore"
+ * @scr.property name="sling.servlet.resourceTypes" value="sakai/activityFeed"
  * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
  *               values.2="PUT" values.3="DELETE"
  */
-public class ActivityStoreServlet extends AbstractVirtualPathServlet {
-  private static final long serialVersionUID = -8014319281629970139L;
-  private static final Logger LOG = LoggerFactory.getLogger(ActivityStoreServlet.class);
+public class ActivityFeedServlet extends AbstractVirtualPathServlet {
+  private static final long serialVersionUID = -330576547323301568L;
+  private static final Logger LOG = LoggerFactory.getLogger(ActivityFeedServlet.class);
 
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
@@ -50,5 +50,4 @@ public class ActivityStoreServlet extends AbstractVirtualPathServlet {
     String[] pathParts = PathUtils.getNodePathParts(virtualPath);
     return PathUtils.toInternalHashedPath(realPath, pathParts[0], pathParts[1]);
   }
-
 }

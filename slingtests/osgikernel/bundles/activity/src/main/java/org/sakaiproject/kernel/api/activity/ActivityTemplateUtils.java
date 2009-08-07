@@ -17,26 +17,27 @@
  */
 package org.sakaiproject.kernel.api.activity;
 
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Set;
-
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
+//import org.apache.sling.api.SlingHttpServletRequest;
+//import org.apache.sling.api.resource.Resource;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//
+//import java.util.Iterator;
+//import java.util.Locale;
+//import java.util.Set;
+//
+//import javax.jcr.Node;
+//import javax.jcr.PathNotFoundException;
+//import javax.jcr.Property;
+//import javax.jcr.RepositoryException;
+//import javax.jcr.Session;
 
 /**
  *
  */
 public class ActivityTemplateUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(ActivityTemplateUtils.class);
+  // private static final Logger LOG =
+  // LoggerFactory.getLogger(ActivityTemplateUtils.class);
 
   /**
    * Since no language is specified, the current language will attempt to be determined.
