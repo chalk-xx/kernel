@@ -78,7 +78,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
       WorkspaceSecurityConfig config) throws RepositoryException {
     String workspaceName = systemSession.getWorkspace().getName();
     AccessControlProvider prov;
-    Map props;
+    Map<?,?> props;
     if (config != null && config.getAccessControlProviderConfig() != null) {
       BeanConfig bc = config.getAccessControlProviderConfig();
       prov = (AccessControlProvider) bc.newInstance();

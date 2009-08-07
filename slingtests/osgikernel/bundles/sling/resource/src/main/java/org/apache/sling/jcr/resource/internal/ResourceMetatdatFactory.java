@@ -18,15 +18,12 @@
 package org.apache.sling.jcr.resource.internal;
 
 import org.apache.sling.api.resource.ResourceMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates ResourceMetadata objects parsing and setting the properties as appropriate
  */
 public class ResourceMetatdatFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceMetatdatFactory.class);
 
   /**
    * This factory method creates Resource Metadata making the assumption that the selector

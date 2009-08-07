@@ -11,7 +11,6 @@ import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 public class OwnerPrincipalManagerTest extends AbstractEasyMockTest {
 
