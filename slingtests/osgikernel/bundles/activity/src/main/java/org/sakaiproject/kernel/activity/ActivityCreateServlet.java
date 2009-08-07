@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.activity;
 
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTOR_PROPERTY;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -50,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
  * templateId: (i.e. you know - the templateId. Locale will be appended to the templateId
  * for resolution.)
  * 
- * @scr.component immediate="true" label="ActivityServlet"
+ * @scr.component immediate="true" label="ActivityCreateServlet"
  *                description="Records the activity related to a particular node"
  * @scr.property name="service.description"
  *               value="Records the activity related to a particular node"
@@ -62,11 +64,10 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="EventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
  */
-public class ActivityServlet extends SlingAllMethodsServlet {
+public class ActivityCreateServlet extends SlingAllMethodsServlet {
   private static final String ACTIVITY_STORE_NAME = "activity";
   private static final long serialVersionUID = 1375206766455341437L;
-  private static final Logger LOG = LoggerFactory.getLogger(ActivityServlet.class);
-  private static final String ACTOR = "actor";
+  private static final Logger LOG = LoggerFactory.getLogger(ActivityCreateServlet.class);
   private EventAdmin eventAdmin;
 
   /**
@@ -82,6 +83,8 @@ public class ActivityServlet extends SlingAllMethodsServlet {
       LOG.debug("doPost(SlingHttpServletRequest " + request
           + ", SlingHttpServletResponse " + response + ")");
     }
+    // Let's perform some validation on the request parameters. Do we have the minimum
+    // required?
     RequestParameter applicationId = request.getRequestParameter("applicationId");
     if (applicationId == null || "".equals(applicationId.getString())) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
@@ -94,13 +97,14 @@ public class ActivityServlet extends SlingAllMethodsServlet {
           "The templateId parameter must not be null");
       return;
     }
-    final String currentUser = request.getUserPrincipal().getName();
+    final String currentUser = request.getRemoteUser();
     if (currentUser == null || "".equals(currentUser)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "CurrentUser could not be determined, user must be identifiable");
       return;
     }
 
+    // Create or verify that an ActivityStore exists for content node
     Node location = request.getResource().adaptTo(Node.class);
     Node activityStoreNode = null;
     Session session = null;
@@ -122,15 +126,13 @@ public class ActivityServlet extends SlingAllMethodsServlet {
       JcrUtils.deepGetOrCreateNode(session, path);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-      if (!response.isCommitted()) {
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      }
-      return;
+      throw new Error(e);
     }
 
     final String activityItemPath = path;
     final RequestPathInfo requestPathInfo = request.getRequestPathInfo();
-    // need to remove the .activity selector from PathInfo to avoid infinite loop
+    // Wrapper which needs to remove the .activity selector from RequestPathInfo to avoid
+    // an infinite loop.
     final RequestPathInfo wrappedPathInfo = new RequestPathInfo() {
       @Override
       public String getSuffix() {
@@ -161,6 +163,7 @@ public class ActivityServlet extends SlingAllMethodsServlet {
       }
     };
 
+    // Next insert the new RequestPathInfo into a wrapped Request
     SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(request) {
       @Override
       public RequestPathInfo getRequestPathInfo() {
@@ -173,19 +176,16 @@ public class ActivityServlet extends SlingAllMethodsServlet {
     LOG.debug("dispatch to {}  ", target);
     request.getRequestDispatcher(target).forward(wrappedRequest, response);
 
-    // now add the current user to the actor property
+    // next add the current user to the actor property
     try {
       Node activity = (Node) session.getItem(activityItemPath);
-      activity.setProperty(ACTOR, currentUser);
+      activity.setProperty(ACTOR_PROPERTY, currentUser);
       if (session.hasPendingChanges()) {
         session.save();
       }
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-      if (!response.isCommitted()) {
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      }
-      return;
+      throw new Error(e);
     }
     // post the asynchronous OSGi event
     eventAdmin.postEvent(ActivityUtils.createEvent(activityItemPath));

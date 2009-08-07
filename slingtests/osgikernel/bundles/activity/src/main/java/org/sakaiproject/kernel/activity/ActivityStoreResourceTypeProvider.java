@@ -25,15 +25,15 @@ import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
  * 
- * @scr.component immediate="true" label="ActivityResourceTypeProvider"
- *                description="ActivityResourceTypeProvider"
+ * @scr.component immediate="true" label="ActivityStoreResourceTypeProvider"
+ *                description="ActivityStoreResourceTypeProvider"
  * @scr.property name="service.description"
  *               value="Handles requests for ActivityStore resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  * 
  */
-public class ActivityResourceTypeProvider extends AbstractPathResourceTypeProvider {
+public class ActivityStoreResourceTypeProvider extends AbstractPathResourceTypeProvider {
 
   @Override
   protected String getResourceType() {
