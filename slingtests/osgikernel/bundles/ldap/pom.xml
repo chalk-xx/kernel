@@ -69,6 +69,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
       <version>1.5.6</version>
+      <scope>test</scope>
     </dependency>
 
 <!-- pooling -->
@@ -83,6 +84,20 @@
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymockclassextension</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- jmock is for old tests brought over from Sakai 2.x -->
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
