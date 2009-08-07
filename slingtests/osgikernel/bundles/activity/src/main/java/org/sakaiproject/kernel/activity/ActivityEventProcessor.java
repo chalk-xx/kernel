@@ -62,21 +62,19 @@ public class ActivityEventProcessor implements EventHandler {
   @Override
   public void handleEvent(Event event) {
     LOG.debug("handleEvent(Event {})", event);
-    LOG.debug("event.getTopic()={}", event.getTopic());
-    LOG.debug("activityItemPath={}", event.getProperty("activityItemPath"));
     final String activityItemPath = (String) event.getProperty("activityItemPath");
+    LOG.debug("activityItemPath={}", activityItemPath);
     Session session = null;
     try {
       session = slingRepository.loginAdministrative(null);
       Node activity = (Node) session.getItem(activityItemPath);
-      LOG.debug("node={}", activity);
       if (activity != null) {
         // process activity
         // hints will be attached to the activity as to where we need to deliver
         // for example: connections, siteA, siteB
         // Let's try the the simpler connections case first
         String actor = activity.getProperty(ACTOR_PROPERTY).getString();
-        if (actor == null || "".equals(actor)) {
+        if (actor == null || "".equals(actor)) { // we must know the actor
           throw new IllegalStateException("Could not determine actor of activity: "
               + activity);
         }
@@ -95,26 +93,29 @@ public class ActivityEventProcessor implements EventHandler {
                 "/activityFeed");
             LOG.debug("activityFeedPath for connection {}={}", new Object[] { connection,
                 activityFeedPath });
-            // create the activityFeed node with the appropriate type
+            // ensure the activityFeed node with the proper type
             Node activityFeedNode = JcrUtils.deepGetOrCreateNode(session,
                 activityFeedPath);
-            activityFeedNode.setProperty(
-                JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-                ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
-            session.save();
-            // activityFeed now exists, let's continue with delivery
+            if (activityFeedNode.isNew()) {
+              activityFeedNode.setProperty(
+                  JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+                  ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
+              session.save();
+            }
+            // activityFeed exists, let's continue with delivery
             final String deliveryPath = PathUtils.toInternalHashedPath(activityFeedPath,
                 UUID.randomUUID().toString(), "");
-            LOG.debug("deliveryPath={}", deliveryPath);
-            final int lastSlash = deliveryPath.lastIndexOf("/");
-            final String parentPath = deliveryPath.substring(0, lastSlash);
-            LOG.debug("parentPath={}", parentPath);
-            // ensure the parent path exists
-            JcrUtils.deepGetOrCreateNode(session, parentPath);
-            session.save();
+            LOG.debug("final deliveryPath={}", deliveryPath);
+            final String parentPath = deliveryPath.substring(0, deliveryPath
+                .lastIndexOf("/"));
+            // ensure the parent path exists before we copy source activity
+            final Node parentNode = JcrUtils.deepGetOrCreateNode(session, parentPath);
+            if (parentNode.isNew()) {
+              session.save();
+            }
             // now copy the activity from the store to the feed
             session.getWorkspace().copy(activity.getPath(), deliveryPath);
-            // next let's create a source property to track this back to the original item
+            // next let's create a source property to refer back to the original item
             // in the ActivityStore
             Node feedItem = (Node) session.getItem(deliveryPath);
             feedItem.setProperty(SOURCE_PROPERTY, activity.getPath());
