@@ -148,4 +148,10 @@ public interface MessageConstants {
   public static final String SEARCH_PROP_MESSAGEROOT = "_messageStoreRoot";
 
   public static final String PROP_SAKAI_MESSAGEERROR = "sakai:messageError";
+
+  public static final String PROP_SAKAI_CONTENT_TYPE = "sakai:contentType";
+
+  public static final String PROP_SAKAI_ATTACHMENT_DESCRIPTION = "sakai:attachmentDescription";
+
+  public static final String PROP_SAKAI_ATTACHMENT_CONTENT = "sakai:attachmentContent";
 }
