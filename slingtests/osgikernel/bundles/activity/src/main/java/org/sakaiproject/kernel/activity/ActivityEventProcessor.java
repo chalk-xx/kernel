@@ -22,8 +22,10 @@ import static org.sakaiproject.kernel.api.activity.ActivityConstants.SOURCE_PROP
 import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PRIVATE;
 
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.kernel.api.activity.ActivityConstants;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -93,6 +95,14 @@ public class ActivityEventProcessor implements EventHandler {
                 "/activityFeed");
             LOG.debug("activityFeedPath for connection {}={}", new Object[] { connection,
                 activityFeedPath });
+            // create the activityFeed node with the appropriate type
+            Node activityFeedNode = JcrUtils.deepGetOrCreateNode(session,
+                activityFeedPath);
+            activityFeedNode.setProperty(
+                JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+                ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE);
+            session.save();
+            // activityFeed now exists, let's continue with delivery
             final String deliveryPath = PathUtils.toInternalHashedPath(activityFeedPath,
                 UUID.randomUUID().toString(), "");
             LOG.debug("deliveryPath={}", deliveryPath);
