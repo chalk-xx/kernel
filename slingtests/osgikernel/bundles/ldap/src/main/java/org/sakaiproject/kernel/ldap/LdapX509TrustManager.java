@@ -27,7 +27,8 @@ class LdapX509TrustManager implements X509TrustManager {
 
   LdapX509TrustManager(InputStream keystore, char[] password) throws GeneralSecurityException,
       IOException {
-    this(keystore, password, "SunX509", "SunJSSE");
+    // SunX509, SunJSSE
+    this(keystore, password, "PKIX", null);
   }
 
   LdapX509TrustManager(InputStream keystore, char[] password, String algorithm, String provider)
@@ -37,7 +38,12 @@ class LdapX509TrustManager implements X509TrustManager {
     KeyStore ks = KeyStore.getInstance("JKS");
     ks.load(keystore, password);
 
-    TrustManagerFactory tmf = TrustManagerFactory.getInstance(algorithm, provider);
+    TrustManagerFactory tmf = null;
+    if (provider == null) {
+      tmf = TrustManagerFactory.getInstance(algorithm);
+    } else {
+      tmf = TrustManagerFactory.getInstance(algorithm, provider);
+    }
     tmf.init(ks);
 
     TrustManager[] tms = tmf.getTrustManagers();

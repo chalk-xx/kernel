@@ -23,6 +23,7 @@ import com.novell.ldap.LDAPException;
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.ldap.api.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    * {@inheritDoc}
    */
   @Override
-  public void init() {
+  public void init() throws LdapException {
     super.init();
 
     if (pool != null) {
@@ -85,22 +86,21 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    * {@inheritDoc}
    */
   @Override
-  public LDAPConnection getConnection() throws LDAPException {
+  public LDAPConnection getConnection() throws LdapException {
     log.debug("getConnection(): attempting to borrow connection from pool");
     try {
       LDAPConnection conn = (LDAPConnection) pool.borrowObject();
       log.debug("getConnection(): successfully to borrowed connection from pool");
       return conn;
+    } catch (LDAPException e) {
+      throw new LdapException(e.getMessage(), e);
     } catch (Exception e) {
-      if (e instanceof LDAPException) {
-        throw (LDAPException) e;
-      }
       throw new RuntimeException("failed to get pooled connection", e);
     }
   }
 
   @Override
-  public LDAPConnection getBoundConnection(String dn, String pw) throws LDAPException {
+  public LDAPConnection getBoundConnection(String dn, String pw) throws LdapException {
     log
         .debug(
             "getBoundConnection():dn=[{}] attempting to borrow connection from pool and bind to dn",
@@ -123,9 +123,10 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
         }
       }
       if (e instanceof LDAPException) {
-        throw (LDAPException) e;
+        throw new LdapException(e.getMessage(), e);
+      } else {
+        throw new RuntimeException("failed to get pooled connection", e);
       }
-      throw new RuntimeException("failed to get pooled connection", e);
     }
   }
 
@@ -152,6 +153,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void destroy() {
     try {
       log.debug("destroy(): closing connection pool");

@@ -31,7 +31,7 @@ public interface LdapConnectionBroker {
    * @param name
    *          The name of the connection manager.
    */
-  void create(String name);
+  void create(String name) throws LdapException;
 
   /**
    * Gets a connection from a named manager. If the manager does not already
@@ -43,7 +43,7 @@ public interface LdapConnectionBroker {
    * @param config
    * @return {@link LDAPConnection} from the named manager.
    */
-  void create(String name, LdapConnectionManagerConfig config);
+  void create(String name, LdapConnectionManagerConfig config) throws LdapException;
 
   /**
    * Destroy a named connection manager.
@@ -95,7 +95,7 @@ public interface LdapConnectionBroker {
 
   /**
    * Gets the default configuration settings for LDAP connections.
-   * 
+   *
    * @return The default configuration settings as set in the central property
    *         manager.
    */

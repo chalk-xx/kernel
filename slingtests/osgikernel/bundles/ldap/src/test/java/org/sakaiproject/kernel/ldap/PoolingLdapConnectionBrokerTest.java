@@ -60,12 +60,12 @@ public class PoolingLdapConnectionBrokerTest {
   }
 
   @Test
-  public void testCreateDefault() {
+  public void testCreateDefault() throws Exception {
     broker.create(name);
   }
 
   @Test
-  public void testCreateCustom() {
+  public void testCreateCustom() throws Exception {
     broker.create(name, config);
   }
 

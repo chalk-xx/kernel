@@ -18,7 +18,6 @@
 package org.sakaiproject.kernel.ldap;
 
 import com.novell.ldap.LDAPConnection;
-import com.novell.ldap.LDAPException;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -114,7 +113,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    *
    * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#create(java.lang.String)
    */
-  public void create(String name) {
+  public void create(String name) throws LdapException {
     create(name, null);
   }
 
@@ -124,7 +123,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#create(java.lang.String,
    *      org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig)
    */
-  public void create(String name, LdapConnectionManagerConfig config) {
+  public void create(String name, LdapConnectionManagerConfig config) throws LdapException {
     if (config == null) {
       config = defaults;
     }
@@ -168,21 +167,17 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#getConnection(java.lang.String)
    */
   public LDAPConnection getConnection(String name) throws LdapException {
-    try {
-      // get a connection manager from the local store. if not found, create a
-      // new one and store it locally for reuse.
-      if (factories.containsKey(name)) {
-        LdapConnectionManager mgr = factories.get(name);
+    // get a connection manager from the local store. if not found, create a
+    // new one and store it locally for reuse.
+    if (factories.containsKey(name)) {
+      LdapConnectionManager mgr = factories.get(name);
 
-        // get a connection from the manager and return it
-        LDAPConnection conn = mgr.getConnection();
-        return conn;
-      } else {
-        throw new LdapException("No factory found for [" + name
-            + "].  Be sure to call create(String) before calling getConnection(String).");
-      }
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
+      // get a connection from the manager and return it
+      LDAPConnection conn = mgr.getConnection();
+      return conn;
+    } else {
+      throw new LdapException("No factory found for [" + name
+          + "].  Be sure to call create(String) before calling getConnection(String).");
     }
   }
 
@@ -194,23 +189,17 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    */
   public LDAPConnection getBoundConnection(String name, String loginDn, String password)
       throws LdapException {
-    try {
-      // get a connection manager from the local store. if not found, create a
-      // new one and store it locally for reuse.
-      if (factories.contains(name)) {
-        LdapConnectionManager mgr = factories.get(name);
+    // get a connection manager from the local store. if not found, create a
+    // new one and store it locally for reuse.
+    if (factories.contains(name)) {
+      LdapConnectionManager mgr = factories.get(name);
 
-        // get a connection from the manager and return it
-        LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
-        return conn;
-      } else {
-        throw new LdapException(
-            "No factory found for ["
-                + name
-                + "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
-      }
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
+      // get a connection from the manager and return it
+      LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
+      return conn;
+    } else {
+      throw new LdapException("No factory found for [" + name
+          + "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
     }
   }
 

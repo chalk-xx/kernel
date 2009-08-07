@@ -25,6 +25,7 @@ import com.novell.ldap.LDAPJSSEStartTLSFactory;
 
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.ldap.api.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   /**
    * {@inheritDoc}
    */
-  public void init() {
+  public void init() throws LdapException {
 
     log.debug("init()");
 
@@ -85,8 +86,10 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
         }
       } catch (GeneralSecurityException e) {
         log.error(e.getMessage(), e);
+        throw new LdapException(e.getMessage(), e);
       } catch (IOException e) {
         log.error(e.getMessage(), e);
+        throw new LdapException(e.getMessage(), e);
       }
     }
   }
@@ -103,32 +106,45 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   /**
    * {@inheritDoc}
    */
-  public LDAPConnection getConnection() throws LDAPException {
+  public LDAPConnection getConnection() throws LdapException {
     log.debug("getConnection()");
 
-    LDAPConnection conn = new LDAPConnection();
-    applyConstraints(conn);
-    connect(conn);
+    try {
+      LDAPConnection conn = newLDAPConnection();
+      applyConstraints(conn);
+      connect(conn);
 
-    if (config.isAutoBind()) {
-      log.debug("getConnection(): auto-binding");
-      bind(conn, config.getLdapUser(), config.getLdapPassword());
+      if (config.isAutoBind()) {
+        log.debug("getConnection(): auto-binding");
+        bind(conn, config.getLdapUser(), config.getLdapPassword());
+      }
+
+      return conn;
+    } catch (LDAPException e) {
+      throw new LdapException(e.getMessage(), e);
     }
-
-    return conn;
   }
 
   /**
    * {@inheritDoc}
    */
-  public LDAPConnection getBoundConnection(String dn, String pw) throws LDAPException {
+  public LDAPConnection getBoundConnection(String dn, String pw) throws LdapException {
     log.debug("getBoundConnection(): [dn = {}]", dn);
 
-    LDAPConnection conn = new LDAPConnection();
-    applyConstraints(conn);
-    connect(conn);
-    bind(conn, dn, pw);
+    try {
+      LDAPConnection conn = newLDAPConnection();
+      applyConstraints(conn);
+      connect(conn);
+      bind(conn, dn, pw);
 
+      return conn;
+    } catch (LDAPException e) {
+      throw new LdapException(e.getMessage(), e);
+    }
+  }
+
+  protected LDAPConnection newLDAPConnection() {
+    LDAPConnection conn = new LDAPConnection();
     return conn;
   }
 
@@ -170,20 +186,6 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   /**
-   * Caches a keystore password as a system property. No-op if the
-   * {@link #KEYSTORE_PASSWORD_SYS_PROP_KEY} system property has a non-
-   * <code>null</code> value. Otherwise caches the keystore password from the
-   * currently assigned {@link LdapConnectionManagerConfig}.
-   *
-   * @param config
-   * @throws NullPointerException
-   *           if a non-null keystore password cannot be resolved
-   */
-  protected void initKeystorePassword() {
-
-  }
-
-  /**
    * Loads a keystore and sets up an SSL context that can be used to create
    * socket factories that use the suggested keystore.
    *
@@ -199,40 +201,6 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    */
   protected SSLContext initKeystore(String keystoreLocation, String keystorePassword)
       throws GeneralSecurityException, IOException {
-    // M_log.debug("initKeystoreLocation()");
-    // String sysKeystoreLocation =
-    // System.getProperty(KEYSTORE_LOCATION_SYS_PROP_KEY);
-    // if (sysKeystoreLocation == null) {
-    // String configuredKeystoreLocation = config.getKeystoreLocation();
-    // if (configuredKeystoreLocation == null) {
-    // throw new NullPointerException(
-    // "Must specify a keystore location for secure LDAP connections");
-    // }
-    // M_log.debug("initKeystoreLocation(): setting system property [location = {}]",
-    // configuredKeystoreLocation);
-    // System.setProperty(KEYSTORE_LOCATION_SYS_PROP_KEY,
-    // configuredKeystoreLocation);
-    // } else {
-    // M_log.debug("initKeystoreLocation(): retained existing system property [location = {}]",
-    // sysKeystoreLocation);
-    // }
-    //
-    // M_log.debug("initKeystorePassword()");
-    // String sysKeystorePassword =
-    // System.getProperty(KEYSTORE_PASSWORD_SYS_PROP_KEY);
-    // if (sysKeystorePassword == null) {
-    // String configuredKeystorePassword = config.getKeystorePassword();
-    // if (configuredKeystorePassword == null) {
-    // throw new NullPointerException(
-    // "Must specify a keystore password for secure LDAP connections");
-    // }
-    // M_log.debug("initKeystorePassword(): setting system property");
-    // System.setProperty(KEYSTORE_PASSWORD_SYS_PROP_KEY,
-    // configuredKeystorePassword);
-    // } else {
-    // M_log.debug("initKeystorePassword(): retained existing system property");
-    // }
-
     FileInputStream fis = new FileInputStream(keystoreLocation);
     char[] passChars = (keystorePassword != null) ? keystorePassword.toCharArray() : null;
     TrustManager[] myTM = new TrustManager[] { new LdapX509TrustManager(fis, passChars) };

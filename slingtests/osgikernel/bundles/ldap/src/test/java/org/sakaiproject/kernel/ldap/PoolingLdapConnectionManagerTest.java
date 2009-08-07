@@ -32,7 +32,7 @@ public class PoolingLdapConnectionManagerTest {
   private PoolingLdapConnectionManager poolingConnMgr;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     pool = createMock(ObjectPool.class);
     config = createMock(LdapConnectionManagerConfig.class);
     poolingConnMgr = new PoolingLdapConnectionManager();
