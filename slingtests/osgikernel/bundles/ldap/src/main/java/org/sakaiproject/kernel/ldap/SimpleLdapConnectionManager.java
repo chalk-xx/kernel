@@ -152,7 +152,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
     log.debug("bind(): binding [dn = {}]", dn);
 
     try {
-      conn.bind(LDAPConnection.LDAP_V3, dn, pw.getBytes("UTF8"));
+      byte[] password = pw.getBytes("UTF8");
+      conn.bind(LDAPConnection.LDAP_V3, dn, password);
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException("Failed to encode user password", e);
     }

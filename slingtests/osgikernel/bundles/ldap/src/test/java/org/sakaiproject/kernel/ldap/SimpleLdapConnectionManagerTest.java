@@ -45,6 +45,7 @@ public class SimpleLdapConnectionManagerTest {
   private SimpleLdapConnectionManager mgr;
   private LDAPConnection conn;
   private String keystoreLocation;
+  private String keystorePassword = "keystore123";
 
   @Before
   public void setUp() throws Exception {
@@ -103,6 +104,100 @@ public class SimpleLdapConnectionManagerTest {
       mgr.getConnection();
       fail("Should throw an exception when can't connect.");
     } catch (Exception e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testConnectionLdapFailPostConnect() throws Exception {
+    config.setSecureConnection(true);
+    config.setTLS(true);
+
+    conn.setConstraints((LDAPConstraints) anyObject());
+
+    conn.connect((String) anyObject(), anyInt());
+
+    conn.startTLS();
+    expectLastCall().andThrow(new LDAPException());
+
+    conn.disconnect();
+
+    replay(conn);
+    try {
+      mgr.getConnection();
+      fail("Should throw an exception when can't start TLS.");
+    } catch (LdapException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testConnectionLdapFailPostConnectFailDisconnect() throws Exception {
+    config.setSecureConnection(true);
+    config.setTLS(true);
+
+    conn.setConstraints((LDAPConstraints) anyObject());
+
+    conn.connect((String) anyObject(), anyInt());
+
+    conn.startTLS();
+    expectLastCall().andThrow(new LDAPException());
+
+    conn.disconnect();
+    expectLastCall().andThrow(new LDAPException());
+
+    replay(conn);
+    try {
+      mgr.getConnection();
+      fail("Should throw an exception when can't start TLS.");
+    } catch (LdapException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testConnectionRuntimeFailPostConnect() throws Exception {
+    config.setSecureConnection(true);
+    config.setTLS(true);
+
+    conn.setConstraints((LDAPConstraints) anyObject());
+
+    conn.connect((String) anyObject(), anyInt());
+
+    conn.startTLS();
+    expectLastCall().andThrow(new RuntimeException());
+
+    conn.disconnect();
+
+    replay(conn);
+    try {
+      mgr.getConnection();
+      fail("Should throw an exception when can't start TLS.");
+    } catch (RuntimeException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testConnectionRuntimeFailPostConnectDisconnect() throws Exception {
+    config.setSecureConnection(true);
+    config.setTLS(true);
+
+    conn.setConstraints((LDAPConstraints) anyObject());
+
+    conn.connect((String) anyObject(), anyInt());
+
+    conn.startTLS();
+    expectLastCall().andThrow(new RuntimeException());
+
+    conn.disconnect();
+    expectLastCall().andThrow(new LDAPException());
+
+    replay(conn);
+    try {
+      mgr.getConnection();
+      fail("Should throw an exception when can't start TLS.");
+    } catch (RuntimeException e) {
       // expected
     }
   }
@@ -170,7 +265,7 @@ public class SimpleLdapConnectionManagerTest {
   @Test
   public void testInitKeystorePassword() throws Exception {
     config.setKeystoreLocation(keystoreLocation);
-    config.setKeystorePassword("keystore123");
+    config.setKeystorePassword(keystorePassword);
     config.setSecureConnection(true);
     mgr.init();
   }
@@ -188,11 +283,12 @@ public class SimpleLdapConnectionManagerTest {
   }
 
   @Test
-  public void testTlsInit() throws Exception {
+  public void testConnectionSecureTls() throws Exception {
     config.setKeystoreLocation(keystoreLocation);
     config.setSecureConnection(true);
     config.setTLS(true);
     mgr.init();
+    mgr.getConnection();
   }
 
   @Test
