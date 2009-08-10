@@ -18,6 +18,8 @@ package org.sakaiproject.kernel.ldap;
 
 import com.novell.ldap.LDAPConnection;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,81 +29,76 @@ import org.slf4j.LoggerFactory;
  * @author dmccallum
  *
  */
+@Component(immediate = true)
+@Service
 public class MaxLifetimeLdapConnectionLivenessValidator implements LdapConnectionLivenessValidator {
 
-	/** Class-specific logger */
+  /** Class-specific logger */
   private static Logger log = LoggerFactory
       .getLogger(MaxLifetimeLdapConnectionLivenessValidator.class);
 
-	public static final long DEFAULT_MAX_TTL = -1L;
+  public static final long DEFAULT_MAX_TTL = 14400000L; // 4 hours
 
-	/**
-	 * Max connection life in millis
-	 */
-	private long maxTtl;
+  /**
+   * Max connection life in millis
+   */
+  private long maxTtl;
 
-	/**
-	 * Tests if the allowable lifetime of the given connection has already
-	 * elapsed. Edge cases:
-	 *
-	 * <ol>
-	 *   <li>Non-{@link PooledLDAPConnection} - returns <code>true</code></li>
-	 *   <li><code>maxTtl</code> &lt;= 0 - returns <code>true</code></li>
-	 *   <li>Connection birthdate in the future - returns <code>true</code></li>
-	 * </ol>
-	 *
-	 *
-	 */
-	public boolean isConnectionAlive(LDAPConnection connectionToTest) {
-		if ( !(connectionToTest instanceof PooledLDAPConnection) ) {
-			if (log.isDebugEnabled()) {
-    			log.debug("isConnectionAlive(): connection not of expected type [" +
-    					(connectionToTest == null ? "null" : connectionToTest.getClass().getName()) +
-    					"], returning true");
-    		}
-			return true;
-		}
-		if ( maxTtl <= 0 ) {
-			if ( log.isDebugEnabled() ) {
-				log.debug("isConnectionAlive(): maxTtl set to infinite [" + maxTtl + "], returning true");
-			}
-			return true;
-		}
-		long now = System.currentTimeMillis();
-		long then = ((PooledLDAPConnection)connectionToTest).getBirthdate();
-		long elapsed = now - then;
-		boolean isAlive = elapsed <= maxTtl;
-		if ( log.isDebugEnabled() ) {
-			log.debug("isConnectionAlive(): [now = " + now +
-					"][then = " + then + "][elapsed = " + elapsed +
-					"][max TTL = " + maxTtl +
-					"][isAlive = " + isAlive + "]");
-		}
-		return isAlive;
-	}
+  /**
+   * Tests if the allowable lifetime of the given connection has already
+   * elapsed. Edge cases:
+   *
+   * <ol>
+   * <li>Non-{@link PooledLDAPConnection} - returns <code>true</code></li>
+   * <li><code>maxTtl</code> &lt;= 0 - returns <code>true</code></li>
+   * <li>Connection birthdate in the future - returns <code>true</code></li>
+   * </ol>
+   *
+   *
+   */
+  public boolean isConnectionAlive(LDAPConnection connectionToTest) {
+    if (!(connectionToTest instanceof PooledLDAPConnection)) {
+      if (log.isDebugEnabled()) {
+        log.debug("isConnectionAlive(): connection not of expected type ["
+            + (connectionToTest == null ? "null" : connectionToTest.getClass().getName())
+            + "], returning true");
+      }
+      return true;
+    }
+    if (maxTtl <= 0) {
+      if (log.isDebugEnabled()) {
+        log.debug("isConnectionAlive(): maxTtl set to infinite [" + maxTtl + "], returning true");
+      }
+      return true;
+    }
+    long now = System.currentTimeMillis();
+    long then = ((PooledLDAPConnection) connectionToTest).getBirthdate();
+    long elapsed = now - then;
+    boolean isAlive = elapsed <= maxTtl;
+    if (log.isDebugEnabled()) {
+      log.debug("isConnectionAlive(): [now = " + now + "][then = " + then + "][elapsed = "
+          + elapsed + "][max TTL = " + maxTtl + "][isAlive = " + isAlive + "]");
+    }
+    return isAlive;
+  }
 
-	/**
-	 * Get the max connection lifetime, in millis. Values
-	 * less than or equals to zero are considered infinite, i.e.
-	 * no TTL.
-	 *
-	 * @return
-	 */
-	public long getMaxTtl() {
-		return maxTtl;
-	}
+  /**
+   * Get the max connection lifetime, in millis. Values less than or equals to
+   * zero are considered infinite, i.e. no TTL.
+   *
+   * @return
+   */
+  public long getMaxTtl() {
+    return maxTtl;
+  }
 
-	/**
-	 * Assign the max connection lifetime, in millis. Values
-	 * less than or equal to zero are considered infinite, i.e.
-	 * no TTL.
-	 *
-	 * @param maxTtl
-	 */
-	public void setMaxTtl(long maxTtl) {
-		this.maxTtl = maxTtl;
-	}
-
-
-
+  /**
+   * Assign the max connection lifetime, in millis. Values less than or equal to
+   * zero are considered infinite, i.e. no TTL.
+   *
+   * @param maxTtl
+   */
+  public void setMaxTtl(long maxTtl) {
+    this.maxTtl = maxTtl;
+  }
 }

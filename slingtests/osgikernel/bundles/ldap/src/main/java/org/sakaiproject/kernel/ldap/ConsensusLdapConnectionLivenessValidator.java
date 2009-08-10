@@ -18,6 +18,9 @@ package org.sakaiproject.kernel.ldap;
 
 import com.novell.ldap.LDAPConnection;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +43,14 @@ import java.util.List;
  *
  * @author dmccallum
  */
+@Component
 public class ConsensusLdapConnectionLivenessValidator implements LdapConnectionLivenessValidator {
 
 	/** Class-specific logger */
   private static Logger log = LoggerFactory
       .getLogger(ConsensusLdapConnectionLivenessValidator.class);
 
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE)
 	private List<LdapConnectionLivenessValidator> delegates =
 		new ArrayList<LdapConnectionLivenessValidator>(0);
 

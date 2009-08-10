@@ -22,6 +22,9 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
@@ -48,7 +51,10 @@ import java.text.MessageFormat;
  * </p>
  *
  * @author dmccallum@unicon.net
+ * @author "Carl Hall" <carl.hall@gatech.edu>
  */
+@Component
+@Service
 public class SearchExecutingLdapConnectionLivenessValidator implements
     LdapConnectionLivenessValidator {
 
@@ -102,6 +108,7 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
 
   private String hostName = DEFAULT_HOST_NAME;
 
+  @Reference
   private ConfigurationService configService;
 
   /**
