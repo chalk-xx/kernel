@@ -37,11 +37,19 @@ public interface SiteService {
   /**
    * The property name of the site template.
    */
-  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
+  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";  
+  /**
+   * The property name for the skin of a website.
+   */
+  public static final String SAKAI_SKIN = "sakai:skin";
   /**
    * The resource type for a site.
    */
   public static final String SITE_RESOURCE_TYPE = "sakai/site";
+  /**
+   * The property name that defines if this is a site template or not.
+   */
+  public static final String SAKAI_IS_SITE_TEMPLATE = "sakai:is-site-template";
   /**
    * The property used to store the joinable status of the site.
    */
@@ -141,6 +149,13 @@ public interface SiteService {
   boolean isSite(Item site);
 
   /**
+   * @param site
+   *          the site to test.
+   * @return true if item represents a site template.
+   */
+  boolean isSiteTemplate(Item site);
+
+  /**
    * Join a site in a target Group. The target Group must already be associated with the
    * site and the Site and the group must both be joinable. THe target group does not need
    * to be a directly associated with the site.
@@ -193,12 +208,20 @@ public interface SiteService {
   void startJoinWorkflow(Node site, Group group) throws SiteException;
 
   /**
-   * @param site
+   * @param site 
    *          the site in question.
-   * @return the path to the template associated with the site, may be the default site
-   *         template if none is specified.
+   * @return the path to the template-site where the given site is based on.
    */
   String getSiteTemplate(Node site) throws SiteException;
+  
+  /**
+   * 
+   * @param site the site in question
+   * @return the path to the template associated with the site, may be the default site
+   *         template if none is specified.
+   * @throws SiteException
+   */
+  String getSiteSkin(Node site) throws SiteException;
 
   /**
    * Unjoin a site, only if the user is a member of the group and the group is associated
