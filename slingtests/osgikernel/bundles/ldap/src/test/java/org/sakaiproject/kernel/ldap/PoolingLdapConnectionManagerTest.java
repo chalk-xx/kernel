@@ -16,11 +16,17 @@
  */
 package org.sakaiproject.kernel.ldap;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.createMock;
-import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
+
+import com.novell.ldap.LDAPConnection;
 
 import org.apache.commons.pool.ObjectPool;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
@@ -34,19 +40,46 @@ public class PoolingLdapConnectionManagerTest {
   @Before
   public void setUp() throws Exception {
     pool = createMock(ObjectPool.class);
-    config = createMock(LdapConnectionManagerConfig.class);
+    pool.close();
+
+    config = new LdapConnectionManagerConfig();
+    // some white box awkwardness
+    config.setSecureConnection(false);
+
     poolingConnMgr = new PoolingLdapConnectionManager();
     poolingConnMgr.setConfig(config);
     poolingConnMgr.setPool(pool);
-    // some white box awkwardness
-    expect(config.isSecureConnection()).andReturn(false);
-    replay(pool, config);
-    poolingConnMgr.init();
+  }
+
+  @After
+  public void tearDown() {
+    poolingConnMgr.destroy();
   }
 
   @Test
-  public void testDoesNotReturnNullReferencesToPool() {
+  public void testDoesNotReturnNullReferencesToPool() throws Exception {
+    replay(pool);
+    poolingConnMgr.init();
     // mockPool will throw a fit if any method called
     poolingConnMgr.returnConnection(null);
+  }
+
+  @Test
+  public void testReturnConnectionException() throws Exception {
+    expect(pool.borrowObject()).andReturn(new LDAPConnection());
+
+    pool.returnObject(anyObject());
+    expectLastCall().andThrow(new Exception());
+
+    replay(pool);
+    poolingConnMgr.init();
+
+    LDAPConnection conn = poolingConnMgr.getConnection();
+    try {
+      poolingConnMgr.returnConnection(conn);
+      fail("Should throw an exception if can't return object.");
+    } catch (RuntimeException e) {
+      // expected
+    }
   }
 }
