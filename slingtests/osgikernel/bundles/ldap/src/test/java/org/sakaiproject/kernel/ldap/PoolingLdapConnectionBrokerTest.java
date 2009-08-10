@@ -18,7 +18,9 @@
 package org.sakaiproject.kernel.ldap;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import com.novell.ldap.LDAPConnection;
 
@@ -29,6 +31,7 @@ import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 
 import java.net.ServerSocket;
+import java.util.HashMap;
 
 /**
  * Unit test for {@link PoolingLdapConnectionBroker}
@@ -42,6 +45,8 @@ public class PoolingLdapConnectionBrokerTest {
   @Before
   public void setUp() throws Exception {
     ConfigurationService configService = createMock(ConfigurationService.class);
+    expect(configService.getProperties()).andReturn(new HashMap<String, String>());
+
     config = new LdapConnectionManagerConfig();
     config.setLdapHost("localhost");
     config.setLdapPort(LDAPConnection.DEFAULT_PORT + 1000);
@@ -56,6 +61,7 @@ public class PoolingLdapConnectionBrokerTest {
 
   @After
   public void tearDown() throws Exception {
+    broker.deactivate(null);
     serverSocket.close();
   }
 
@@ -70,9 +76,20 @@ public class PoolingLdapConnectionBrokerTest {
   }
 
   @Test
-  public void getConnection() throws Exception {
+  public void testCreateGetDestroy() throws Exception {
     broker.create(name, config);
     LDAPConnection conn = broker.getConnection(name);
     assertNotNull(conn);
+
+    broker.destroy(name);
+  }
+
+  @Test
+  public void testCreateIfNotExists() throws Exception {
+    broker.create(name);
+
+    if (!broker.exists(name)) {
+      fail("Broker should already know about [" + name + "]");
+    }
   }
 }

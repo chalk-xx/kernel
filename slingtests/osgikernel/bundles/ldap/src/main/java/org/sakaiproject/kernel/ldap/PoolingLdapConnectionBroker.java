@@ -100,8 +100,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @param ctx
    */
   protected void deactivate(ComponentContext ctx) {
-    for (LdapConnectionManager conns : factories.values()) {
-      conns.destroy();
+    for (String mgr : factories.keySet()) {
+      destroy(mgr);
     }
     factories = null;
 
@@ -144,7 +144,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#destroy(java.lang.String)
    */
   public void destroy(String name) {
-    if (factories.contains(name)) {
+    if (factories.containsKey(name)) {
       LdapConnectionManager mgr = factories.get(name);
       mgr.destroy();
       factories.remove(name);
@@ -157,7 +157,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#exists(java.lang.String)
    */
   public boolean exists(String name) {
-    boolean exists = factories.contains(name);
+    boolean exists = factories.containsKey(name);
     return exists;
   }
 
@@ -191,7 +191,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
       throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
-    if (factories.contains(name)) {
+    if (factories.containsKey(name)) {
       LdapConnectionManager mgr = factories.get(name);
 
       // get a connection from the manager and return it
