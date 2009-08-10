@@ -70,6 +70,7 @@ public class DictionaryMatcher<K, V> implements IArgumentMatcher {
     return true;
   }
 
+  @SuppressWarnings("unchecked")
   public boolean matches(Object matchable) {
     if (matchable == null || !(matchable instanceof Dictionary)) {
       LOG.info("Other object was not a dictionary");

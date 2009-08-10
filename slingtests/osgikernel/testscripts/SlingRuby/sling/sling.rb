@@ -4,6 +4,7 @@ require 'cgi'
 require 'rubygems'
 require 'json'
 require 'curb'
+require 'yaml'
 require 'sling/users'
 require 'sling/sites'
 
@@ -96,7 +97,7 @@ module SlingInterface
       return res
     end
 
-    def execute_post(path, post_params)
+    def execute_post(path, post_params={})
       puts "URL: #{path} params: #{post_params.dump}" if @debug
       write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
@@ -225,6 +226,22 @@ module SlingInterface
     def clear_acl(path)
       acl = JSON.parse(get_node_acl_json(path))
       acl.keys.each { |p| delete_node_acl_entries(path, p) }
+    end
+
+    def save_node(path)
+      res = execute_post(url_for("#{path}.save.json"), {})
+      if (res.code == "200")
+        return JSON.parse(res.body)["versionName"]
+      end
+      return nil
+    end
+
+    def versions(path)
+      return get_node_props("#{path}.versions.json")["versions"].keys
+    end
+
+    def version(path, version, extension)
+      return execute_get(url_for("#{path}.version.,#{version},.#{extension}"))
     end
 
   end

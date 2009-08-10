@@ -19,21 +19,33 @@ package org.sakaiproject.kernel.email.outgoing;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.SimpleEmail;
+import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.scheduler.Job;
+import org.apache.sling.commons.scheduler.JobContext;
+import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.util.Date;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
@@ -55,15 +67,23 @@ public class OutgoingEmailMessageListener implements MessageListener {
   static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = {"sakai.email.outgoing"})
   static final String QUEUE_NAME = "email.out.queueName";
-  @Property(value = {"sakai.smtp.server"})
-  static final String SMTP_SERVER = "localhost";
-  @Property(value = {"sakai.smtp.port"})
-  static final int SMTP_PORT = 8025;
+  @Property(value = {"localhost"})
+  static final String SMTP_SERVER = "sakai.smtp.server";
+  @Property(intValue = 8025)
+  static final String SMTP_PORT = "sakai.smtp.port";
+  @Property(intValue = 240)
+  static final String MAX_RETRIES = "sakai.email.maxRetries";
+  @Property(intValue = 30)
+  static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
 
   @Reference
   protected SlingRepository repository;
   @Reference
   protected JcrResourceResolverFactory jcrResourceResolverFactory;
+  @Reference
+  protected Scheduler scheduler;
+  @Reference
+  protected EventAdmin eventAdmin;
 
   private static final String NODE_PATH_PROPERTY = "nodePath";
 
@@ -73,6 +93,12 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private String brokerUrl;
   private ConnectionFactory connectionFactory = null;
   private Queue dest = null;
+  private String queueName;
+  private Integer maxRetries;
+  private Integer smtpPort;
+  private String smtpServer;
+
+  private Integer retryInterval;
 
   public void onMessage(Message message) {
     try {
@@ -97,37 +123,35 @@ public class OutgoingEmailMessageListener implements MessageListener {
           if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
               && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
             // make a commons-email message from the message
-            SimpleEmail email = new SimpleEmail();
+            MultiPartEmail email;
             try {
-              try {
-                email.addTo(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)
-                    .getString());
-              } catch (ValueFormatException e) {
-                for (Value address : messageNode.getProperty(
-                    MessageConstants.PROP_SAKAI_TO).getValues()) {
-                  email.addTo(address.getString());
-                }
-              }
+              email = constructMessage(messageNode);
 
-              email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM)
-                  .getString());
-
-              if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
-                email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY)
-                    .getString());
-              }
-
-              if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
-                email.setSubject(messageNode.getProperty(
-                    MessageConstants.PROP_SAKAI_SUBJECT).getString());
-              }
-
-              email.setSmtpPort(SMTP_PORT);
-              email.setHostName(SMTP_SERVER);
+              email.setSmtpPort(smtpPort);
+              email.setHostName(smtpServer);
 
               email.send();
             } catch (EmailException e) {
               setError(messageNode, e.getMessage());
+              // Get the SMTP error code
+              // There has to be a better way to do this
+              if (e.getCause() != null && e.getCause().getMessage() != null) {
+                String smtpError = e.getCause().getMessage().trim();
+                try {
+                  int errorCode = Integer.parseInt(smtpError.substring(0, 3));
+                  // All retry-able SMTP errors should have codes starting with 4
+                  scheduleRetry(errorCode, messageNode);
+                } catch (NumberFormatException nfe) {
+                  // smtpError didn't start with an error code, let's dig for it
+                  String searchFor = "response:";
+                  int rindex = smtpError.indexOf(searchFor);
+                  if (rindex > -1 && (rindex + searchFor.length()) < smtpError.length()) {
+                    int errorCode = Integer.parseInt(smtpError.substring(searchFor
+                        .length(), searchFor.length() + 3));
+                    scheduleRetry(errorCode, messageNode);
+                  }
+                }
+              }
             }
           } else {
             setError(messageNode, "Message must have a to and from set");
@@ -147,9 +171,134 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
+  private MultiPartEmail constructMessage(Node messageNode) throws EmailException,
+      RepositoryException, PathNotFoundException, ValueFormatException {
+    MultiPartEmail email = new MultiPartEmail();
+    try {
+      email.addTo(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString());
+    } catch (ValueFormatException e) {
+      for (Value address : messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)
+          .getValues()) {
+        email.addTo(address.getString());
+      }
+    }
+
+    email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString());
+
+    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
+      email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString());
+    }
+
+    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_SUBJECT)) {
+      email.setSubject(messageNode.getProperty(MessageConstants.PROP_SAKAI_SUBJECT)
+          .getString());
+    }
+
+    if (messageNode.hasNodes()) {
+      NodeIterator ni = messageNode.getNodes();
+      while (ni.hasNext()) {
+        Node childNode = ni.nextNode();
+        String description = null;
+        if (childNode.hasProperty(MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION)) {
+          description = childNode.getProperty(
+              MessageConstants.PROP_SAKAI_ATTACHMENT_DESCRIPTION).getString();
+        }
+        JcrEmailDataSource ds = new JcrEmailDataSource(childNode);
+        email.attach(ds, childNode.getName(), description);
+      }
+    }
+
+    return email;
+  }
+
+  private void scheduleRetry(int errorCode, Node messageNode) throws RepositoryException {
+    // All retry-able SMTP errors should have codes starting with 4
+    if ((int) (errorCode / 100) == 4) {
+      long retryCount = 0;
+      if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)) {
+        retryCount = messageNode.getProperty(MessageConstants.PROP_SAKAI_RETRY_COUNT)
+            .getLong();
+      }
+
+      if (retryCount < maxRetries) {
+        Job job = new Job() {
+
+          public void execute(JobContext jc) {
+            Map<String, Serializable> config = jc.getConfiguration();
+            Properties eventProps = new Properties();
+            eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
+
+            Event retryEvent = new Event(queueName, eventProps);
+            eventAdmin.postEvent(retryEvent);
+
+          }
+        };
+
+        HashMap<String, Serializable> jobConfig = new HashMap<String, Serializable>();
+        jobConfig.put(NODE_PATH_PROPERTY, messageNode.getPath());
+
+        int retryIntervalMillis = retryInterval * 60000;
+        Date nextTry = new Date(System.currentTimeMillis() + (retryIntervalMillis));
+
+        try {
+          scheduler.fireJobAt(null, job, jobConfig, nextTry);
+        } catch (Exception e) {
+          LOGGER.error(e.getMessage(), e);
+        }
+      } else {
+        setError(messageNode, "Unable to send message, exhausted SMTP retries.");
+      }
+    } else {
+      LOGGER.warn("Not scheduling a retry for error code not of the form 4xx.");
+    }
+  }
+
   protected void activate(ComponentContext ctx) {
     @SuppressWarnings("unchecked")
     Dictionary props = ctx.getProperties();
+
+    Integer _maxRetries = (Integer) props.get(MAX_RETRIES);
+    if (_maxRetries != null) {
+      if (diff(maxRetries, _maxRetries)) {
+        maxRetries = _maxRetries;
+      }
+    } else {
+      LOGGER.error("Maximum times to retry messages not set.");
+    }
+
+    Integer _retryInterval = (Integer) props.get(RETRY_INTERVAL);
+    if (_retryInterval != null) {
+      if (diff(_retryInterval, retryInterval)) {
+        retryInterval = _retryInterval;
+      }
+    } else {
+      LOGGER.error("SMTP retry interval not set.");
+    }
+
+    if (maxRetries * retryInterval < 4320 /* minutes in 3 days */) {
+      LOGGER.warn("SMTP retry window is very short.");
+    }
+
+    Integer _smtpPort = (Integer) props.get(SMTP_PORT);
+    boolean validPort = _smtpPort != null && _smtpPort >= 0 && _smtpPort <= 65535;
+    if (validPort) {
+      if (diff(smtpPort, _smtpPort)) {
+        smtpPort = _smtpPort;
+      }
+    } else {
+      LOGGER.error("Invalid port set for SMTP");
+    }
+
+    String _smtpServer = (String) props.get(SMTP_SERVER);
+    boolean smtpServerEmpty = _smtpServer == null || _smtpServer.trim().length() == 0;
+    if (!smtpServerEmpty) {
+      if (diff(smtpServer, _smtpServer)) {
+        smtpServer = _smtpServer;
+      }
+    } else {
+      LOGGER.error("No SMTP server set");
+    }
+
     String _brokerUrl = (String) props.get(BROKER_URL);
 
     try {
@@ -160,13 +309,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
           connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
         }
       } else {
-        LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+        LOGGER.error("Cannot create JMS connection factory with an empty URL.");
       }
 
       brokerUrl = _brokerUrl;
       connection = connectionFactory.createConnection();
       session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      dest = session.createQueue(QUEUE_NAME);
+      queueName = (String) props.get(QUEUE_NAME);
+      dest = session.createQueue(queueName);
       consumer = session.createConsumer(dest);
       consumer.setMessageListener(this);
       connection.start();
@@ -192,12 +342,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
-  private void setError(Node node, String error) {
-    try {
-      node.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, error);
-    } catch (RepositoryException e) {
-      LOGGER.error(e.getMessage(), e);
-    }
+  private void setError(Node node, String error) throws RepositoryException {
+    node.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, error);
   }
 
   /**

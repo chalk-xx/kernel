@@ -72,6 +72,10 @@ module SlingUsers
       return User.new("admin", "admin")
     end
 
+    def self.anonymous
+      return AnonymousUser.new
+    end
+
     def do_request_auth(req)
       req.basic_auth(@name, @password)
     end
@@ -96,6 +100,22 @@ module SlingUsers
     def user_url
       return User.url_for(@name)
     end
+  end
+
+  class AnonymousUser < User
+
+    def initialize()
+      super("anonymous", "none")
+    end
+
+    def do_curl_auth(c)
+      # do nothing
+    end
+    
+    def do_request_auth(r)
+      # do nothing
+    end
+  
   end
 
   class UserManager

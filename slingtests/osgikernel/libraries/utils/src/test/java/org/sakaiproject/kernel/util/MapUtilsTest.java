@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
 
 public class MapUtilsTest {
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testConvertToImmutableMap() {
     String s = "Lorem=ipsum; dolor = sit ;amet=.";

@@ -41,7 +41,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
  *               values.2="DELETE" values.3="GET"
  * @scr.property name="sling.servlet.selectors" values.0="invite" values.1="accept"
- *               values.2="reject" values.3="ignore" values.4="block" values.5="remove"
+ *               values.2="reject" values.3="ignore" values.4="block" values.5="remove" 
+ *               values.6="cancel"
  * @scr.reference name="ConnectionManager"
  *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
@@ -105,6 +106,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
    *      org.apache.sling.api.SlingHttpServletResponse,
    *      org.apache.sling.api.resource.Resource, org.apache.sling.api.resource.Resource)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected boolean preDispatch(SlingHttpServletRequest request,
       SlingHttpServletResponse response, Resource baseResource, Resource resource)
@@ -133,7 +135,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
           return false;
         }
       }
-      connectionManager.connect(baseResource, user, targetUserId, operation);
+      connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
     } catch (ConnectionException e) {
       LOGGER.error("Connection exception: {}", e);
       response.sendError(e.getCode(), e.getMessage());

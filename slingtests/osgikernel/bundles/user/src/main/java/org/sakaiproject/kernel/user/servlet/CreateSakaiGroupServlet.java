@@ -20,14 +20,16 @@ package org.sakaiproject.kernel.user.servlet;
 import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
-import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractGroupPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -45,8 +47,10 @@ import org.slf4j.LoggerFactory;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -112,9 +116,10 @@ import javax.servlet.http.HttpServletResponse;
  * 
  */
 
-public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
+public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {
 
+  
   /**
    *
    */
@@ -122,6 +127,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateSakaiGroupServlet.class);
+  
 
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
@@ -140,7 +146,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
    */
   public static final String GROUP_AUTHORISED_TOCREATE = "groups.authorized.tocreate";
 
-  private String[] authorizedGroups = {"authenticated","everyone"};
+  private String[] authorizedGroups = {"authenticated"};
 
   /** Returns the JCR repository used by this service. */
   protected SlingRepository getRepository() {
@@ -221,20 +227,43 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
 
     // check for allow create Group
     boolean allowCreateGroup = false;
+    User currentUser = null;
     try {
       Session currentSession = request.getResourceResolver().adaptTo(Session.class);
       UserManager um = AccessControlUtil.getUserManager(currentSession);
-      User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
+      currentUser = (User) um.getAuthorizable(currentSession.getUserID());
       if (currentUser.isAdmin()) {
         LOGGER.debug("User is an admin ");
         allowCreateGroup = true;
       } else {
         LOGGER.debug("Checking for membership of one of {} ", Arrays
             .toString(authorizedGroups));
+        PrincipalManager principalManager = AccessControlUtil
+            .getPrincipalManager(currentSession);
+        PrincipalIterator pi = principalManager.getGroupMembership(principalManager
+            .getPrincipal(currentSession.getUserID()));
+        Set<String> groups = new HashSet<String>();
+        for (; pi.hasNext();) {
+          groups.add(pi.nextPrincipal().getName());
+        }
+
         for (String groupName : authorizedGroups) {
+          if (groups.contains(groupName)) {
+            allowCreateGroup = true;
+            break;
+          }
+
+          // TODO: move this nasty hack into the PrincipalManager dynamic groups need to
+          // be in the principal manager for this to work.
+          if ("authenticated".equals(groupName)
+              && !SecurityConstants.ADMIN_ID.equals(currentUser.getID())) {
+            allowCreateGroup = true;
+            break;
+          }
+
+          // just check via the user manager for dynamic resolution.
           Group group = (Group) um.getAuthorizable(groupName);
           LOGGER.debug("Checking for group  {} {} ", groupName, group);
-
           if (group != null && group.isMember(currentUser)) {
             allowCreateGroup = true;
             LOGGER.debug("User is a member  of {} {} ", groupName, group);
@@ -285,8 +314,14 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
         // write content from form
         writeContent(session, group, reqProperties, changes);
 
-        // update the group memberships
-        updateGroupMembership(request, group, changes);
+        // update the group memberships, although this uses session from the request, it
+        // only
+        // does so for finding authorizables, so its ok that we are using an admin session
+        // here.
+        updateGroupMembership(session, request, group, changes);
+        updateOwnership(session, request, group, new String[] {currentUser.getID()},
+            changes);
+
         try {
           for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
             userPostProcessor.process(session, request, changes);
@@ -307,6 +342,7 @@ public class CreateSakaiGroupServlet extends AbstractGroupPostServlet implements
       ungetSession(session);
     }
   }
+
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);

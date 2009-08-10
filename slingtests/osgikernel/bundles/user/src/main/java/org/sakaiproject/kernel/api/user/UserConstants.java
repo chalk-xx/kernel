@@ -60,6 +60,9 @@ public interface UserConstants {
    * The ID of an anon user.
    */
   public static final String ANON_USERID = "anonymous";
+  
+  public static final String ADMIN_PRINCIPALS_PROPERTY = "sakai:delegatedGroupAdmin";
+
 
   
 }
