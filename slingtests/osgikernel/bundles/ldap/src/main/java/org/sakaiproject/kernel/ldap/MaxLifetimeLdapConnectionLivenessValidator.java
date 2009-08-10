@@ -25,9 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * 
  * @author dmccallum
- *
+ * @author "Carl Hall" <carl.hall@gatech.edu>
+ * 
  */
 @Component(immediate = true)
 @Service

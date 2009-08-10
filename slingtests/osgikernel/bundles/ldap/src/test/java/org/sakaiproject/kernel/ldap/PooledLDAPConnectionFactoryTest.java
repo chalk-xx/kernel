@@ -44,9 +44,10 @@ import java.io.UnsupportedEncodingException;
  * Currently verifies a subset of {@link PooledLDAPConnectionFactory} features.
  * Specifically, is concerned with verifying fixes to object validation which
  * were causing stale connections to remain in the pool indefinitely.
- *
- *
+ * 
+ * 
  * @author Dan McCallum (dmccallum@unicon.net)
+ * @author "Carl Hall" <carl.hall@gatech.edu>
  */
 public class PooledLDAPConnectionFactoryTest {
 

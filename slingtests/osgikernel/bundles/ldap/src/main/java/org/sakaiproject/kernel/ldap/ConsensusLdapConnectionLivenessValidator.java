@@ -29,19 +29,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A "federating" {@link LdapConnectionLivenessValidator} implemenation
- * which requires all delegates to validate a given connection. Considers
- * a connection invalid if any one member returns <code>false</code>
- * from {@link LdapConnectionLivenessValidator#isConnectionAlive(com.novell.ldap.LDAPConnection)}.
- *
- * <p>Intended for chaining together multiple liveness strategies. E.g.,
- * to assist with logging, an institution may choose to require both
+ * A "federating" {@link LdapConnectionLivenessValidator} implemenation which
+ * requires all delegates to validate a given connection. Considers a connection
+ * invalid if any one member returns <code>false</code> from
+ * {@link LdapConnectionLivenessValidator#isConnectionAlive(com.novell.ldap.LDAPConnection)}
+ * .
+ * 
+ * <p>
+ * Intended for chaining together multiple liveness strategies. E.g., to assist
+ * with logging, an institution may choose to require both
  * {@link MaxLifetimeLdapConnectionLivenessValidator} and
- * {@link SearchExecutingLdapConnectionLivenessValidator} to validate
- * connection liveness.</p>
- *
- *
+ * {@link SearchExecutingLdapConnectionLivenessValidator} to validate connection
+ * liveness.
+ * </p>
+ * 
+ * 
  * @author dmccallum
+ * @author "Carl Hall" <carl.hall@gatech.edu>
  */
 @Component
 public class ConsensusLdapConnectionLivenessValidator implements LdapConnectionLivenessValidator {
