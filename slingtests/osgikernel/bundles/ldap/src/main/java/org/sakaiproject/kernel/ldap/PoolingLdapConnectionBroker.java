@@ -129,13 +129,17 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
     }
 
     // create a new connection manager, set the config and initialize it.
-    PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager();
+    PoolingLdapConnectionManager mgr = newPoolingLdapConnectionManager();
     mgr.setConfig(config);
     mgr.init();
 
     // put the new connection manager in the store and set it to be
     // available outside of this block.
     factories.put(name, mgr);
+  }
+
+  protected PoolingLdapConnectionManager newPoolingLdapConnectionManager() {
+    return new PoolingLdapConnectionManager();
   }
 
   /**
@@ -209,7 +213,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
 
   public void update(Map<String, String> props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    if (props != null) {
+    if (props != null && !props.isEmpty()) {
       String autoBind = props.get(AUTO_BIND);
       String followReferrals = props.get(FOLLOW_REFERRALS);
       String keystoreLocation = props.get(KEYSTORE_LOCATION);
