@@ -91,7 +91,7 @@ public class SimpleLdapConnectionManagerTest {
   }
 
   @Test
-  public void testConnectionCantConnect() {
+  public void testConnectionCantConnect() throws Exception {
     try {
       conn.setConstraints((LDAPConstraints) anyObject());
       expectLastCall();
@@ -103,7 +103,7 @@ public class SimpleLdapConnectionManagerTest {
       mgr.init();
       mgr.getConnection();
       fail("Should throw an exception when can't connect.");
-    } catch (Exception e) {
+    } catch (LdapException e) {
       // expected
     }
   }

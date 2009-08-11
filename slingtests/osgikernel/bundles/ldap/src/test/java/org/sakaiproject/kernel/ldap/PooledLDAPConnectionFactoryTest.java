@@ -28,9 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
-import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPSearchResults;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,8 +42,8 @@ import java.io.UnsupportedEncodingException;
  * Currently verifies a subset of {@link PooledLDAPConnectionFactory} features.
  * Specifically, is concerned with verifying fixes to object validation which
  * were causing stale connections to remain in the pool indefinitely.
- * 
- * 
+ *
+ *
  * @author Dan McCallum (dmccallum@unicon.net)
  * @author "Carl Hall" <carl.hall@gatech.edu>
  */
@@ -53,8 +51,6 @@ public class PooledLDAPConnectionFactoryTest {
 
   private PooledLDAPConnectionFactory factory;
   private PooledLDAPConnection conn;
-  private LDAPSearchResults ldapSearchResults;
-  private LDAPEntry ldapEntry;
   private LdapConnectionLivenessValidator livenessValidator;
   private LdapConnectionManager connMgr;
   private LdapConnectionManagerConfig connMgrConfig;
@@ -71,8 +67,6 @@ public class PooledLDAPConnectionFactoryTest {
       }
     };
 
-    ldapSearchResults = createMock(LDAPSearchResults.class);
-    ldapEntry = createMock(LDAPEntry.class);
     livenessValidator = createMock(LdapConnectionLivenessValidator.class);
     factory.setConnectionLivenessValidator(livenessValidator);
     connMgr = createMock(LdapConnectionManager.class);

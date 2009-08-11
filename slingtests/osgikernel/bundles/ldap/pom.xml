@@ -41,7 +41,8 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.ldap</Export-Package>
+            <Export-Package>org.sakaiproject.kernel.ldap.api</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.ldap</Private-Package>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
@@ -85,12 +86,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>1.5.6</version>
-      <scope>test</scope>
-    </dependency>
 
 <!-- pooling -->
     <dependency>
@@ -99,17 +94,25 @@
       <version>1.5.2</version>
     </dependency>
 
-<!-- mock objects -->
+<!-- test artifacts -->
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>2.5.1</version>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
       <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.5.6</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
