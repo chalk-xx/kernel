@@ -65,8 +65,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   @Property(value = {"tcp://localhost:61616"})
   static final String BROKER_URL = "email.out.brokerUrl";
-  @Property(value = {"sakai.email.outgoing"})
-  static final String QUEUE_NAME = "email.out.queueName";
   @Property(value = {"localhost"})
   static final String SMTP_SERVER = "sakai.smtp.server";
   @Property(intValue = 8025)
@@ -85,7 +83,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @Reference
   protected EventAdmin eventAdmin;
 
-  private static final String NODE_PATH_PROPERTY = "nodePath";
+  protected static final String QUEUE_NAME = "sakai.email.outgoing";
+  protected static final String NODE_PATH_PROPERTY = "nodePath";
 
   private Connection connection = null;
   private Session session = null;
@@ -93,7 +92,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private String brokerUrl;
   private ConnectionFactory connectionFactory = null;
   private Queue dest = null;
-  private String queueName;
   private Integer maxRetries;
   private Integer smtpPort;
   private String smtpServer;
@@ -228,7 +226,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
             Properties eventProps = new Properties();
             eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
 
-            Event retryEvent = new Event(queueName, eventProps);
+            Event retryEvent = new Event(QUEUE_NAME, eventProps);
             eventAdmin.postEvent(retryEvent);
 
           }
@@ -315,8 +313,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       brokerUrl = _brokerUrl;
       connection = connectionFactory.createConnection();
       session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      queueName = (String) props.get(QUEUE_NAME);
-      dest = session.createQueue(queueName);
+      dest = session.createQueue(QUEUE_NAME);
       consumer = session.createConsumer(dest);
       consumer.setMessageListener(this);
       connection.start();
