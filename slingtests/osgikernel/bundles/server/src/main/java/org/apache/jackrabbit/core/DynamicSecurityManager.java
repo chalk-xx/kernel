@@ -130,7 +130,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * key = name of the workspace,
      * value = {@link AccessControlProvider}
      */
-    private final Map acProviders = new HashMap();
+    private final Map<String,AccessControlProvider> acProviders = new HashMap<String,AccessControlProvider>();
 
     /**
      * the AccessControlProviderFactory
@@ -261,9 +261,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void close() {
         checkInitialized();
         synchronized (acProviders) {
-            Iterator itr = acProviders.values().iterator();
+            Iterator<AccessControlProvider> itr = acProviders.values().iterator();
             while (itr.hasNext()) {
-                ((AccessControlProvider) itr.next()).close();
+                itr.next().close();
             }
             acProviders.clear();
         }
@@ -365,7 +365,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         */
         String uid = null;
         // try simple access to userID over SimpleCredentials first.
-        Iterator creds = subject.getPublicCredentials(SimpleCredentials.class).iterator();
+        Iterator<?> creds = subject.getPublicCredentials(SimpleCredentials.class).iterator();
         if (creds.hasNext()) {
             SimpleCredentials sc = (SimpleCredentials) creds.next();
             uid = sc.getUserID();
@@ -373,7 +373,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             // no SimpleCredentials: retrieve authorizables corresponding to
             // a non-group principal. the first one present is used to determine
             // the userID.
-            for (Iterator it = subject.getPrincipals().iterator(); it.hasNext();) {
+            for (Iterator<?> it = subject.getPrincipals().iterator(); it.hasNext();) {
                 Principal p = (Principal) it.next();
                 if (!(p instanceof Group)) {
                     Authorizable authorz = systemUserManager.getAuthorizable(p);
@@ -500,6 +500,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         /**
          * {@inheritDoc}
          */
+        @SuppressWarnings("unchecked")
         public boolean grants(Set principals, String workspaceName) throws RepositoryException {
             try {
                 AccessControlProvider prov = getAccessControlProvider(workspaceName);

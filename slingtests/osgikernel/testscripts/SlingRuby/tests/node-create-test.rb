@@ -77,21 +77,23 @@ class TC_NodeCreateTest < SlingTest
   def test_create_node_and_get_version_history
     puts("test_create_node_and_get_version_history---------------------------START")
     m = Time.now.to_i.to_s
+    version_content = { "jcr:rootVersion" => nil }
 	nodepath = "test/nodepath/node" + m
     res = @s.execute_post(@s.url_for(nodepath), "testproperty" => "version1" )
     assert_equal(201, res.code.to_i, "Expected POST on create to suceed: "+res.body)
     res = @s.execute_get(@s.url_for(nodepath+".json"))
     assert_equal(200, res.code.to_i, "Expected GET to succeed "+res.body )
 	puts("Attempting version history operation ")
-    res = @s.execute_get(@s.url_for(nodepath +  ".versions.json"), "dummy")
+    res = @s.execute_get(@s.url_for(nodepath +  ".versions.json"))
     assert_equal(200, res.code.to_i, "Expected GET to versions to succeed, looks like versioning is not working check the logs. "+res.body)
-    res = @s.execute_post(@s.url_for(nodepath + ".save.html"), "dummy")
+    res = @s.execute_post(@s.url_for(nodepath + ".save.html"))
     assert_equal(200, res.code.to_i, "Expected POST to save to succeed, looks like versioning is not working check the logs. "+res.body)
-	
+    version_content[JSON.parse(res.body)["versionName"]] = "version1"
     res = @s.execute_post(@s.url_for(nodepath), "testproperty" => "version2" )
     assert_equal(200, res.code.to_i, "Expected POST on create to suceed: "+res.body)
-	res = @s.execute_post(@s.url_for(nodepath + ".save.html"), "dummy")
+	res = @s.execute_post(@s.url_for(nodepath + ".save.html"))
     assert_equal(200, res.code.to_i, "Expected POST to save to succeed, looks like versioning is not working check the logs. "+res.body)
+    version_content[JSON.parse(res.body)["versionName"]] = "version2"
    res = @s.execute_post(@s.url_for(nodepath), "testproperty" => "version3" )
     assert_equal(200, res.code.to_i, "Expected POST on create to suceed: "+res.body)
 
@@ -109,6 +111,9 @@ class TC_NodeCreateTest < SlingTest
 	  puts("loading Version "+versionName)
       res = @s.execute_get(@s.url_for(nodepath +  ".version.,"+versionName+",.json"), "dummy")
       assert_equal(200, res.code.to_i, "Expected GET to version "+versionName+" to succeed, looks like versioning is not working check the logs. "+res.body)
+      content = JSON.parse(res.body)
+      assert(version_content.has_key?(versionName), "Expected version to be expected")  
+      assert_equal(version_content[versionName], content["testproperty"], "Expected version content to have been frozen. Looks like versioning is not working. Check the logs")
     end
 	
     puts("test_create_node_and_get_version_history---------------------------END")

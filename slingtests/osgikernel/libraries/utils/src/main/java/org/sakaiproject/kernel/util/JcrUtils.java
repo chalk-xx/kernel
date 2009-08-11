@@ -20,11 +20,14 @@ package org.sakaiproject.kernel.util;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.jcr.JsonItemWriter;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashSet;
 
 import javax.jcr.Item;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
@@ -38,6 +41,8 @@ import javax.jcr.nodetype.PropertyDefinition;
  */
 public class JcrUtils {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(JcrUtils.class);
+  
   /**
    * Deep creates a path.
    * 
@@ -172,6 +177,36 @@ public class JcrUtils {
       }
     }
     return new Value[] {};
+  }
+  
+  public static NodeInputStream getInputStreamForNode(Node node) {
+    try {
+      Node content = node.isNodeType("nt:file") ? node.getNode("jcr:content") : node;
+      Property data;
+
+      if (content.hasProperty("jcr:data")) {
+        data = content.getProperty("jcr:data");
+      } else {
+        try {
+          Item item = content.getPrimaryItem();
+          while (item.isNode()) {
+            item = ((Node) item).getPrimaryItem();
+          }
+          data = ((Property) item);
+        } catch (ItemNotFoundException infe) {
+          data = null;
+        }
+      }
+
+      if (data != null) {
+        long length = data.getLength();
+        InputStream stream = data.getStream();
+        return new NodeInputStream(node, stream, length);
+      }
+    } catch (RepositoryException re) {
+      LOGGER.error("getInputStream: Cannot get InputStream for " + node, re);
+    }
+    return null;
   }
 
 }

@@ -17,20 +17,35 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
+import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateGroupServlet;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -82,9 +97,13 @@ import javax.servlet.http.HttpServletResponse;
  *                unbind="unbindUserPostProcessor"
  *                interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
  *                cardinality="0..n" policy="dynamic"
+ * @scr.property name="servlet.post.dateFormats" values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
+ *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+ *               values.2="yyyy-MM-dd'T'HH:mm:ss" values.3="yyyy-MM-dd"
+ *               values.4="dd.MM.yyyy HH:mm:ss" values.5="dd.MM.yyyy"
  * 
  */
-public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
+public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
   /**
    *
@@ -96,28 +115,145 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
   private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
+   * The JCR Repository we access to resolve resources
+   * 
+   * @scr.reference
+   */
+  private SlingRepository repository;
+
+  /** Returns the JCR repository used by this service. */
+  protected SlingRepository getRepository() {
+    return repository;
+  }
+
+  /**
+   * Returns an administrative session to the default workspace.
+   */
+  private Session getSession() throws RepositoryException {
+    return getRepository().loginAdministrative(null);
+  }
+
+  /**
+   * Return the administrative session and close it.
+   */
+  private void ungetSession(final Session session) {
+    if (session != null) {
+      try {
+        session.logout();
+      } catch (Throwable t) {
+        LOGGER.error("Unable to log out of session: " + t.getMessage(), t);
+      }
+    }
+  }
+
+  /**
    * {@inheritDoc}
    * 
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
-  protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
-      List<Modification> changes) throws RepositoryException {
-    super.handleOperation(request, response, changes);
-    try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(session, request, changes);
-      }
-    } catch (Exception e) {
-      LOGGER.warn(e.getMessage(), e);
+  protected void handleOperation(SlingHttpServletRequest request,
+      HtmlResponse htmlResponse, List<Modification> changes) throws RepositoryException {
+    boolean modifyGroup = false;
+    Principal authorizablePrincipal = null;
 
-      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      return;
+    { // check if the user can modify the group
+
+      Authorizable authorizable = null;
+      Resource resource = request.getResource();
+
+      if (resource != null) {
+        authorizable = resource.adaptTo(Authorizable.class);
+      }
+
+      // check that the group was located.
+      if (authorizable == null) {
+        throw new ResourceNotFoundException("Group to update could not be determined");
+      }
+      authorizablePrincipal = authorizable.getPrincipal();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      if (session == null) {
+        throw new RepositoryException("JCR Session not found");
+      }
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      User currentUser = (User) userManager.getAuthorizable(session.getUserID());
+      if (currentUser == null) {
+        throw new RepositoryException("Cant locate the current user ");
+      }
+      if (currentUser.isAdmin()) {
+        modifyGroup = true;
+      } else {
+
+        Set<String> userPrincipals = new HashSet<String>();
+        for (PrincipalIterator pi = currentUser.getPrincipals(); pi.hasNext();) {
+          String pname = pi.nextPrincipal().getName();
+          userPrincipals.add(pname);
+          LOGGER.info("Adding Group to the set for the user. [{}]  ", pname);
+        }
+        if (authorizable.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
+          Value[] groups = authorizable
+              .getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY);
+          for (Value group : groups) {
+            String groupName = group.getString();
+            LOGGER.info("Checking Group [{}]  ", groupName);
+            if (userPrincipals.contains(groupName)) {
+              modifyGroup = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (!modifyGroup) {
+      LOGGER.warn("User is not allowed to modify group ");
+      throw new RepositoryException("Not Allowed to modify the group ");
+    }
+    // switch to the admin
+    Session session = getSession();
+    try {
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      Authorizable authorizable = userManager.getAuthorizable(authorizablePrincipal);
+
+      Map<String, RequestProperty> reqProperties = collectContent(request, htmlResponse);
+      try {
+        // cleanup any old content (@Delete parameters)
+        processDeletes(authorizable, reqProperties, changes);
+
+        // write content from form
+        writeContent(session, authorizable, reqProperties, changes);
+
+        // update the group memberships
+        if (authorizable.isGroup()) {
+          updateGroupMembership(session, request, authorizable, changes);
+        }
+      } catch (RepositoryException re) {
+        throw new RepositoryException("Failed to update group.", re);
+      }
+
+      try {
+        for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+          userPostProcessor.process(session, request, changes);
+        }
+      } catch (Exception e) {
+        LOGGER.warn(e.getMessage(), e);
+
+        htmlResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+            .getMessage());
+        return;
+      }
+
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch ( Throwable t ) {
+      LOGGER.info("Failed "+t.getMessage(),t);
+      throw new RepositoryException(t.getMessage(),t);
+    } finally {
+      ungetSession(session);
     }
   }
-
+  
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     postProcessorTracker.bindUserPostProcessor(serviceReference);
 
@@ -134,8 +270,25 @@ public class UpdateSakaiGroupServlet extends UpdateGroupServlet {
    *          The OSGi <code>ComponentContext</code> of this component.
    */
   protected void activate(ComponentContext componentContext) {
+    LOGGER.info("Context is "+componentContext);
     super.activate(componentContext);
     postProcessorTracker.setComponentContext(componentContext);
+  }
+
+  /**
+   * @param slingRepository
+   */
+  public void bindRepository(SlingRepository slingRepository) {
+    this.repository = slingRepository;
+
+  }
+
+  /**
+   * @param slingRepository
+   */
+  public void unbindRepository(SlingRepository slingRepository) {
+    this.repository = null;
+
   }
 
 }
