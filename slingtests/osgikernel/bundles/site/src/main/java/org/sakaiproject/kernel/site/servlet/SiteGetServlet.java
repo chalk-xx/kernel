@@ -73,7 +73,7 @@ public class SiteGetServlet extends AbstractSiteServlet {
       return;
     }
     try {
-      String templatePath = getSiteService().getSiteTemplate(site);
+      String templatePath = getSiteService().getSiteSkin(site);
       Resource siteTemplate = request.getResourceResolver().getResource(templatePath);
       if (siteTemplate == null) {
         LOG.warn("No site template found at location {} for site {}, will use default template (templates must be specified as absolute paths) ", new Object[] {

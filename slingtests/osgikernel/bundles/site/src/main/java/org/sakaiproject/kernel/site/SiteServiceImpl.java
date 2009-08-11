@@ -106,6 +106,28 @@ public class SiteServiceImpl implements SiteService {
     }
     return false;
   }
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.site.SiteService#isSiteTemplate(javax.jcr.Item)
+   */
+  public boolean isSiteTemplate(Item site) {
+      try {
+          if (site instanceof Node) {
+            Node n = (Node) site;
+            if (n.hasProperty(SiteService.SAKAI_IS_SITE_TEMPLATE)) {
+                return n.getProperty(SiteService.SAKAI_IS_SITE_TEMPLATE).getBoolean();
+            }
+          }
+        } catch (RepositoryException e) {
+          LOGGER.warn(e.getMessage(), e);
+          return false;
+        }
+        return false;
+  }
+
+  
 
   /**
    * {@inheritDoc}
@@ -372,6 +394,23 @@ public class SiteServiceImpl implements SiteService {
     }
     return DEFAULT_SITE;
   }
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.site.SiteService#getSiteSkin(javax.jcr.Node)
+   */
+  public String getSiteSkin(Node site) throws SiteException {
+	  try {
+	      if (site.hasProperty(SiteService.SAKAI_SKIN)) {
+	        return site.getProperty(SiteService.SAKAI_SKIN).getString();
+	      }
+	    } catch (RepositoryException e) {
+	      LOGGER.warn(e.getMessage(), e);
+	    }
+	    return DEFAULT_SITE;
+  }
+
 
   /**
    * {@inheritDoc}

@@ -44,7 +44,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
   public void testRenderSite() throws RepositoryException, IOException, ServletException
   {
     goodSiteNodeSetup();
-    expect(node.hasProperty(eq(SiteService.SAKAI_SITE_TEMPLATE))).andReturn(false);
+    expect(node.hasProperty(eq(SiteService.SAKAI_SKIN))).andReturn(false);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
     Resource resource = createMock(Resource.class);
@@ -73,7 +73,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     goodSiteNodeSetup();
     SiteService siteService = createMock(SiteService.class);
     expect(siteService.isSite(isA(Item.class))).andReturn(true);
-    expect(siteService.getSiteTemplate(isA(Node.class))).andThrow(new SiteException(1, "Doom"));
+    expect(siteService.getSiteSkin(isA(Node.class))).andThrow(new SiteException(1, "Doom"));
     response.sendError(eq(1), isA(String.class));
 
     setupEmptyExtension();

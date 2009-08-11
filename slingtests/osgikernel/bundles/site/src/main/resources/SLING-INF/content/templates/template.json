@@ -1,0 +1,11 @@
+{"sakai:is-site-template": "true",
+        "sakai:authorizables": ["g-temp-collaborators", "g-temp-viewers"],
+        "description": "This is a template!",
+        "id": "template",
+        "sakai:site-template": "/dev/_skins/original/original.html",
+        "sling:resourceType": "sakai/site",
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:mixinTypes": ["rep:AccessControllable"],
+        "status": "online",
+        "name": "template"
+    }
