@@ -16,6 +16,9 @@
  */
 package org.sakaiproject.kernel.ldap;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
@@ -76,5 +79,25 @@ public class PooledLDAPConnectionTest {
     conn.setActive(false); // just to be sure
     conn.finalize();
     // rely on jMock to refuse any calls to the connection mgr
+  }
+
+  @Test
+  public void testFinalizeNullConnectionManager() throws LDAPException {
+    conn.setActive(true);
+    conn.setConnectionManager(null);
+    conn.finalize();
+  }
+
+  @Test
+  public void testSetsGets() {
+    conn.setActive(false);
+    assertFalse(conn.isActive());
+
+    conn.setBindAttempted(true);
+    assertTrue(conn.isBindAttempted());
+
+    assertNotNull(conn.getBirthdate());
+
+    assertNotNull(conn.getConnectionManager());
   }
 }
