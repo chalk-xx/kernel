@@ -1,0 +1,119 @@
+  <!--
+    * Licensed to the Sakai Foundation (SF) under one
+    * or more contributor license agreements. See the NOTICE file
+    * distributed with this work for additional information
+    * regarding copyright ownership. The SF licenses this file
+    * to you under the Apache License, Version 2.0 (the
+    * "License"); you may not use this file except in compliance
+    * with the License. You may obtain a copy of the License at
+    *
+    * http://www.apache.org/licenses/LICENSE-2.0
+    *
+    * Unless required by applicable law or agreed to in writing,
+    * software distributed under the License is distributed on an
+    * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    * KIND, either express or implied. See the License for the
+    * specific language governing permissions and limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>base</artifactId>
+    <groupId>org.sakaiproject.kernel</groupId>
+    <version>0.1-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.sakaiproject.kernel</groupId>
+  <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+  <packaging>bundle</packaging>
+  <name>Sakai Kernel LDAP Connection Bundle</name>
+  <version>0.1-SNAPSHOT</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-scr-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-Category>sakai-kernel</Bundle-Category>
+            <Export-Package>org.sakaiproject.kernel.ldap.api</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.ldap</Private-Package>
+            <Import-Package>*</Import-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+<!-- kernel -->
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+<!-- scr annotations -->
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+      <version>0.9.0</version>
+    </dependency>
+
+<!-- osgi -->
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+    </dependency>
+
+<!-- ldap -->
+    <dependency>
+      <groupId>com.novell.ldap</groupId>
+      <artifactId>jldap</artifactId>
+      <version>4.3</version>
+    </dependency>
+
+<!-- logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+<!-- pooling -->
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+
+<!-- test artifacts -->
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymockclassextension</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.5.6</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>
