@@ -25,6 +25,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
@@ -138,8 +139,11 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         for (; members.hasNext();) {
           User u = members.next();
           Resource resource = request.getResourceResolver().resolve(
-              "/system/userManager/user/" + u.getID());
+          //    "/system/userManager/user/" + u.getID());
+                  PersonalUtils.getProfilePath(u.getID()));
           ValueMap map = resource.adaptTo(ValueMap.class);
+          
+          
           // add in the listing of member group names -
           // http://jira.sakaiproject.org/browse/KERN-276
           Set<String> groupIds = null;
