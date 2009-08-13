@@ -24,6 +24,7 @@ import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.jcr.Session;
@@ -31,6 +32,7 @@ import javax.jcr.Value;
 
 public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testHandleOperation() throws Exception {
     UpdateSakaiGroupServlet usgs = new UpdateSakaiGroupServlet();
@@ -41,7 +43,9 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     Principal principal = createMock(Principal.class);
     User currentUser = createMock(User.class);
     PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
+    Iterator<Group> groupIterator = createMock(Iterator.class);
     Principal gprincipal = createMock(Principal.class);
+    Group dummyGroup = createMock(Group.class);
     Value group = createMock(Value.class);
     Value[] values = new Value[] { group, group };
     SlingRepository slingRepository = createMock(SlingRepository.class);
@@ -62,15 +66,18 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(session.getUserID()).andReturn("notadmin");
     expect(userManager.getAuthorizable("notadmin")).andReturn(currentUser);
     expect(currentUser.isAdmin()).andReturn(false);
+    expect(currentUser.declaredMemberOf()).andReturn(groupIterator);
     expect(currentUser.getPrincipals()).andReturn(principalIterator);
-    
+
     expect(principalIterator.hasNext()).andReturn(true);
     expect(principalIterator.nextPrincipal()).andReturn(gprincipal);
     expect(gprincipal.getName()).andReturn("1");
-    expect(principalIterator.hasNext()).andReturn(true);
-    expect(principalIterator.nextPrincipal()).andReturn(gprincipal);
-    expect(gprincipal.getName()).andReturn("matches2");
     expect(principalIterator.hasNext()).andReturn(false);
+    
+    expect(groupIterator.hasNext()).andReturn(true);
+    expect(groupIterator.next()).andReturn(dummyGroup);
+    expect(dummyGroup.getID()).andReturn("matches2").anyTimes();
+    expect(groupIterator.hasNext()).andReturn(false);
     
     expect(authorizable.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)).andReturn(true);
     expect(authorizable.getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)).andReturn(values);
