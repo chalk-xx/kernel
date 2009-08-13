@@ -58,21 +58,21 @@ import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
 
-@Component(label = "%email.out.name", description = "%email.out.description", immediate = true)
+@Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
 public class OutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OutgoingEmailMessageListener.class);
 
-  @Property(value = {"tcp://localhost:61616"})
-  static final String BROKER_URL = "email.out.brokerUrl";
-  @Property(value = {"localhost"})
-  static final String SMTP_SERVER = "sakai.smtp.server";
-  @Property(intValue = 8025)
-  static final String SMTP_PORT = "sakai.smtp.port";
+  @Property(value = "tcp://localhost:61616")
+  public static final String BROKER_URL = "email.out.brokerUrl";
+  @Property(value = "localhost")
+  private static final String SMTP_SERVER = "sakai.smtp.server";
+  @Property(intValue = 8025, label = "%sakai.smtp.port.name")
+  private static final String SMTP_PORT = "sakai.smtp.port";
   @Property(intValue = 240)
-  static final String MAX_RETRIES = "sakai.email.maxRetries";
+  private static final String MAX_RETRIES = "sakai.email.maxRetries";
   @Property(intValue = 30)
-  static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
+  private static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
 
   @Reference
   protected SlingRepository repository;
