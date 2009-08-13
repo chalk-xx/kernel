@@ -10,6 +10,7 @@ class TC_Kern292Test < SlingTest
 
   def test_mutual_group_addition
     m = Time.now.to_i.to_s
+    @s.debug = true
     g1 = create_group("g-testgroup1-#{m}")
     g2 = create_group("g-testgroup2-#{m}")
     res = g2.add_member(@s, g1.name, "group")
