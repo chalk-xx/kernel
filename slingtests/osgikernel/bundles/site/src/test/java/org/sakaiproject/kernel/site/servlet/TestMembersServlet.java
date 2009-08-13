@@ -34,6 +34,7 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.Test;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
 
 import java.io.IOException;
@@ -100,7 +101,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver)
         .anyTimes();
-    expect(resourceResolver.resolve("/system/userManager/user/" + TEST_USER))
+    expect(resourceResolver.resolve(PersonalUtils.getProfilePath(TEST_USER)))
         .andReturn(dummyUserResource(TEST_USER));
 
     JSONArray json = makeGetRequestReturningJSON();
@@ -273,7 +274,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
       User testUser = createDummyUser(testUserName);
       users.add(testUser);
       expect(
-          resourceResolver.resolve("/system/userManager/user/" + testUserName))
+          resourceResolver.resolve(PersonalUtils.getProfilePath(testUserName)))
           .andReturn(dummyUserResource(testUserName)).anyTimes();
     }
     return users;
