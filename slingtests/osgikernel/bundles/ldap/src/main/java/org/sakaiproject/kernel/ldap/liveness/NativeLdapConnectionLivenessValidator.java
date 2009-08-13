@@ -15,14 +15,18 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import com.novell.ldap.LDAPConnection;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Component
+@Service
 public class NativeLdapConnectionLivenessValidator
 implements LdapConnectionLivenessValidator {
 

@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -52,8 +52,11 @@ import java.text.MessageFormat;
  *
  * @author dmccallum@unicon.net
  * @author "Carl Hall" <carl.hall@gatech.edu>
+ * 
+ * @scr.component enabled="false" immediate="true"
+ * @scr.service
  */
-@Component
+@Component(enabled = false, immediate = true)
 @Service
 public class SearchExecutingLdapConnectionLivenessValidator implements
     LdapConnectionLivenessValidator {

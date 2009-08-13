@@ -22,11 +22,17 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 
 import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An object factory for managing <code>PooledLDAPConnection<code>s
@@ -59,10 +65,15 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   /** standard set of LDAP constraints */
   private LDAPConstraints standardConstraints;
 
-  private LdapConnectionLivenessValidator livenessValidator;
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindLivenessValidator", unbind = "unbindLivenessValidator")
+  private List<LdapConnectionLivenessValidator> livenessValidators = new LinkedList<LdapConnectionLivenessValidator>();
 
-  public PooledLDAPConnectionFactory() {
-    this.livenessValidator = newDefaultConnectionLivenessValidator();
+  protected void bindLivenessValidator(LdapConnectionLivenessValidator validator) {
+    livenessValidators.add(validator);
+  }
+
+  protected void unbindLivenessValidator(LdapConnectionLivenessValidator validator) {
+    livenessValidators.remove(validator);
   }
 
   /**
@@ -195,7 +206,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
       log.debug("validateObject(): beginning connection liveness testing");
 
       try {
-        if (!(livenessValidator.isConnectionAlive(conn))) {
+        if (!isConnectionAlive(conn)) {
           log.info("validateObject(): connection failed liveness test");
           conn.setActive(false);
           log
@@ -218,6 +229,19 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
 
     log.debug("validateObject(): connection appears to be valid, returning true");
     return true;
+  }
+
+  private boolean isConnectionAlive(LDAPConnection conn) {
+    boolean live = false;
+    if (!livenessValidators.isEmpty()) {
+      for (LdapConnectionLivenessValidator validator : livenessValidators) {
+        live = validator.isConnectionAlive(conn);
+        if (!live) {
+          break;
+        }
+      }
+    }
+    return live;
   }
 
   /**
@@ -274,42 +298,5 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
     standardConstraints = new LDAPConstraints();
     standardConstraints.setTimeLimit(connectionManager.getConfig().getOperationTimeout());
     standardConstraints.setReferralFollowing(connectionManager.getConfig().isFollowReferrals());
-
   }
-
-  /**
-   * Assign a strategy for verifying {@link LDAPConnection} liveness. Defaults
-   * to an instance of {@link NativeLdapConnectionLivenessValidator}.
-   *
-   * @param livenessValidator
-   *          an object implementing a liveness validation strategy. Pass
-   *          <code>null</code> to force default behavior.
-   */
-  public void setConnectionLivenessValidator(LdapConnectionLivenessValidator livenessValidator) {
-    if (livenessValidator == null) {
-      livenessValidator = newDefaultConnectionLivenessValidator();
-    }
-    this.livenessValidator = livenessValidator;
-  }
-
-  /**
-   * As implemented, will return a new
-   * {@link NativeLdapConnectionLivenessValidator}.
-   *
-   * @return the default {@link LdapConnectionLivenessValidator} strategy.
-   */
-  protected LdapConnectionLivenessValidator newDefaultConnectionLivenessValidator() {
-    return new NativeLdapConnectionLivenessValidator();
-  }
-
-  /**
-   * Access the strategy for verifying {@link LDAPConnection} liveness. Will not
-   * return <code>null</code>.
-   *
-   * @return the current connection liveness validator.
-   */
-  public LdapConnectionLivenessValidator getConnectionLivenessValidator() {
-    return this.livenessValidator;
-  }
-
 }

@@ -28,6 +28,7 @@ import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.ldap.api.LdapConstants;
 import org.sakaiproject.kernel.ldap.api.LdapException;
 
 import java.util.Hashtable;
@@ -47,20 +48,6 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
 
   @Reference
   protected ConfigurationService configService;
-
-  static final String AUTO_BIND = "sakai.ldap.autobind";
-  static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
-  static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
-  static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
-  static final String HOST = "sakai.ldap.host";
-  static final String PORT = "sakai.ldap.port";
-  static final String USER = "sakai.ldap.user";
-  static final String PASSWORD = "sakai.ldap.password";
-  static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
-  static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
-  static final String POOLING = "sakai.ldap.pooling";
-  static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
-  static final String TLS = "sakai.ldap.tls";
 
   /**
    * Default constructor for normal usage.
@@ -214,19 +201,19 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   public void update(Map<String, String> props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
-      String autoBind = props.get(AUTO_BIND);
-      String followReferrals = props.get(FOLLOW_REFERRALS);
-      String keystoreLocation = props.get(KEYSTORE_LOCATION);
-      String keystorePassword = props.get(KEYSTORE_PASSWORD);
-      String secureConnection = props.get(SECURE_CONNECTION);
-      String host = props.get(HOST);
-      String port = props.get(PORT);
-      String user = props.get(USER);
-      String password = props.get(PASSWORD);
-      String operationTimeout = props.get(OPERATION_TIMEOUT);
-      String pooling = props.get(POOLING);
-      String maxConns = props.get(POOLING_MAX_CONNS);
-      String tls = props.get(TLS);
+      String autoBind = props.get(LdapConstants.AUTO_BIND);
+      String followReferrals = props.get(LdapConstants.FOLLOW_REFERRALS);
+      String keystoreLocation = props.get(LdapConstants.KEYSTORE_LOCATION);
+      String keystorePassword = props.get(LdapConstants.KEYSTORE_PASSWORD);
+      String secureConnection = props.get(LdapConstants.SECURE_CONNECTION);
+      String host = props.get(LdapConstants.HOST);
+      String port = props.get(LdapConstants.PORT);
+      String user = props.get(LdapConstants.USER);
+      String password = props.get(LdapConstants.PASSWORD);
+      String operationTimeout = props.get(LdapConstants.OPERATION_TIMEOUT);
+      String pooling = props.get(LdapConstants.POOLING);
+      String maxConns = props.get(LdapConstants.POOLING_MAX_CONNS);
+      String tls = props.get(LdapConstants.TLS);
 
       if (autoBind != null) {
         config.setAutoBind(Boolean.parseBoolean(autoBind));

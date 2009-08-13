@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
   <!--
     * Licensed to the Sakai Foundation (SF) under one
     * or more contributor license agreements. See the NOTICE file
@@ -17,17 +18,17 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>base</artifactId>
     <groupId>org.sakaiproject.kernel</groupId>
+    <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+  <artifactId>org.sakaiproject.kernel.auth.ldap</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Kernel LDAP Connection Bundle</name>
   <version>0.1-SNAPSHOT</version>
+  <name>Sakai LDAP Authentication Bundle</name>
+  <url>http://maven.apache.org</url>
   <build>
     <plugins>
       <plugin>
@@ -41,22 +42,13 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.ldap.api</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.ldap</Private-Package>
-            <Import-Package>*</Import-Package>
+            <Export-Package>org.sakaiproject.kernel.auth.external</Export-Package>
           </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-<!-- kernel -->
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-
 <!-- scr annotations -->
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -74,45 +66,50 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
 
-<!-- ldap -->
+<!-- jldap -->
     <dependency>
       <groupId>com.novell.ldap</groupId>
       <artifactId>jldap</artifactId>
       <version>4.3</version>
     </dependency>
-
-<!-- logging -->
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
-<!-- pooling -->
+<!-- Sling -->
     <dependency>
-      <groupId>commons-pool</groupId>
-      <artifactId>commons-pool</artifactId>
-      <version>1.5.2</version>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.api</artifactId>
+      <version>2.0.2-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.engine</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+      <version>2.0.4-incubator</version>
     </dependency>
 
-<!-- test artifacts -->
+		<dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.3</version>
+    </dependency>
+
+<!-- testing -->
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymockclassextension</artifactId>
       <version>2.4</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>1.5.6</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

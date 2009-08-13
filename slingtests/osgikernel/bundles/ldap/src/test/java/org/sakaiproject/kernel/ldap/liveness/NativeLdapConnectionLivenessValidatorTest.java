@@ -19,7 +19,7 @@
  *
  **********************************************************************************/
 
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
@@ -31,6 +31,8 @@ import com.novell.ldap.LDAPConnection;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.ldap.PooledLDAPConnection;
+import org.sakaiproject.kernel.ldap.liveness.NativeLdapConnectionLivenessValidator;
 
 public class NativeLdapConnectionLivenessValidatorTest {
 
