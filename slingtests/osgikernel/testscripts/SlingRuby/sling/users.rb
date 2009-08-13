@@ -54,6 +54,15 @@ module SlingUsers
               { ":member@Delete" => principal_path })
     end
 
+    def has_member(sling, principal)
+      detail = self.details(sling)
+      members = detail["members"]
+      if (members == nil)
+        return false
+      end
+      return members.include?(principal)
+    end
+
     def remove_members(sling, principals)
       principal_paths = principals.collect do |principal|
         if principal.start_with?("g-")
