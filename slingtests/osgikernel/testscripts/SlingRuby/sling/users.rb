@@ -31,6 +31,19 @@ module SlingUsers
               { ":member" => principal_path })
     end
 
+    def add_members(sling, principals)
+      principal_paths = principals.collect do |principal|
+        if principal.start_with?("g-")
+          type = "group"
+        else
+          type = "user"
+        end
+        "/#{$USERMANAGER_URI}#{type}/#{principal}"
+      end
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":member" => principal_paths })
+    end
+
     def details(sling)
       return sling.get_node_props(group_url)
     end
@@ -39,6 +52,19 @@ module SlingUsers
       principal_path = "/#{$USERMANAGER_URI}#{type}/#{principal}"
       return sling.execute_post(sling.url_for("#{group_url}.update.html"),
               { ":member@Delete" => principal_path })
+    end
+
+    def remove_members(sling, principals)
+      principal_paths = principals.collect do |principal|
+        if principal.start_with?("g-")
+          type = "group"
+        else
+          type = "user"
+        end
+        "/#{$USERMANAGER_URI}#{type}/#{principal}"
+      end
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"),
+              { ":member@Delete" => principal_paths })
     end
 
     def set_joinable(sling, joinable)

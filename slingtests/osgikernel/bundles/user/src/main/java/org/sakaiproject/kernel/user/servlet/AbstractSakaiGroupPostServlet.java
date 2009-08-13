@@ -72,33 +72,41 @@ public abstract class AbstractSakaiGroupPostServlet extends
             boolean changed = false;
             
             UserManager userManager = AccessControlUtil.getUserManager(session);
+            
+            int addIndex = 0;
+            int removeIndex = 0;
 
-            // first remove any members posted as ":member@Delete"
             String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
                 + "member" + SlingPostConstants.SUFFIX_DELETE);
-            if (membersToDelete != null) {
-                for (String member : membersToDelete) {
-                    
-                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-                    if (memberAuthorizable != null) {
-                        group.removeMember(memberAuthorizable);
-                        changed = true;
-                    }
-
-                }
-            }
-
-            // second add any members posted as ":member"
             String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
                 + "member");
-            if (membersToAdd != null) {
-                for (String member : membersToAdd) {
-                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-                    if (memberAuthorizable != null) {
-                        group.addMember(memberAuthorizable);
+            try {
+              // first remove any members posted as ":member@Delete"
+              if (membersToDelete != null) {
+                  for (removeIndex=0; removeIndex<membersToDelete.length; removeIndex++) {
+                      if (removeMember(group, membersToDelete[removeIndex], baseResource, userManager, resolver)) {
                         changed = true;
+                      }
+                  }
+              }
+
+              // second add any members posted as ":member"
+              if (membersToAdd != null) {
+                for (addIndex=0; addIndex<membersToAdd.length; addIndex++) {
+                    if (addMember(group, membersToAdd[addIndex], baseResource, userManager, resolver)) {
+                      changed = true;
                     }
                 }
+              }
+            } catch (RepositoryException re) {
+              LOGGER.debug("Group membership modification failed, rolling back");
+              for (int unaddIndex = addIndex - 1; unaddIndex >= 0; unaddIndex--) {
+                removeMember(group, membersToAdd[unaddIndex], baseResource, userManager, resolver);
+              }
+              for (int unremoveIndex = removeIndex - 1; unremoveIndex >= 0; unremoveIndex--) {
+                addMember(group, membersToDelete[unremoveIndex], baseResource, userManager, resolver);
+              }
+              throw re;
             }
 
             if (changed) {
@@ -107,6 +115,30 @@ public abstract class AbstractSakaiGroupPostServlet extends
                 changes.add(Modification.onModified(groupPath + "/members"));
             }
         }
+    }
+
+    private boolean removeMember(Group group, String member, Resource baseResource,
+        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
+      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+      if (memberAuthorizable != null) {
+          if (!group.removeMember(memberAuthorizable)) {
+            throw new RepositoryException("Unable to remove user " + member + " from group " + group.getID());
+          }
+          return true;
+      }
+      return false;
+    }
+
+    private boolean addMember(Group group, String member, Resource baseResource,
+        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
+      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+      if (memberAuthorizable != null) {
+          if (!group.addMember(memberAuthorizable)) {
+            throw new RepositoryException("Unable to add user " + member + " to group " + group.getID());
+          }
+          return true;
+      }
+      return false;
     }
 
     /**
