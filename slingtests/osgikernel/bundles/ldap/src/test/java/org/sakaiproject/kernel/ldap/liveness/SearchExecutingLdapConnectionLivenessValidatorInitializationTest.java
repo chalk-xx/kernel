@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
@@ -26,6 +26,7 @@ import static org.easymock.classextension.EasyMock.replay;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
+import org.sakaiproject.kernel.ldap.liveness.SearchExecutingLdapConnectionLivenessValidator;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

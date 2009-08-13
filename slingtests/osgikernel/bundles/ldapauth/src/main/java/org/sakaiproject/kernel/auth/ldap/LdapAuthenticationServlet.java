@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.auth.external;
+package org.sakaiproject.kernel.auth.ldap;
 
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.kernel.auth.external.LdapAuthenticationHandler.LdapAuthentication;
+import org.sakaiproject.kernel.auth.ldap.LdapAuthenticationHandler.LdapAuthentication;
 
 import java.io.IOException;
 

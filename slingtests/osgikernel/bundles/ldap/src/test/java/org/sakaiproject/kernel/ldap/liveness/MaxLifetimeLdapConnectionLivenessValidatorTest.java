@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.createMock;
@@ -26,6 +26,8 @@ import com.novell.ldap.LDAPConnection;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.ldap.PooledLDAPConnection;
+import org.sakaiproject.kernel.ldap.liveness.MaxLifetimeLdapConnectionLivenessValidator;
 
 import java.util.Calendar;
 

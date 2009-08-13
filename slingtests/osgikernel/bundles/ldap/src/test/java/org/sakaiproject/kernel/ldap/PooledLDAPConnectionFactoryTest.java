@@ -68,7 +68,7 @@ public class PooledLDAPConnectionFactoryTest {
     };
 
     livenessValidator = createMock(LdapConnectionLivenessValidator.class);
-    factory.setConnectionLivenessValidator(livenessValidator);
+    factory.bindLivenessValidator(livenessValidator);
     connMgr = createMock(LdapConnectionManager.class);
     connMgrConfig = createMock(LdapConnectionManagerConfig.class);
     // don't call setConnectionManager() b/c we don't know what expectations to
@@ -78,29 +78,6 @@ public class PooledLDAPConnectionFactoryTest {
   @Test
   public void testValidateNullObject() {
     assertFalse(factory.validateObject(null));
-  }
-
-  /**
-   * Verifies that {@link PooledLDAPConnectionFactory} defaults its
-   * {@link LdapConnectionLivenessValidator} instance at construction time,
-   */
-  @Test
-  public void testDefaultsToNativeLdapConnectionLivenessValidator() {
-    Object livenessValidator = new PooledLDAPConnectionFactory().getConnectionLivenessValidator();
-    assertTrue("Expected a NativeLdapConnectionLivenessValidator but was [" + livenessValidator
-        + "]", livenessValidator instanceof NativeLdapConnectionLivenessValidator);
-  }
-
-  /**
-   * Verifies that {@link PooledLDAPConnectionFactory} is never without a
-   * {@link LdapConnectionLivenessValidator}.
-   */
-  @Test
-  public void testDefaultsToNativeLdapConnectionLivenessValidatorIfThatPropertySetToNull() {
-    factory.setConnectionLivenessValidator(null);
-    Object livenessValidator = factory.getConnectionLivenessValidator();
-    assertTrue("Expected a NativeLdapConnectionLivenessValidator but was [" + livenessValidator
-        + "]", livenessValidator instanceof NativeLdapConnectionLivenessValidator);
   }
 
   @Test
@@ -212,7 +189,6 @@ public class PooledLDAPConnectionFactoryTest {
 
     expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(true);
     replay(conn, livenessValidator);
-    factory.setConnectionLivenessValidator(livenessValidator);
     assertTrue(factory.validateObject(conn));
 
   }
@@ -261,7 +237,6 @@ public class PooledLDAPConnectionFactoryTest {
   public void testValidateObjectKeepsActiveFlagUpIfConnectionIsAlive() throws LDAPException {
 
     // will fail if the factory attempts to monkey with the active flag
-    factory.setConnectionLivenessValidator(livenessValidator);
     expect(conn.isBindAttempted()).andReturn(false);
     expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(true);
     replay(conn, livenessValidator);
@@ -282,7 +257,6 @@ public class PooledLDAPConnectionFactoryTest {
   @Test
   public void testValidateObjectLowersActiveFlagIfConnectionIsNotAlive() throws LDAPException {
 
-    factory.setConnectionLivenessValidator(livenessValidator);
     expect(conn.isBindAttempted()).andReturn(false);
     expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andReturn(false);
     conn.setActive(false);
@@ -295,7 +269,6 @@ public class PooledLDAPConnectionFactoryTest {
   @Test
   public void testValidateObjectLowersActiveFlagIfLivenessValidationThrowsException() {
 
-    factory.setConnectionLivenessValidator(livenessValidator);
     expect(conn.isBindAttempted()).andReturn(false);
     expect(livenessValidator.isConnectionAlive((LDAPConnection) anyObject())).andThrow(
         new RuntimeException("catch me"));

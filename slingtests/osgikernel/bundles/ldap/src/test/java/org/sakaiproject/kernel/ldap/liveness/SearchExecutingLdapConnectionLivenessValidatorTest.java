@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -34,6 +34,8 @@ import com.novell.ldap.LDAPSearchResults;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.ldap.PooledLDAPConnection;
+import org.sakaiproject.kernel.ldap.liveness.SearchExecutingLdapConnectionLivenessValidator;
 
 import java.text.MessageFormat;
 

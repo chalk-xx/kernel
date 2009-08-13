@@ -1,19 +1,26 @@
-package org.sakaiproject.kernel.auth.external;
+package org.sakaiproject.kernel.auth.ldap;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPJSSESecureSocketFactory;
-import com.novell.ldap.LDAPSocketFactory;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
+import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
+import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.ldap.api.LdapConstants;
+import org.sakaiproject.kernel.ldap.api.LdapException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Dictionary;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -22,23 +29,25 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Service
 @Component
+@Service
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
+  private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
+
   @Property(value = "localhost")
-  static final String LDAP_HOST = "sakai.ldap.host";
+  static final String LDAP_HOST = LdapConstants.HOST;
 
   @Property(intValue = LDAPConnection.DEFAULT_SSL_PORT)
-  static final String LDAP_PORT = "sakai.ldap.port";
+  static final String LDAP_PORT = LdapConstants.PORT;
 
   @Property(boolValue = true)
-  static final String LDAP_CONNECTION_SECURE = "sakai.ldap.connection.secure";
+  static final String LDAP_CONNECTION_SECURE = LdapConstants.SECURE_CONNECTION;
 
   @Property
-  static final String LDAP_LOGIN_DN = "sakai.ldap.loginDn";
+  static final String LDAP_LOGIN_DN = LdapConstants.USER;
 
   @Property
-  static final String LDAP_LOGIN_PASSWORD = "sakai.ldap.login.password";
+  static final String LDAP_LOGIN_PASSWORD = LdapConstants.PASSWORD;
 
   @Property
   static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
@@ -54,53 +63,45 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private String baseDn;
   private String passwordAttributeName;
 
-  private LDAPConnection conn;
+  @Reference
+  protected LdapConnectionBroker connBroker;
+
+  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+  private List<PasswordGuard> passwordGuards = new LinkedList<PasswordGuard>();
 
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    config.setAutoBind(true);
 
     useSecure = Boolean.parseBoolean((String) props.get(LDAP_CONNECTION_SECURE));
+    config.setSecureConnection(useSecure);
+
     host = (String) props.get(LDAP_HOST);
+    config.setLdapHost(host);
+
     port = (Integer) props.get(LDAP_PORT);
+    config.setLdapPort(port);
+
     loginDn = (String) props.get(LDAP_LOGIN_DN);
+    config.setLdapUser(loginDn);
+
     password = (String) props.get(LDAP_LOGIN_PASSWORD);
+    config.setLdapPassword(password);
+
     baseDn = (String) props.get(LDAP_BASE_DN);
     passwordAttributeName = (String) props.get(LDAP_ATTR_PASSWORD);
 
-    // create connection to ldap. this does not establish the connection.
-    if (useSecure) {
-      // Dynamically set JSSE as a security provider
-      // Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-
-      // Dynamically set the property that JSSE uses to identify
-      // the keystore that holds trusted root certificates
-      // System.setProperty("javax.net.ssl.trustStore", path);
-
-      LDAPSocketFactory factory = new LDAPJSSESecureSocketFactory();
-      LDAPConnection.setSocketFactory(factory);
-    }
-
-    conn = new LDAPConnection();
-
     try {
       // establish the connection to ldap
-      conn.connect(host, port);
-      conn.bind(LDAPConnection.LDAP_V3, loginDn, password.getBytes("UTF8"));
-    } catch (LDAPException le) {
+      connBroker.create(BROKER_NAME);
+    } catch (LdapException le) {
       throw new RuntimeException(le.getMessage(), le);
-    } catch (UnsupportedEncodingException uee) {
-      throw new RuntimeException(uee.getMessage(), uee);
     }
   }
 
   protected void deactivate(ComponentContext ctx) {
-    if (conn.isConnected()) {
-      try {
-        conn.disconnect();
-      } catch (LDAPException e) {
-        throw new RuntimeException(e.getMessage(), e);
-      }
-    }
+    connBroker.destroy(BROKER_NAME);
   }
 
   public static boolean canHandle(Credentials credentials) {
@@ -112,12 +113,21 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     if (credentials instanceof SimpleCredentials) {
       SimpleCredentials sc = (SimpleCredentials) credentials;
 
-      // TODO check credentials against ldap instance
-      LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, new String(sc
-          .getPassword()));
-
       try {
-        auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
+        LDAPConnection conn = connBroker.getConnection(BROKER_NAME);
+        String password = new String(sc.getPassword());
+        // check credentials against ldap instance
+        for (PasswordGuard guard : passwordGuards) {
+          String guarded = guard.guard(password);
+          LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
+          auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
+
+          if (auth) {
+            break;
+          }
+        }
+      } catch (LdapException e) {
+        throw new RepositoryException(e.getMessage(), e);
       } catch (LDAPException e) {
         throw new RepositoryException(e.getMessage(), e);
       }

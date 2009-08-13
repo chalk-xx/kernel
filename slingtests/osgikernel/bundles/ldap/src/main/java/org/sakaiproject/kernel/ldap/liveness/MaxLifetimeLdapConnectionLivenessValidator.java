@@ -14,12 +14,13 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.ldap;
+package org.sakaiproject.kernel.ldap.liveness;
 
 import com.novell.ldap.LDAPConnection;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.ldap.PooledLDAPConnection;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,10 @@ import org.slf4j.LoggerFactory;
  * @author dmccallum
  * @author "Carl Hall" <carl.hall@gatech.edu>
  * 
+ * @scr.component enabled="false" immediate="true"
+ * @scr.service
  */
-@Component(immediate = true)
+@Component(enabled = false, immediate = true)
 @Service
 public class MaxLifetimeLdapConnectionLivenessValidator implements LdapConnectionLivenessValidator {
 
