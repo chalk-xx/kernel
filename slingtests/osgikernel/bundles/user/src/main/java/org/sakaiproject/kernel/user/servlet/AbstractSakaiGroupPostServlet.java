@@ -16,15 +16,7 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-
+import org.apache.jackrabbit.api.XASession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -33,6 +25,8 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractAuthorizablePostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.PooledSession;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
@@ -40,6 +34,18 @@ import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 
 /**
  * Base class for servlets manipulating groups
@@ -49,6 +55,9 @@ public abstract class AbstractSakaiGroupPostServlet extends
     private static final long serialVersionUID = 1159063041816944076L;
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSakaiGroupPostServlet.class);
 
+    /** @scr.reference */
+    protected SlingRepository parentSlingRepository;
+    
     /**
      * Update the group membership based on the ":member" request parameters. If
      * the ":member" value ends with @Delete it is removed from the group
@@ -67,11 +76,28 @@ public abstract class AbstractSakaiGroupPostServlet extends
             String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
                 + group.getID();
 
-            ResourceResolver resolver = request.getResourceResolver();
-            Resource baseResource = request.getResource();
+          Resource resource = request.getResource();
+          ResourceResolver resolver = request.getResourceResolver();
             boolean changed = false;
+            PooledSession theSession = (PooledSession)session;
+            XASession xaSession = (XASession)theSession.getSession();
+            XAResource xaResource = xaSession.getXAResource();
+            Xid xid = new Xid() { 
+              public byte[] getBranchQualifier() { return new byte[0]; }
+              public int getFormatId() { return 0; }
+              public byte[] getGlobalTransactionId() { return new byte[0]; } 
+            }; 
+            try {
+              xaResource.start(xid, XAResource.TMNOFLAGS);
+            } catch (XAException e) {
+              LOGGER.error("Unable to start JTA transaction");
+              throw new RepositoryException(e);
+            }
             
-            UserManager userManager = AccessControlUtil.getUserManager(session);
+            UserManager userManager = AccessControlUtil.getUserManager(xaSession);
+            authorizable = userManager.getAuthorizable(authorizable.getID());
+            group = ((Group) authorizable);
+//          UserManager userManager = AccessControlUtil.getUserManager(session);
             
             int addIndex = 0;
             int removeIndex = 0;
@@ -84,7 +110,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
               // first remove any members posted as ":member@Delete"
               if (membersToDelete != null) {
                   for (removeIndex=0; removeIndex<membersToDelete.length; removeIndex++) {
-                      if (removeMember(group, membersToDelete[removeIndex], baseResource, userManager, resolver)) {
+                      if (removeMember(group, membersToDelete[removeIndex], userManager)) {
                         changed = true;
                       }
                   }
@@ -93,20 +119,29 @@ public abstract class AbstractSakaiGroupPostServlet extends
               // second add any members posted as ":member"
               if (membersToAdd != null) {
                 for (addIndex=0; addIndex<membersToAdd.length; addIndex++) {
-                    if (addMember(group, membersToAdd[addIndex], baseResource, userManager, resolver)) {
+                    if (addMember(group, membersToAdd[addIndex], userManager)) {
                       changed = true;
                     }
                 }
               }
+              xaResource.end(xid, XAResource.TMSUCCESS);
+              xaResource.prepare(xid);
+              xaResource.commit(xid, false);
             } catch (RepositoryException re) {
               LOGGER.debug("Group membership modification failed, rolling back");
-              for (int unaddIndex = addIndex - 1; unaddIndex >= 0; unaddIndex--) {
-                removeMember(group, membersToAdd[unaddIndex], baseResource, userManager, resolver);
-              }
-              for (int unremoveIndex = removeIndex - 1; unremoveIndex >= 0; unremoveIndex--) {
-                addMember(group, membersToDelete[unremoveIndex], baseResource, userManager, resolver);
+              try {
+                xaResource.end(xid, XAResource.TMSUCCESS);
+                xaResource.rollback(xid);
+              } catch (XAException xae) {
+                LOGGER.error("Error rolling back transaction");
+                throw new RepositoryException(xae);
               }
               throw re;
+            } catch (XAException e) {
+              LOGGER.error("Unable to commit transaction.");
+              throw new RepositoryException(e);
+            } finally {
+              // Close session
             }
 
             if (changed) {
@@ -117,9 +152,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
         }
     }
 
-    private boolean removeMember(Group group, String member, Resource baseResource,
-        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
-      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+    private boolean removeMember(Group group, String member, UserManager userManager) throws RepositoryException {
+      Authorizable memberAuthorizable = getAuthorizable(member, userManager);
       if (memberAuthorizable != null) {
           if (!group.removeMember(memberAuthorizable)) {
             throw new RepositoryException("Unable to remove user " + member + " from group " + group.getID());
@@ -129,9 +163,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
       return false;
     }
 
-    private boolean addMember(Group group, String member, Resource baseResource,
-        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
-      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+    private boolean addMember(Group group, String member, UserManager userManager) throws RepositoryException {
+      Authorizable memberAuthorizable = getAuthorizable(member, userManager);
       if (memberAuthorizable != null) {
           if (!group.addMember(memberAuthorizable)) {
             throw new RepositoryException("Unable to add user " + member + " to group " + group.getID());
@@ -148,8 +181,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
      * @param resolver the resource resolver for this request.
      * @return the authorizable, or null if no authorizable was found.
      */
-    private Authorizable getAuthorizable(Resource baseResource, String member, UserManager userManager,
-        ResourceResolver resolver) {
+    private Authorizable getAuthorizable(String member, UserManager userManager) {
       Authorizable memberAuthorizable = null;
       try {
         String memberId = PathUtils.lastElement(member);
