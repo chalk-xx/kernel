@@ -77,7 +77,7 @@ class TC_MySiteTest < SlingTest
     members = test_site.get_members
     assert_not_nil(members, "Expected to get member list")
     assert_equal(1, members.size, "Expected site members")
-    assert_equal(site_user.name, members[0]["rep:userId"], "Expected user to match")
+    assert_equal(site_user.name, members[0]["rep:userId"][0], "Expected user to match")
     @s.switch_user(SlingUsers::User.admin_user)
     return test_site
   end
