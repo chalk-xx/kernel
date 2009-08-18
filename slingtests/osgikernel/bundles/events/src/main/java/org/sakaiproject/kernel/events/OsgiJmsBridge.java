@@ -44,7 +44,7 @@ import javax.jms.Topic;
 /**
  * Bridge to send OSGi events onto a JMS topic.
  */
-@Component(label = "%bridge.name", description = "%bridge.description")
+@Component(label = "%bridge.name", description = "%bridge.description", metatype = true)
 @Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);

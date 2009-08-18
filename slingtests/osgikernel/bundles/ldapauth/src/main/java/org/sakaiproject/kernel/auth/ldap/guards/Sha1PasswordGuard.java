@@ -25,7 +25,7 @@ import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
 /**
  * Password guard that uses SHA1 to guard passwords.
  */
-@Component
+@Component(enabled = false)
 @Service
 public class Sha1PasswordGuard implements PasswordGuard {
 

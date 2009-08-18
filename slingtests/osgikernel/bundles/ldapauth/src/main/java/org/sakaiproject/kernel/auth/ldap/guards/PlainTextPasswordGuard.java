@@ -25,7 +25,7 @@ import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
  * Password guard that does not guard the password. Whatever is passed in is
  * what is passed back out.
  */
-@Component
+@Component(immediate = true)
 @Service
 public class PlainTextPasswordGuard implements PasswordGuard {
 

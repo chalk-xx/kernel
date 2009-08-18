@@ -71,8 +71,6 @@ public class PooledLDAPConnectionFactoryTest {
     factory.bindLivenessValidator(livenessValidator);
     connMgr = createMock(LdapConnectionManager.class);
     connMgrConfig = createMock(LdapConnectionManagerConfig.class);
-    // don't call setConnectionManager() b/c we don't know what expectations to
-    // set
   }
 
   @Test

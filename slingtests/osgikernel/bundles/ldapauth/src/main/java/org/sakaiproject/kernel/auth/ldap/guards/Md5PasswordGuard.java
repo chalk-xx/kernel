@@ -18,11 +18,15 @@
 package org.sakaiproject.kernel.auth.ldap.guards;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
 
 /**
  * Password guard that uses MD5 to guard passwords.
  */
+@Component(enabled = false)
+@Service
 public class Md5PasswordGuard implements PasswordGuard {
 
   /**
