@@ -66,6 +66,7 @@
         <module>bundles/meservice</module>
         <module>bundles/server</module>
         <module>bundles/image</module>
+        <module>bundles/comments</module>
 	<module>bundles/proxy</module>
         <module>bundles/site</module>
         <module>bundles/search</module>
