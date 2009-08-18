@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.email.outgoing;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -37,10 +38,10 @@ import javax.jcr.RepositoryException;
  * immediately to make sure it registers with JCR as soon as possible.
  */
 @Component(label = "%external.message.handler.name", description = "%external.message.handler.description", immediate = true)
+@Service
 public class EmailMessageHandler implements MessageHandler {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(EmailMessageHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageHandler.class);
 
   @Reference
   protected SlingRepository slingRepository;
