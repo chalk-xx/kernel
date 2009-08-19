@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.events;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.PropertyOption;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -49,23 +48,25 @@ import javax.jms.Topic;
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
 
-  @Property(value = { "*" }, propertyPrivate = true)
+  @Property(value = "*", propertyPrivate = true)
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
-  @Property(value = { "tcp://localhost:61616" })
+  @Property(value = "tcp://localhost:61616")
   static final String BROKER_URL = "bridge.brokerUrl";
 
-  @Property(value = { "sakai.event.bridge" })
+  @Property(value = "sakai.event.bridge")
   static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
-  @Property(boolValue = { false }, propertyPrivate = true)
+  @Property(boolValue = false, propertyPrivate = true)
   static final String SESSION_TRANSACTED = "bridge.sessionTransacted";
 
-  @Property(intValue = { Session.AUTO_ACKNOWLEDGE }, propertyPrivate = true)
+  @Property(intValue = Session.AUTO_ACKNOWLEDGE, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
-  @Property(boolValue = { false }, options = { @PropertyOption(name = "true", value = "true"),
-      @PropertyOption(name = "false", value = "false") })
+  @Property(boolValue = false)
+  // can't use "options" here due to FELIX-1296. Need scr plugin 1.4.0.
+  // , options = { @PropertyOption(name = "true", value = "true"),
+  // @PropertyOption(name = "false", value = "false") })
   static final String PROCESS_EVENTS = "bridge.processEvents";
 
   private ConnectionFactory connFactory;
