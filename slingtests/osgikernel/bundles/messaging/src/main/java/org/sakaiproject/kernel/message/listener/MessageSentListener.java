@@ -47,16 +47,14 @@ import javax.jcr.RepositoryException;
  * @scr.property name="service.description"
  *               value="Event Handler Listening to Pending Messages Events"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="event.topics"
- *               value="org/sakaiproject/kernel/message/pending"
+ * @scr.property name="event.topics" value="org/sakaiproject/kernel/message/pending"
  * @scr.reference name="MessageHandler"
  *                interface="org.sakaiproject.kernel.api.message.MessageHandler"
  *                policy="dynamic" cardinality="0..n" bind="bindHandler"
  *                unbind="unbindHandler"
  */
 public class MessageSentListener implements EventHandler {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(MessageSentListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
 
   /**
    * This will contain all the handlers we have for every type.
@@ -83,7 +81,7 @@ public class MessageSentListener implements EventHandler {
     // Get the message
     // get the node, call up the appropriate handler and pass off based on
     // message type
-
+    LOG.debug("handleEvent called");
     try {
       Node n = (Node) event.getProperty(MessageConstants.EVENT_LOCATION);
       String resourceType = n.getProperty(
@@ -100,6 +98,11 @@ public class MessageSentListener implements EventHandler {
           if (handlers.containsKey(msgType)) {
             LOG.info("Found a message handler for type [{}]", msgType);
             handler = handlers.get(msgType);
+          } else {
+            LOG
+                .info(
+                    "No handler found for message type [{}], using the default handler instead.",
+                    msgType);
           }
           handler.handle(event, n);
           handled = true;
@@ -144,8 +147,8 @@ public class MessageSentListener implements EventHandler {
    * @param serviceReference
    */
   private void removeHandler(ServiceReference serviceReference) {
-    MessageHandler handler = (MessageHandler) osgiComponentContext
-        .locateService("MessageHandler", serviceReference);
+    MessageHandler handler = (MessageHandler) osgiComponentContext.locateService(
+        "MessageHandler", serviceReference);
     handlers.remove(handler.getType());
   }
 
@@ -153,8 +156,8 @@ public class MessageSentListener implements EventHandler {
    * @param serviceReference
    */
   private void addHandler(ServiceReference serviceReference) {
-    MessageHandler handler = (MessageHandler) osgiComponentContext
-        .locateService("MessageHandler", serviceReference);
+    MessageHandler handler = (MessageHandler) osgiComponentContext.locateService(
+        "MessageHandler", serviceReference);
     handlers.put(handler.getType(), handler);
   }
 

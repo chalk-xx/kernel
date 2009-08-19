@@ -77,6 +77,7 @@
         <module>bundles/events</module>
         <module>bundles/batchget</module>
         <module>bundles/email-outgoing</module>
+        <module>bundles/commons/commons-email</module>
         <module>bundles/specs/jms</module>
         <module>bundles/specs/jmx</module>
         <module>bundles/specs/ejb</module>

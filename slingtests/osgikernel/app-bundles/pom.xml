@@ -191,6 +191,11 @@
       <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.felix.commons</groupId>
+      <artifactId>org.apache.felix.commons.commons-email</artifactId>
+      <version>1.0-0001-SNAPSHOT</version>
+    </dependency>
 
 <!-- spec bundles -->
     <dependency>
@@ -329,6 +334,16 @@
       <version>2.0.0-incubator-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.threads</artifactId>
+      <version>2.0.2-incubator</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.scheduler</artifactId>
+      <version>2.0.4-incubator</version>
+    </dependency>
 <!--
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -382,7 +397,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events,org.apache.sling.commons.threads</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>
@@ -394,7 +409,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider,org.apache.sling.commons.scheduler</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
@@ -406,7 +421,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth,org.sakaiproject.kernel.email.outgoing</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
@@ -418,7 +433,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.site,org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld,org.sakaiproject.kernel.batchget,org.sakaiproject.kernel.image,org.sakaiproject.kernel.connections</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.site,org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.filters,org.sakaiproject.kernel.jaxrs,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld,org.sakaiproject.kernel.batchget,org.sakaiproject.kernel.image,org.sakaiproject.kernel.connections,org.sakaiproject.kernel.email.outgoing</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>
