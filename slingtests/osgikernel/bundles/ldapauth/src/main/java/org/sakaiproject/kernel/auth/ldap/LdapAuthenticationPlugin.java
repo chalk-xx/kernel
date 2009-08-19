@@ -18,6 +18,7 @@ import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.ldap.api.LdapConstants;
 import org.sakaiproject.kernel.ldap.api.LdapException;
 
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,7 +30,7 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(metatype = true)
+@Component(immediate = true, metatype = true)
 @Service
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
@@ -66,8 +67,17 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   @Reference
   protected LdapConnectionBroker connBroker;
 
-  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-  private List<PasswordGuard> passwordGuards = new LinkedList<PasswordGuard>();
+  @Reference(referenceInterface = PasswordGuard.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+  private List<PasswordGuard> passwordGuards = Collections
+      .synchronizedList(new LinkedList<PasswordGuard>());
+
+  protected void bindPasswordGuards(PasswordGuard guard) {
+    passwordGuards.add(guard);
+  }
+
+  protected void unbindPasswordGuard(PasswordGuard guard) {
+    passwordGuards.remove(guard);
+  }
 
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
