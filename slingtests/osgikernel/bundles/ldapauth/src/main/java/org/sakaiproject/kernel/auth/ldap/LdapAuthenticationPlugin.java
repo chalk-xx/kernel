@@ -127,13 +127,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         LDAPConnection conn = connBroker.getConnection(BROKER_NAME);
         String password = new String(sc.getPassword());
         // check credentials against ldap instance
-        for (PasswordGuard guard : passwordGuards) {
-          String guarded = guard.guard(password);
-          LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
-          auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
+        synchronized (passwordGuards) {
+          for (PasswordGuard guard : passwordGuards) {
+            String guarded = guard.guard(password);
+            LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
+            auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
 
-          if (auth) {
-            break;
+            if (auth) {
+              break;
+            }
           }
         }
       } catch (LdapException e) {
