@@ -15,30 +15,27 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.comments.resource;
 
-import static org.sakaiproject.kernel.api.comments.CommentsConstants.SAKAI_COMMENTS_STORE;
+package org.sakaiproject.kernel.discussion;
+
+import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="CommentsPathResourceTypeProvider"
- *                description="Comments Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Comments resources"
+ * @scr.component immediate="true" label="DiscussionPathResourceTypeProvider"
+ *                description="Discussion Service path resource type provider"
+ * @scr.property name="service.description" value="Handles requests for Discussion resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-public class CommentsPathResourceTypeProvider extends AbstractPathResourceTypeProvider {
+public class DiscussionPathResourceTypeProvider extends AbstractPathResourceTypeProvider {
 
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
-   */
   @Override
   protected String getResourceType() {
-    return SAKAI_COMMENTS_STORE;
+    return DiscussionConstants.SAKAI_DISCUSSION_STORE;
   }
 
 }

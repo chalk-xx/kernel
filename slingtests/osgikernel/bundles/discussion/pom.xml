@@ -18,11 +18,11 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.comments</artifactId>
+  <artifactId>org.sakaiproject.kernel.discussion</artifactId>
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Sakai Comments Management Bundle</name>
-  <description>Comments management.</description>
+  <name>Sakai discussion Management Bundle</name>
+  <description>Discussion management.</description>
   <build>
     <plugins>
       <plugin>
@@ -36,8 +36,9 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.comments.*</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.comments.*</Private-Package>
+            <Export-Package>org.sakaiproject.kernel.api.discussion.*</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.discussion.*</Private-Package>
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>

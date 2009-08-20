@@ -16,34 +16,33 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.api.comments;
+package org.sakaiproject.kernel.api.discussion;
 
-public class CommentsException  extends Exception {
+public class DiscussionException extends Exception {
 
-    /**
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 7028758374726368138L;
+  private int code = 500;
+
+  /**
      * 
      */
-    private static final long serialVersionUID = 384236513919729628L;
+  public DiscussionException(int code) {
+    super();
+    this.code = code;
+  }
 
-    private int code = 500;
+  /**
+   * @param message
+   */
+  public DiscussionException(int code, String message) {
+    super(message);
+    this.code = code;
+  }
 
-    /**
-     * 
-     */
-    public CommentsException(int code) {
-      super();
-      this.code = code;
-    }
-
-    /**
-     * @param message
-     */
-    public CommentsException(int code, String message) {
-      super(message);
-      this.code = code;
-    }
-    
-    public int getCode() {
-        return code;
-    }
+  public int getCode() {
+    return code;
+  }
 }
