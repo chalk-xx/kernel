@@ -42,7 +42,8 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.auth.external</Export-Package>
+            <Export-Package>org.sakaiproject.kernel.api.auth.ldap</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.auth.ldap.*</Private-Package>
           </instructions>
         </configuration>
       </plugin>

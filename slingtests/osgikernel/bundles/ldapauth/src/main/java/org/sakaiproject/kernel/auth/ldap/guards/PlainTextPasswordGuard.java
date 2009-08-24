@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.auth.ldap.guards;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
+import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
 
 /**
  * Password guard that does not guard the password. Whatever is passed in is
@@ -31,7 +31,7 @@ public class PlainTextPasswordGuard implements PasswordGuard {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.auth.ldap.api.PasswordGuard#guard(java.lang.String)
+   * @see org.sakaiproject.kernel.api.auth.ldap.PasswordGuard#guard(java.lang.String)
    */
   public String guard(String password) {
     return password;

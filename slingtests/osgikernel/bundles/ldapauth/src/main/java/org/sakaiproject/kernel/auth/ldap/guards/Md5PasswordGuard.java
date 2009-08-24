@@ -20,7 +20,7 @@ package org.sakaiproject.kernel.auth.ldap.guards;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
+import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
 
 /**
  * Password guard that uses MD5 to guard passwords.
@@ -31,7 +31,7 @@ public class Md5PasswordGuard implements PasswordGuard {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.auth.ldap.api.PasswordGuard#guard(java.lang.String)
+   * @see org.sakaiproject.kernel.api.auth.ldap.PasswordGuard#guard(java.lang.String)
    */
   public String guard(String password) {
     String guarded = DigestUtils.md5Hex(password);

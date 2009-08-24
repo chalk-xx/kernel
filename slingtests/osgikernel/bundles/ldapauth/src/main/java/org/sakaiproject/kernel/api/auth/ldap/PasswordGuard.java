@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.auth.ldap.api;
+package org.sakaiproject.kernel.api.auth.ldap;
 
 /**
  * This interface provides a pluggable means by which implementors can choose

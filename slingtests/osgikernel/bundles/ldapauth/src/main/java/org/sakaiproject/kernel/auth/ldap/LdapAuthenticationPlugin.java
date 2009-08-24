@@ -12,7 +12,7 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.auth.ldap.api.PasswordGuard;
+import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
 import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.ldap.api.LdapConstants;
