@@ -43,7 +43,9 @@
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Export-Package>org.sakaiproject.kernel.ldap.api</Export-Package>
             <Private-Package>org.sakaiproject.kernel.ldap</Private-Package>
-            <Import-Package>*</Import-Package>
+            <Import-Package>!org.openspml.*, !org.apache.commons.httpclient.*, *</Import-Package>
+            <!-- , openspml, xmlrpc-common, ws-commons-util, soap -->
+            <Embed-Dependency>jldap</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -80,6 +82,28 @@
       <artifactId>jldap</artifactId>
       <version>4.3</version>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>org.openspml</groupId>
+      <artifactId>openspml</artifactId>
+      <version>0.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlrpc</groupId>
+      <artifactId>xmlrpc-common</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ws.commons.util</groupId>
+      <artifactId>ws-commons-util</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>soap</groupId>
+      <artifactId>soap</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    -->
 
 <!-- logging -->
     <dependency>

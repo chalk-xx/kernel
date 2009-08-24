@@ -196,6 +196,21 @@
       <artifactId>org.apache.felix.commons.commons-email</artifactId>
       <version>1.0-0001-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.felix.commons</groupId>
+      <artifactId>org.apache.felix.commons.commons-pool</artifactId>
+      <version>1.5.2-0001</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.auth.ldap</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
 
 <!-- spec bundles -->
     <dependency>
@@ -397,7 +412,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events,org.apache.sling.commons.threads</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events,org.apache.sling.commons.threads,org.apache.felix.commons.commons-pool,org.sakaiproject.kernel.ldap</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>
@@ -421,7 +436,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email,org.sakaiproject.kernel.auth.ldap</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
