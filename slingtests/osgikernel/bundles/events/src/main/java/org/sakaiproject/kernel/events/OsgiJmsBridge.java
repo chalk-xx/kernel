@@ -106,10 +106,12 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-    transacted = Boolean.parseBoolean((String) props.get(SESSION_TRANSACTED));
+
+    
+    transacted = (Boolean) props.get(SESSION_TRANSACTED);
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
-    processEvents = Boolean.parseBoolean((String) props.get(PROCESS_EVENTS));
+    processEvents = (Boolean) props.get(PROCESS_EVENTS);
     String _brokerUrl = (String) props.get(BROKER_URL);
 
     LOGGER.debug("Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, "
