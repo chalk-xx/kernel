@@ -22,7 +22,7 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPResponseQueue;
 
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -23,9 +23,9 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPJSSEStartTLSFactory;
 
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +97,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionManager#destroy()
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionManager#destroy()
    */
   public void destroy() {
     // nothing to do

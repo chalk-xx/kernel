@@ -30,9 +30,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapConstants;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapConstants;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.net.ServerSocket;
 import java.util.HashMap;

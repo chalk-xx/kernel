@@ -28,7 +28,7 @@ import com.novell.ldap.LDAPException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 
 /**
  * Verifies (a subset of) extensions to {@link LDAPConnection} behaviors.

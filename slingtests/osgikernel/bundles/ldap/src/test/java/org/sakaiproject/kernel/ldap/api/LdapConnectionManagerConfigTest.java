@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import com.novell.ldap.LDAPConnection;
 
 import org.junit.Test;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 
 public class LdapConnectionManagerConfigTest {
   @Test

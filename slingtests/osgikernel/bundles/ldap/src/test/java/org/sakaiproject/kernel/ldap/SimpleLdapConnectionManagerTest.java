@@ -32,8 +32,8 @@ import com.novell.ldap.LDAPException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.net.URL;
 

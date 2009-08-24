@@ -20,8 +20,8 @@ import com.novell.ldap.LDAPConnection;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.kernel.ldap.PooledLDAPConnection;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

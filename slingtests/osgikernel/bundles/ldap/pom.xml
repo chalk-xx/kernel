@@ -41,8 +41,8 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.ldap.api</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.ldap</Private-Package>
+            <Export-Package>org.sakaiproject.kernel.api.ldap</Export-Package>
+            <Private-Package>org.sakaiproject.kernel.ldap.*</Private-Package>
             <Import-Package>!org.openspml.*, !org.apache.commons.httpclient.*, *</Import-Package>
             <!-- , openspml, xmlrpc-common, ws-commons-util, soap -->
             <Embed-Dependency>jldap</Embed-Dependency>

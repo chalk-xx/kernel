@@ -13,10 +13,10 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapConstants;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapConstants;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.util.Collections;
 import java.util.Dictionary;

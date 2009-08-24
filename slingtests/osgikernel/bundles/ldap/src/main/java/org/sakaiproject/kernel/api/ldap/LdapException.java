@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.ldap.api;
+package org.sakaiproject.kernel.api.ldap;
 
 public class LdapException extends Exception {
 

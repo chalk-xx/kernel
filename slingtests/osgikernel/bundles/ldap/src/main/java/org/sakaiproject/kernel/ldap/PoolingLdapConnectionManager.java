@@ -22,8 +22,8 @@ import com.novell.ldap.LDAPException;
 
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

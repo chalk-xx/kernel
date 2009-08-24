@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.ldap.api;
+package org.sakaiproject.kernel.api.ldap;
 
 public interface LdapConstants {
   String AUTO_BIND = "sakai.ldap.autobind";

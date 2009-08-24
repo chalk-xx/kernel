@@ -21,6 +21,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
 import org.junit.Test;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 
 /**
  * Unit test for LdapException. This is really just for code coverage statistics

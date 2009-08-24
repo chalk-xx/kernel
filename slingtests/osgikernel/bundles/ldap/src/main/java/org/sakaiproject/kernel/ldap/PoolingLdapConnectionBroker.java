@@ -25,11 +25,11 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationListener;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionBroker;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.ldap.api.LdapConstants;
-import org.sakaiproject.kernel.ldap.api.LdapException;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapConstants;
+import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -98,7 +98,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#create(java.lang.String)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#create(java.lang.String)
    */
   public void create(String name) throws LdapException {
     create(name, null);
@@ -107,8 +107,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#create(java.lang.String,
-   *      org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#create(java.lang.String,
+   *      org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig)
    */
   public void create(String name, LdapConnectionManagerConfig config) throws LdapException {
     if (config == null) {
@@ -132,7 +132,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#destroy(java.lang.String)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#destroy(java.lang.String)
    */
   public void destroy(String name) {
     if (factories.containsKey(name)) {
@@ -145,7 +145,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#exists(java.lang.String)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#exists(java.lang.String)
    */
   public boolean exists(String name) {
     boolean exists = factories.containsKey(name);
@@ -155,7 +155,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#getConnection(java.lang.String)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#getConnection(java.lang.String)
    */
   public LDAPConnection getConnection(String name) throws LdapException {
     // get a connection manager from the local store. if not found, create a
@@ -175,8 +175,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.ldap.api.LdapConnectionBroker#getConnection(java.lang.String,
-   *      org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#getConnection(java.lang.String,
+   *      org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig)
    */
   public LDAPConnection getBoundConnection(String name, String loginDn, String password)
       throws LdapException {

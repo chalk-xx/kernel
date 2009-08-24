@@ -29,7 +29,7 @@ import org.apache.commons.pool.ObjectPool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 
 public class PoolingLdapConnectionManagerTest {
 

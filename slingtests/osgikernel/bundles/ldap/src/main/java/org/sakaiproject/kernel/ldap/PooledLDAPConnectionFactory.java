@@ -25,9 +25,9 @@ import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionLivenessValidator;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManager;
-import org.sakaiproject.kernel.ldap.api.LdapConnectionManagerConfig;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionLivenessValidator;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
