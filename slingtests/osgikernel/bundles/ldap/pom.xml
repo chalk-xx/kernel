@@ -41,7 +41,7 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.ldap</Export-Package>
+            <Export-Package>org.sakaiproject.kernel.api.ldap, com.novell.ldap.*;version=4.3</Export-Package>
             <Private-Package>org.sakaiproject.kernel.ldap.*</Private-Package>
             <Import-Package>!org.openspml.*, !org.apache.commons.httpclient.*, *</Import-Package>
             <!-- , openspml, xmlrpc-common, ws-commons-util, soap -->
