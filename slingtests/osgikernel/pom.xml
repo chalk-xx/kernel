@@ -35,6 +35,7 @@
         <module>libraries/utils</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
+        <module>bundles/ldap</module>
         <module>bundles/ldapauth</module>
         <module>bundles/securityloader</module>
         <module>bundles/guice</module>
