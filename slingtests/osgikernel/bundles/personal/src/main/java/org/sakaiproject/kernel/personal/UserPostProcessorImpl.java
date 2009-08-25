@@ -97,7 +97,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = null;
-        LOGGER.info("resourcePath: " + resourcePath);
+        LOGGER.debug("resourcePath: {}",resourcePath);
         RequestParameter rpid = request
             .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
         if (rpid != null) {
@@ -218,7 +218,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             }
           }
         } else {
-          LOGGER.info("Not Updating " + propertyName);
+          LOGGER.info("Not Updating {}",propertyName);
         }
       }
     }
