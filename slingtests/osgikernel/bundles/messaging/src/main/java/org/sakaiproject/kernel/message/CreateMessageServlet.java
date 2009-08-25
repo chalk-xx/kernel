@@ -96,12 +96,10 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
-    LOGGER.info("Creating message.++++++++++++++++++++++++++++++++++++++++++");
 
     request.setAttribute(MessageConstants.MESSAGE_OPERATION, request
         .getMethod());
 
-    LOGGER.info("ServletPath " + request.getPathInfo());
 
     // This is the message store resource.
     Resource baseResource = request.getResource();
@@ -150,7 +148,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       path = msg.getPath();
       messageId = msg.getName();
       
-      LOGGER.info("Got message node as "+msg);
+      LOGGER.debug("Got message node as  {}",msg);
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
@@ -244,8 +242,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       }
     };
     options.setReplaceSelectors("");
-    LOGGER.info("Sending the request out again with attribute: "
-        + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
     request.getRequestDispatcher(wrapper, options).forward(request,
         wrappedResponse);
     
