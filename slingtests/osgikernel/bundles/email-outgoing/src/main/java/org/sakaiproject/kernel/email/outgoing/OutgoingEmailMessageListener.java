@@ -86,9 +86,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected static final String QUEUE_NAME = "sakai.email.outgoing";
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
-  private Connection connection = null;
-  private Session session = null;
-  private MessageConsumer consumer = null;
   private String brokerUrl;
   private ConnectionFactory connectionFactory = null;
   private Queue dest = null;
@@ -99,7 +96,17 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private Integer retryInterval;
 
   public void onMessage(Message message) {
+    Connection connection = null;
+    Session session = null;
+    MessageConsumer consumer = null;
     try {
+      connection = connectionFactory.createConnection();
+      session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+      dest = session.createQueue(QUEUE_NAME);
+      consumer = session.createConsumer(dest);
+      consumer.setMessageListener(this);
+      connection.start();
+
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
 
       javax.jcr.Session adminSession = repository.loginAdministrative(null);
@@ -166,6 +173,21 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        try {
+          session.close();
+        } catch (JMSException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
+      }
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (JMSException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
+      }
     }
   }
 
@@ -299,44 +321,20 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
     String _brokerUrl = (String) props.get(BROKER_URL);
 
-    try {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (diff(brokerUrl, _brokerUrl)) {
-          LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
-        }
-      } else {
-        LOGGER.error("Cannot create JMS connection factory with an empty URL.");
+    boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+    if (!urlEmpty) {
+      if (diff(brokerUrl, _brokerUrl)) {
+        LOGGER.info("Creating a new ActiveMQ Connection Factory");
+        connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
       }
-
-      brokerUrl = _brokerUrl;
-      connection = connectionFactory.createConnection();
-      session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      dest = session.createQueue(QUEUE_NAME);
-      consumer = session.createConsumer(dest);
-      consumer.setMessageListener(this);
-      connection.start();
-
-    } catch (JMSException e) {
-      LOGGER.error(e.getMessage(), e);
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (JMSException e1) {
-        }
-      }
+    } else {
+      LOGGER.error("Cannot create JMS connection factory with an empty URL.");
     }
 
+    brokerUrl = _brokerUrl;
   }
 
   protected void deactivate(ComponentContext ctx) {
-    if (connection != null) {
-      try {
-        connection.close();
-      } catch (JMSException e) {
-      }
-    }
   }
 
   private void setError(Node node, String error) throws RepositoryException {
@@ -345,7 +343,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   /**
    * Determine if there is a difference between two objects.
-   * 
+   *
    * @param obj1
    * @param obj2
    * @return true if the objects are different (only one is null or !obj1.equals(obj2)).
