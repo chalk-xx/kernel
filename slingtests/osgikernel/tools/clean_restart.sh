@@ -1,5 +1,10 @@
 #!/bin/sh
-tools/rebundle.sh $*
+if [[ a$1 -eq "aall" ]]
+then
+   mvn clean install
+else 
+   tools/rebundle.sh $*
+fi 
 if [[ $? -ne 0 ]] 
 then
    exit 10
