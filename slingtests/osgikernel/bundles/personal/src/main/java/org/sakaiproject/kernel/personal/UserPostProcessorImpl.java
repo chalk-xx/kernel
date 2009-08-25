@@ -218,7 +218,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             }
           }
         } else {
-          LOGGER.info("Not Updating {}",propertyName);
+          LOGGER.debug("Not Updating {}",propertyName);
         }
       }
     }
