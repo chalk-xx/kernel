@@ -1,0 +1,10 @@
+{
+    "email":["admin@doesntexist.domainname"],
+     "aboutme":"{\"aboutme\":\"\",\"academicinterests\":[],\"personalinterests\":[],\"hobbies\":\"\"}",
+     "contactinfo":"{\"uniphone\":\"\",\"unimobile\":\"\",\"uniaddress\":\"\"}",
+     "firstName":["Admin"],
+     "rep:userId":["admin"],
+     "sling:resourceType":"sakai/user-profile",
+     "lastName":"User",
+     "basic":"{\"status\":\"\",\"unirole\":\"\",\"unidepartment\":\"\",\"unicollege\":\"\",\"birthday\":\"\",\"awards\":\"\",\"clubs\":\"\",\"societies\":\"\"}"
+}
