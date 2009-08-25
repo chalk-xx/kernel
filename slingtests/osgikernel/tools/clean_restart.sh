@@ -1,5 +1,5 @@
 #!/bin/sh
-if [[ a$1 -eq "aall" ]]
+if [[ "a$1" == "aall" ]]
 then
    mvn clean install
 else 
