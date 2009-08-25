@@ -154,7 +154,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (authorizable != null && authorizable.getID().equals(userId)) {
         return true;
       }
-      throw new ConnectionException(404,"User "+userId+" does not exist.");
     } catch (RepositoryException e) {
       // general repo failure
       throw new ConnectionException(500, e.getMessage(), e);
@@ -163,6 +162,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       LOGGER.info("Failure checking for valid user (" + userId + "): " + e);
       throw new ConnectionException(404,"User "+userId+" does not exist.");
     }
+    throw new ConnectionException(404,"User "+userId+" does not exist.");
   }
 
   /**
