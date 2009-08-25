@@ -56,6 +56,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   @Property
   static final String LDAP_ATTR_PASSWORD = "sakai.ldap.attribute.password";
 
+
   private boolean useSecure;
   private String host;
   private int port;
@@ -84,7 +85,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     config.setAutoBind(true);
 
-    useSecure = Boolean.parseBoolean((String) props.get(LDAP_CONNECTION_SECURE));
+    useSecure = (Boolean) props.get(LDAP_CONNECTION_SECURE);
     config.setSecureConnection(useSecure);
 
     host = (String) props.get(LDAP_HOST);
@@ -114,7 +115,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     connBroker.destroy(BROKER_NAME);
   }
 
-  public static boolean canHandle(Credentials credentials) {
+  public boolean canHandle(Credentials credentials) {
     return credentials instanceof SimpleCredentials;
   }
 
@@ -127,6 +128,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         LDAPConnection conn = connBroker.getConnection(BROKER_NAME);
         String password = new String(sc.getPassword());
         // check credentials against ldap instance
+        // TODO: remove this sync it will make session acquisition serialized
         synchronized (passwordGuards) {
           for (PasswordGuard guard : passwordGuards) {
             String guarded = guard.guard(password);

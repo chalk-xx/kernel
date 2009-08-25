@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.auth.ldap;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
@@ -69,6 +70,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
 
   @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
+  
+  @Reference
+  private LdapAuthenticationPlugin ldapAuthenticationPlugin;
 
   /**
    * {@inheritDoc}
@@ -107,7 +111,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
   public boolean canHandle(Credentials cred) {
-    boolean canHandle = LdapAuthenticationPlugin.canHandle(cred);
+    boolean canHandle = ldapAuthenticationPlugin.canHandle(cred);
     return canHandle;
   }
 
@@ -132,7 +136,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    */
   public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
       throws RepositoryException {
-    return new LdapAuthenticationPlugin();
+    return ldapAuthenticationPlugin;
   }
 
   /**
