@@ -8,6 +8,12 @@ import org.junit.Test;
 
 public class PathUtilsTest {
 
+  
+  @Test
+  public void toInternalHash() {
+   assertEquals("/testing/d0/33/e2/2a/admin/.extra", PathUtils.toInternalHashedPath("/testing", "admin", ".extra"));
+   assertEquals("/testing/0a/92/fa/b3/anonymous/.extra", PathUtils.toInternalHashedPath("/testing", "anonymous", ".extra"));
+  }
   @Test
   public void testGetUserPrefix() {
     assertEquals("61/51/anon/", PathUtils.getUserPrefix("",2));

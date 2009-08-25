@@ -1,0 +1,15 @@
+{
+    "email":["anon@doesntexist.domainname"],
+     "aboutme":"{
+       \"aboutme\":\"\",
+       \"academicinterests\":[],
+       \"personalinterests\":[],
+       \"hobbies\":\"\"
+     }",
+     "contactinfo":"{\"uniphone\":\"\",\"unimobile\":\"\",\"uniaddress\":\"\"}",
+     "firstName":["Anon"],
+     "rep:userId":["anonymous"],
+     "sling:resourceType":"sakai/user-profile",
+     "lastName":"User",
+     "basic":"{\"status\":\"\",\"unirole\":\"\",\"unidepartment\":\"\",\"unicollege\":\"\",\"birthday\":\"\",\"awards\":\"\",\"clubs\":\"\",\"societies\":\"\"}"
+}
