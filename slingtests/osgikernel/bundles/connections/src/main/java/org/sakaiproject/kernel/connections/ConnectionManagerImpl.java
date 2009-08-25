@@ -208,6 +208,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     // fail is the supplied users are invalid
     checkValidUserId(session, thisUserId);
     checkValidUserId(session, otherUserId);
+    if ( thisUserId.equals(otherUserId)) {
+      throw new ConnectionException(400, "A user cant operate on their own connection, this user and the other user are the same");
+    }
     String path = null;
     try {
       Session adminSession = slingRepository.loginAdministrative(null);
