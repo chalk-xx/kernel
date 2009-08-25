@@ -1,11 +1,6 @@
 {
     "email":["anon@doesntexist.domainname"],
-     "aboutme":"{
-       \"aboutme\":\"\",
-       \"academicinterests\":[],
-       \"personalinterests\":[],
-       \"hobbies\":\"\"
-     }",
+     "aboutme":"{\"aboutme\":\"\",\"academicinterests\":[],\"personalinterests\":[],\"hobbies\":\"\"}",
      "contactinfo":"{\"uniphone\":\"\",\"unimobile\":\"\",\"uniaddress\":\"\"}",
      "firstName":["Anon"],
      "rep:userId":["anonymous"],
