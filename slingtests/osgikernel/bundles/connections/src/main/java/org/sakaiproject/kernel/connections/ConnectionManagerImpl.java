@@ -151,17 +151,18 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
-      if (authorizable != null) {
+      if (authorizable != null && authorizable.getID().equals(userId)) {
         return true;
       }
+      throw new ConnectionException(404,"User "+userId+" does not exist.");
     } catch (RepositoryException e) {
       // general repo failure
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (Exception e) {
       // other failures return false
-      LOGGER.debug("Failure checking for valid user (" + userId + "): " + e);
+      LOGGER.info("Failure checking for valid user (" + userId + "): " + e);
+      throw new ConnectionException(404,"User "+userId+" does not exist.");
     }
-    return false;
   }
 
   /**
