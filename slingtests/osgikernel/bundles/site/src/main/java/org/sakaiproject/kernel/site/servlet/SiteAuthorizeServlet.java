@@ -138,13 +138,12 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       String path = site.getPath();
       if (changes > 0) {
 
-        LOGGER.info("Modifying Site ");
         // set the authorizables on the site
         site.setProperty(SiteService.AUTHORIZABLE, groups.toArray(new String[0]));
 
         // adjst the sites on each group added or removed.
         ValueFactory vf = session.getValueFactory();
-        LOGGER.info("Removing {} Site references to Site {} ", removed.size(), site
+        LOGGER.debug("Removing {} Site references to Site {} ", removed.size(), site
             .getPath());
 
         // remove old sites.
@@ -158,7 +157,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
                 if (!path.equals(v[i].getString())) {
                   vnew.add(v[i]);
                 } else {
-                  LOGGER.info("Removing {}", path);
+                  LOGGER.debug("Removing {}", path);
                   r = true;
                 }
               }
@@ -171,7 +170,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
         }
 
         LOGGER
-            .info("Adding Site {} references to Site {} ", added.size(), site.getPath());
+            .debug("Adding Site {} references to Site {} ", added.size(), site.getPath());
         // add new sites
         for (Authorizable auth : added.values()) {
           Value[] v = null;
@@ -182,19 +181,19 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
           if (v == null) {
             vnew = new Value[1];
             vnew[0] = vf.createValue(path);
-            LOGGER.info("Adding Site {} to Group {} ", path, auth.getID());
+            LOGGER.debug("Adding Site {} to Group {} ", path, auth.getID());
           } else {
             boolean a = true;
             for (int i = 0; i < v.length; i++) {
               if (path.equals(v[i].getString())) {
                 a = false;
                 LOGGER
-                    .info("Site {} already is present in Group {} ", path, auth.getID());
+                    .debug("Site {} already is present in Group {} ", path, auth.getID());
                 break;
               }
             }
             if (a) {
-              LOGGER.info("Appending Site {} to Group {} ", path, auth.getID());
+              LOGGER.debug("Appending Site {} to Group {} ", path, auth.getID());
               vnew = new Value[v.length + 1];
               System.arraycopy(v, 0, vnew, 0, v.length);
               vnew[v.length] = vf.createValue(path);
@@ -205,10 +204,10 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
             auth.setProperty(SiteService.SITES, vnew);
           }
         }
-        LOGGER.info("Done processing  Site {} ", path);
+        LOGGER.debug("Done processing  Site {} ", path);
 
       } else {
-        LOGGER.info("No change to  Site {} ", path);
+        LOGGER.debug("No change to  Site {} ", path);
 
       }
 

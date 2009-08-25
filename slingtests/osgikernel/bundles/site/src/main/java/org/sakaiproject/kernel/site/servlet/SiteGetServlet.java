@@ -55,7 +55,6 @@ public class SiteGetServlet extends AbstractSiteServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    LOG.info("Got get to SiteServiceGetServlet");
     Node site = request.getResource().adaptTo(Node.class);
     if (site == null) {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
@@ -84,7 +83,6 @@ public class SiteGetServlet extends AbstractSiteServlet {
       response.setContentType("text/html");
       response.setStatus(HttpServletResponse.SC_OK);
       IOUtils.stream(siteTemplate.adaptTo(InputStream.class), response.getOutputStream());
-      LOG.info("Streamed site template");
       return;
     } catch (SiteException e) {
       response.sendError(e.getStatusCode(), e.getMessage());
