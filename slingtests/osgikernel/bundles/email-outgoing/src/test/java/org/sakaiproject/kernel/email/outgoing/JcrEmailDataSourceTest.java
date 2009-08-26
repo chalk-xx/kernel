@@ -157,7 +157,7 @@ public class JcrEmailDataSourceTest {
     JcrEmailDataSource jeds = new JcrEmailDataSource(node);
     InputStream is = jeds.getInputStream();
     byte[] b = new byte[messageText.length()];
-    is.read(b, 0, messageText.length());
+    assertEquals(messageText.length(), is.read(b, 0, messageText.length()));
     assertArrayEquals(messageText.getBytes(), b);
   }
 
@@ -184,7 +184,7 @@ public class JcrEmailDataSourceTest {
     JcrEmailDataSource jeds = new JcrEmailDataSource(node);
     InputStream is = jeds.getInputStream();
     byte[] b = new byte[messageText.length()];
-    is.read(b, 0, messageText.length());
+    assertEquals(messageText.length(), is.read(b, 0, messageText.length()));
     assertArrayEquals(messageText.getBytes(), b);
   }
 

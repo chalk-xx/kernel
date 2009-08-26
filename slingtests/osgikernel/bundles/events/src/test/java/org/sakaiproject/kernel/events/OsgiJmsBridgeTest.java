@@ -109,7 +109,7 @@ public class OsgiJmsBridgeTest {
     brokerUrl = "";
 
     // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, true);
 
     // set the broker url in the component properties
     compProps.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
@@ -204,7 +204,7 @@ public class OsgiJmsBridgeTest {
     setUpNoProcess();
 
     // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, true);
 
     // expect the connection factory to thrown an exception. this is the
     // earliest an exception can be thrown and causes extra checks in the
@@ -227,7 +227,7 @@ public class OsgiJmsBridgeTest {
     setUpNoProcess();
 
     // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, true);
 
     // mock a connection for the factory to return and expect it
     conn = createMock(Connection.class);
@@ -261,7 +261,7 @@ public class OsgiJmsBridgeTest {
     setUpNoProcess();
 
     // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, true);
 
     // mock a connection for the factory to return and expect it
     conn = createMock(Connection.class);
@@ -334,8 +334,8 @@ public class OsgiJmsBridgeTest {
     dict.put(OsgiJmsBridge.ACKNOWLEDGE_MODE, Session.AUTO_ACKNOWLEDGE);
     dict.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
     dict.put(OsgiJmsBridge.CONNECTION_CLIENT_ID, "sakai.event.bridge");
-    dict.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
-    dict.put(OsgiJmsBridge.SESSION_TRANSACTED, "false");
+    dict.put(OsgiJmsBridge.PROCESS_EVENTS, true);
+    dict.put(OsgiJmsBridge.SESSION_TRANSACTED, false);
     dict.put(OsgiJmsBridge.TOPICS, "*");
     return dict;
   }
@@ -350,7 +350,7 @@ public class OsgiJmsBridgeTest {
     compProps = buildComponentProperties();
 
     // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "false");
+    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, false);
 
     // mock the context and expect a call to get the properties
     ctx = createMock(ComponentContext.class);
@@ -370,7 +370,7 @@ public class OsgiJmsBridgeTest {
       setUpNoProcess();
 
       // set event processing to false
-      compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+      compProps.put(OsgiJmsBridge.PROCESS_EVENTS, true);
 
       // mock a connection for the factory to return and expect it
       conn = createMock(Connection.class);

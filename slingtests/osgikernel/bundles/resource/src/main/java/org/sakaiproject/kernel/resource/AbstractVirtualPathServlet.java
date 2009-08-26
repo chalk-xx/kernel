@@ -145,8 +145,21 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
 
     String virtualPath = pathInfo.substring(1);
 
-    final String resourcePath = getTargetPath(baseResource, request, response,
+    String fullResourcePath = getTargetPath(baseResource, request, response,
         realPath, virtualPath);
+    
+    // clean back to a resource, removing the selector and anything else since this will be
+    // part of the resource info
+    int i = fullResourcePath.lastIndexOf("/");
+    if ( i < 0 ) {
+      i = 0;
+    }
+    int j = fullResourcePath.indexOf(".",i);
+    
+    if ( j > 0 ) {
+      fullResourcePath = fullResourcePath.substring(0,j);
+    }
+    final String resourcePath = fullResourcePath;
 
     LOGGER.info("{} final Path is {} ",this.getClass(), resourcePath);
 

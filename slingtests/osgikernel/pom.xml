@@ -34,6 +34,9 @@
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
         <module>bundles/formauth</module>
+        <module>bundles/trustedauth</module>
+        <module>bundles/ldap</module>
+        <module>bundles/ldapauth</module>
         <module>bundles/securityloader</module>
         <module>bundles/guice</module>
         <module>bundles/jpaexample</module>
@@ -46,7 +49,6 @@
         <module>bundles/mail</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
-        <module>bundles/jaxrs</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/registry</module>
         <module>bundles/lifecycle</module>
@@ -66,6 +68,7 @@
         <module>bundles/meservice</module>
         <module>bundles/server</module>
         <module>bundles/image</module>
+        <module>bundles/discussion</module>
 	<module>bundles/proxy</module>
         <module>bundles/site</module>
         <module>bundles/search</module>
@@ -75,6 +78,10 @@
         <module>bundles/events</module>
         <module>bundles/batchget</module>
         <module>bundles/email-outgoing</module>
+        <module>bundles/commons/commons-email</module>
+        <module>bundles/commons/commons-pool</module>
+        <module>bundles/commons/commons-httpclient</module>
+        <module>bundles/commons/commons-codec</module>
         <module>bundles/specs/jms</module>
         <module>bundles/specs/jmx</module>
         <module>bundles/specs/ejb</module>
@@ -286,7 +293,7 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-scr-plugin</artifactId>
-          <version>1.0.8</version>
+          <version>1.2.0</version>
           <executions>
             <execution>
               <id>generate-scr-scrdescriptor</id>

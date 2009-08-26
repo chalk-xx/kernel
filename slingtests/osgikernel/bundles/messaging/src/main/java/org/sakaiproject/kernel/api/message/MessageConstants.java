@@ -137,6 +137,11 @@ public interface MessageConstants {
   public static final String TYPE_CHAT = "chat";
 
   /**
+   * Identifier for a email message.
+   */
+  public static final String TYPE_EMAIL = "email";
+
+  /**
    * Cleanup chat messages every X minutes
    */
   public static final int CLEAUNUP_EVERY_X_MINUTES = 120;

@@ -151,7 +151,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
-      if (authorizable != null) {
+      if (authorizable != null && authorizable.getID().equals(userId)) {
         return true;
       }
     } catch (RepositoryException e) {
@@ -159,9 +159,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throw new ConnectionException(500, e.getMessage(), e);
     } catch (Exception e) {
       // other failures return false
-      LOGGER.debug("Failure checking for valid user (" + userId + "): " + e);
+      LOGGER.info("Failure checking for valid user (" + userId + "): " + e);
+      throw new ConnectionException(404,"User "+userId+" does not exist.");
     }
-    return false;
+    throw new ConnectionException(404,"User "+userId+" does not exist.");
   }
 
   /**
@@ -208,6 +209,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     // fail is the supplied users are invalid
     checkValidUserId(session, thisUserId);
     checkValidUserId(session, otherUserId);
+    if ( thisUserId.equals(otherUserId)) {
+      throw new ConnectionException(400, "A user cant operate on their own connection, this user and the other user are the same");
+    }
     String path = null;
     try {
       Session adminSession = slingRepository.loginAdministrative(null);

@@ -1,0 +1,7 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/discussionopst\" and @sakai:initialpost=\"true\"]",
+  "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "DiscussionInitialPost",
+  "sakai:propertyprovider": "DiscussionInitialPost"
+}

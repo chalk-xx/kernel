@@ -55,18 +55,17 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
         /* Request comes in at node/rep:policy */
         Node contextNode = aclNode.getParent();
         
-        LOG.info("Granting .owner privs to node owner");
+        LOG.debug("Granting .owner privs to node owner");
         if (contextNode.hasProperty(JCR_CREATED_BY)) {
           Property owner = contextNode.getProperty(JCR_CREATED_BY);
           String ownerName = owner.getString();
-          LOG.info("Got node owner: " + ownerName);
-          LOG.info("Got current user: " + userId);
+          LOG.debug("Got node owner: {}, Current User {}", ownerName, userId);
           if (userId.equals(ownerName)) {
             return true;
           }
-          LOG.info(ownerName + " didn't match " + userId);
+          LOG.debug(" {} didn't match {}",ownerName, userId);
         } else {
-          LOG.info("Node: {}  has no {} property", contextNode.getPath(), JCR_CREATED_BY);
+          LOG.debug("Node: {}  has no {} property", contextNode.getPath(), JCR_CREATED_BY);
         }
       }
     } catch (RepositoryException e) {

@@ -141,7 +141,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         String queryString = processQueryTemplate(request, queryTemplate,
             queryLanguage, propertyProviderName);
 
-        LOGGER.info("Posting Query {} ", queryString);
+        LOGGER.debug("Posting Query {} ", queryString);
         QueryManager queryManager = node.getSession().getWorkspace()
             .getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
@@ -292,18 +292,18 @@ public class SearchServlet extends SlingAllMethodsServlet {
     propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
-      LOGGER.info("Trying Provider Name {} ", propertyProviderName);
+      LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
       SearchPropertyProvider provider = propertyProvider
           .get(propertyProviderName);
       if (provider != null) {
-        LOGGER.info("Trying Provider {} ", provider);
+        LOGGER.debug("Trying Provider {} ", provider);
         provider.loadUserProperties(request, propertiesMap);
       } else {
         LOGGER.warn("No properties provider found for {} ",
             propertyProviderName);
       }
     } else {
-      LOGGER.info("No Provider ");
+      LOGGER.debug("No Provider ");
     }
     return propertiesMap;
   }
