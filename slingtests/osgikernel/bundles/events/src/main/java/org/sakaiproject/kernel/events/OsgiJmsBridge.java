@@ -43,7 +43,7 @@ import javax.jms.Topic;
 /**
  * Bridge to send OSGi events onto a JMS topic.
  */
-@Component(label = "%bridge.name", description = "%bridge.description", metatype = true)
+@Component(label = "%bridge.name", description = "%bridge.description", metatype = true, enabled = false)
 @Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
@@ -63,18 +63,11 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(intValue = Session.AUTO_ACKNOWLEDGE, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
-  @Property(boolValue = false)
-  // can't use "options" here due to FELIX-1296. Need scr plugin 1.4.0.
-  // , options = { @PropertyOption(name = "true", value = "true"),
-  // @PropertyOption(name = "false", value = "false") })
-  static final String PROCESS_EVENTS = "bridge.processEvents";
-
   private ConnectionFactory connFactory;
   private String brokerUrl;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
-  private boolean processEvents;
 
   /**
    * Default constructor.
@@ -106,30 +99,23 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-
-    
     transacted = (Boolean) props.get(SESSION_TRANSACTED);
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
-    processEvents = (Boolean) props.get(PROCESS_EVENTS);
     String _brokerUrl = (String) props.get(BROKER_URL);
 
-    LOGGER.debug("Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, "
-        + "Client ID: {}, Process Events: {}", new Object[] { _brokerUrl,
-        transacted, acknowledgeMode, connectionClientId, processEvents });
+    LOGGER.debug(
+        "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
+        new Object[] { _brokerUrl, transacted, acknowledgeMode, connectionClientId });
 
-    if (processEvents) {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (diff(brokerUrl, _brokerUrl)) {
-          LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connFactory = new ActiveMQConnectionFactory(_brokerUrl);
-        }
-      } else {
-        LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+    boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+    if (!urlEmpty) {
+      if (diff(brokerUrl, _brokerUrl)) {
+        LOGGER.info("Creating a new ActiveMQ Connection Factory");
+        connFactory = new ActiveMQConnectionFactory(_brokerUrl);
       }
     } else {
-      connFactory = null;
+      LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
     }
     brokerUrl = _brokerUrl;
   }
@@ -142,7 +128,7 @@ public class OsgiJmsBridge implements EventHandler {
   @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
-    if (processEvents && connFactory != null) {
+    if (connFactory != null) {
       LOGGER.debug("Processing event {}", event);
       Connection conn = null;
       Session clientSession = null;
