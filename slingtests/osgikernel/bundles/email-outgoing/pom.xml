@@ -44,15 +44,20 @@
 
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+      <version>5.2.0-0001-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <!-- commons -->
     <dependency>
-      <groupId>org.apache.felix.commons</groupId>
-      <artifactId>org.apache.felix.commons.commons-email</artifactId>
-      <version>1.0-0001-SNAPSHOT</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-email</artifactId>
+      <version>1.1</version>
     </dependency>
 
     <!-- osgi -->
