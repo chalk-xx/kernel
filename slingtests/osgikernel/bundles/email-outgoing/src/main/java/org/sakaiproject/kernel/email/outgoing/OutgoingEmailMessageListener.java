@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.email.outgoing;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
@@ -32,6 +31,7 @@ import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +50,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -57,12 +58,12 @@ import javax.jms.MessageListener;
 import javax.jms.Session;
 import javax.jms.Topic;
 
-@Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true, enabled = false)
+@Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
 public class OutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OutgoingEmailMessageListener.class);
 
-  @Property(value = "tcp://localhost:61616")
+  @Property(value = "vm://localhost:61616")
   public static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
@@ -83,10 +84,12 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected Scheduler scheduler;
   @Reference
   protected EventAdmin eventAdmin;
+  @Reference
+  protected ConnectionFactoryService connFactoryService;
 
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
-  private ActiveMQConnectionFactory connectionFactory;
+  private ConnectionFactory connectionFactory;
   private Connection connection = null;
   private String brokerUrl;
   private Integer maxRetries;
@@ -94,6 +97,13 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private String smtpServer;
 
   private Integer retryInterval;
+
+  public OutgoingEmailMessageListener() {
+  }
+
+  public OutgoingEmailMessageListener(ConnectionFactoryService connFactoryService) {
+    this.connFactoryService = connFactoryService;
+  }
 
   public void onMessage(Message message) {
     try {
@@ -301,7 +311,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       if (!urlEmpty) {
         if (diff(brokerUrl, _brokerUrl)) {
           LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
+          connectionFactory = connFactoryService.createFactory(_brokerUrl);
         }
 
         if (connectionFactory != null) {

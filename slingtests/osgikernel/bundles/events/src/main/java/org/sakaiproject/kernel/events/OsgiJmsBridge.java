@@ -17,14 +17,15 @@
  */
 package org.sakaiproject.kernel.events;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ import javax.jms.Topic;
 /**
  * Bridge to send OSGi events onto a JMS topic.
  */
-@Component(label = "%bridge.name", description = "%bridge.description", metatype = true, enabled = false)
+@Component(label = "%bridge.name", description = "%bridge.description", metatype = true)
 @Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
@@ -51,7 +52,7 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(value = "*", propertyPrivate = true)
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
-  @Property(value = "tcp://localhost:61616")
+  @Property(value = "vm://localhost:61616")
   static final String BROKER_URL = "bridge.brokerUrl";
 
   @Property(value = "sakai.event.bridge")
@@ -62,6 +63,9 @@ public class OsgiJmsBridge implements EventHandler {
 
   @Property(intValue = Session.AUTO_ACKNOWLEDGE, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
+
+  @Reference
+  private ConnectionFactoryService connFactoryService;
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
@@ -112,7 +116,7 @@ public class OsgiJmsBridge implements EventHandler {
     if (!urlEmpty) {
       if (diff(brokerUrl, _brokerUrl)) {
         LOGGER.info("Creating a new ActiveMQ Connection Factory");
-        connFactory = new ActiveMQConnectionFactory(_brokerUrl);
+        connFactory = connFactoryService.createFactory(_brokerUrl);
       }
     } else {
       LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
