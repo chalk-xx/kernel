@@ -36,7 +36,7 @@ import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
+import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
@@ -145,7 +145,7 @@ public class OsgiJmsBridge implements EventHandler {
         Topic emailTopic = clientSession.createTopic(event.getTopic());
         MessageProducer client = clientSession.createProducer(emailTopic);
 
-        MapMessage msg = clientSession.createMapMessage();
+        Message msg = clientSession.createMessage();
         msg.setJMSType(event.getTopic());
         for (String name : event.getPropertyNames()) {
           Object obj = event.getProperty(name);
@@ -155,7 +155,7 @@ public class OsgiJmsBridge implements EventHandler {
           if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
               || obj instanceof Number || obj instanceof Map || obj instanceof String
               || obj instanceof List) {
-            msg.setObject(name, obj);
+            msg.setObjectProperty(name, obj);
           }
         }
 
