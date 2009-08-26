@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -100,14 +101,14 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
       // We can't have anymore exceptions from now on.
       write.key(jsonName);
       write.object();
-      for (String s : mapPropertiesToWrite.keySet()) {
-        write.key(s);
-        if (mapPropertiesToWrite.get(s) instanceof Value) {
-          write.value(((Value) mapPropertiesToWrite.get(s)).getString());
+      for (Entry<String, Object> entry : mapPropertiesToWrite.entrySet()) {
+        write.key(entry.getKey());
+        if (entry.getValue() instanceof Value) {
+          write.value(((Value) entry.getValue()).getString());
         } else {
           write.array();
 
-          Value[] vals = (Value[]) mapPropertiesToWrite.get(s);
+          Value[] vals = (Value[]) entry.getValue();
           for (Value v : vals) {
             write.value(v.getString());
           }
