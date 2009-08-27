@@ -53,8 +53,10 @@ public interface SearchConstants {
  *
  */
   public static final String SAKAI_RESULTPROCESSOR = "sakai:resultprocessor";
+  public static final String SAKAI_BATCHRESULTPROCESSOR = "sakai:batchresultprocessor";
 
   public static final String REG_PROCESSOR_NAMES = "sakai.search.processor";
+  public static final String REG_BATCH_PROCESSOR_NAMES = "sakai.search.batchprocessor";
   
   public static final String REG_PROVIDER_NAMES = "sakai.search.provider";
   public static final String SAKAI_PROPERTY_PROVIDER = "sakai:propertyprovider";
@@ -63,6 +65,10 @@ public interface SearchConstants {
   *
   */
   public static final String SEARCH_RESULT_PROCESSOR = "SearchResultProcessor";
+  /**
+  *
+  */
+  public static final String SEARCH_BATCH_RESULT_PROCESSOR = "SearchBatchResultProcessor";
   /**
   *
   */

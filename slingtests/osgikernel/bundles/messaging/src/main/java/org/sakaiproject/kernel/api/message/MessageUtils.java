@@ -15,12 +15,34 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.discussion;
+package org.sakaiproject.kernel.api.message;
 
-import org.sakaiproject.kernel.api.message.MessagingException;
+import org.sakaiproject.kernel.util.PathUtils;
 
-import javax.jcr.Session;
+/**
+ * 
+ */
+public class MessageUtils {
 
-public interface DiscussionManager {
-  public String findStoreForMessage(String messageid, Session session) throws MessagingException;
+  public static String getMessagePath(String user, String messageId) {
+    String path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
+    return PathUtils.toInternalHashedPath(path, messageId, "");
+
+  }
+
+  /**
+   * @param name
+   * @return
+   */
+  public static String getMessageUrl(String name) {
+    return MessageConstants._USER_MESSAGE + "/" + name;
+  }
+
+  /**
+   * @param user
+   * @return
+   */
+  public static String getMessagePathBase(String user) {
+    return PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
+  }
 }

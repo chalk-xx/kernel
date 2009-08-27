@@ -24,6 +24,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -124,12 +125,19 @@ public class MessagingServiceImpl implements MessagingService {
       throw new MessagingException("Unable to lock user mailbox");
     }
     try {
-      String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
+      //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
+      String messagePath = MessageUtils.getMessagePath(user, messageId);
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
         for (Entry<String, Object> e : mapProperties.entrySet()) {
           msg.setProperty(e.getKey(), e.getValue().toString());
+        }
+        // Add the id for this message.
+        msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
+        
+        if (session.hasPendingChanges()) {
+          session.save();
         }
         
       } catch (RepositoryException e) {
@@ -183,5 +191,19 @@ public class MessagingServiceImpl implements MessagingService {
     adminSession.getWorkspace().copy(sourceNodePath, targetNodePath);
   }
 
+
+  public boolean isMessageStore(Node n) {
+    try {
+      if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+          && MessageConstants.SAKAI_MESSAGESTORE_RT.equals(n.getProperty(
+              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+        return true;
+      }
+    } catch (RepositoryException e) {
+      return false;
+    }
+
+    return false;
+  }
 
 }

@@ -21,21 +21,18 @@ package org.sakaiproject.kernel.api.discussion;
 
 public interface DiscussionConstants {
 
-  public static final String SAKAI_DISCUSSION_STORE = "sakai/discussionstore";
+  public static final String PROP_SAKAI_DELETED = "sakai:deleted";
   
-  public static final String SAKAI_DISCUSSION_POST = "sakai/discussionpost";
+  public static final String PROP_SAKAI_EDITEDBY = "sakai:editedby";
   
-  public static final String PROP_REPLY_ON = "sakai:replyon";
-  
-  public static final String PROP_POST_ID = "sakai:postid";
+  public static final String PROP_SAKAI_REPLY_ON = "sakai:replyon";
+
+  public static final String PROP_SAKAI_WRITETO = "sakai:writeto";
+
+  public static final String TYPE_DISCUSSION = "discussion";
   
   public static final String PROP_INITIAL_POST = "sakai:initialpost";
   
-  public static final String PROP_FROM = "sakai:from";
-  
-  public static final String PROP_DELETED = "sakai:deleted";
-  
-  public static final String PROP_EDITEDBY = "sakai:editedby";
   
   public static final String PROP_ALLOWANONYMOUS = "sakai:allowanonymous";
   /**

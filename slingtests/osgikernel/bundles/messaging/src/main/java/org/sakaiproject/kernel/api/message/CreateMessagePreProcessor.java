@@ -15,12 +15,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.discussion;
+package org.sakaiproject.kernel.api.message;
 
-import org.sakaiproject.kernel.api.message.MessagingException;
+import org.apache.sling.api.SlingHttpServletRequest;
 
-import javax.jcr.Session;
+public interface CreateMessagePreProcessor {
+  
+  public String getType();
 
-public interface DiscussionManager {
-  public String findStoreForMessage(String messageid, Session session) throws MessagingException;
+  public void checkRequest(SlingHttpServletRequest request) throws MessagingException;
 }

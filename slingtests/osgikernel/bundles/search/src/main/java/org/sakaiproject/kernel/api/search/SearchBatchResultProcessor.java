@@ -15,12 +15,25 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.discussion;
+package org.sakaiproject.kernel.api.search;
 
-import org.sakaiproject.kernel.api.message.MessagingException;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
 
-import javax.jcr.Session;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
 
-public interface DiscussionManager {
-  public String findStoreForMessage(String messageid, Session session) throws MessagingException;
+/**
+ * 
+ */
+public interface SearchBatchResultProcessor {
+  
+  /**
+   * 
+   * @param write
+   * @param nodeIterator
+   * @throws JSONException
+   * @throws RepositoryException
+   */
+  void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator) throws JSONException, RepositoryException;
 }

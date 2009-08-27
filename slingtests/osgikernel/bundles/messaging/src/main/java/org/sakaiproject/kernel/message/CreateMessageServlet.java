@@ -29,18 +29,25 @@ import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.message.CreateMessagePreProcessor;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.message.internal.InternalCreateMessagePreProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -53,10 +60,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Will create a message under the user's _private folder. If the box is set to
- * outbox en the pending property to pending or none it will be picked up by the
- * MessagePostProcessor who will then send an OSGi event that feeds it to the
- * correct MessageHandler.
+ * Will create a message under the user's _private folder. If the box is set to outbox and
+ * the sendstate property to pending or none it will be picked up by the
+ * MessagePostProcessor who will then send an OSGi event that feeds it to the correct
+ * MessageHandler.
  * 
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
@@ -66,6 +73,11 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="MessagingService"
  *                interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                bind="bindMessagingService" unbind="unbindMessagingService"
+ * @scr.reference name="CreateMessagePreProcessor"
+ *                interface="org.sakaiproject.kernel.api.message.CreateMessagePreProcessor"
+ *                bind="bindCreateMessagePreProcessor"
+ *                unbind="unbindCreateMessagePreProcessor" cardinality="0..n"
+ *                policy="dynamic"
  */
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
@@ -73,9 +85,15 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
    *
    */
   private static final long serialVersionUID = 3813877071190736742L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(CreateMessageServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CreateMessageServlet.class);
 
+  private ComponentContext osgiComponentContext;
+  private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
+  private Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
+
+  /*
+   * Bind the messaging service.
+   */
   private MessagingService messagingService;
 
   protected void bindMessagingService(MessagingService messagingService) {
@@ -96,33 +114,44 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
-    LOGGER.info("Creating message.++++++++++++++++++++++++++++++++++++++++++");
 
-    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request
-        .getMethod());
-
-    LOGGER.info("ServletPath " + request.getPathInfo());
+    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request.getMethod());
 
     // This is the message store resource.
     Resource baseResource = request.getResource();
 
+    // Current user.
     String user = request.getRemoteUser();
-    if (user == null
-        || UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
+
+    // Anonymous users are not allowed to post anything.
+    if (user == null || UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "Anonymous users can't send messages.");
       return;
     }
 
-    // Do some small checks before we actually write anything.
+    // This is the only check we always do, because to much code handling depends on it.
     if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE) == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "No type for this message specified.");
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No type for this message specified.");
       return;
     }
-    if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TO) == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "No recipient specified.");
+
+    // Get the sakai:type and depending on this type we call a preprocessor.
+    // If no preprocessor is found we use the internal one.
+    String type = request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE).getString();
+    CreateMessagePreProcessor preProcessor = null;
+    preProcessor = processors.get(type);
+    if (preProcessor == null) {
+      preProcessor = new InternalCreateMessagePreProcessor();
+    }
+
+    LOGGER.info("Using preprocessor: {}", preProcessor.getType());
+
+    // Check if the request is properly formed for this sakai:type.
+    try {
+      preProcessor.checkRequest(request);
+    } catch (MessagingException ex) {
+      response.sendError(ex.getCode(), ex.getMessage());
       return;
     }
 
@@ -148,18 +177,16 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
         throw new MessagingException("Unable to create the message.");
       }
       path = msg.getPath();
-      messageId = msg.getName();
-      
-      LOGGER.info("Got message node as "+msg);
+      messageId = msg.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
+
+      LOGGER.info("Got message node as " + msg);
     } catch (MessagingException e) {
       LOGGER.warn("MessagingException: " + e.getMessage());
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     } catch (RepositoryException e) {
       LOGGER.warn("RepositoryException: " + e.getMessage());
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
 
@@ -204,8 +231,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     };
 
     RequestDispatcherOptions options = new RequestDispatcherOptions();
-    SlingHttpServletResponseWrapper wrappedResponse = new SlingHttpServletResponseWrapper(
-        response) {
+    SlingHttpServletResponseWrapper wrappedResponse = new SlingHttpServletResponseWrapper(response) {
       ServletOutputStream servletOutputStream = new ServletOutputStream() {
 
         @Override
@@ -246,9 +272,8 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     options.setReplaceSelectors("");
     LOGGER.info("Sending the request out again with attribute: "
         + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
-    request.getRequestDispatcher(wrapper, options).forward(request,
-        wrappedResponse);
-    
+    request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
+
     response.reset();
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -278,9 +303,60 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       write.endObject();
       write.endObject();
     } catch (JSONException e) {
-      throw new ServletException(e.getMessage(),e);
+      throw new ServletException(e.getMessage(), e);
     } catch (RepositoryException e) {
-      throw new ServletException(e.getMessage(),e);
+      throw new ServletException(e.getMessage(), e);
     }
   }
+
+  /*
+   * Binds the preprocessors to this servlet.
+   */
+  protected void bindCreateMessagePreProcessor(ServiceReference serviceReference) {
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedReferences.add(serviceReference);
+      } else {
+        addProcessor(serviceReference);
+      }
+    }
+  }
+
+  protected void unbindCreateMessagePreProcessor(ServiceReference serviceReference) {
+    synchronized (delayedReferences) {
+      if (osgiComponentContext == null) {
+        delayedReferences.remove(serviceReference);
+      } else {
+        removeProcessor(serviceReference);
+      }
+    }
+  }
+
+  private void addProcessor(ServiceReference serviceReference) {
+    CreateMessagePreProcessor processor = (CreateMessagePreProcessor) osgiComponentContext
+        .locateService(MessageConstants.MESSAGE_CREATE_PREPROCESSOR, serviceReference);
+    if (processor != null) {
+      processors.put(processor.getType(), processor);
+    }
+  }
+
+  private void removeProcessor(ServiceReference serviceReference) {
+    CreateMessagePreProcessor processor = (CreateMessagePreProcessor) osgiComponentContext
+        .locateService(MessageConstants.MESSAGE_CREATE_PREPROCESSOR, serviceReference);
+    if (processor != null) {
+      processors.put(processor.getType(), processor);
+    }
+  }
+
+  // Find all the processors.
+  protected void activate(ComponentContext componentContext) {
+    synchronized (delayedReferences) {
+      osgiComponentContext = componentContext;
+      for (ServiceReference ref : delayedReferences) {
+        addProcessor(ref);
+      }
+      delayedReferences.clear();
+    }
+  }
+
 }
