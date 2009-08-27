@@ -25,6 +25,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <Export-Package> org.sakaiproject.kernel.api.proxy </Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>
