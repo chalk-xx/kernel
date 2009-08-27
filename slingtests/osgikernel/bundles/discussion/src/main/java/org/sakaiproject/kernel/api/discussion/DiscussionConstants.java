@@ -21,6 +21,8 @@ package org.sakaiproject.kernel.api.discussion;
 
 public interface DiscussionConstants {
 
+  public static final String PROP_SAKAI_MARKER = "sakai:marker";
+  
   public static final String PROP_SAKAI_DELETED = "sakai:deleted";
   
   public static final String PROP_SAKAI_EDITEDBY = "sakai:editedby";
@@ -79,5 +81,6 @@ public interface DiscussionConstants {
    * Number of comments to fetch
    */
   public static final String PARAM_ITEMS = "items";
+
 
 }
