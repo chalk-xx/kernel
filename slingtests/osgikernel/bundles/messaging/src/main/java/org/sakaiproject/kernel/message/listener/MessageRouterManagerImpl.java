@@ -46,7 +46,7 @@ import javax.jcr.RepositoryException;
 public class MessageRouterManagerImpl implements MessageRouterManager {
 
   private List<MessageRouter> routers = new ArrayList<MessageRouter>();
-  private Set<MessageRouter> routerList = new HashSet<MessageRouter>();
+  private Set<MessageRouter> messageRouters = new HashSet<MessageRouter>();
 
 
   /**
@@ -63,12 +63,12 @@ public class MessageRouterManagerImpl implements MessageRouterManager {
   }
   
   public void addMessageRouter(MessageRouter router ) {
-    routerList.add(router);
+    messageRouters.add(router);
     routers = getSortedRouterList();
   }
   
   public void removeMessageRouter(MessageRouter router ) {
-    routerList.remove(router);
+    messageRouters.remove(router);
     routers = getSortedRouterList();
   }
 
@@ -77,7 +77,7 @@ public class MessageRouterManagerImpl implements MessageRouterManager {
    */
   private List<MessageRouter> getSortedRouterList() {
     
-    List<MessageRouter> sortedRouterList = new ArrayList<MessageRouter>(routerList);
+    List<MessageRouter> sortedRouterList = new ArrayList<MessageRouter>(messageRouters);
     Collections.sort(sortedRouterList,new Comparator<MessageRouter>() {
 
       public int compare(MessageRouter o1, MessageRouter o2) {
