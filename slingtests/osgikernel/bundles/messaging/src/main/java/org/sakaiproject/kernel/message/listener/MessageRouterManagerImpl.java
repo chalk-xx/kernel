@@ -39,7 +39,7 @@ import javax.jcr.RepositoryException;
  *               value="Manages Routing"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.reference name="messageRouters"
- *                interface="org.sakaiproject.kernel.api.message.MessageTransport"
+ *                interface="org.sakaiproject.kernel.api.message.MessageRouter"
  *                policy="dynamic" cardinality="0..n" bind="addMessageRouter"
  *                unbind="removeMessageRouter"
  */
@@ -62,12 +62,12 @@ public class MessageRouterManagerImpl implements MessageRouterManager {
     return routing;
   }
   
-  public void addMessageRouter(MessageRouter router ) {
+  protected void addMessageRouter(MessageRouter router ) {
     messageRouters.add(router);
     routers = getSortedRouterList();
   }
   
-  public void removeMessageRouter(MessageRouter router ) {
+  protected void removeMessageRouter(MessageRouter router ) {
     messageRouters.remove(router);
     routers = getSortedRouterList();
   }
