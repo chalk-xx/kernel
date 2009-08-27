@@ -80,6 +80,12 @@
       <artifactId>activemq-core</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+      <version>5.2.0-0001-SNAPSHOT</version>
+    </dependency>
+
 <!-- testing -->
     <dependency>
       <groupId>org.easymock</groupId>

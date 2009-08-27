@@ -17,14 +17,15 @@
  */
 package org.sakaiproject.kernel.events;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ import java.util.Map;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
+import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
@@ -51,7 +52,7 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(value = "*", propertyPrivate = true)
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
-  @Property(value = "tcp://localhost:61616")
+  @Property(value = "vm://localhost:61616")
   static final String BROKER_URL = "bridge.brokerUrl";
 
   @Property(value = "sakai.event.bridge")
@@ -63,18 +64,14 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(intValue = Session.AUTO_ACKNOWLEDGE, propertyPrivate = true)
   static final String ACKNOWLEDGE_MODE = "bridge.acknowledgeMode";
 
-  @Property(boolValue = false)
-  // can't use "options" here due to FELIX-1296. Need scr plugin 1.4.0.
-  // , options = { @PropertyOption(name = "true", value = "true"),
-  // @PropertyOption(name = "false", value = "false") })
-  static final String PROCESS_EVENTS = "bridge.processEvents";
+  @Reference
+  private ConnectionFactoryService connFactoryService;
 
   private ConnectionFactory connFactory;
   private String brokerUrl;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
-  private boolean processEvents;
 
   /**
    * Default constructor.
@@ -106,30 +103,23 @@ public class OsgiJmsBridge implements EventHandler {
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
 
-
-    
     transacted = (Boolean) props.get(SESSION_TRANSACTED);
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
-    processEvents = (Boolean) props.get(PROCESS_EVENTS);
     String _brokerUrl = (String) props.get(BROKER_URL);
 
-    LOGGER.debug("Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, "
-        + "Client ID: {}, Process Events: {}", new Object[] { _brokerUrl,
-        transacted, acknowledgeMode, connectionClientId, processEvents });
+    LOGGER.debug(
+        "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
+        new Object[] { _brokerUrl, transacted, acknowledgeMode, connectionClientId });
 
-    if (processEvents) {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (diff(brokerUrl, _brokerUrl)) {
-          LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connFactory = new ActiveMQConnectionFactory(_brokerUrl);
-        }
-      } else {
-        LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+    boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+    if (!urlEmpty) {
+      if (diff(brokerUrl, _brokerUrl)) {
+        LOGGER.info("Creating a new ActiveMQ Connection Factory");
+        connFactory = connFactoryService.createFactory(_brokerUrl);
       }
     } else {
-      connFactory = null;
+      LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
     }
     brokerUrl = _brokerUrl;
   }
@@ -142,7 +132,7 @@ public class OsgiJmsBridge implements EventHandler {
   @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
-    if (processEvents && connFactory != null) {
+    if (connFactory != null) {
       LOGGER.debug("Processing event {}", event);
       Connection conn = null;
       Session clientSession = null;
@@ -155,7 +145,7 @@ public class OsgiJmsBridge implements EventHandler {
         Topic emailTopic = clientSession.createTopic(event.getTopic());
         MessageProducer client = clientSession.createProducer(emailTopic);
 
-        MapMessage msg = clientSession.createMapMessage();
+        Message msg = clientSession.createMessage();
         msg.setJMSType(event.getTopic());
         for (String name : event.getPropertyNames()) {
           Object obj = event.getProperty(name);
@@ -165,7 +155,7 @@ public class OsgiJmsBridge implements EventHandler {
           if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
               || obj instanceof Number || obj instanceof Map || obj instanceof String
               || obj instanceof List) {
-            msg.setObject(name, obj);
+            msg.setObjectProperty(name, obj);
           }
         }
 
