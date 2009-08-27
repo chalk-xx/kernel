@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.email.outgoing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.message.MessageConstants;
@@ -44,9 +43,6 @@ public class EmailMessageHandler implements MessageHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageHandler.class);
 
   @Reference
-  protected SlingRepository slingRepository;
-
-  @Reference
   protected EventAdmin eventAdmin;
 
   private static final String TYPE = MessageConstants.TYPE_EMAIL;
@@ -60,7 +56,7 @@ public class EmailMessageHandler implements MessageHandler {
     Properties props = new Properties();
     try {
       props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, node.getPath());
-      Event emailEvent = new Event(OutgoingEmailMessageListener.QUEUE_NAME, props);
+      Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
       eventAdmin.postEvent(emailEvent);
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);

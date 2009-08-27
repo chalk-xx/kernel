@@ -28,7 +28,7 @@
 
     <properties>
         <pkgArtifactId>commons-email</pkgArtifactId>
-        <pkgVersion>1.0</pkgVersion>
+        <pkgVersion>1.1</pkgVersion>
         <pomVersion>0001</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
@@ -52,7 +52,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>commons-email</groupId>
+            <groupId>org.apache.commons</groupId>
             <artifactId>${pkgArtifactId}</artifactId>
             <version>${pkgVersion}</version>
             <exclusions>

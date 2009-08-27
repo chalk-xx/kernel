@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.email.outgoing;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
@@ -32,6 +31,7 @@ import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,15 +55,15 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.Topic;
 
 @Component(label = "%email.out.name", description = "%email.out.description", immediate = true, metatype = true)
 public class OutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OutgoingEmailMessageListener.class);
 
-  @Property(value = "tcp://localhost:61616")
+  @Property(value = "vm://localhost:61616")
   public static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
@@ -74,6 +74,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @Property(intValue = 30)
   private static final String RETRY_INTERVAL = "sakai.email.retryIntervalMinutes";
 
+  protected static final String TOPIC_NAME = "org/sakaiproject/kernel/message/email/outgoing";
+
   @Reference
   protected SlingRepository repository;
   @Reference
@@ -82,21 +84,26 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected Scheduler scheduler;
   @Reference
   protected EventAdmin eventAdmin;
+  @Reference
+  protected ConnectionFactoryService connFactoryService;
 
-  protected static final String QUEUE_NAME = "sakai.email.outgoing";
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
+  private ConnectionFactory connectionFactory;
   private Connection connection = null;
-  private Session session = null;
-  private MessageConsumer consumer = null;
   private String brokerUrl;
-  private ConnectionFactory connectionFactory = null;
-  private Queue dest = null;
   private Integer maxRetries;
   private Integer smtpPort;
   private String smtpServer;
 
   private Integer retryInterval;
+
+  public OutgoingEmailMessageListener() {
+  }
+
+  public OutgoingEmailMessageListener(ConnectionFactoryService connFactoryService) {
+    this.connFactoryService = connFactoryService;
+  }
 
   public void onMessage(Message message) {
     try {
@@ -226,7 +233,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
             Properties eventProps = new Properties();
             eventProps.put(NODE_PATH_PROPERTY, config.get(NODE_PATH_PROPERTY));
 
-            Event retryEvent = new Event(QUEUE_NAME, eventProps);
+            Event retryEvent = new Event(TOPIC_NAME, eventProps);
             eventAdmin.postEvent(retryEvent);
 
           }
@@ -304,20 +311,21 @@ public class OutgoingEmailMessageListener implements MessageListener {
       if (!urlEmpty) {
         if (diff(brokerUrl, _brokerUrl)) {
           LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connectionFactory = new ActiveMQConnectionFactory(_brokerUrl);
+          connectionFactory = connFactoryService.createFactory(_brokerUrl);
+        }
+
+        if (connectionFactory != null) {
+          connection = connectionFactory.createConnection();
+          Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+          Topic dest = session.createTopic(TOPIC_NAME);
+          MessageConsumer consumer = session.createConsumer(dest);
+          consumer.setMessageListener(this);
+          connection.start();
         }
       } else {
         LOGGER.error("Cannot create JMS connection factory with an empty URL.");
       }
-
       brokerUrl = _brokerUrl;
-      connection = connectionFactory.createConnection();
-      session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-      dest = session.createQueue(QUEUE_NAME);
-      consumer = session.createConsumer(dest);
-      consumer.setMessageListener(this);
-      connection.start();
-
     } catch (JMSException e) {
       LOGGER.error(e.getMessage(), e);
       if (connection != null) {
@@ -327,7 +335,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
         }
       }
     }
-
   }
 
   protected void deactivate(ComponentContext ctx) {
@@ -345,7 +352,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   /**
    * Determine if there is a difference between two objects.
-   * 
+   *
    * @param obj1
    * @param obj2
    * @return true if the objects are different (only one is null or !obj1.equals(obj2)).

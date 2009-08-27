@@ -18,10 +18,8 @@ import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
-import java.util.Collections;
 import java.util.Dictionary;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -56,7 +54,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   @Property
   static final String LDAP_ATTR_PASSWORD = "sakai.ldap.attribute.password";
 
-
   private boolean useSecure;
   private String host;
   private int port;
@@ -68,16 +65,16 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   @Reference
   protected LdapConnectionBroker connBroker;
 
+  /** Using a concurrent hash map here to save from using a synchronized block later when we iterate over the password guards. */
   @Reference(referenceInterface = PasswordGuard.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-  private List<PasswordGuard> passwordGuards = Collections
-      .synchronizedList(new LinkedList<PasswordGuard>());
+  private ConcurrentHashMap<String, PasswordGuard> passwordGuards = new ConcurrentHashMap<String, PasswordGuard>();
 
   protected void bindPasswordGuards(PasswordGuard guard) {
-    passwordGuards.add(guard);
+    passwordGuards.put(guard.toString(), guard);
   }
 
   protected void unbindPasswordGuard(PasswordGuard guard) {
-    passwordGuards.remove(guard);
+    passwordGuards.remove(guard.toString());
   }
 
   protected void activate(ComponentContext ctx) {
@@ -128,16 +125,13 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         LDAPConnection conn = connBroker.getConnection(BROKER_NAME);
         String password = new String(sc.getPassword());
         // check credentials against ldap instance
-        // TODO: remove this sync it will make session acquisition serialized
-        synchronized (passwordGuards) {
-          for (PasswordGuard guard : passwordGuards) {
-            String guarded = guard.guard(password);
-            LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
-            auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
+        for (PasswordGuard guard : passwordGuards.values()) {
+          String guarded = guard.guard(password);
+          LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
+          auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
 
-            if (auth) {
-              break;
-            }
+          if (auth) {
+            break;
           }
         }
       } catch (LdapException e) {

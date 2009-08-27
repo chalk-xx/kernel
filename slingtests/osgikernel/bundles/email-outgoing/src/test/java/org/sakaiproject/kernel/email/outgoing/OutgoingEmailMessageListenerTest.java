@@ -15,6 +15,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.activemq.ActiveMQConnectionFactoryService;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
@@ -39,6 +41,7 @@ public class OutgoingEmailMessageListenerTest {
   private static final String NODE_PATH_PROPERTY = "nodePath";
   private static final String PATH = "/foo";
 
+  private ConnectionFactoryService connFactoryService;
   private OutgoingEmailMessageListener oeml;
   private Session adminSession;
   private Node messageNode;
@@ -47,7 +50,8 @@ public class OutgoingEmailMessageListenerTest {
 
   @Before
   public void setup() throws Exception {
-    oeml = new OutgoingEmailMessageListener();
+    connFactoryService = new ActiveMQConnectionFactoryService();
+    oeml = new OutgoingEmailMessageListener(connFactoryService);
 
     Properties props = new Properties();
     props.put("email.out.brokerUrl", "tcp://localhost:61616");
