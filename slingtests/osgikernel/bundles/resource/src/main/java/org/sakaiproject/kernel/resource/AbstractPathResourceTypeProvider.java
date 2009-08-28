@@ -92,7 +92,7 @@ public abstract class AbstractPathResourceTypeProvider implements PathResourceTy
         if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             && resourceType.equals(n.getProperty(
                 JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-          LOGGER.info(" {} is a messagestore file, base is {}  ", absRealPath, n
+          LOGGER.info(" {} is a virtual file, base is {}  ", absRealPath, n
               .getPath());
           return resourceType;
         }
@@ -101,7 +101,10 @@ public abstract class AbstractPathResourceTypeProvider implements PathResourceTy
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
     } finally {
-      LOGGER.info(" Type resolution added {}ms",(System.currentTimeMillis()-s));
+      long e = System.currentTimeMillis()-s;
+      if ( e > 20 ) {
+        LOGGER.info(" Type resolution added {}ms",(System.currentTimeMillis()-s));
+      }
     }
     LOGGER.debug(" {} is not a messagestore file ", absRealPath);
     

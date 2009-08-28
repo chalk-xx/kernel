@@ -171,7 +171,6 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   /** Activates this component, called by SCR before registering as a service */
   protected void activate(ComponentContext componentContext) {
     
-    LOGGER.info("Activated Component ++++++++++++++++++++++++++++++++++++++++++++++");
     
     this.slingId = this.settingsService.getSlingId();
     this.initialSecurityLoader = new Loader(this);

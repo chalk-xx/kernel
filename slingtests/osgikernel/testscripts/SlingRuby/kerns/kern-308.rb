@@ -11,7 +11,6 @@ include SlingSearch
 class TC_Kern308Test < SlingTest
 
 
-
   def test_308
     @m = Time.now.to_i.to_s
 	u = create_user("ian"+@m)
@@ -24,13 +23,33 @@ class TC_Kern308Test < SlingTest
         g.add_member(@s, n.name, "user")
 
         details = g.details(@s)
-        members = details["members"]
-        assert_not_nil(members, "Expected a list of members")
-        puts(members)
-
-        
+        assert(g.has_member(@s, n.name), "Expected member to be added")
   end
 
+  def test_delegation
+    @m = Time.now.to_i.to_s
+    u1 = create_user("bob"+@m)
+    u2 = create_user("sam"+@m)
+    u3 = create_user("eve"+@m)
+    @s.switch_user(u1)
+    g1 = create_group("g-#{u1.name}")
+    g1.add_member(@s, u1.name, "user")
+    assert(g1.has_member(@s, u1.name), "Expected user to be a member of their group")
+    @s.switch_user(u2)
+    g2 = create_group("g-#{u2.name}")
+    g2.add_member(@s, u2.name, "user")
+    assert(g2.has_member(@s, u2.name), "Expected user to be a member of their group")
+    g2.update_properties(@s, "sakai:delegatedGroupAdmin" => g1.name)
+    puts "Delegated admin property updated"
+    @s.switch_user(u1)
+    res = g2.add_member(@s, u3.name, "user")
+    assert_equal("200", res.code, "Expected to be able to make change")
+    assert(g2.has_member(@s, u3.name), "Expected foreign user to be able to modify group")
+    @s.switch_user(u3)
+    res = g2.remove_member(@s, u2.name, "user")
+    assert_equal("500", res.code, "Expected not to be able to make change") 
+    assert(g2.has_member(@s, u2.name), "Expected foreign user not to be able to modify group")
+  end
 
 end
 

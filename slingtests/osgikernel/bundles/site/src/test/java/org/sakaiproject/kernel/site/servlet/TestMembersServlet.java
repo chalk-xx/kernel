@@ -101,7 +101,6 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver)
         .anyTimes();
-    //expect(resourceResolver.resolve("/system/userManager/user/" + TEST_USER))
     expect(resourceResolver.resolve(PersonalUtils.getProfilePath(TEST_USER)))
         .andReturn(dummyUserResource(TEST_USER));
 

@@ -157,7 +157,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
                     return;
                 }
             }
-            LOGGER.info("The sitePath is: " + sitePath);
+            LOGGER.debug("The sitePath is: {}", sitePath);
 
             Node firstRealNode = JcrUtils.getFirstExistingNode(session,
                     sitePath);
@@ -235,39 +235,37 @@ public class CreateSiteServlet extends AbstractSiteServlet {
                 // If this site is based on a template.
                 if (templatePath != null) {
                     if (createSession.hasPendingChanges()) {
-                        LOGGER.info("Saving changes");
                         createSession.save();
                     }
 
                     // Copy the template files in the new folder.
                     LOGGER
-                            .info("Copying the things under template ("
-                                    + templatePath + ") to new dir ( "
-                                    + sitePath + ")");
+                            .debug("Copying the things under template ({}) to new dir ({})", templatePath, sitePath);
                     Node templateNode = (Node) createSession
                             .getItem(templatePath);
                     NodeIterator it = templateNode.getNodes();
                     while (it.hasNext()) {
                         Node n = it.nextNode();
                         try {
-                            LOGGER.info("Copying " + n.getPath());
+                            LOGGER.debug("Copying {}",n.getPath());
                             createSession.getWorkspace().copy(
                                     createSession.getWorkspace().getName(),
                                     n.getPath(), sitePath + "/" + n.getName());
                         } catch (ConstraintViolationException cve) {
                             // Do not copy.
-                            LOGGER.info("Failed to copy " + n.getName());
+                            LOGGER.warn("Failed to copy {} ",n.getName());
                         }
                     }
                     createSession.save();
-                    LOGGER.info("Finished copying");
+                    LOGGER.debug("Finished copying");
                 }
 
-                try {
-                    JcrUtils.logItem(LOGGER, siteNode);
-                } catch (JSONException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                if ( LOGGER.isDebugEnabled() ) {
+                  try {
+                      JcrUtils.logItem(LOGGER, siteNode);
+                  } catch (JSONException e) {
+                    LOGGER.warn(e.getMessage(),e);
+                  }
                 }
 
                 if (createSession.hasPendingChanges()) {

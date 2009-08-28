@@ -28,7 +28,7 @@ class TC_MyContactTest < SlingTest
     @s.switch_user(a)
     puts("Aaron Adding Nico as a coworker and friend")
     res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
-    assert_equal("201", res.code, "Expected to be able to request contact addition")
+    assert_equal("200", res.code, "Expected to be able to request contact addition")
     puts("Checking that The invitation to Nico is pending")
     contacts = @cm.get_pending()
     assert_not_nil(contacts, "Expected to get contacts back")
@@ -39,6 +39,7 @@ class TC_MyContactTest < SlingTest
    
 
     @s.switch_user(n)
+    puts("Operating as Nico")
     contacts = @cm.get_invited()
     assert_not_nil(contacts, "Expected to get an invite back ")
     assert_equal(contacts["results"].size, 1, "Only expecting a single invite ")
@@ -55,12 +56,14 @@ class TC_MyContactTest < SlingTest
     assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
 
     @s.switch_user(a)
+    puts("Operating as Aaron")
     contacts = @cm.get_accepted()
     assert_not_nil(contacts, "Expected to get an accepted back ")
     assert_equal(contacts["results"].size, 1, "Only expecting a single acceptance ")
     contact = contacts["results"][0]
     assert_equal("nico"+m,contact["target"], "Expected Aaron to have been accepted ")
     assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
+ 
 
   end
 

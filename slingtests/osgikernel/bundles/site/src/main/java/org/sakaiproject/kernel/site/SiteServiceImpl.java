@@ -319,7 +319,7 @@ public class SiteServiceImpl implements SiteService {
     if (property.getDefinition().isMultiple()) {
       return property.getValues();
     } else {
-      return new Value[] { property.getValue() };
+      return new Value[] {property.getValue()};
     }
   }
 

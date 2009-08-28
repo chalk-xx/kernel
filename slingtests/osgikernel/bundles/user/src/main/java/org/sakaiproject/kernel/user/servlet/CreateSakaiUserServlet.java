@@ -275,12 +275,12 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
         writeContent(selfRegSession, user, reqProperties, changes);
 
         try {
-          log.info("Looping all the post processors");
+          log.debug("Looping all the post processors");
           for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-            log.info("Processor: " + userPostProcessor);
+            log.debug("Processor: {}", userPostProcessor);
             userPostProcessor.process(selfRegSession, request, changes);
           }
-          log.info("Finished Looping all the post processors");
+          log.debug("Finished Looping all the post processors");
         } catch (Exception e) {
           log.warn(e.getMessage(), e);
           response

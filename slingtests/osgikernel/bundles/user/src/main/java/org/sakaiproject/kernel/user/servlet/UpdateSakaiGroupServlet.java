@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.user.servlet;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -152,6 +154,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
    * @see org.apache.sling.jackrabbit.usermanager.post.CreateUserServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void handleOperation(SlingHttpServletRequest request,
       HtmlResponse htmlResponse, List<Modification> changes) throws RepositoryException {
@@ -185,13 +188,18 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
         modifyGroup = true;
       } else {
 
-        Set<String> userPrincipals = new HashSet<String>();
-        for (PrincipalIterator pi = currentUser.getPrincipals(); pi.hasNext();) {
-          String pname = pi.nextPrincipal().getName();
-          userPrincipals.add(pname);
-          LOGGER.info("Adding Group to the set for the user. [{}]  ", pname);
-        }
         if (authorizable.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
+          Set<String> userPrincipals = new HashSet<String>();
+          for (PrincipalIterator pi = currentUser.getPrincipals(); pi.hasNext();) {
+            String pname = pi.nextPrincipal().getName();
+            userPrincipals.add(pname);
+            LOGGER.info("Adding principal to the set for the user. [{}]  ", pname);
+          }
+          for (Iterator pi = currentUser.declaredMemberOf(); pi.hasNext();) {
+            Group group = (Group)pi.next();
+            userPrincipals.add(group.getID());
+            LOGGER.info("Adding Group to the set for the user. [{}]  ", group.getID());
+          }
           Value[] groups = authorizable
               .getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY);
           for (Value group : groups) {

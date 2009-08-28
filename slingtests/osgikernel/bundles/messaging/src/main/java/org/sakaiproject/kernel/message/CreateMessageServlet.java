@@ -273,7 +273,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     LOGGER.info("Sending the request out again with attribute: "
         + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
     request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
-
     response.reset();
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);

@@ -26,7 +26,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.apache.activemq.command.ActiveMQMapMessage;
+import org.apache.activemq.command.ActiveMQMessage;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -40,7 +40,7 @@ import java.util.Hashtable;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
+import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
@@ -49,7 +49,7 @@ import javax.jms.Topic;
  * Unit test for bridging events from OSGi to JMS.
  */
 public class OsgiJmsBridgeTest {
-  private String brokerUrl = "tcp://localhost:61616";
+  private String brokerUrl = "vm://localhost:61616";
   private Hashtable<Object, Object> compProps;
   private ComponentContext ctx;
   private ConnectionFactory connFactory;
@@ -57,7 +57,7 @@ public class OsgiJmsBridgeTest {
   private Session sess;
   private Topic topic;
   private MessageProducer prod;
-  private MapMessage mapMessage;
+  private Message message;
   private OsgiJmsBridge bridge;
   private Event event;
 
@@ -76,40 +76,12 @@ public class OsgiJmsBridgeTest {
    * @throws JMSException
    */
   @Test
-  public void testHandleEventNoProcess() throws JMSException {
-    // setup to do no processing
-    setUpNoProcess();
-
-    // start the mocks
-    replay(ctx, connFactory);
-
-    // construct and send the message
-    Dictionary<Object, Object> props = buildEventProperties();
-    sendMessage(props);
-
-    // verify that all expected calls were made.
-    verify(ctx, connFactory);
-
-    // when no processing, the map message should never be instantiated and
-    // should finish without exception
-    assertNull(mapMessage);
-  }
-
-  /**
-   * Test handling an event with event processing turned off.
-   *
-   * @throws JMSException
-   */
-  @Test
   public void testCreateBridgeWithEmptyUrl() throws JMSException {
     // setup to do no processing
-    setUpNoProcess();
+    setUpProcess();
 
     // set the broker url to an empty string
     brokerUrl = "";
-
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
 
     // set the broker url in the component properties
     compProps.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
@@ -126,7 +98,7 @@ public class OsgiJmsBridgeTest {
 
     // when no processing, the map message should never be instantiated and
     // should finish without exception
-    assertNull(mapMessage);
+    assertNull(message);
   }
 
   /**
@@ -151,7 +123,7 @@ public class OsgiJmsBridgeTest {
     verify(ctx, connFactory, conn, sess, topic, prod);
 
     int namesCount = 0;
-    Enumeration names = mapMessage.getMapNames();
+    Enumeration names = message.getPropertyNames();
     while (names.hasMoreElements()) {
       names.nextElement();
       namesCount++;
@@ -189,7 +161,7 @@ public class OsgiJmsBridgeTest {
     verify(ctx, connFactory, conn, sess, topic, prod);
 
     int namesCount = 0;
-    Enumeration names = mapMessage.getMapNames();
+    Enumeration names = message.getPropertyNames();
     while (names.hasMoreElements()) {
       names.nextElement();
       namesCount++;
@@ -201,10 +173,7 @@ public class OsgiJmsBridgeTest {
 
   @Test
   public void testJmsExceptionWhenCreatingConnection() throws Exception {
-    setUpNoProcess();
-
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    setUpProcess();
 
     // expect the connection factory to thrown an exception. this is the
     // earliest an exception can be thrown and causes extra checks in the
@@ -224,10 +193,7 @@ public class OsgiJmsBridgeTest {
 
   @Test
   public void testJmsExceptionWhenCreatingSession() throws JMSException {
-    setUpNoProcess();
-
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+    setUpProcess();
 
     // mock a connection for the factory to return and expect it
     conn = createMock(Connection.class);
@@ -258,10 +224,8 @@ public class OsgiJmsBridgeTest {
 
   @Test
   public void testJmsExceptionWhenCreatingTopic() throws JMSException {
-    setUpNoProcess();
+    setUpProcess();
 
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
 
     // mock a connection for the factory to return and expect it
     conn = createMock(Connection.class);
@@ -334,8 +298,7 @@ public class OsgiJmsBridgeTest {
     dict.put(OsgiJmsBridge.ACKNOWLEDGE_MODE, Session.AUTO_ACKNOWLEDGE);
     dict.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
     dict.put(OsgiJmsBridge.CONNECTION_CLIENT_ID, "sakai.event.bridge");
-    dict.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
-    dict.put(OsgiJmsBridge.SESSION_TRANSACTED, "false");
+    dict.put(OsgiJmsBridge.SESSION_TRANSACTED, false);
     dict.put(OsgiJmsBridge.TOPICS, "*");
     return dict;
   }
@@ -345,12 +308,9 @@ public class OsgiJmsBridgeTest {
    *
    * @throws JMSException
    */
-  private void setUpNoProcess() {
+  private void setUpProcess() {
     // construct the default component properties
     compProps = buildComponentProperties();
-
-    // set event processing to false
-    compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "false");
 
     // mock the context and expect a call to get the properties
     ctx = createMock(ComponentContext.class);
@@ -367,10 +327,7 @@ public class OsgiJmsBridgeTest {
    */
   private void setUpFullProcessNoClose() {
     try {
-      setUpNoProcess();
-
-      // set event processing to false
-      compProps.put(OsgiJmsBridge.PROCESS_EVENTS, "true");
+      setUpProcess();
 
       // mock a connection for the factory to return and expect it
       conn = createMock(Connection.class);
@@ -401,11 +358,11 @@ public class OsgiJmsBridgeTest {
       expect(sess.createProducer(topic)).andReturn(prod);
 
       // mock the return of a mapped message
-      mapMessage = new ActiveMQMapMessage();
-      expect(sess.createMapMessage()).andReturn(mapMessage);
+      message = new ActiveMQMessage();
+      expect(sess.createMessage()).andReturn(message);
 
       // expect the message to be sent
-      prod.send(mapMessage);
+      prod.send(message);
       expectLastCall();
     }
     catch (JMSException e) {

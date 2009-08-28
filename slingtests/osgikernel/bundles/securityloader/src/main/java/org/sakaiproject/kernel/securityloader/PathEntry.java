@@ -49,7 +49,7 @@ public class PathEntry {
      */
     public static final String PATH_DIRECTIVE = "path";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PathEntry.class);
+    private static final Logger LOGGERx = LoggerFactory.getLogger(PathEntry.class);
 
     /** The path for the security content */
     private final String path;
@@ -73,9 +73,7 @@ public class PathEntry {
 
         final String root = (String) bundle.getHeaders().get(SECURITY_HEADER);
         if (root != null) {
-            final ManifestHeader header = ManifestHeader.parse(root);
-            LOGGER.info("Found Entries "+header.getEntries().length);
-            
+            final ManifestHeader header = ManifestHeader.parse(root);            
             for (final ManifestHeader.Entry entry : header.getEntries()) {
                 entries.add(new PathEntry(entry));
             }
@@ -84,7 +82,6 @@ public class PathEntry {
         if (entries.size() == 0) {
             return null;
         }
-        LOGGER.info("Found Final Entries ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ "+entries.size());
         
         return entries.iterator();
     }
