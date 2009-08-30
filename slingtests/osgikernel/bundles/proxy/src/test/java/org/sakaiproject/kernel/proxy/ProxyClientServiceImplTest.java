@@ -46,7 +46,7 @@ import javax.jcr.RepositoryException;
 /**
  *
  */
-public class SoapClientServiceImplTest extends AbstractEasyMockTest {
+public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
   /**
    * 
@@ -130,7 +130,7 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
     verify();
   }
 
-//  @Test
+  @Test
   public void testInvokeServiceNodeEndPoint() throws ProxyClientException,
       RepositoryException, IOException {
     Node node = createMock(Node.class);
@@ -141,13 +141,29 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
     
     
     Property endpointProperty = createMock(Property.class);
+    Property requestMethodProperty = createMock(Property.class);
+    Property requestContentType = createMock(Property.class);
     Property templateProperty = createMock(Property.class);
     Property lastModifiedProperty = createMock(Property.class);
+    
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(true);
+ 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    expect(endpointProperty.getString()).andReturn(dummyServer.getUrl());
+     expect(endpointProperty.getString()).andReturn(dummyServer.getUrl());
+     
+     
+     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(true);
+     
+     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
+         requestMethodProperty);
+      expect(requestMethodProperty.getString()).andReturn("POST");
+      expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_CONTENT_TYPE)).andReturn(true);
+      
+      expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_CONTENT_TYPE)).andReturn(
+          requestContentType);
+       expect(requestContentType.getString()).andReturn(APPLICATION_SOAP_XML_CHARSET_UTF_8);
     expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(true)
         .atLeastOnce();
     expect(node.getProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
@@ -164,12 +180,13 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
 
     dummyServer.setContentType(APPLICATION_SOAP_XML_CHARSET_UTF_8);
     dummyServer.setResponseBody(RESPONSE_BODY);
-
+    
     replay();
     Map<String, String> input = new HashMap<String, String>();
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
+    headers.put("SOAPAction", "");
     ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();

@@ -24,6 +24,7 @@ import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -33,7 +34,7 @@ public class ProxyResponseImpl implements ProxyResponse {
 
   private int result;
   private HttpMethod method;
-  private Map<String, String[]> headers;
+  private Map<String, String[]> headers = new HashMap<String, String[]>();
 
   /**
    * @param result
