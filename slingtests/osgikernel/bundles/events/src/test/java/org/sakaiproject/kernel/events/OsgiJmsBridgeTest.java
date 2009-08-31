@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.events;
 
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -27,9 +29,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.apache.activemq.command.ActiveMQMessage;
+import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -52,6 +56,7 @@ public class OsgiJmsBridgeTest {
   private String brokerUrl = "vm://localhost:61616";
   private Hashtable<Object, Object> compProps;
   private ComponentContext ctx;
+  private ConnectionFactoryService connFactoryService;
   private ConnectionFactory connFactory;
   private Connection conn;
   private Session sess;
@@ -60,6 +65,23 @@ public class OsgiJmsBridgeTest {
   private Message message;
   private OsgiJmsBridge bridge;
   private Event event;
+
+  @Before
+  public void setUp() {
+    // construct the default component properties
+    compProps = buildComponentProperties();
+
+    // mock the context and expect a call to get the properties
+    ctx = createMock(ComponentContext.class);
+    expect(ctx.getProperties()).andReturn(compProps);
+
+    // mock a connection factory
+    connFactory = createMock(ConnectionFactory.class);
+
+    // mock a connection factory service
+    connFactoryService = createMock(ConnectionFactoryService.class);
+    expect(connFactoryService.createFactory((String) anyObject())).andReturn(connFactory);
+  }
 
   /**
    * Tests the default constructor. Nothing goes on in the default constructor
@@ -77,9 +99,6 @@ public class OsgiJmsBridgeTest {
    */
   @Test
   public void testCreateBridgeWithEmptyUrl() throws JMSException {
-    // setup to do no processing
-    setUpProcess();
-
     // set the broker url to an empty string
     brokerUrl = "";
 
@@ -87,18 +106,21 @@ public class OsgiJmsBridgeTest {
     compProps.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
 
     // start the mocks
-    replay(ctx, connFactory);
+    replay(ctx, connFactory, connFactoryService);
 
     // create the bridge and activate it
-    OsgiJmsBridge bridge = new OsgiJmsBridge(connFactory, brokerUrl);
-    bridge.activate(ctx);
+    OsgiJmsBridge bridge = new OsgiJmsBridge(connFactoryService);
+    try {
+      bridge.activate(ctx);
+      fail("Should fail with empty url.");
+    } catch (RuntimeException e) {
+      // verify that all expected calls were made.
+      verify(ctx, connFactory);
 
-    // verify that all expected calls were made.
-    verify(ctx, connFactory);
-
-    // when no processing, the map message should never be instantiated and
-    // should finish without exception
-    assertNull(message);
+      // when no processing, the map message should never be instantiated and
+      // should finish without exception
+      assertNull(message);
+    }
   }
 
   /**
@@ -110,14 +132,15 @@ public class OsgiJmsBridgeTest {
   @Test
   public void testHandleEvent() throws Exception {
     // setup to do full processing
-    setUpFullProcess();
+    setUpFullProcess(true);
 
     // start the mocks
-    replay(ctx, connFactory, conn, sess, topic, prod);
+    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
     sendMessage(props);
+    bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
     verify(ctx, connFactory, conn, sess, topic, prod);
@@ -142,7 +165,7 @@ public class OsgiJmsBridgeTest {
   @Test
   public void testHandleEventExceptionClosing() throws Exception {
     // setup to do full processing
-    setUpFullProcessNoClose();
+    setUpFullProcess(false);
 
     // expect to have exceptions when closing the session and connection
     sess.close();
@@ -151,11 +174,12 @@ public class OsgiJmsBridgeTest {
     expectLastCall().andThrow(new JMSException("can't close connection"));
 
     // start the mocks
-    replay(ctx, connFactory, conn, sess, topic, prod);
+    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
     sendMessage(props);
+    bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
     verify(ctx, connFactory, conn, sess, topic, prod);
@@ -173,37 +197,35 @@ public class OsgiJmsBridgeTest {
 
   @Test
   public void testJmsExceptionWhenCreatingConnection() throws Exception {
-    setUpProcess();
-
     // expect the connection factory to thrown an exception. this is the
     // earliest an exception can be thrown and causes extra checks in the
     // exception handling.
+    connFactory = createMock(ConnectionFactory.class);
+
+    connFactoryService = createMock(ConnectionFactoryService.class);
+    expect(connFactoryService.createFactory((String) anyObject())).andReturn(connFactory);
+
     expect(connFactory.createConnection()).andThrow(new JMSException("can't create connection"));
 
     // start the mocks
-    replay(ctx, connFactory);
+    replay(ctx, connFactoryService, connFactory);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
-    sendMessage(props);
+    try {
+      sendMessage(props);
+      fail("Should fail when can't create connection");
+    } catch (RuntimeException e) {
+      // verify that all expected calls were made.
+      verify(ctx, connFactory);
 
-    // verify that all expected calls were made.
-    verify(ctx, connFactory);
+      assertTrue(e.getCause() instanceof JMSException);
+    }
   }
 
   @Test
   public void testJmsExceptionWhenCreatingSession() throws JMSException {
-    setUpProcess();
-
-    // mock a connection for the factory to return and expect it
-    conn = createMock(Connection.class);
-    expect(connFactory.createConnection()).andReturn(conn);
-    conn.close();
-    expectLastCall();
-
-    // expect the client id to be set
-    conn.setClientID((String) anyObject());
-    expectLastCall();
+    setUpConnection(true);
 
     // mock a session to be returned by the connection and expect it to throw an
     // exception. this causes extra checking to happen in the exception
@@ -212,11 +234,19 @@ public class OsgiJmsBridgeTest {
         new JMSException("can't create session"));
 
     // start the mocks
-    replay(ctx, connFactory, conn);
+    replay(ctx, connFactoryService, connFactory, conn);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
-    sendMessage(props);
+    try {
+      sendMessage(props);
+      fail("Should fail when can't create session");
+    } catch (RuntimeException e) {
+      // verify that all expected calls were made.
+      verify(ctx, connFactory);
+
+      assertTrue(e.getCause() instanceof JMSException);
+    }
 
     // verify that all expected calls were made.
     verify(ctx, connFactory);
@@ -224,18 +254,7 @@ public class OsgiJmsBridgeTest {
 
   @Test
   public void testJmsExceptionWhenCreatingTopic() throws JMSException {
-    setUpProcess();
-
-
-    // mock a connection for the factory to return and expect it
-    conn = createMock(Connection.class);
-    expect(connFactory.createConnection()).andReturn(conn);
-
-    // expect the client id to be set
-    conn.setClientID((String) anyObject());
-    expectLastCall();
-    conn.close();
-    expectLastCall();
+    setUpConnection(true);
 
     // mock a session to be returned by the connection and expect it to throw an
     // exception. this causes extra checking to happen in the exception
@@ -249,7 +268,7 @@ public class OsgiJmsBridgeTest {
     expect(sess.createTopic((String) anyObject())).andThrow(new JMSException("can't create topic"));
 
     // start the mocks
-    replay(ctx, connFactory, conn, sess);
+    replay(ctx, connFactoryService, connFactory, conn, sess);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
@@ -264,7 +283,7 @@ public class OsgiJmsBridgeTest {
    * and calls the bridge to handle it.
    */
   private void sendMessage(Dictionary<Object, Object> dict) {
-    bridge = new OsgiJmsBridge(connFactory, brokerUrl);
+    bridge = new OsgiJmsBridge(connFactoryService);
     bridge.activate(ctx);
 
     event = new Event("test-event", dict);
@@ -308,16 +327,22 @@ public class OsgiJmsBridgeTest {
    *
    * @throws JMSException
    */
-  private void setUpProcess() {
-    // construct the default component properties
-    compProps = buildComponentProperties();
+  private void setUpConnection(boolean closeConnection) {
+    try {
+      // mock a connection for the factory to return and expect it
+      conn = createMock(Connection.class);
+      expect(connFactory.createConnection()).andReturn(conn);
 
-    // mock the context and expect a call to get the properties
-    ctx = createMock(ComponentContext.class);
-    expect(ctx.getProperties()).andReturn(compProps);
+      // expect the client id to be set
+      conn.setClientID((String) anyObject());
 
-    // mock a connection factory
-    connFactory = createMock(ConnectionFactory.class);
+      if (closeConnection) {
+        // expect the connection to get closed
+        conn.close();
+      }
+    } catch (JMSException e) {
+      // this should never happen because the calls are on mock objects
+    }
   }
 
   /**
@@ -325,21 +350,12 @@ public class OsgiJmsBridgeTest {
    *
    * @throws JMSException
    */
-  private void setUpFullProcessNoClose() {
+  private void setUpFullProcess(boolean closeConnection) {
     try {
-      setUpProcess();
-
-      // mock a connection for the factory to return and expect it
-      conn = createMock(Connection.class);
-      expect(connFactory.createConnection()).andReturn(conn);
-
-      // expect the client id to be set
-      conn.setClientID((String) anyObject());
-      expectLastCall();
+      setUpConnection(closeConnection);
 
       // expect the connection to get started
       conn.start();
-      expectLastCall();
 
       // mock a session to be returned by the connection and expect it
       sess = createMock(Session.class);
@@ -363,24 +379,10 @@ public class OsgiJmsBridgeTest {
 
       // expect the message to be sent
       prod.send(message);
-      expectLastCall();
-    }
-    catch (JMSException e) {
-      // this should never happen because the calls are on mock objects
-    }
-  }
 
-  private void setUpFullProcess() {
-    setUpFullProcessNoClose();
-
-    try {
-      // expect the session to get closed
-      sess.close();
-      expectLastCall();
-
-      // expect the connection to get closed
-      conn.close();
-      expectLastCall();
+      if (closeConnection) {
+        sess.close();
+      }
     } catch (JMSException e) {
       // this should never happen because the calls are on mock objects
     }
