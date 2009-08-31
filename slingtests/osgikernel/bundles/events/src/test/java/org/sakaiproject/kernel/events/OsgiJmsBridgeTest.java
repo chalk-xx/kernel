@@ -26,7 +26,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.apache.activemq.command.ActiveMQMapMessage;
+import org.apache.activemq.command.ActiveMQMessage;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
@@ -40,7 +40,7 @@ import java.util.Hashtable;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.MapMessage;
+import javax.jms.Message;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.Topic;
@@ -49,7 +49,7 @@ import javax.jms.Topic;
  * Unit test for bridging events from OSGi to JMS.
  */
 public class OsgiJmsBridgeTest {
-  private String brokerUrl = "tcp://localhost:61616";
+  private String brokerUrl = "vm://localhost:61616";
   private Hashtable<Object, Object> compProps;
   private ComponentContext ctx;
   private ConnectionFactory connFactory;
@@ -57,7 +57,7 @@ public class OsgiJmsBridgeTest {
   private Session sess;
   private Topic topic;
   private MessageProducer prod;
-  private MapMessage mapMessage;
+  private Message message;
   private OsgiJmsBridge bridge;
   private Event event;
 
@@ -98,7 +98,7 @@ public class OsgiJmsBridgeTest {
 
     // when no processing, the map message should never be instantiated and
     // should finish without exception
-    assertNull(mapMessage);
+    assertNull(message);
   }
 
   /**
@@ -123,7 +123,7 @@ public class OsgiJmsBridgeTest {
     verify(ctx, connFactory, conn, sess, topic, prod);
 
     int namesCount = 0;
-    Enumeration names = mapMessage.getMapNames();
+    Enumeration names = message.getPropertyNames();
     while (names.hasMoreElements()) {
       names.nextElement();
       namesCount++;
@@ -161,7 +161,7 @@ public class OsgiJmsBridgeTest {
     verify(ctx, connFactory, conn, sess, topic, prod);
 
     int namesCount = 0;
-    Enumeration names = mapMessage.getMapNames();
+    Enumeration names = message.getPropertyNames();
     while (names.hasMoreElements()) {
       names.nextElement();
       namesCount++;
@@ -358,11 +358,11 @@ public class OsgiJmsBridgeTest {
       expect(sess.createProducer(topic)).andReturn(prod);
 
       // mock the return of a mapped message
-      mapMessage = new ActiveMQMapMessage();
-      expect(sess.createMapMessage()).andReturn(mapMessage);
+      message = new ActiveMQMessage();
+      expect(sess.createMessage()).andReturn(message);
 
       // expect the message to be sent
-      prod.send(mapMessage);
+      prod.send(message);
       expectLastCall();
     }
     catch (JMSException e) {

@@ -26,19 +26,53 @@ public class MessagingException extends RuntimeException {
    */
   private static final long serialVersionUID = 1L;
 
+  private int code;
+  private String message;
+  
+  
   public MessagingException() {
     super();
   }
 
+  public MessagingException(int code) {
+    super();
+    setCode(code);
+  }  
+  public MessagingException(int code, String message) {
+    super();
+    setCode(code);
+    setMessage(message);
+  }
+
+
+
   public MessagingException(String message, Throwable cause) {
     super(message, cause);
+    setMessage(message);
   }
 
   public MessagingException(String message) {
     super(message);
+    setMessage(message);
   }
 
   public MessagingException(Throwable cause) {
     super(cause);
+  }
+
+  public int getCode() {
+    return code;
+  }
+
+  public void setCode(int code) {
+    this.code = code;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
   }
 }

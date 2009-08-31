@@ -21,6 +21,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +58,17 @@ public class MessageServlet extends AbstractMessageServlet {
     if (selector == null) {
       selector = "";
     }
-    LOGGER.info("Request [{}], ResourcePath [{}], Selector [{}], MessageId[{}]",
-        new Object[] {request.getRequestURI(), resourcePath, selector, messageId});
-    String finalPath = MessageUtils.getMessagePath(request.getRemoteUser(), messageId)
-        + selector;
+    LOGGER.info("Request [{}], ResourcePath [{}], Selector [{}], MessageId[{}]", new Object[] {
+        request.getRequestURI(), resourcePath, selector, messageId });
+
+    String finalPath = "";
+    String storePath = resourcePath.substring(0, resourcePath.lastIndexOf("/"));
+    if (storePath.equals(MessageConstants._USER_MESSAGE)) {
+
+      finalPath = MessageUtils.getMessagePath(request.getRemoteUser(), messageId) + selector;
+    } else {
+      finalPath = PathUtils.toInternalHashedPath(storePath, messageId, "");
+    }
     LOGGER.info("Processed Path to {} ", finalPath);
     return finalPath;
   }

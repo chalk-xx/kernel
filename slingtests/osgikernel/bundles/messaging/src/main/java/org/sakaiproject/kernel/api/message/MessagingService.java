@@ -104,4 +104,12 @@ public interface MessagingService {
    */
   public void copyMessage(Session adminSession, String target, String source, String messageId) throws PathNotFoundException, RepositoryException;
   
+  
+  /**
+   * Checks if the provided node is a message store node.
+   * @param n
+   * @return
+   */
+  public boolean isMessageStore(Node n);
+  
 }
