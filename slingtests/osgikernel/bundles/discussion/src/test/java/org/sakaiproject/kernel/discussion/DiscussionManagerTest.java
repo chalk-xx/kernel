@@ -4,13 +4,10 @@ import org.junit.Test;
 
 public class DiscussionManagerTest {
 
-  
-  private DiscussionManagerImpl discussionManager = new DiscussionManagerImpl();
-  
-  
+  // private DiscussionManagerImpl discussionManager = new DiscussionManagerImpl();
+
   @Test
   public void testAnonymous() {
-    
+
   }
-  
 }

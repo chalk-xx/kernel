@@ -24,6 +24,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

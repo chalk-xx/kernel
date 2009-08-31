@@ -219,6 +219,19 @@ public class CreateSiteServlet extends AbstractSiteServlet {
                         MODIFY_ACL_GRANTED);
 
                 
+                // We add a message store to this site.
+                if (createSession.hasPendingChanges()) {
+                    LOGGER.info("Saving changes");
+                    createSession.save();
+                } 
+                
+                
+                Node storeNode = siteNode.addNode("store");
+                storeNode.setProperty(
+                    JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, 
+                    "sakai/messagestore");
+                
+                
                 // If this site is based on a template.
                 if (templatePath != null) {
                     if (createSession.hasPendingChanges()) {

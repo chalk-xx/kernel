@@ -23,7 +23,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageHandler;
-import org.sakaiproject.kernel.message.MessageUtils;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

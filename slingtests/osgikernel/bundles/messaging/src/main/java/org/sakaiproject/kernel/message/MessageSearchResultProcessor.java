@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.message;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -100,14 +102,14 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
       // We can't have anymore exceptions from now on.
       write.key(jsonName);
       write.object();
-      for (String s : mapPropertiesToWrite.keySet()) {
-        write.key(s);
-        if (mapPropertiesToWrite.get(s) instanceof Value) {
-          write.value(((Value) mapPropertiesToWrite.get(s)).getString());
+      for (Entry<String, Object> entry : mapPropertiesToWrite.entrySet()) {
+        write.key(entry.getKey());
+        if (entry.getValue() instanceof Value) {
+          write.value(((Value) entry.getValue()).getString());
         } else {
           write.array();
 
-          Value[] vals = (Value[]) mapPropertiesToWrite.get(s);
+          Value[] vals = (Value[]) entry.getValue();
           for (Value v : vals) {
             write.value(v.getString());
           }
