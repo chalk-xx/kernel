@@ -91,7 +91,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
-  public static final String RECIPEINTS = "recipents";
+  public static final String RECIPIENTS = "recipients";
 
   private ConnectionFactory connectionFactory;
   private Connection connection = null;
@@ -112,7 +112,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   public void onMessage(Message message) {
     try {
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
-      String[] recipients = StringUtils.split(message.getStringProperty(RECIPEINTS),',');
+      String[] recipients = StringUtils.split(message.getStringProperty(RECIPIENTS),',');
 
       javax.jcr.Session adminSession = repository.loginAdministrative(null);
       ResourceResolver resolver = jcrResourceResolverFactory
@@ -193,7 +193,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
       bccRecipients.add(r.trim());
     }
     
-    if ( messageNode.hasNode(MessageConstants.PROP_SAKAI_TO) ) {
+    if ( messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO) ) {
       String[] tor = StringUtils.split(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString(),',');
       for ( String r : tor ) {
         r = r.trim();

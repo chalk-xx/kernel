@@ -72,7 +72,7 @@ public class EmailMessageHandler implements MessageTransport {
     if (recipents.size() > 0) {
       Properties props = new Properties();
       try {
-        props.put(OutgoingEmailMessageListener.RECIPEINTS, recipents);
+        props.put(OutgoingEmailMessageListener.RECIPIENTS, recipents);
         props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, n.getPath());
         Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
         eventAdmin.postEvent(emailEvent);
