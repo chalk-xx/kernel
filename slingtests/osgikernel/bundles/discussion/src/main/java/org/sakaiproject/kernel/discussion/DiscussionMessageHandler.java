@@ -26,7 +26,8 @@ import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageHandler;
+import org.sakaiproject.kernel.api.message.MessageRoutes;
+import org.sakaiproject.kernel.api.message.MessageTransport;
 import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.DateUtils;
@@ -47,7 +48,7 @@ import javax.jcr.Session;
  * @scr.component label="DiscussionMessageHandler"
  *                description="Handler for discussion messages." immediate="true"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.kernel.api.message.MessageHandler"
+ * @scr.service interface="org.sakaiproject.kernel.api.message.MessageTransport"
  * 
  * @scr.reference name="SiteService"
  *                interface="org.sakaiproject.kernel.api.site.SiteService"
@@ -57,7 +58,7 @@ import javax.jcr.Session;
  * @scr.reference name="DiscussionManager"
  *                interface="org.sakaiproject.kernel.api.discussion.DiscussionManager"
  */
-public class DiscussionMessageHandler implements MessageHandler {
+public class DiscussionMessageHandler implements MessageTransport {
 
   public static final Logger LOG = LoggerFactory.getLogger(DiscussionMessageHandler.class);
 
@@ -205,5 +206,14 @@ public class DiscussionMessageHandler implements MessageHandler {
     } catch (RepositoryException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes, org.osgi.service.event.Event, javax.jcr.Node)
+   */
+  public void send(MessageRoutes routes, Event event, Node n) {
+    // TODO Auto-generated method stub
+    LOG.error("Discussion message handling is not currently implemented as a Transport, no messages will be delivered, please FIX");
   }
 }
