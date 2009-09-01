@@ -25,7 +25,7 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
 import org.sakaiproject.kernel.api.message.MessageTransport;
-import org.sakaiproject.kernel.message.MessageUtils;
+import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
