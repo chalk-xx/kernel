@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.email.outgoing;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
 import org.apache.felix.scr.annotations.Component;
@@ -40,14 +41,15 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -89,6 +91,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
+  public static final String RECIPEINTS = "recipents";
+
   private ConnectionFactory connectionFactory;
   private Connection connection = null;
   private String brokerUrl;
@@ -108,6 +112,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   public void onMessage(Message message) {
     try {
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
+      String[] recipients = StringUtils.split(message.getStringProperty(RECIPEINTS),',');
 
       javax.jcr.Session adminSession = repository.loginAdministrative(null);
       ResourceResolver resolver = jcrResourceResolverFactory
@@ -130,11 +135,11 @@ public class OutgoingEmailMessageListener implements MessageListener {
             // make a commons-email message from the message
             MultiPartEmail email;
             try {
-              email = constructMessage(messageNode);
+              email = constructMessage(messageNode, recipients);
 
               email.setSmtpPort(smtpPort);
               email.setHostName(smtpServer);
-
+       
               email.send();
             } catch (EmailException e) {
               setError(messageNode, e.getMessage());
@@ -176,17 +181,36 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
-  private MultiPartEmail constructMessage(Node messageNode) throws EmailException,
+  private MultiPartEmail constructMessage(Node messageNode, String[] recipients) throws EmailException,
       RepositoryException, PathNotFoundException, ValueFormatException {
     MultiPartEmail email = new MultiPartEmail();
-    try {
-      email.addTo(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString());
-    } catch (ValueFormatException e) {
-      for (Value address : messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)
-          .getValues()) {
-        email.addTo(address.getString());
+    //TODO: the SAKAI_TO may make no sense in an email context
+    // and there does not appear to be any distinction between Bcc and To in java mail.
+    
+    Set<String> toRecipients = new HashSet<String>();
+    Set<String> bccRecipients = new HashSet<String>();
+    for ( String r : recipients ) {
+      bccRecipients.add(r.trim());
+    }
+    
+    if ( messageNode.hasNode(MessageConstants.PROP_SAKAI_TO) ) {
+      String[] tor = StringUtils.split(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString(),',');
+      for ( String r : tor ) {
+        r = r.trim();
+        if ( bccRecipients.contains(r) ) {
+          toRecipients.add(r);
+          bccRecipients.remove(r);
+        }
       }
     }
+    for ( String r : toRecipients ) {
+      email.addTo(r);
+    }
+    for ( String r : bccRecipients ) {
+      email.addBcc(r);
+    }
+    
+    
 
     email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString());
 
