@@ -23,7 +23,8 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageHandler;
+import org.sakaiproject.kernel.api.message.MessageRoutes;
+import org.sakaiproject.kernel.api.message.MessageTransport;
 import org.sakaiproject.kernel.util.DateUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -43,9 +44,9 @@ import javax.jcr.ValueFormatException;
  *                description="Handler for delivering comments to a site."
  *                immediate="true"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.kernel.api.message.MessageHandler"
+ * @scr.service interface="org.sakaiproject.kernel.api.message.MessageTransport"
  */
-public class CommentMessageHandler implements MessageHandler {
+public class CommentMessageHandler implements MessageTransport {
 
   /**
    * The type of files we are going to handle.
@@ -60,14 +61,20 @@ public class CommentMessageHandler implements MessageHandler {
     return TYPE;
   }
 
-  public void handle(Event event, Node node) {
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes, org.osgi.service.event.Event, javax.jcr.Node)
+   */
+  public void send(MessageRoutes routes, Event event, Node node) {
     try {
       LOG.info("Handling comment message {}" + node.getPath());
       Session session = node.getSession();
 
       // Were does this node have to go to.
       String writeTo = node.getProperty(PROP_WRITETO).getString();
-
+      
+      
+      LOG.error("Broken Message Handling needs to be fixed. Should be lookign at the MessageRoutes ");
       // The ID for this message.
       String messageId = node.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
 
@@ -128,5 +135,6 @@ public class CommentMessageHandler implements MessageHandler {
       e.printStackTrace();
     }
 
-  }  
+  }
+
 }
