@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.discussion;
 
-import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.slf4j.Logger;
@@ -44,10 +43,23 @@ public class DiscussionManagerImpl implements DiscussionManager {
 
   public static final Logger LOG = LoggerFactory.getLogger(DiscussionManagerImpl.class);
 
-  public String findStoreForMessage(String messageid, Session session) throws MessagingException {
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.discussion.DiscussionManager#findMessage(java.lang.String,
+   *      java.lang.String, javax.jcr.Session, java.lang.String)
+   */
+  public Node findMessage(String messageId, String marker, Session session, String path)
+      throws MessagingException {
 
-    String queryString = "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
-        + messageid + "']";
+    if (path == null) { path = "/"; }
+    if (!path.startsWith("/")) {
+      throw new MessagingException(500, "Path should be an absolute path starting with a '/'");
+    }
+
+    String queryString = "/" + path + "/*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
+        + messageId + "' and @sakai:marker='" + marker + "']";
     LOG.info("Trying to find message with query: {}", queryString);
     try {
       QueryManager queryManager = session.getWorkspace().getQueryManager();
@@ -55,25 +67,19 @@ public class DiscussionManagerImpl implements DiscussionManager {
       QueryResult result = query.execute();
       NodeIterator nodeIterator = result.getNodes();
 
-      if (nodeIterator.getSize() == 0) {
-        LOG.warn("No message with ID '{}' found.", messageid);
-        throw new MessagingException(404, "No message with that ID found.");
-      }
-
       while (nodeIterator.hasNext()) {
         Node n = nodeIterator.nextNode();
-        if (n.hasProperty(DiscussionConstants.PROP_SAKAI_WRITETO)) {
-          // This node has a property related to the store. use this one.
-          return n.getProperty(DiscussionConstants.PROP_SAKAI_WRITETO).getString();
-        }
+        return n;
       }
-      // Nothing found .. throw an exception.
 
     } catch (RepositoryException e) {
-      LOG.warn("Unable to check for store for {}", messageid);
+      LOG.warn("Unable to check for message with ID '{}' and marker '{}'", messageId,
+          marker);
       e.printStackTrace();
     }
 
-    throw new MessagingException(500, "Unable to get messagestore.");
+    LOG.warn("No message with ID '{}' and marker '{}' found.", messageId, marker);
+    return null;
+
   }
 }

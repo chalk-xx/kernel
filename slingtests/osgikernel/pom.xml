@@ -68,10 +68,11 @@
         <module>bundles/meservice</module>
         <module>bundles/server</module>
         <module>bundles/image</module>
-        <module>bundles/discussion</module>
         <module>bundles/proxy</module>
         <module>bundles/site</module>
         <module>bundles/search</module>
+        <module>bundles/discussion</module>
+        <module>bundles/poll</module>
         <module>bundles/smtp</module>
         <module>bundles/user</module>
         <module>bundles/uxloader</module>

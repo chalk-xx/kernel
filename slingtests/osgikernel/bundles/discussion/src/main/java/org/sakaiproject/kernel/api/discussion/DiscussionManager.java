@@ -19,8 +19,18 @@ package org.sakaiproject.kernel.api.discussion;
 
 import org.sakaiproject.kernel.api.message.MessagingException;
 
+import javax.jcr.Node;
 import javax.jcr.Session;
 
 public interface DiscussionManager {
-  public String findStoreForMessage(String messageid, Session session) throws MessagingException;
+  /**
+   * Goes trough the repository to look for a message with an id and a marker.
+   * @param messageId The ID of the message to look for.
+   * @param marker The marker it should have.
+   * @param session
+   * @param path An optional path where you want to look in.
+   * @return
+   * @throws MessagingException
+   */
+  public Node findMessage(String messageId, String marker, Session session, String path) throws MessagingException;
 }

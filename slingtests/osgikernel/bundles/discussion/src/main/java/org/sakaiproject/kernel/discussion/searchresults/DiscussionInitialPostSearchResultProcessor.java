@@ -20,9 +20,6 @@ package org.sakaiproject.kernel.discussion.searchresults;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
-import org.sakaiproject.kernel.api.discussion.DiscussionManager;
-import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -39,41 +36,16 @@ import javax.jcr.RepositoryException;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="DiscussionInitialPost"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- * @scr.reference name="DiscussionManager"
- *                interface="org.sakaiproject.kernel.api.discussion.DiscussionManager"
- *                bind="bindDiscussionManager" unbind="unbindDiscussionManager"
  */
 public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
 
-  private DiscussionManager discussionManager;
-
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionInitialPostSearchResultProcessor.class);
-
-  protected void bindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = discussionManager;
-  }
-  protected void unbindDiscussionManager(DiscussionManager discussionManager) {
-    this.discussionManager = null;
-  }
 
   public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-
-    // Find the store node and output it.
-    write.key(DiscussionConstants.PROP_SAKAI_WRITETO);
-
-    String path = "";
-    try {
-      path = discussionManager.findStoreForMessage(node.getName(), node.getSession());
-    } catch (MessagingException e) {
-      e.printStackTrace();
-      LOG.warn("Could not find store resource for post: {}", node.getPath());
-    }
-
-    write.value(path);
     write.endObject();
   }
 }

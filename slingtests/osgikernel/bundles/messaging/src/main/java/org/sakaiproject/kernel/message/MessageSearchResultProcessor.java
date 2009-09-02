@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.message;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
@@ -149,8 +148,6 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
     // Add some extra properties.
     write.key("id");
     write.value(resultNode.getName());
-    write.key("path");
-    write.value(MessageUtils.getMessageUrl(resultNode.getName()));
 
     // TODO : This should probably be using an Authorizable. However, updated
     // properties were not included in this..

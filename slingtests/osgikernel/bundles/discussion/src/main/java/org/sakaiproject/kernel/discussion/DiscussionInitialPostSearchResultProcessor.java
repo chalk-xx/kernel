@@ -42,9 +42,9 @@ public class DiscussionInitialPostSearchResultProcessor implements SearchResultP
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    if (node.hasProperty(DiscussionConstants.PROP_SAKAI_MARKER)) {
-      write.key(DiscussionConstants.PROP_SAKAI_MARKER);
-      write.value(node.getProperty(DiscussionConstants.PROP_SAKAI_MARKER).getString());
+    if (node.hasProperty(DiscussionConstants.PROP_MARKER)) {
+      write.key(DiscussionConstants.PROP_MARKER);
+      write.value(node.getProperty(DiscussionConstants.PROP_MARKER).getString());
     }
     write.endObject();
   }

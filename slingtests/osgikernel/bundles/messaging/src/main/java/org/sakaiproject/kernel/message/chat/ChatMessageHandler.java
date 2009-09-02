@@ -25,7 +25,7 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
 import org.sakaiproject.kernel.api.message.MessageTransport;
-import org.sakaiproject.kernel.api.message.MessageUtils;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +45,9 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessageTransport"
  * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
+ *                name="SlingRepository"
+ * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                name="MessagingService"
  */
 public class ChatMessageHandler implements MessageTransport {
   private static final Logger LOG = LoggerFactory
@@ -58,7 +59,6 @@ public class ChatMessageHandler implements MessageTransport {
    * 
    */
   private SlingRepository slingRepository;
-
   /**
    * @param slingRepository
    *          the slingRepository to set
@@ -66,7 +66,6 @@ public class ChatMessageHandler implements MessageTransport {
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
-
   /**
    * @param slingRepository
    *          the slingRepository to unset
@@ -75,14 +74,23 @@ public class ChatMessageHandler implements MessageTransport {
     this.slingRepository = null;
   }
 
+  private MessagingService messagingService;
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
+
+
   /**
    * Default constructor
    */
   public ChatMessageHandler() {
   }
 
-  
-  
+
+
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes, org.osgi.service.event.Event, javax.jcr.Node)
@@ -98,7 +106,8 @@ public class ChatMessageHandler implements MessageTransport {
         if ( MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport()) ) {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String toPath = MessageUtils.getMessagePath(rcpt, originalMessage.getName());
+          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
+          String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           LOG.info("Writing {} to {}", originalMessage.getPath(), toPath);
 
