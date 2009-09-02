@@ -17,31 +17,11 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-import org.osgi.service.event.Event;
-
-import javax.jcr.Node;
+import java.util.List;
 
 /**
- * Definition for handling messages that originate in the system. Messages are
- * written to known areas of JCR. Events are triggered by JCR when this content
- * appears and based on the type of message, all appropriate message handlers
- * are dispatched with the event and node of content.
+ * A {@link MessageRoutes} object is a List of {@link MessageRoute} objects.
  */
-public interface MessageHandler {
-  /**
-   * The type of messages in which the handler is interested.
-   * 
-   * @return
-   */
-  String getType();
+public interface MessageRoutes extends List<MessageRoute> {
 
-  /**
-   * The dispatch method called to handle a message.
-   * 
-   * @param event
-   *          The event fired by JCR.
-   * @param node
-   *          The node that caused the event.
-   */
-  void handle(Event event, Node node);
 }
