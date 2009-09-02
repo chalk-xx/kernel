@@ -47,6 +47,7 @@ import javax.jcr.RepositoryException;
  *                interface="org.sakaiproject.kernel.api.message.MessageTransport"
  *                policy="dynamic" cardinality="0..n" bind="addTransport"
  *                unbind="removeTransport"
+ * @scr.reference name="MessageRouterManager" interface="org.sakaiproject.kernel.api.message.MessageRouterManager"
  */
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
@@ -57,6 +58,12 @@ public class MessageSentListener implements EventHandler {
   private Map<MessageTransport, MessageTransport> transports = new ConcurrentHashMap<MessageTransport, MessageTransport>();
 
   private MessageRouterManager messageRouterManager;
+  protected void bindMessageRouterManager(MessageRouterManager messageRouterManager) {
+    this.messageRouterManager = messageRouterManager;
+  }
+  protected void unbindMessageRouterManager(MessageRouterManager messageRouterManager) {
+    this.messageRouterManager = null;
+  }
 
   /**
    * {@inheritDoc}
