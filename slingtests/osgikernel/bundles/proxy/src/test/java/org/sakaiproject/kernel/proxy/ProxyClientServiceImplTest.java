@@ -31,7 +31,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
-import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.IOException;
@@ -99,7 +98,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
       fail();
     } catch (ProxyClientException ex) {
 
@@ -122,7 +121,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
       fail();
     } catch (ProxyClientException ex) {
 
@@ -187,7 +186,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("SOAPAction", "");
-    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+    proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("No Soap Action in request", "", request.getHeader("SOAPAction"));

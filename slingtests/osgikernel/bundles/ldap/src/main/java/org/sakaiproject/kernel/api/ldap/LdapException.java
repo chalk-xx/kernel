@@ -19,6 +19,11 @@ package org.sakaiproject.kernel.api.ldap;
 
 public class LdapException extends Exception {
 
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -4218342407997822225L;
+
   public LdapException() {
     super();
   }
