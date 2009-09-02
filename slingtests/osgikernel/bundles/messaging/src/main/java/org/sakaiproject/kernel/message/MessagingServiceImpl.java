@@ -58,7 +58,7 @@ import javax.jcr.query.QueryResult;
  *                name="org.sakaiproject.kernel.api.message.MessagingService"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessagingService"
- * @scr.reference interface="org.sakaiproject.kernel.api.site.SiteService"
+ * @scr.reference interface="org.sakaiproject.kernel.api.site.SiteService" name="SiteService"
  */
 public class MessagingServiceImpl implements MessagingService {
 
