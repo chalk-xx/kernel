@@ -17,11 +17,10 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-
 import java.util.List;
 
 /**
- *
+ * A {@link MessageRoutes} object is a List of {@link MessageRoute} objects.
  */
 public interface MessageRoutes extends List<MessageRoute> {
 

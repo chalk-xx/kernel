@@ -17,19 +17,27 @@
  */
 package org.sakaiproject.kernel.api.message;
 
+import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
- *
+ * Manages the message routing process. This takes a message represented by a node, and
+ * builds a MessageRoutes object for that node. There is normally only one of these
+ * services implemented.
  */
 public interface MessageRouterManager {
 
   /**
+   * Get the {@link MessageRoutes} for the message represented by the node.
+   * 
    * @param n
-   * @return
-   * @throws RepositoryException 
+   *          the node representing the message
+   * @return a {@link MessageRoutes} object ( {@link List} ) containing MessageRoute
+   *         objects.
+   * @throws RepositoryException
+   *           if there is a problem accessing the message node.
    */
   MessageRoutes getMessageRouting(Node n) throws RepositoryException;
 

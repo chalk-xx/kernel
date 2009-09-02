@@ -17,22 +17,32 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-
 import javax.jcr.Node;
 
 /**
- *
+ * A MessageRouter edits the {@link MessageRoutes} for the message converting the
+ * {@link MessageRoute}s that it contains as appropriate. This interface represents a
+ * provider service (ie an OSGi Managed service registering this interface) implemented by
+ * bundles that want to influence the routing of messages. There are no default
+ * implementations since Message routing is direct in the default implementation,
+ * recipients binding directly to the transport.
  */
 public interface MessageRouter {
 
   /**
+   * Modify the routing list represented as a {@link MessageRoutes} object for the message
+   * represented by the {@link Node}
+   * 
    * @param n
+   *          a node representing the message being routed.
    * @param routing
+   *          the routing information, which may be modified as a result of the call.
    */
   public void route(Node n, MessageRoutes routing);
 
   /**
-   * @return
+   * @return The priority of this router. MessageRouters with a higher priority are
+   *         invoked first, lower priority routers are invoked last.
    */
   public int getPriority();
 
