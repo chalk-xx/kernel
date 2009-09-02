@@ -18,17 +18,21 @@
 package org.sakaiproject.kernel.api.message;
 
 /**
- * Represents the routing information for a message.
+ * Represents the routing information for a message. Implementations of this interface are
+ * added to the the {@link MessageRoutes} for by the {@link MessageRouterManager} or
+ * {@link MessageRoute} implementations and inspected by {@link MessageTransport}
+ * implementations to perform routing. The content and format of {@ling
+ * MessageRoute#getRcpt()} is dependant on the transport of the {@link MessageRoute}
  */
 public interface MessageRoute {
 
   /**
-   * @return
+   * @return The transport that this route binds to.
    */
   String getTransport();
 
   /**
-   * @return
+   * @return The target recipient, understood by the transport.
    */
   String getRcpt();
 

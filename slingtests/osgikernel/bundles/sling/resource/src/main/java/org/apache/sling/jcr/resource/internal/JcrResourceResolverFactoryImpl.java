@@ -373,6 +373,7 @@ public class JcrResourceResolverFactoryImpl implements JcrResourceResolverFactor
     this.componentContext = null;
   }
 
+  @SuppressWarnings("unused")
   private ResourcePattern[] getResourcePatterns(String[] patternList) {
     // regexps
     List<ResourcePattern> patterns = new ArrayList<ResourcePattern>();
