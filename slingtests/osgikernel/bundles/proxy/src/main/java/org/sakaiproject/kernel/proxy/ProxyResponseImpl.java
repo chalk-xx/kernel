@@ -18,13 +18,11 @@
 package org.sakaiproject.kernel.proxy;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +43,6 @@ public class ProxyResponseImpl implements ProxyResponse {
     this.result = result;
     this.method = method;
 
-    System.err.println("Loading headers ");
     for (Header h : method.getResponseHeaders()) {
       String name = h.getName();
       String[] values = headers.get(name);
@@ -59,7 +56,6 @@ public class ProxyResponseImpl implements ProxyResponse {
       }
         headers.put(name, values);
     }
-    System.err.println("Loaded headers ");
   }
 
   /**

@@ -37,11 +37,9 @@ import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -108,7 +106,12 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      try {
+        response.close();
+      } catch ( Throwable t) {
+        
+      }
       fail();
     } catch (ProxyClientException ex) {
 
@@ -132,10 +135,14 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      try {
+        response.close();
+      } catch ( Throwable t) {
+        
+      }
       fail();
     } catch (ProxyClientException ex) {
-
     }
     verify();
   }
@@ -196,7 +203,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("SOAPAction", "");
-    proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("Method not correct ", "POST", request.getMethod());
@@ -206,6 +213,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     assertTrue("Template Not merged correctly ", request.getRequestBody().indexOf(
         CHECK_REQUEST) > 0);
+    response.close();
 
     verify();
   }
@@ -221,8 +229,6 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
-    Property templateProperty = createMock(Property.class);
-    Property lastModifiedProperty = createMock(Property.class);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
@@ -251,7 +257,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       bas[i] = (byte) (i & 0xff);
     }
     ByteArrayInputStream bais = new ByteArrayInputStream(bas);
-    proxyClientServiceImpl.executeCall(resource, headers, input, bais, bas.length,
+    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, bais, bas.length,
         "binary/x-data");
 
     CapturedRequest request = dummyServer.getRequest();
@@ -260,6 +266,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         .getContentType());
 
     assertArrayEquals("Request Not equal ", bas, request.getRequestBodyAsByteArray());
+    response.close();
 
     verify();
   }
@@ -332,13 +339,10 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         .getRequestBodyAsByteArray());
 
     assertEquals(body, response.getResponseBodyAsString());
-    Map<String, String[]> responseHeaders = response.getResponseHeaders();
-    for (Entry<String, String[]> header : responseHeaders.entrySet()) {
-      System.err.println("Header :" + header.getKey() + " ["
-          + Arrays.toString(header.getValue()) + "]");
-    }
     assertEquals(APPLICATION_SOAP_XML_CHARSET_UTF_8, response.getResponseHeaders().get(
         "Content-Type")[0]);
+    
+    response.close();
 
     verify();
   }
