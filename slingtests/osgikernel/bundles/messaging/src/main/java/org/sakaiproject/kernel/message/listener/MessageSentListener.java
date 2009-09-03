@@ -22,48 +22,52 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageHandler;
-import org.sakaiproject.kernel.message.internal.InternalMessageHandler;
+import org.sakaiproject.kernel.api.message.MessageRouterManager;
+import org.sakaiproject.kernel.api.message.MessageRoutes;
+import org.sakaiproject.kernel.api.message.MessageTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.LoginException;
 import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 
 /**
- *
+ * 
  * @scr.component inherit="true" label="%sakai-event.name" immediate="true"
  * @scr.service interface="org.osgi.service.event.EventHandler"
  * @scr.property name="service.description"
  *               value="Event Handler Listening to Pending Messages Events"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="event.topics" value="org/sakaiproject/kernel/message/pending"
- * @scr.reference name="MessageHandler"
- *                interface="org.sakaiproject.kernel.api.message.MessageHandler"
- *                policy="dynamic" cardinality="0..n" bind="addHandler"
- *                unbind="removeHandler"
+ * @scr.reference name="MessageTransport"
+ *                interface="org.sakaiproject.kernel.api.message.MessageTransport"
+ *                policy="dynamic" cardinality="0..n" bind="addTransport"
+ *                unbind="removeTransport"
+ * @scr.reference name="MessageRouterManager" interface="org.sakaiproject.kernel.api.message.MessageRouterManager"
  */
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
 
   /**
-   * This will contain all the handlers we have for every type.
+   * This will contain all the transports.
    */
-  private Map<String, MessageHandler> handlers = new ConcurrentHashMap<String, MessageHandler>();
-  /**
-   * If no handler is found for a message we will fall back to this one.
-   */
-  private InternalMessageHandler defaultHandler = new InternalMessageHandler();
+  private Map<MessageTransport, MessageTransport> transports = new ConcurrentHashMap<MessageTransport, MessageTransport>();
+
+  private MessageRouterManager messageRouterManager;
+  protected void bindMessageRouterManager(MessageRouterManager messageRouterManager) {
+    this.messageRouterManager = messageRouterManager;
+  }
+  protected void unbindMessageRouterManager(MessageRouterManager messageRouterManager) {
+    this.messageRouterManager = null;
+  }
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
   public void handleEvent(Event event) {
@@ -77,28 +81,11 @@ public class MessageSentListener implements EventHandler {
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
       if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
-        Property msgTypeProp = n.getProperty(MessageConstants.PROP_SAKAI_TYPE);
-        String msgType = msgTypeProp.getString();
-        LOG.info("The type for this message is {}", msgType);
-        boolean handled = false;
-        // Find the correct messagehandler for this type of message and let it
-        // handle the message..
-        if (msgType != null && handlers != null) {
-          MessageHandler handler = defaultHandler;
-          if (handlers.containsKey(msgType)) {
-            LOG.info("Found a message handler for type [{}]", msgType);
-            handler = handlers.get(msgType);
-          } else {
-            LOG
-                .info(
-                    "No handler found for message type [{}], using the default handler instead.",
-                    msgType);
-          }
-          handler.handle(event, n);
-          handled = true;
-        }
-        if (!handled) {
-          LOG.warn("No handler found for message type [{}]", msgType);
+
+        MessageRoutes routes = messageRouterManager.getMessageRouting(n);
+        
+        for (MessageTransport transport : transports.values()) {
+          transport.send(routes, event, n);
         }
       }
     } catch (LoginException e) {
@@ -111,22 +98,16 @@ public class MessageSentListener implements EventHandler {
   /**
    * @param handler
    */
-  protected void removeHandler(MessageHandler handler) {
-    handlers.remove(handler.getType());
+  protected void removeTransport(MessageTransport transport) {
+    transports.remove(transport);
   }
 
   /**
    * @param handler
    */
-  protected void addHandler(MessageHandler handler) {
-    handlers.put(handler.getType(), handler);
+  protected void addTransport(MessageTransport transport) {
+    transports.put(transport,transport);
   }
 
-  /**
-   * @return
-   */
-  public Collection<MessageHandler> getProcessors() {
-    return handlers.values();
-  }
 
 }

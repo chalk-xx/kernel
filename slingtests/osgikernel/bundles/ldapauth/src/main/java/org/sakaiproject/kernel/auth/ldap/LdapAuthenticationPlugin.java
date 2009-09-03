@@ -78,7 +78,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   protected void activate(ComponentContext ctx) {
-    Dictionary props = ctx.getProperties();
+    Dictionary<?, ?> props = ctx.getProperties();
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     config.setAutoBind(true);
 

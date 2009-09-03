@@ -49,6 +49,11 @@ public interface MessageConstants {
   public static final String PROP_SAKAI_SENDSTATE = "sakai:sendstate";
 
   /**
+   * This property will hold the value for the id of this message.
+   */
+  public static final String PROP_SAKAI_ID = "sakai:id";
+  
+  /**
    * The value for this property will define what kind of message this is. ex: internal,
    * email, ..
    */
@@ -121,6 +126,7 @@ public interface MessageConstants {
    */
   public static final String FOLDER_MESSAGES = "message";
   public static final String _USER_MESSAGE = "/_user/message";
+  public static final String _GROUP_MESSAGE = "/_group/message";
   /**
    * JCR folder name for chat logs.
    */
@@ -159,4 +165,14 @@ public interface MessageConstants {
   public static final String PROP_SAKAI_ATTACHMENT_DESCRIPTION = "sakai:attachmentDescription";
 
   public static final String PROP_SAKAI_ATTACHMENT_CONTENT = "sakai:attachmentContent";
+  
+  
+  
+  /**
+   * Values for the preprocessor
+   */
+  public static final String REG_PROCESSOR_NAMES = "sakai.message.createpreprocessor";
+  public static final String MESSAGE_CREATE_PREPROCESSOR = "CreateMessagePreProcessor";
+
+  
 }

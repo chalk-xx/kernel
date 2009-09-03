@@ -21,9 +21,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.Session;
 
 /**
  * @scr.component metatype="no" immediate="true"
@@ -31,6 +35,7 @@ import org.slf4j.LoggerFactory;
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
  *               values.2="DELETE" values.3="GET"
+ * @scr.reference interface="org.sakaiproject.kernel.api.MessagingService"
  */
 public class MessageServlet extends AbstractMessageServlet {
 
@@ -39,6 +44,14 @@ public class MessageServlet extends AbstractMessageServlet {
    */
   private static final long serialVersionUID = -2663916166760531044L;
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageServlet.class);
+
+  private MessagingService messagingService;
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
 
   /**
    * {@inheritDoc}
@@ -56,10 +69,19 @@ public class MessageServlet extends AbstractMessageServlet {
     if (selector == null) {
       selector = "";
     }
-    LOGGER.info("Request [{}], ResourcePath [{}], Selector [{}], MessageId[{}]",
-        new Object[] {request.getRequestURI(), resourcePath, selector, messageId});
-    String finalPath = MessageUtils.getMessagePath(request.getRemoteUser(), messageId)
-        + selector;
+    LOGGER.info("Request [{}], ResourcePath [{}], Selector [{}], MessageId[{}]", new Object[] {
+        request.getRequestURI(), resourcePath, selector, messageId });
+
+    String finalPath = "";
+    String storePath = resourcePath.substring(0, resourcePath.lastIndexOf("/"));
+    if (storePath.equals(MessageConstants._USER_MESSAGE)) {
+
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      String messagePath = messagingService.getFullPathToMessage(request.getRemoteUser(), messageId, session);
+      finalPath = messagePath + selector;
+    } else {
+      finalPath = PathUtils.toInternalHashedPath(storePath, messageId, "");
+    }
     LOGGER.info("Processed Path to {} ", finalPath);
     return finalPath;
   }

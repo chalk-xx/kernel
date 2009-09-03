@@ -32,6 +32,8 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +44,16 @@ import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -165,22 +171,18 @@ public class SiteServiceImpl implements SiteService {
       Joinable groupJoin = getJoinable(targetGroup);
 
       if (!isMember(site, targetGroup)) {
-        throw new SiteException(
-            HttpServletResponse.SC_BAD_REQUEST,
-            "The target group "
-                + targetGroup.getPrincipal().getName()
-                + " is not a member of the site, so we cant join the site in the target group.");
+        throw new SiteException(HttpServletResponse.SC_BAD_REQUEST, "The target group "
+            + targetGroup.getPrincipal().getName()
+            + " is not a member of the site, so we cant join the site in the target group.");
       }
       /*
        * The target group is a member of the site, so we should be able to join that
        * group.
        */
       if (Joinable.no.equals(groupJoin)) {
-        throw new SiteException(HttpServletResponse.SC_CONFLICT,
-            "The group is not joinable.");
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, "The group is not joinable.");
       } else if (Joinable.no.equals(siteJoin)) {
-        throw new SiteException(HttpServletResponse.SC_CONFLICT,
-            "The site is not joinable.");
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, "The site is not joinable.");
       }
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
@@ -192,8 +194,7 @@ public class SiteServiceImpl implements SiteService {
       }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
-      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 
@@ -239,8 +240,7 @@ public class SiteServiceImpl implements SiteService {
 
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
-      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
   }
@@ -262,15 +262,13 @@ public class SiteServiceImpl implements SiteService {
    * @param targetGroup
    * @throws SiteException
    */
-  private void postEvent(SiteEvent event, Node site, Group targetGroup)
-      throws SiteException {
+  private void postEvent(SiteEvent event, Node site, Group targetGroup) throws SiteException {
 
     try {
       eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup));
     } catch (RepositoryException ex) {
       LOGGER.warn(ex.getMessage(), ex);
-      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex
-          .getMessage());
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
   }
@@ -315,8 +313,8 @@ public class SiteServiceImpl implements SiteService {
     return false;
   }
 
-  private Value[] getPropertyValues(Node site, String propName)
-      throws PathNotFoundException, RepositoryException {
+  private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException,
+      RepositoryException {
     Property property = site.getProperty(propName);
     if (property.getDefinition().isMultiple()) {
       return property.getValues();
@@ -431,8 +429,7 @@ public class SiteServiceImpl implements SiteService {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
       Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
-      List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(),
-          comparitor);
+      List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(), comparitor);
       Iterator<GroupKey> sortedIterator = sortedList.listIterator(start);
       return unwrapGroups(Iterators.limit(sortedIterator, nitems));
     }
@@ -471,8 +468,7 @@ public class SiteServiceImpl implements SiteService {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
       Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
-      List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(),
-          comparitor);
+      List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(), comparitor);
       Iterator<UserKey> sortedIterator = sortedList.listIterator(start);
       return unwrapUsers(Iterators.limit(sortedIterator, nitems));
     }
@@ -542,17 +538,17 @@ public class SiteServiceImpl implements SiteService {
             LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
           } else {
             // if a is not one of the known types
-            LOGGER.warn("Cannot handle Authorizable {} of type {}", a, a.getClass());
+            LOGGER.warn("Cannot handle Authorizable {} of type {}", a, (a == null ? "null" : a
+                .getClass()));
           }
         }
 
         // might want to cache the unsorted lists at this point, although they are already
         // cached by JCR.
       } else {
-        LOGGER
-            .info(
-                "Site ({}) does not have Authorizable property ({}) and thus has no memberships",
-                site.getPath(), SiteService.AUTHORIZABLE);
+        LOGGER.info(
+            "Site ({}) does not have Authorizable property ({}) and thus has no memberships", site
+                .getPath(), SiteService.AUTHORIZABLE);
       }
     } catch (RepositoryException ex) {
       LOGGER.warn("Failed to build membership Tree for {} ", site, ex);
@@ -682,8 +678,7 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.kernel.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
    */
   @SuppressWarnings("unchecked")
-  public Map<String, List<Group>> getMembership(Session session, String user)
-      throws SiteException {
+  public Map<String, List<Group>> getMembership(Session session, String user) throws SiteException {
     try {
       Map<String, List<Group>> sites = Maps.newHashMap();
       UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -707,9 +702,86 @@ public class SiteServiceImpl implements SiteService {
       }
       return sites;
     } catch (RepositoryException e) {
-      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.site.SiteService#findSiteByURI(javax.jcr.Session, java.lang.String)
+   */
+  public Node findSiteByURI(Session session, String uriPath) throws SiteException {
+
+    try {
+      Node node = JcrUtils.getFirstExistingNode(session, uriPath);
+      if (node == null) {
+        throw new SiteException(404, "No node found for this URI.");
+      }
+
+      // Assume that the last part in the url is the siteid.
+      String siteName = uriPath.substring(uriPath.lastIndexOf("/") + 1);
+
+      while (!node.getPath().equals("/")) {
+        // Check if it is a site.
+        if (isSite(node)) {
+          return node;
+        }
+        // Check if it is a bigstore and expand the path.
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString()
+                .equals("sakai/sites")) {
+          String path = PathUtils.toInternalHashedPath(node.getPath(), siteName, "");
+          Node siteNode = (Node) session.getItem(path);
+          if (isSite(siteNode)) {
+            return siteNode;
+          }
+        }
+
+        node = node.getParent();
+
+      }
+    } catch (RepositoryException e) {
+      LOGGER.warn("Unable to retrieve site: {}", e.getMessage());
+      e.printStackTrace();
+    }
+
+    LOGGER.info("No site found for {}", uriPath);
+    return null;
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.site.SiteService#findSiteByName(javax.jcr.Session, java.lang.String)
+   */
+  public Node findSiteByName(Session session, String siteName) throws SiteException {
+    try {
+      QueryManager queryManager = session.getWorkspace().getQueryManager();
+      String queryString = "//*[@sling:resourceType=\"" + SiteService.SITE_RESOURCE_TYPE
+          + "\" and @name=\"" + siteName + "\"]";
+      Query query = queryManager.createQuery(queryString, Query.XPATH);
+      QueryResult result = query.execute();
+
+      NodeIterator nodeIterator = result.getNodes();
+      if (nodeIterator.getSize() == 0) {
+        return null;
+      }
+
+      while (nodeIterator.hasNext()) {
+        Node siteNode = nodeIterator.nextNode();
+        if (isSite(siteNode)) {
+          return siteNode;
+        }
+      }
+
+    } catch (RepositoryException e) {
+      LOGGER.warn("Unable to retrieve site: {}", e.getMessage());
+      e.printStackTrace();
+    }
+
+    LOGGER.info("No site found for {}", siteName);
+    return null;
   }
 
   protected void bindSlingRepository(SlingRepository slingRepository) {

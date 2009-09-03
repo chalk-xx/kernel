@@ -17,21 +17,28 @@
  */
 package org.sakaiproject.kernel.api.discussion;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
+import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
-import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.util.ACLUtils;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.Value;
 
 public class Post {
 
@@ -53,8 +60,8 @@ public class Post {
   public void setNode(Node node) {
     this.node = node;
     try {
-      if (node.hasProperty(DiscussionConstants.PROP_POST_ID)) {
-        setPostId(node.getProperty(DiscussionConstants.PROP_POST_ID).getString());
+      if (node.hasProperty(MessageConstants.PROP_SAKAI_ID)) {
+        setPostId(node.getProperty(MessageConstants.PROP_SAKAI_ID).getString());
       }
     } catch (Exception e) {
       setPostId("");
@@ -77,22 +84,68 @@ public class Post {
     this.postId = postId;
   }
 
-  public void outputPostAsJSON(ExtendedJSONWriter writer, String currentUser,
-      boolean isSitecollaborator) throws JSONException, RepositoryException {
+  /**
+   * Checks if the current user can or cannot edit this post.
+   * 
+   * @return
+   */
+  public boolean checkEdit() {
+    try {
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node.getSession());
+      Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
+      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED.substring(2));
+      Privilege[] privileges = { write, modProps };
+      if (acm.hasPrivileges(node.getPath(), privileges)) {
+        return true;
+      }
+
+      return false;
+    } catch (UnsupportedRepositoryOperationException e) {
+      LOG.warn("Unable to check if user has right to edit post.");
+      e.printStackTrace();
+    } catch (RepositoryException e) {
+      LOG.warn("Unable to check if user has right to edit post.");
+      e.printStackTrace();
+    }
+
+    return false;
+  }
+
+  /**
+   * Checks if the current user can or cannot delete this post.
+   * 
+   * @return
+   */
+  public boolean checkDelete() {
+    try {
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node.getSession());
+      Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
+      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED.substring(2));
+      Privilege deleteNode = acm.privilegeFromName(ACLUtils.REMOVE_NODE_GRANTED.substring(2));
+      Privilege deleteChildNode = acm.privilegeFromName(ACLUtils.REMOVE_CHILD_NODES_GRANTED
+          .substring(2));
+      Privilege[] privileges = { write, modProps, deleteNode, deleteChildNode };
+      if (acm.hasPrivileges(node.getPath(), privileges)) {
+        return true;
+      }
+
+      return false;
+    } catch (UnsupportedRepositoryOperationException e) {
+      LOG.warn("Unable to check if user has right to edit post.");
+      e.printStackTrace();
+    } catch (RepositoryException e) {
+      LOG.warn("Unable to check if user has right to edit post.");
+      e.printStackTrace();
+    }
+
+    return false;
+  }
+
+  public void outputPostAsJSON(JSONWriter writer) throws JSONException, RepositoryException {
     LOG.info("Outputting post with ID: " + getPostId());
 
-    boolean canEdit = false, canDelete = false;
-    // Site collabs can do anything..
-    if (isSitecollaborator) {
-      canEdit = true;
-      canDelete = true;
-    } else if (!currentUser.equals(UserConstants.ANON_USERID)
-        && currentUser
-            .equals(node.getProperty(DiscussionConstants.PROP_FROM).getString())) {
-      // if this is the user his own post, he can do whatever he likes..
-      canEdit = true;
-      canDelete = true;
-    }
+    boolean canEdit = checkEdit();
+    boolean canDelete = checkDelete();
 
     // If this post has been marked as deleted, we dont show it.
     // we do however show the children of it.
@@ -102,16 +155,16 @@ public class Post {
     }
 
     if (isDeleted && !canDelete) {
-      // This post has been deleted and we dont have sufficient rights to edit, so we just show the replies.
-      outputChildrenAsJSON(writer, currentUser, isSitecollaborator); 
-    }
-    else {
+      // This post has been deleted and we dont have sufficient rights to edit, so we just
+      // show the replies.
+      outputChildrenAsJSON(writer);
+    } else {
       writer.object();
 
       writer.key("post");
       writer.object();
       ExtendedJSONWriter.writeNodeContentsToWriter(writer, node);
-      writer.key(DiscussionConstants.PROP_POST_ID);
+      writer.key(MessageConstants.PROP_SAKAI_ID);
       writer.value(getPostId());
 
       writer.key("canEdit");
@@ -121,8 +174,15 @@ public class Post {
 
       // List of all the people who have edited this post.
       if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
-        Value[] editedBy = getNode().getProperty(DiscussionConstants.PROP_EDITEDBY)
-            .getValues();
+
+        Property editedByProperty = getNode().getProperty(DiscussionConstants.PROP_EDITEDBY);
+        Value[] editedBy;
+        try {
+          editedBy = editedByProperty.getValues();
+        } catch (Exception e) {
+          editedBy = new Value[1];
+          editedBy[0] = editedByProperty.getValue();
+        }
         writer.key("editters");
         writer.array();
         for (int i = 0; i < editedBy.length; i++) {
@@ -131,10 +191,9 @@ public class Post {
 
           writer.key("profile");
           String profilePath = PersonalUtils.getProfilePath(getNode().getProperty(
-              DiscussionConstants.PROP_FROM).getString());
-          Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(),
-              profilePath);
-          writer.node(profileNode);
+              MessageConstants.PROP_SAKAI_FROM).getString());
+          Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(), profilePath);
+          ExtendedJSONWriter.writeNodeToWriter(writer, profileNode);
           writer.key("date");
           writer.value(s[1]);
 
@@ -145,27 +204,25 @@ public class Post {
 
       writer.key("profile");
       String profilePath = PersonalUtils.getProfilePath(getNode().getProperty(
-          DiscussionConstants.PROP_FROM).getString());
-      Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(),
-          profilePath);
-      writer.node(profileNode);
+          MessageConstants.PROP_SAKAI_FROM).getString());
+      Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(), profilePath);
+      ExtendedJSONWriter.writeNodeToWriter(writer, profileNode);
 
       writer.endObject();
       writer.key("replies");
 
       writer.array();
-      outputChildrenAsJSON(writer, currentUser, isSitecollaborator);
+      outputChildrenAsJSON(writer);
       writer.endArray();
 
       writer.endObject();
     }
   }
 
-  public void outputChildrenAsJSON(ExtendedJSONWriter writer, String currentUser,
-      boolean isSitecollaborator) throws JSONException, RepositoryException {
+  public void outputChildrenAsJSON(JSONWriter writer) throws JSONException, RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
-      p.outputPostAsJSON(writer, currentUser, isSitecollaborator);
+      p.outputPostAsJSON(writer);
     }
   }
 
@@ -182,5 +239,4 @@ public class Post {
 
     return false;
   }
-
 }

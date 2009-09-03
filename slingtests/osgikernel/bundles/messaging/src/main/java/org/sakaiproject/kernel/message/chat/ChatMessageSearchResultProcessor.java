@@ -21,7 +21,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
-import org.sakaiproject.kernel.message.MessageUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -58,8 +57,6 @@ public class ChatMessageSearchResultProcessor extends MessageSearchResultProcess
     // Add some extra properties.
     write.key("id");
     write.value(resultNode.getName());
-    write.key("path");
-    write.value(MessageUtils.getMessageUrl(resultNode.getName()));
 
     // TODO : This should probably be using an Authorizable. However, updated
     // properties were not included in this..

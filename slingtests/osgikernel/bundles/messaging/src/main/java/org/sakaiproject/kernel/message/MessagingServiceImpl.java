@@ -26,7 +26,10 @@ import org.sakaiproject.kernel.api.locking.LockTimeoutException;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
+import org.sakaiproject.kernel.api.site.SiteException;
+import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +58,19 @@ import javax.jcr.query.QueryResult;
  *                name="org.sakaiproject.kernel.api.message.MessagingService"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessagingService"
+ * @scr.reference interface="org.sakaiproject.kernel.api.site.SiteService"
  */
 public class MessagingServiceImpl implements MessagingService {
 
   /** @scr.reference */
   private LockManager lockManager;
+  private SiteService siteService;
+  protected void bindSiteService(SiteService siteService) {
+    this.siteService = siteService;
+  }
+  protected void unbindSiteService(SiteService siteService) {
+    this.siteService = null;
+  }
   
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
@@ -117,19 +128,26 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     String user = session.getUserID();
-    String messagePathBase = MessageUtils.getMessagePathBase(user);
+    String messagePathBase = getFullPathToStore(user, session);
     try {
       lockManager.waitForLock(messagePathBase);
     } catch (LockTimeoutException e1) {
       throw new MessagingException("Unable to lock user mailbox");
     }
     try {
-      String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
+      //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
+      String messagePath = getFullPathToMessage(user, messageId, session);
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
         for (Entry<String, Object> e : mapProperties.entrySet()) {
           msg.setProperty(e.getKey(), e.getValue().toString());
+        }
+        // Add the id for this message.
+        msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
+        
+        if (session.hasPendingChanges()) {
+          session.save();
         }
         
       } catch (RepositoryException e) {
@@ -174,8 +192,8 @@ public class MessagingServiceImpl implements MessagingService {
    */
   public void copyMessage(Session adminSession, String target, String source, String messageId) throws PathNotFoundException, RepositoryException {
     String encodedMessageId = ISO9075.encodePath(messageId);
-    String sourceNodePath = MessageUtils.getMessagePath(source, encodedMessageId);
-    String targetNodePath = MessageUtils.getMessagePath(target, encodedMessageId);
+    String sourceNodePath = getFullPathToMessage(source, encodedMessageId, adminSession);
+    String targetNodePath = getFullPathToMessage(target, encodedMessageId, adminSession);
     String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
     Node parentNode = JcrUtils.deepGetOrCreateNode(adminSession, parent);
     LOGGER.info("Created parent node at: " + parentNode.getPath());
@@ -183,5 +201,112 @@ public class MessagingServiceImpl implements MessagingService {
     adminSession.getWorkspace().copy(sourceNodePath, targetNodePath);
   }
 
+
+  /**
+   * 
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.message.MessagingService#isMessageStore(javax.jcr.Node)
+   */
+  public boolean isMessageStore(Node n) {
+    try {
+      if (n.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+          && MessageConstants.SAKAI_MESSAGESTORE_RT.equals(n.getProperty(
+              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+        return true;
+      }
+    } catch (RepositoryException e) {
+      return false;
+    }
+
+    return false;
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#getFullPathToMessage(java.lang.String,
+   *      java.lang.String)
+   */
+  public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
+    String storePath = getFullPathToStore(rcpt, session);
+    return PathUtils.toInternalHashedPath(storePath, messageId, "");
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#getFullPathToStore(java.lang.String)
+   */
+  public String getFullPathToStore(String rcpt, Session session) throws MessagingException {
+    String path = "";
+    try {
+      if (rcpt.startsWith("s-")) {
+        // This is a site.
+        Node n = siteService.findSiteByName(session, rcpt);
+        path = n.getPath() + "/store";
+      } else if (rcpt.startsWith("g-")) {
+        // This is a group.
+        path = PathUtils.toInternalHashedPath(MessageConstants._GROUP_MESSAGE, rcpt, "");
+      } else {
+        // Assume that it is a user.
+        path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, rcpt, "");
+      }
+    } catch (SiteException e) {
+      LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt);
+      e.printStackTrace();
+      throw new MessagingException(e);
+    } catch (RepositoryException e) {
+      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt);
+      e.printStackTrace();
+      throw new MessagingException(e);
+    }
+
+    return path;
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#getUriToMessage(java.lang.String,
+   *      java.lang.String)
+   */
+  public String getUriToMessage(String rcpt, String messageId, Session session) throws MessagingException {
+    String storePath = getUriToStore(rcpt, session);
+    return storePath + "/" + messageId;
+  }
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessagingService#getUriToStore(java.lang.String)
+   */
+  public String getUriToStore(String rcpt, Session session) throws MessagingException {
+    String path = "";
+    try {
+      if (rcpt.startsWith("s-")) {
+        // This is a site.
+        Node n = siteService.findSiteByName(session, rcpt);
+        path = n.getPath() + "/store";
+      } else if (rcpt.startsWith("g-")) {
+        // This is a group.
+        path = MessageConstants._GROUP_MESSAGE + "/" + rcpt;
+      } else {
+        // Assume that it is a user.
+        path = MessageConstants._USER_MESSAGE + "/" + rcpt;
+      }
+    } catch (SiteException e) {
+      e.printStackTrace();
+      throw new MessagingException(e);
+    } catch (RepositoryException e) {
+      e.printStackTrace();
+      throw new MessagingException(e);
+    }
+
+    return path;
+  }
 
 }

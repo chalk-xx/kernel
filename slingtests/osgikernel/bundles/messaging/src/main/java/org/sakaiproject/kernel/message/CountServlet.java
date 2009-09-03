@@ -24,6 +24,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.selectors" value="count"
+ * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService" name="MessagingService"
  */
 public class CountServlet extends SlingAllMethodsServlet {
 
@@ -65,6 +67,14 @@ public class CountServlet extends SlingAllMethodsServlet {
    */
   private static final long serialVersionUID = -5714446506015596037L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CountServlet.class);
+
+  private MessagingService messagingService;
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request,
@@ -77,7 +87,7 @@ public class CountServlet extends SlingAllMethodsServlet {
     try {
       // Do the query
       // We do the query on the user his messageStore's path.
-      String messageStorePath = ISO9075.encodePath(MessageUtils.getMessagePathBase(request.getRemoteUser()));
+      String messageStorePath = ISO9075.encodePath(messagingService.getFullPathToStore(request.getRemoteUser(), node.getSession()));
       // String messageStorePath = node.getPath();
       StringBuilder queryString = new StringBuilder("/jcr:root"
           + messageStorePath + "//*[@sling:resourceType=\"sakai/message\" and @"

@@ -68,6 +68,8 @@ public class OsgiJmsBridge implements EventHandler {
   private ConnectionFactoryService connFactoryService;
 
   private ConnectionFactory connFactory;
+  private Connection conn;
+  private Session clientSession;
   private String brokerUrl;
   private boolean transacted;
   private String connectionClientId;
@@ -89,9 +91,8 @@ public class OsgiJmsBridge implements EventHandler {
    *          in through the context properties or a new connection factory will
    *          be created not using the one passed in.
    */
-  protected OsgiJmsBridge(ConnectionFactory connFactory, String brokerUrl) {
-    this.connFactory = connFactory;
-    this.brokerUrl = brokerUrl;
+  protected OsgiJmsBridge(ConnectionFactoryService connFactoryService) {
+    this.connFactoryService = connFactoryService;
   }
 
   /**
@@ -118,10 +119,48 @@ public class OsgiJmsBridge implements EventHandler {
         LOGGER.info("Creating a new ActiveMQ Connection Factory");
         connFactory = connFactoryService.createFactory(_brokerUrl);
       }
-    } else {
-      LOGGER.warn("Cannot create JMS connection factory with an empty URL.");
+    }
+
+    if (connFactory == null) {
+      String msg = "Couldn't create connection factory with empty broker url.";
+      LOGGER.error(msg);
+      throw new RuntimeException(msg);
     }
     brokerUrl = _brokerUrl;
+
+    // may want to consider getting this connection from a pool but activity
+    // is expected to be high enough that the connection will be used almost
+    // constantly or at least with very little delay between messages.
+    try {
+      conn = connFactory.createConnection();
+      conn.setClientID(connectionClientId);
+
+      clientSession = conn.createSession(transacted, acknowledgeMode);
+    } catch (JMSException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Called by the OSGi container to deactivate this component.
+   *
+   * @param ctx
+   */
+  protected void deactivate(ComponentContext ctx) {
+    if (clientSession != null) {
+      try {
+        clientSession.close();
+      } catch (JMSException e) {
+        LOGGER.warn(e.getMessage(), e);
+      }
+    }
+    if (conn != null) {
+      try {
+        conn.close();
+      } catch (JMSException e) {
+        LOGGER.warn(e.getMessage(), e);
+      }
+    }
   }
 
   /**
@@ -134,17 +173,10 @@ public class OsgiJmsBridge implements EventHandler {
     LOGGER.trace("Receiving event");
     if (connFactory != null) {
       LOGGER.debug("Processing event {}", event);
-      Connection conn = null;
-      Session clientSession = null;
       try {
         // post to JMS
-        conn = connFactory.createConnection();
-        conn.setClientID(connectionClientId);
-
-        clientSession = conn.createSession(transacted, acknowledgeMode);
         Topic emailTopic = clientSession.createTopic(event.getTopic());
         MessageProducer client = clientSession.createProducer(emailTopic);
-
         Message msg = clientSession.createMessage();
         msg.setJMSType(event.getTopic());
         for (String name : event.getPropertyNames()) {
@@ -164,21 +196,6 @@ public class OsgiJmsBridge implements EventHandler {
         client.send(msg);
       } catch (JMSException e) {
         LOGGER.error(e.getMessage(), e);
-      } finally {
-        if (clientSession != null) {
-          try {
-            clientSession.close();
-          } catch (JMSException e) {
-            LOGGER.warn(e.getMessage(), e);
-          }
-        }
-        if (conn != null) {
-          try {
-            conn.close();
-          } catch (JMSException e) {
-            LOGGER.warn(e.getMessage(), e);
-          }
-        }
       }
     }
   }

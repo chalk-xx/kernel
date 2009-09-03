@@ -294,5 +294,23 @@ public interface SiteService {
    * @return the location of the default site template.
    */
   String getDefaultSiteTemplate(Node site);
+  
+  /**
+   * Finds the site by doing a query for the sitename. Returns null if nothing is found.
+   * @param siteName
+   * @return The Node that resembles the site or null if nothing is found.
+   */
+  public Node findSiteByName(Session session, String siteName) throws SiteException;
+  
+  /**
+   * Finds a site by giving it a path. This will travel upwards along the path and if 
+   * it finds a sakai/sites store will try to expand the path with the siteName.
+   * the sitename is the part after the last slash (/)
+   * @param session
+   * @param uriPath
+   * @return The Node that resembles the site or null if nothing is found.
+   * @throws SiteException
+   */
+  public Node findSiteByURI(Session session, String uriPath) throws SiteException;
 
 }

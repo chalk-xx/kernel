@@ -7,6 +7,7 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_BATCHRESULTPROCESSOR;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -76,6 +77,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
     expect(queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)).andReturn(false).anyTimes();
+    expect(queryNode.hasProperty(SAKAI_BATCHRESULTPROCESSOR)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
@@ -140,6 +142,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     expect(queryNode.hasProperty(SAKAI_QUERY_LANGUAGE)).andReturn(false);
     expect(queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)).andReturn(false).anyTimes();
+    expect(queryNode.hasProperty(SAKAI_BATCHRESULTPROCESSOR)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);

@@ -15,38 +15,39 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.message;
+package org.sakaiproject.kernel.message.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.util.PathUtils;
+import org.sakaiproject.kernel.api.message.MessageRoute;
+import org.sakaiproject.kernel.api.message.MessageRoutes;
+
+import java.util.ArrayList;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
 
 /**
- * 
+ *
  */
-public class MessageUtils {
-
-  
-  public static String getMessagePath(String user, String messageId) {
-    String path = PathUtils
-        .toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
-    return PathUtils.toInternalHashedPath(path, messageId, "");
-
-  }
+public class MessageRoutesImpl extends ArrayList<MessageRoute> implements MessageRoutes {
 
   /**
-   * @param name
-   * @return
+   * 
    */
-  public static String getMessageUrl(String name) {
-    return MessageConstants._USER_MESSAGE+"/"+name;
-  }
+  private static final long serialVersionUID = 5838090931972965691L;
 
   /**
-   * @param user
-   * @return
+   * @param n
+   * @throws RepositoryException 
    */
-  public static String getMessagePathBase(String user) {
-    return PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
+  public MessageRoutesImpl(Node n) throws RepositoryException {
+    Property toProp = n.getProperty(MessageConstants.PROP_SAKAI_TO);
+    String toVal = toProp.getString();
+    String[] rcpts = StringUtils.split(toVal, ",");
+    for (String r : rcpts) {
+      add(new MessageRouteImpl(r));
+    }
   }
-
 }

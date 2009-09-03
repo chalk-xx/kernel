@@ -63,7 +63,6 @@ import javax.jcr.Node;
 @Component(immediate = true)
 public class ProxyClientServiceImpl implements ProxyClientService, ProxyResourceSource {
 
-
   /**
    * 
    */
@@ -129,7 +128,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
     HttpConnectionManagerParams params = new HttpConnectionManagerParams();
     // could set a whole load of connection properties
     httpClientConnectionManager.setParams(params);
-    
+
     httpClient = new HttpClient(httpClientConnectionManager);
   }
 
@@ -181,11 +180,13 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
    *          sakai:proxy-request-content-type will be used.
    * @throws ProxyClientException
    */
-  public ProxyResponse executeCall(Resource resource, Map<String,String> headers, Map<String, String> input, InputStream requestInputStream, long requestContentLength, String requestContentType) throws ProxyClientException {
+  public ProxyResponse executeCall(Resource resource, Map<String, String> headers,
+      Map<String, String> input, InputStream requestInputStream,
+      long requestContentLength, String requestContentType) throws ProxyClientException {
     try {
       bindResource(resource);
       Node node = resource.adaptTo(Node.class);
- 
+
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
 
         VelocityContext context = new VelocityContext(input);
@@ -196,25 +197,35 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
         StringWriter urlWriter = new StringWriter();
         velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
         endpointURL = urlWriter.toString();
-        
+
         ProxyMethod proxyMethod = ProxyMethod.GET;
-        if ( node.hasProperty(SAKAI_REQUEST_PROXY_METHOD) ) {
+        if (node.hasProperty(SAKAI_REQUEST_PROXY_METHOD)) {
           try {
-            proxyMethod = ProxyMethod.valueOf(node.getProperty(SAKAI_REQUEST_PROXY_METHOD).getString());
-          } catch ( IllegalArgumentException e ) {
-            
+            proxyMethod = ProxyMethod.valueOf(node
+                .getProperty(SAKAI_REQUEST_PROXY_METHOD).getString());
+          } catch (Exception e) {
+
           }
         }
         HttpMethod method = null;
-        switch(proxyMethod) {
+        switch (proxyMethod) {
         case GET:
           method = new GetMethod(endpointURL);
+          // redirects work automatically for get, options and head, but not for put and
+          // post
+          method.setFollowRedirects(true);
           break;
         case HEAD:
           method = new HeadMethod(endpointURL);
+          // redirects work automatically for get, options and head, but not for put and
+          // post
+          method.setFollowRedirects(true);
           break;
-        case OPTIONS: 
+        case OPTIONS:
           method = new OptionsMethod(endpointURL);
+          // redirects work automatically for get, options and head, but not for put and
+          // post
+          method.setFollowRedirects(true);
           break;
         case POST:
           method = new PostMethod(endpointURL);
@@ -224,27 +235,32 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
           break;
         default:
           method = new GetMethod(endpointURL);
+          // redirects work automatically for get, options and head, but not for put and
+          // post
+          method.setFollowRedirects(true);
+
         }
         // follow redirects, but dont auto process 401's and the like.
         // credentials should be provided
-        method.setFollowRedirects(true);
         method.setDoAuthentication(false);
 
-        for ( Entry<String, String> header : headers.entrySet() ) {
+        for (Entry<String, String> header : headers.entrySet()) {
           method.addRequestHeader(header.getKey(), header.getValue());
         }
-        
-        if ( method instanceof EntityEnclosingMethod ) {
+
+        if (method instanceof EntityEnclosingMethod) {
           String contentType = requestContentType;
-          if ( contentType == null && node.hasProperty(SAKAI_REQUEST_CONTENT_TYPE) ) {
-             contentType = node.getProperty(SAKAI_REQUEST_CONTENT_TYPE).getString();
+          if (contentType == null && node.hasProperty(SAKAI_REQUEST_CONTENT_TYPE)) {
+            contentType = node.getProperty(SAKAI_REQUEST_CONTENT_TYPE).getString();
+
           }
-          if ( contentType == null ) {
+          if (contentType == null) {
             contentType = APPLICATION_OCTET_STREAM;
           }
           EntityEnclosingMethod eemethod = (EntityEnclosingMethod) method;
-          if ( requestInputStream != null ) {
-            eemethod.setRequestEntity(new InputStreamRequestEntity(requestInputStream, requestContentLength, requestContentType));
+          if (requestInputStream != null) {
+            eemethod.setRequestEntity(new InputStreamRequestEntity(requestInputStream,
+                requestContentLength, contentType));
           } else {
             // build the request
             Template template = velocityEngine.getTemplate(node.getPath());
@@ -252,15 +268,23 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
             template.merge(context, body);
             byte[] soapBodyContent = body.toString().getBytes("UTF-8");
             eemethod.setRequestEntity(new ByteArrayRequestEntity(soapBodyContent,
-                requestContentType));
-              
+                contentType));
+
           }
         }
-        
+
         int result = httpClient.executeMethod(method);
+        if (result == 302 && method instanceof EntityEnclosingMethod) {
+          // handle redirects on post and put
+          String url = method.getResponseHeader("Location").getValue();
+          method = new GetMethod(url);
+          method.setFollowRedirects(true);
+          method.setDoAuthentication(false);
+          result = httpClient.executeMethod(method);
+        }
+
         return new ProxyResponseImpl(result, method);
       }
-      
 
     } catch (Exception e) {
       throw new ProxyClientException("The Proxy request specified by  " + resource
@@ -268,7 +292,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
     } finally {
       unbindResource();
     }
-    throw new ProxyClientException("The Proxy request specified by " + resource + " does not contain a valid endpoint specification ");
+    throw new ProxyClientException("The Proxy request specified by " + resource
+        + " does not contain a valid endpoint specification ");
   }
 
   public HttpConnectionManager getHttpConnectionManager() {

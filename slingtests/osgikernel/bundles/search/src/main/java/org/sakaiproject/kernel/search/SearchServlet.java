@@ -29,6 +29,8 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEM
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.REG_BATCH_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
 import org.apache.jackrabbit.util.ISO9075;
@@ -44,6 +46,8 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchConstants;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.slf4j.Logger;
@@ -83,6 +87,11 @@ import javax.servlet.http.HttpServletResponse;
  *                bind="bindSearchResultProcessor"
  *                unbind="unbindSearchResultProcessor" cardinality="0..n"
  *                policy="dynamic"
+ * @scr.reference name="SearchBatchResultProcessor"
+ *                interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
+ *                bind="bindSearchBatchResultProcessor"
+ *                unbind="unbindSearchBatchResultProcessor" cardinality="0..n"
+ *                policy="dynamic"
  * @scr.reference name="SearchPropertyProvider"
  *                interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
  *                bind="bindSearchPropertyProvider"
@@ -103,6 +112,22 @@ public class SearchServlet extends SlingAllMethodsServlet {
       write.value(resultNode);
     }
   };
+  
+  private SearchBatchResultProcessor defaultSearchBatchProcessor = new SearchBatchResultProcessor() {
+
+    public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
+        throws JSONException, RepositoryException {
+      while (nodeIterator.hasNext()) {
+        write.value(nodeIterator.nextNode());
+      }
+    }
+    
+  };
+  
+  private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
+  private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
+
+  
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
 
@@ -112,6 +137,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
+  private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
   protected void output(JSONWriter write, NodeIterator resultNodes, long start,
       long end) throws RepositoryException, JSONException {
@@ -135,6 +161,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
           propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER)
               .getString();
         }
+        
+        
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
@@ -159,6 +187,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.value(total);
         write.key(JSON_RESULTS);
         write.array();
+        
+        SearchBatchResultProcessor searchBatchProcessor = defaultSearchBatchProcessor;
+        if (node.hasProperty(SearchConstants.SAKAI_BATCHRESULTPROCESSOR)) {
+          searchBatchProcessor = batchProcessors.get(node.getProperty(SearchConstants.SAKAI_BATCHRESULTPROCESSOR).getString());
+          if (searchBatchProcessor == null) {
+            searchBatchProcessor = defaultSearchBatchProcessor;
+          }
+        }
+        
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
         if (node.hasProperty(SAKAI_RESULTPROCESSOR)) {
           searchProcessor = processors.get(node.getProperty(
@@ -175,9 +212,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
         long start = Math.min(offset, total);
         long end = Math.min(offset + nitems, total + 1);
         resultNodes.skip(start);
-        for (long i = start; i < end && resultNodes.hasNext(); i++) {
-          Node resultNode = resultNodes.nextNode();
-          searchProcessor.writeNode(write, resultNode);
+        if (searchBatchProcessor != defaultSearchBatchProcessor) {
+          searchBatchProcessor.writeNodeIterator(write, resultNodes);
+          LOGGER.info("Using batch processor for results");
+        }else {
+          for (long i = start; i < end && resultNodes.hasNext(); i++) {
+            Node resultNode = resultNodes.nextNode();
+            searchProcessor.writeNode(write, resultNode);
+            LOGGER.info("Using regular processor for results");
+          }
         }
         write.endArray();
         write.endObject();
@@ -188,6 +231,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
+      LOGGER.info("Caught JSONException {}", e.getMessage());
+      e.printStackTrace();
     }
   }
 
@@ -343,6 +388,28 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
 
   }
+  
+  protected void bindSearchBatchResultProcessor(ServiceReference serviceReference) {
+    synchronized (delayedBatchReferences) {
+      if (osgiComponentContext == null) {
+        delayedBatchReferences.add(serviceReference);
+      } else {
+        addBatchProcessor(serviceReference);
+      }
+    }
+
+  }
+
+  protected void unbindSearchBatchResultProcessor(ServiceReference serviceReference) {
+    synchronized (delayedBatchReferences) {
+      if (osgiComponentContext == null) {
+        delayedBatchReferences.remove(serviceReference);
+      } else {
+        removeBatchProcessor(serviceReference);
+      }
+    }
+
+  }
 
   protected void bindSearchPropertyProvider(ServiceReference serviceReference) {
     synchronized (delayedReferences) {
@@ -401,6 +468,46 @@ public class SearchServlet extends SlingAllMethodsServlet {
       processors.put(processorName, processor);
     }
   }
+  
+  
+  /**
+   * @param serviceReference
+   */
+  private void removeBatchProcessor(ServiceReference serviceReference) {
+    Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+    SearchResultProcessor processor = processorsById.remove(serviceId);
+    if (processor != null) {
+      List<String> toRemove = new ArrayList<String>();
+      for (Entry<String, SearchResultProcessor> e : processors.entrySet()) {
+        if (processor.equals(e.getValue())) {
+          toRemove.add(e.getKey());
+        }
+      }
+      for (String r : toRemove) {
+        processors.remove(r);
+      }
+    }
+  }
+
+  /**
+   * @param serviceReference
+   */
+  private void addBatchProcessor(ServiceReference serviceReference) {
+    SearchBatchResultProcessor processor = (SearchBatchResultProcessor) osgiComponentContext
+        .locateService(SEARCH_BATCH_RESULT_PROCESSOR, serviceReference);
+    Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+
+    batchProcessorsById.put(serviceId, processor);
+    String[] processorNames = OsgiUtil.toStringArray(serviceReference
+        .getProperty(REG_BATCH_PROCESSOR_NAMES));
+
+    if(processorNames != null) {
+      for (String processorName : processorNames) {
+        batchProcessors.put(processorName, processor);
+      }
+    }
+  }
+  
 
   /**
    * @param serviceReference
@@ -447,6 +554,13 @@ public class SearchServlet extends SlingAllMethodsServlet {
         addProcessor(ref);
       }
       delayedReferences.clear();
+    }
+    synchronized (delayedBatchReferences) {
+      osgiComponentContext = componentContext;
+      for (ServiceReference ref : delayedBatchReferences) {
+        addBatchProcessor(ref);
+      }
+      delayedBatchReferences.clear();
     }
     synchronized (delayedPropertyReferences) {
       osgiComponentContext = componentContext;

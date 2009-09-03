@@ -18,15 +18,14 @@
 
 package org.sakaiproject.kernel.discussion;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 /**
  * Formats sakai/page nodes.
@@ -35,8 +34,7 @@ import org.sakaiproject.kernel.util.ExtendedJSONWriter;
  *                description="Formatter for pages search results."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="DiscussionInitialPost"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
 public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
 
@@ -44,21 +42,10 @@ public class DiscussionInitialPostSearchResultProcessor implements SearchResultP
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-
-    // Find the store node and output it.
-    write.key(DiscussionConstants.SAKAI_DISCUSSION_STORE);
-    Node store = node;
-    while (store.getPath() != "/") {
-      if (store.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-        if (store.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY) != null
-            && store.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString()
-                .equals(DiscussionConstants.SAKAI_DISCUSSION_STORE)) {
-          break;
-        }
-      }
-      store = store.getParent();
+    if (node.hasProperty(DiscussionConstants.PROP_MARKER)) {
+      write.key(DiscussionConstants.PROP_MARKER);
+      write.value(node.getProperty(DiscussionConstants.PROP_MARKER).getString());
     }
-    write.value(store.getPath());
     write.endObject();
   }
 }

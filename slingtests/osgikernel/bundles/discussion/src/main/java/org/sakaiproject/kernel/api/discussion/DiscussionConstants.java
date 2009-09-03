@@ -21,66 +21,40 @@ package org.sakaiproject.kernel.api.discussion;
 
 public interface DiscussionConstants {
 
-  public static final String SAKAI_DISCUSSION_STORE = "sakai/discussionstore";
+  /**
+   * The type of a discussion.
+   */
+  public static final String TYPE_DISCUSSION = "discussion";
   
-  public static final String SAKAI_DISCUSSION_POST = "sakai/discussionpost";
-  
-  public static final String PROP_REPLY_ON = "sakai:replyon";
-  
-  public static final String PROP_POST_ID = "sakai:postid";
-  
-  public static final String PROP_INITIAL_POST = "sakai:initialpost";
-  
-  public static final String PROP_FROM = "sakai:from";
-  
+  /**
+   * A marker on a message. This identifies a thread.
+   */
+  public static final String PROP_MARKER = "sakai:marker";
+
+  /**
+   * If a post has been deleted.
+   */
   public static final String PROP_DELETED = "sakai:deleted";
-  
+
+  /**
+   * Holds the value of people who editted this message.
+   */
   public static final String PROP_EDITEDBY = "sakai:editedby";
-  
-  public static final String PROP_ALLOWANONYMOUS = "sakai:allowanonymous";
+
+  /**
+   * Holds the ID of the message we want to reply on.
+   */
+  public static final String PROP_REPLY_ON = "sakai:replyon";
+
+
+  /**
+   * The property that marks a post as an initial post.
+   */
+  public static final String PROP_INITIAL_POST = "sakai:initialpost";
+
   /**
    * The property that determines if an email should be sent when someone leaves a post.
    */
   public static final String PROP_NOTIFICATION = "sakai:notification";
-  
-  /**
-   * If the sakai:allowanonymous property is set to true. this can be set to to true to force a name.
-   */
- public static final String PROP_ANON_FORCE_NAME = "sakai:forcename";
- 
- /**
-  * The value for a name if it is an anonymous post.
-  */
- public static final String PROP_ANON_NAME = "sakai:name";
- 
- /**
-  * If the sakai:allowanonymous property is set to true. this can be set to to true to force an email address.
-  */
- public static final String PROP_ANON_FORCE_EMAIL = "sakai:forcemail";
- 
- /**
-  * The value for a name if it is an anonymous post.
-  */
- public static final String PROP_ANON_EMAIL = "sakai:email";
- 
-/**
- * The viewmode for getting the posts.
- */
-  public static final String PARAM_VIEWMODE = "viewmode";
-  
-  /**
-   * Start parameter to fetch the comments.
-   */
-  public static final String PARAM_START = "start";
-  
-  /**
-   * Sort on..
-   */
-  public static final String PARAM_SORT = "sort";
-  
-  /**
-   * Number of comments to fetch
-   */
-  public static final String PARAM_ITEMS = "items";
 
 }

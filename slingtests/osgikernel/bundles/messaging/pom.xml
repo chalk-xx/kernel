@@ -45,6 +45,7 @@
             <Export-Package>org.sakaiproject.kernel.api.message.*</Export-Package>
             <Private-Package>org.sakaiproject.kernel.message.*</Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>
       </plugin>
@@ -97,6 +98,12 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.site</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

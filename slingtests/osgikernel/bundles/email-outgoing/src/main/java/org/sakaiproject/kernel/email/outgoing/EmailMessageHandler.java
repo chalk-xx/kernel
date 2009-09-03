@@ -23,10 +23,14 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageHandler;
+import org.sakaiproject.kernel.api.message.MessageRoute;
+import org.sakaiproject.kernel.api.message.MessageRoutes;
+import org.sakaiproject.kernel.api.message.MessageTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.jcr.Node;
@@ -38,7 +42,7 @@ import javax.jcr.RepositoryException;
  */
 @Component(label = "%external.message.handler.name", description = "%external.message.handler.description", immediate = true)
 @Service
-public class EmailMessageHandler implements MessageHandler {
+public class EmailMessageHandler implements MessageTransport {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(EmailMessageHandler.class);
 
@@ -51,15 +55,30 @@ public class EmailMessageHandler implements MessageHandler {
     return TYPE;
   }
 
-  public void handle(Event event, Node node) {
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes,
+   *      org.osgi.service.event.Event, javax.jcr.Node)
+   */
+  public void send(MessageRoutes routes, Event event, Node n) {
     LOGGER.debug("Started handling an email message");
-    Properties props = new Properties();
-    try {
-      props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, node.getPath());
-      Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
-      eventAdmin.postEvent(emailEvent);
-    } catch (RepositoryException e) {
-      LOGGER.error(e.getMessage(), e);
+    List<String> recipents = new ArrayList<String>();
+    for (MessageRoute route : routes) {
+      if ("smtp".equals(route.getTransport())) {
+        recipents.add(route.getRcpt());
+      }
+    }
+    if (recipents.size() > 0) {
+      Properties props = new Properties();
+      try {
+        props.put(OutgoingEmailMessageListener.RECIPIENTS, recipents);
+        props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, n.getPath());
+        Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
+        eventAdmin.postEvent(emailEvent);
+      } catch (RepositoryException e) {
+        LOGGER.error(e.getMessage(), e);
+      }
     }
   }
 

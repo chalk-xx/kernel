@@ -18,12 +18,12 @@
 package org.sakaiproject.kernel.proxy;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -33,7 +33,7 @@ public class ProxyResponseImpl implements ProxyResponse {
 
   private int result;
   private HttpMethod method;
-  private Map<String, String[]> headers;
+  private Map<String, String[]> headers = new HashMap<String, String[]>();
 
   /**
    * @param result
@@ -44,12 +44,17 @@ public class ProxyResponseImpl implements ProxyResponse {
     this.method = method;
 
     for (Header h : method.getResponseHeaders()) {
-      HeaderElement[] hes = h.getElements();
-      String[] values = new String[hes.length];
-      for (int i = 0; i < hes.length; i++) {
-        values[i] = hes[i].getValue();
+      String name = h.getName();
+      String[] values = headers.get(name);
+      if ( values == null ) {
+        values = new String[] {h.getValue()};
+      } else {
+        String[] newValues = new String[values.length+1];
+        System.arraycopy(values, 0, newValues, 0, values.length);
+        newValues[values.length] = h.getValue();
+        values = newValues;
       }
-      headers.put(h.getName(), values);
+        headers.put(name, values);
     }
   }
 
