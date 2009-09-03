@@ -1,5 +1,8 @@
 package org.sakaiproject.kernel.mailman.impl;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethodBase;
@@ -7,6 +10,8 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.cyberneko.html.parsers.DOMParser;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.mailman.MailmanManager;
 import org.slf4j.Logger;
@@ -23,6 +28,8 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -33,8 +40,9 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description"
  *                value="Handles management of mailman integration"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.service interface="org.sakaiproject.kernel.mailman.MailmanManager"
  */
-public class MailmanManagerImpl implements MailmanManager {
+public class MailmanManagerImpl implements MailmanManager, ManagedService {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(MailmanManagerImpl.class);
   
@@ -42,16 +50,18 @@ public class MailmanManagerImpl implements MailmanManager {
   private ProxyClientService proxyClientService;
   
   /** @scr.property value="example.com" type="String" */
-  private String mailmanHost = "mailman.host";
+  private static final String MAILMAN_HOST = "mailman.host";
   
   /** @scr.property value="/cgi-bin/mailman" type="String" */
-  private String mailmanPath = "mailman.path";
+  private static final String MAILMAN_PATH = "mailman.path";
   
   /** @scr.property value="password" type="String" */
-  private String listAdminPassword = "mailman.listadmin.password";
+  private static final String LIST_ADMIN_PASSWORD = "mailman.listadmin.password";
+
+  private ImmutableMap<String, String> configMap = ImmutableMap.of();
   
   private String getMailmanUrl(String stub) {
-    return "http://" + mailmanHost + mailmanPath + stub;
+    return "http://" + configMap.get(MAILMAN_HOST) + configMap.get(MAILMAN_PATH) + stub;
   }
   
   public void createList(String listName, String ownerEmail, String password) throws MailmanException, HttpException, IOException {
@@ -61,7 +71,7 @@ public class MailmanManagerImpl implements MailmanManager {
         new NameValuePair("listname", listName),
         new NameValuePair("owner", ownerEmail),
         new NameValuePair("password", password),
-        new NameValuePair("auth", listAdminPassword),
+        new NameValuePair("auth", configMap.get(LIST_ADMIN_PASSWORD)),
         new NameValuePair("langs", "en"),
         new NameValuePair("notify", "1"),
         new NameValuePair("autogen", "0"),
@@ -229,11 +239,17 @@ public class MailmanManagerImpl implements MailmanManager {
   }
 
   void setServer(String mailmanHost) {
-    this.mailmanHost = mailmanHost;
+    Builder<String,String> builder = ImmutableMap.builder();
+    builder.putAll(configMap);
+    builder.put(MAILMAN_HOST, mailmanHost);
+    configMap = builder.build();
   }
 
   void setMailmanPath(String mailmanPath) {
-    this.mailmanPath = mailmanPath;
+    Builder<String,String> builder = ImmutableMap.builder();
+    builder.putAll(configMap);
+    builder.put(MAILMAN_PATH, mailmanPath);
+    configMap = builder.build();
   }
 
   ProxyClientService getProxyClientService() {
@@ -258,6 +274,16 @@ public class MailmanManagerImpl implements MailmanManager {
     } finally {
       get.releaseConnection();
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void updated(Dictionary config) throws ConfigurationException {
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (Enumeration<?> e = config.keys(); e.hasMoreElements();) {
+      String k = (String) e.nextElement();
+      builder.put(k, (String) config.get(k));
+    }
+    configMap = builder.build();
   }
 
 }

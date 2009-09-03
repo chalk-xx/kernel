@@ -37,10 +37,27 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Private-Package> org.sakaiproject.kernel.mailman.*  </Private-Package>
-            <Import-Package>!org.subethamail.mailman.*,!junit.framework,*</Import-Package>
+            <Import-Package>sun.io;resolution:=optional,*</Import-Package>
+            <Embed-Dependency>nekohtml,xercesImpl,xml-resolver,xml-apis</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>        
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>nekohtml,xercesImpl,xml-resolver,xml-apis</includeArtifactIds>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <dependencies>
@@ -109,6 +126,11 @@
       <version>0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.user</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>commons-httpclient</groupId>
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
@@ -123,6 +145,21 @@
       <groupId>net.sourceforge.nekohtml</groupId>
       <artifactId>nekohtml</artifactId>
       <version>1.9.12</version>
+    </dependency> 
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>xml-resolver</groupId>
+      <artifactId>xml-resolver</artifactId>
+      <version>1.2</version>
+    </dependency> 
+    <dependency>
+        <groupId>xml-apis</groupId>
+        <artifactId>xml-apis</artifactId>
+        <version>2.0.2</version>
     </dependency> 
   </dependencies>
 </project>
