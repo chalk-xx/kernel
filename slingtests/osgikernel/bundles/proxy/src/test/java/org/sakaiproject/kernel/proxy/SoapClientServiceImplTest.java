@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.resource.Resource;
 import org.junit.AfterClass;
@@ -31,8 +30,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
-import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.kernel.testutils.http.CapturedRequest;
+import org.sakaiproject.kernel.testutils.http.DummyServer;
 
 import java.io.IOException;
 import java.util.GregorianCalendar;
@@ -99,7 +99,7 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
       fail();
     } catch (ProxyClientException ex) {
 
@@ -122,7 +122,7 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
       fail();
     } catch (ProxyClientException ex) {
 
@@ -170,7 +170,7 @@ public class SoapClientServiceImplTest extends AbstractEasyMockTest {
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
-    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+    proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("No Soap Action in request", "", request.getHeader("SOAPAction"));

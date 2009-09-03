@@ -113,5 +113,16 @@
       <artifactId>commons-httpclient</artifactId>
       <version>3.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty</artifactId>
+      <version>6.1.15</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.nekohtml</groupId>
+      <artifactId>nekohtml</artifactId>
+      <version>1.9.12</version>
+    </dependency> 
   </dependencies>
 </project>

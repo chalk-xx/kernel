@@ -1,10 +1,10 @@
 package org.sakaiproject.kernel.mailman.impl;
 
-public class MailManException extends Exception {
+public class MailmanException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  public MailManException(String string) {
+  public MailmanException(String string) {
     super(string);
   }
 
