@@ -24,6 +24,7 @@ import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,14 +45,21 @@ public class ProxyResponseImpl implements ProxyResponse {
     this.result = result;
     this.method = method;
 
+    System.err.println("Loading headers ");
     for (Header h : method.getResponseHeaders()) {
-      HeaderElement[] hes = h.getElements();
-      String[] values = new String[hes.length];
-      for (int i = 0; i < hes.length; i++) {
-        values[i] = hes[i].getValue();
+      String name = h.getName();
+      String[] values = headers.get(name);
+      if ( values == null ) {
+        values = new String[] {h.getValue()};
+      } else {
+        String[] newValues = new String[values.length+1];
+        System.arraycopy(values, 0, newValues, 0, values.length);
+        newValues[values.length] = h.getValue();
+        values = newValues;
       }
-      headers.put(h.getName(), values);
+        headers.put(name, values);
     }
+    System.err.println("Loaded headers ");
   }
 
   /**
