@@ -24,7 +24,7 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
 import org.sakaiproject.kernel.api.message.MessageTransport;
-import org.sakaiproject.kernel.api.message.MessageUtils;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,9 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessageTransport"
  * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
+ *                name="SlingRepository"
+ * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                name="MessagingService"
  */
 public class InternalMessageHandler implements MessageTransport {
   private static final Logger LOG = LoggerFactory
@@ -75,6 +76,13 @@ public class InternalMessageHandler implements MessageTransport {
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
+  private MessagingService messagingService;
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
 
   /**
    * Default constructor
@@ -97,7 +105,8 @@ public class InternalMessageHandler implements MessageTransport {
         if ( MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport()) ) {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String toPath = MessageUtils.getMessagePath(rcpt, originalMessage.getName());
+          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
+          String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
           JcrUtils.deepGetOrCreateNode(session, toPath);

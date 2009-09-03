@@ -202,7 +202,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
           try {
             proxyMethod = ProxyMethod.valueOf(node
                 .getProperty(SAKAI_REQUEST_PROXY_METHOD).getString());
-          } catch (IllegalArgumentException e) {
+          } catch (Exception e) {
 
           }
         }

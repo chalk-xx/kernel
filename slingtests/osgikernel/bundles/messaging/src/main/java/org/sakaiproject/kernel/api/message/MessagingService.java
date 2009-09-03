@@ -107,6 +107,46 @@ public interface MessagingService {
       throws InvalidQueryException, RepositoryException;
 
   /**
+   * Gets the full JCR path for a given recipient and a message ID.
+   * @param rcpt The recipient. Can be either a site, group or a user. Sites should be prefixed with s-, groups with g-.
+   * @param messageId The ID of the message.
+   * @param session
+   * @return The JCR path to that message.
+   * @throws MessagingException
+   */
+  public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException;
+
+  /**
+   * Gets the full JCR path to a store for a recipient.
+   * @param rcpt The recipient. Can be either a site, group or a user. Sites should be prefixed with s-, groups with g-.
+   * @param session
+   * @return The JCR path to the store.
+   * @throws MessagingException
+   */
+  public String getFullPathToStore(String rcpt, Session session) throws MessagingException;
+
+  /**
+   * Returns the URI to a message.
+   * @param rcpt
+   * @param messageId
+   * @param session
+   * @return The URI to a message. ex: /_user/message/user1/a123fd4564ed15468641
+   * @throws MessagingException
+   */
+  public String getUriToMessage(String rcpt, String messageId, Session session) throws MessagingException;
+
+  /**
+   * Gets the URI to a message store for a certain rcpt.
+   * @param rcpt
+   * @param session
+   * @return The URI to a message store. ex: /_group/message/g-dummygroup
+   * @throws MessagingException
+   */
+  public String getUriToStore(String rcpt, Session session) throws MessagingException;
+
+
+
+  /**
    * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>
    * 
    * @param adminSession

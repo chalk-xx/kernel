@@ -20,8 +20,6 @@ package org.sakaiproject.kernel.securityloader;
 
 import org.apache.sling.commons.osgi.ManifestHeader;
 import org.osgi.framework.Bundle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -49,7 +47,6 @@ public class PathEntry {
      */
     public static final String PATH_DIRECTIVE = "path";
 
-    private static final Logger LOGGERx = LoggerFactory.getLogger(PathEntry.class);
 
     /** The path for the security content */
     private final String path;
