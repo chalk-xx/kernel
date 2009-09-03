@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.proxy;
 
 import org.apache.commons.collections.ExtendedProperties;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
@@ -295,6 +296,9 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
         + " does not contain a valid endpoint specification ");
   }
 
+  public HttpConnectionManager getHttpConnectionManager() {
+    return httpClientConnectionManager;
+  }
   /**
    * 
    */

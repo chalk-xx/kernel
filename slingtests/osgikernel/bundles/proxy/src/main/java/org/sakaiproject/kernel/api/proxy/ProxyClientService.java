@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.api.proxy;
 
+import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.sling.api.resource.Resource;
 
 import java.io.InputStream;
@@ -92,4 +93,9 @@ public interface ProxyClientService {
       Map<String, String> input, InputStream requestInputStream,
       long requestContentLength, String requestContentType) throws ProxyClientException;
 
+  /**
+   * Exports the HTTP Connection Manager for use by bundles making HTTP requests
+   */
+  public HttpConnectionManager getHttpConnectionManager();
+    
 }

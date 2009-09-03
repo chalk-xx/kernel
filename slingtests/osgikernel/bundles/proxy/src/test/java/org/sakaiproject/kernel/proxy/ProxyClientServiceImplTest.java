@@ -34,6 +34,8 @@ import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.kernel.testutils.http.CapturedRequest;
+import org.sakaiproject.kernel.testutils.http.DummyServer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
