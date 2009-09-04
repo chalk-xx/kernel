@@ -1,0 +1,6 @@
+{"sling:resourceType": "sakai/page",
+	"id": "contact-us",
+	"title": "Contact Us",
+	"type": "webpage",
+	"position": "500000"
+    }
