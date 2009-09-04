@@ -32,7 +32,6 @@
         <module>app</module>
         <module>app-bundles</module>
         <module>libraries/testutils</module>
-        <module>libraries/json-lib</module>
         <module>libraries/utils</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
