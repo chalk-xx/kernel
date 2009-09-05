@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.proxy;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -260,7 +259,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         }
       }
 
-      ProxyResponse proxyResponse = proxyClientService.executeCall(resource, headers,
+      ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
           templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
       try {
         postProcessor.process(response, proxyResponse);

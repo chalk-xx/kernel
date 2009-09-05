@@ -23,7 +23,7 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.resource.Resource;
 import org.apache.velocity.runtime.resource.loader.ResourceLoader;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
-import org.sakaiproject.kernel.api.proxy.ProxyResourceSource;
+import org.sakaiproject.kernel.api.proxy.ProxyNodeSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ import javax.jcr.RepositoryException;
 public class JcrResourceLoader extends ResourceLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JcrResourceLoader.class);
-  private ProxyResourceSource resourceSource;
+  private ProxyNodeSource nodeSource;
 
   /**
    * {@inheritDoc}
@@ -71,7 +71,7 @@ public class JcrResourceLoader extends ResourceLoader {
    */
   private Node getNode(String resource) throws RepositoryException {
     try {
-      return (Node) resourceSource.getResource().adaptTo(Node.class);
+      return nodeSource.getNode();
     } catch (NullPointerException ex) {
       return null;
     }
@@ -107,8 +107,8 @@ public class JcrResourceLoader extends ResourceLoader {
    */
   @Override
   public void init(ExtendedProperties configuration) {
-    resourceSource = (ProxyResourceSource) configuration.get(ProxyResourceSource.JCR_RESOURCE_LOADER_RESOURCE_SOURCE);
-    if ( resourceSource == null ) {
+    nodeSource = (ProxyNodeSource) configuration.get(ProxyNodeSource.JCR_RESOURCE_LOADER_RESOURCE_SOURCE);
+    if ( nodeSource == null ) {
       throw new RuntimeException("Unable to find a suitable resource source in the extended properties "+configuration);
     }
   }
