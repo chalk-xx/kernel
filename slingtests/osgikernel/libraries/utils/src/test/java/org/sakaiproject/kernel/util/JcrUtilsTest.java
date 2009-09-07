@@ -21,14 +21,16 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.apache.sling.commons.json.JSONException;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.util.Properties;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -129,7 +131,6 @@ public class JcrUtilsTest {
     verify(node, jcrContentNode, property);
   }
 
-  
   @Test
   public void testGetInputStreamForNodeNonStandard() throws RepositoryException {
     Node node = createMock(Node.class);
@@ -196,7 +197,7 @@ public class JcrUtilsTest {
     expect(property.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(true);
     expect(property.getValues()).andReturn(values);
-    
+
     replay(node, property, propertyDefinition, value);
     assertArrayEquals(values, JcrUtils.getValues(node, "testProperty"));
     verify(node, property, propertyDefinition, value);
@@ -214,7 +215,7 @@ public class JcrUtilsTest {
     expect(property.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false);
     expect(property.getValue()).andReturn(value);
-    
+
     replay(node, property, propertyDefinition, value);
     Value[] values = JcrUtils.getValues(node, "testProperty");
     assertEquals(1, values.length);
@@ -222,14 +223,13 @@ public class JcrUtilsTest {
     verify(node, property, propertyDefinition, value);
   }
 
-
   @Test
   public void testGetValuesNone() throws RepositoryException {
     Node node = createMock(Node.class);
     Property property = createMock(Property.class);
 
     expect(node.hasProperty("testProperty")).andReturn(false);
-    
+
     replay(node, property);
     Value[] values = JcrUtils.getValues(node, "testProperty");
     assertEquals(0, values.length);
