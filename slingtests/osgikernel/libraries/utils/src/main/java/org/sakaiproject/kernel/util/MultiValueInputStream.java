@@ -52,6 +52,7 @@ public class MultiValueInputStream extends InputStream {
     nextStream = 0;
     nvalues = values.length;
     currentInputStream = values[nextStream].getStream();
+    nextStream++;
   }
 
   /**
