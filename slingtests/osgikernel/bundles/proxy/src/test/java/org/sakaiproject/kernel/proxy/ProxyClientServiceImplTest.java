@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.JcrConstants;
-import org.apache.sling.api.resource.Resource;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,6 +33,8 @@ import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.kernel.testutils.http.CapturedRequest;
+import org.sakaiproject.kernel.testutils.http.DummyServer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -98,15 +99,12 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   @Test
   public void testInvokeServiceMissingNode() throws ProxyClientException,
       RepositoryException {
-    Resource resource = createMock(Resource.class);
-
-    expect(resource.adaptTo(Node.class)).andReturn(null);
 
     replay();
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(null, headers, input, null, 0, null);
       try {
         response.close();
       } catch ( Throwable t) {
@@ -123,11 +121,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   public void testInvokeServiceNodeNoEndPoint() throws ProxyClientException,
       RepositoryException {
     Node node = createMock(Node.class);
-    Resource resource = createMock(Resource.class);
 
     expect(node.getPath()).andReturn("/testing").anyTimes();
-    expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
-
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         false);
 
@@ -135,7 +130,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Map<String, String> input = new HashMap<String, String>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
-      ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+      ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, null, 0, null);
       try {
         response.close();
       } catch ( Throwable t) {
@@ -151,10 +146,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   public void testInvokeServiceNodeEndPoint() throws ProxyClientException,
       RepositoryException, IOException {
     Node node = createMock(Node.class);
-    Resource resource = createMock(Resource.class);
 
     expect(node.getPath()).andReturn("/testing").anyTimes();
-    expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
@@ -203,7 +196,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Map<String, String> headers = new HashMap<String, String>();
     headers.put("SOAPAction", "");
-    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, null, 0, null);
+    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();
     assertEquals("Method not correct ", "POST", request.getMethod());
@@ -222,10 +215,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   public void testInvokeServiceNodeEndPointPut() throws ProxyClientException,
       RepositoryException, IOException {
     Node node = createMock(Node.class);
-    Resource resource = createMock(Resource.class);
 
     expect(node.getPath()).andReturn("/testing").anyTimes();
-    expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
@@ -257,7 +248,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       bas[i] = (byte) (i & 0xff);
     }
     ByteArrayInputStream bais = new ByteArrayInputStream(bas);
-    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input, bais, bas.length,
+    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, bais, bas.length,
         "binary/x-data");
 
     CapturedRequest request = dummyServer.getRequest();
@@ -298,10 +289,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   private void testRequest(String type, String expectedMethod, String body)
       throws ProxyClientException, RepositoryException, IOException {
     Node node = createMock(Node.class);
-    Resource resource = createMock(Resource.class);
 
     expect(node.getPath()).andReturn("/testing").anyTimes();
-    expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
@@ -328,7 +317,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
-    ProxyResponse response = proxyClientServiceImpl.executeCall(resource, headers, input,
+    ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input,
         null, 0, null);
 
     CapturedRequest request = dummyServer.getRequest();

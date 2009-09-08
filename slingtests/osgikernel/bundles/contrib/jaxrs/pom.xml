@@ -49,17 +49,24 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Import-Package> !Acme.Serve, com.sun.*;resolution:=optional, !org.apache.log.*, org.apache.oro.*;resolution:=optional, !org.apache.commons.httpclient.*,
-              !org.codehaus.groovy.*, !org.junit.*, !org.scannotation.*, !groovy.lang,
-              !junit.framework.*, !nu.xom, net.sf.ezmorph.*, !org.apache.commons.*, !org.apache.avalon.*,
-              org.jboss.resteasy.*, org.codehaus.jettison.*;resolution:=optional, org.scannotation.*,
-              javassist.bytecode.*, org.apache.commons.collections, org.apache.commons.lang, org.apache.commons.logging, *</Import-Package>
-            <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider, json-lib, ezmorph,
-              scannotation, javassist,  commons-beanutils,
-              commons-codec, commons-httpclient, jsr250-api, commons-lang </Embed-Dependency>
-            <Private-Package>org.sakaiproject.kernel.jaxrs</Private-Package>
+            <Import-Package> 
+              !Acme.Serve, 
+              !org.junit.*, 
+              org.apache.oro.*;resolution:=optional, 
+              org.codehaus.groovy.*;resolution:=optional, 
+              com.sun.*;resolution:=optional, 
+              groovy.lang;resolution:=optional,
+              org.codehaus.jettison.*;resolution:=optional, 
+              *</Import-Package>
+            <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider,
+              scannotation, javassist,
+              jsr250-api </Embed-Dependency>
+            <Private-Package>org.sakaiproject.kernel.jaxrs.*, 
+            org.jboss.resteasy.*, 
+            org.scannotation.*, 
+            javassist.*</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
-            <Export-Package> org.sakaiproject.kernel.api.jaxrs, javax.ws.rs.*, net.sf.json, org.apache.commons.lang.*, org.apache.commons.collections.* </Export-Package>
+            <Export-Package> org.sakaiproject.kernel.api.jaxrs.*, javax.ws.rs.* </Export-Package>
           </instructions>
         </configuration>
       </plugin>

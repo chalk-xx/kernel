@@ -50,6 +50,7 @@
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
+        <module>bundles/json-lib</module>
         <module>bundles/registry</module>
         <module>bundles/lifecycle</module>
         <module>bundles/jpa</module>

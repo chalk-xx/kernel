@@ -1,0 +1,6 @@
+{"sling:resourceType": "sakai/page",
+	"id": "introduction",
+	"title": "Introduction",
+	"type": "webpage",
+	"position": "100000"
+    }

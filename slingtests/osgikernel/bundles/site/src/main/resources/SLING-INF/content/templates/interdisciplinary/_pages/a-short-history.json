@@ -1,0 +1,6 @@
+{"sling:resourceType": "sakai/page",
+	"id": "a-short-history",
+	"title": "A Short History",
+	"type": "webpage",
+	"position": "200000"
+    }
