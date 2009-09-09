@@ -17,12 +17,12 @@
  */
 package org.sakaiproject.kernel.api.proxy;
 
-import org.apache.sling.api.resource.Resource;
+import javax.jcr.Node;
 
 /**
  * Provides access to a resource, for the current context. This might be thread or instance bound.
  */
-public interface ProxyResourceSource {
+public interface ProxyNodeSource {
   /**
    * The resource Source implementation to be used by the resource loader, set to an implementation of ReourceSource.
    */
@@ -31,6 +31,6 @@ public interface ProxyResourceSource {
   /**
    * @return gets the resource for the current context.
    */
-  Resource getResource();
+  Node getNode();
 
 }

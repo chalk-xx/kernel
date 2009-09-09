@@ -17,32 +17,10 @@
  */
 package org.sakaiproject.kernel.api.message;
 
-import org.sakaiproject.kernel.util.PathUtils;
 
 /**
  * 
  */
 public class MessageUtils {
 
-  public static String getMessagePath(String user, String messageId) {
-    String path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
-    return PathUtils.toInternalHashedPath(path, messageId, "");
-
-  }
-
-  /**
-   * @param name
-   * @return
-   */
-  public static String getMessageUrl(String name) {
-    return MessageConstants._USER_MESSAGE + "/" + name;
-  }
-
-  /**
-   * @param user
-   * @return
-   */
-  public static String getMessagePathBase(String user) {
-    return PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, user, "");
-  }
 }

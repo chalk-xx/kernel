@@ -62,8 +62,8 @@ public class DiscussionThreadedSearchBatchResultProcessor implements SearchBatch
     for (int i = 0; i < allNodes.size(); i++) {
       Node n = allNodes.get(i);
 
-      if (n.hasProperty(DiscussionConstants.PROP_SAKAI_REPLY_ON)) {
-        String replyon = n.getProperty(DiscussionConstants.PROP_SAKAI_REPLY_ON).getString();
+      if (n.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
+        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
         // This post is a reply on another post.
         // Find that post and add it.
         addPost(basePosts, n, replyon);

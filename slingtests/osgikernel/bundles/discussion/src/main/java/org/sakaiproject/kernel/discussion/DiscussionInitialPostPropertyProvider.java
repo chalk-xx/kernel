@@ -6,6 +6,7 @@ import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
+import org.sakaiproject.kernel.util.PathUtils;
 
 /**
  * Provides properties to process the search
@@ -27,10 +28,7 @@ public class DiscussionInitialPostPropertyProvider implements SearchPropertyProv
     if (pathParam != null) {
       path = pathParam.getString();
     }
-    
-    if (path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
-    }
+    path = PathUtils.normalizePath(path);
     
     propertiesMap.put("_path", ISO9075.encodePath(path));
   }

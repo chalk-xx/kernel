@@ -150,8 +150,8 @@ public class Post {
     // If this post has been marked as deleted, we dont show it.
     // we do however show the children of it.
     boolean isDeleted = false;
-    if (node.hasProperty(DiscussionConstants.PROP_SAKAI_DELETED)) {
-      isDeleted = node.getProperty(DiscussionConstants.PROP_SAKAI_DELETED).getBoolean();
+    if (node.hasProperty(DiscussionConstants.PROP_DELETED)) {
+      isDeleted = node.getProperty(DiscussionConstants.PROP_DELETED).getBoolean();
     }
 
     if (isDeleted && !canDelete) {
@@ -173,9 +173,9 @@ public class Post {
       writer.value(canDelete);
 
       // List of all the people who have edited this post.
-      if (node.hasProperty(DiscussionConstants.PROP_SAKAI_EDITEDBY)) {
+      if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
-        Property editedByProperty = getNode().getProperty(DiscussionConstants.PROP_SAKAI_EDITEDBY);
+        Property editedByProperty = getNode().getProperty(DiscussionConstants.PROP_EDITEDBY);
         Value[] editedBy;
         try {
           editedBy = editedByProperty.getValues();

@@ -15,13 +15,15 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.proxy;
+package org.sakaiproject.kernel.testutils.http;
 
+import org.apache.commons.io.IOUtils;
 import org.mortbay.jetty.Request;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.AbstractHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -149,12 +151,24 @@ public class DummyServer extends AbstractHandler {
   public void setResponseBody(String responseBody) {
     this.responseBody = responseBody;
   }
+  
+  public void setResponseBodyFromFile(String filename) throws IOException {
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+    if (is == null) {
+      throw new IOException("No such file " + filename);
+    }
+    this.responseBody = IOUtils.toString(is);
+  }
 
   /**
    * @return the request
    */
   public CapturedRequest getRequest() {
     return request;
+  }
+  
+  public int getPort() {
+    return port;
   }
 
 }
