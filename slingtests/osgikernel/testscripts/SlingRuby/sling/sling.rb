@@ -237,7 +237,7 @@ module SlingInterface
     end
 
     def versions(path)
-      return get_node_props("#{path}.versions.json")["versions"].keys
+      return get_node_props("#{path}.versions")["versions"].keys
     end
 
     def version(path, version, extension)
