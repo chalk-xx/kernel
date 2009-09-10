@@ -45,6 +45,7 @@
         <module>bundles/persistence</module>
         <module>bundles/configuration</module>
         <module>bundles/connections</module>
+        <module>bundles/version</module>
         <module>bundles/memory</module>
         <module>bundles/mail</module>
         <module>bundles/jsr173</module>
