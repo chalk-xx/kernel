@@ -25,13 +25,38 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <Export-Package> org.sakaiproject.kernel.api.proxy </Export-Package>
+            <Private-Package> org.sakaiproject.kernel.proxy.* </Private-Package>
+            <Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*,!kaffe.rmi.*,!org.apache.bsf,org.apache.tools.ant.*;resolution:=optional,!org.apache.bcel.*,!org.jdom.*,!org.apache.avalon.*,*</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro</Embed-Dependency>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro</includeArtifactIds>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.core</artifactId>
@@ -45,6 +70,49 @@
       <artifactId>velocity</artifactId>
       <version>1.6.2</version>
     </dependency>
+
+    <!-- Velocity dependencies -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.12</version>
+    </dependency>
+    <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1</version>
+    </dependency> 
+    <dependency>
+        <groupId>werken-xpath</groupId>
+        <artifactId>werken-xpath</artifactId>
+        <version>0.9.4</version>
+    </dependency> 
+    <dependency>
+        <groupId>ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>1.6</version>
+    </dependency> 
+    <dependency>
+        <groupId>antlr</groupId>
+        <artifactId>antlr</artifactId>
+        <version>2.7.7</version>
+    </dependency> 
+    <dependency>
+      <groupId>xml-resolver</groupId>
+      <artifactId>xml-resolver</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+        <groupId>oro</groupId>
+        <artifactId>oro</artifactId>
+        <version>2.0.8</version>
+    </dependency> 
+    <dependency>
+        <groupId>logkit</groupId>
+        <artifactId>logkit</artifactId>
+        <version>2.0</version>
+    </dependency> 
+
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-jcr-commons</artifactId>
@@ -97,6 +165,11 @@
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
       <version>0.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
     <!--  needed for http, now available as a bundle-->
     <dependency>
