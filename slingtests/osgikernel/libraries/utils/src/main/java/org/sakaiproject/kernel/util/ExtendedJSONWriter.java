@@ -85,7 +85,15 @@ public class ExtendedJSONWriter extends JSONWriter {
     switch (value.getType()) {
     case PropertyType.STRING:
     case PropertyType.NAME:
+    case PropertyType.REFERENCE:
+    case PropertyType.PATH:
       return value.getString();
+    case PropertyType.BOOLEAN:
+      return (value.getBoolean() ? "true" : "false");
+    case PropertyType.LONG:
+      return String.valueOf(value.getLong());
+    case PropertyType.DOUBLE:
+      return String.valueOf(value.getDouble());     
     case PropertyType.DATE:
       return format.format(value.getDate().getTime());
     default:
