@@ -82,4 +82,7 @@ public class EmailMessageHandler implements MessageTransport {
     }
   }
 
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
 }
