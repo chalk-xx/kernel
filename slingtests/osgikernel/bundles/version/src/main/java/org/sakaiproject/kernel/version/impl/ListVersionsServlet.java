@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.version;
+package org.sakaiproject.kernel.version.impl;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -27,6 +27,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,8 +131,8 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
         write.key(versions[j].getName());
         write.object();
         Node vnode = versions[j].getNode(JcrConstants.JCR_FROZENNODE);
-        if (!writeEditorDetails(vnode, SaveVersionServlet.SAVED_BY, SaveVersionServlet.SAVED_BY, write)) {
-          writeEditorDetails(vnode, "jcr:createdBy", SaveVersionServlet.SAVED_BY, write);
+        if (!writeEditorDetails(vnode, VersionService.SAVED_BY, VersionService.SAVED_BY, write)) {
+          writeEditorDetails(vnode, "jcr:createdBy", VersionService.SAVED_BY, write);
         }
         ExtendedJSONWriter.writeNodeContentsToWriter(write, versions[j]);
         write.endObject();

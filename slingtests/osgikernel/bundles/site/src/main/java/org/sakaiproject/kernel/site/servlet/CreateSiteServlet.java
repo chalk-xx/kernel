@@ -18,13 +18,12 @@
 package org.sakaiproject.kernel.site.servlet;
 
 import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_ACL_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_ACL_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.kernel.util.ACLUtils.READ_ACL_GRANTED;
-import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_ACL_GRANTED;
-
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -41,6 +40,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.StringUtils;
+import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +90,9 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             .getLogger(CreateSiteServlet.class);
 
     private SlingRepository slingRepository;
+    
+    /** @scr.reference */
+    private VersionService versionService;
 
     /**
      * {@inheritDoc}
@@ -217,15 +220,15 @@ public class CreateSiteServlet extends AbstractSiteServlet {
                         MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
                         REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
                         MODIFY_ACL_GRANTED);
-
                 
-                // We add a message store to this site.
                 if (createSession.hasPendingChanges()) {
                     LOGGER.info("Saving changes");
                     createSession.save();
+                    // Save initial version of site
+                    versionService.saveNode(siteNode, currentUser.getID());
                 } 
-                
-                
+                                
+                // We add a message store to this site.
                 Node storeNode = siteNode.addNode("store");
                 storeNode.setProperty(
                     JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, 
@@ -257,6 +260,17 @@ public class CreateSiteServlet extends AbstractSiteServlet {
                         }
                     }
                     createSession.save();
+                    
+                    // Give the copied nodes an initial version
+                    it = templateNode.getNodes();
+                    while (it.hasNext()) {
+                      Node n = it.nextNode();
+                      try {
+                        versionService.saveNode((Node)createSession.getItem(sitePath + "/" + n.getName()), currentUser.getID());
+                      } catch (RepositoryException re) {
+                        LOGGER.warn("Unable to save copied node", re);
+                      }
+                    }
                     LOGGER.debug("Finished copying");
                 }
 

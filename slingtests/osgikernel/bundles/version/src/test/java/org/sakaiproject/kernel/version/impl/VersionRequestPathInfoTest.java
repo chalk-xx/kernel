@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.version;
+package org.sakaiproject.kernel.version.impl;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.sling.api.request.RequestPathInfo;
 import org.junit.Test;
-import org.sakaiproject.kernel.version.VersionRequestPathInfo;
+import org.sakaiproject.kernel.version.impl.VersionRequestPathInfo;
 
 /**
  * 
