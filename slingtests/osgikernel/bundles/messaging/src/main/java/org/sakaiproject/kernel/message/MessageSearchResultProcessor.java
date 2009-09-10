@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.message;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageUtils;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
@@ -60,72 +59,6 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
 
   protected MessagingService messagingService;
 
-  /**
-   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
-   * property with propertyName that contains a userid.
-   * 
-   * @param resultNode
-   *          The node to look on
-   * @param write
-   *          The writer to write to.
-   * @param propertyName
-   *          The propertyname that contains the userid.
-   * @param jsonName
-   *          The json name that should be used.
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  protected void writeUserInfo(Node resultNode, JSONWriter write, String propertyName,
-      String jsonName) throws ValueFormatException, PathNotFoundException,
-      RepositoryException, JSONException {
-
-    try {
-      String user = resultNode.getProperty(propertyName).getString();
-
-      String path = PersonalUtils.getProfilePath(user);
-      Node userNode = (Node) resultNode.getSession().getItem(path);
-
-      PropertyIterator userPropertyIterator = userNode.getProperties();
-      Map<String, Object> mapPropertiesToWrite = new HashMap<String, Object>();
-
-      while (userPropertyIterator.hasNext()) {
-        Property userProperty = userPropertyIterator.nextProperty();
-        try {
-          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValue());
-        } catch (ValueFormatException ex) {
-          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValues());
-        }
-      }
-
-      // We can't have anymore exceptions from now on.
-      write.key(jsonName);
-      write.object();
-      for (Entry<String, Object> entry : mapPropertiesToWrite.entrySet()) {
-        write.key(entry.getKey());
-        if (entry.getValue() instanceof Value) {
-          write.value(((Value) entry.getValue()).getString());
-        } else {
-          write.array();
-
-          Value[] vals = (Value[]) entry.getValue();
-          for (Value v : vals) {
-            write.value(v.getString());
-          }
-
-          write.endArray();
-        }
-      }
-      write.endObject();
-
-    } catch (PathNotFoundException pnfe) {
-      LOGGER.warn("Profile path not found for this user.");
-    } catch (Exception ex) {
-      LOGGER.warn(ex.getMessage());
-    }
-  }
-
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
@@ -149,17 +82,15 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
     // Add some extra properties.
     write.key("id");
     write.value(resultNode.getName());
-    write.key("path");
-    write.value(MessageUtils.getMessageUrl(resultNode.getName()));
 
     // TODO : This should probably be using an Authorizable. However, updated
     // properties were not included in this..
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
-      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
+      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
+      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
     }
 
     // List all of the properties on here.

@@ -20,11 +20,13 @@ package org.sakaiproject.kernel.message;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageUtils;
+import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.util.PathUtils;
 
 import java.util.Map;
+
+import javax.jcr.Session;
 
 /**
  * Provides properties to process the search
@@ -34,9 +36,20 @@ import java.util.Map;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.provider" value="Message"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
+ * @scr.reference name="MessagingService"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSearchPropertyProvider implements SearchPropertyProvider {
 
+
+  private MessagingService messagingService;
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
 
 
   /**
@@ -48,11 +61,8 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
     String user = request.getRemoteUser();
     String path = request.getResource().getPath();
     path = PathUtils.removeLastElement(path);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075.encodePath(MessageUtils.getMessagePathBase(user)));
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075.encodePath(messagingService.getFullPathToStore(user, session)));
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075.encodePath(MessageConstants._USER_MESSAGE));
   }
-
-  
-
-
 }

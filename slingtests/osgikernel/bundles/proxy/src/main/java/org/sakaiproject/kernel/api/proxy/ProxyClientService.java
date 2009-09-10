@@ -17,10 +17,12 @@
  */
 package org.sakaiproject.kernel.api.proxy;
 
-import org.apache.sling.api.resource.Resource;
+import org.apache.commons.httpclient.HttpConnectionManager;
 
 import java.io.InputStream;
 import java.util.Map;
+
+import javax.jcr.Node;
 
 /**
  * A Proxy Client service provides processing for Proxy request, specified by a resource
@@ -71,8 +73,8 @@ public interface ProxyClientService {
    * 
    * </pre>
    * 
-   * @param resource
-   *          the resource containing the proxy end point specification.
+   * @param node
+   *          the node containing the proxy end point specification.
    * @param headers
    *          a map of headers to set int the request.
    * @param input
@@ -88,8 +90,13 @@ public interface ProxyClientService {
    *          sakai:proxy-request-content-type will be used.
    * @throws ProxyClientException
    */
-  public ProxyResponse executeCall(Resource resource, Map<String, String> headers,
+  public ProxyResponse executeCall(Node node, Map<String, String> headers,
       Map<String, String> input, InputStream requestInputStream,
       long requestContentLength, String requestContentType) throws ProxyClientException;
 
+  /**
+   * Exports the HTTP Connection Manager for use by bundles making HTTP requests
+   */
+  public HttpConnectionManager getHttpConnectionManager();
+    
 }

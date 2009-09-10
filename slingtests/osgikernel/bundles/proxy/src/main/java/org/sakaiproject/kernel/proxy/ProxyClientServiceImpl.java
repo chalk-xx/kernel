@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.proxy;
 
 import org.apache.commons.collections.ExtendedProperties;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
@@ -33,7 +34,6 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.resource.Resource;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -41,7 +41,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyMethod;
-import org.sakaiproject.kernel.api.proxy.ProxyResourceSource;
+import org.sakaiproject.kernel.api.proxy.ProxyNodeSource;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.kernel.proxy.velocity.VelocityLogger;
@@ -60,7 +60,7 @@ import javax.jcr.Node;
  */
 @Service
 @Component(immediate = true)
-public class ProxyClientServiceImpl implements ProxyClientService, ProxyResourceSource {
+public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSource {
 
   /**
    * 
@@ -101,7 +101,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
   /**
    * A Thread local holder to bind the resource being processed to this thread.
    */
-  private ThreadLocal<Resource> boundResource = new ThreadLocal<Resource>();
+  private ThreadLocal<Node> boundNode = new ThreadLocal<Node>();
 
   /**
    * Create resources used by this component.
@@ -119,7 +119,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
         .getName());
     ExtendedProperties configuration = new ExtendedProperties();
     configuration.addProperty(JCR_RESOURCE_LOADER_PATH
-        + ProxyResourceSource.JCR_RESOURCE_LOADER_RESOURCE_SOURCE, this);
+        + ProxyNodeSource.JCR_RESOURCE_LOADER_RESOURCE_SOURCE, this);
     velocityEngine.setExtendedProperties(configuration);
     velocityEngine.init();
 
@@ -179,13 +179,12 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
    *          sakai:proxy-request-content-type will be used.
    * @throws ProxyClientException
    */
-  public ProxyResponse executeCall(Resource resource, Map<String, String> headers,
+  public ProxyResponse executeCall(Node node, Map<String, String> headers,
       Map<String, String> input, InputStream requestInputStream,
       long requestContentLength, String requestContentType) throws ProxyClientException {
     try {
-      bindResource(resource);
-      Node node = resource.adaptTo(Node.class);
-
+      bindNode(node);
+    
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
 
         VelocityContext context = new VelocityContext(input);
@@ -202,7 +201,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
           try {
             proxyMethod = ProxyMethod.valueOf(node
                 .getProperty(SAKAI_REQUEST_PROXY_METHOD).getString());
-          } catch (IllegalArgumentException e) {
+          } catch (Exception e) {
 
           }
         }
@@ -286,27 +285,30 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
       }
 
     } catch (Exception e) {
-      throw new ProxyClientException("The Proxy request specified by  " + resource
+      throw new ProxyClientException("The Proxy request specified by  " + node
           + " failed, cause follows:", e);
     } finally {
-      unbindResource();
+      unbindNode();
     }
-    throw new ProxyClientException("The Proxy request specified by " + resource
+    throw new ProxyClientException("The Proxy request specified by " + node
         + " does not contain a valid endpoint specification ");
   }
 
+  public HttpConnectionManager getHttpConnectionManager() {
+    return httpClientConnectionManager;
+  }
   /**
    * 
    */
-  private void unbindResource() {
-    boundResource.set(null);
+  private void unbindNode() {
+    boundNode.set(null);
   }
 
   /**
    * @param resource
    */
-  private void bindResource(Resource resource) {
-    boundResource.set(resource);
+  private void bindNode(Node resource) {
+    boundNode.set(resource);
   }
 
   /**
@@ -314,8 +316,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyResource
    * 
    * @see au.edu.csu.sakai.integration.api.soapclient.ResourceSource#getResource()
    */
-  public Resource getResource() {
-    return boundResource.get();
+  public Node getNode() {
+    return boundNode.get();
   }
 
 }

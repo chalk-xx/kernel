@@ -17,7 +17,8 @@
  */
 package org.sakaiproject.kernel.proxy;
 
-
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -33,16 +34,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.Servlet;
+
 /**
  * This servlet will proxy through to other websites and fetch its data.
  * 
- * @scr.component immediate="true" label="%cropit.get.operation.name"
- *                description="%cropit.get.operation.description"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" value="/system/proxy"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.extensions" value="json"
+ * @offscr.component immediate="true" label="%cropit.get.operation.name"
+ *                   description="%cropit.get.operation.description"
+ * @offscr.service interface="javax.servlet.Servlet"
+ * @offscr.property name="sling.servlet.paths" value="/system/proxy"
+ * @offscr.property name="sling.servlet.methods" value="POST"
+ * @offscr.property name="sling.servlet.extensions" value="json"
  */
+@Service(value = Servlet.class)
+@SlingServlet(generateComponent = true, generateService = true, extensions = { "json" }, methods = { "POST" }, paths = { "/system/proxy" })
 public class ProxyServlet extends SlingAllMethodsServlet {
 
   /**
@@ -54,11 +59,11 @@ public class ProxyServlet extends SlingAllMethodsServlet {
   private static final String PARAMETER_METHOD = "method";
   private static final String PARAMETER_POST = "post";
   private static final String PARAMETER_TIMEOUT = "timeout";
-  private static final String PARAMETER_PASSWORD = "password";  
-  
+  private static final String PARAMETER_PASSWORD = "password";
+
   private static final String AUTHORIZATION = "Authorization";
   private static final String LOCATION = "Location";
-	
+
   /**
    * Perform the actual request. {@inheritDoc}
    * 
@@ -66,117 +71,112 @@ public class ProxyServlet extends SlingAllMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @SuppressWarnings("deprecation")
-  protected void doPost(SlingHttpServletRequest req,
-      SlingHttpServletResponse resp) throws IOException {
+  protected void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp)
+      throws IOException {
 
-		URL url = null;
-		String user = null, password = null, method = "GET", post = null;
-		int timeout = 0;
+    URL url = null;
+    String user = null, password = null, method = "GET", post = null;
+    int timeout = 0;
 
-		Map<String, String> headers = new HashMap<String, String>();
-		for (Object anEntrySet : req.getParameterMap().entrySet()) {
-			Map.Entry<?,?> header = (Map.Entry<?,?>) anEntrySet;
-			String key = (String) header.getKey();
-			String value = ((String[]) header.getValue())[0];
-			if (PARAMETER_USER.equals(key)) {
-				user = value;
-			} else if (PARAMETER_PASSWORD.equals(key)) {
-				password = value;
-			} else if (PARAMETER_TIMEOUT.equals(key)) {
-				timeout = Integer.parseInt(value);
-			} else if (PARAMETER_METHOD.equals(key)) {
-				method = value;
-			} else if (PARAMETER_POST.equals(key)) {
-				post = URLDecoder.decode(value);
-			} else if (PARAMETER_URL.equals(key)) {
-				url = new URL(value);
-			} else {
-				headers.put(key, value);
-			}
-		}
+    Map<String, String> headers = new HashMap<String, String>();
+    for (Object anEntrySet : req.getParameterMap().entrySet()) {
+      Map.Entry<?, ?> header = (Map.Entry<?, ?>) anEntrySet;
+      String key = (String) header.getKey();
+      String value = ((String[]) header.getValue())[0];
+      if (PARAMETER_USER.equals(key)) {
+        user = value;
+      } else if (PARAMETER_PASSWORD.equals(key)) {
+        password = value;
+      } else if (PARAMETER_TIMEOUT.equals(key)) {
+        timeout = Integer.parseInt(value);
+      } else if (PARAMETER_METHOD.equals(key)) {
+        method = value;
+      } else if (PARAMETER_POST.equals(key)) {
+        post = URLDecoder.decode(value);
+      } else if (PARAMETER_URL.equals(key)) {
+        url = new URL(value);
+      } else {
+        headers.put(key, value);
+      }
+    }
 
-		if (url != null) {
+    if (url != null) {
 
-			String digest = null;
-			if (user != null && password != null) {
-				digest = "Basic "
-						+ new String(Base64Converter.encode((user + ":" + password).getBytes()));
-			}
+      String digest = null;
+      if (user != null && password != null) {
+        digest = "Basic "
+            + new String(Base64Converter.encode((user + ":" + password).getBytes()));
+      }
 
-			boolean foundRedirect = false;
-			do {
+      boolean foundRedirect = false;
+      do {
 
-				HttpURLConnection urlConnection = (HttpURLConnection) url
-						.openConnection();
-				if (digest != null) {
-					urlConnection.setRequestProperty(AUTHORIZATION, digest);
-				}
-				urlConnection.setDoOutput(true);
-				urlConnection.setDoInput(true);
-				urlConnection.setUseCaches(false);
-				urlConnection.setInstanceFollowRedirects(false);
-				urlConnection.setRequestMethod(method);
-				if (timeout > 0) {
-					urlConnection.setConnectTimeout(timeout);
-				}
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        if (digest != null) {
+          urlConnection.setRequestProperty(AUTHORIZATION, digest);
+        }
+        urlConnection.setDoOutput(true);
+        urlConnection.setDoInput(true);
+        urlConnection.setUseCaches(false);
+        urlConnection.setInstanceFollowRedirects(false);
+        urlConnection.setRequestMethod(method);
+        if (timeout > 0) {
+          urlConnection.setConnectTimeout(timeout);
+        }
 
-				// set headers
-				for (Entry<String, String> header : headers.entrySet()) {
-					urlConnection.setRequestProperty(header.getKey(), header.getValue());
-				}
+        // set headers
+        for (Entry<String, String> header : headers.entrySet()) {
+          urlConnection.setRequestProperty(header.getKey(), header.getValue());
+        }
 
-				// send post
-				if (post != null) {
-					OutputStreamWriter outRemote = new OutputStreamWriter(
-							urlConnection.getOutputStream());
-					outRemote.write(post);
-					outRemote.flush();
-				}
+        // send post
+        if (post != null) {
+          OutputStreamWriter outRemote = new OutputStreamWriter(urlConnection
+              .getOutputStream());
+          outRemote.write(post);
+          outRemote.flush();
+        }
 
-				// get content type
-				String contentType = urlConnection.getContentType();
-				if (contentType != null) {
-					resp.setContentType(contentType);
-				}
+        // get content type
+        String contentType = urlConnection.getContentType();
+        if (contentType != null) {
+          resp.setContentType(contentType);
+        }
 
-				// get reponse code
-				int responseCode = urlConnection.getResponseCode();
+        // get reponse code
+        int responseCode = urlConnection.getResponseCode();
 
-				if (responseCode == 302) {
-					// follow redirects
-					String location = urlConnection.getHeaderField(LOCATION);
-					url = new URL(location);
-					foundRedirect = true;
-				} else {
-					resp.setStatus(responseCode);
-					BufferedInputStream in;
-					if (responseCode == 200 || responseCode == 201) {
-						in = new BufferedInputStream(urlConnection
-								.getInputStream());
-					} else {
-						in = new BufferedInputStream(urlConnection
-								.getErrorStream());
-					}
+        if (responseCode == 302) {
+          // follow redirects
+          String location = urlConnection.getHeaderField(LOCATION);
+          url = new URL(location);
+          foundRedirect = true;
+        } else {
+          resp.setStatus(responseCode);
+          BufferedInputStream in;
+          if (responseCode == 200 || responseCode == 201) {
+            in = new BufferedInputStream(urlConnection.getInputStream());
+          } else {
+            in = new BufferedInputStream(urlConnection.getErrorStream());
+          }
 
-					// send output to client
-					BufferedOutputStream out = new BufferedOutputStream(resp
-							.getOutputStream());
-					int c;
-					while ((c = in.read()) >= 0) {
-						out.write(c);
-					}
-					out.flush();
-				}
-			} while (foundRedirect);
+          // send output to client
+          BufferedOutputStream out = new BufferedOutputStream(resp.getOutputStream());
+          int c;
+          while ((c = in.read()) >= 0) {
+            out.write(c);
+          }
+          out.flush();
+        }
+      } while (foundRedirect);
 
-		} else {
-			resp.sendError(SlingHttpServletResponse.SC_BAD_REQUEST , "Please specify a URL in the " + PARAMETER_URL + " parameter");
-		}
+    } else {
+      resp.sendError(SlingHttpServletResponse.SC_BAD_REQUEST,
+          "Please specify a URL in the " + PARAMETER_URL + " parameter");
+    }
 
-		return;   
+    return;
 
   }
-  
-  
 
 }

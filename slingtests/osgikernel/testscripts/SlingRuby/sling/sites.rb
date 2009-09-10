@@ -55,9 +55,9 @@ module SlingSites
 # If posting to an existing node sitepath is ignored, if posting to sakai/site node
 # sitepath is used.
 
-    def create_site(sitecontainer, title = "Test Site", sitepath = "" )
+    def create_site(sitecontainer, title = "Test Site", sitepath = "", sitetemplate=nil )
 	  path = @sling.url_for(sitecontainer)
-      res = @sling.execute_post(path+".createsite.json", "sakai:title" => title, ":sitepath" => sitepath )
+      res = @sling.execute_post(path+".createsite.json", "sakai:title" => title, ":sitepath" => sitepath, "sakai:site-template" => sitetemplate )
       if (res.code != "200" && res.code != "201")
         puts "Unable to create site: #{res.code} #{res.body}"
         return nil
