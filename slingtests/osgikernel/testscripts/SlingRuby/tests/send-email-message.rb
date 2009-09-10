@@ -17,11 +17,13 @@ class TC_OutgoingMessage < SlingTest
   def setup
     super
     @mm = MessageManager.new(@s)
-  
-    #mailtrap('start')
+
+    mailtrap('start')
   end
 
   def teardown
+    # mailtrap should be set to receive just once, so it will stop the process
+    # automaticlly after that.
     #mailtrap('stop')
   end
 
@@ -45,8 +47,13 @@ class TC_OutgoingMessage < SlingTest
       :log_output => true
     }
 
-    @mailTask = Daemons.run_proc( 'mailtrap', options ) do
-      Mailtrap.new('localhost', '25', false, '/var/tmp/mailtrap.log')
+    host = 'localhost'
+    port = 25
+    once = true
+    log_file = '/var/tmp/mailtrap.log'
+
+    Daemons.run_proc( 'mailtrap', options ) do
+      Mailtrap.new(host, port, once, log_file)
     end
   end
 end
