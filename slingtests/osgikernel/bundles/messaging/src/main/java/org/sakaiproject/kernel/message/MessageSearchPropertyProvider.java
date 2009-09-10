@@ -36,7 +36,9 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.provider" value="Message"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- * @scr.reference interface="org.sakaiproject.kernel.api.MessagingService"
+ * @scr.reference name="MessagingService"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSearchPropertyProvider implements SearchPropertyProvider {
 
