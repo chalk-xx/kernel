@@ -2,6 +2,7 @@ package org.sakaiproject.kernel.mailman.impl;
 
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent;
@@ -51,6 +52,13 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
 
   @SuppressWarnings("unchecked")
   public void updated(Dictionary config) throws ConfigurationException {
+    LOGGER.info("Got config update");
     listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
   }
+  
+  protected void activate(ComponentContext componentContext) {
+    LOGGER.info("Got component initialization");
+    listManagementPassword = (String)componentContext.getProperties().get(LIST_MANAGEMENT_PASSWORD);
+  }
+
 }

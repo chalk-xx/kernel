@@ -15,8 +15,9 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.resource.version;
+package org.sakaiproject.kernel.version;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -24,6 +25,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,7 +128,13 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       versionIterator.skip(offset);
       for ( int j = versions.length-1;  j >=0; j-- ) {
         write.key(versions[j].getName());
-        write.node(versions[j]);
+        write.object();
+        Node vnode = versions[j].getNode(JcrConstants.JCR_FROZENNODE);
+        if (!writeEditorDetails(vnode, SaveVersionServlet.SAVED_BY, SaveVersionServlet.SAVED_BY, write)) {
+          writeEditorDetails(vnode, "jcr:createdBy", SaveVersionServlet.SAVED_BY, write);
+        }
+        ExtendedJSONWriter.writeNodeContentsToWriter(write, versions[j]);
+        write.endObject();
       }
       write.endObject();
       write.endObject();
@@ -165,6 +173,15 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       response.reset();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
+    }
+  }
+
+  private boolean writeEditorDetails(Node node, String propertySource, String outputName, ExtendedJSONWriter write) {
+    try {
+      PersonalUtils.writeUserInfo(node, write, propertySource, outputName);
+      return true;
+    } catch (Exception e) {
+      return false;
     }
   }
 

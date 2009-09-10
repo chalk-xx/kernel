@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.resource.version;
+package org.sakaiproject.kernel.version;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -51,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 public class SaveVersionServlet extends SlingAllMethodsServlet {
 
 
+  public static final String SAVED_BY = "sakai:savedBy";
   /**
    *
    */
@@ -73,6 +74,8 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
+      node.setProperty(SAVED_BY, request.getRemoteUser());
+      node.save();
       Version version = null;
       try {
         version = node.checkin();

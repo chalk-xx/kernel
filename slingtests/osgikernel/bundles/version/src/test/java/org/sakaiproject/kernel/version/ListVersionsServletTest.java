@@ -15,13 +15,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.resource.version;
+package org.sakaiproject.kernel.version;
 
 import static org.junit.Assert.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.resource.version.ListVersionsServlet;
+import org.sakaiproject.kernel.version.ListVersionsServlet;
 
 /**
  * 
