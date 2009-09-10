@@ -82,6 +82,7 @@ public class ChatMessageSearchResultProcessor extends MessageSearchResultProcess
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_READ)
         && resultNode.getProperty(MessageConstants.PROP_SAKAI_READ).getBoolean() != true) {
       resultNode.setProperty(MessageConstants.PROP_SAKAI_READ, true);
+      resultNode.save();
     }
   }
 }

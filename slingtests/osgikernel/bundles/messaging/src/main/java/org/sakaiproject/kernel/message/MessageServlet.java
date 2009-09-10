@@ -35,7 +35,7 @@ import javax.jcr.Session;
  * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
  * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
  *               values.2="DELETE" values.3="GET"
- * @scr.reference interface="org.sakaiproject.kernel.api.MessagingService"
+ * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService"
  */
 public class MessageServlet extends AbstractMessageServlet {
 
