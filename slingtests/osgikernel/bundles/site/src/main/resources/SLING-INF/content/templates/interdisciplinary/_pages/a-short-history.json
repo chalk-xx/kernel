@@ -2,5 +2,6 @@
 	"id": "a-short-history",
 	"title": "A Short History",
 	"type": "webpage",
-	"position": "200000"
+	"position": "200000",
+	"acl": "parent"
     }
