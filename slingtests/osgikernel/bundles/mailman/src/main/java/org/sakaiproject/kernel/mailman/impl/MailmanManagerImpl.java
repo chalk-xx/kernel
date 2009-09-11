@@ -12,6 +12,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.cyberneko.html.parsers.DOMParser;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.mailman.MailmanManager;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         new NameValuePair("listname", listName),
         new NameValuePair("owner", ownerEmail),
         new NameValuePair("password", password),
+        new NameValuePair("confirm", password),
         new NameValuePair("auth", configMap.get(LIST_ADMIN_PASSWORD)),
         new NameValuePair("langs", "en"),
         new NameValuePair("notify", "1"),
@@ -276,8 +278,22 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     }
   }
 
+  protected void activate(ComponentContext componentContext) {
+    LOGGER.info("Got component initialization");
+    Builder<String, String> builder = ImmutableMap.builder();
+    for (Enumeration<?> e = componentContext.getProperties().keys(); e.hasMoreElements();) {
+      String key = (String)e.nextElement();
+      Object value = componentContext.getProperties().get(key);
+      if (value instanceof String) {
+        builder.put(key, (String) value);
+      }
+    }
+    configMap = builder.build();
+  }
+
   @SuppressWarnings("unchecked")
   public void updated(Dictionary config) throws ConfigurationException {
+    LOGGER.info("Got config update");
     Builder<String, String> builder = ImmutableMap.builder();
     for (Enumeration<?> e = config.keys(); e.hasMoreElements();) {
       String k = (String) e.nextElement();
