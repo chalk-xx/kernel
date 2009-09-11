@@ -45,6 +45,7 @@ import org.sakaiproject.kernel.api.proxy.ProxyNodeSource;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.kernel.proxy.velocity.VelocityLogger;
+import org.sakaiproject.kernel.util.JcrUtils;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -190,7 +191,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         VelocityContext context = new VelocityContext(input);
 
         // setup the post request
-        String endpointURL = node.getProperty(SAKAI_REQUEST_PROXY_ENDPOINT).getString();
+        String endpointURL = JcrUtils.getMultiValueString(node.getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
         Reader urlTemplateReader = new StringReader(endpointURL);
         StringWriter urlWriter = new StringWriter();
         velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);

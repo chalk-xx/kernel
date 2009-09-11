@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.message.chat;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
 
 import javax.jcr.Node;
@@ -61,11 +62,11 @@ public class ChatMessageSearchResultProcessor extends MessageSearchResultProcess
     // TODO : This should probably be using an Authorizable. However, updated
     // properties were not included in this..
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
-      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
+      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
+      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
     }
 
     // List all of the properties on here.
@@ -82,6 +83,7 @@ public class ChatMessageSearchResultProcessor extends MessageSearchResultProcess
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_READ)
         && resultNode.getProperty(MessageConstants.PROP_SAKAI_READ).getBoolean() != true) {
       resultNode.setProperty(MessageConstants.PROP_SAKAI_READ, true);
+      resultNode.save();
     }
   }
 }

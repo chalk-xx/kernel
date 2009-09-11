@@ -42,6 +42,8 @@ import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -69,7 +71,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   public static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
-  @Property(intValue = 8025, label = "%sakai.smtp.port.name")
+  @Property(intValue = 25, label = "%sakai.smtp.port.name")
   private static final String SMTP_PORT = "sakai.smtp.port";
   @Property(intValue = 240)
   private static final String MAX_RETRIES = "sakai.email.maxRetries";
@@ -109,70 +111,90 @@ public class OutgoingEmailMessageListener implements MessageListener {
     this.connFactoryService = connFactoryService;
   }
 
+  @SuppressWarnings("unchecked")
   public void onMessage(Message message) {
     try {
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
-      String[] recipients = StringUtils.split(message.getStringProperty(RECIPIENTS),',');
+      Object objRcpt = message.getObjectProperty(RECIPIENTS);
+      List<String> recipients = null;
+
+      if (objRcpt instanceof List<?>) {
+        recipients = (List<String>) objRcpt;
+      } else if (objRcpt instanceof String) {
+        recipients = new LinkedList<String>();
+        String[] rcpts = StringUtils.split((String) objRcpt, ',');
+        for (String rcpt : rcpts) {
+          recipients.add(rcpt);
+        }
+      }
 
       javax.jcr.Session adminSession = repository.loginAdministrative(null);
-      ResourceResolver resolver = jcrResourceResolverFactory
-          .getResourceResolver(adminSession);
+      ResourceResolver resolver = jcrResourceResolverFactory.getResourceResolver(adminSession);
 
       Node messageNode = resolver.getResource(nodePath).adaptTo(Node.class);
 
-      // validate the message
-      if (messageNode != null) {
-        if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
-            && MessageConstants.BOX_OUTBOX.equals(messageNode.getProperty(
-                MessageConstants.PROP_SAKAI_MESSAGEBOX).getString())) {
-          if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
-            // We're retrying this message, so clear the errors
-            messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR,
-                (String) null);
-          }
-          if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
-              && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-            // make a commons-email message from the message
-            MultiPartEmail email;
-            try {
-              email = constructMessage(messageNode, recipients);
+      if (objRcpt != null) {
+        // validate the message
+        if (messageNode != null) {
+          if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)
+              && MessageConstants.BOX_OUTBOX.equals(messageNode.getProperty(
+                  MessageConstants.PROP_SAKAI_MESSAGEBOX).getString())) {
+            if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
+              // We're retrying this message, so clear the errors
+              messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null);
+            }
+            if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)
+                && messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
+              // make a commons-email message from the message
+              MultiPartEmail email;
+              try {
+                email = constructMessage(messageNode, recipients);
 
-              email.setSmtpPort(smtpPort);
-              email.setHostName(smtpServer);
-       
-              email.send();
-            } catch (EmailException e) {
-              setError(messageNode, e.getMessage());
-              // Get the SMTP error code
-              // There has to be a better way to do this
-              if (e.getCause() != null && e.getCause().getMessage() != null) {
-                String smtpError = e.getCause().getMessage().trim();
-                try {
-                  int errorCode = Integer.parseInt(smtpError.substring(0, 3));
-                  // All retry-able SMTP errors should have codes starting with 4
-                  scheduleRetry(errorCode, messageNode);
-                } catch (NumberFormatException nfe) {
-                  // smtpError didn't start with an error code, let's dig for it
-                  String searchFor = "response:";
-                  int rindex = smtpError.indexOf(searchFor);
-                  if (rindex > -1 && (rindex + searchFor.length()) < smtpError.length()) {
-                    int errorCode = Integer.parseInt(smtpError.substring(searchFor
-                        .length(), searchFor.length() + 3));
+                email.setSmtpPort(smtpPort);
+                email.setHostName(smtpServer);
+
+                email.send();
+              } catch (EmailException e) {
+                setError(messageNode, e.getMessage());
+                // Get the SMTP error code
+                // There has to be a better way to do this
+                if (e.getCause() != null && e.getCause().getMessage() != null) {
+                  String smtpError = e.getCause().getMessage().trim();
+                  try {
+                    int errorCode = Integer.parseInt(smtpError.substring(0, 3));
+                    // All retry-able SMTP errors should have codes starting
+                    // with 4
                     scheduleRetry(errorCode, messageNode);
+                  } catch (NumberFormatException nfe) {
+                    // smtpError didn't start with an error code, let's dig for
+                    // it
+                    String searchFor = "response:";
+                    int rindex = smtpError.indexOf(searchFor);
+                    if (rindex > -1 && (rindex + searchFor.length()) < smtpError.length()) {
+                      int errorCode = Integer.parseInt(smtpError.substring(searchFor.length(),
+                          searchFor.length() + 3));
+                      scheduleRetry(errorCode, messageNode);
+                    }
                   }
                 }
               }
+            } else {
+              setError(messageNode, "Message must have a to and from set");
             }
           } else {
-            setError(messageNode, "Message must have a to and from set");
+            setError(messageNode, "Not an outbox");
           }
-        } else {
-          setError(messageNode, "Not an outbox");
+          if (!messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
+            messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
+                MessageConstants.BOX_SENT);
+          }
         }
-        if (!messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)) {
-          messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
-              MessageConstants.BOX_SENT);
+      } else {
+        String retval = "null";
+        if (objRcpt != null) {
+          retval = objRcpt.getClass().toString();
         }
+        setError(messageNode, "Expected recipients to be String or List<String>.  Found " + retval);
       }
     } catch (JMSException e) {
       LOGGER.error(e.getMessage(), e);
@@ -181,18 +203,19 @@ public class OutgoingEmailMessageListener implements MessageListener {
     }
   }
 
-  private MultiPartEmail constructMessage(Node messageNode, String[] recipients) throws EmailException,
+  private MultiPartEmail constructMessage(Node messageNode, List<String> recipients)
+      throws EmailException,
       RepositoryException, PathNotFoundException, ValueFormatException {
     MultiPartEmail email = new MultiPartEmail();
     //TODO: the SAKAI_TO may make no sense in an email context
     // and there does not appear to be any distinction between Bcc and To in java mail.
-    
+
     Set<String> toRecipients = new HashSet<String>();
     Set<String> bccRecipients = new HashSet<String>();
     for ( String r : recipients ) {
       bccRecipients.add(r.trim());
     }
-    
+
     if ( messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO) ) {
       String[] tor = StringUtils.split(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString(),',');
       for ( String r : tor ) {
@@ -209,10 +232,13 @@ public class OutgoingEmailMessageListener implements MessageListener {
     for ( String r : bccRecipients ) {
       email.addBcc(r);
     }
-    
-    
 
-    email.setFrom(messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString());
+    if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
+      String from = messageNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
+      email.setFrom(from);
+    } else {
+      throw new EmailException("Must provide a 'from' address.");
+    }
 
     if (messageNode.hasProperty(MessageConstants.PROP_SAKAI_BODY)) {
       email.setMsg(messageNode.getProperty(MessageConstants.PROP_SAKAI_BODY).getString());

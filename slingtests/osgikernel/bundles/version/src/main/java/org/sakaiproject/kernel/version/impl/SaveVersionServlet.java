@@ -15,15 +15,15 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.resource.version;
+package org.sakaiproject.kernel.version.impl;
 
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,6 @@ import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.version.Version;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -57,6 +56,9 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -7513481862698805983L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SaveVersionServlet.class);
 
+  /** @scr.reference */
+  private VersionService versionService; 
+  
   /**
    * {@inheritDoc}
    * 
@@ -73,18 +75,7 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
-      Version version = null;
-      try {
-        version = node.checkin();
-      } catch ( UnsupportedRepositoryOperationException e) {
-        node.addMixin(JcrConstants.MIX_VERSIONABLE);
-        node.save();
-        version = node.checkin();
-      }
-      node.checkout();
-      if ( node.getSession().hasPendingChanges() ) {
-        node.getSession().save();
-      }
+      Version version = versionService.saveNode(node, request.getRemoteUser());
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.object();
       write.key("versionName");
