@@ -239,7 +239,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
           createSession.save();
 
           // Give the copied nodes an initial version
-          it = templateNode.getNodes();
+          it = siteNode.getNodes();
           while (it.hasNext()) {
             Node n = it.nextNode();
             versionNode(n, currentUser.getID(), createSession);
@@ -280,7 +280,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private void versionNode(Node n, String userID, Session createSession) {
     try {
       LOGGER.info("Versioning " + n.getPath());
-      if (n.isNode() && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
+      // TODO do better check
+      if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
         versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
         NodeIterator it = n.getNodes();
         // Version the childnodes
