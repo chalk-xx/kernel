@@ -3,5 +3,6 @@
 	"title": "All members",
 	"type": "webpage",
 	"position": "300000",
-	"acl": "parent"
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

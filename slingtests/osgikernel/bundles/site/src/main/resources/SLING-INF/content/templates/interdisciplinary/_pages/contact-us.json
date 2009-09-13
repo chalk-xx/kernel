@@ -3,5 +3,6 @@
 	"title": "Contact Us",
 	"type": "webpage",
 	"position": "500000",
-	"acl": "parent"
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

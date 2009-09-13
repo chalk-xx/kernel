@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -26,13 +26,18 @@ import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
+import org.apache.sling.jcr.resource.JcrModifiablePropertyMap;
 import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.NodeInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 
 import javax.jcr.Node;
@@ -55,9 +60,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class GetVersionServlet extends SlingAllMethodsServlet {
 
+  public static final Logger LOG = LoggerFactory.getLogger(GetVersionServlet.class);
   /**
-   *
-   */
+*
+*/
   private static final long serialVersionUID = -4838347347796204151L;
 
   /**
@@ -74,8 +80,10 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
 
     // the version might be encapsulated in , at each end.
     String versionName = getVersionName(selectorString);
-    if ( versionName == null ) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,"No version specified, url should of the form nodepath.version.,versionnumber,.json");
+    if (versionName == null) {
+      response
+          .sendError(HttpServletResponse.SC_BAD_REQUEST,
+              "No version specified, url should of the form nodepath.version.,versionnumber,.json");
       return;
     }
     Resource resource = request.getResource();
@@ -108,12 +116,14 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
+
     final Node finalNode = vnode;
     final String path = vpath;
     final String resourceType = vresourceType;
     final String resourceSuperType = vresourceSuperType;
     final VersionRequestPathInfo versionRequestPathInfo = new VersionRequestPathInfo(
         requestPathInfo);
+
     ResourceWrapper resourceWrapper = new ResourceWrapper(resource) {
       /**
        * {@inheritDoc}
@@ -123,11 +133,45 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
       @SuppressWarnings("unchecked")
       @Override
       public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
+        LOG.info("Adapting to: " + type);
         if (type.equals(Node.class)) {
           return (AdapterType) finalNode;
         }
         if (type.equals(ValueMap.class) || type.equals(Map.class)) {
-          return (AdapterType) new JcrPropertyMap(finalNode);
+          try {
+            if (finalNode.hasProperty(JcrConstants.JCR_FROZENPRIMARYTYPE)
+                && finalNode.getProperty(JcrConstants.JCR_FROZENPRIMARYTYPE).getString()
+                    .equals(JcrConstants.NT_FILE)) {
+              NodeInputStream stream = JcrUtils.getInputStreamForNode(finalNode.getNode("jcr:content"));
+              InputStream is = stream.getInputStream();
+              // Convert stream to string
+              StringBuilder sb = new StringBuilder();
+              BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+              try {
+                String line = reader.readLine();
+                while (line != null) {
+                  sb.append(line +"\n");
+                  line = reader.readLine();
+                }
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+              finally {
+                try {
+                  is.close();
+                } catch (IOException e) {
+                  e.printStackTrace();
+                }
+              }
+              JcrModifiablePropertyMap map = new JcrModifiablePropertyMap(finalNode);
+              map.put("data", sb.toString());
+              return (AdapterType) map;
+            } else {
+              return (AdapterType) new JcrPropertyMap(finalNode);
+            }
+          } catch (RepositoryException e) {
+            return (AdapterType) new JcrPropertyMap(finalNode);
+          }
         }
         if (type.equals(InputStream.class)) {
           NodeInputStream stream = JcrUtils.getInputStreamForNode(finalNode);
@@ -183,7 +227,6 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
 
     };
     request.getRequestDispatcher(resourceWrapper).forward(requestWrapper, response);
-
   }
 
   /**
@@ -195,19 +238,21 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
       char[] ca = selectorString.toCharArray();
       int i = "version.".length();
       int j = i;
-      if ( i < ca.length && ca[i] == '.' ) {
+      if (i < ca.length && ca[i] == '.') {
         i++;
       }
-      
-      if ( i < ca.length && ca[i] == ',' ) {
+
+      if (i < ca.length && ca[i] == ',') {
         i++;
         j = i;
-        while(i < ca.length && ca[i] != ',') i++;
+        while (i < ca.length && ca[i] != ',')
+          i++;
       } else {
         j = i;
-        while(i < ca.length && ca[i] != '.') i++;
+        while (i < ca.length && ca[i] != '.')
+          i++;
       }
-      return new String(ca,j,i-j);
+      return new String(ca, j, i - j);
     }
     return null;
   }
