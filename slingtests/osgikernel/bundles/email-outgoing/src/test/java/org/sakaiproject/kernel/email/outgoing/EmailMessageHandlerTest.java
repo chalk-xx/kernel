@@ -53,6 +53,6 @@ public class EmailMessageHandlerTest {
 
   @Test
   public void testGetType() {
-    assertEquals(MessageConstants.TYPE_EMAIL, emh.getType());
+    assertEquals(MessageConstants.TYPE_SMTP, emh.getType());
   }
 }
