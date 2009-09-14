@@ -37,6 +37,7 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
@@ -46,33 +47,13 @@ import javax.jcr.ValueFormatException;
 public class PersonalUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
-  
-  /**
-   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
-   * property with propertyName that contains a userid.
-   * 
-   * @param resultNode
-   *          The node to look on
-   * @param write
-   *          The writer to write to.
-   * @param propertyName
-   *          The propertyname that contains the userid.
-   * @param jsonName
-   *          The json name that should be used.
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  public static void writeUserInfo(Node resultNode, JSONWriter write, String propertyName,
-      String jsonName) throws ValueFormatException, PathNotFoundException,
-      RepositoryException, JSONException {
 
+  public static void writeUserInfo(Session session, String user, JSONWriter write,
+      String jsonName) {
     try {
-      String user = resultNode.getProperty(propertyName).getString();
 
       String path = PersonalUtils.getProfilePath(user);
-      Node userNode = (Node) resultNode.getSession().getItem(path);
+      Node userNode = (Node) session.getItem(path);
 
       PropertyIterator userPropertyIterator = userNode.getProperties();
       Map<String, Object> mapPropertiesToWrite = new HashMap<String, Object>();
@@ -113,7 +94,31 @@ public class PersonalUtils {
     }
   }
 
-  public static String getProfilePath(String user)  {
+  /**
+   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
+   * property with propertyName that contains a userid.
+   * 
+   * @param resultNode
+   *          The node to look on
+   * @param write
+   *          The writer to write to.
+   * @param propertyName
+   *          The propertyname that contains the userid.
+   * @param jsonName
+   *          The json name that should be used.
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeUserInfo(Node resultNode, JSONWriter write,
+      String propertyName, String jsonName) throws ValueFormatException,
+      PathNotFoundException, RepositoryException, JSONException {
+    String user = resultNode.getProperty(propertyName).getString();
+    writeUserInfo(resultNode.getSession(), user, write, jsonName);
+  }
+
+  public static String getProfilePath(String user) {
     return getPublicPath(user, PersonalConstants.AUTH_PROFILE);
   }
 
