@@ -135,13 +135,17 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
   private void parsePreviousMessages(Node node, JSONWriter write) throws JSONException,
       ValueFormatException, PathNotFoundException, RepositoryException {
 
-    String path = messagingService.getMessageStorePathFromMessageNode(node)
+
+    Session s = node.getSession();
+    String id = node.getProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE).getString();
+    String path = messagingService.getFullPathToMessage(s.getUserID(), id, s);
+    /*
+    String path = messagingService.getMessageStorePathFromMessageNode(node) + "/"
         + node.getProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE).getString();
-    path = PathUtils.normalizePath(path);
+    path = PathUtils.normalizePath(path);*/
 
     LOGGER.info("Getting message at {}", path);
 
-    Session s = node.getSession();
     Node previousMessage = (Node) s.getItem(path);
     writeNode(write, previousMessage);
   }
