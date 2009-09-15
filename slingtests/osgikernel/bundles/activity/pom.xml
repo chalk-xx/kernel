@@ -39,8 +39,7 @@
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Export-Package>org.sakaiproject.kernel.api.activity</Export-Package>
             <Private-Package>org.sakaiproject.kernel.activity.*</Private-Package>
-<!--            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
--->
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>
@@ -88,7 +87,6 @@
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
-      <version>2.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -117,6 +115,12 @@
 		<groupId>org.apache.felix</groupId>
 		<artifactId>org.apache.felix.scr.annotations</artifactId>
 		<version>0.9.0</version>
+	</dependency>
+	<dependency>
+		<groupId>org.sakaiproject.kernel</groupId>
+		<artifactId>org.sakaiproject.kernel.testutils</artifactId>
+		<version>0.1-SNAPSHOT</version>
+		<scope>test</scope>
 	</dependency>
   </dependencies>
 </project>
