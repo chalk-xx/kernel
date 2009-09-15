@@ -18,6 +18,9 @@
 package org.sakaiproject.kernel.activity;
 
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTOR_PROPERTY;
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_APPLICATION_ID;
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_TEMPLATE_ID;
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -65,7 +68,6 @@ import javax.servlet.http.HttpServletResponse;
  *                interface="org.osgi.service.event.EventAdmin"
  */
 public class ActivityCreateServlet extends SlingAllMethodsServlet {
-  private static final String ACTIVITY_STORE_NAME = "activity";
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityCreateServlet.class);
   private EventAdmin eventAdmin;
@@ -85,14 +87,14 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     }
     // Let's perform some validation on the request parameters. Do we have the minimum
     // required?
-    RequestParameter applicationId = request.getRequestParameter("applicationId");
-    if (applicationId == null || "".equals(applicationId.getString())) {
+    RequestParameter applicationId = request.getRequestParameter(REQUEST_PARAM_APPLICATION_ID);
+    if (applicationId == null || "".equals(applicationId.toString())) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "The applicationId parameter must not be null");
       return;
     }
-    RequestParameter templateId = request.getRequestParameter("templateId");
-    if (templateId == null || "".equals(templateId.getString())) {
+    RequestParameter templateId = request.getRequestParameter(REQUEST_PARAM_TEMPLATE_ID);
+    if (templateId == null || "".equals(templateId.toString())) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "The templateId parameter must not be null");
       return;
