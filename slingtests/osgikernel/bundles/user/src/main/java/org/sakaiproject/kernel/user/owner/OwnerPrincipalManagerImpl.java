@@ -23,6 +23,8 @@ import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalM
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -72,6 +74,22 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
       LOG.error("Unable to determine node ownership", e);
     }
     return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager#getMembersOf(java.lang.String)
+   */
+  public List<String> getMembersOf(String principalName) {
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager#getMembershipFor(java.lang.String)
+   */
+  public List<String> getMembershipFor(String principalName) {
+    return null;
   }
 
 }
