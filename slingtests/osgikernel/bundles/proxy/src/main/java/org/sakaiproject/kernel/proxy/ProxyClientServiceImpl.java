@@ -46,6 +46,7 @@ import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.kernel.proxy.velocity.VelocityLogger;
 import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -55,6 +56,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
+import javax.jcr.Value;
 
 /**
  *
@@ -62,6 +64,7 @@ import javax.jcr.Node;
 @Service
 @Component(immediate = true)
 public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSource {
+
 
   /**
    * 
@@ -245,6 +248,13 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
         for (Entry<String, String> header : headers.entrySet()) {
           method.addRequestHeader(header.getKey(), header.getValue());
+        }
+        
+        Value[] additionalHeaders = JcrUtils.getValues(node, SAKAI_PROXY_HEADER);
+        for ( Value v : additionalHeaders ) {
+          String header = v.getString();
+          String[] keyVal = StringUtils.split(header, ':', 2);
+          method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
         }
 
         if (method instanceof EntityEnclosingMethod) {

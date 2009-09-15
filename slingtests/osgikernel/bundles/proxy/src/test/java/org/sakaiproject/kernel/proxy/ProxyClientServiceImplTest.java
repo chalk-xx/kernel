@@ -186,6 +186,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         true).atLeastOnce();
     expect(node.getProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
         templateProperty).atLeastOnce();
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
     
     expect(templateProperty.getValue()).andReturn(value);
     expect(templateProperty.getDefinition()).andReturn(propertyDefinition);    
@@ -246,6 +248,9 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     expect(value.getString()).andReturn(dummyServer.getUrl());
 
 
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
+ 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
         true);
 
@@ -320,7 +325,9 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
+ 
     expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
     expect(endpointProperty.getValue()).andReturn(value);
