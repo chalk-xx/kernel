@@ -110,7 +110,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  protected void activate(ComponentContext ctx) throws Exception {
+  public void activate(ComponentContext ctx) throws Exception {
     velocityEngine = new VelocityEngine();
     velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
         this.getClass()));
@@ -138,7 +138,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  protected void deactivate(ComponentContext ctx) throws Exception {
+  public void deactivate(ComponentContext ctx) throws Exception {
     httpClientConnectionManager.shutdown();
   }
 
