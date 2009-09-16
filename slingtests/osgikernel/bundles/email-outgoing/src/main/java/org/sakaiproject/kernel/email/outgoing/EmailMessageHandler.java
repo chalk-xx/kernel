@@ -49,7 +49,7 @@ public class EmailMessageHandler implements MessageTransport {
   @Reference
   protected EventAdmin eventAdmin;
 
-  private static final String TYPE = MessageConstants.TYPE_EMAIL;
+  private static final String TYPE = MessageConstants.TYPE_SMTP;
 
   public String getType() {
     return TYPE;
@@ -57,7 +57,7 @@ public class EmailMessageHandler implements MessageTransport {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes,
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
@@ -65,7 +65,7 @@ public class EmailMessageHandler implements MessageTransport {
     LOGGER.debug("Started handling an email message");
     List<String> recipents = new ArrayList<String>();
     for (MessageRoute route : routes) {
-      if ("smtp".equals(route.getTransport())) {
+      if (TYPE.equals(route.getTransport())) {
         recipents.add(route.getRcpt());
       }
     }
@@ -82,4 +82,7 @@ public class EmailMessageHandler implements MessageTransport {
     }
   }
 
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
 }

@@ -3,5 +3,6 @@
 	"title": "Latest News",
 	"type": "webpage",
 	"position": "400000",
-	"acl": "parent"
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

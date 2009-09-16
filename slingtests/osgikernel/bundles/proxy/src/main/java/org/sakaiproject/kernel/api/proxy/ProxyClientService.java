@@ -51,6 +51,10 @@ public interface ProxyClientService {
    */
   public static final String SAKAI_PROXY_REQUEST_TEMPLATE = "sakai:proxy-request-template";
 
+  /**
+   * A multi value property containing a list of headers to add to the request.
+   */
+  public static final String SAKAI_PROXY_HEADER = "sakai:proxy-header";
 
   /**
    * Executes a HTTP call using a path in the JCR to point to a template and a map of

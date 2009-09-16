@@ -45,6 +45,8 @@ import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.nodetype.PropertyDefinition;
 
 /**
  *
@@ -154,13 +156,19 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Property requestContentType = createMock(Property.class);
     Property templateProperty = createMock(Property.class);
     Property lastModifiedProperty = createMock(Property.class);
+    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
+    Value value = createMock(Value.class);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    expect(endpointProperty.getString()).andReturn(dummyServer.getUrl());
+    
+    expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
+    expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
+    expect(endpointProperty.getValue()).andReturn(value);
+    expect(value.getString()).andReturn(dummyServer.getUrl());
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
         true);
@@ -178,7 +186,12 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         true).atLeastOnce();
     expect(node.getProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
         templateProperty).atLeastOnce();
-    expect(templateProperty.getString()).andReturn(REQUEST_TEMPLATE).atLeastOnce();
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
+    
+    expect(templateProperty.getValue()).andReturn(value);
+    expect(templateProperty.getDefinition()).andReturn(propertyDefinition);    
+    expect(value.getStream()).andReturn(new ByteArrayInputStream(REQUEST_TEMPLATE.getBytes()));
 
     expect(node.hasProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(true).atLeastOnce();
     expect(node.getProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(
@@ -220,14 +233,24 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
+    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
+    Value value = createMock(Value.class);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    expect(endpointProperty.getString()).andReturn(dummyServer.getUrl());
+    
+    expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
+    expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
+    expect(endpointProperty.getValue()).andReturn(value);
+    expect(value.getString()).andReturn(dummyServer.getUrl());
 
+
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
+ 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
         true);
 
@@ -294,13 +317,21 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
 
     Property endpointProperty = createMock(Property.class);
     Property requestMethodProperty = createMock(Property.class);
+    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
+    Value value = createMock(Value.class);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
     expect(node.getProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         endpointProperty);
-    expect(endpointProperty.getString()).andReturn(dummyServer.getUrl());
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
+        false).atLeastOnce();
+ 
+    expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
+    expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
+    expect(endpointProperty.getValue()).andReturn(value);
+    expect(value.getString()).andReturn(dummyServer.getUrl());
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_METHOD)).andReturn(
         true);

@@ -24,15 +24,15 @@ import org.apache.velocity.runtime.resource.Resource;
 import org.apache.velocity.runtime.resource.loader.ResourceLoader;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyNodeSource;
+import org.sakaiproject.kernel.util.MultiValueInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 
 /**
@@ -88,13 +88,10 @@ public class JcrResourceLoader extends ResourceLoader {
     try {
       Node node = getNode(source);
       if (node != null && node.hasProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)) {
-        return new ByteArrayInputStream(node.getProperty(
-            ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE).getString().getBytes("UTF-8"));
-
+        Property template = node.getProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE);
+        return new MultiValueInputStream(template);
       }
     } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage());
-    } catch (UnsupportedEncodingException e) {
       LOGGER.warn(e.getMessage());
     }
     return null;

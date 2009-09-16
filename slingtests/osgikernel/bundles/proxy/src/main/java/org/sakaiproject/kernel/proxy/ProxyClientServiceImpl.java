@@ -45,6 +45,8 @@ import org.sakaiproject.kernel.api.proxy.ProxyNodeSource;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
 import org.sakaiproject.kernel.proxy.velocity.JcrResourceLoader;
 import org.sakaiproject.kernel.proxy.velocity.VelocityLogger;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -54,6 +56,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
+import javax.jcr.Value;
 
 /**
  *
@@ -61,6 +64,7 @@ import javax.jcr.Node;
 @Service
 @Component(immediate = true)
 public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSource {
+
 
   /**
    * 
@@ -109,7 +113,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  protected void activate(ComponentContext ctx) throws Exception {
+  public void activate(ComponentContext ctx) throws Exception {
     velocityEngine = new VelocityEngine();
     velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
         this.getClass()));
@@ -137,7 +141,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  protected void deactivate(ComponentContext ctx) throws Exception {
+  public void deactivate(ComponentContext ctx) throws Exception {
     httpClientConnectionManager.shutdown();
   }
 
@@ -190,7 +194,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         VelocityContext context = new VelocityContext(input);
 
         // setup the post request
-        String endpointURL = node.getProperty(SAKAI_REQUEST_PROXY_ENDPOINT).getString();
+        String endpointURL = JcrUtils.getMultiValueString(node.getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
         Reader urlTemplateReader = new StringReader(endpointURL);
         StringWriter urlWriter = new StringWriter();
         velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
@@ -244,6 +248,13 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
         for (Entry<String, String> header : headers.entrySet()) {
           method.addRequestHeader(header.getKey(), header.getValue());
+        }
+        
+        Value[] additionalHeaders = JcrUtils.getValues(node, SAKAI_PROXY_HEADER);
+        for ( Value v : additionalHeaders ) {
+          String header = v.getString();
+          String[] keyVal = StringUtils.split(header, ':', 2);
+          method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
         }
 
         if (method instanceof EntityEnclosingMethod) {
