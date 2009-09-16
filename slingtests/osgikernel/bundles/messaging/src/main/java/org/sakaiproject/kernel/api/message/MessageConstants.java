@@ -90,6 +90,11 @@ public interface MessageConstants {
   public static final String SAKAI_EMAIL_ADDRESS = "sakai:email";
 
   /**
+   * Value for a date.
+   */
+  public static final String PROP_SAKAI_CREATED = "sakai:created";
+
+  /**
    * The name for the outbox box.
    */
   public static final String BOX_OUTBOX = "outbox";
@@ -173,6 +178,5 @@ public interface MessageConstants {
    */
   public static final String REG_PROCESSOR_NAMES = "sakai.message.createpreprocessor";
   public static final String MESSAGE_CREATE_PREPROCESSOR = "CreateMessagePreProcessor";
-
   
 }

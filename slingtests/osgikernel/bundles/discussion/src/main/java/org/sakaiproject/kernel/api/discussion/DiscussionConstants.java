@@ -40,6 +40,10 @@ public interface DiscussionConstants {
    * Holds the value of people who editted this message.
    */
   public static final String PROP_EDITEDBY = "sakai:editedby";
+  /**
+   * Holds the profile info for the editters.
+   */
+  public static final String PROP_EDITEDBYPROFILES = "sakai:editedbyprofiles";
 
   /**
    * Holds the ID of the message we want to reply on.
@@ -56,5 +60,7 @@ public interface DiscussionConstants {
    * The property that determines if an email should be sent when someone leaves a post.
    */
   public static final String PROP_NOTIFICATION = "sakai:notification";
+
+  public static final String PROP_NOTIFY_ADDRESS = "sakai:notificationaddress";
 
 }

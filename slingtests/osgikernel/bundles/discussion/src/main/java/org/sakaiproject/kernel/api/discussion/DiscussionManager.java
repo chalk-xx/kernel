@@ -25,12 +25,28 @@ import javax.jcr.Session;
 public interface DiscussionManager {
   /**
    * Goes trough the repository to look for a message with an id and a marker.
-   * @param messageId The ID of the message to look for.
-   * @param marker The marker it should have.
+   * 
+   * @param messageId
+   *          The ID of the message to look for.
+   * @param marker
+   *          The marker it should have.
    * @param session
-   * @param path An optional path where you want to look in.
+   * @param path
+   *          An optional path where you want to look in.
    * @return
    * @throws MessagingException
    */
-  public Node findMessage(String messageId, String marker, Session session, String path) throws MessagingException;
+  public Node findMessage(String messageId, String marker, Session session, String path)
+      throws MessagingException;
+
+  /**
+   * Looks in the entire repository to find a sakai/settings file of a certain type and
+   * marker.
+   * 
+   * @param marker
+   * @param session
+   * @param type
+   * @return
+   */
+  public Node findSettings(String marker, Session session, String type);
 }
