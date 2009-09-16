@@ -42,7 +42,7 @@ import javax.jcr.nodetype.PropertyDefinition;
 public class JcrUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JcrUtils.class);
-  
+
   /**
    * Deep creates a path.
    * 
@@ -173,12 +173,25 @@ public class JcrUtils {
       if (pd.isMultiple()) {
         return property.getValues();
       } else {
-        return new Value[] {property.getValue()};
+        return new Value[] { property.getValue() };
       }
     }
     return new Value[] {};
   }
-  
+
+  public static String getMultiValueString(Property property) throws RepositoryException {
+    PropertyDefinition pd = property.getDefinition();
+    if (pd.isMultiple()) {
+      StringBuilder sb = new StringBuilder();
+      for (Value v : property.getValues()) {
+        sb.append(v.getString());
+      }
+      return sb.toString();
+    } else {
+      return property.getValue().getString();
+    }
+  }
+
   public static NodeInputStream getInputStreamForNode(Node node) {
     try {
       Node content = node.isNodeType("nt:file") ? node.getNode("jcr:content") : node;

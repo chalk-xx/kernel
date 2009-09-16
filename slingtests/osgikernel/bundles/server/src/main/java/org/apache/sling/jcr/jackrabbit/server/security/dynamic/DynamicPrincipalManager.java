@@ -16,6 +16,8 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.security.dynamic;
 
+import java.util.List;
+
 import javax.jcr.Node;
 
 /**
@@ -29,10 +31,36 @@ public interface DynamicPrincipalManager {
    * 
    * @param principalName
    *          the name of the principal
-   * @param aclNode the ACL node associated with the node under test
-   * @param userId the user id making the request (note this is *not* the same as the user id bound to the session), may be null
+   * @param aclNode
+   *          the ACL node associated with the node under test
+   * @param userId
+   *          the user id making the request (note this is *not* the same as the user id
+   *          bound to the session), may be null
    * @return true if the user has the principal.
    */
   boolean hasPrincipalInContext(String principalName, Node aclNode, String userId);
+
+  /**
+   * Get the members of the supplied principal, if that is a user, it may have no members,
+   * if it is a group it will may have dynamic members. If the principal is not managed by
+   * the DynamicPrincipalManager implementation they should return null.
+   * 
+   * @param principalName
+   *          the principal name identifying the Authorizable for which the caller wants a
+   *          list of Members.
+   * @return A list of principalNames.
+   */
+  List<String> getMembersOf(String principalName);
+
+  /**
+   * Get a list of principal names that this supplied principalName has membership of. (ie
+   * if the principalName is "ieb", then this will return the membership of ieb)
+   * 
+   * @param principalName
+   *          the principalName for which membership is required.
+   * @return a list of groups the user is a member of, null if the question is not
+   *         relevant to the implementation.
+   */
+  List<String> getMembershipFor(String principalName);
 
 }

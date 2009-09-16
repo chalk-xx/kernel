@@ -21,27 +21,34 @@ import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalM
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jcr.Node;
 
 /**
  * A Singleton implementation of the DynamicPrincipalManagerFactory.
  */
-public class DynamicPrincipalManagerFactoryImpl extends ServiceTracker implements DynamicPrincipalManagerFactory {
+public class DynamicPrincipalManagerFactoryImpl extends ServiceTracker implements
+    DynamicPrincipalManagerFactory {
 
   private DynamicPrincipalManager dynamicPrincipalManager;
 
   /**
    * Construct the Factory.
-   * @param bundleContext the current bundle context.
+   * 
+   * @param bundleContext
+   *          the current bundle context.
    * 
    */
   public DynamicPrincipalManagerFactoryImpl(BundleContext bundleContext) {
     super(bundleContext, DynamicPrincipalManager.class.getName(), null);
     dynamicPrincipalManager = new DynamicPrincipalManager() {
 
-      public boolean hasPrincipalInContext(String principalName, Node aclNode, String userId) {
+      public boolean hasPrincipalInContext(String principalName, Node aclNode,
+          String userId) {
         Object[] services = getServices();
-        if ( services == null || services.length == 0 ) {
+        if (services == null || services.length == 0) {
           // no managers configured, pass through, the user does not have the principal.
           return false;
         }
@@ -52,17 +59,62 @@ public class DynamicPrincipalManagerFactoryImpl extends ServiceTracker implement
           }
         }
         return false;
-     }
-      
+      }
+
+      public List<String> getMembersOf(String principalName) {
+        Object[] services = getServices();
+        if (services == null || services.length == 0) {
+          // no managers configured, pass through, the user does not have the principal.
+          return null;
+        }
+        boolean added = false;
+        List<String> list = new ArrayList<String>();
+        for (Object serviceObject : services) {
+          DynamicPrincipalManager principalManager = (DynamicPrincipalManager) serviceObject;
+          List<String> members = principalManager.getMembersOf(principalName);
+          if (members != null) {
+            list.addAll(members);
+            added = true;
+          }
+        }
+        if (!added) {
+          return null;
+        } 
+        return list;
+      }
+
+      public List<String> getMembershipFor(String principalName) {
+        Object[] services = getServices();
+        if (services == null || services.length == 0) {
+          // no managers configured, pass through, the user does not have the principal.
+          return null;
+        }
+        boolean added = false;
+        List<String> list = new ArrayList<String>();
+        for (Object serviceObject : services) {
+          DynamicPrincipalManager principalManager = (DynamicPrincipalManager) serviceObject;
+          List<String> groups = principalManager.getMembershipFor(principalName);
+          if (groups != null) {
+            list.addAll(groups);
+            added = true;
+          }
+        }
+        if (!added) {
+          return null;
+        } 
+        return list;
+      }
+
     };
   }
+
   /**
    * {@inheritDoc}
+   * 
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.DynamicPrincipalManagerFactory#getDynamicPrincipalManager()
    */
   public DynamicPrincipalManager getDynamicPrincipalManager() {
     return dynamicPrincipalManager;
   }
-  
 
 }
