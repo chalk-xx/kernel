@@ -121,4 +121,5 @@ public class MailmanInterfaceTest extends AbstractEasyMockTest {
     assertFalse("Expected list removal to fail", succeeded);
     verify();
   }
+
 }

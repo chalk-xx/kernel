@@ -153,4 +153,12 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     listManagementPassword = (String)componentContext.getProperties().get(LIST_MANAGEMENT_PASSWORD);
   }
 
+  void setMailmanManager(MailmanManager mailmanManager) {
+    this.mailmanManager = mailmanManager;
+  }
+
+  void setSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
 }
