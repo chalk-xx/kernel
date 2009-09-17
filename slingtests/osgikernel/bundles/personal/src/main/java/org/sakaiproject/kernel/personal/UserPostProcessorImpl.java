@@ -39,6 +39,7 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
 import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.api.user.UserModification;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -297,7 +298,21 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (path == null) {
           path = m.getSource();
         }
-        if (path.endsWith(principalName)) {
+        if (m instanceof UserModification) {
+          LOGGER.info("Got user modification: " + m);
+          UserModification um = (UserModification) m;
+          switch (um.getType()) {
+            case COPY:
+            case CREATE:
+            case DELETE:
+            case MOVE:
+              LOGGER.debug("Ignoring unknown modification type: " + um.getType());
+              break;
+            case MODIFY:
+              eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(um));
+              break;
+            }
+        } else if (path.endsWith(principalName)) {
           switch (m.getType()) {
           case COPY:
             eventAdmin.postEvent(AuthorizableEventUtil.newAuthorizableEvent(

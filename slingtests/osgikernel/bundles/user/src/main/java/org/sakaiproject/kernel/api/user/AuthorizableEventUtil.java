@@ -58,5 +58,14 @@ public class AuthorizableEventUtil {
     return new Event(operation.getTopic(), eventDictionary);
   }
 
+  public static Event newGroupEvent(UserModification um) throws RepositoryException {
+    Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
+    Operation operation = (um.isJoin() ? Operation.join : Operation.part);
+    eventDictionary.put(AuthorizableEvent.OPERATION, operation);
+    eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, um.getGroup().getID());
+    eventDictionary.put(AuthorizableEvent.USER, um.getUser());
+    eventDictionary.put(AuthorizableEvent.GROUP, um.getGroup());
+    return new Event(operation.getTopic(), eventDictionary);    
+  }
 
 }

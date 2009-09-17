@@ -37,7 +37,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Private-Package> org.sakaiproject.kernel.mailman.*  </Private-Package>
-            <Import-Package>sun.io;resolution:=optional,*</Import-Package>
+            <Import-Package>sun.io;resolution:=optional,org.w3c.dom;resolution:=optional,*</Import-Package>
             <Embed-Dependency>nekohtml,xercesImpl,xml-resolver,xml-apis</Embed-Dependency>
           </instructions>
         </configuration>
