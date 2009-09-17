@@ -8,8 +8,8 @@ module SlingMessage
       @sling = sling
     end
 
-    def create(name, type)
-      return @sling.execute_post(@sling.url_for("_user/message.create.html"), "sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => "drafts" )
+    def create(name, type, box = "drafts")
+      return @sling.execute_post(@sling.url_for("_user/message.create.html"), "sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => box )
     end
  
     def send(messageId)

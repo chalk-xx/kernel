@@ -89,6 +89,7 @@
         <module>bundles/specs/ejb</module>
         <module>libraries/utils</module>
         <module>bundles/activemq</module>
+        <module>bundles/activity</module>
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/api</module>
         <module>bundles/sling/resource</module>

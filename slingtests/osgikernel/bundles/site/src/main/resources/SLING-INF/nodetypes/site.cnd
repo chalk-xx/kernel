@@ -15,6 +15,10 @@
 
   - '*' (undefined)
     copy
+    multiple
+    
+  - '*' (undefined)
+    copy
 
   - 'sakai:labels' (string)
     copy

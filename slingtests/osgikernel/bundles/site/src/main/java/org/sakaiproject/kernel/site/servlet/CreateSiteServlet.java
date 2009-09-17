@@ -26,6 +26,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -60,10 +61,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * The <code>CreateSiteServlet</code> creates new sites. .
- * /site/container.createsite /site/container/site.createsite If the node is of
- * type of sakai/sites, then create the site based on a request property If the
- * note is not of type sakai/sites, and exists make it a sakai/site
+ * The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite
+ * /site/container/site.createsite If the node is of type of sakai/sites, then create the
+ * site based on a request property If the note is not of type sakai/sites, and exists
+ * make it a sakai/site
  * 
  * @scr.component immediate="true" label="CreateSiteServlet"
  *                description="Create site servlet"
@@ -71,8 +72,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description" value=
  *               "SUpports creation of sites, either from existing folders, or new folders."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes"
- *               values.0="sling/servlet/default" values.1="sakai/sites"
+ * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
+ *               values.1="sakai/sites"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="createsite"
  * @scr.reference name="SlingRepository"
@@ -81,233 +82,230 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CreateSiteServlet extends AbstractSiteServlet {
 
-    /**
+  /**
    *
    */
-    private static final long serialVersionUID = -7996020354919244147L;
+  private static final long serialVersionUID = -7996020354919244147L;
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(CreateSiteServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
-    private SlingRepository slingRepository;
-    
-    /** @scr.reference */
-    private VersionService versionService;
+  private SlingRepository slingRepository;
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-     *      org.apache.sling.api.SlingHttpServletResponse)
-     */
-    @Override
-    protected void doPost(SlingHttpServletRequest request,
-            SlingHttpServletResponse response) throws ServletException,
-            IOException {
-        try {
-            Session session = request.getResourceResolver().adaptTo(
-                    Session.class);
-            UserManager userManager = AccessControlUtil.getUserManager(session);
-            PrincipalManager principalManager = AccessControlUtil
-                    .getPrincipalManager(session);
+  /** @scr.reference */
+  private VersionService versionService;
 
-            String resourceType = request.getResource().getResourceType();
-            String sitePath = request.getRequestPathInfo().getResourcePath();
-            String templatePath = null;
-            if ("sakai/sites".equals(resourceType)) {
-                RequestParameter relativePathParam = request
-                        .getRequestParameter(":sitepath");
-                if (relativePathParam == null) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                            "The parameter " + ":sitepath"
-                                    + " must be set to a relative path ");
-                    return;
-                }
-                String relativePath = relativePathParam.getString();
-                if (StringUtils.isEmpty(relativePath)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                            "The parameter " + ":sitepath"
-                                    + " must be set to a relative path ");
-                    return;
-                }
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    try {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
-                if (sitePath.startsWith("/")) {
-                    sitePath = sitePath + relativePath;
-                } else {
-                    sitePath = sitePath + "/" + relativePath;
-                }
-            }
-
-            // If we base this site on a template, make sure it exists.
-            RequestParameter siteTemplate = request
-                    .getRequestParameter(SiteService.SAKAI_SITE_TEMPLATE);
-            if (siteTemplate != null) {
-                templatePath = siteTemplate.getString();
-                if (!session.itemExists(templatePath)) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                            "The parameter " + SiteService.SAKAI_SITE_TEMPLATE
-                                    + " must be set to a site template");
-                    return;
-                }
-                // make sure it is a template site.
-                if (!getSiteService().isSiteTemplate(
-                        session.getItem(templatePath))) {
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                            "The parameter " + SiteService.SAKAI_SITE_TEMPLATE
-                                    + " must be set to a site which has the "
-                                    + SiteService.SAKAI_IS_SITE_TEMPLATE
-                                    + " set.");
-                    return;
-                }
-            }
-            LOGGER.debug("The sitePath is: {}", sitePath);
-
-            Node firstRealNode = JcrUtils.getFirstExistingNode(session,
-                    sitePath);
-            // iterate upto the root looking for a site marker.
-            Node siteMarker = firstRealNode;
-            Set<String> principals = new HashSet<String>();
-            Authorizable currentUser = userManager.getAuthorizable(request
-                    .getRemoteUser());
-            PrincipalIterator principalIterator = principalManager
-                    .getGroupMembership(currentUser.getPrincipal());
-            boolean granted = false;
-            while (!"/".equals(siteMarker.getPath())) {
-                if (siteMarker.hasProperty("sakai:sitegroupcreate")) {
-                    Property p = siteMarker
-                            .getProperty("sakai:sitegroupcreate");
-
-                    Value[] authorizableIds = p.getValues();
-                    for (Value authorizable : authorizableIds) {
-                        Authorizable grantedAuthorizable = userManager
-                                .getAuthorizable(authorizable.getString());
-                        String grantedAuthorizableName = grantedAuthorizable
-                                .getPrincipal().getName();
-                        if (principals.contains(grantedAuthorizableName)) {
-                            granted = true;
-                            break;
-                        }
-                        while (principalIterator.hasNext()) {
-                            Principal principal = principalIterator
-                                    .nextPrincipal();
-                            if (principal.getName().equals(
-                                    grantedAuthorizableName)) {
-                                granted = true;
-                                break;
-                            }
-                            principals.add(principal.getName());
-                        }
-                    }
-                }
-                siteMarker = siteMarker.getParent();
-            }
-            Session createSession = session;
-            if (granted) {
-                createSession = slingRepository.loginAdministrative(null);
-            }
-
-            try {
-
-                Node siteNode = JcrUtils.deepGetOrCreateNode(createSession,
-                        sitePath);
-                siteNode.setProperty(
-                        JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-                        SiteService.SITE_RESOURCE_TYPE);
-
-                // setup the ACL's on the node.
-                addEntry(siteNode.getPath(), currentUser, createSession,
-                        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
-                        MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-                        REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
-                        MODIFY_ACL_GRANTED);
-                
-                if (createSession.hasPendingChanges()) {
-                    LOGGER.info("Saving changes");
-                    createSession.save();
-                    // Save initial version of site
-                    versionService.saveNode(siteNode, currentUser.getID());
-                } 
-                                
-                // We add a message store to this site.
-                Node storeNode = siteNode.addNode("store");
-                storeNode.setProperty(
-                    JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, 
-                    "sakai/messagestore");
-                
-                
-                // If this site is based on a template.
-                if (templatePath != null) {
-                    if (createSession.hasPendingChanges()) {
-                        createSession.save();
-                    }
-
-                    // Copy the template files in the new folder.
-                    LOGGER
-                            .debug("Copying the things under template ({}) to new dir ({})", templatePath, sitePath);
-                    Node templateNode = (Node) createSession
-                            .getItem(templatePath);
-                    NodeIterator it = templateNode.getNodes();
-                    while (it.hasNext()) {
-                        Node n = it.nextNode();
-                        try {
-                            LOGGER.debug("Copying {}",n.getPath());
-                            createSession.getWorkspace().copy(
-                                    createSession.getWorkspace().getName(),
-                                    n.getPath(), sitePath + "/" + n.getName());
-                        } catch (ConstraintViolationException cve) {
-                            // Do not copy.
-                            LOGGER.warn("Failed to copy {} ",n.getName());
-                        }
-                    }
-                    createSession.save();
-                    
-                    // Give the copied nodes an initial version
-                    it = templateNode.getNodes();
-                    while (it.hasNext()) {
-                      Node n = it.nextNode();
-                      try {
-                        versionService.saveNode((Node)createSession.getItem(sitePath + "/" + n.getName()), currentUser.getID());
-                      } catch (RepositoryException re) {
-                        LOGGER.warn("Unable to save copied node", re);
-                      }
-                    }
-                    LOGGER.debug("Finished copying");
-                }
-
-                if ( LOGGER.isDebugEnabled() ) {
-                  try {
-                      JcrUtils.logItem(LOGGER, siteNode);
-                  } catch (JSONException e) {
-                    LOGGER.warn(e.getMessage(),e);
-                  }
-                }
-
-                if (createSession.hasPendingChanges()) {
-                    createSession.save();
-                }
-            } finally {
-                if (granted) {
-                    createSession.logout();
-                }
-            }
-        } catch (RepositoryException ex) {
-
-            throw new ServletException(ex.getMessage(), ex);
+      String resourceType = request.getResource().getResourceType();
+      String sitePath = request.getRequestPathInfo().getResourcePath();
+      String templatePath = null;
+      if ("sakai/sites".equals(resourceType)) {
+        RequestParameter relativePathParam = request.getRequestParameter(":sitepath");
+        if (relativePathParam == null) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + ":sitepath" + " must be set to a relative path ");
+          return;
+        }
+        String relativePath = relativePathParam.getString();
+        if (StringUtils.isEmpty(relativePath)) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + ":sitepath" + " must be set to a relative path ");
+          return;
         }
 
+        if (sitePath.startsWith("/")) {
+          sitePath = sitePath + relativePath;
+        } else {
+          sitePath = sitePath + "/" + relativePath;
+        }
+      }
+
+      // If we base this site on a template, make sure it exists.
+      RequestParameter siteTemplate = request
+          .getRequestParameter(SiteService.SAKAI_SITE_TEMPLATE);
+      if (siteTemplate != null) {
+        templatePath = siteTemplate.getString();
+        if (!session.itemExists(templatePath)) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + SiteService.SAKAI_SITE_TEMPLATE + " must be set to a site template");
+          return;
+        }
+        // make sure it is a template site.
+        if (!getSiteService().isSiteTemplate(session.getItem(templatePath))) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + SiteService.SAKAI_SITE_TEMPLATE + " must be set to a site which has the "
+              + SiteService.SAKAI_IS_SITE_TEMPLATE + " set.");
+          return;
+        }
+      }
+      LOGGER.debug("The sitePath is: {}", sitePath);
+
+      Node firstRealNode = JcrUtils.getFirstExistingNode(session, sitePath);
+      // iterate upto the root looking for a site marker.
+      Node siteMarker = firstRealNode;
+      Set<String> principals = new HashSet<String>();
+      Authorizable currentUser = userManager.getAuthorizable(request.getRemoteUser());
+      PrincipalIterator principalIterator = principalManager
+          .getGroupMembership(currentUser.getPrincipal());
+      boolean granted = false;
+      while (!"/".equals(siteMarker.getPath())) {
+        if (siteMarker.hasProperty("sakai:sitegroupcreate")) {
+          Property p = siteMarker.getProperty("sakai:sitegroupcreate");
+
+          Value[] authorizableIds = p.getValues();
+          for (Value authorizable : authorizableIds) {
+            Authorizable grantedAuthorizable = userManager.getAuthorizable(authorizable
+                .getString());
+            String grantedAuthorizableName = grantedAuthorizable.getPrincipal().getName();
+            if (principals.contains(grantedAuthorizableName)) {
+              granted = true;
+              break;
+            }
+            while (principalIterator.hasNext()) {
+              Principal principal = principalIterator.nextPrincipal();
+              if (principal.getName().equals(grantedAuthorizableName)) {
+                granted = true;
+                break;
+              }
+              principals.add(principal.getName());
+            }
+          }
+        }
+        siteMarker = siteMarker.getParent();
+      }
+      Session createSession = session;
+      if (granted) {
+        createSession = slingRepository.loginAdministrative(null);
+      }
+
+      try {
+
+        Node siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
+        siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            SiteService.SITE_RESOURCE_TYPE);
+
+        // setup the ACL's on the node.
+        addEntry(siteNode.getPath(), currentUser, createSession, WRITE_GRANTED,
+            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
+            MODIFY_ACL_GRANTED);
+
+        if (createSession.hasPendingChanges()) {
+          LOGGER.info("Saving changes");
+          createSession.save();
+          // Save initial version of site
+          versionService.saveNode(siteNode, currentUser.getID());
+        }
+
+        // We add a message store to this site.
+        Node storeNode = siteNode.addNode("store");
+        storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sakai/messagestore");
+
+        // If this site is based on a template.
+        if (templatePath != null) {
+          if (createSession.hasPendingChanges()) {
+            createSession.save();
+          }
+
+          // Copy the template files in the new folder.
+          LOGGER.debug("Copying the things under template ({}) to new dir ({})",
+              templatePath, sitePath);
+          Node templateNode = (Node) createSession.getItem(templatePath);
+          NodeIterator it = templateNode.getNodes();
+          while (it.hasNext()) {
+            Node n = it.nextNode();
+            try {
+              LOGGER.debug("Copying {}", n.getPath());
+              createSession.getWorkspace().copy(createSession.getWorkspace().getName(),
+                  n.getPath(), sitePath + "/" + n.getName());
+            } catch (ConstraintViolationException cve) {
+              // Do not copy.
+              LOGGER.warn("Failed to copy {} ", n.getName());
+            }
+          }
+          createSession.save();
+
+          // Give the copied nodes an initial version
+          it = siteNode.getNodes();
+          while (it.hasNext()) {
+            Node n = it.nextNode();
+            versionNode(n, currentUser.getID(), createSession);
+          }
+          LOGGER.debug("Finished copying");
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+          try {
+            JcrUtils.logItem(LOGGER, siteNode);
+          } catch (JSONException e) {
+            LOGGER.warn(e.getMessage(), e);
+          }
+        }
+
+        if (createSession.hasPendingChanges()) {
+          createSession.save();
+        }
+      } finally {
+        if (granted) {
+          createSession.logout();
+        }
+      }
+    } catch (RepositoryException ex) {
+
+      throw new ServletException(ex.getMessage(), ex);
     }
 
-    /**
-     * @param slingRepository
-     */
-    protected void bindSlingRepository(SlingRepository slingRepository) {
-        this.slingRepository = slingRepository;
-    }
+  }
 
-    /**
-     * @param slingRepository
-     */
-    protected void unbindSlingRepository(SlingRepository slingRepository) {
-        this.slingRepository = null;
+  /**
+   * Versions a node and all it's childnodes.
+   * 
+   * @param n
+   * @param userID
+   * @param createSession
+   */
+  private void versionNode(Node n, String userID, Session createSession) {
+    try {
+      LOGGER.info("Versioning " + n.getPath());
+      // TODO do better check
+      if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
+        versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
+        NodeIterator it = n.getNodes();
+        // Version the childnodes
+        while (it.hasNext()) {
+          Node childNode = it.nextNode();
+          versionNode(childNode, userID, createSession);
+        }
+      }
+    } catch (RepositoryException re) {
+      LOGGER.warn("Unable to save copied node", re);
     }
+  }
+
+  /**
+   * @param slingRepository
+   */
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  /**
+   * @param slingRepository
+   */
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
+  }
 }

@@ -2,5 +2,7 @@
 	"id": "contact-us",
 	"title": "Contact Us",
 	"type": "webpage",
-	"position": "500000"
+	"position": "500000",
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

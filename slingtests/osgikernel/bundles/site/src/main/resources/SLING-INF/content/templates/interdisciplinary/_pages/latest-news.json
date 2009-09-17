@@ -2,5 +2,7 @@
 	"id": "latest-news",
 	"title": "Latest News",
 	"type": "webpage",
-	"position": "400000"
+	"position": "400000",
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

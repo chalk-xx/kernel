@@ -17,8 +17,10 @@
  */
 package org.sakaiproject.kernel.message;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
@@ -36,23 +38,27 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.provider" value="Message"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- * @scr.reference interface="org.sakaiproject.kernel.api.MessagingService"
+ * @scr.reference name="MessagingService"
+ *                interface="org.sakaiproject.kernel.api.message.MessagingService"
+ *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
 public class MessageSearchPropertyProvider implements SearchPropertyProvider {
 
-
   private MessagingService messagingService;
+
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
+
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
 
-
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest, java.util.Map)
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.util.Map)
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
@@ -60,7 +66,23 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
     String path = request.getResource().getPath();
     path = PathUtils.removeLastElement(path);
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075.encodePath(messagingService.getFullPathToStore(user, session)));
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075.encodePath(MessageConstants._USER_MESSAGE));
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
+        .encodePath(messagingService.getFullPathToStore(user, session)));
+    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075
+        .encodePath(MessageConstants._USER_MESSAGE));
+
+    RequestParameter usersParam = request.getRequestParameter("_from");
+    if (usersParam != null) {
+      String sql = " and (";
+      String[] users = StringUtils.split(usersParam.getString(), ',');
+
+      for (String u : users) {
+        sql += "@sakai:from=\"" + u + "\" or ";
+      }
+      sql = sql.substring(0, sql.length() - 4);
+      sql += ")";
+
+      propertiesMap.put("_from", sql);
+    }
   }
 }

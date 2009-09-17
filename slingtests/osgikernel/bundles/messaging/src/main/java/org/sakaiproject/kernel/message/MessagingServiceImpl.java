@@ -28,6 +28,7 @@ import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.util.DateUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -58,7 +59,7 @@ import javax.jcr.query.QueryResult;
  *                name="org.sakaiproject.kernel.api.message.MessagingService"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessagingService"
- * @scr.reference interface="org.sakaiproject.kernel.api.site.SiteService"
+ * @scr.reference interface="org.sakaiproject.kernel.api.site.SiteService" name="SiteService"
  */
 public class MessagingServiceImpl implements MessagingService {
 
@@ -145,6 +146,7 @@ public class MessagingServiceImpl implements MessagingService {
         }
         // Add the id for this message.
         msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
+        msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, DateUtils.rfc3339());
         
         if (session.hasPendingChanges()) {
           session.save();
@@ -244,7 +246,7 @@ public class MessagingServiceImpl implements MessagingService {
     try {
       if (rcpt.startsWith("s-")) {
         // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt);
+        Node n = siteService.findSiteByName(session, rcpt.substring(2));
         path = n.getPath() + "/store";
       } else if (rcpt.startsWith("g-")) {
         // This is a group.

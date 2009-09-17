@@ -116,7 +116,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoBoxParam() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("xx@123.com,yyy@345.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "xx@123.com,yyy@345.com");
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andReturn(
         false);
     expect(
@@ -135,7 +136,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testNotOutBox() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("xx@123.com,yyy@345.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "xx@123.com,yyy@345.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_INBOX);
@@ -160,7 +162,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("xx@123.com,yyy@345.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "xx@123.com,yyy@345.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -188,7 +191,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testNoFrom() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("xx@123.com,yyy@345.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "xx@123.com,yyy@345.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -217,7 +221,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testSingleTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("tonobody@example.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "tonobody@example.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -236,7 +241,7 @@ public class OutgoingEmailMessageListenerTest {
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
         .andReturn(null);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true).times(2);
-    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true).times(2);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
         false).times(2);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
@@ -262,7 +267,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testMultiTo() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("tonobody0@example.com,tonobody1@example.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "tonobody0@example.com,tonobody1@example.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -317,7 +323,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testBody() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("tonobody@example.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "tonobody@example.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -339,7 +346,7 @@ public class OutgoingEmailMessageListenerTest {
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
         .andReturn(null);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true).times(2);
-    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true).times(2);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
         false).times(2);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
@@ -368,7 +375,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testSubject() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("tonobody@example.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "tonobody@example.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -390,7 +398,7 @@ public class OutgoingEmailMessageListenerTest {
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
         .andReturn(null);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true).times(2);
-    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true).times(2);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
         false).times(2);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);
@@ -430,7 +438,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testRepoExceptionHandling() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("xx@123.com,yyy@345.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "xx@123.com,yyy@345.com");
 
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX)).andThrow(
         new RepositoryException("Test Repository Exception"));
@@ -443,7 +452,8 @@ public class OutgoingEmailMessageListenerTest {
   public void testAttachment() throws Exception {
     Message message = createMock(Message.class);
     expect(message.getStringProperty(NODE_PATH_PROPERTY)).andReturn(PATH);
-    expect(message.getStringProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn("tonobody@example.com");
+    expect(message.getObjectProperty(OutgoingEmailMessageListener.RECIPIENTS)).andReturn(
+        "tonobody@example.com");
 
     Property boxName = createMock(Property.class);
     expect(boxName.getString()).andReturn(MessageConstants.BOX_OUTBOX);
@@ -495,7 +505,7 @@ public class OutgoingEmailMessageListenerTest {
         messageNode.setProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR, (String) null))
         .andReturn(null);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(true).times(2);
-    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true);
+    expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)).andReturn(true).times(2);
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_MESSAGEERROR)).andReturn(
         false).times(2);
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(toProp);

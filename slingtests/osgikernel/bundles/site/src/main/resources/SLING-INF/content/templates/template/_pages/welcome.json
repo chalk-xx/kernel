@@ -2,5 +2,7 @@
 	"id": "welcome",
 	"title": "Welcome",
 	"type": "webpage", 
-	"position": "100000"
+	"position": "100000",
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

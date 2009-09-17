@@ -47,6 +47,12 @@ public class AbstractEasyMockTest {
     return result;
   }
 
+  protected <T> T createMock(String name, Class<T> c) {
+    T result = org.easymock.EasyMock.createMock(name, c);
+    mocks.add(result);
+    return result;
+  }
+
   protected void replay() {
     org.easymock.EasyMock.replay(mocks.toArray());
   }

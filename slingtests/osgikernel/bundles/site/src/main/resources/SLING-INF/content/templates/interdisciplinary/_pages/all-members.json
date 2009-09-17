@@ -2,5 +2,7 @@
 	"id": "all-members",
 	"title": "All members",
 	"type": "webpage",
-	"position": "300000"
+	"position": "300000",
+	"acl": "parent",
+	"jcr:mixinTypes": "sakai:propertiesmix"
     }

@@ -35,10 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.UnsupportedRepositoryOperationException;
-import javax.jcr.Value;
 
 public class Post {
 
@@ -91,9 +89,11 @@ public class Post {
    */
   public boolean checkEdit() {
     try {
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node.getSession());
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
+          .getSession());
       Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
-      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED.substring(2));
+      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED
+          .substring(2));
       Privilege[] privileges = { write, modProps };
       if (acm.hasPrivileges(node.getPath(), privileges)) {
         return true;
@@ -118,12 +118,15 @@ public class Post {
    */
   public boolean checkDelete() {
     try {
-      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node.getSession());
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
+          .getSession());
       Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
-      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED.substring(2));
-      Privilege deleteNode = acm.privilegeFromName(ACLUtils.REMOVE_NODE_GRANTED.substring(2));
-      Privilege deleteChildNode = acm.privilegeFromName(ACLUtils.REMOVE_CHILD_NODES_GRANTED
+      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED
           .substring(2));
+      Privilege deleteNode = acm.privilegeFromName(ACLUtils.REMOVE_NODE_GRANTED
+          .substring(2));
+      Privilege deleteChildNode = acm
+          .privilegeFromName(ACLUtils.REMOVE_CHILD_NODES_GRANTED.substring(2));
       Privilege[] privileges = { write, modProps, deleteNode, deleteChildNode };
       if (acm.hasPrivileges(node.getPath(), privileges)) {
         return true;
@@ -141,9 +144,8 @@ public class Post {
     return false;
   }
 
-  public void outputPostAsJSON(JSONWriter writer) throws JSONException, RepositoryException {
-    LOG.info("Outputting post with ID: " + getPostId());
-
+  public void outputPostAsJSON(JSONWriter writer) throws JSONException,
+      RepositoryException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
 
@@ -172,31 +174,18 @@ public class Post {
       writer.key("canDelete");
       writer.value(canDelete);
 
-      // List of all the people who have edited this post.
+      // Show profile of editters.
       if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
-        Property editedByProperty = getNode().getProperty(DiscussionConstants.PROP_EDITEDBY);
-        Value[] editedBy;
-        try {
-          editedBy = editedByProperty.getValues();
-        } catch (Exception e) {
-          editedBy = new Value[1];
-          editedBy[0] = editedByProperty.getValue();
-        }
-        writer.key("editters");
+        String edittedBy[] = StringUtils.split(getNode().getProperty(
+            DiscussionConstants.PROP_EDITEDBY).getString(), ',');
+
+        writer.key(DiscussionConstants.PROP_EDITEDBYPROFILES);
         writer.array();
-        for (int i = 0; i < editedBy.length; i++) {
-          String[] s = StringUtils.split(editedBy[i].getString(), '|');
+        for (int i = 0; i < edittedBy.length; i++) {
           writer.object();
-
-          writer.key("profile");
-          String profilePath = PersonalUtils.getProfilePath(getNode().getProperty(
-              MessageConstants.PROP_SAKAI_FROM).getString());
-          Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(), profilePath);
-          ExtendedJSONWriter.writeNodeToWriter(writer, profileNode);
-          writer.key("date");
-          writer.value(s[1]);
-
+          PersonalUtils.writeUserInfo(getNode().getSession(), edittedBy[i], writer,
+              "editter");
           writer.endObject();
         }
         writer.endArray();
@@ -205,7 +194,8 @@ public class Post {
       writer.key("profile");
       String profilePath = PersonalUtils.getProfilePath(getNode().getProperty(
           MessageConstants.PROP_SAKAI_FROM).getString());
-      Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(), profilePath);
+      Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(),
+          profilePath);
       ExtendedJSONWriter.writeNodeToWriter(writer, profileNode);
 
       writer.endObject();
@@ -219,7 +209,8 @@ public class Post {
     }
   }
 
-  public void outputChildrenAsJSON(JSONWriter writer) throws JSONException, RepositoryException {
+  public void outputChildrenAsJSON(JSONWriter writer) throws JSONException,
+      RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
       p.outputPostAsJSON(writer);
