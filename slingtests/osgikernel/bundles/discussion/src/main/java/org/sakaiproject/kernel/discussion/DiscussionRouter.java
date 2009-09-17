@@ -7,7 +7,6 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRouter;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
-import org.sakaiproject.kernel.message.listener.MessageRouteImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +57,10 @@ public class DiscussionRouter implements MessageRouter {
         String marker = n.getProperty(DiscussionConstants.PROP_MARKER).getString();
         String type = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
 
+        // TODO: I have a feeling that this is really part of something more generic 
+        //   and not specific to discussion. If we make it specific to discussion we 
+        //   will loose unified messaging and control of that messaging.
+        
         Node settings = discussionManager.findSettings(marker, n.getSession(), type);
         if (settings != null
             && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {

@@ -19,7 +19,6 @@ package org.sakaiproject.kernel.discussion;
 
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
 import org.sakaiproject.kernel.api.message.MessagingException;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

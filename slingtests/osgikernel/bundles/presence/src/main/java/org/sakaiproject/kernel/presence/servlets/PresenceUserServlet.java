@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.presence.servlets;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -33,7 +32,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
-import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.sakaiproject.kernel.presence.PresenceUtils;
