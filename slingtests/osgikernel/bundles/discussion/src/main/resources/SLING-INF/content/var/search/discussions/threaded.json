@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template" : "/{path}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='discussion' and @sakai:marker='{marker}'] order by @jcr:created ascending",
+  "sakai:query-template" : "/{path}//element(*)MetaData[@sling:resourceType='sakai/message' and @sakai:type='discussion' and @sakai:marker='{marker}'] order by @sakai:created ascending",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "DiscussionThreaded"
 }

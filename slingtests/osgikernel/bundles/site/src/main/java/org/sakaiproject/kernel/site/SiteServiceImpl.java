@@ -759,7 +759,7 @@ public class SiteServiceImpl implements SiteService {
     try {
       QueryManager queryManager = session.getWorkspace().getQueryManager();
       String queryString = "//*[@sling:resourceType=\"" + SiteService.SITE_RESOURCE_TYPE
-          + "\" and @name=\"" + siteName + "\"]";
+          + "\" and jcr:contains(.,\"" + siteName + "\")]";
       Query query = queryManager.createQuery(queryString, Query.XPATH);
       QueryResult result = query.execute();
 

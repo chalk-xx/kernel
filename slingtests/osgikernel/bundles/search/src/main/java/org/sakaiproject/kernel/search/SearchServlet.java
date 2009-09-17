@@ -217,9 +217,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
           LOGGER.info("Using batch processor for results");
         }else {
           for (long i = start; i < end && resultNodes.hasNext(); i++) {
+            LOGGER.info("Using regular processor for results");
             Node resultNode = resultNodes.nextNode();
             searchProcessor.writeNode(write, resultNode);
-            LOGGER.info("Using regular processor for results");
           }
         }
         write.endArray();

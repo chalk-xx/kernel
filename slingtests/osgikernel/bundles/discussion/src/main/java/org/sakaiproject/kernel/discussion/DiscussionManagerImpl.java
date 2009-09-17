@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.discussion;
 
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
 import org.sakaiproject.kernel.api.message.MessagingException;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +54,20 @@ public class DiscussionManagerImpl implements DiscussionManager {
   public Node findMessage(String messageId, String marker, Session session, String path)
       throws MessagingException {
 
-    if (path == null) { path = "/"; }
+    if (path == null) {
+      path = "/";
+    }
     if (!path.startsWith("/")) {
-      throw new MessagingException(500, "Path should be an absolute path starting with a '/'");
+      throw new MessagingException(500,
+          "Path should be an absolute path starting with a '/'");
+    }
+    if (path.endsWith("/")) {
+      path = path.substring(0, path.length());
     }
 
-    String queryString = "/" + path + "/*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
+    String queryString = "/"
+        + path
+        + "//*[@sling:resourceType=\"sakai/message\" and @sakai:type='discussion' and @sakai:id='"
         + messageId + "' and @sakai:marker='" + marker + "']";
     LOG.info("Trying to find message with query: {}", queryString);
     try {
@@ -80,6 +89,38 @@ public class DiscussionManagerImpl implements DiscussionManager {
 
     LOG.warn("No message with ID '{}' and marker '{}' found.", messageId, marker);
     return null;
+  }
 
+  /**
+   * 
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.discussion.DiscussionManager#findSettings(java.lang.String, javax.jcr.Session, java.lang.String)
+   */
+  public Node findSettings(String marker, Session session, String type) {
+    if (type == null || type == "") {
+      type = "discussion";
+    }
+    String queryString = "//*[@sling:resourceType=\"sakai/settings\" and @sakai:type='"
+        + type + "' and @sakai:marker='" + marker + "']";
+    LOG.info("Trying to find settings with query: {}", queryString);
+    try {
+      QueryManager queryManager = session.getWorkspace().getQueryManager();
+      Query query = queryManager.createQuery(queryString, Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator nodeIterator = result.getNodes();
+
+      while (nodeIterator.hasNext()) {
+        Node n = nodeIterator.nextNode();
+        return n;
+      }
+
+    } catch (RepositoryException e) {
+      LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
+      e.printStackTrace();
+    }
+
+    LOG.warn("No settings with type '{}' and marker '{}' found.", type, marker);
+
+    return null;
   }
 }
