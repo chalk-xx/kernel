@@ -136,30 +136,25 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     // Wrapper which needs to remove the .activity selector from RequestPathInfo to avoid
     // an infinite loop.
     final RequestPathInfo wrappedPathInfo = new RequestPathInfo() {
-      @Override
       public String getSuffix() {
         return requestPathInfo.getSuffix();
       }
 
-      @Override
       public String[] getSelectors() {
         // TODO Probably should just *remove* the ".activity" selector from array
         return new String[0];
       }
 
-      @Override
       public String getSelectorString() {
         // TODO Probably should just *remove* the ".activity" selector from string
         return null;
       }
 
-      @Override
       public String getResourcePath() {
         // LOG.debug("requestPathInfo.getResourcePath()=" + resourcePath);
         return activityItemPath;
       }
 
-      @Override
       public String getExtension() {
         return requestPathInfo.getExtension();
       }

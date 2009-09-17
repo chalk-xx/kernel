@@ -59,7 +59,6 @@ public class ActivityEventProcessor implements EventHandler {
 
   protected SlingRepository slingRepository;
 
-  @Override
   public void handleEvent(Event event) {
     LOG.debug("handleEvent(Event {})", event);
     final String activityItemPath = (String) event.getProperty("activityItemPath");
