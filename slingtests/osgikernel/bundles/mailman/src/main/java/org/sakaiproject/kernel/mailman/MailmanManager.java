@@ -16,6 +16,7 @@
  */
 package org.sakaiproject.kernel.mailman;
 
+import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.mailman.impl.MailmanException;
 
 import java.util.List;
@@ -28,4 +29,5 @@ public interface MailmanManager {
   public boolean listHasMember(String listName, String listPassword, String memberEmail) throws MailmanException;
   public boolean addMember(String listName, String listPassword, String userEmail) throws MailmanException;
   public boolean removeMember(String listName, String listPassword, String userEmail) throws MailmanException;
+  public MessageRoute generateMessageRouteForGroup(String groupName);
 }

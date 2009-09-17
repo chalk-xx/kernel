@@ -18,11 +18,13 @@ package org.sakaiproject.kernel.mailman.impl;
 
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.mailman.MailmanManager;
@@ -31,7 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * @scr.component immediate="true" label="MailManagerImpl"
@@ -54,6 +58,9 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
 
   /** @scr.reference */
   private MailmanManager mailmanManager;
+  
+  /** @scr.reference */
+  private SlingRepository slingRepository;
 
   private String listManagementPassword;
   
@@ -90,8 +97,13 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
         Group group = (Group)event.getProperty(AuthorizableEvent.GROUP);
         User user = (User)event.getProperty(AuthorizableEvent.USER);
         try {
-          LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
-          mailmanManager.addMember(group.getID(), listManagementPassword, user.getID() + "@example.com");
+          String emailAddress = getEmailForUser(user);
+          if (emailAddress != null) {
+            LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
+            mailmanManager.addMember(group.getID(), listManagementPassword, emailAddress);
+          } else {
+            LOGGER.warn("No email address recorded for user: " + user.getID() + ". Not adding to mailman list");
+          }
         } catch (RepositoryException e) {
           LOGGER.error("Repository exception adding user to mailman group", e);
         } catch (MailmanException e) {
@@ -105,8 +117,13 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
         Group group = (Group)event.getProperty(AuthorizableEvent.GROUP);
         User user = (User)event.getProperty(AuthorizableEvent.USER);
         try {
-          LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
-          mailmanManager.removeMember(group.getID(), listManagementPassword, user.getID() + "@example.com");
+          String emailAddress = getEmailForUser(user);
+          if (emailAddress != null) {
+            LOGGER.info("Adding " + user.getID() + " to mailman group " + group.getID());
+            mailmanManager.removeMember(group.getID(), listManagementPassword, emailAddress);
+          } else {
+            LOGGER.warn("No email address recorded for user: " + user.getID() + ". Not removing from mailman list");
+          }
         } catch (RepositoryException e) {
           LOGGER.error("Repository exception removing user from mailman group", e);
         } catch (MailmanException e) {
@@ -115,6 +132,14 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
       }
         break;
     }
+  }
+
+  private String getEmailForUser(User user) throws RepositoryException {
+    Session session = slingRepository.loginAdministrative(null);
+    Node profileNode = (Node)session.getItem(PersonalUtils.getProfilePath(user.getID()));
+    String emailAddress = PersonalUtils.getEmailAddress(profileNode);
+    session.logout();
+    return emailAddress;
   }
 
   @SuppressWarnings("unchecked")

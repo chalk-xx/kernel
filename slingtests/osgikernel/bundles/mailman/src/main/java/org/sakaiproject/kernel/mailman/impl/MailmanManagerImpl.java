@@ -29,6 +29,7 @@ import org.cyberneko.html.parsers.DOMParser;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.mailman.MailmanManager;
 import org.slf4j.Logger;
@@ -351,6 +352,10 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
       builder.put(k, (String) config.get(k));
     }
     configMap = builder.build();
+  }
+
+  public MessageRoute generateMessageRouteForGroup(String groupName) {
+    return new MailmanMessageRoute(groupName + "@" + configMap.get(MAILMAN_HOST), "smtp");
   }
 
 }
