@@ -95,6 +95,8 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
     write.key("remove");
     write.value(hasPermission(session, path, "remove"));
     write.endObject();
+    
+    write.endObject();
   }
 
   /**
