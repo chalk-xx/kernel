@@ -103,6 +103,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     this.cacheManagerService = cacheManagerService;
   }
 
+  public ClusterTrackingServiceImpl() {
+    
+  }
   /**
    * Activate the service, getting the id of the jvm instance and register the instance.
    * 
