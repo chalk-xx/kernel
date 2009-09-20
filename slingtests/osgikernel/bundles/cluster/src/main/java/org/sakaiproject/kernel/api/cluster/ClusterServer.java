@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.api.cluster;
 
+
 /**
  * Servers are registered accross the cluster using the ServerCluster object.
  */
@@ -31,5 +32,6 @@ public interface ClusterServer {
    * @return the time the server object was last updated.
    */
   long getLastModified();
+  
 
 }

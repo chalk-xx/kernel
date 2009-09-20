@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.api.cluster;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,5 +38,16 @@ public interface ClusterTrackingService {
    * @return
    */
   ClusterUser getUser(String trackingCookie);
+  
+  /**
+   * @return a list of all servers in the cluster.
+   */
+  List<ClusterServer> getAllServers();
+
+  
+  /**
+   * @return get the ID of the current server.
+   */
+  String getCurrentServerId();
 
 }

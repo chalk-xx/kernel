@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.cluster.ClusterServer;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
 import org.sakaiproject.kernel.api.memory.Cache;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.util.List;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -179,11 +181,11 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @return
    */
   public ClusterUser getUser(String trackingCookie) {
-    Cache<ClusterUserImpl> cache = getTrackingCache();
-    ClusterUserImpl cuser = cache.get(trackingCookie);
+    Cache<ClusterUser> cache = getTrackingCache();
+    ClusterUser cuser = cache.get(trackingCookie);
     if (cuser == null) {
       return null;
-    } else if (cuser.expired()) {
+    } else if (((ClusterUserImpl) cuser).expired()) {
       cache.remove(trackingCookie);
       return null;
     }
@@ -199,9 +201,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    *          the user id.
    */
   private void pingTracking(String trackingCookie, String remoteUser) {
-    Cache<ClusterUserImpl> cache = getTrackingCache();
-    ClusterUserImpl cuser = cache.get(trackingCookie);
-    if (cuser == null || cuser.expired(remoteUser)) {
+    Cache<ClusterUser> cache = getTrackingCache();
+    ClusterUser cuser = cache.get(trackingCookie);
+    if (cuser == null || ((ClusterUserImpl) cuser).expired(remoteUser)) {
       cache.put(trackingCookie, new ClusterUserImpl(remoteUser, serverId));
     }
   }
@@ -226,14 +228,14 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   /**
    * @return the cache used to store server registrations.
    */
-  private Cache<ClusterServerImpl> getServerCache() {
+  private Cache<ClusterServer> getServerCache() {
     return cacheManagerService.getCache(SERVER_CACHE, CacheScope.CLUSTERREPLICATED);
   }
 
   /**
    * @return the Cache used to track users
    */
-  private Cache<ClusterUserImpl> getTrackingCache() {
+  private Cache<ClusterUser> getTrackingCache() {
     return cacheManagerService.getCache(TRACKING_CACHE, CacheScope.CLUSTERREPLICATED);
   }
 
@@ -247,6 +249,22 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   public void run() {
     pingInstance();
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getAllServers()
+   */
+  public List<ClusterServer> getAllServers() {
+    return getServerCache().list();
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getCurrentServerId()
+   */
+  public String getCurrentServerId() {
+    return serverId;
   }
 
 }
