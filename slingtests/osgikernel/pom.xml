@@ -94,6 +94,7 @@
         <module>bundles/sling/api</module>
         <module>bundles/sling/resource</module>
         <module>bundles/sling/accessmanager</module>
+        <module>bundles/cluster</module>
       </modules>
     </profile>
     <profile>
