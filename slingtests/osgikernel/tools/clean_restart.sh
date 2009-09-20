@@ -14,5 +14,5 @@ then
 fi
 popd
 rm -rf sling
-java -Xmx512m -server -jar ${TOOLSDIR}/../app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f -
+java -Xmx512m -server -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f -
 
