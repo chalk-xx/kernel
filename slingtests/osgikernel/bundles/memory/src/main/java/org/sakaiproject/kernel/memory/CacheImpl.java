@@ -22,6 +22,7 @@ import net.sf.ehcache.Element;
 
 import org.sakaiproject.kernel.api.memory.Cache;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -127,6 +128,20 @@ public class CacheImpl<V> implements Cache<V> {
         cache.remove(k);
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.memory.Cache#list()
+   */
+  @SuppressWarnings("unchecked")
+  public List<V> list() {
+    List<String> keys =  cache.getKeys();
+    List<V> values = new ArrayList<V>();
+    for ( String k : keys ) {
+      values.add((V) cache.get(k));
+    }
+    return values;
   }
 
 }
