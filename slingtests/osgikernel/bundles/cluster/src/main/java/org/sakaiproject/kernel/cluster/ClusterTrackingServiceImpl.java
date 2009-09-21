@@ -97,9 +97,10 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   private boolean isActive = false;
 
   /**
+   * Constructor for testing purposes only.
    * @param cacheManagerService2
    */
-  public ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
+  protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
   }
 

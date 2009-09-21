@@ -45,7 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-public class TestClusterTrackingServiceImpl extends AbstractEasyMockTest {
+public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
 
   private ClusterTrackingServiceImpl clusterTrackingServiceImpl;
   private CacheManagerService cacheManagerService;
