@@ -100,6 +100,7 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "user" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
+// TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl etc.
   
   /**
    * 
