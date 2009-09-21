@@ -17,10 +17,17 @@
  */
 package org.sakaiproject.kernel.api.files;
 
+import org.sakaiproject.kernel.util.PathUtils;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+
 public class FileUtils {
 
   /**
    * Returns a Base62 representation of a number.
+   * 
    * @param nr
    * @return
    */
@@ -35,13 +42,45 @@ public class FileUtils {
     }
     return tempVal;
   }
-  
+
   /**
    * Returns a Base62 number.
+   * 
    * @return
    */
   public static String generateID() {
     long n = (long) (Math.random() * 1000000000 + System.currentTimeMillis());
     return encodeBase62(n);
   }
+  
+  
+  public static String getHashedPath(String id) {
+    return PathUtils.toInternalHashedPath(FilesConstants.USER_FILESTORE, id, "");
+  }
+
+  public static String getDownloadPath(String id) {
+    return FilesConstants.USER_FILESTORE + "/" + id;
+  }
+
+  public static String getActualFilePath(String id, Session session) {
+    String fileName = "";
+    String path = null;
+
+    String downloadPath = getHashedPath(id);
+    try {
+      if (session.itemExists(downloadPath)) {
+        Node downloadNode = (Node) session.getItem(downloadPath);
+        if (downloadNode.hasProperty(FilesConstants.SAKAI_FILENAME)) {
+          fileName = downloadNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
+          path = downloadPath + "/" + fileName;
+        }
+      }
+    } catch (RepositoryException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    return path;
+  }
+
 }

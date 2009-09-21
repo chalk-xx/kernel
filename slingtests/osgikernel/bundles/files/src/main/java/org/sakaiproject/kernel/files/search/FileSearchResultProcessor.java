@@ -17,23 +17,24 @@
  */
 package org.sakaiproject.kernel.files.search;
 
-import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import java.security.AccessControlException;
-import java.security.Principal;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 
 /**
  * Formats the files search results.
@@ -43,8 +44,20 @@ import javax.jcr.Session;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Files"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.reference name="SiteService"
+ *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
 public class FileSearchResultProcessor implements SearchResultProcessor {
+
+  private SiteService siteService;
+
+  public void bindSiteService(SiteService siteService) {
+    this.siteService = siteService;
+  }
+
+  public void unbindSiteService(SiteService siteService) {
+    this.siteService = null;
+  }
 
   public void writeNode(JSONWriter write, Node node) throws JSONException,
       RepositoryException {
@@ -77,15 +90,11 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
     write.object();
     // dump all the properties.
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-
-    write.key("filename");
-    write.value(node.getName());
-    write.key("url");
-    String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
-    write.value(FilesConstants.USER_FILESTORE + "/" + id + "/" + node.getName());
-
     String path = node.getPath();
 
+    write.key("name");
+    write.value(node.getName());
+            
     write.key("permissions");
     write.object();
     write.key("set_property");
@@ -95,7 +104,35 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
     write.key("remove");
     write.value(hasPermission(session, path, "remove"));
     write.endObject();
-    
+
+    String type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+        .getString();
+
+    // If it is a file node we provide some extra properties.
+    if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
+      String id = "";
+      // proper file
+      if (node.hasProperty(FilesConstants.SAKAI_ID)) {
+        id = node.getProperty(FilesConstants.SAKAI_ID).getString();
+        // Sites where this file is used in.
+        getSites(node, write);
+      }
+      // linked file
+      else if (node.hasProperty(FilesConstants.SAKAI_LINK)) {
+        id = node.getProperty(FilesConstants.SAKAI_LINK).getString();
+        write.key("path");
+        write.value(node.getPath());
+      }
+
+      write.key("url");
+      write.value(FileUtils.getDownloadPath(id));
+
+    }
+    else if (FilesConstants.RT_SAKAI_FOLDER.equals(type)) {
+      write.key("path");
+      write.value(node.getPath());
+    }
+
     write.endObject();
   }
 
@@ -116,6 +153,70 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
     } catch (RepositoryException e) {
       return false;
     }
+  }
+
+  /**
+   * Gets all the sites where this file is used and parses the info for it.
+   * 
+   * @param node
+   * @param write
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  private void getSites(Node node, JSONWriter write) throws RepositoryException,
+      JSONException {
+    if (node.hasProperty(FilesConstants.SAKAI_ID)) {
+      String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
+      String queryString = "//*[@sling:resourceType='sakai/filereference' and @sakai:id='"
+          + id + "']";
+      QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
+      Query query = queryManager.createQuery(queryString, Query.XPATH);
+      QueryResult result = query.execute();
+
+      int total = 0;
+      NodeIterator it = result.getNodes();
+
+      write.key("usedIn");
+      write.object();
+      write.key("sites");
+      write.array();
+      while (it.hasNext()) {
+        Node n = it.nextNode();
+
+        Node siteNode = n;
+        // Travel upwards to find the site node.
+        while (!siteNode.getPath().equals("/")) {
+          if (siteService.isSite(siteNode)) {
+            writeSiteInfo(siteNode, write);
+            break;
+          }
+          siteNode = siteNode.getParent();
+        }
+      }
+      write.endArray();
+      write.key("total");
+      write.value(total);
+      write.endObject();
+    }
+  }
+
+  /**
+   * Parses the info for a site.
+   * 
+   * @param siteNode
+   * @param write
+   * @throws JSONException
+   * @throws RepositoryException
+   */
+  private void writeSiteInfo(Node siteNode, JSONWriter write) throws JSONException,
+      RepositoryException {
+    write.object();
+    write.key("member-count");
+    write.value(String.valueOf(siteService.getMemberCount(siteNode)));
+    write.key("path");
+    write.value(siteNode.getPath());
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
+    write.endObject();
   }
 
 }

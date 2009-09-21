@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.files.search;
 
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.files.FilesConstants;

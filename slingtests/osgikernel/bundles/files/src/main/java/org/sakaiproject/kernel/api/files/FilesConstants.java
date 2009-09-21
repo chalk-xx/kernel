@@ -20,23 +20,44 @@ package org.sakaiproject.kernel.api.files;
 public interface FilesConstants {
 
   /**
-   * Resource type for the file store.
+   * Resource type for the file store. sakai/files
    */
   public static final String RT_FILE_STORE = "sakai/files";
   /**
-   * The resource type for a sakai file.
+   * The resource type for a sakai file. sakai/file
    */
   public static final String RT_SAKAI_FILE = "sakai/file";
-    
+  /**
+   * The resource type for a sakai folder. sakai/folder
+   */
+  public static final Object RT_SAKAI_FOLDER = "sakai/folder";
+
   /**
    * The path to the filestore for users.
    */
   public static final String USER_FILESTORE = "/_user/files/store";
-
+  /**
+   * sakai:user
+   */
   public static final String SAKAI_USER = "sakai:user";
-
+  /**
+   * sakai:id
+   */
   public static final String SAKAI_ID = "sakai:id";
+
+  /**
+   * sakai:tags
+   */
   public static final String SAKAI_TAGS = "sakai:tags";
 
-  
+  /**
+   * sakai:file
+   */
+  public static final String SAKAI_FILE = "sakai:file";
+  /**
+   * sakai:filename
+   */
+  public static final String SAKAI_FILENAME = "sakai:filename";
+  public static final String SAKAI_LINK = "sakai:filelink";
+
 }

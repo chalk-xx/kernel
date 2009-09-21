@@ -17,12 +17,13 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @scr.component metatype="no" immediate="true"
@@ -31,7 +32,9 @@ import org.sakaiproject.kernel.util.PathUtils;
  * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
  *               values.2="DELETE" values.3="GET"
  */
-public class FilesServlet extends AbstractVirtualPathServlet {
+public class FilesStoreServlet extends AbstractVirtualPathServlet {
+
+  public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);
 
   /**
    * 
@@ -41,19 +44,10 @@ public class FilesServlet extends AbstractVirtualPathServlet {
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
       SlingHttpServletResponse response, String realPath, String virtualPath) {
-    if (virtualPath.indexOf("/") != -1) {
-      String[] virtualParts = StringUtils.split(virtualPath, "/");
-      return PathUtils.toInternalHashedPath(realPath, virtualParts[0], "") + "/" + virtualParts[1];
-      
-    } else {
-      return PathUtils.toInternalHashedPath(realPath, virtualPath, "");
-    }
-  }
-  
-  
-  @Override
-  public boolean removeSelectors(Resource baseResource, SlingHttpServletRequest request,
-      SlingHttpServletResponse response, String realPath, String virtualPath) {
-    return false;
+
+    LOGGER.info("Rewriting the url in filesstore: ", new Object[] { realPath,
+        virtualPath, PathUtils.toInternalHashedPath(realPath, virtualPath, "") });
+
+    return PathUtils.toInternalHashedPath(realPath, virtualPath, "");
   }
 }
