@@ -31,15 +31,11 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
-import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -142,28 +138,7 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     try {
       Node node = request.getResource().adaptTo(Node.class);
-      Value[] tokens = JcrUtils.getValues(node, "sakai:shared-token");
-      boolean trusted = false;
-      if (tokens.length == 0) {
-        trusted = true;
-      } else {
-        Set<String> requestTokens = new HashSet<String>();
-        for (Enumeration<?> hi = request.getHeaders("Sakai-Trust-Token"); hi
-            .hasMoreElements();) {
-          requestTokens.add((String) hi.nextElement());
-        }
-        for (Value token : tokens) {
-          if (requestTokens.contains(token.getString())) {
-            trusted = true;
-            break;
-          }
-        }
-      }
-      if (!trusted) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN,
-            "Request not authorised to access this end point");
-        return;
-      }
+
       
       String trackingCookie = request.getParameter("c");
       ClusterUser clusterUser = clusterTrackingService.getUser(trackingCookie);

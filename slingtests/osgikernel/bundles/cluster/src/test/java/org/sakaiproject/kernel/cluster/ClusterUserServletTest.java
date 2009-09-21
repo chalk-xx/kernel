@@ -18,7 +18,8 @@
 package org.sakaiproject.kernel.cluster;
 
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -47,12 +48,9 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.Value;
-import javax.jcr.nodetype.PropertyDefinition;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -127,8 +125,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     Resource resource = createMock(Resource.class);
     Node node = createMock(Node.class);
-    Property property = createMock(Property.class);
-    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
 
     
     Value valueA = createMock(Value.class);
@@ -140,10 +136,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
         valueB,
         valueC
     };
-    Vector<String> headers = new Vector<String>();
-    headers.add("asdsaas");
-    headers.add("tokenB");
-    headers.add("asdfdsfsdf");
     
     ClusterUserImpl clusterUser = new ClusterUserImpl("ieb", "otherServerId");
 
@@ -163,20 +155,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.adaptTo(Node.class)).andReturn(node);
-    
-    // getValues of node property
-    expect(node.hasProperty("sakai:shared-token")).andReturn(true);
-    expect(node.getProperty("sakai:shared-token")).andReturn(property);
-    expect(property.getDefinition()).andReturn(propertyDefinition);
-    expect(propertyDefinition.isMultiple()).andReturn(true);
-    expect(property.getValues()).andReturn(values);
-    // done getValues  
-   
-    // validating token requests.
-    expect(request.getHeaders("Sakai-Trust-Token")).andReturn(headers.elements());
-    expect(valueA.getString()).andReturn("tokenA");
-    expect(valueB.getString()).andReturn("tokenB");
-    
+        
     // request validated, processing request.
     expect(request.getParameter("c")).andReturn("some-tracking-cookie");
     expect(userTrackingCache.get("some-tracking-cookie")).andReturn(clusterUser);
@@ -268,75 +247,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     verify();
   }
 
-  @Test
-  public void testNormalForbiddenGet() throws Exception {
-    activate();
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    Resource resource = createMock(Resource.class);
-    Node node = createMock(Node.class);
-    Property property = createMock(Property.class);
-    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
-
-    
-    Value valueA = createMock(Value.class);
-    Value valueB = createMock(Value.class);
-    Value valueC = createMock(Value.class);
-
-    Value[] values = new Value[]{
-        valueA,
-        valueB,
-        valueC
-    };
-    Vector<String> headers = new Vector<String>();
-    headers.add("asdsaas");
-    headers.add("sadfsdfsd");
-    headers.add("asdfdsfsdf");
-    
-
-
-    List<String> propertyNames = new ArrayList<String>();
-    propertyNames.add("prop1");
-    propertyNames.add("prop2");
-    propertyNames.add("prop3");
-    
-
-
-    expect(request.getResource()).andReturn(resource);
-    expect(resource.adaptTo(Node.class)).andReturn(node);
-    
-    // getValues of node property
-    expect(node.hasProperty("sakai:shared-token")).andReturn(true);
-    expect(node.getProperty("sakai:shared-token")).andReturn(property);
-    expect(property.getDefinition()).andReturn(propertyDefinition);
-    expect(propertyDefinition.isMultiple()).andReturn(true);
-    expect(property.getValues()).andReturn(values);
-    // done getValues  
-   
-    // validating token requests.
-    expect(request.getHeaders("Sakai-Trust-Token")).andReturn(headers.elements());
-    expect(valueA.getString()).andReturn("tokenA");
-    expect(valueB.getString()).andReturn("tokenB");
-    expect(valueC.getString()).andReturn("tokenC");
-      
-    Capture<Integer> codeCapture = new Capture<Integer>();
-    Capture<String> messageCapture = new Capture<String>();
-    response.sendError(capture(codeCapture ),capture(messageCapture));
-    expectLastCall();
-
-    deactivate();
-    
-    replay();
-    clusterTrackingServiceImpl.activate(null);
-    
-    clusterUserServlet.doGet(request, response);
-    
-    clusterTrackingServiceImpl.deactivate(null);
-    
-    assertEquals(403, codeCapture.getValue().intValue());
-    checkActivation();
-    verify();
-  }
 
 
   @Test
@@ -346,43 +256,11 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     Resource resource = createMock(Resource.class);
     Node node = createMock(Node.class);
-    Property property = createMock(Property.class);
-    PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
 
     
-    Value valueA = createMock(Value.class);
-    Value valueB = createMock(Value.class);
-    Value valueC = createMock(Value.class);
-
-    Value[] values = new Value[]{
-        valueA,
-        valueB,
-        valueC
-    };
-    Vector<String> headers = new Vector<String>();
-    headers.add("asdsaas");
-    headers.add("tokenB");
-    headers.add("asdfdsfsdf");
-    
-
-
-
-
     expect(request.getResource()).andReturn(resource);
     expect(resource.adaptTo(Node.class)).andReturn(node);
     
-    // getValues of node property
-    expect(node.hasProperty("sakai:shared-token")).andReturn(true);
-    expect(node.getProperty("sakai:shared-token")).andReturn(property);
-    expect(property.getDefinition()).andReturn(propertyDefinition);
-    expect(propertyDefinition.isMultiple()).andReturn(true);
-    expect(property.getValues()).andReturn(values);
-    // done getValues  
-   
-    // validating token requests.
-    expect(request.getHeaders("Sakai-Trust-Token")).andReturn(headers.elements());
-    expect(valueA.getString()).andReturn("tokenA");
-    expect(valueB.getString()).andReturn("tokenB");
     
     // request validated, processing request.
     expect(request.getParameter("c")).andReturn("some-tracking-cookie");
