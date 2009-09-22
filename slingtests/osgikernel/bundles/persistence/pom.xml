@@ -69,7 +69,7 @@ org.xml.sax,
 org.xml.sax.ext,
 org.xml.sax.helpers
             </Import-Package>
-            <Private-Package>org.sakaiproject.kernel.persistence.*,javax.transaction.*,javax.transaction.xa.*,org.apache.geronimo.transaction.manager.*</Private-Package>
+            <Private-Package>org.sakaiproject.kernel.persistence.*,org.apache.geronimo.transaction.manager.*</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
 commons-dbcp,

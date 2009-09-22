@@ -253,6 +253,17 @@
       <artifactId>org.sakaiproject.kernel.specs.ejb</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jta_1.1_spec</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-j2ee-connector_1.5_spec</artifactId>
+      <version>2.0.0</version>
+    </dependency>
     
     <!--  these override bundles from Sling -->
     <dependency>
@@ -410,7 +421,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.mail,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,org.sakaiproject.kernel.activemq</includeArtifactIds>
+                  <includeArtifactIds>javax.activation,javax.mail,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,org.sakaiproject.kernel.activemq,geronimo-jta_1.1_spec,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
