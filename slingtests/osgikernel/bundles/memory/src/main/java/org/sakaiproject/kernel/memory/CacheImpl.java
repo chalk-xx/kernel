@@ -49,8 +49,7 @@ public class CacheImpl<V> implements Cache<V> {
         cacheManager.addCache(cacheName);
         cache = cacheManager.getCache(cacheName);
         if (cache == null) {
-          throw new RuntimeException("Failed to create Cache with name "
-              + cacheName);
+          throw new RuntimeException("Failed to create Cache with name " + cacheName);
         }
       }
     }
@@ -58,7 +57,7 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#clear()
    */
   public void clear() {
@@ -67,7 +66,7 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#containsKey(java.lang.String)
    */
   public boolean containsKey(String key) {
@@ -76,13 +75,13 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#get(java.lang.String)
    */
   @SuppressWarnings("unchecked")
   public V get(String key) {
     Element e = cache.get(key);
-    if ( e == null ) {
+    if (e == null) {
       return null;
     }
     return (V) e.getObjectValue();
@@ -90,15 +89,17 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inherit-doc}
-   *
-   * @see org.sakaiproject.kernel.api.memory.Cache#put(java.lang.String,
-   *      java.lang.Object)
+   * 
+   * @see org.sakaiproject.kernel.api.memory.Cache#put(java.lang.String, java.lang.Object)
    */
   @SuppressWarnings("unchecked")
   public V put(String key, V payload) {
     V previous = null;
-    if ( cache.isKeyInCache(key) ) {
-      previous = (V) cache.get(key).getObjectValue();
+    if (cache.isKeyInCache(key)) {
+      Element e = cache.get(key);
+      if (e != null) {
+        previous = (V) e.getObjectValue();
+      }
     }
     cache.put(new Element(key, payload));
     return previous;
@@ -106,7 +107,7 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inherit-doc}
-   *
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#remove(java.lang.String)
    */
   public void remove(String key) {
@@ -115,16 +116,17 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#removeChildren(java.lang.String)
    */
   public void removeChildren(String key) {
     cache.remove(key);
-    if ( !key.endsWith("/") ) {
+    if (!key.endsWith("/")) {
       key = key + "/";
     }
     List<?> keys = cache.getKeys();
-    for ( Object k : keys) {
-      if ( ((String) k).startsWith(key) ) {
+    for (Object k : keys) {
+      if (((String) k).startsWith(key)) {
         cache.remove(k);
       }
     }
@@ -132,14 +134,18 @@ public class CacheImpl<V> implements Cache<V> {
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.memory.Cache#list()
    */
   @SuppressWarnings("unchecked")
   public List<V> list() {
-    List<String> keys =  cache.getKeys();
+    List<String> keys = cache.getKeys();
     List<V> values = new ArrayList<V>();
-    for ( String k : keys ) {
-      values.add((V) cache.get(k));
+    for (String k : keys) {
+      Element e = cache.get(k);
+      if ( e != null ) {
+        values.add((V) e.getObjectValue());
+      }
     }
     return values;
   }
