@@ -223,7 +223,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private void pingInstance() {
     if (isActive) {
-      ClusterServer  cs = getServerCache().put(serverId, new ClusterServerImpl(serverId));
+      Object cs = getServerCache().put(serverId, new ClusterServerImpl(serverId));
       if ( cs == null && isReady ) {
         LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
       }
