@@ -158,12 +158,12 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     
     
     // Resource types
-    RequestParameter typeParam = request.getRequestParameter("type");
-    String resourceTypes = "@sling:resourceType=\"sakai/file\" or @sling:resourceType=\"sakai/folder\"";
+    RequestParameter typeParam = request.getRequestParameter("resource");
+    String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
     if(typeParam != null) {
       String type = typeParam.getString();
-      if ("file".equals(type)) {
-        resourceTypes = "@sling:resourceType=\"sakai/file\"";
+      if ("link".equals(type)) {
+        resourceTypes = "@sling:resourceType=\"sakai/link\"";
       }
       else if ("folder".equals(type)) {
         resourceTypes = "@sling:resourceType=\"sakai/folder\"";

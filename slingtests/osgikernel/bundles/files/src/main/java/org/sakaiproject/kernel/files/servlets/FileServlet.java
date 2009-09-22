@@ -30,7 +30,6 @@ import java.io.OutputStream;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFactory;
 import javax.servlet.ServletException;
 
 /**
@@ -57,7 +56,7 @@ public class FileServlet extends SlingAllMethodsServlet {
 
     Resource resource = request.getResource();
     Node node = (Node) resource.adaptTo(Node.class);
-
+    
     String filename = null;
     try {
       if (node.hasProperty(FilesConstants.SAKAI_FILENAME)) {
