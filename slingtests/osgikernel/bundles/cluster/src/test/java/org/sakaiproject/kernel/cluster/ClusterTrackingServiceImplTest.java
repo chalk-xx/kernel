@@ -238,12 +238,6 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     response.addCookie(capture(captureCookie));
     expectLastCall();
     
-    Capture<String> captureCookieValue = new Capture<String>();
-    // nothing in the cache.
-    expect(userTrackingCache.get(capture(captureCookieValue))).andReturn(null);
-    Capture<String> trackingValueCapture = new Capture<String>();
-    Capture<ClusterUserImpl> clusterUserCapture = new Capture<ClusterUserImpl>();
-    expect(userTrackingCache.put(capture(trackingValueCapture), capture(clusterUserCapture))).andReturn(new Object());
     
     
     // deactivate 
@@ -270,18 +264,6 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     assertEquals(-1, cookie.getMaxAge());
     assertNotNull(cookie.getValue());
     assertTrue(cookie.getValue().startsWith(serverId));
-    
-    assertTrue(captureCookieValue.hasCaptured());
-    assertEquals(cookie.getValue(), captureCookieValue.getValue());
-    
-    // check the user capture
-    assertTrue(trackingValueCapture.hasCaptured());
-    assertTrue(clusterUserCapture.hasCaptured());
-    assertEquals(cookie.getValue(),trackingValueCapture.getValue());
-    ClusterUserImpl clusterUserImpl = clusterUserCapture.getValue();
-    assertEquals("userid",clusterUserImpl.getUser() );
-    assertEquals(serverId, clusterUserImpl.getServerId());
-    assertTrue(System.currentTimeMillis() >=clusterUserImpl.getLastModified());
     verify();
   }
   

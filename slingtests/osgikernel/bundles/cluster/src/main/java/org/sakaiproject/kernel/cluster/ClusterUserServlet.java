@@ -35,7 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -97,11 +99,12 @@ import javax.servlet.http.HttpServletResponse;
  * }
  * </pre>
  */
-@SlingServlet(generateComponent = true, generateService = true, selectors = { "user" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
+@SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
-// TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl etc.
-  
+  // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl
+  // etc.
+
   /**
    * 
    */
@@ -114,20 +117,32 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
   @Reference
   private ClusterTrackingService clusterTrackingService;
   private UserManager testingUserManager;
+  private Set<String> blacklist = new HashSet<String>();
 
-  
   public ClusterUserServlet() {
-    
+    initBlacklist();
   }
-  
+
   /**
    * Constructor for testing purposes only.
+   * 
    * @param clusterTrackingService
    */
-  protected ClusterUserServlet(ClusterTrackingService clusterTrackingService, UserManager userManager) {
+  protected ClusterUserServlet(ClusterTrackingService clusterTrackingService,
+      UserManager userManager) {
     this.clusterTrackingService = clusterTrackingService;
     this.testingUserManager = userManager;
+    initBlacklist();
   }
+
+  /**
+   * 
+   */
+  private void initBlacklist() {
+   blacklist.add("jcr:uuid");
+   blacklist.add("rep:password");
+  }
+
   /**
    * {@inheritDoc}
    * 
@@ -140,17 +155,16 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
     try {
       Node node = request.getResource().adaptTo(Node.class);
 
-      
       String trackingCookie = request.getParameter("c");
       ClusterUser clusterUser = clusterTrackingService.getUser(trackingCookie);
-      if ( clusterUser == null ) {
+      if (clusterUser == null) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cookie is not registered");
         return;
       }
-      
+
       String serverId = clusterTrackingService.getCurrentServerId();
       UserManager userManager = null;
-      if ( this.testingUserManager != null ) {
+      if (this.testingUserManager != null) {
         userManager = testingUserManager;
       } else {
         userManager = AccessControlUtil.getUserManager(node.getSession());
@@ -160,53 +174,52 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       jsonWriter.setTidy(true);
       jsonWriter.object();
       jsonWriter.key("server").value(serverId); // server
-      
+
       jsonWriter.key("user").object();
       jsonWriter.key("lastUpdate").value(clusterUser.getLastModified());
       jsonWriter.key("homeServer").value(clusterUser.getServerId());
       jsonWriter.key("id").value(user.getID());
       jsonWriter.key("principal").value(user.getPrincipal().getName());
       jsonWriter.key("properties").object();
-      for ( Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
+      for (Iterator<?> pi = user.getPropertyNames(); pi.hasNext();) {
         String propertyName = (String) pi.next();
-        jsonWriter.key(propertyName);
-        Value[] propertyValues = user.getProperty(propertyName);
-        if ( propertyValues.length == 1 ) {
-          jsonWriter.value(propertyValues[0].getString());
-        } else {
-          jsonWriter.array();
-          for ( Value v : propertyValues ) {
-            jsonWriter.value(v.getString());
+        if (!blacklist.contains(propertyName)) {
+          jsonWriter.key(propertyName);
+          Value[] propertyValues = user.getProperty(propertyName);
+          if (propertyValues.length == 1) {
+            jsonWriter.value(propertyValues[0].getString());
+          } else {
+            jsonWriter.array();
+            for (Value v : propertyValues) {
+              jsonWriter.value(v.getString());
+            }
+            jsonWriter.endArray();
           }
-          jsonWriter.endArray();
         }
       }
       jsonWriter.endObject(); // properties
-     
-      
+
       jsonWriter.key("principals").array();
-      for ( PrincipalIterator pi = user.getPrincipals(); pi.hasNext(); ) {
+      for (PrincipalIterator pi = user.getPrincipals(); pi.hasNext();) {
         jsonWriter.value(pi.nextPrincipal().getName());
       }
       jsonWriter.endArray();
-      
+
       jsonWriter.key("declaredMembership").array();
-      for ( Iterator<?> gi = user.declaredMemberOf(); gi.hasNext();) {
+      for (Iterator<?> gi = user.declaredMemberOf(); gi.hasNext();) {
         jsonWriter.value(((Authorizable) gi.next()).getID());
       }
       jsonWriter.endArray();
-      
+
       jsonWriter.key("membership").array();
-      for ( Iterator<?> gi = user.memberOf(); gi.hasNext(); ) {
+      for (Iterator<?> gi = user.memberOf(); gi.hasNext();) {
         jsonWriter.value(((Authorizable) gi.next()).getID());
       }
       jsonWriter.endArray();
-      
-      
+
       jsonWriter.endObject(); // user
       jsonWriter.endObject();
-      
-      
+
     } catch (RepositoryException e) {
       LOGGER.error("Failed to get users " + e.getMessage(), e);
       throw new ServletException(e.getMessage());

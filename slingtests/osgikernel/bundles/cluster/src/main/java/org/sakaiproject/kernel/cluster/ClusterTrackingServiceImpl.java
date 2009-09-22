@@ -95,14 +95,15 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * True when the service is active.
    */
   private boolean isActive = false;
-  
+
   /**
-   *  becomes true when the server is registered
+   * becomes true when the server is registered
    */
   private boolean isReady = false;
 
   /**
    * Constructor for testing purposes only.
+   * 
    * @param cacheManagerService2
    */
   protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
@@ -110,8 +111,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   }
 
   public ClusterTrackingServiceImpl() {
-    
+
   }
+
   /**
    * Activate the service, getting the id of the jvm instance and register the instance.
    * 
@@ -152,12 +154,16 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     Cookie[] cookies = request.getCookies();
     String remoteUser = request.getRemoteUser();
     boolean tracking = false;
-    for (Cookie cookie : cookies) {
-      String cookieName = cookie.getName();
-      if (cookieName.equals(SAKAI_TRACKING)) {
-        String trackingCookie = cookie.getValue();
-        pingTracking(trackingCookie, remoteUser);
-        tracking = true;
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (cookie != null) {
+          String cookieName = cookie.getName();
+          if (cookieName.equals(SAKAI_TRACKING)) {
+            String trackingCookie = cookie.getValue();
+            pingTracking(trackingCookie, remoteUser);
+            tracking = true;
+          }
+        }
       }
     }
     if (!tracking && !response.isCommitted()) {
@@ -179,7 +185,8 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
       cookie.setPath("/");
       cookie.setVersion(0);
       response.addCookie(cookie);
-      pingTracking(trackingCookie, remoteUser);
+      // we *do not* track cookies the first time, to avoid DOS on the cookie store.
+      // pingTracking(trackingCookie, remoteUser);
     }
 
   }
@@ -224,7 +231,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   private void pingInstance() {
     if (isActive) {
       Object cs = getServerCache().put(serverId, new ClusterServerImpl(serverId));
-      if ( cs == null && isReady ) {
+      if (cs == null && isReady) {
         LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
       }
     }
@@ -266,6 +273,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getAllServers()
    */
   public List<ClusterServer> getAllServers() {
@@ -274,6 +282,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getCurrentServerId()
    */
   public String getCurrentServerId() {
