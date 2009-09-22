@@ -23,13 +23,8 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
