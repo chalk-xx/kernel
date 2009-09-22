@@ -36,7 +36,6 @@ import java.util.List;
 import javax.jcr.Node;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * This PostProcessor listens to post operations on User objects and processes the

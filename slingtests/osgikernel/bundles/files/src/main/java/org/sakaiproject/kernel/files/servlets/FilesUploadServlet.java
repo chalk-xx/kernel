@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -49,8 +50,9 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description" value="Uploads files to the store."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" value="/_user/files/incoming"
+ * @scr.property name="sling.servlet.resourceTypes" value="sakai/files"
  * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="upload"
  */
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
@@ -62,6 +64,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
+    String store = request.getResource().getPath();
     LOG.info("Attempted upload for " + session.getUserID());
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     try {
@@ -76,7 +79,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
           return;
         }
         for (RequestParameter file : files) {
-          createFile(session, file, writer);
+          createFile(session, store, file, writer);
         }
       } catch (RepositoryException e) {
         LOG.warn("Failed to create file.");
@@ -94,45 +97,52 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
   }
 
-  private void createFile(Session session, RequestParameter file,
+  /**
+   * Creates a file under the store. Ex: store/aa/bb/cc/dd/myID
+   * 
+   * @param session
+   * @param file
+   * @param writer
+   * @throws RepositoryException
+   * @throws IOException
+   * @throws JSONException
+   */
+  private void createFile(Session session, String store, RequestParameter file,
       ExtendedJSONWriter writer) throws RepositoryException, IOException, JSONException {
-    // Get the nescecary parameters/
+    // Get the nescecary parameters
     InputStream is = file.getInputStream();
     String fileName = file.getFileName();
     String contentType = file.getContentType();
+    // get content type
+    if (contentType != null) {
+      int idx = contentType.indexOf(';');
+      if (idx > 0) {
+        contentType = contentType.substring(0, idx);
+      }
+    }
+    if (contentType == null) {
+      contentType = "application/octet-stream";
+    }
 
     if (fileName != null && !fileName.equals("")) {
 
       // Create the path in the store to the file.
       String id = FileUtils.generateID();
-      String path = PathUtils.toInternalHashedPath(FilesConstants.USER_FILESTORE, id, "");
+      String path = PathUtils.toInternalHashedPath(store, id, "");
 
       // Clean the filename.
       fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
 
       LOG.info("Trying to save file {} to {} for user {}", new Object[] { fileName, path,
           session.getUserID() });
-      Node n = JcrUtils.deepGetOrCreateNode(session, path);
-      n.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
-      n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+      Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, JcrConstants.NT_FILE);
+      fileNode.addMixin("sakai:propertiesmix");
+      fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
+      fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
           FilesConstants.RT_SAKAI_FILE);
-      n.setProperty(FilesConstants.SAKAI_ID, id);
-      n.setProperty("sakai:filename", fileName); // Used to order in search query.
-      session.save();
-
-      // get content type
-      if (contentType != null) {
-        int idx = contentType.indexOf(';');
-        if (idx > 0) {
-          contentType = contentType.substring(0, idx);
-        }
-      }
-      if (contentType == null) {
-        contentType = "application/octet-stream";
-      }
-
-      // Create the file node.
-      Node fileNode = n.addNode(fileName, "nt:file");
+      fileNode.setProperty(FilesConstants.SAKAI_ID, id);
+      fileNode.setProperty("sakai:filename", fileName); // Used to order in search query.
+      fileNode.setProperty("sakai:mimeType", contentType);
 
       // Create the content node.
       Node content = fileNode.addNode("jcr:content", "nt:resource");
@@ -147,7 +157,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       writer.key("filename");
       writer.value(fileName);
       writer.key("path");
-      writer.value(FilesConstants.USER_FILESTORE + "/" + id);
+      writer.value(store + "/" + id);
       writer.endObject();
     }
   }

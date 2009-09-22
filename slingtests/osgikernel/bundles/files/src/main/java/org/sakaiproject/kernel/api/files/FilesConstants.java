@@ -30,12 +30,16 @@ public interface FilesConstants {
   /**
    * The resource type for a sakai folder. sakai/folder
    */
-  public static final Object RT_SAKAI_FOLDER = "sakai/folder";
+  public static final String RT_SAKAI_FOLDER = "sakai/folder";
+  /**
+   * The resource type for a sakai folder. sakai/link
+   */
+  public static final String RT_SAKAI_LINK = "sakai/link";
 
   /**
    * The path to the filestore for users.
    */
-  public static final String USER_FILESTORE = "/_user/files/store";
+  public static final String USER_FILESTORE = "/_user/files";
   /**
    * sakai:user
    */
@@ -58,6 +62,16 @@ public interface FilesConstants {
    * sakai:filename
    */
   public static final String SAKAI_FILENAME = "sakai:filename";
-  public static final String SAKAI_LINK = "sakai:filelink";
+  /**
+   * sakai:link
+   */
+  public static final String SAKAI_LINK = "sakai:link";
+
+  /**
+   * FileHandlerProcessor
+   */
+  public static final String FILE_HANDLER = "FileHandler";
+  
+  public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
 
 }

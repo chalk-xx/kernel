@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.api.files;
 
 import org.sakaiproject.kernel.util.PathUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -31,13 +32,14 @@ public class FileUtils {
    * @param nr
    * @return
    */
-  private static String encodeBase62(long nr) {
+  private static String encodeBase66(long nr) {
+    if (nr < 0) { nr *= -1; }
     String tempVal = nr == 0 ? "0" : "";
-    String baseDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    String baseDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.+";
     int remainder = 0;
     while (nr > 0) {
-      remainder = (int) (nr % 62);
-      nr = nr / 62;
+      remainder = (int) (nr % 66);
+      nr = nr / 66;
       tempVal += baseDigits.charAt(remainder);
     }
     return tempVal;
@@ -49,11 +51,18 @@ public class FileUtils {
    * @return
    */
   public static String generateID() {
-    long n = (long) (Math.random() * 1000000000 + System.currentTimeMillis());
-    return encodeBase62(n);
+
+    try {
+      long id = (long) (Thread.currentThread().getId() + System.currentTimeMillis() + Math
+          .random() * 1000000000);
+      String hash = StringUtils.sha1Hash(String.valueOf(id));
+      return encodeBase66(hash.hashCode());
+    } catch (Exception e) {
+      System.out.println("failed");
+      throw new RuntimeException(e);
+    }
   }
-  
-  
+
   public static String getHashedPath(String id) {
     return PathUtils.toInternalHashedPath(FilesConstants.USER_FILESTORE, id, "");
   }

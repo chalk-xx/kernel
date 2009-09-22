@@ -31,6 +31,9 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
+// TODO: Remove this since it is an awful way of counting things.
+
+
 /**
  * Formats file tag count search results
  * 
