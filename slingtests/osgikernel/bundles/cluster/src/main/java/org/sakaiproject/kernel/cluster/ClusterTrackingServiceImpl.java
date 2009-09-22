@@ -95,6 +95,11 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * True when the service is active.
    */
   private boolean isActive = false;
+  
+  /**
+   *  becomes true when the server is registered
+   */
+  private boolean isReady = false;
 
   /**
    * Constructor for testing purposes only.
@@ -120,6 +125,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     serverId = (String) mbeanServer.getAttribute(name, "Name");
     isActive = true;
     pingInstance();
+    isReady = true;
   }
 
   /**
@@ -217,7 +223,10 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private void pingInstance() {
     if (isActive) {
-      getServerCache().put(serverId, new ClusterServerImpl(serverId));
+      ClusterServer  cs = getServerCache().put(serverId, new ClusterServerImpl(serverId));
+      if ( cs == null && isReady ) {
+        LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
+      }
     }
   }
 
