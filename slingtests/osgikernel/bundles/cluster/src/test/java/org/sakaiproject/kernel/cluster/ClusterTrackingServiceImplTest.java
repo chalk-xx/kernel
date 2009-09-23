@@ -337,6 +337,34 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
     verify();
   }
+  
+  @Test
+  public void testUniqueId() throws Exception {
+    // activate
+    String serverId = getServerId();
+    Capture<String> serverIdCapture = new Capture<String>();
+    Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
+    expect(
+        serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
+        .andReturn(new Object());
+    
+    // deactivate 
+    serverTrackingCache.remove(serverId);
+    
+    replay();
+    clusterTrackingServiceImpl.activate(null);
+    assertNotNull(clusterTrackingServiceImpl.getClusterUniqueId());
+    clusterTrackingServiceImpl.deactivate(null);
+    assertTrue(serverIdCapture.hasCaptured());
+    assertEquals(serverId, serverIdCapture.getValue());
+    assertTrue(clusterServerCapture.hasCaptured());
+    ClusterServerImpl clusterServerImpl = clusterServerCapture.getValue();
+    assertEquals(serverId, clusterServerImpl.getServerId());
+    assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
+    verify();
+
+  }
 
   
 }
