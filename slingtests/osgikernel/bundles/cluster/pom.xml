@@ -44,6 +44,8 @@
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency></Embed-Dependency>
+            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Sakai-Initial-Security>SLING-INF/acl/cluster-acl.json</Sakai-Initial-Security>   
           </instructions>
         </configuration>
       </plugin>
@@ -103,6 +105,12 @@
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
       <version>0.1-SNAPSHOT</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version> 
     </dependency>
   </dependencies>
 </project>

@@ -33,5 +33,7 @@ public interface ClusterServer {
    */
   long getLastModified();
   
+  int getServerNumber();
+  
 
 }

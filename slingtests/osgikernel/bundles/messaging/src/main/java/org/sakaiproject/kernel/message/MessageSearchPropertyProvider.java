@@ -72,7 +72,7 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
         .encodePath(MessageConstants._USER_MESSAGE));
 
     RequestParameter usersParam = request.getRequestParameter("_from");
-    if (usersParam != null) {
+    if (usersParam != null && !usersParam.getString().equals("")) {
       String sql = " and (";
       String[] users = StringUtils.split(usersParam.getString(), ',');
 

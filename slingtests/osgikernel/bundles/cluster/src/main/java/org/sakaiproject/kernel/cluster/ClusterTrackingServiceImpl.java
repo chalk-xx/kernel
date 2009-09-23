@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.cluster;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -36,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.math.BigInteger;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.management.MBeanServer;
@@ -97,15 +100,31 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   private boolean isActive = false;
 
   /**
+   * becomes true when the server is registered
+   */
+  private boolean isReady = false;
+  private int serverNumber;
+  private Object lockObject = new Object();
+  private long next;
+  private long epoch;
+  private long prev;
+
+  /**
+   * Constructor for testing purposes only.
+   * 
    * @param cacheManagerService2
    */
-  public ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
+  protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
+    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    epoch = calendar.getTimeInMillis();
   }
 
   public ClusterTrackingServiceImpl() {
-    
+    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    epoch = calendar.getTimeInMillis();
   }
+
   /**
    * Activate the service, getting the id of the jvm instance and register the instance.
    * 
@@ -119,6 +138,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     serverId = (String) mbeanServer.getAttribute(name, "Name");
     isActive = true;
     pingInstance();
+    isReady = true;
   }
 
   /**
@@ -145,12 +165,16 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     Cookie[] cookies = request.getCookies();
     String remoteUser = request.getRemoteUser();
     boolean tracking = false;
-    for (Cookie cookie : cookies) {
-      String cookieName = cookie.getName();
-      if (cookieName.equals(SAKAI_TRACKING)) {
-        String trackingCookie = cookie.getValue();
-        pingTracking(trackingCookie, remoteUser);
-        tracking = true;
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (cookie != null) {
+          String cookieName = cookie.getName();
+          if (cookieName.equals(SAKAI_TRACKING)) {
+            String trackingCookie = cookie.getValue();
+            pingTracking(trackingCookie, remoteUser);
+            tracking = true;
+          }
+        }
       }
     }
     if (!tracking && !response.isCommitted()) {
@@ -172,7 +196,8 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
       cookie.setPath("/");
       cookie.setVersion(0);
       response.addCookie(cookie);
-      pingTracking(trackingCookie, remoteUser);
+      // we *do not* track cookies the first time, to avoid DOS on the cookie store.
+      // pingTracking(trackingCookie, remoteUser);
     }
 
   }
@@ -216,7 +241,63 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private void pingInstance() {
     if (isActive) {
-      getServerCache().put(serverId, new ClusterServerImpl(serverId));
+      if (!isReady) {
+        do {
+          updateServerNumber();
+          getServerCache().put(serverId, new ClusterServerImpl(serverId, serverNumber));
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+
+          }
+        } while (!checkServerNumber());
+
+      } else {
+        Object cs = getServerCache().put(serverId,
+            new ClusterServerImpl(serverId, serverNumber));
+
+        if (cs == null) {
+          LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
+        }
+      }
+    }
+  }
+
+  /**
+   * @return true if the only server number registered is our server number
+   */
+  private boolean checkServerNumber() {
+    List<ClusterServer> servers = getServerCache().list();
+    for (ClusterServer server : servers) {
+      if (server.getServerNumber() == serverNumber
+          && !serverId.equals(server.getServerId())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Find the next unique server number.
+   */
+  private void updateServerNumber() {
+    List<ClusterServer> servers = getServerCache().list();
+    boolean[] spare = new boolean[servers.size()];
+    for (int i = 0; i < spare.length; i++) {
+      spare[i] = true;
+    }
+    for (ClusterServer server : servers) {
+      int i = server.getServerNumber();
+      if (i < spare.length) {
+        spare[i] = false;
+      }
+    }
+    serverNumber = spare.length;
+    for (int i = 0; i < spare.length; i++) {
+      if (spare[i]) {
+        serverNumber = i;
+        break;
+      }
     }
   }
 
@@ -256,6 +337,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getAllServers()
    */
   public List<ClusterServer> getAllServers() {
@@ -264,10 +346,28 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
+   * 
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getCurrentServerId()
    */
   public String getCurrentServerId() {
     return serverId;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getClusterUniqueId()
+   */
+  public String getClusterUniqueId() {
+    synchronized (lockObject) {
+      do {
+        next = System.currentTimeMillis() - epoch;
+      } while (next == prev);
+    }
+    BigInteger idNum = new BigInteger(String.valueOf(serverNumber) + String.valueOf(next));
+    prev = next;
+    Base64 b64 = new Base64();
+    return b64.encodeToString(idNum.toByteArray()).trim();
   }
 
 }

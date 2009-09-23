@@ -49,5 +49,11 @@ public interface ClusterTrackingService {
    * @return get the ID of the current server.
    */
   String getCurrentServerId();
+  
+  
+  /**
+   * @return generate an ID that will be unique in the cluster.
+   */
+  String getClusterUniqueId();
 
 }
