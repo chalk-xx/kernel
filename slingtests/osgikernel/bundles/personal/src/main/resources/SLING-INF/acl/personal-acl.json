@@ -33,6 +33,20 @@
  		"path":"/_user/public",
  		"principal":"everyone",
  		"privilege@jcr:read":"granted"
+ 	},
+ 	{
+ 		"path":"/_user/files",
+ 		"principal":"owner",
+ 		"privilege@jcr:read":"granted",
+ 		"privilege@jcr:write":"granted"
+ 		
+ 	},
+ 	{
+ 		"path":"/_user/files",
+ 		"principal":"everyone",
+ 		"privilege@jcr:read":"granted",
+ 		"privilege@jcr:addChildNodes":"granted"
+ 		
  	}
  ],
 

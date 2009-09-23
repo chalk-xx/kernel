@@ -41,6 +41,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Create a file
@@ -88,6 +89,9 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
       writer.endArray();
       writer.endObject();
+      
+      response.setStatus(HttpServletResponse.SC_CREATED);
+      
     } catch (JSONException e) {
       LOG.warn("Failed to write JSON format.");
       response.sendError(500, "Failed to write JSON format.");
