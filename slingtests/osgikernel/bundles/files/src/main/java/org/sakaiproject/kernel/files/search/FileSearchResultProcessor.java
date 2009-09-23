@@ -94,7 +94,7 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
 
     write.key("name");
     write.value(node.getName());
-            
+
     write.key("permissions");
     write.object();
     write.key("set_property");
@@ -110,25 +110,18 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
 
     // If it is a file node we provide some extra properties.
     if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
-      String id = "";
       // proper file
-      if (node.hasProperty(FilesConstants.SAKAI_ID)) {
-        id = node.getProperty(FilesConstants.SAKAI_ID).getString();
-        // Sites where this file is used in.
-        getSites(node, write);
-      }
-      // linked file
-      else if (node.hasProperty(FilesConstants.SAKAI_LINK)) {
-        id = node.getProperty(FilesConstants.SAKAI_LINK).getString();
-        write.key("path");
-        write.value(node.getPath());
-      }
+      // Sites where this file is used in.
+      getSites(node, write);
 
-      write.key("url");
-      write.value(FileUtils.getDownloadPath(id));
+      write.key("path");
+      write.value(FileUtils.getDownloadPath(node));
 
-    }
-    else if (FilesConstants.RT_SAKAI_FOLDER.equals(type)) {
+    } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
+      // This is a linked file.
+      write.key("path");
+      write.value(node.getPath());
+    } else if (FilesConstants.RT_SAKAI_FOLDER.equals(type)) {
       write.key("path");
       write.value(node.getPath());
     }

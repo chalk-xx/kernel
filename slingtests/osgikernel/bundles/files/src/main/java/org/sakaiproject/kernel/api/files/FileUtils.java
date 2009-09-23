@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.api.files;
 
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 
@@ -33,7 +34,9 @@ public class FileUtils {
    * @return
    */
   private static String encodeBase66(long nr) {
-    if (nr < 0) { nr *= -1; }
+    if (nr < 0) {
+      nr *= -1;
+    }
     String tempVal = nr == 0 ? "0" : "";
     String baseDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.+";
     int remainder = 0;
@@ -63,33 +66,63 @@ public class FileUtils {
     }
   }
 
-  public static String getHashedPath(String id) {
-    return PathUtils.toInternalHashedPath(FilesConstants.USER_FILESTORE, id, "");
+  public static String getHashedPath(String store, String id) {
+    return PathUtils.toInternalHashedPath(store, id, "");
   }
 
-  public static String getDownloadPath(String id) {
-    return FilesConstants.USER_FILESTORE + "/" + id;
+  /**
+   * Get the download path.
+   * @param store
+   * @param id
+   * @return
+   */
+  public static String getDownloadPath(String store, String id) {
+    return store + "/" + id;
+  }
+  
+  /**
+   * Looks at a sakai/file node and returns the download path for it.
+   * @param node
+   * @return
+   * @throws RepositoryException
+   */
+  public static String getDownloadPath(Node node) throws RepositoryException {
+    Session session = node.getSession();
+    String path = node.getPath();
+    String store = findStore(path, session);
+    
+    if (node.hasProperty(FilesConstants.SAKAI_ID)) {
+      String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
+      return getDownloadPath(store, id);
+    }
+    
+    return path;
   }
 
-  public static String getActualFilePath(String id, Session session) {
-    String fileName = "";
-    String path = null;
+  /**
+   * Looks at a path and returns the store (or null if none is found)
+   * @param path
+   * @param session
+   * @return
+   * @throws RepositoryException
+   */
+  public static String findStore(String path, Session session) throws RepositoryException {
 
-    String downloadPath = getHashedPath(id);
-    try {
-      if (session.itemExists(downloadPath)) {
-        Node downloadNode = (Node) session.getItem(downloadPath);
-        if (downloadNode.hasProperty(FilesConstants.SAKAI_FILENAME)) {
-          fileName = downloadNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
-          path = downloadPath + "/" + fileName;
+    if (session.itemExists(path)) {
+      Node node = (Node) session.getItem(path);
+      while (!node.getPath().equals("/")) {
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+                .getString().equals(FilesConstants.RT_FILE_STORE)) {
+          return node.getPath();
         }
+        
+        node = node.getParent();
+
       }
-    } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     }
 
-    return path;
+    return null;
   }
 
 }

@@ -28,7 +28,7 @@ import javax.servlet.ServletException;
  * Components who implement this interface will be able to handle file links. A file link
  * is of the type: jcrinternal:/path/to/a/sakai/file
  */
-public interface FileHandler {
+public interface LinkHandler {
 
   /**
    * Handle a request for a link file.

@@ -19,22 +19,21 @@ package org.sakaiproject.kernel.files;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
-import org.apache.sling.api.resource.ResourceWrapper;
-import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
-import org.sakaiproject.kernel.api.files.FileHandler;
+import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.api.files.LinkHandler;
+import org.sakaiproject.kernel.util.IOUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 
 /**
  * Handles files that are linked to a jcrinternal resource.
@@ -43,119 +42,47 @@ import javax.servlet.ServletOutputStream;
  *                description="Handles files that are linked to a jcrinternal resource."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.files.handler" value="jcrinternal"
- * @scr.service interface="org.sakaiproject.kernel.api.files.FileHandler"
+ * @scr.service interface="org.sakaiproject.kernel.api.files.LinkHandler"
  */
-public class JcrInternalFileHandler implements FileHandler {
+public class JcrInternalFileHandler implements LinkHandler {
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(JcrInternalFileHandler.class);
 
   public void handleFile(SlingHttpServletRequest request,
       SlingHttpServletResponse response, String to) throws ServletException, IOException {
-    // Get the filenode.
-    Resource baseResource = request.getResource();
+    // Get file id.
+    String id = to.substring(to.lastIndexOf('/') + 1, to.length());
+    String storePath = to.substring(0, to.lastIndexOf('/'));
+
+    // get actual file
+    String realPath = storePath + PathUtils.getHashedPath(id, 4);
+    Resource fileResource = request.getResourceResolver().getResource(realPath);
+
+    // Check filename.
     String filename = null;
-    Node node = (Node) baseResource.adaptTo(Node.class);
+    Node linkNode = (Node) request.getResource().adaptTo(Node.class);
     try {
-      filename = node.getName();
+      if (linkNode.hasProperty(FilesConstants.SAKAI_FILENAME)) {
+        filename = linkNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
+      } else {
+        filename = linkNode.getName();
+      }
     } catch (RepositoryException e) {
-      response.sendError(500, "Unable to download file.");
+      LOGGER.warn("Unable to read filename for {}", to);
+      response.sendError(500, "Unable to read filename.");
       return;
     }
 
+    // If we provided a filename and we haven't changed the name in a previous request.
     if (filename != null && !response.containsHeader("Content-Disposition")) {
       response.setHeader("Content-Disposition", "attachment; filename=\"" + filename
           + "\"");
     }
-
-    LOGGER.info("Pointing request {} to the real file {}", baseResource.getPath(), to);
-
-    // Send request to download the file.
-    baseResource.getResourceMetadata().setResolutionPath("");
-    baseResource.getResourceMetadata().setResolutionPathInfo(to);
-
-    final String finalPath = to;
-    final ResourceMetadata rm = baseResource.getResourceMetadata();
-
-    // Wrap the request so it points to the message we just created.
-    ResourceWrapper wrapper = new ResourceWrapper(request.getResource()) {
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getPath()
-       */
-      @Override
-      public String getPath() {
-        return finalPath;
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceType()
-       */
-      @Override
-      public String getResourceType() {
-        return "sling/servlet/default";
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see org.apache.sling.api.resource.ResourceWrapper#getResourceMetadata()
-       */
-      @Override
-      public ResourceMetadata getResourceMetadata() {
-        return rm;
-      }
-
-    };
-
-    RequestDispatcherOptions options = new RequestDispatcherOptions();
-    options.setForceResourceType("sling:File");
-    SlingHttpServletResponseWrapper wrappedResponse = new SlingHttpServletResponseWrapper(
-        response) {
-      ServletOutputStream servletOutputStream = new ServletOutputStream() {
-
-        @Override
-        public void write(int b) throws IOException {
-        }
-      };
-      PrintWriter pw = new PrintWriter(servletOutputStream);
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see javax.servlet.ServletResponseWrapper#flushBuffer()
-       */
-      @Override
-      public void flushBuffer() throws IOException {
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see javax.servlet.ServletResponseWrapper#getOutputStream()
-       */
-      @Override
-      public ServletOutputStream getOutputStream() throws IOException {
-        return servletOutputStream;
-      }
-
-      /**
-       * {@inheritDoc}
-       * 
-       * @see javax.servlet.ServletResponseWrapper#getWriter()
-       */
-      @Override
-      public PrintWriter getWriter() throws IOException {
-        return pw;
-      }
-    };
-    options.setReplaceSelectors("");
-    request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
-    if (!response.isCommitted()) {
-      response.reset();
-    }
+    
+    // Write out the file.
+    InputStream in = (InputStream) fileResource.adaptTo(InputStream.class);
+    OutputStream out = response.getOutputStream();
+    IOUtils.stream(in, out);
   }
 }

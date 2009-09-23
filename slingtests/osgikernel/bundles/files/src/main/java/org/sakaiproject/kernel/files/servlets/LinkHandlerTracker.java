@@ -17,25 +17,25 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
-import static org.sakaiproject.kernel.api.files.FilesConstants.FILE_HANDLER;
+import static org.sakaiproject.kernel.api.files.FilesConstants.LINK_HANDLER;
 import static org.sakaiproject.kernel.api.files.FilesConstants.REG_PROCESSOR_NAMES;
 
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.api.files.FileHandler;
+import org.sakaiproject.kernel.api.files.LinkHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FileHandlerTracker {
-  private Map<String, FileHandler> processors = new ConcurrentHashMap<String, FileHandler>();
+public class LinkHandlerTracker {
+  private Map<String, LinkHandler> processors = new ConcurrentHashMap<String, LinkHandler>();
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
 
-  protected void bindFileHandler(ServiceReference serviceReference) {
+  protected void bindLinkHandler(ServiceReference serviceReference) {
 
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
@@ -47,7 +47,7 @@ public class FileHandlerTracker {
 
   }
 
-  protected void unbindFileHandler(ServiceReference serviceReference) {
+  protected void unbindLinkHandler(ServiceReference serviceReference) {
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
         delayedReferences.remove(serviceReference);
@@ -74,8 +74,8 @@ public class FileHandlerTracker {
    * @param serviceReference
    */
   private void addProcessor(ServiceReference serviceReference) {
-    FileHandler processor = (FileHandler) osgiComponentContext.locateService(
-        FILE_HANDLER, serviceReference);
+    LinkHandler processor = (LinkHandler) osgiComponentContext.locateService(
+        LINK_HANDLER, serviceReference);
     String[] processorNames = OsgiUtil.toStringArray(serviceReference
         .getProperty(REG_PROCESSOR_NAMES));
 
@@ -104,14 +104,14 @@ public class FileHandlerTracker {
    * @param name
    * @return The processor or null if none is found.
    */
-  public FileHandler getProcessorByName(String name) {
+  public LinkHandler getProcessorByName(String name) {
     return processors.get(name);
   }
 
   /**
    * @return
    */
-  public Iterable<FileHandler> getProcessors() {
+  public Iterable<LinkHandler> getProcessors() {
     return processors.values();
   }
 

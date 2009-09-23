@@ -23,7 +23,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.api.files.FileHandler;
+import org.sakaiproject.kernel.api.files.LinkHandler;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
@@ -45,8 +45,8 @@ import javax.servlet.ServletException;
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/link"
  * @scr.property name="sling.servlet.methods" values.0="GET"
- * @scr.reference name="FileHandler"
- *                interface="org.sakaiproject.kernel.api.files.FileHandler"
+ * @scr.reference name="LinkHandler"
+ *                interface="org.sakaiproject.kernel.api.files.LinkHandler"
  *                cardinality="0..n" policy="dynamic"
  */
 public class FileLinkServlet extends SlingAllMethodsServlet {
@@ -68,7 +68,7 @@ public class FileLinkServlet extends SlingAllMethodsServlet {
         String[] linkProps = StringUtils.split(link, ':');
         if (linkProps.length == 2) {
 
-          FileHandler handler = fileHandlerTracker.getProcessorByName(linkProps[0]);
+          LinkHandler handler = fileHandlerTracker.getProcessorByName(linkProps[0]);
           if (handler != null) {
             handler.handleFile(request, response, linkProps[1]);
           }
@@ -85,14 +85,14 @@ public class FileLinkServlet extends SlingAllMethodsServlet {
   //
   // Needed to bind all the file handlers out there to this servlet.
   //
-  private FileHandlerTracker fileHandlerTracker = new FileHandlerTracker();
+  private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
 
-  protected void bindFileHandler(ServiceReference serviceReference) {
-    fileHandlerTracker.bindFileHandler(serviceReference);
+  protected void bindLinkHandler(ServiceReference serviceReference) {
+    fileHandlerTracker.bindLinkHandler(serviceReference);
   }
 
-  protected void unbindFileHandler(ServiceReference serviceReference) {
-    fileHandlerTracker.unbindFileHandler(serviceReference);
+  protected void unbindLinkHandler(ServiceReference serviceReference) {
+    fileHandlerTracker.unbindLinkHandler(serviceReference);
   }
 
   protected void activate(ComponentContext componentContext) {

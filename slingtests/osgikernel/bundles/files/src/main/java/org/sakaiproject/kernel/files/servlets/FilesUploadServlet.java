@@ -39,8 +39,8 @@ import java.util.Calendar;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Create a file
@@ -88,7 +88,6 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
       writer.endArray();
       writer.endObject();
-      response.setStatus(HttpServletResponse.SC_CREATED);
     } catch (JSONException e) {
       LOG.warn("Failed to write JSON format.");
       response.sendError(500, "Failed to write JSON format.");
@@ -113,6 +112,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
     InputStream is = file.getInputStream();
     String fileName = file.getFileName();
     String contentType = file.getContentType();
+    // Try to determine the real content type.
     // get content type
     if (contentType != null) {
       int idx = contentType.indexOf(';');
@@ -120,8 +120,12 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
         contentType = contentType.substring(0, idx);
       }
     }
-    if (contentType == null) {
-      contentType = "application/octet-stream";
+    if (contentType == null || contentType.equals("application/octet-stream")) {
+      ServletContext context = this.getServletConfig().getServletContext();
+      contentType = context.getMimeType(file.getFileName());
+      if (contentType == null || contentType.equals("application/octet-stream")) {
+        contentType = "application/octet-stream";
+      }
     }
 
     if (fileName != null && !fileName.equals("")) {
