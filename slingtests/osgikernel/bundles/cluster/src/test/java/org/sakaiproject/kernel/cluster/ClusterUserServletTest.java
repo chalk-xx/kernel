@@ -315,6 +315,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     serverId = getServerId();
     serverIdCapture = new Capture<String>();
     clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());

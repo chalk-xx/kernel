@@ -17,8 +17,12 @@
  */
 package org.sakaiproject.kernel.cluster;
 
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.easymock.Capture;
 import org.junit.After;
@@ -30,6 +34,7 @@ import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -101,6 +106,8 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
@@ -123,6 +130,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
@@ -149,6 +157,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
@@ -211,6 +220,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
@@ -275,6 +285,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
@@ -304,6 +315,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
+    expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());

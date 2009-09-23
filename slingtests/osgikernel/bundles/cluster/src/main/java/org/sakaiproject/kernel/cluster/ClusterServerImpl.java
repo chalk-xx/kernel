@@ -38,13 +38,16 @@ public class ClusterServerImpl implements ClusterServer, Serializable {
    * The time the server object was updated.
    */
   private long lastModified;
+  private int serverNum;
 
   /**
    * @param serverId
+   * @param serverNumber 
    */
-  public ClusterServerImpl(String serverId) {
+  public ClusterServerImpl(String serverId, int serverNumber) {
     this.serverId = serverId;
     this.lastModified = System.currentTimeMillis();
+    this.serverNum = serverNumber;
   }
 
   /**
@@ -61,4 +64,12 @@ public class ClusterServerImpl implements ClusterServer, Serializable {
     return lastModified;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.cluster.ClusterServer#getServerNumber()
+   */
+  public int getServerNumber() { 
+    return serverNum;
+  }
+  
 }

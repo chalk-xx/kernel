@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.cluster;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -36,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.math.BigInteger;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.management.MBeanServer;
@@ -100,6 +103,11 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * becomes true when the server is registered
    */
   private boolean isReady = false;
+  private int serverNumber;
+  private Object lockObject = new Object();
+  private long next;
+  private long epoch;
+  private long prev;
 
   /**
    * Constructor for testing purposes only.
@@ -108,10 +116,13 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
+    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    epoch = calendar.getTimeInMillis();
   }
 
   public ClusterTrackingServiceImpl() {
-
+    GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
+    epoch = calendar.getTimeInMillis();
   }
 
   /**
@@ -230,9 +241,62 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private void pingInstance() {
     if (isActive) {
-      Object cs = getServerCache().put(serverId, new ClusterServerImpl(serverId));
-      if (cs == null && isReady) {
-        LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
+      if (!isReady) {
+        do {
+          updateServerNumber();
+          getServerCache().put(serverId, new ClusterServerImpl(serverId, serverNumber));
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+
+          }
+        } while (!checkServerNumber());
+
+      } else {
+        Object cs = getServerCache().put(serverId,
+            new ClusterServerImpl(serverId, serverNumber));
+
+        if (cs == null) {
+          LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
+        }
+      }
+    }
+  }
+
+  /**
+   * @return true if the only server number registered is our server number
+   */
+  private boolean checkServerNumber() {
+    List<ClusterServer> servers = getServerCache().list();
+    for (ClusterServer server : servers) {
+      if (server.getServerNumber() == serverNumber
+          && !serverId.equals(server.getServerId())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Find the next unique server number.
+   */
+  private void updateServerNumber() {
+    List<ClusterServer> servers = getServerCache().list();
+    boolean[] spare = new boolean[servers.size()];
+    for (int i = 0; i < spare.length; i++) {
+      spare[i] = true;
+    }
+    for (ClusterServer server : servers) {
+      int i = server.getServerNumber();
+      if (i < spare.length) {
+        spare[i] = false;
+      }
+    }
+    serverNumber = spare.length;
+    for (int i = 0; i < spare.length; i++) {
+      if (spare[i]) {
+        serverNumber = i;
+        break;
       }
     }
   }
@@ -287,6 +351,23 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   public String getCurrentServerId() {
     return serverId;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getClusterUniqueId()
+   */
+  public String getClusterUniqueId() {
+    synchronized (lockObject) {
+      do {
+        next = System.currentTimeMillis() - epoch;
+      } while (next == prev);
+    }
+    BigInteger idNum = new BigInteger(String.valueOf(serverNumber) + String.valueOf(next));
+    prev = next;
+    Base64 b64 = new Base64();
+    return b64.encodeToString(idNum.toByteArray()).trim();
   }
 
 }
