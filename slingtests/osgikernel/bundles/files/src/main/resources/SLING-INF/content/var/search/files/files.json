@@ -1,0 +1,7 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "/{path}//*[((jcr:contains(@sakai:filename,\"*{search}*\") or jcr:contains(jcr:content,\"*{search}*\")) and @sling:resourceType=\"sakai/file\"){_tags}{_ids}{_sites}]{_order}",
+  "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "Files",
+  "sakai:propertyprovider": "Files"
+}

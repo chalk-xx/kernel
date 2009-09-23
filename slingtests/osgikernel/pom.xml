@@ -63,6 +63,7 @@
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
         <module>bundles/messaging</module>
+        <module>bundles/files</module>
         <module>bundles/personal</module>
         <module>bundles/presence</module>
         <module>bundles/resource</module>
