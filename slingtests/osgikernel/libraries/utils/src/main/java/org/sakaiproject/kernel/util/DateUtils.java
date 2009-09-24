@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.util;
 import org.apache.commons.lang.time.FastDateFormat;
 
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Utility methods for working with dates.
@@ -30,7 +31,7 @@ public class DateUtils {
 
   static {
     rfc3339 = FastDateFormat.getInstance("yyyy-MM-dd hh:mm:ssZ");
-    rfc2822 = FastDateFormat.getInstance("EEE, dd MMM yyyy HH:mm:ss Z");
+    rfc2822 = FastDateFormat.getInstance("EEE, dd MMM yyyy HH:mm:ss Z", new Locale("en"));
   }
 
   /**
