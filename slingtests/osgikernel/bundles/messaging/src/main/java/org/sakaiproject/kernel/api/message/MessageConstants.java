@@ -178,6 +178,4 @@ public interface MessageConstants {
    */
   public static final String REG_PROCESSOR_NAMES = "sakai.message.createpreprocessor";
   public static final String MESSAGE_CREATE_PREPROCESSOR = "CreateMessagePreProcessor";
-  
-
 }

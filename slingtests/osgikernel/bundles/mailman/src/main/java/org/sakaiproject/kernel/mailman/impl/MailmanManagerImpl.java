@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.sakaiproject.kernel.mailman.impl;
 
 import com.google.common.collect.ImmutableMap;
@@ -13,6 +29,7 @@ import org.cyberneko.html.parsers.DOMParser;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.mailman.MailmanManager;
 import org.slf4j.Logger;
@@ -65,7 +82,7 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     return "http://" + configMap.get(MAILMAN_HOST) + configMap.get(MAILMAN_PATH) + stub;
   }
   
-  public void createList(String listName, String ownerEmail, String password) throws MailmanException, HttpException, IOException {
+  public void createList(String listName, String ownerEmail, String password) throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
     PostMethod post = new PostMethod(getMailmanUrl("/create"));
     NameValuePair[] parametersBody = new NameValuePair[] {
@@ -81,17 +98,21 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         new NameValuePair("doit", "Create List")
     };
     post.setRequestBody(parametersBody);
-    int result = client.executeMethod(post);
     try {
+      int result = client.executeMethod(post);
       if (result != HttpServletResponse.SC_OK) {
         throw new MailmanException("Unable to create list");
       }
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       post.releaseConnection();
     }
   }
 
-  public void deleteList(String listName, String listPassword) throws HttpException, IOException, MailmanException {
+  public void deleteList(String listName, String listPassword) throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
     PostMethod post = new PostMethod(getMailmanUrl("/rmlist/" + listName));
     NameValuePair[] parametersBody = new NameValuePair[] {
@@ -100,17 +121,21 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         new NameValuePair("doit", "Delete this list")
     };
     post.setRequestBody(parametersBody);
-    int result = client.executeMethod(post);
     try {
+      int result = client.executeMethod(post);
       if (result != HttpServletResponse.SC_OK) {
         throw new MailmanException("Unable to create list");
       }
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       post.releaseConnection();
     }
   }
 
-  public boolean listHasMember(String listName, String listPassword, String memberEmail) throws HttpException, IOException, MailmanException, SAXException {
+  public boolean listHasMember(String listName, String listPassword, String memberEmail) throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
     GetMethod get = new GetMethod(getMailmanUrl("/admin/" + listName + "members"));
     NameValuePair[] parameters = new NameValuePair[] {
@@ -119,8 +144,8 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         new NameValuePair("adminpw", listPassword)
     };
     get.setQueryString(parameters);
-    int result = client.executeMethod(get);
     try {
+      int result = client.executeMethod(get);
       if (result != HttpServletResponse.SC_OK) {
         throw new MailmanException("Unable to search for member");
       }
@@ -136,15 +161,21 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         } catch (NullPointerException npe) {
         }
       }
+    } catch (SAXException e) {
+      throw new MailmanException("Error parsing mailman response", e);
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       get.releaseConnection();
     }
     return false;
   }
   
-  public boolean addMember(String listName, String listPassword, String memberEmail) throws HttpException, IOException, MailmanException, SAXException {
+  public boolean addMember(String listName, String listPassword, String memberEmail) throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
-    GetMethod get = new GetMethod(getMailmanUrl("/admin/" + listName + "members/add"));
+    GetMethod get = new GetMethod(getMailmanUrl("/admin/" + listName + "/members/add"));
     NameValuePair[] parameters = new NameValuePair[] {
       new NameValuePair("subscribe_or_invite", "0"),
       new NameValuePair("send_welcome_msg_to_this_batch", "0"),
@@ -153,8 +184,8 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
       new NameValuePair("adminpw", listPassword)
     };
     get.setQueryString(parameters);
-    int result = client.executeMethod(get);
     try {
+      int result = client.executeMethod(get);
       if (result != HttpServletResponse.SC_OK) {
         throw new MailmanException("Unable to add member");
       }
@@ -164,14 +195,20 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         throw new MailmanException("Unable to read result status");
       }
       return "Successfully subscribed:".equals(inputs.item(0).getTextContent());
+    } catch (SAXException e) {
+      throw new MailmanException("Error parsing mailman response", e);
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       get.releaseConnection();
     }
   }
 
-  public boolean removeMember(String listName, String listPassword, String memberEmail) throws HttpException, IOException, MailmanException, SAXException {
+  public boolean removeMember(String listName, String listPassword, String memberEmail) throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
-    GetMethod get = new GetMethod(getMailmanUrl("/admin/" + listName + "members/remove"));
+    GetMethod get = new GetMethod(getMailmanUrl("/admin/" + listName + "/members/remove"));
     NameValuePair[] parameters = new NameValuePair[] {
       new NameValuePair("send_unsub_ack_to_this_batch", "0"),
       new NameValuePair("send_unsub_notifications_to_list_owner", "0"),
@@ -179,8 +216,8 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
       new NameValuePair("adminpw", listPassword)
     };
     get.setQueryString(parameters);
-    int result = client.executeMethod(get);
     try {
+      int result = client.executeMethod(get);
       if (result != HttpServletResponse.SC_OK) {
         throw new MailmanException("Unable to add member");
       }
@@ -193,6 +230,12 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
         }
       }
       return "Successfully Unsubscribed:".equals(inputs.item(0).getTextContent());
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
+    } catch (SAXException e) {
+      throw new MailmanException("Error parsing mailman response", e);
     } finally {
       get.releaseConnection();
     }
@@ -204,12 +247,12 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     return parser.getDocument();
   }
 
-  public List<String> getLists() throws HttpException, IOException, MailmanException, SAXException {
+  public List<String> getLists() throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
     GetMethod get = new GetMethod(getMailmanUrl("/admin"));
     List<String> lists = new ArrayList<String>();
-    int result = client.executeMethod(get);
     try {
+      int result = client.executeMethod(get);
       if (result != HttpServletResponse.SC_OK) {
         LOGGER.warn("Got " + result + " from http request");
         throw new MailmanException("Unable to list mailinglists");
@@ -226,6 +269,12 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
       for (int i=4; i<rows.getLength(); i++) {
         lists.add(parseListNameFromRow((HTMLTableRowElement)rows.item(i)));
       }
+    } catch (SAXException e) {
+      throw new MailmanException("Error parsing mailman response", e);
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       get.releaseConnection();
     }
@@ -262,17 +311,20 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
     this.proxyClientService = proxyClientService;
   }
 
-  public boolean isServerActive() throws HttpException, IOException, MailmanException,
-      SAXException {
+  public boolean isServerActive() throws MailmanException {
     HttpClient client = new HttpClient(proxyClientService.getHttpConnectionManager());
     GetMethod get = new GetMethod(getMailmanUrl("/admin"));
-    int result = client.executeMethod(get);
     try {
+      int result = client.executeMethod(get);
       if (result != HttpServletResponse.SC_OK) {
         LOGGER.warn("Got " + result + " from http request");
         return false;
       }
       return true;
+    } catch (HttpException e) {
+      throw new MailmanException("HTTP Exception communicating with mailman server", e);
+    } catch (IOException e) {
+      throw new MailmanException("IOException communicating with mailman server", e);
     } finally {
       get.releaseConnection();
     }
@@ -300,6 +352,10 @@ public class MailmanManagerImpl implements MailmanManager, ManagedService {
       builder.put(k, (String) config.get(k));
     }
     configMap = builder.build();
+  }
+
+  public MessageRoute generateMessageRouteForGroup(String groupName) {
+    return new MailmanMessageRoute(groupName + "@" + configMap.get(MAILMAN_HOST), "smtp");
   }
 
 }

@@ -48,6 +48,23 @@ public class PersonalUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
 
+  /**
+   * Writes userinfo out for a property in a node. Make sure that the resultNode has a
+   * property with propertyName that contains a userid.
+   * 
+   * @param session
+   *          The JCR Session
+   * @param user
+   *          The user name
+   * @param write
+   *          The writer to write to.
+   * @param jsonName
+   *          The json name that should be used.
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   * @throws JSONException
+   */
   public static void writeUserInfo(Session session, String user, JSONWriter write,
       String jsonName) {
     try {
@@ -138,5 +155,12 @@ public class PersonalUtils {
     } else {
       return PathUtils.toInternalHashedPath(_USER_PRIVATE, userS, path);
     }
+  }
+  
+  public static String getEmailAddress(Node profileNode) throws RepositoryException {
+    if (profileNode.hasProperty(PersonalConstants.EMAIL_ADDRESS)) {
+      return profileNode.getProperty(PersonalConstants.EMAIL_ADDRESS).getString();
+    }
+    return null;
   }
 }

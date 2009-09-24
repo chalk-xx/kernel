@@ -37,7 +37,7 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Private-Package> org.sakaiproject.kernel.mailman.*  </Private-Package>
-            <Import-Package>sun.io;resolution:=optional,*</Import-Package>
+            <Import-Package>sun.io;resolution:=optional,org.w3c.dom;resolution:=optional,*</Import-Package>
             <Embed-Dependency>nekohtml,xercesImpl,xml-resolver,xml-apis</Embed-Dependency>
           </instructions>
         </configuration>
@@ -70,6 +70,12 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.personal</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

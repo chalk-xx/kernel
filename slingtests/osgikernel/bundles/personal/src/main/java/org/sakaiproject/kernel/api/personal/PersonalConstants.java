@@ -66,5 +66,10 @@ public interface PersonalConstants {
   * The node name of the authentication profile in public space.
   */
  public static final String AUTH_PROFILE = "authprofile";
+ 
+ /**
+  * Property name for the e-mail property of a user's profile
+  */
+ public static final String EMAIL_ADDRESS = "email";
 
 }

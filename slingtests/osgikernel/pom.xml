@@ -90,10 +90,12 @@
         <module>bundles/specs/ejb</module>
         <module>libraries/utils</module>
         <module>bundles/activemq</module>
+        <module>bundles/activity</module>
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/api</module>
         <module>bundles/sling/resource</module>
         <module>bundles/sling/accessmanager</module>
+        <module>bundles/cluster</module>
       </modules>
     </profile>
     <profile>
@@ -478,10 +480,22 @@
       <id>maven repo</id>
       <name>maven repo</name>
       <url>http://repo1.maven.org/maven2/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
     <repository>
       <id>EclipseLink Repo</id>
       <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
     </repository>
   <repository>
       <id>apache-snapshots</id>

@@ -21,6 +21,10 @@ package org.sakaiproject.kernel.api.activity;
  *
  */
 public interface ActivityConstants {
+  public static final String REQUEST_PARAM_APPLICATION_ID = "applicationId";
+  public static final String REQUEST_PARAM_TEMPLATE_ID = "templateId";
+  public static final String ACTIVITY_STORE_NAME = "activity";
+
   /**
    * JCR folder name for templates.
    */

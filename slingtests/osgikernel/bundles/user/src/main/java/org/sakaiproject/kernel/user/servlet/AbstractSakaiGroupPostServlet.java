@@ -16,17 +16,9 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFactory;
-
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -37,9 +29,20 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.kernel.api.user.UserConstants;
+import org.sakaiproject.kernel.api.user.UserModification;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 
 /**
  * Base class for servlets manipulating groups
@@ -75,6 +78,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
             
             int addIndex = 0;
             int removeIndex = 0;
+            List<Modification> userChanges = new ArrayList<Modification>();
 
             String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
                 + "member" + SlingPostConstants.SUFFIX_DELETE);
@@ -85,6 +89,8 @@ public abstract class AbstractSakaiGroupPostServlet extends
               if (membersToDelete != null) {
                   for (removeIndex=0; removeIndex<membersToDelete.length; removeIndex++) {
                       if (removeMember(group, membersToDelete[removeIndex], baseResource, userManager, resolver)) {
+                        String[] usernameParts = membersToDelete[removeIndex].split("\\/");
+                        userChanges.add(UserModification.onGroupLeave(groupPath + "/members", group, (User)userManager.getAuthorizable(usernameParts[usernameParts.length - 1])));
                         changed = true;
                       }
                   }
@@ -94,10 +100,15 @@ public abstract class AbstractSakaiGroupPostServlet extends
               if (membersToAdd != null) {
                 for (addIndex=0; addIndex<membersToAdd.length; addIndex++) {
                     if (addMember(group, membersToAdd[addIndex], baseResource, userManager, resolver)) {
+                      String[] usernameParts = membersToAdd[addIndex].split("\\/");
+                      userChanges.add(UserModification.onGroupJoin(groupPath + "/members", group, (User)userManager.getAuthorizable(usernameParts[usernameParts.length - 1])));
                       changed = true;
                     }
                 }
               }
+
+              changes.addAll(userChanges);
+
             } catch (RepositoryException re) {
               LOGGER.debug("Group membership modification failed, rolling back");
               for (int unaddIndex = addIndex - 1; unaddIndex >= 0; unaddIndex--) {

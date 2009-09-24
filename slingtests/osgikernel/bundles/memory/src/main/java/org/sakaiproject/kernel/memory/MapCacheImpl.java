@@ -20,7 +20,9 @@ package org.sakaiproject.kernel.memory;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.ThreadBound;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -92,6 +94,14 @@ public class MapCacheImpl<V> extends HashMap<String, V>implements Cache<V>  {
         super.remove(k);
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.memory.Cache#list()
+   */
+  public List<V> list() {
+    return new ArrayList<V>(super.values());
   }
 
 

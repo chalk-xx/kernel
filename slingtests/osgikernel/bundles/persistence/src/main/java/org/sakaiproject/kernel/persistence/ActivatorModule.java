@@ -68,7 +68,7 @@ public class ActivatorModule extends AbstractOsgiModule {
         Scopes.SINGLETON);
     
     bind(CacheManagerService.class).toProvider(importService(CacheManagerService.class)).in(Scopes.SINGLETON);
-    
+   
     bind(RegistryService.class).toProvider(importService(RegistryService.class)).in(Scopes.SINGLETON);
     
   }

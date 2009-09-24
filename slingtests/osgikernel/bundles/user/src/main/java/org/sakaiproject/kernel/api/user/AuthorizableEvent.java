@@ -41,13 +41,14 @@ public interface AuthorizableEvent {
   public static final String MODIFICATION = "change";
 
   public static final String USER = "user";
-
+  
+  public static final String GROUP = "group";
 
   /**
    * Operations
    */
   public static enum Operation {
-    delete(), update(), create();
+    delete(), update(), create(), join(), part();
     
     public String getTopic() {
       return TOPIC+toString();

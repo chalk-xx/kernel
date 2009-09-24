@@ -18,6 +18,8 @@
 
 package org.sakaiproject.kernel.api.memory;
 
+import java.util.List;
+
 /**
  * A Cache managed by the cache manager.
  */
@@ -75,5 +77,10 @@ public interface Cache<V> {
    * @param key
    */
   void removeChildren(String key);
+
+  /**
+   * @return
+   */
+  List<V> list();
 
 }

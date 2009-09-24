@@ -18,6 +18,12 @@
 
 package org.sakaiproject.kernel.webapp.filter;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.api.session.SessionManagerService;
@@ -46,23 +52,13 @@ import javax.transaction.TransactionManager;
 /**
  * The <code>SakaiRequestFilter</code> class is a request level filter, which manages the
  * Sakai Cache and Transaction services..
- * 
- * @scr.component immediate="true" metatype="no"
- * @scr.property name="service.description" value="Cache and Transaction Support Filter"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="filter.scope" value="request" private="true"
- * @scr.property name="filter.order" value="10" type="Integer" private="true"
- * @scr.service interface="javax.servlet.Filter" 
- * @scr.reference name="transactionManager"
- *                interface="javax.transaction.TransactionManager"
- *                bind="bindTransactionManager" unbind="unbindTransactionManager"
- * @scr.reference name="cacheManagerService"
- *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
- *                bind="bindCacheManagerService" unbind="unbindCacheManagerService"
- * @scr.reference name="sessionManagerService"
- *                interface="org.sakaiproject.kernel.api.session.SessionManagerService"
- *                bind="bindSessionManagerService" unbind="unbindSessionManagerService"
  */
+@Service(value=Filter.class)
+@Component(immediate=true, metatype=false)
+@Properties(value={@Property(name="service.description", value="Cache and Transaction Support Filter"),
+    @Property(name="service.vendor",value="The Sakai Foundation"),
+    @Property(name="filter.scope",value="request", propertyPrivate=true),
+    @Property(name="filter.order",intValue={10}, propertyPrivate=true)})
 public class SakaiRequestFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiRequestFilter.class);
 
@@ -70,11 +66,17 @@ public class SakaiRequestFilter implements Filter {
 
   private boolean timeOn = false;
 
+  @Reference(name="transactionManager", bind="bindTransactionManager", unbind="unbindTransactionManager")
   private TransactionManager transactionManager;
 
+  @Reference(name="cacheManagerService", bind="bindCacheManagerService", unbind="unbindCacheManagerService")
   private CacheManagerService cacheManagerService;
   
+  @Reference(name="sessionManagerService", bind="bindSessionManagerService", unbind="unbindSessionManagerService")
   private SessionManagerService sessionManagerService;
+
+  @Reference(name="clusterTrackingService", bind="bindClusterTrackingService", unbind="unbindClusterTrackingService")
+  private ClusterTrackingService clusterTrackingService;
 
   /**
    * {@inheritDoc}
@@ -104,6 +106,7 @@ public class SakaiRequestFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest hrequest = (HttpServletRequest) request;
     HttpServletResponse hresponse = (HttpServletResponse) response;
+    clusterTrackingService.trackClusterUser(hrequest, hresponse);
     sessionManagerService.bindRequest(hrequest);
     String requestedSessionID = hrequest.getRequestedSessionId();
     try {
@@ -247,6 +250,21 @@ public class SakaiRequestFilter implements Filter {
    */
   protected void unbindSessionManagerService(SessionManagerService sessionManagerService) {
     this.sessionManagerService = null;
+  }
+
+  
+  /**
+   * @param clusterTrackingService
+   */
+  protected void bindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
+    this.clusterTrackingService = clusterTrackingService;
+  }
+
+  /**
+   * @param clusterTrackingService
+   */
+  protected void unbindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
+    this.clusterTrackingService = null;
   }
 
 }
