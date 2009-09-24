@@ -25,16 +25,16 @@ import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.AccessControlException;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 
 /**
  * Formats the files search results.
@@ -49,6 +49,8 @@ import javax.jcr.query.QueryResult;
  */
 public class FileSearchResultProcessor implements SearchResultProcessor {
 
+  public static final Logger LOGGER = LoggerFactory
+      .getLogger(FileSearchResultProcessor.class);
   private SiteService siteService;
 
   public void bindSiteService(SiteService siteService) {
@@ -158,39 +160,28 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
    */
   private void getSites(Node node, JSONWriter write) throws RepositoryException,
       JSONException {
-    if (node.hasProperty(FilesConstants.SAKAI_ID)) {
-      String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
-      String queryString = "//*[@sling:resourceType='sakai/filereference' and @sakai:id='"
-          + id + "']";
-      QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
-      Query query = queryManager.createQuery(queryString, Query.XPATH);
-      QueryResult result = query.execute();
 
-      int total = 0;
-      NodeIterator it = result.getNodes();
-
-      write.key("usedIn");
-      write.object();
-      write.key("sites");
-      write.array();
-      while (it.hasNext()) {
-        Node n = it.nextNode();
-
-        Node siteNode = n;
-        // Travel upwards to find the site node.
-        while (!siteNode.getPath().equals("/")) {
-          if (siteService.isSite(siteNode)) {
-            writeSiteInfo(siteNode, write);
-            break;
-          }
-          siteNode = siteNode.getParent();
-        }
+    write.key("usedIn");
+    write.object();
+    write.key("sites");
+    write.array();
+    PropertyIterator pi = node.getReferences();
+    int total = 0;
+    while (pi.hasNext()) {
+      Property p = pi.nextProperty();
+      Node parent = p.getParent(); // Get the node for this property.
+      LOGGER.info(parent.getPath());
+      
+      // If it is a site service then we print it out.
+      if (siteService.isSite(parent)) {
+        writeSiteInfo(parent, write);
+        total++;
       }
-      write.endArray();
-      write.key("total");
-      write.value(total);
-      write.endObject();
     }
+    write.endArray();
+    write.key("total");
+    write.value(total);
+    write.endObject();
   }
 
   /**

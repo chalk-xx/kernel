@@ -24,7 +24,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -54,10 +54,19 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/files"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="upload"
+ * @scr.reference name="ClusterTrackingService" interface="org.sakaiproject.kernel.api.cluster.ClusterTrackingService"
  */
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = -2582970789079249113L;
+  
+  private ClusterTrackingService clusterTrackingService;
+  protected void bindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
+    this.clusterTrackingService = clusterTrackingService;
+  }
+  protected void unbindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
+    this.clusterTrackingService = null;
+  }
 
   public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
 
@@ -135,7 +144,10 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
     if (fileName != null && !fileName.equals("")) {
 
       // Create the path in the store to the file.
-      String id = FileUtils.generateID();
+      String id = clusterTrackingService.getClusterUniqueId();
+      if (id.endsWith("==")) {
+        id = id.substring(0, id.length() - 2);
+      }
       String path = PathUtils.toInternalHashedPath(store, id, "");
 
       // Clean the filename.

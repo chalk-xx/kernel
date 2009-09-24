@@ -21,7 +21,6 @@ import javax.jcr.ValueFormatException;
 public abstract class AbstractPropertyOperationModifier extends
     AbstractSlingPostOperation {
 
-  @SuppressWarnings("unchecked")
   @Override
   protected abstract void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException;

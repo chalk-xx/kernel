@@ -108,7 +108,7 @@
     	<groupId>org.apache.sling</groupId>
     	<artifactId>org.apache.sling.servlets.post</artifactId>
     	<version>2.0.4-incubator</version>
-    	<type>bundle</type>
+    	<scope>provided</scope>
     </dependency>
   </dependencies>
 </project>
