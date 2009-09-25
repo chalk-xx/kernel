@@ -50,10 +50,10 @@ public class LdapConnectionManagerConfig {
   /** The password to use for connection logins. */
   private String loginPassword;
 
-  /** Where to follow referrals. */
+  /** Whether to follow referrals. */
   private boolean followReferrals;
 
-  /** Where to connection allocation should include a bind attempt. */
+  /** Whether to connection allocation should include a bind attempt. */
   private boolean autoBind;
 
   /** Whether connection pooling is used. */
