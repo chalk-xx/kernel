@@ -16,11 +16,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.message.chat;
+package org.sakaiproject.kernel.chat;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.Event;
+import org.sakaiproject.kernel.api.chat.ChatManagerService;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
@@ -48,17 +49,30 @@ import javax.jcr.Session;
  *                name="SlingRepository"
  * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                name="MessagingService"
+ * @scr.reference name="ChatManagerService"
+ *                interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
  */
 public class ChatMessageHandler implements MessageTransport {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(ChatMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;
+  private static final Object CHAT_TRANSPORT = "chat";
+
+  private ChatManagerService chatManagerService;
+
+  protected void bindChatManagerService(ChatManagerService chatManagerService) {
+    this.chatManagerService = chatManagerService;
+  }
+
+  protected void unbindChatManagerService(ChatManagerService chatManagerService) {
+    this.chatManagerService = null;
+  }
 
   /**
    * The JCR Repository we access.
    * 
    */
   private SlingRepository slingRepository;
+
   /**
    * @param slingRepository
    *          the slingRepository to set
@@ -66,6 +80,7 @@ public class ChatMessageHandler implements MessageTransport {
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
+
   /**
    * @param slingRepository
    *          the slingRepository to unset
@@ -75,13 +90,14 @@ public class ChatMessageHandler implements MessageTransport {
   }
 
   private MessagingService messagingService;
+
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
+
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
-
 
   /**
    * Default constructor
@@ -89,24 +105,24 @@ public class ChatMessageHandler implements MessageTransport {
   public ChatMessageHandler() {
   }
 
-
-
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes, org.osgi.service.event.Event, javax.jcr.Node)
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes,
+   *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
     try {
       LOG.info("Started handling the message.");
 
       Session session = slingRepository.loginAdministrative(null);
-      
-      
-      for ( MessageRoute route : routes ) {
-        if ( MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport()) ) {
+
+      for (MessageRoute route : routes) {
+        if (CHAT_TRANSPORT.equals(route.getTransport())) {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
+          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
+              .getString();
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           LOG.info("Writing {} to {}", originalMessage.getPath(), toPath);
@@ -117,8 +133,7 @@ public class ChatMessageHandler implements MessageTransport {
 
           /*
            * This gives PathNotFoundExceptions... Workspace workspace =
-           * session.getWorkspace(); workspace.copy(originalMessage.getPath(),
-           * toPath);
+           * session.getWorkspace(); workspace.copy(originalMessage.getPath(), toPath);
            */
 
           Node n = (Node) session.getItem(toPath);
@@ -139,6 +154,9 @@ public class ChatMessageHandler implements MessageTransport {
           n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGE_RT);
           n.save();
+
+          // Set it in the cache.
+          chatManagerService.addUpdate(rcpt, System.currentTimeMillis());
         }
       }
 
@@ -155,6 +173,5 @@ public class ChatMessageHandler implements MessageTransport {
   public String getType() {
     return TYPE;
   }
-
 
 }
