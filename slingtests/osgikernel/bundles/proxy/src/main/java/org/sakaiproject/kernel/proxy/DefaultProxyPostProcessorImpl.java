@@ -43,10 +43,8 @@ public class DefaultProxyPostProcessorImpl implements ProxyPostProcessor {
     }
     int code = proxyResponse.getResultCode();
     response.setStatus(code);
-    if (code > 199 && code < 300) {
-      IOUtils.stream(proxyResponse.getResponseBodyAsInputStream(), response
+    IOUtils.stream(proxyResponse.getResponseBodyAsInputStream(), response
           .getOutputStream());
-    }    
   }
 
   /**

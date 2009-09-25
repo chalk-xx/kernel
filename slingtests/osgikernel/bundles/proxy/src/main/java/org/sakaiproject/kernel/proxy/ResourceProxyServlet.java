@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.proxy;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -30,6 +31,7 @@ import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyPostProcessor;
 import org.sakaiproject.kernel.api.proxy.ProxyPreProcessor;
 import org.sakaiproject.kernel.api.proxy.ProxyResponse;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +39,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
@@ -58,12 +63,17 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
   /**
    * 
    */
+  private static final String SAKAI_REQUEST_STREAM_BODY = "sakai:request-stream-body";
+
+  /**
+   * 
+   */
   private static final String AUTHORIZATION = "Authorization";
 
   /**
    * 
    */
-  private static final String BASIC = "Basic";
+  private static final String BASIC = "Basic ";
 
   /**
    * 
@@ -94,6 +104,17 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPostProcessor.class, bind = "bindPostProcessor", unbind = "unbindPostProcessor")
   private Map<String, ProxyPostProcessor> postProcessors = new ConcurrentHashMap<String, ProxyPostProcessor>();
 
+  private Set<String> headerBacklist = new HashSet<String>();
+
+  /**
+   * 
+   */
+  public ResourceProxyServlet() {
+   headerBacklist.add("Host");
+   headerBacklist.add("Content-Length");
+   headerBacklist.add("Content-Type");
+   headerBacklist.add("Authorization");
+  }
   /**
    * {@inheritDoc}
    * 
@@ -187,18 +208,27 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         return;
       }
       Node node = resource.adaptTo(Node.class);
+      if ( !userInputStream ) {
+        Value[] v = JcrUtils.getValues(node, SAKAI_REQUEST_STREAM_BODY);
+        if ( v != null && v.length > 0 ) {
+          userInputStream = Boolean.parseBoolean(v[0].getString());
+        }
+      }
       Map<String, String> headers = new HashMap<String, String>();
       for (Enumeration<?> enames = request.getHeaderNames(); enames.hasMoreElements();) {
 
         String name = (String) enames.nextElement();
-        headers.put(name, request.getHeader(name));
+        if ( !headerBacklist.contains(name) ) {
+          headers.put(name, request.getHeader(name));
+        }
       }
       // search for special headers.
       if (headers.containsKey(BASIC_USER)) {
         String user = headers.get(BASIC_USER);
         String password = headers.get(BASIC_PASSWORD);
-        String digest = BASIC + " "
-            + new String(Base64Converter.encode((user + ":" + password).getBytes()));
+        Base64 base64 = new Base64();
+        String passwordDigest = new String(base64.encode((user + ":" + password).getBytes("UTF-8")));
+        String digest = BASIC+passwordDigest.trim();
         headers.put(AUTHORIZATION, digest);
       }
 
@@ -208,7 +238,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         }
       }
 
-      Map<String, String> templateParams = new HashMap<String, String>();
+      Map<String, Object> templateParams = new HashMap<String, Object>();
       InputStream requestInputStream = null;
       long inputStreamLength = -1L;
       String inputStreamContentType = null;
@@ -216,19 +246,26 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         inputStreamLength = request.getContentLength();
         inputStreamContentType = request.getContentType();
         requestInputStream = request.getInputStream();
+        LOGGER.info("Sending {} bytes  as {} ",inputStreamLength, inputStreamContentType);
       } else {
         for (Enumeration<?> enames = request.getParameterNames(); enames
             .hasMoreElements();) {
           String name = (String) enames.nextElement();
-          templateParams.put(name, request.getParameter(name));
+          String[] pv  = request.getParameterValues(name);
+          if ( pv != null && pv.length > 1 ) {
+            templateParams.put(name, pv);
+          } else {
+            templateParams.put(name, pv[0]);
+          }
         }
 
         // search for special parameters.
         if (templateParams.containsKey(BASIC_USER)) {
-          String user = templateParams.get(BASIC_USER);
-          String password = templateParams.get(BASIC_PASSWORD);
-          String digest = BASIC + " "
-              + new String(Base64Converter.encode((user + ":" + password).getBytes()));
+          String user = (String) templateParams.get(BASIC_USER);
+          String password = (String) templateParams.get(BASIC_PASSWORD);
+          Base64 base64 = new Base64();
+          String passwordDigest = new String(base64.encode((user + ":" + password).getBytes("UTF-8")));
+          String digest = BASIC+passwordDigest.trim();
           headers.put(AUTHORIZATION, digest);
         }
 
@@ -258,7 +295,8 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
           postProcessor = defaultPostProcessor;
         }
       }
-
+      
+      System.err.println("-------------- "+this+" ========= "+proxyClientService);
       ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
           templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
       try {

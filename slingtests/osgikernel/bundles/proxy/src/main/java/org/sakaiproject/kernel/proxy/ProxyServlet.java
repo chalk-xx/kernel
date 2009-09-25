@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.proxy;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -105,7 +106,7 @@ public class ProxyServlet extends SlingAllMethodsServlet {
       String digest = null;
       if (user != null && password != null) {
         digest = "Basic "
-            + new String(Base64Converter.encode((user + ":" + password).getBytes()));
+            + new String(Base64.encodeBase64((user + ":" + password).getBytes()));
       }
 
       boolean foundRedirect = false;

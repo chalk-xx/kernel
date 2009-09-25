@@ -38,7 +38,7 @@ public interface ProxyPreProcessor {
    * @param templateParams
    */
   void preProcessRequest(SlingHttpServletRequest request, Map<String, String> headers,
-      Map<String, String> templateParams);
+      Map<String, Object> templateParams);
 
   /**
    * @return

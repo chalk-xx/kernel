@@ -95,7 +95,7 @@ public interface ProxyClientService {
    * @throws ProxyClientException
    */
   public ProxyResponse executeCall(Node node, Map<String, String> headers,
-      Map<String, String> input, InputStream requestInputStream,
+      Map<String, Object> input, InputStream requestInputStream,
       long requestContentLength, String requestContentType) throws ProxyClientException;
 
   /**
