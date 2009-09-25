@@ -47,7 +47,7 @@ import com.google.common.collect.Lists;
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/file"
  * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="upload"
+ * @scr.property name="sling.servlet.selectors" value="update"
  */
 public class FileUploadServlet extends SlingAllMethodsServlet {
 

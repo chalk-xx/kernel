@@ -22,6 +22,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,20 +35,30 @@ import org.slf4j.LoggerFactory;
  */
 public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);
+	public static final Logger LOGGER = LoggerFactory
+			.getLogger(FilesStoreServlet.class);
 
-  /**
+	/**
    * 
    */
-  private static final long serialVersionUID = -1960932906632564021L;
+	private static final long serialVersionUID = -1960932906632564021L;
 
-  @Override
-  protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
-      SlingHttpServletResponse response, String realPath, String virtualPath) {
+	@Override
+	protected String getTargetPath(Resource baseResource,
+			SlingHttpServletRequest request, SlingHttpServletResponse response,
+			String realPath, String virtualPath) {
 
-    LOGGER.info("Rewriting the url in filesstore: ", new Object[] { realPath,
-        virtualPath, PathUtils.toInternalHashedPath(realPath, virtualPath, "") });
+		String[] parts = StringUtils.split(virtualPath, '.');
 
-    return PathUtils.toInternalHashedPath(realPath, virtualPath, "");
-  }
+		LOGGER.info("Rewriting the url in filesstore: ", new Object[] {
+				realPath, virtualPath,
+				PathUtils.toInternalHashedPath(realPath, parts[0], "") });
+
+		String sel = "";
+		for (int i = 1; i < parts.length; i++) {
+			sel += "." + parts[i];
+		}
+
+		return PathUtils.toInternalHashedPath(realPath, parts[0], sel);
+	}
 }

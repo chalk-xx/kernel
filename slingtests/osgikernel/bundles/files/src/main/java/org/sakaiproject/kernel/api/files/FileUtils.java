@@ -88,7 +88,7 @@ public class FileUtils {
 				// So we should already have a content node.
 				// Just in case.. catch it
 				try {
-					fileNode.getNode("jcr:content");
+					content = fileNode.getNode("jcr:content");
 				} catch (PathNotFoundException pnfe) {
 					content = fileNode.addNode("jcr:content", "nt:resource");
 				}
