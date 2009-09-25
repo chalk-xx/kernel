@@ -17,112 +17,185 @@
  */
 package org.sakaiproject.kernel.api.files;
 
-import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.kernel.util.PathUtils;
-import org.sakaiproject.kernel.util.StringUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
 
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.jackrabbit.JcrConstants;
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class FileUtils {
 
-  /**
-   * Returns a Base62 representation of a number.
-   * 
-   * @param nr
-   * @return
-   */
-  private static String encodeBase66(long nr) {
-    if (nr < 0) {
-      nr *= -1;
-    }
-    String tempVal = nr == 0 ? "0" : "";
-    String baseDigits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.+";
-    int remainder = 0;
-    while (nr > 0) {
-      remainder = (int) (nr % 66);
-      nr = nr / 66;
-      tempVal += baseDigits.charAt(remainder);
-    }
-    return tempVal;
-  }
+	public static final Logger LOGGER = LoggerFactory
+			.getLogger(FileUtils.class);
 
-  /**
-   * Returns a Base62 number.
-   * 
-   * @return
-   */
-  public static String generateID() {
+	/**
+	 * Save a file.
+	 * You will have to call session.save() your self!.
+	 * 
+	 * @param session
+	 * @param path
+	 * @param id
+	 * @param file
+	 * @param contentType
+	 * @return
+	 * @throws RepositoryException
+	 * @throws IOException
+	 */
+	public static Node saveFile(Session session, String path, String id,
+			RequestParameter file, String contentType)
+			throws RepositoryException, IOException {
 
-    try {
-      long id = (long) (Thread.currentThread().getId() + System.currentTimeMillis() + Math
-          .random() * 1000000000);
-      String hash = StringUtils.sha1Hash(String.valueOf(id));
-      return encodeBase66(hash.hashCode());
-    } catch (Exception e) {
-      System.out.println("failed");
-      throw new RuntimeException(e);
-    }
-  }
+		// Get the nescecary parameters
+		InputStream is = file.getInputStream();
+		String fileName = file.getFileName();
 
-  public static String getHashedPath(String store, String id) {
-    return PathUtils.toInternalHashedPath(store, id, "");
-  }
+		if (fileName != null && !fileName.equals("")) {
+			// Clean the filename.
+			fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
 
-  /**
-   * Get the download path.
-   * @param store
-   * @param id
-   * @return
-   */
-  public static String getDownloadPath(String store, String id) {
-    return store + "/" + id;
-  }
-  
-  /**
-   * Looks at a sakai/file node and returns the download path for it.
-   * @param node
-   * @return
-   * @throws RepositoryException
-   */
-  public static String getDownloadPath(Node node) throws RepositoryException {
-    Session session = node.getSession();
-    String path = node.getPath();
-    String store = findStore(path, session);
-    
-    if (node.hasProperty(FilesConstants.SAKAI_ID)) {
-      String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
-      return getDownloadPath(store, id);
-    }
-    
-    return path;
-  }
+			LOGGER.info("Trying to save file {} to {} for user {}",
+					new Object[] { fileName, path, session.getUserID() });
 
-  /**
-   * Looks at a path and returns the store (or null if none is found)
-   * @param path
-   * @param session
-   * @return
-   * @throws RepositoryException
-   */
-  public static String findStore(String path, Session session) throws RepositoryException {
+			// Create or get the file.
+			Node fileNode = JcrUtils.deepGetOrCreateNode(session, path,
+					JcrConstants.NT_FILE);
 
-    if (session.itemExists(path)) {
-      Node node = (Node) session.getItem(path);
-      while (!node.getPath().equals("/")) {
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-                .getString().equals(FilesConstants.RT_FILE_STORE)) {
-          return node.getPath();
-        }
-        
-        node = node.getParent();
+			Node content = null;
+			// If this is a new node then we have to add certain things.
+			if (fileNode.isNew()) {
+				fileNode.addMixin("sakai:propertiesmix");
+				fileNode.setProperty(
+						JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+						FilesConstants.RT_SAKAI_FILE);
+				fileNode.setProperty(FilesConstants.SAKAI_ID, id);
 
-      }
-    }
+				// Create the content node.
+				content = fileNode.addNode("jcr:content", "nt:resource");
 
-    return null;
-  }
+			} else {
+				// This is a new node.
+				// So we should already have a content node.
+				// Just in case.. catch it
+				try {
+					fileNode.getNode("jcr:content");
+				} catch (PathNotFoundException pnfe) {
+					content = fileNode.addNode("jcr:content", "nt:resource");
+				}
+			}
+
+			// Set the person who last modified it.s
+			fileNode
+					.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
+
+			fileNode.setProperty("sakai:filename", fileName);
+			fileNode.setProperty("sakai:mimeType", contentType);
+
+			content.setProperty("jcr:lastModified", Calendar.getInstance());
+			content.setProperty("jcr:mimeType", contentType);
+			content.setProperty("jcr:data", is);
+			return fileNode;
+		}
+		return null;
+	}
+
+	/**
+	 * Create a link to a file. Note: You will have to call session.save() your self!.
+	 * 
+	 * @param session
+	 *            The current session.
+	 * @param fileNode
+	 *            The node for the file we are linking to.
+	 * @param linkPath
+	 *            The absolute path were the node should be created that will
+	 *            contain the link.
+	 * @throws RepositoryException
+	 */
+	public static void createLink(Session session, Node fileNode,
+			String linkPath) throws RepositoryException {
+		Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
+		linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+				FilesConstants.RT_SAKAI_LINK);
+		String uri = FileUtils.getDownloadPath(fileNode);
+		linkNode.setProperty(FilesConstants.SAKAI_LINK,"jcrinternal:" +  uri);
+		linkNode.setProperty("jcr:reference", fileNode.getUUID());
+	}
+
+	public static String getHashedPath(String store, String id) {
+		return PathUtils.toInternalHashedPath(store, id, "");
+	}
+
+	/**
+	 * Get the download path.
+	 * 
+	 * @param store
+	 * @param id
+	 * @return
+	 */
+	public static String getDownloadPath(String store, String id) {
+		return store + "/" + id;
+	}
+
+	/**
+	 * Looks at a sakai/file node and returns the download path for it.
+	 * 
+	 * @param node
+	 * @return
+	 * @throws RepositoryException
+	 */
+	public static String getDownloadPath(Node node) throws RepositoryException {
+		Session session = node.getSession();
+		String path = node.getPath();
+		String store = findStore(path, session);
+
+		if (node.hasProperty(FilesConstants.SAKAI_ID)) {
+			String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
+			return getDownloadPath(store, id);
+		}
+
+		return path;
+	}
+
+	/**
+	 * Looks at a path and returns the store (or null if none is found)
+	 * 
+	 * @param path
+	 * @param session
+	 * @return
+	 * @throws RepositoryException
+	 */
+	public static String findStore(String path, Session session)
+			throws RepositoryException {
+
+		if (session.itemExists(path)) {
+			Node node = (Node) session.getItem(path);
+			while (!node.getPath().equals("/")) {
+				if (node
+						.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+						&& node
+								.getProperty(
+										JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+								.getString().equals(
+										FilesConstants.RT_FILE_STORE)) {
+					return node.getPath();
+				}
+
+				node = node.getParent();
+
+			}
+		}
+
+		return null;
+	}
 
 }

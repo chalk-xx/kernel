@@ -25,6 +25,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.files.LinkHandler;
 import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.files.JcrInternalFileHandler;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,52 +52,61 @@ import javax.servlet.ServletException;
  */
 public class FileLinkServlet extends SlingAllMethodsServlet {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(FileLinkServlet.class);
-  private static final long serialVersionUID = -1536743371265952323L;
+	public static final Logger LOGGER = LoggerFactory
+			.getLogger(FileLinkServlet.class);
+	private static final long serialVersionUID = -1536743371265952323L;
 
-  @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+	@Override
+	protected void doGet(SlingHttpServletRequest request,
+			SlingHttpServletResponse response) throws ServletException,
+			IOException {
 
-    Resource resource = request.getResource();
-    Node node = (Node) resource.adaptTo(Node.class);
+		Resource resource = request.getResource();
+		Node node = (Node) resource.adaptTo(Node.class);
 
-    try {
-      if (node.hasProperty(FilesConstants.SAKAI_LINK)) {
-        String link = node.getProperty(FilesConstants.SAKAI_LINK).getString();
+		try {
+			if (node.hasProperty(FilesConstants.SAKAI_LINK)) {
+				String link = node.getProperty(FilesConstants.SAKAI_LINK)
+						.getString();
 
-        String[] linkProps = StringUtils.split(link, ':');
-        if (linkProps.length == 2) {
+				String[] linkProps = StringUtils.split(link, ':');
+				LinkHandler handler = null;
+				String path = null;
+				if (linkProps.length == 2) {
+					handler = fileHandlerTracker
+							.getProcessorByName(linkProps[0]);
+					path = linkProps[1];
+				} else {
+					// We default to JCR.
+					handler = new JcrInternalFileHandler();
+					path = link;
+				}
+				if (handler != null) {
+					handler.handleFile(request, response, path);
+				}
+			}
+		} catch (RepositoryException e) {
+			LOGGER.warn("Unable to handle linked file.");
+			e.printStackTrace();
+			response.sendError(500, "Unable to handle linked file.");
+		}
+	}
 
-          LinkHandler handler = fileHandlerTracker.getProcessorByName(linkProps[0]);
-          if (handler != null) {
-            handler.handleFile(request, response, linkProps[1]);
-          }
-        }
-      }
-    } catch (RepositoryException e) {
-      LOGGER.warn("Unable to handle linked file.");
-      e.printStackTrace();
-      response.sendError(500, "Unable to handle linked file.");
-    }
-  }
-  
+	//
+	// Needed to bind all the file handlers out there to this servlet.
+	//
+	private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
 
-  //
-  // Needed to bind all the file handlers out there to this servlet.
-  //
-  private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
+	protected void bindLinkHandler(ServiceReference serviceReference) {
+		fileHandlerTracker.bindLinkHandler(serviceReference);
+	}
 
-  protected void bindLinkHandler(ServiceReference serviceReference) {
-    fileHandlerTracker.bindLinkHandler(serviceReference);
-  }
+	protected void unbindLinkHandler(ServiceReference serviceReference) {
+		fileHandlerTracker.unbindLinkHandler(serviceReference);
+	}
 
-  protected void unbindLinkHandler(ServiceReference serviceReference) {
-    fileHandlerTracker.unbindLinkHandler(serviceReference);
-  }
+	protected void activate(ComponentContext componentContext) {
+		fileHandlerTracker.setComponentContext(componentContext);
+	}
 
-  protected void activate(ComponentContext componentContext) {
-    fileHandlerTracker.setComponentContext(componentContext);
-  }
-  
 }
