@@ -18,10 +18,14 @@
 package org.sakaiproject.kernel.chat;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.util.ISO9075;
+import org.apache.sling.commons.scheduler.Scheduler;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
@@ -30,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -41,48 +43,19 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 
-/**
- * @scr.component metatype="no" immediate="true"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository" bind="bindSlingRepository"
- *                unbind="unbindSlingRepository"
- */
-public class ChatMessageCleaner extends TimerTask {
-
-  private Timer chatCleanUpTimer;
+@Component(metatype=false, immediate=true)
+@Properties(value = {
+    @Property(name = Scheduler.PROPERTY_SCHEDULER_CONCURRENT, boolValue = false),
+    @Property(name = Scheduler.PROPERTY_SCHEDULER_PERIOD, longValue = MessageConstants.CLEAUNUP_EVERY_X_SECONDS) })
+public class ChatMessageCleaner implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ChatMessageCleaner.class);
   /**
    * The JCR Repository we access to update profile.
    * 
    */
+  @Reference
   private SlingRepository slingRepository;
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
-  /**
-   * @param componentContext
-   */
-  protected void activate(ComponentContext componentContext) {
-    // Start the timer that will delete this message.
-    chatCleanUpTimer = new Timer();
-    chatCleanUpTimer.schedule(this, 15 * 1000,
-        MessageConstants.CLEAUNUP_EVERY_X_MINUTES * 1000 * 60);
-
-    LOGGER.info("Started the chats cleanup timer.");
-  }
-
-  protected void deactivate(ComponentContext componentContext) {
-    if (chatCleanUpTimer != null) {
-      chatCleanUpTimer.cancel();
-    }
-  }
 
   /**
    * 
@@ -93,10 +66,8 @@ public class ChatMessageCleaner extends TimerTask {
 
   /**
    * {@inheritDoc}
-   * 
-   * @see java.util.TimerTask#run()
+   * @see java.lang.Runnable#run()
    */
-  @Override
   public void run() {
 
     LOGGER.info("Starting chat messages cleanup process.");
@@ -109,7 +80,7 @@ public class ChatMessageCleaner extends TimerTask {
 
       // Get the current date and substract x minutes of it.
       Date d = new Date();
-      d = DateUtils.addMinutes(d, MessageConstants.CLEAUNUP_EVERY_X_MINUTES);
+      d = DateUtils.addSeconds(d, MessageConstants.CLEAUNUP_EVERY_X_SECONDS);
 
       // Make the format for the JCR query
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

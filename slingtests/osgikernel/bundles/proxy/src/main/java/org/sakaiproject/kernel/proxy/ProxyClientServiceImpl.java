@@ -65,7 +65,6 @@ import javax.jcr.Value;
 @Component(immediate = true)
 public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSource {
 
-
   /**
    * 
    */
@@ -184,17 +183,19 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @throws ProxyClientException
    */
   public ProxyResponse executeCall(Node node, Map<String, String> headers,
-      Map<String, String> input, InputStream requestInputStream,
-      long requestContentLength, String requestContentType) throws ProxyClientException {
+      Map<String, Object> input,
+      InputStream requestInputStream, long requestContentLength, String requestContentType)
+      throws ProxyClientException {
     try {
       bindNode(node);
-    
+
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
 
         VelocityContext context = new VelocityContext(input);
 
         // setup the post request
-        String endpointURL = JcrUtils.getMultiValueString(node.getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
+        String endpointURL = JcrUtils.getMultiValueString(node
+            .getProperty(SAKAI_REQUEST_PROXY_ENDPOINT));
         Reader urlTemplateReader = new StringReader(endpointURL);
         StringWriter urlWriter = new StringWriter();
         velocityEngine.evaluate(context, urlWriter, "urlprocessing", urlTemplateReader);
@@ -249,36 +250,53 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         for (Entry<String, String> header : headers.entrySet()) {
           method.addRequestHeader(header.getKey(), header.getValue());
         }
-        
+
         Value[] additionalHeaders = JcrUtils.getValues(node, SAKAI_PROXY_HEADER);
-        for ( Value v : additionalHeaders ) {
+        for (Value v : additionalHeaders) {
           String header = v.getString();
           String[] keyVal = StringUtils.split(header, ':', 2);
           method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
         }
+        if (requestInputStream == null && !node.hasProperty(SAKAI_PROXY_REQUEST_TEMPLATE)) {
+          if (method instanceof PostMethod) {
+            PostMethod postMethod = (PostMethod) method;
+            for (Entry<String, Object> param : input.entrySet()) {
+              Object v = param.getValue();
+              if (v instanceof String[]) {
+                for (String val : (String[])v) {
+                  postMethod.addParameter(param.getKey(), val);
+                }
+              } else {
+                postMethod.addParameter(param.getKey(), String.valueOf(v));
 
-        if (method instanceof EntityEnclosingMethod) {
-          String contentType = requestContentType;
-          if (contentType == null && node.hasProperty(SAKAI_REQUEST_CONTENT_TYPE)) {
-            contentType = node.getProperty(SAKAI_REQUEST_CONTENT_TYPE).getString();
-
+              }
+            }
           }
-          if (contentType == null) {
-            contentType = APPLICATION_OCTET_STREAM;
-          }
-          EntityEnclosingMethod eemethod = (EntityEnclosingMethod) method;
-          if (requestInputStream != null) {
-            eemethod.setRequestEntity(new InputStreamRequestEntity(requestInputStream,
-                requestContentLength, contentType));
-          } else {
-            // build the request
-            Template template = velocityEngine.getTemplate(node.getPath());
-            StringWriter body = new StringWriter();
-            template.merge(context, body);
-            byte[] soapBodyContent = body.toString().getBytes("UTF-8");
-            eemethod.setRequestEntity(new ByteArrayRequestEntity(soapBodyContent,
-                contentType));
+        } else {
 
+          if (method instanceof EntityEnclosingMethod) {
+            String contentType = requestContentType;
+            if (contentType == null && node.hasProperty(SAKAI_REQUEST_CONTENT_TYPE)) {
+              contentType = node.getProperty(SAKAI_REQUEST_CONTENT_TYPE).getString();
+
+            }
+            if (contentType == null) {
+              contentType = APPLICATION_OCTET_STREAM;
+            }
+            EntityEnclosingMethod eemethod = (EntityEnclosingMethod) method;
+            if (requestInputStream != null) {
+              eemethod.setRequestEntity(new InputStreamRequestEntity(requestInputStream,
+                  requestContentLength, contentType));
+            } else {
+              // build the request
+              Template template = velocityEngine.getTemplate(node.getPath());
+              StringWriter body = new StringWriter();
+              template.merge(context, body);
+              byte[] soapBodyContent = body.toString().getBytes("UTF-8");
+              eemethod.setRequestEntity(new ByteArrayRequestEntity(soapBodyContent,
+                  contentType));
+
+            }
           }
         }
 
@@ -308,6 +326,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
   public HttpConnectionManager getHttpConnectionManager() {
     return httpClientConnectionManager;
   }
+
   /**
    * 
    */

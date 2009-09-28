@@ -103,7 +103,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
       RepositoryException {
 
     replay();
-    Map<String, String> input = new HashMap<String, String>();
+    Map<String, Object> input = new HashMap<String, Object>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
       ProxyResponse response = proxyClientServiceImpl.executeCall(null, headers, input, null, 0, null);
@@ -129,7 +129,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         false);
 
     replay();
-    Map<String, String> input = new HashMap<String, String>();
+    Map<String, Object> input = new HashMap<String, Object>();
     Map<String, String> headers = new HashMap<String, String>();
     try {
       ProxyResponse response = proxyClientServiceImpl.executeCall(node, headers, input, null, 0, null);
@@ -204,7 +204,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     dummyServer.setResponseBody(RESPONSE_BODY);
 
     replay();
-    Map<String, String> input = new HashMap<String, String>();
+    Map<String, Object> input = new HashMap<String, Object>();
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
@@ -262,7 +262,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     dummyServer.setResponseBody(RESPONSE_BODY);
 
     replay();
-    Map<String, String> input = new HashMap<String, String>();
+    Map<String, Object> input = new HashMap<String, Object>();
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
@@ -320,6 +320,8 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
     Value value = createMock(Value.class);
 
+    expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_REQUEST_TEMPLATE)).andReturn(
+        false).anyTimes();
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
 
@@ -344,7 +346,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     dummyServer.setResponseBody(body);
 
     replay();
-    Map<String, String> input = new HashMap<String, String>();
+    Map<String, Object> input = new HashMap<String, Object>();
     input.put("stockName", STOCK_NAME);
 
     Map<String, String> headers = new HashMap<String, String>();
