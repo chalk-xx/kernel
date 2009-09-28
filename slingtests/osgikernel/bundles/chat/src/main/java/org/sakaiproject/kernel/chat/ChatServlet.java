@@ -86,7 +86,9 @@ public class ChatServlet extends SlingAllMethodsServlet {
       LOGGER.warn("Unable to parse JSON for user {} and time {}", userID, time);
       e.printStackTrace();
       response.sendError(500, "Unable to parse JSON.");
-
     }
+    
+    // Make sure the connection is not keep-alive.
+    response.setHeader("Connection", "close");
   }
 }
