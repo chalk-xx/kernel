@@ -30,7 +30,6 @@
       </activation>
       <modules>
      <!--   <module>bundles/shindig</module> -->
-        <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>app</module>
         <module>app-bundles</module>
         <module>libraries/testutils</module>
@@ -92,6 +91,7 @@
         <module>libraries/utils</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
+        <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/api</module>
         <module>bundles/sling/resource</module>
         <module>bundles/sling/accessmanager</module>
@@ -503,7 +503,7 @@
       <name>Apache Snapshot Repository</name>
       <url>http://repository.apache.org/snapshots/</url>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
       <releases>
         <enabled>false</enabled>
