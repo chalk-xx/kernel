@@ -41,13 +41,11 @@ import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.QuerySyntaxException;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
-import org.apache.sling.jcr.resource.PathResourceTypeProvider;
 import org.apache.sling.jcr.resource.internal.helper.MapEntries;
 import org.apache.sling.jcr.resource.internal.helper.MapEntry;
 import org.apache.sling.jcr.resource.internal.helper.RedirectResource;
@@ -61,7 +59,6 @@ import org.slf4j.LoggerFactory;
 public class JcrResourceResolver2 extends SlingAdaptable implements
         ResourceResolver {
 
-    public static final String SAKAI_EXTENSION_BUNDLE = "sakai.extension";
     private static final String MANGLE_NAMESPACE_IN_SUFFIX = "_";
 
     private static final String MANGLE_NAMESPACE_IN_PREFIX = "/_";
@@ -234,39 +231,10 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
         // if no resource has been found, use a NonExistingResource
         if (res == null) {
-            log.info(
+            log.debug(
                 "resolve: Path {} does not resolve, returning NonExistingResource at {}",
                 absPath, realPathList[0]);
-            String absRealPath = ensureAbsPath(realPathList[0]);
-            final String resourceType = getPathResourceType(absRealPath);
-            if ( resourceType == null ) {
-              res = new NonExistingResource(this, absRealPath);
-            } else {
-              final ResourceMetadata resourceMetaData = ResourceMetatdatFactory.createMetadata(absRealPath);
-              res = new NonExistingResource(this, absRealPath) {
-                
-                /**
-                 * {@inheritDoc}
-                 * @see org.apache.sling.api.resource.NonExistingResource#getResourceType()
-                 */
-                @Override
-                public String getResourceType() {
-                  return resourceType;
-                }
-                
-                /**
-                 * {@inheritDoc}
-                 * @see org.apache.sling.api.resource.SyntheticResource#getResourceMetadata()
-                 */
-                @Override
-                public ResourceMetadata getResourceMetadata() {
-                  return resourceMetaData;
-                }
-                
-                
-              };
-                
-            }
+            res = resolveNonExistingResoruce(ensureAbsPath(realPathList[0]));
         } else {
             log.debug("resolve: Path {} resolves to Resource {}", absPath, res);
         }
@@ -274,7 +242,14 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
         return res;
     }
 
-
+    /**
+     * @param jcrResourceResolver2
+     * @param string
+     * @return
+     */
+    protected Resource resolveNonExistingResoruce(String absRealPath) {
+      return new NonExistingResource(this, absRealPath);
+    }
 
     // calls map(HttpServletRequest, String) as map(null, resourcePath)
     public String map(String resourcePath) {
@@ -292,7 +267,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
         if (fragmentQueryMark < 0) {
             fragmentQueryMark = resourcePath.indexOf('?');
         }
-        
+
         // cut fragment or query off the resource path
         String mappedPath;
         final String fragmentQuery;
@@ -305,7 +280,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
             fragmentQuery = null;
             mappedPath = resourcePath;
         }
-        
+
 
         // cut off scheme and host, if the same as requested
         String schemehostport;
@@ -323,12 +298,11 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
         }
 
-        String resolutionPathInfo;
         Resource res = resolveInternal(mappedPath);
         if (res != null) {
 
             // keep, what we might have cut off in internal resolution
-            resolutionPathInfo = res.getResourceMetadata().getResolutionPathInfo();
+            final String resolutionPathInfo = res.getResourceMetadata().getResolutionPathInfo();
 
             log.debug("map: Path maps to resource {} with path info {}", res,
                 resolutionPathInfo);
@@ -352,14 +326,16 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
                 buf.append('/');
                 buf.append(names.removeLast());
             }
+
+            // reappend the resolutionPathInfo
+            if (resolutionPathInfo != null) {
+                buf.append(resolutionPathInfo);
+            }
+
+            // and then we have the mapped path to work on
             mappedPath = buf.toString();
 
             log.debug("map: Alias mapping resolves to path {}", mappedPath);
-
-        } else {
-
-            // we have no resource, hence no resolution path info
-            resolutionPathInfo = null;
 
         }
 
@@ -397,11 +373,6 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
         // this should not be the case, since mappedPath is primed
         if (mappedPath == null) {
             mappedPath = resourcePath;
-        }
-
-        // append resolution path info, which might have been cut off above
-        if (resolutionPathInfo != null) {
-            mappedPath = mappedPath.concat(resolutionPathInfo);
         }
 
         if (mappedPathIsUrl) {
@@ -658,6 +629,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
             // no direct resource found, so we have to drill down into the
             // resource tree to find a match
             resource = getResourceInternal("/");
+            StringBuilder resolutionPath = new StringBuilder();
             StringTokenizer tokener = new StringTokenizer(absPath, "/");
             while (resource != null && tokener.hasMoreTokens()) {
                 String childNameRaw = tokener.nextToken();
@@ -666,6 +638,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
                 if (nextResource != null) {
 
                     resource = nextResource;
+                    resolutionPath.append("/").append(childNameRaw);
 
                 } else {
 
@@ -680,20 +653,29 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
                     // switch the currentResource to the nextResource (may be
                     // null)
                     resource = nextResource;
+                    resolutionPath.append("/").append(childName);
 
-                    // SLING-627: set the part cut off from the uriPath as
-                    // sling.resolutionPathInfo property such that
-                    // uriPath = curPath + sling.resolutionPathInfo
+                    // terminate the search if a resource has been found
+                    // with the extension cut off
                     if (nextResource != null) {
-                        String path = ResourceUtil.normalize(ResourceUtil.getParent(
-                            nextResource).getPath()
-                            + "/" + childName);
-                        String pathInfo = absPath.substring(path.length());
-                        nextResource.getResourceMetadata().setResolutionPathInfo(
-                            pathInfo);
                         break;
                     }
                 }
+            }
+
+            // SLING-627: set the part cut off from the uriPath as
+            // sling.resolutionPathInfo property such that
+            // uriPath = curPath + sling.resolutionPathInfo
+            if (resource != null) {
+                final String path = resolutionPath.toString();
+                final String pathInfo = absPath.substring(path.length());
+
+                resource.getResourceMetadata().setResolutionPath(path);
+                resource.getResourceMetadata().setResolutionPathInfo(pathInfo);
+
+                log.debug(
+                    "resolveInternal: Found resource {} with path info {} for {}",
+                    new Object[] { resource, pathInfo, absPath });
             }
         }
 
@@ -793,18 +775,18 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
         if (factory.isMangleNamespacePrefixes() && absPath.contains(MANGLE_NAMESPACE_OUT_SUFFIX)) {
             Pattern p = Pattern.compile(MANGLE_NAMESPACE_OUT);
             Matcher m = p.matcher(absPath);
-            
+
             StringBuffer buf = new StringBuffer();
             while (m.find()) {
                 String replacement = MANGLE_NAMESPACE_IN_PREFIX + m.group(1) + MANGLE_NAMESPACE_IN_SUFFIX;
                 m.appendReplacement(buf, replacement);
             }
-            
+
             m.appendTail(buf);
-            
+
             absPath = buf.toString();
         }
-        
+
         return absPath;
     }
 
@@ -820,24 +802,24 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
                     // throws if "namespace" is not a registered
                     // namespace prefix
                     getSession().getNamespaceURI(namespace);
-                    
+
                     String replacement = MANGLE_NAMESPACE_OUT_PREFIX
                         + namespace + MANGLE_NAMESPACE_OUT_SUFFIX;
                     m.appendReplacement(buf, replacement);
-                    
+
                 } catch (NamespaceException ne) {
-                    
+
                     // not a valid prefix
                     log.debug(
                         "unmangleNamespaces: '{}' is not a prefix, not unmangling",
                         namespace);
-                    
+
                 } catch (RepositoryException re) {
-                    
+
                     log.warn(
                         "unmangleNamespaces: Problem checking namespace '{}'",
                         namespace, re);
-                    
+
                 }
             }
             m.appendTail(buf);
@@ -846,27 +828,4 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
         return absPath;
     }
-    
-    /**
-     * Gets the resource type from the path consulting providers, returning the first non null match.
-     * @param absRealPath the abs real URI of the respource, that may or may not exist.
-     * @return null if there is no Path based resoruce type, otherwise the first matching resource type.
-     */
-    private String getPathResourceType(String absRealPath) {
-      PathResourceTypeProvider[] pathResourceTypeProviders = factory.getPathResourceTypeProviders();
-      if ( pathResourceTypeProviders != null ) {
-        for ( PathResourceTypeProvider prp : factory.getPathResourceTypeProviders()) {
-          log.debug("Trying  {}",prp);
-          String resourceType = prp.getResourceTypeFromPath(this,absRealPath);
-          if ( resourceType != null ) {
-            log.debug("Got  {}",resourceType);
-                  return resourceType;
-          }
-        }
-      } else {
-        log.info("No ResourcePathTypeResolvers ");
-      }
-      return null;
-    }
-
 }
