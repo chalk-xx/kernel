@@ -34,13 +34,14 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.files.FilesConstants;
 
 import com.google.common.collect.Lists;
 
 /**
  * Update a file
  * 
- * @scr.component metatype="no" immediate="true" label="FileUploadServlet"
+ * @scr.component metatype="no" immediate="true" label="FileUpdateServlet"
  *                description ="Servlet to allow to update a file."
  * @scr.property name="service.description" value="Updates files in the store."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -49,7 +50,7 @@ import com.google.common.collect.Lists;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
  */
-public class FileUploadServlet extends SlingAllMethodsServlet {
+public class FileUpdateServlet extends SlingAllMethodsServlet {
 
 	private static final long serialVersionUID = -625686874623971605L;
 
@@ -91,25 +92,30 @@ public class FileUploadServlet extends SlingAllMethodsServlet {
 				}
 			}
 
-			String fileName = FileUtils.saveFile(session, path, id, file, contentType).getName();
-			
+			Node fileNode = FileUtils.saveFile(session, path, id, file,
+					contentType);
+			String fileName = fileNode.getProperty(
+					FilesConstants.SAKAI_FILENAME).getString();
+
 			RequestParameter[] links = request.getRequestParameters("link");
-			
+
 			List<String> createdLinks = Lists.newArrayList();
 			for (RequestParameter link : links) {
 				String linkPath = link.getString();
 				if (!linkPath.startsWith("/")) {
-					response.sendError(400, "A link should be an absolute path.");
+					response.sendError(400,
+							"A link should be an absolute path.");
 					return;
 				}
-				if (!linkPath.endsWith("/")) linkPath += "/";
+				if (!linkPath.endsWith("/"))
+					linkPath += "/";
 				linkPath += fileName;
 				FileUtils.createLink(session, node, linkPath);
 				createdLinks.add(linkPath);
 			}
-			
+
 			session.save();
-			
+
 			// Print a JSON response back
 			JSONWriter writer = new JSONWriter(response.getWriter());
 			writer.object();
@@ -126,13 +132,13 @@ public class FileUploadServlet extends SlingAllMethodsServlet {
 			}
 			writer.endArray();
 			writer.endObject();
-			
+
 		} catch (RepositoryException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 
 	}

@@ -6,6 +6,7 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.files.search.FileSearchResultProcessor;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
 
 /**
@@ -58,6 +60,7 @@ public class FilesFolderServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
 
     Node node = (Node) request.getResource().adaptTo(Node.class);
+    Session session = request.getResourceResolver().adaptTo(Session.class);
     String path = "";
 
     // Get all the children of this node.
@@ -78,8 +81,8 @@ public class FilesFolderServlet extends SlingAllMethodsServlet {
         if (child.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
           String resourceType = child.getProperty(
               JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
-          if (resourceType.equals(FilesConstants.RT_SAKAI_FILE)) {
-            processor.writeNode(write, child);
+          if (resourceType.equals(FilesConstants.RT_SAKAI_LINK)) {
+        	  FileUtils.writeLinkNode(child, session, write, siteService);
           }
           // Folder node
           else if (resourceType.equals(FilesConstants.RT_SAKAI_FOLDER)){

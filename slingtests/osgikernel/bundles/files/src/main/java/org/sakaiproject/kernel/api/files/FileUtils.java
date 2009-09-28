@@ -19,16 +19,24 @@ package org.sakaiproject.kernel.api.files;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.AccessControlException;
 import java.util.Calendar;
 
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -40,8 +48,7 @@ public class FileUtils {
 			.getLogger(FileUtils.class);
 
 	/**
-	 * Save a file.
-	 * You will have to call session.save() your self!.
+	 * Save a file. You will have to call session.save() your self!.
 	 * 
 	 * @param session
 	 * @param path
@@ -110,7 +117,8 @@ public class FileUtils {
 	}
 
 	/**
-	 * Create a link to a file. Note: You will have to call session.save() your self!.
+	 * Create a link to a file. Note: You will have to call session.save() your
+	 * self!.
 	 * 
 	 * @param session
 	 *            The current session.
@@ -127,7 +135,7 @@ public class FileUtils {
 		linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
 				FilesConstants.RT_SAKAI_LINK);
 		String uri = FileUtils.getDownloadPath(fileNode);
-		linkNode.setProperty(FilesConstants.SAKAI_LINK,"jcrinternal:" +  uri);
+		linkNode.setProperty(FilesConstants.SAKAI_LINK, "jcrinternal:" + uri);
 		linkNode.setProperty("jcr:reference", fileNode.getUUID());
 	}
 
@@ -198,4 +206,170 @@ public class FileUtils {
 		return null;
 	}
 
+	/**
+	 * Writes all the properties of a sakai/file node. Also checks what the
+	 * permissions are for a session and where the links are.
+	 * 
+	 * @param node
+	 * @param write
+	 * @throws JSONException
+	 * @throws RepositoryException
+	 */
+	public static void writeFileNode(Node node, Session session,
+			JSONWriter write, SiteService siteService) throws JSONException,
+			RepositoryException {
+		write.object();
+		// dump all the properties.
+		ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+		// The permissions for this session.
+		writePermissions(node, session, write);
+
+		// The download path to this file.
+		write.key("path");
+		write.value(FileUtils.getDownloadPath(node));
+
+		// Get all the sites where this file is referenced.
+		getSites(node, write, siteService);
+
+		write.endObject();
+	}
+
+	/**
+	 * Writes all the properties for a linked node.
+	 * 
+	 * @param node
+	 * @param write
+	 * @param siteService
+	 * @throws JSONException
+	 * @throws RepositoryException
+	 */
+	public static void writeLinkNode(Node node, Session session,
+			JSONWriter write, SiteService siteService) throws JSONException,
+			RepositoryException {
+		write.object();
+		// Write all the properties.
+		ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+		// The name of this file.
+		write.key("name");
+		write.value(node.getName());
+		// Download path.
+		write.key("path");
+		write.value(node.getPath());
+		// permissions
+		writePermissions(node, session, write);
+
+		// Write the actual file.
+		if (node.hasProperty("jcr:reference")) {
+			String uuid = node.getProperty("jcr:reference").getString();
+			write.key("file");
+			try {
+				Node fileNode = session.getNodeByUUID(uuid);
+				writeFileNode(fileNode, session, write, siteService);
+			} catch (ItemNotFoundException e) {
+				write.value(false);
+			}
+		}
+
+		write.endObject();
+	}
+
+	/**
+	 * Gives the permissions for this user.
+	 * 
+	 * @param node
+	 * @param session
+	 * @param write
+	 * @throws RepositoryException
+	 * @throws JSONException
+	 */
+	private static void writePermissions(Node node, Session session,
+			JSONWriter write) throws RepositoryException, JSONException {
+		String path = node.getPath();
+		write.key("permissions");
+		write.object();
+		write.key("set_property");
+		write.value(hasPermission(session, path, "set_property"));
+		write.key("read");
+		write.value(hasPermission(session, path, "read"));
+		write.key("remove");
+		write.value(hasPermission(session, path, "remove"));
+		write.endObject();
+	}
+
+	/**
+	 * Checks if the current user has a permission on a path.
+	 * 
+	 * @param session
+	 * @param path
+	 * @param permission
+	 * @return
+	 */
+	private static boolean hasPermission(Session session, String path,
+			String permission) {
+		try {
+			session.checkPermission(path, permission);
+			return true;
+		} catch (AccessControlException e) {
+			return false;
+		} catch (RepositoryException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Gets all the sites where this file is used and parses the info for it.
+	 * 
+	 * @param node
+	 * @param write
+	 * @throws RepositoryException
+	 * @throws JSONException
+	 */
+	private static void getSites(Node node, JSONWriter write,
+			SiteService siteService) throws RepositoryException, JSONException {
+
+		write.key("usedIn");
+		write.object();
+		write.key("sites");
+		write.array();
+		PropertyIterator pi = node.getReferences();
+		int total = 0;
+		while (pi.hasNext()) {
+			Property p = pi.nextProperty();
+			Node parent = p.getParent(); // Get the node for this property.
+			LOGGER.info(parent.getPath());
+
+			while (!parent.getPath().equals("/")) {
+				// If it is a site service then we print it out.
+				if (siteService.isSite(parent)) {
+					writeSiteInfo(parent, write, siteService);
+					total++;
+					break;
+				}
+				parent = parent.getParent();
+			}
+		}
+		write.endArray();
+		write.key("total");
+		write.value(total);
+		write.endObject();
+	}
+
+	/**
+	 * Parses the info for a site.
+	 * 
+	 * @param siteNode
+	 * @param write
+	 * @throws JSONException
+	 * @throws RepositoryException
+	 */
+	private static void writeSiteInfo(Node siteNode, JSONWriter write,
+			SiteService siteService) throws JSONException, RepositoryException {
+		write.object();
+		write.key("member-count");
+		write.value(String.valueOf(siteService.getMemberCount(siteNode)));
+		write.key("path");
+		write.value(siteNode.getPath());
+		ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
+		write.endObject();
+	}
 }

@@ -69,7 +69,7 @@ public class FileServlet extends SlingAllMethodsServlet {
 
     // If we provided a filename and we haven't changed the name in a previous request.
     if (filename != null && !response.containsHeader("Content-Disposition")) {
-      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename
+      response.setHeader("Content-Disposition", "filename=\"" + filename
           + "\"");
     }
     InputStream in = (InputStream) request.getResource().adaptTo(InputStream.class);
