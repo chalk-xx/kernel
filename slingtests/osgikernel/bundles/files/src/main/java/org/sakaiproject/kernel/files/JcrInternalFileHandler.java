@@ -76,7 +76,7 @@ public class JcrInternalFileHandler implements LinkHandler {
 
     // If we provided a filename and we haven't changed the name in a previous request.
     if (filename != null && !response.containsHeader("Content-Disposition")) {
-      response.setHeader("Content-Disposition", "attachment; filename=\"" + filename
+      response.setHeader("Content-Disposition", "sfilename=\"" + filename
           + "\"");
     }
     
