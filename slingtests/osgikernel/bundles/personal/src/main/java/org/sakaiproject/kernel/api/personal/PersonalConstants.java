@@ -55,21 +55,25 @@ public interface PersonalConstants {
    * The resource type for the public group store.
    */
   public static final String GROUP_PUBLIC_RESOURCE_TYPE = "sakai/groupPublic";
-  
+
   /**
   *
   */
- public static final String PERSONAL_OPERATION = "org.sakaiproject.kernel.personal.operation";
+  public static final String PERSONAL_OPERATION = "org.sakaiproject.kernel.personal.operation";
 
- 
- /**
-  * The node name of the authentication profile in public space.
-  */
- public static final String AUTH_PROFILE = "authprofile";
- 
- /**
-  * Property name for the e-mail property of a user's profile
-  */
- public static final String EMAIL_ADDRESS = "email";
+  /**
+   * The node name of the authentication profile in public space.
+   */
+  public static final String AUTH_PROFILE = "authprofile";
+
+  /**
+   * Property name for the e-mail property of a user's profile
+   */
+  public static final String EMAIL_ADDRESS = "email";
+
+  /**
+   * Property name for the user's preferred means of message delivery
+   */
+  public static final String PREFERRED_MESSAGE_TRANSPORT = "preferredMessageTransport";
 
 }

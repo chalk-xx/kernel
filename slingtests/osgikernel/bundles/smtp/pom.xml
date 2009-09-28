@@ -27,10 +27,6 @@
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
@@ -41,7 +37,7 @@
             <Embed-Dependency>subethasmtp</Embed-Dependency>
           </instructions>
         </configuration>
-      </plugin>        
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -57,6 +53,13 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-scr-plugin</artifactId>
+        <version>1.4.0</version>
+        <configuration>
+        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -134,6 +137,17 @@
       <groupId>javax.mail</groupId>      
       <artifactId>mail</artifactId>      
       <version>1.4</version>             
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.personal</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
   <repositories>
