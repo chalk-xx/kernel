@@ -15,13 +15,13 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.message.chat;
+package org.sakaiproject.kernel.chat;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
-import org.sakaiproject.kernel.message.MessageSearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -31,16 +31,13 @@ import javax.jcr.RepositoryException;
 /**
  * Formats message node search results
  * 
- * @scr.component immediate="true" label="MessageSearchResultProcessor"
- *                description="Formatter for message search results"
+ * @scr.component immediate="true" label="ChatMessageSearchResultProcessor"
+ *                description="Formatter for chat message search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="ChatMessage"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.kernel.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
-public class ChatMessageSearchResultProcessor extends MessageSearchResultProcessor {
+public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
 
   /**
    * Parses the message to a usable JSON format for the UI. Once a message gets fetched it
