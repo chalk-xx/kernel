@@ -104,6 +104,8 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
 			ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
 			write.key("path");
 			write.value(node.getPath());
+			write.key("name");
+			write.value(node.getName());
 			write.endObject();
 		}
 	}

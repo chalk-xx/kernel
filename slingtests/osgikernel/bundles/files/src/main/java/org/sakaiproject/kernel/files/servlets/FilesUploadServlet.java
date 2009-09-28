@@ -36,6 +36,7 @@ import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,6 +208,8 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 		if (id.endsWith("=="))
 			id = id.substring(0, id.length() - 2);
 
+		id = id.replace('/', '_');
+		
 		String path = FileUtils.getHashedPath(store, id);
 
 		Node fileNode = FileUtils
