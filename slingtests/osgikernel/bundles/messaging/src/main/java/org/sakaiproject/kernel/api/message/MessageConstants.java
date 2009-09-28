@@ -152,10 +152,6 @@ public interface MessageConstants {
    */
   public static final String TYPE_SMTP = "smtp";
 
-  /**
-   * Cleanup chat messages every X minutes
-   */
-  public static final int CLEAUNUP_EVERY_X_MINUTES = 120;
 
   /**
    * The user message path.
@@ -178,4 +174,6 @@ public interface MessageConstants {
    */
   public static final String REG_PROCESSOR_NAMES = "sakai.message.createpreprocessor";
   public static final String MESSAGE_CREATE_PREPROCESSOR = "CreateMessagePreProcessor";
+
+  public static final int CLEAUNUP_EVERY_X_SECONDS = 7200;
 }
