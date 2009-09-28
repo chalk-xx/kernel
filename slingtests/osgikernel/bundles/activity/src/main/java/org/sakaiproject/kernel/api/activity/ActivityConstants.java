@@ -18,7 +18,7 @@
 package org.sakaiproject.kernel.api.activity;
 
 /**
- *
+ * HTTP Stuff
  */
 public interface ActivityConstants {
   public static final String REQUEST_PARAM_APPLICATION_ID = "applicationId";
@@ -31,10 +31,13 @@ public interface ActivityConstants {
   public static final String TEMPLATE_ROOTFOLDER = "/var/activity/templates";
   public static final String ACTIVITY_STORE_RESOURCE_TYPE = "sakai/activityStore";
   public static final String ACTIVITY_FEED_RESOURCE_TYPE = "sakai/activityFeed";
-
-  public static final String EVENT_TOPIC = "org/sakaiproject/kernel/activity";
-
   public static final String PROPERTY_ROOT = "sakaiActivityFeed";
   public static final String ACTOR_PROPERTY = PROPERTY_ROOT + "Actor";
   public static final String SOURCE_PROPERTY = PROPERTY_ROOT + "Source";
+
+  /**
+   * Events
+   */
+  public static final String EVENT_TOPIC = "org/sakaiproject/kernel/activity";
+
 }
