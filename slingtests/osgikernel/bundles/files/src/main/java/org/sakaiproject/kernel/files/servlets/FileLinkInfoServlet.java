@@ -17,13 +17,6 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
-import java.io.IOException;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.ServletException;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -33,6 +26,13 @@ import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletException;
 
 /**
  * Dumps the info for a link.
@@ -50,38 +50,35 @@ import org.slf4j.LoggerFactory;
  */
 public class FileLinkInfoServlet extends SlingAllMethodsServlet {
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(FileLinkInfoServlet.class);
-	private static final long serialVersionUID = -527034533334782419L;
-	private SiteService siteService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(FileLinkInfoServlet.class);
+  private static final long serialVersionUID = -527034533334782419L;
+  private SiteService siteService;
 
-	protected void bindSiteService(SiteService siteService) {
-		this.siteService = siteService;
-	}
+  protected void bindSiteService(SiteService siteService) {
+    this.siteService = siteService;
+  }
 
-	protected void unbindSiteService(SiteService siteService) {
-		this.siteService = null;
-	}
+  protected void unbindSiteService(SiteService siteService) {
+    this.siteService = null;
+  }
 
-	@Override
-	protected void doGet(SlingHttpServletRequest request,
-			SlingHttpServletResponse response) throws ServletException,
-			IOException {
+  @Override
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
 
-		try {
-			Node node = (Node) request.getResource().adaptTo(Node.class);
-			Session session = request.getResourceResolver().adaptTo(
-					Session.class);
-			JSONWriter write = new JSONWriter(response.getWriter());
-			FileUtils.writeLinkNode(node, session, write, siteService);
-		} catch (RepositoryException e) {
-			LOGGER.warn("Unable to get file info for link.");
-			e.printStackTrace();
-			response.sendError(500, "Unable get file info.");
+    try {
+      Node node = (Node) request.getResource().adaptTo(Node.class);
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      JSONWriter write = new JSONWriter(response.getWriter());
+      FileUtils.writeLinkNode(node, session, write, siteService);
+    } catch (RepositoryException e) {
+      LOGGER.warn("Unable to get file info for link.");
+      e.printStackTrace();
+      response.sendError(500, "Unable get file info.");
 
-			e.printStackTrace();
-		} catch (JSONException e) {
-			response.sendError(500, "Unable to parse JSON.");
-		}
-	}
+      e.printStackTrace();
+    } catch (JSONException e) {
+      response.sendError(500, "Unable to parse JSON.");
+    }
+  }
 }

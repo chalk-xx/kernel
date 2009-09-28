@@ -71,7 +71,7 @@ public interface FilesConstants {
    * FileHandlerProcessor
    */
   public static final String LINK_HANDLER = "LinkHandler";
-  
+
   public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
 
 }

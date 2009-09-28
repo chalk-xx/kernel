@@ -56,7 +56,7 @@ public class FileServlet extends SlingAllMethodsServlet {
 
     Resource resource = request.getResource();
     Node node = (Node) resource.adaptTo(Node.class);
-    
+
     String filename = null;
     try {
       if (node.hasProperty(FilesConstants.SAKAI_FILENAME)) {
@@ -69,8 +69,7 @@ public class FileServlet extends SlingAllMethodsServlet {
 
     // If we provided a filename and we haven't changed the name in a previous request.
     if (filename != null && !response.containsHeader("Content-Disposition")) {
-      response.setHeader("Content-Disposition", "filename=\"" + filename
-          + "\"");
+      response.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
     }
     InputStream in = (InputStream) request.getResource().adaptTo(InputStream.class);
     OutputStream out = response.getOutputStream();
