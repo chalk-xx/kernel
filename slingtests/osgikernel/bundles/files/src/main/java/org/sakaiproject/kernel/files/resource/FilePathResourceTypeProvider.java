@@ -21,12 +21,13 @@ import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 
 /**
- * This class checks resource paths to see if there is a preferred resource type, where the
- * path is not a jcr path.
+ * This class checks resource paths to see if there is a preferred resource type, where
+ * the path is not a jcr path.
  * 
  * @scr.component immediate="true" label="FilePathResourceTypeProvider"
  *                description="Files Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for file store resources"
+ * @scr.property name="service.description"
+ *               value="Handles requests for file store resources"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */

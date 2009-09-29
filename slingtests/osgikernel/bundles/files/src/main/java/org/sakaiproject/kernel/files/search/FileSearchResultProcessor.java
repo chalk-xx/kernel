@@ -28,11 +28,7 @@ import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.AccessControlException;
-
 import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -89,118 +85,26 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
    */
   private void writeFileNode(JSONWriter write, Node node, Session session)
       throws JSONException, RepositoryException {
-    write.object();
-    // dump all the properties.
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    String path = node.getPath();
-
-    write.key("name");
-    write.value(node.getName());
-
-    write.key("permissions");
-    write.object();
-    write.key("set_property");
-    write.value(hasPermission(session, path, "set_property"));
-    write.key("read");
-    write.value(hasPermission(session, path, "read"));
-    write.key("remove");
-    write.value(hasPermission(session, path, "remove"));
-    write.endObject();
-
     String type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
         .getString();
 
     // If it is a file node we provide some extra properties.
     if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
-      // proper file
-      // Sites where this file is used in.
-      getSites(node, write);
-
-      write.key("path");
-      write.value(FileUtils.getDownloadPath(node));
+      FileUtils.writeFileNode(node, session, write, siteService);
 
     } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
       // This is a linked file.
-      write.key("path");
-      write.value(node.getPath());
+      FileUtils.writeLinkNode(node, session, write, siteService);
+
     } else if (FilesConstants.RT_SAKAI_FOLDER.equals(type)) {
+      write.object();
+      // dump all the properties.
+      ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
       write.key("path");
       write.value(node.getPath());
-    }
-
-    write.endObject();
-  }
-
-  /**
-   * Checks if the current user has a permission on a path.
-   * 
-   * @param session
-   * @param path
-   * @param permission
-   * @return
-   */
-  private boolean hasPermission(Session session, String path, String permission) {
-    try {
-      session.checkPermission(path, permission);
-      return true;
-    } catch (AccessControlException e) {
-      return false;
-    } catch (RepositoryException e) {
-      return false;
+      write.key("name");
+      write.value(node.getName());
+      write.endObject();
     }
   }
-
-  /**
-   * Gets all the sites where this file is used and parses the info for it.
-   * 
-   * @param node
-   * @param write
-   * @throws RepositoryException
-   * @throws JSONException
-   */
-  private void getSites(Node node, JSONWriter write) throws RepositoryException,
-      JSONException {
-
-    write.key("usedIn");
-    write.object();
-    write.key("sites");
-    write.array();
-    PropertyIterator pi = node.getReferences();
-    int total = 0;
-    while (pi.hasNext()) {
-      Property p = pi.nextProperty();
-      Node parent = p.getParent(); // Get the node for this property.
-      LOGGER.info(parent.getPath());
-      
-      // If it is a site service then we print it out.
-      if (siteService.isSite(parent)) {
-        writeSiteInfo(parent, write);
-        total++;
-      }
-    }
-    write.endArray();
-    write.key("total");
-    write.value(total);
-    write.endObject();
-  }
-
-  /**
-   * Parses the info for a site.
-   * 
-   * @param siteNode
-   * @param write
-   * @throws JSONException
-   * @throws RepositoryException
-   */
-  private void writeSiteInfo(Node siteNode, JSONWriter write) throws JSONException,
-      RepositoryException {
-    write.object();
-    write.key("member-count");
-    write.value(String.valueOf(siteService.getMemberCount(siteNode)));
-    write.key("path");
-    write.value(siteNode.getPath());
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
-    write.endObject();
-  }
-
 }

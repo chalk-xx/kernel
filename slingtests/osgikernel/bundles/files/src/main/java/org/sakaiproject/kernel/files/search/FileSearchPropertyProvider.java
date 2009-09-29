@@ -155,17 +155,15 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     }
     String order = " order by @" + sortOn + " " + sortOrder;
     propertiesMap.put("_order", order);
-    
-    
+
     // Resource types
     RequestParameter typeParam = request.getRequestParameter("resource");
     String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
-    if(typeParam != null) {
+    if (typeParam != null) {
       String type = typeParam.getString();
       if ("link".equals(type)) {
         resourceTypes = "@sling:resourceType=\"sakai/link\"";
-      }
-      else if ("folder".equals(type)) {
+      } else if ("folder".equals(type)) {
         resourceTypes = "@sling:resourceType=\"sakai/folder\"";
       }
     }
