@@ -47,6 +47,7 @@ import javax.servlet.Servlet;
  * @offscr.property name="sling.servlet.methods" value="POST"
  * @offscr.property name="sling.servlet.extensions" value="json"
  */
+// FIXME: remove this servlet at some point.
 @Service(value = Servlet.class)
 @SlingServlet(generateComponent = true, generateService = true, extensions = { "json" }, methods = { "POST" }, paths = { "/system/proxy" })
 public class ProxyServlet extends SlingAllMethodsServlet {
@@ -74,6 +75,12 @@ public class ProxyServlet extends SlingAllMethodsServlet {
   @SuppressWarnings("deprecation")
   protected void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp)
       throws IOException {
+    
+    if ( true ) {
+      resp.sendError(400, "Please use the content proxy service by placing content in /var/proxy/* rather than using this method, which has now been disabled.");
+      return;
+    }
+    
 
     URL url = null;
     String user = null, password = null, method = "GET", post = null;

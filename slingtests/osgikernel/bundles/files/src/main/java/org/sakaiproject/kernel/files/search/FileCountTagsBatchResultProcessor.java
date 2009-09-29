@@ -33,7 +33,6 @@ import javax.jcr.Value;
 
 // TODO: Remove this since it is an awful way of counting things.
 
-
 /**
  * Formats file tag count search results
  * 
@@ -43,13 +42,13 @@ import javax.jcr.Value;
  * @scr.property name="sakai.search.batchprocessor" value="FilesCountTags"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  */
-public class FileCountTagsBatchResultProcessor implements SearchBatchResultProcessor{
+public class FileCountTagsBatchResultProcessor implements SearchBatchResultProcessor {
 
   public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
       throws JSONException, RepositoryException {
-    
+
     Map<String, Integer> map = new HashMap<String, Integer>();
-            
+
     // Count all the tags
     int total = 0;
     while (nodeIterator.hasNext()) {
@@ -61,15 +60,14 @@ public class FileCountTagsBatchResultProcessor implements SearchBatchResultProce
           String tagName = tag.getString();
           if (map.containsKey(tagName)) {
             i = map.get(tagName) + 1;
-          }
-          else {
+          } else {
             total++;
           }
           map.put(tagName, i);
         }
       }
     }
-    
+
     // Output the counts
     write.object();
     write.key("tags");
@@ -86,8 +84,7 @@ public class FileCountTagsBatchResultProcessor implements SearchBatchResultProce
     write.key("total");
     write.value(total);
     write.endObject();
-    
-    
+
   }
 
 }
