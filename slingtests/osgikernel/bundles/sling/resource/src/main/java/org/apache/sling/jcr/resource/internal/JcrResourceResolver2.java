@@ -477,8 +477,8 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
         try {
             QueryResult res = JcrResourceUtil.query(getSession(), query,
                 language);
-            return new JcrNodeResourceIterator(this, res.getNodes(), rootProvider
-                .getResourceTypeProviders(), this.getClass().getClassLoader());
+            return new JcrNodeResourceIterator(this, res.getNodes(),
+                rootProvider.getResourceTypeProviders(), factory.getDynamicClassLoader());
         } catch (javax.jcr.query.InvalidQueryException iqe) {
             throw new QuerySyntaxException(iqe.getMessage(), query, language,
                 iqe);

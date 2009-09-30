@@ -23,6 +23,7 @@ import org.apache.commons.collections.bidimap.TreeBidiMap;
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.classloader.DynamicClassLoaderManager;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceResolverFactory;
@@ -205,6 +206,10 @@ public class JcrResourceResolverFactoryImpl implements
      */
     private ServiceTracker eventAdminTracker;
 
+    /** The dynamic class loader
+     * @scr.reference */
+    private DynamicClassLoaderManager dynamicClassLoaderManager;
+
     public JcrResourceResolverFactoryImpl() {
         this.rootProviderEntry = new ResourceProviderEntry("/", null, null);
     }
@@ -216,19 +221,21 @@ public class JcrResourceResolverFactoryImpl implements
      * that each call to this method returns a new resource manager instance.
      */
     public ResourceResolver getResourceResolver(Session session) {
-      JcrResourceProviderEntry sessionRoot = new JcrResourceProviderEntry(session, rootProviderEntry,
-          getJcrResourceTypeProviders(), this.getClass().getClassLoader());
-      return getResourceResolver(sessionRoot, mapEntries);
-    }
+        JcrResourceProviderEntry sessionRoot = new JcrResourceProviderEntry(
+            session, rootProviderEntry, getJcrResourceTypeProviders(),
+            this.getDynamicClassLoader());
 
-    /**
-     * @param sessionRoot
-     * @param mapEntries2
-     * @return
-     */
-    protected ResourceResolver getResourceResolver(JcrResourceProviderEntry sessionRoot,
-        MapEntries mapEntries2) {
-     return new JcrResourceResolver2(sessionRoot, this, mapEntries);
+        return  getResourceResolver(sessionRoot, mapEntries);
+     }
+  
+     /**
+      * @param sessionRoot
+      * @param mapEntries2
+      * @return
+      */
+     protected ResourceResolver getResourceResolver(JcrResourceProviderEntry sessionRoot,
+         MapEntries mapEntries2) {
+          return new JcrResourceResolver2(sessionRoot, this, mapEntries);
     }
 
     protected JcrResourceTypeProvider[] getJcrResourceTypeProviders() {
@@ -236,6 +243,15 @@ public class JcrResourceResolverFactoryImpl implements
     }
 
     // ---------- Implementation helpers --------------------------------------
+
+    /** Get the dynamic class loader if available */
+    ClassLoader getDynamicClassLoader() {
+        final DynamicClassLoaderManager dclm = this.dynamicClassLoaderManager;
+        if ( dclm != null ) {
+            return dclm.getDynamicClassLoader();
+        }
+        return null;
+    }
 
     /** If uri is a virtual URI returns the real URI, otherwise returns null */
     String virtualToRealUri(String virtualUri) {
