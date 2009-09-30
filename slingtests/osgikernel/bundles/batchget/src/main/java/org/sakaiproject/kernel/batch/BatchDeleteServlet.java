@@ -57,7 +57,7 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
           removeResource(resourcePath, session);
           write.value(200);
         } catch (AccessDeniedException e) {
-          write.value(201);
+          write.value(401);
         } catch (PathNotFoundException e) {
           write.value(404);
         } catch (RepositoryException e) {
