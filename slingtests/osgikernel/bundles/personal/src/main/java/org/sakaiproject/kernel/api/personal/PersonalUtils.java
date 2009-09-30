@@ -156,11 +156,21 @@ public class PersonalUtils {
       return PathUtils.toInternalHashedPath(_USER_PRIVATE, userS, path);
     }
   }
-  
+
   public static String getEmailAddress(Node profileNode) throws RepositoryException {
     if (profileNode.hasProperty(PersonalConstants.EMAIL_ADDRESS)) {
       return profileNode.getProperty(PersonalConstants.EMAIL_ADDRESS).getString();
     }
     return null;
+  }
+
+  public static String getPreferredMessageTransport(Node profileNode)
+      throws RepositoryException {
+    String transport = null;
+    if (profileNode.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)) {
+      transport = profileNode.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)
+          .getString();
+    }
+    return transport;
   }
 }
