@@ -67,7 +67,7 @@ public class FileUtils {
 
     if (fileName != null && !fileName.equals("")) {
       // Clean the filename.
-      fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
+      //fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
 
       LOGGER.info("Trying to save file {} to {} for user {}", new Object[] { fileName,
           path, session.getUserID() });
