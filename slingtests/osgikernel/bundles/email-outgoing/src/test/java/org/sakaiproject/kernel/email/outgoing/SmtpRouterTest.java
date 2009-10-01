@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.smtp;
+package org.sakaiproject.kernel.email.outgoing;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
