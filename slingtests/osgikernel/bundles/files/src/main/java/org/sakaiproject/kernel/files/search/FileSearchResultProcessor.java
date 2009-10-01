@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -61,32 +62,10 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
       RepositoryException {
 
     Session session = node.getSession();
-    if (node.hasProperty("sling:internalRedirect")) {
-      // This node points to another node.
-      // Get that one.
-      String path = node.getProperty("sling:internalRedirect").getString();
-      if (session.itemExists(path)) {
-        Node n = (Node) session.getItem(path);
-        writeFileNode(write, n, session);
-      }
-    } else {
-      writeFileNode(write, node, session);
-    }
-  }
-
-  /**
-   * Output the file node in json format.
-   * 
-   * @param write
-   * @param node
-   * @param session
-   * @throws JSONException
-   * @throws RepositoryException
-   */
-  private void writeFileNode(JSONWriter write, Node node, Session session)
-      throws JSONException, RepositoryException {
-    String type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        .getString();
+    String type = "";
+    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+      type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+          .getString();
 
     // If it is a file node we provide some extra properties.
     if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
@@ -96,8 +75,14 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
       // This is a linked file.
       FileUtils.writeLinkNode(node, session, write, siteService);
 
-    } else if (FilesConstants.RT_SAKAI_FOLDER.equals(type)) {
+    } else {
       write.object();
+      // Every other file..
+      if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
+          JcrConstants.NT_RESOURCE)) {
+        node = node.getParent();
+      }
+
       // dump all the properties.
       ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
       write.key("path");
