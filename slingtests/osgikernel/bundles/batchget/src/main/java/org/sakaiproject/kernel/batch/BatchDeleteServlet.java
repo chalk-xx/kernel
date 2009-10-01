@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
  *               value="Delete multiple resource requests and give a useful response."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.paths" value="/system/batch/delete"
- * @scr.property name="sling.servlet.methods" value="GET"
+ * @scr.property name="sling.servlet.methods" value="POST"
  */
 public class BatchDeleteServlet extends SlingAllMethodsServlet {
 
