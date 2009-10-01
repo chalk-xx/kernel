@@ -109,6 +109,11 @@ public class FilesFolderServlet extends SlingAllMethodsServlet {
             write.key("name");
             write.value(child.getName());
             write.endObject();
+          } else if (resourceType.equals(FilesConstants.RT_SAKAI_FILE)) {
+            FileUtils.writeFileNode(node, session, write, siteService);
+          }
+          else {
+            ExtendedJSONWriter.writeNodeToWriter(write, node);
           }
         }
       }
