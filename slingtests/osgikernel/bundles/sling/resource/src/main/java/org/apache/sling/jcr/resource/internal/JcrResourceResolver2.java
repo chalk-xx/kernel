@@ -18,24 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.jcr.NamespaceException;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.query.QueryResult;
-import javax.jcr.query.RowIterator;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.sling.adapter.SlingAdaptable;
 import org.apache.sling.api.SlingException;
 import org.apache.sling.api.resource.NonExistingResource;
@@ -55,6 +37,24 @@ import org.apache.sling.jcr.resource.internal.helper.jcr.JcrResourceProviderEntr
 import org.apache.sling.jcr.resource.internal.helper.starresource.StarResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.jcr.NamespaceException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.query.QueryResult;
+import javax.jcr.query.RowIterator;
+import javax.servlet.http.HttpServletRequest;
 
 public class JcrResourceResolver2 extends SlingAdaptable implements
         ResourceResolver {
@@ -532,6 +532,7 @@ public class JcrResourceResolver2 extends SlingAdaptable implements
 
     // ---------- Adaptable interface
 
+    @Override
     @SuppressWarnings("unchecked")
     public <AdapterType> AdapterType adaptTo(Class<AdapterType> type) {
         if (type == Session.class) {

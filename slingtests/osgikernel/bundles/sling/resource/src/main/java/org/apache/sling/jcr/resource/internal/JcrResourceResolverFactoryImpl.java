@@ -18,18 +18,6 @@
  */
 package org.apache.sling.jcr.resource.internal;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import javax.jcr.Session;
-
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.TreeBidiMap;
 import org.apache.sling.api.SlingConstants;
@@ -53,6 +41,18 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.jcr.Session;
 
 /**
  * The <code>JcrResourceResolverFactoryImpl</code> is the
@@ -611,7 +611,7 @@ public class JcrResourceResolverFactoryImpl implements
     protected void bindRepository(SlingRepository slingRepository) {
       this.repository = slingRepository;
     }
-    
+
     protected void unbindRepository(SlingRepository slingRepository) {
       this.repository = null;
     }
