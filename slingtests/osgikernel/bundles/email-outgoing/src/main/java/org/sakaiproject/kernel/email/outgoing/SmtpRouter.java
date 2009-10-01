@@ -14,9 +14,11 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.kernel.smtp;
+package org.sakaiproject.kernel.email.outgoing;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
@@ -36,6 +38,8 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+@Service
+@Component(inherit = true, immediate = true)
 public class SmtpRouter implements MessageRouter {
   private static final Logger LOG = LoggerFactory.getLogger(SmtpRouter.class);
 
