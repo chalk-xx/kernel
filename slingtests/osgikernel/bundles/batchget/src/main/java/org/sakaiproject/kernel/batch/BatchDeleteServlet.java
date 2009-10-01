@@ -34,7 +34,7 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
   public static final String RESOURCE_PATH_PARAMETER = "resources";
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
     String[] requestedResources = request.getParameterValues(RESOURCE_PATH_PARAMETER);
