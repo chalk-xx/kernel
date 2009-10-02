@@ -23,31 +23,35 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
-import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
  * Formats the files search results.
  * 
- * @scr.component immediate="true" label="FileSearchResultProcessor"
+ * @scr.component immediate="true" label="FileSearchBatchResultProcessor"
  *                description="Formatter for file searches"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Files"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.property name="sakai.search.batchprocessor" value="Files"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  * @scr.reference name="SiteService"
  *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
-public class FileSearchResultProcessor implements SearchResultProcessor {
+public class FileSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
   public static final Logger LOGGER = LoggerFactory
-      .getLogger(FileSearchResultProcessor.class);
+      .getLogger(FileSearchBatchResultProcessor.class);
   private SiteService siteService;
 
   public void bindSiteService(SiteService siteService) {
@@ -61,35 +65,49 @@ public class FileSearchResultProcessor implements SearchResultProcessor {
   public void writeNode(JSONWriter write, Node node) throws JSONException,
       RepositoryException {
 
-    Session session = node.getSession();
-    String type = "";
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
-      type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-          .getString();
+  }
 
-    // If it is a file node we provide some extra properties.
-    if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
-      FileUtils.writeFileNode(node, session, write, siteService);
+  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
+      throws JSONException, RepositoryException {
 
-    } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-      // This is a linked file.
-      FileUtils.writeLinkNode(node, session, write, siteService);
-
-    } else {
-      write.object();
+    List<String> processedNodes = new ArrayList<String>();
+    while (nodeIterator.hasNext()) {
+      Node node = nodeIterator.nextNode();
       // Every other file..
       if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
           JcrConstants.NT_RESOURCE)) {
         node = node.getParent();
       }
+      String path = node.getPath();
+      if (!processedNodes.contains(path)) {
+        processedNodes.add(path);
+        Session session = node.getSession();
+        String type = "";
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+          type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+              .getString();
 
-      // dump all the properties.
-      ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-      write.key("path");
-      write.value(node.getPath());
-      write.key("name");
-      write.value(node.getName());
-      write.endObject();
+        // If it is a file node we provide some extra properties.
+        if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
+          FileUtils.writeFileNode(node, session, write, siteService);
+
+        } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
+          // This is a linked file.
+          FileUtils.writeLinkNode(node, session, write, siteService);
+
+        } else {
+          write.object();
+
+          // dump all the properties.
+          ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+          write.key("path");
+          write.value(node.getPath());
+          write.key("name");
+          write.value(node.getName());
+          write.endObject();
+        }
+      }
     }
+
   }
 }

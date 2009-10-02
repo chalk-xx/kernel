@@ -132,7 +132,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       StringBuilder sb = new StringBuilder(" and (");
 
       for (RequestParameter tag : tagsParams) {
-        sb.append("sakai:tags=\"");
+        sb.append("@sakai:tags=\"");
         sb.append(tag.getString());
         sb.append("\" and ");
       }
@@ -185,21 +185,19 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         if (s.equals("sakai/file")) {
           // Every sakai/file with search in it's filename or content.
           sb.append(
-              "(sling:resourceType=\"sakai/file\" and (jcr:contains(@sakai:filename,\"*")
-              .append(search).append("*\") or jcr:contains(jcr:content,\"*").append(
-                  search).append("*\"))) or ");
+              "(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"*")
+              .append(search).append("*\") or jcr:contains(jcr:content,\"*")
+              .append(search).append("*\"))) or ");
         } else if (s.equals("sakai/link")) {
           // Every link that has the search param in the filename.
-          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"").append(
-              search).append("\")) or ");
+          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"*").append(
+              search).append("*\")) or ");
         } else {
           // Every other file that contains the search param in it's filename or in it's
           // content.
-          sb.append("(jcr:contains(.,\"*");
+          sb.append("jcr:contains(.,\"*");
           sb.append(search);
-          sb.append("*\") or jcr:contains(jcr:content,\"*");
-          sb.append(search);
-          sb.append("*\")) or ");
+          sb.append("*\") or ");
         }
       }
 
@@ -208,8 +206,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       typesWhere += ")";
     } else {
       // Default is sakai/files
-      typesWhere = "(sling:resourceType=\"sakai/file\" and (jcr:contains(@sakai:filename,\"*"
-          + search + "*\") or jcr:contains(jcr:content,\"*" + search + "*\")))";
+      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search + "*\"))";
     }
     propertiesMap.put("_typesWhere", typesWhere);
   }

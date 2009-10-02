@@ -67,7 +67,6 @@ public class FileUtils {
 
     if (fileName != null && !fileName.equals("")) {
       // Clean the filename.
-      //fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
 
       LOGGER.info("Trying to save file {} to {} for user {}", new Object[] { fileName,
           path, session.getUserID() });
@@ -84,17 +83,26 @@ public class FileUtils {
         fileNode.setProperty(FilesConstants.SAKAI_ID, id);
 
         // Create the content node.
-        content = fileNode.addNode("jcr:content", "nt:resource");
+        content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+        content.addMixin("sakai:propertiesmix");
+        content.setProperty(JcrConstants.JCR_DATA, is);
+        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
       } else {
-        // This is a new node.
-        // So we should already have a content node.
+        // This is not a new node, so we should already have a content node.
         // Just in case.. catch it
         try {
-          content = fileNode.getNode("jcr:content");
+          content = fileNode.getNode(JcrConstants.JCR_CONTENT);
         } catch (PathNotFoundException pnfe) {
-          content = fileNode.addNode("jcr:content", "nt:resource");
+          content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+          content.addMixin("sakai:propertiesmix");
         }
+
+        content.setProperty(JcrConstants.JCR_DATA, is);
+        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        // content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+
       }
 
       // Set the person who last modified it.s
@@ -103,9 +111,6 @@ public class FileUtils {
       fileNode.setProperty("sakai:filename", fileName);
       fileNode.setProperty("sakai:mimeType", contentType);
 
-      content.setProperty("jcr:lastModified", Calendar.getInstance());
-      content.setProperty("jcr:mimeType", contentType);
-      content.setProperty("jcr:data", is);
       return fileNode;
     }
     return null;

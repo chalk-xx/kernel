@@ -117,6 +117,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
         for (Node fileNode : fileNodes) {
           String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME)
               .getString();
+
           String linkPath = linkFolder.getPath() + "/" + fileName;
           FileUtils.createLink(session, fileNode, linkPath);
           links.add(linkPath);

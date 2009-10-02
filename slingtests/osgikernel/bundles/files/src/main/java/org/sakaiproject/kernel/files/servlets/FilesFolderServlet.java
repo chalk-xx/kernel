@@ -26,7 +26,6 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.files.search.FileSearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,8 +85,6 @@ public class FilesFolderServlet extends SlingAllMethodsServlet {
         path = node.getPath();
       }
       JSONWriter write = new JSONWriter(response.getWriter());
-      FileSearchResultProcessor processor = new FileSearchResultProcessor();
-      processor.bindSiteService(siteService);
       NodeIterator it = node.getNodes();
 
       write.array();

@@ -27,6 +27,8 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -52,6 +54,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FileUpdateServlet extends SlingAllMethodsServlet {
 
+  public static final Logger LOGGER = LoggerFactory.getLogger(FileUpdateServlet.class);
   private static final long serialVersionUID = -625686874623971605L;
 
   @Override
@@ -66,6 +69,7 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
       }
 
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      LOGGER.info("Trying to update file for: " + session.getUserID());
       Node node = request.getResource().adaptTo(Node.class);
       String path;
       path = node.getPath();
