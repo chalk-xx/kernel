@@ -36,10 +36,6 @@ import org.slf4j.LoggerFactory;
 public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);
-
-  /**
-   * 
-   */
   private static final long serialVersionUID = -1960932906632564021L;
 
   @Override

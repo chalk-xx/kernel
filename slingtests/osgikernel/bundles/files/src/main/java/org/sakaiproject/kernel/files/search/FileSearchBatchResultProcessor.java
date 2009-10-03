@@ -62,16 +62,11 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     this.siteService = null;
   }
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException,
-      RepositoryException {
-
-  }
-
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
-      throws JSONException, RepositoryException {
+  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
+      long end) throws JSONException, RepositoryException {
 
     List<String> processedNodes = new ArrayList<String>();
-    while (nodeIterator.hasNext()) {
+    for (long i = start; i < end && nodeIterator.hasNext(); i++) {
       Node node = nodeIterator.nextNode();
       // Every other file..
       if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(

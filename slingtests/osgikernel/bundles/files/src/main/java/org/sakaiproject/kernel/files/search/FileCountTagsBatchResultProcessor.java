@@ -44,7 +44,7 @@ import javax.jcr.Value;
  */
 public class FileCountTagsBatchResultProcessor implements SearchBatchResultProcessor {
 
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
+  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
       throws JSONException, RepositoryException {
 
     Map<String, Integer> map = new HashMap<String, Integer>();
