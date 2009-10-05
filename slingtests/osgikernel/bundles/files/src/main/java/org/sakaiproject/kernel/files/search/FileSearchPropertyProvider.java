@@ -174,9 +174,11 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     String types[] = request.getParameterValues("type");
     String typesWhere = "";
     RequestParameter searchParam = request.getRequestParameter("search");
-    String search = "";
+    String search = "*";
     if (searchParam != null) {
       search = escapeString(searchParam.getString(), Query.XPATH);
+      if (search.equals(""))
+        search = "*";
     }
     if (types != null && types.length > 0) {
       StringBuilder sb = new StringBuilder("");
@@ -185,13 +187,13 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         if (s.equals("sakai/file")) {
           // Every sakai/file with search in it's filename or content.
           sb.append(
-              "(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"*")
-              .append(search).append("*\") or jcr:contains(jcr:content,\"*")
-              .append(search).append("*\"))) or ");
+              "(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"")
+              .append(search).append("\") or jcr:contains(jcr:content,\"")
+              .append(search).append("\"))) or ");
         } else if (s.equals("sakai/link")) {
           // Every link that has the search param in the filename.
-          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"*").append(
-              search).append("*\")) or ");
+          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"").append(
+              search).append("\")) or ");
         } else {
           // Every other file that contains the search param in it's filename or in it's
           // content.
