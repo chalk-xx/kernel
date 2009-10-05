@@ -98,6 +98,7 @@ public class FileUtils {
           session.save();
         }
 
+        // TODO: Check that this isnt a fix for the Owner dynamic principal not working.
         // Make sure that the user can edit it later on.
         Session adminSession = null;
         try {
