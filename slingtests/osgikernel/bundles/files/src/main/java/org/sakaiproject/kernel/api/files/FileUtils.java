@@ -20,6 +20,8 @@ package org.sakaiproject.kernel.api.files;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.value.ValueFactoryImpl;
+import org.apache.jackrabbit.value.ValueHelper;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -44,21 +46,24 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 
 public class FileUtils {
 
   public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
   /**
-   * Save a file. You will have to call session.save() your self.
+   * Save a file.
    * 
    * @param session
    * @param path
    * @param id
    * @param file
    * @param contentType
+   * @param slingRepository
    * @return
    * @throws RepositoryException
    * @throws IOException
@@ -83,6 +88,10 @@ public class FileUtils {
       Node content = null;
       // If this is a new node then we have to add certain things.
       if (fileNode.isNew()) {
+        // Make sure we can reference this node.
+        if (fileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+          fileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+        }
         fileNode.addMixin("sakai:propertiesmix");
         fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             FilesConstants.RT_SAKAI_FILE);
@@ -135,15 +144,17 @@ public class FileUtils {
       fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
       fileNode.setProperty("sakai:filename", fileName);
-      fileNode.setProperty("sakai:mimeType", contentType);
 
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
       return fileNode;
     }
     return null;
   }
 
   /**
-   * Create a link to a file. Note: You will have to call session.save() your self!.
+   * Create a link to a file.
    * 
    * @param session
    *          The current session.
@@ -154,14 +165,74 @@ public class FileUtils {
    *          link.
    * @throws RepositoryException
    */
-  public static void createLink(Session session, Node fileNode, String linkPath)
-      throws RepositoryException {
+  public static String createLink(Session session, Node fileNode, String linkPath,
+      SlingRepository slingRepository) throws RepositoryException {
+    String fileUUID = fileNode.getUUID();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
+    linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         FilesConstants.RT_SAKAI_LINK);
+    linkNode.setProperty(FilesConstants.SAKAI_FILENAME, PathUtils.lastElement(linkPath));
     String uri = FileUtils.getDownloadPath(fileNode);
     linkNode.setProperty(FilesConstants.SAKAI_LINK, "jcrinternal:" + uri);
-    linkNode.setProperty("jcr:reference", fileNode.getUUID());
+    linkNode.setProperty("jcr:reference", fileUUID);
+
+    // Make sure we can reference this node.
+    if (linkNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+      linkNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+    }
+    // Save the linkNode.
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
+
+    Session adminSession = null;
+    try {
+      // Login as admin.
+      // This way we can set an ACL on the fileNode even if it is read only.
+      adminSession = slingRepository.loginAdministrative(null);
+
+      // Get the node trough the admin session.
+      Node adminFileNode = adminSession.getNodeByUUID(fileUUID);
+
+      addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
+      addValue(adminFileNode, "sakai:sites", linkNode.getUUID());
+
+      // Save the reference.
+      if (adminSession.hasPendingChanges()) {
+        adminSession.save();
+      }
+    } finally {
+      if (adminSession != null)
+        adminSession.logout();
+    }
+
+    return linkNode.getPath();
+
+  }
+
+  /**
+   * Add a value to to a multi-valued property.
+   * @param adminFileNode
+   * @param property
+   * @param value
+   * @throws RepositoryException
+   */
+  private static void addValue(Node adminFileNode, String property, String value)
+      throws RepositoryException {
+    // Add a reference on the fileNode.
+    Value[] references = JcrUtils.getValues(adminFileNode, property);
+    if (references.length == 0) {
+      adminFileNode.setProperty(property, value);
+    } else {
+      Value[] newReferences = new Value[references.length + 1];
+      for (int i = 0; i < references.length; i++) {
+        newReferences[i] = references[i];
+      }
+      newReferences[references.length] = ValueHelper.convert(value, PropertyType.STRING,
+          ValueFactoryImpl.getInstance());
+      adminFileNode.setProperty(property, newReferences);
+    }
   }
 
   public static String getHashedPath(String store, String id) {
@@ -246,6 +317,14 @@ public class FileUtils {
     // The download path to this file.
     write.key("path");
     write.value(FileUtils.getDownloadPath(node));
+
+    if (node.hasNode(JcrConstants.JCR_CONTENT)) {
+      Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
+      write.key(JcrConstants.JCR_LASTMODIFIED);
+      write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());
+      write.key(FilesConstants.SAKAI_MIMETYPE);
+      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+    }
 
     // Get all the sites where this file is referenced.
     getSites(node, write, siteService);

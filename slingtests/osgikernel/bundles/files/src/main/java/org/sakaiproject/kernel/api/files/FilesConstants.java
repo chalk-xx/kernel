@@ -63,6 +63,10 @@ public interface FilesConstants {
    */
   public static final String SAKAI_FILENAME = "sakai:filename";
   /**
+   * sakai:mimeType
+   */
+  public static final String SAKAI_MIMETYPE = "sakai:mimeType";
+  /**
    * sakai:link
    */
   public static final String SAKAI_LINK = "sakai:link";

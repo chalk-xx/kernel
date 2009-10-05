@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
+  public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
   private static final long serialVersionUID = -2582970789079249113L;
 
   private ClusterTrackingService clusterTrackingService;
@@ -82,8 +83,6 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
-
-  public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -132,11 +131,10 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
               .getString();
 
           String linkPath = linkFolder.getPath() + "/" + fileName;
-          FileUtils.createLink(session, fileNode, linkPath);
+          FileUtils.createLink(session, fileNode, linkPath, slingRepository);
           links.add(linkPath);
         }
       }
-      session.save();
 
       // Send a response back to the user.
 

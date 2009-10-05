@@ -195,9 +195,9 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         } else {
           // Every other file that contains the search param in it's filename or in it's
           // content.
-          sb.append("jcr:contains(.,\"*");
+          sb.append("jcr:contains(.,\"");
           sb.append(search);
-          sb.append("*\") or ");
+          sb.append("\") or ");
         }
       }
 

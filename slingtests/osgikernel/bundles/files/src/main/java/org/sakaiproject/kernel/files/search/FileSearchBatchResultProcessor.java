@@ -85,24 +85,39 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
         // If it is a file node we provide some extra properties.
         if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
           FileUtils.writeFileNode(node, session, write, siteService);
-
         } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
           // This is a linked file.
           FileUtils.writeLinkNode(node, session, write, siteService);
-
-        } else {
-          write.object();
-
-          // dump all the properties.
-          ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-          write.key("path");
-          write.value(node.getPath());
-          write.key("name");
-          write.value(node.getName());
-          write.endObject();
         }
+        // Every other file..
+        else {
+          writeNormalFile(write, node);
+        }
+      }
+      // Every other file..
+      else {
+        writeNormalFile(write, node);
       }
     }
 
+  }
+
+  private void writeNormalFile(JSONWriter write, Node node) throws JSONException, RepositoryException {
+    write.object();
+
+    // dump all the properties.
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+    write.key("path");
+    write.value(node.getPath());
+    write.key("name");
+    write.value(node.getName());
+    if (node.hasNode("jcr:content")) {
+      Node contentNode = node.getNode("jcr:content");
+      write.key("sakai/mimetype");
+      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+      write.key(JcrConstants.JCR_LASTMODIFIED);
+      write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());
+    }
+    write.endObject();
   }
 }

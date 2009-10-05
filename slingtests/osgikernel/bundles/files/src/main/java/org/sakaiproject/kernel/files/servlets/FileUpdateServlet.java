@@ -120,11 +120,9 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
         if (!linkPath.endsWith("/"))
           linkPath += "/";
         linkPath += fileName;
-        FileUtils.createLink(session, node, linkPath);
+        FileUtils.createLink(session, node, linkPath, slingRepository);
         createdLinks.add(linkPath);
       }
-
-      session.save();
 
       // Print a JSON response back
       JSONWriter writer = new JSONWriter(response.getWriter());
