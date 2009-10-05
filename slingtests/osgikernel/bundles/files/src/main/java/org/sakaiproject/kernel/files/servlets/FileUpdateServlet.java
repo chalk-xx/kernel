@@ -25,8 +25,11 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,10 +52,23 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/file"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
+ * @scr.reference name="SlingRepository"
+ *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class FileUpdateServlet extends SlingAllMethodsServlet {
 
+  public static final Logger LOGGER = LoggerFactory.getLogger(FileUpdateServlet.class);
   private static final long serialVersionUID = -625686874623971605L;
+
+  private SlingRepository slingRepository;
+
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
+  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -66,6 +82,7 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
       }
 
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      LOGGER.info("Trying to update file for: " + session.getUserID());
       Node node = request.getResource().adaptTo(Node.class);
       String path;
       path = node.getPath();
@@ -87,7 +104,8 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
         }
       }
 
-      Node fileNode = FileUtils.saveFile(session, path, id, file, contentType);
+      Node fileNode = FileUtils.saveFile(session, path, id, file, contentType,
+          slingRepository);
       String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
 
       RequestParameter[] links = request.getRequestParameters("link");

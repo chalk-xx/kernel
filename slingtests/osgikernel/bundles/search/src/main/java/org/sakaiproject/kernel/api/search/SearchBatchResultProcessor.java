@@ -27,13 +27,21 @@ import javax.jcr.RepositoryException;
  * 
  */
 public interface SearchBatchResultProcessor {
-  
+
   /**
    * 
    * @param write
+   *          The writer to write to.
    * @param nodeIterator
+   *          The iterator which holds all the nodes. This already should have appropriate
+   *          amount of nodes skipped.
+   * @param start
+   *          From where to start
+   * @param end
+   *          Where to end
    * @throws JSONException
    * @throws RepositoryException
    */
-  void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator) throws JSONException, RepositoryException;
+  void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
+      throws JSONException, RepositoryException;
 }

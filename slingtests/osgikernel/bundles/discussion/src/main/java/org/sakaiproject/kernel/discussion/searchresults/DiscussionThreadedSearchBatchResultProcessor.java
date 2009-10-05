@@ -44,13 +44,14 @@ import javax.jcr.ValueFormatException;
  * @scr.property name="sakai.search.batchprocessor" value="DiscussionThreaded"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  */
-public class DiscussionThreadedSearchBatchResultProcessor implements SearchBatchResultProcessor {
+public class DiscussionThreadedSearchBatchResultProcessor implements
+    SearchBatchResultProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
 
-  public void writeNodeIterator(JSONWriter writer, NodeIterator nodeIterator) throws JSONException,
-      RepositoryException {
+  public void writeNodeIterator(JSONWriter writer, NodeIterator nodeIterator, long start,
+      long end) throws JSONException, RepositoryException {
 
     LOG.info("Making a threaded view of discussions");
     List<Node> allNodes = new ArrayList<Node>();
@@ -91,8 +92,8 @@ public class DiscussionThreadedSearchBatchResultProcessor implements SearchBatch
    * @throws PathNotFoundException
    * @throws RepositoryException
    */
-  private void addPost(List<Post> basePosts, Node n, String replyon) throws ValueFormatException,
-      PathNotFoundException, RepositoryException {
+  private void addPost(List<Post> basePosts, Node n, String replyon)
+      throws ValueFormatException, PathNotFoundException, RepositoryException {
     String postid = n.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
     for (Post p : basePosts) {
       if (p.getPostId().equals(replyon)) {

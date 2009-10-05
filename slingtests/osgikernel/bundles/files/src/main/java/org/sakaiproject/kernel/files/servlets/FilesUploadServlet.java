@@ -24,6 +24,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
@@ -54,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.selectors" value="upload"
  * @scr.reference name="ClusterTrackingService"
  *                interface="org.sakaiproject.kernel.api.cluster.ClusterTrackingService"
+ * @scr.reference name="SlingRepository"
+ *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
@@ -68,6 +71,16 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
   protected void unbindClusterTrackingService(
       ClusterTrackingService clusterTrackingService) {
     this.clusterTrackingService = null;
+  }
+
+  private SlingRepository slingRepository;
+
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 
   public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
@@ -117,6 +130,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
         for (Node fileNode : fileNodes) {
           String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME)
               .getString();
+
           String linkPath = linkFolder.getPath() + "/" + fileName;
           FileUtils.createLink(session, fileNode, linkPath);
           links.add(linkPath);
@@ -203,7 +217,8 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
     String path = FileUtils.getHashedPath(store, id);
 
-    Node fileNode = FileUtils.saveFile(session, path, id, file, contentType);
+    Node fileNode = FileUtils.saveFile(session, path, id, file, contentType,
+        slingRepository);
     return fileNode;
   }
 

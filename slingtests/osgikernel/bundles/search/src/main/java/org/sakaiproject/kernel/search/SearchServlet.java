@@ -115,9 +115,9 @@ public class SearchServlet extends SlingAllMethodsServlet {
   
   private SearchBatchResultProcessor defaultSearchBatchProcessor = new SearchBatchResultProcessor() {
 
-    public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator)
+    public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
         throws JSONException, RepositoryException {
-      while (nodeIterator.hasNext()) {
+      for (long i = start; i < end && nodeIterator.hasNext(); i++) {
         write.value(nodeIterator.nextNode());
       }
     }
@@ -213,7 +213,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         long end = Math.min(offset + nitems, total + 1);
         resultNodes.skip(start);
         if (searchBatchProcessor != defaultSearchBatchProcessor) {
-          searchBatchProcessor.writeNodeIterator(write, resultNodes);
+          searchBatchProcessor.writeNodeIterator(write, resultNodes, start, end);
           LOGGER.info("Using batch processor for results");
         }else {
           for (long i = start; i < end && resultNodes.hasNext(); i++) {

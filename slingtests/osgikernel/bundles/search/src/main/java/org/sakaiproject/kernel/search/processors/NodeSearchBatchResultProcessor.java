@@ -15,18 +15,17 @@ import javax.jcr.RepositoryException;
  *                description="Formatter for batch search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.batchprocessor" value="Node"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  */
-public class NodeSearchBatchResultProcessor implements SearchBatchResultProcessor{
+public class NodeSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator) throws JSONException,
-      RepositoryException {
-    
+  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
+      long end) throws JSONException, RepositoryException {
+
     while (nodeIterator.hasNext()) {
       ExtendedJSONWriter.writeNodeToWriter(write, nodeIterator.nextNode());
     }
-    
+
   }
 
 }

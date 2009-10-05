@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Stream the file.
@@ -71,6 +72,8 @@ public class FileServlet extends SlingAllMethodsServlet {
     if (filename != null && !response.containsHeader("Content-Disposition")) {
       response.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
     }
+
+    response.setStatus(HttpServletResponse.SC_OK);
     InputStream in = (InputStream) request.getResource().adaptTo(InputStream.class);
     OutputStream out = response.getOutputStream();
 

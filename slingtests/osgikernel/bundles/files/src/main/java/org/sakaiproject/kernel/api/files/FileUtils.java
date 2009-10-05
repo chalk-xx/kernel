@@ -17,6 +17,23 @@
  */
 package org.sakaiproject.kernel.api.files;
 
+import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.util.ACLUtils;
+import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.AccessControlException;
@@ -30,24 +47,12 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-import org.apache.jackrabbit.JcrConstants;
-import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.util.ExtendedJSONWriter;
-import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class FileUtils {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class);
+  public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
   /**
-   * Save a file. You will have to call session.save() your self!.
+   * Save a file. You will have to call session.save() your self.
    * 
    * @param session
    * @param path
@@ -59,7 +64,8 @@ public class FileUtils {
    * @throws IOException
    */
   public static Node saveFile(Session session, String path, String id,
-      RequestParameter file, String contentType) throws RepositoryException, IOException {
+      RequestParameter file, String contentType, SlingRepository slingRepository)
+      throws RepositoryException, IOException {
 
     // Get the nescecary parameters
     InputStream is = file.getInputStream();
@@ -67,10 +73,9 @@ public class FileUtils {
 
     if (fileName != null && !fileName.equals("")) {
       // Clean the filename.
-      //fileName = fileName.replaceAll("[^a-zA-Z0-9_-~\\.]", "");
 
-      LOGGER.info("Trying to save file {} to {} for user {}", new Object[] { fileName,
-          path, session.getUserID() });
+      log.info("Trying to save file {} to {} for user {}", new Object[] { fileName, path,
+          session.getUserID() });
 
       // Create or get the file.
       Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, JcrConstants.NT_FILE);
@@ -84,17 +89,47 @@ public class FileUtils {
         fileNode.setProperty(FilesConstants.SAKAI_ID, id);
 
         // Create the content node.
-        content = fileNode.addNode("jcr:content", "nt:resource");
+        content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+        content.setProperty(JcrConstants.JCR_DATA, is);
+        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+
+        if (session.hasPendingChanges()) {
+          session.save();
+        }
+
+        // TODO: Check that this isnt a fix for the Owner dynamic principal not working.
+        // Make sure that the user can edit it later on.
+        Session adminSession = null;
+        try {
+
+          adminSession = slingRepository.loginAdministrative(null);
+          Authorizable authorizable = AccessControlUtil.getUserManager(adminSession)
+              .getAuthorizable(session.getUserID());
+
+          ACLUtils.addEntry(path, authorizable, adminSession, "g:" + Privilege.JCR_ALL);
+
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          if (adminSession != null)
+            adminSession.logout();
+        }
 
       } else {
-        // This is a new node.
-        // So we should already have a content node.
+        // This is not a new node, so we should already have a content node.
         // Just in case.. catch it
         try {
-          content = fileNode.getNode("jcr:content");
+          content = fileNode.getNode(JcrConstants.JCR_CONTENT);
         } catch (PathNotFoundException pnfe) {
-          content = fileNode.addNode("jcr:content", "nt:resource");
+          content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
         }
+
+        content.setProperty(JcrConstants.JCR_DATA, is);
+        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+        // content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+
       }
 
       // Set the person who last modified it.s
@@ -103,9 +138,6 @@ public class FileUtils {
       fileNode.setProperty("sakai:filename", fileName);
       fileNode.setProperty("sakai:mimeType", contentType);
 
-      content.setProperty("jcr:lastModified", Calendar.getInstance());
-      content.setProperty("jcr:mimeType", contentType);
-      content.setProperty("jcr:data", is);
       return fileNode;
     }
     return null;
@@ -322,7 +354,7 @@ public class FileUtils {
     while (pi.hasNext()) {
       Property p = pi.nextProperty();
       Node parent = p.getParent(); // Get the node for this property.
-      LOGGER.info(parent.getPath());
+      log.info(parent.getPath());
 
       while (!parent.getPath().equals("/")) {
         // If it is a site service then we print it out.

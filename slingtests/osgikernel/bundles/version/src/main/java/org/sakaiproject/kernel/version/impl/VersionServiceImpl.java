@@ -38,7 +38,7 @@ import javax.jcr.version.Version;
 public class VersionServiceImpl implements VersionService {
 
   public Version saveNode(Node node, String savingUsername) throws RepositoryException {
-    if (node.hasProperty(JcrConstants.JCR_PRIMARYTYPE) && node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_FILE)) {
+    if (node.canAddMixin("sakai:propertiesmix")) {
       node.addMixin("sakai:propertiesmix");
     }
     node.setProperty(SAVED_BY, savingUsername);

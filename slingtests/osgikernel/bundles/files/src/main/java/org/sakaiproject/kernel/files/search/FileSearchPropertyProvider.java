@@ -35,6 +35,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -103,7 +104,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
       // Only check the files that are in sites where the user is part of.
       else if (path.equals("mysites")) {
-
         path = "/sites";
         String sites = "and (@sakai:site=\"somenoneexistingid\")";
         try {
@@ -132,7 +132,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       StringBuilder sb = new StringBuilder(" and (");
 
       for (RequestParameter tag : tagsParams) {
-        sb.append("sakai:tags=\"");
+        sb.append("@sakai:tags=\"");
         sb.append(tag.getString());
         sb.append("\" and ");
       }
@@ -156,11 +156,12 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     String order = " order by @" + sortOn + " " + sortOrder;
     propertiesMap.put("_order", order);
 
-    // Resource types
-    RequestParameter typeParam = request.getRequestParameter("resource");
+    // TODO /var/search/files/resources.json should be deleted.
+    // Resource types (used in resources.json).
+    RequestParameter resourceParam = request.getRequestParameter("resource");
     String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
-    if (typeParam != null) {
-      String type = typeParam.getString();
+    if (resourceParam != null) {
+      String type = resourceParam.getString();
       if ("link".equals(type)) {
         resourceTypes = "@sling:resourceType=\"sakai/link\"";
       } else if ("folder".equals(type)) {
@@ -169,5 +170,57 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     }
     propertiesMap.put("_resourceTypes", resourceTypes);
 
+    // Resource types (used in files.json)
+    String types[] = request.getParameterValues("type");
+    String typesWhere = "";
+    RequestParameter searchParam = request.getRequestParameter("search");
+    String search = "";
+    if (searchParam != null) {
+      search = escapeString(searchParam.getString(), Query.XPATH);
+    }
+    if (types != null && types.length > 0) {
+      StringBuilder sb = new StringBuilder("");
+      sb.append("(");
+      for (String s : types) {
+        if (s.equals("sakai/file")) {
+          // Every sakai/file with search in it's filename or content.
+          sb.append(
+              "(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"*")
+              .append(search).append("*\") or jcr:contains(jcr:content,\"*")
+              .append(search).append("*\"))) or ");
+        } else if (s.equals("sakai/link")) {
+          // Every link that has the search param in the filename.
+          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"*").append(
+              search).append("*\")) or ");
+        } else {
+          // Every other file that contains the search param in it's filename or in it's
+          // content.
+          sb.append("jcr:contains(.,\"*");
+          sb.append(search);
+          sb.append("*\") or ");
+        }
+      }
+
+      typesWhere = sb.toString();
+      typesWhere = typesWhere.substring(0, typesWhere.length() - 4);
+      typesWhere += ")";
+    } else {
+      // Default is sakai/files
+      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search + "*\"))";
+    }
+    propertiesMap.put("_typesWhere", typesWhere);
   }
+
+  private String escapeString(String value, String queryLanguage) {
+    String escaped = null;
+    if (value != null) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''");
+      }
+    }
+    return escaped;
+  }
+
 }
