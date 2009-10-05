@@ -122,7 +122,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     write.value(node.getName());
     if (node.hasNode("jcr:content")) {
       Node contentNode = node.getNode("jcr:content");
-      write.key("sakai/mimetype");
+      write.key(FilesConstants.SAKAI_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
       write.key(JcrConstants.JCR_LASTMODIFIED);
       write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());

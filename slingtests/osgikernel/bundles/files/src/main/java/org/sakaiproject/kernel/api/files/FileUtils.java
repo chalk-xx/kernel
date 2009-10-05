@@ -169,7 +169,7 @@ public class FileUtils {
       SlingRepository slingRepository) throws RepositoryException {
     String fileUUID = fileNode.getUUID();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    linkNode.addMixin("sakai:propertiesmix");
+    //linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         FilesConstants.RT_SAKAI_LINK);
     linkNode.setProperty(FilesConstants.SAKAI_FILENAME, PathUtils.lastElement(linkPath));

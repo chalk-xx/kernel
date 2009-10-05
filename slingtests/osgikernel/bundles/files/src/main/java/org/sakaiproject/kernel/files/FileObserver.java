@@ -77,18 +77,25 @@ public class FileObserver {
         while (eventIterator.hasNext()) {
           Event event = eventIterator.nextEvent();
           if (event.getType() == Event.NODE_ADDED) {
-            log.info("Node added.");
+            Session adminSession = null;
+            Node node = null;
             try {
-              Node node = (Node) session.getItem(event.getPath());
+              Thread.sleep(1000);
+              log.info("Node added: " + event.getPath());
+              adminSession = slingRepository.loginAdministrative(null);
+              node = (Node) adminSession.getItem(event.getPath());
               if (node.getName().equals(JcrConstants.JCR_CONTENT)) {
                 node = node.getParent();
               }
 
-              if (!node.isLocked()) {
-
+              // If the name contains a : it's not uploaded trough webdav, so we
+              // should ignore it.
+              // Files starting with a dot are ignored as well.
+              if (!node.getName().startsWith(".") && node.getName().indexOf(":") == -1
+                  && !node.isLocked()) {
                 // We only catch nodes who don't have a sling resource type property set.
                 if (!node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-                  log.info("Node doesnt have a sling resourceType");
+                  log.info("Node doesn't have a sling resourceType");
                   // Add the mixin so we can set properties on this file.
                   if (node.canAddMixin("sakai:propertiesmix")) {
                     node.addMixin("sakai:propertiesmix");
@@ -103,12 +110,16 @@ public class FileObserver {
                   node.save();
                 }
               }
-              else {
-                log.info("Node was locked.\n\nn\n\n\\n\n\n\n\n\n\n\n\n");
-              }
 
+            } catch (InterruptedException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
             } catch (RepositoryException e) {
               e.printStackTrace();
+            } finally {
+              if (adminSession != null) {
+                adminSession.logout();
+              }
             }
           }
         }
