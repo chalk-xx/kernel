@@ -76,6 +76,14 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       String path = node.getPath();
       if (!processedNodes.contains(path)) {
         processedNodes.add(path);
+        String name = node.getName();
+
+        // We hide the .files
+        if (name.startsWith(".")) {
+          i--;
+          continue;
+        }
+
         Session session = node.getSession();
         String type = "";
         if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
@@ -102,7 +110,8 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   }
 
-  private void writeNormalFile(JSONWriter write, Node node) throws JSONException, RepositoryException {
+  private void writeNormalFile(JSONWriter write, Node node) throws JSONException,
+      RepositoryException {
     write.object();
 
     // dump all the properties.
