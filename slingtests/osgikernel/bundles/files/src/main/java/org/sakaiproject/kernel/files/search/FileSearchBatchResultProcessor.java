@@ -73,22 +73,25 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
           JcrConstants.NT_RESOURCE)) {
         node = node.getParent();
       }
+
+      // We hide the .files
+      String name = node.getName();
+      if (name.startsWith(".")) {
+        i--;
+        continue;
+      }
+
+      // Check that we didn't handle this file already.
       String path = node.getPath();
       if (!processedNodes.contains(path)) {
         processedNodes.add(path);
-        String name = node.getName();
-
-        // We hide the .files
-        if (name.startsWith(".")) {
-          i--;
-          continue;
-        }
 
         Session session = node.getSession();
         String type = "";
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
           type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
               .getString();
+        }
 
         // If it is a file node we provide some extra properties.
         if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
@@ -101,10 +104,6 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
         else {
           writeNormalFile(write, node);
         }
-      }
-      // Every other file..
-      else {
-        writeNormalFile(write, node);
       }
     }
 

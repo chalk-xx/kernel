@@ -79,6 +79,16 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
       if (file == null) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,
             "Missing Filedata parameter.");
+        return;
+      }
+
+      String[] links = request.getParameterValues("link");
+      String[] sites = request.getParameterValues("site");
+      if (sites.length != links.length) {
+        response
+            .sendError(HttpServletResponse.SC_BAD_REQUEST,
+                "The site parameter's length doesn't match with the link's parameter length.");
+        return;
       }
 
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -108,19 +118,13 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
           slingRepository);
       String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
 
-      RequestParameter[] links = request.getRequestParameters("link");
-
       List<String> createdLinks = Lists.newArrayList();
-      for (RequestParameter link : links) {
-        String linkPath = link.getString();
-        if (!linkPath.startsWith("/")) {
-          response.sendError(400, "A link should be an absolute path.");
-          return;
-        }
+      for (int i = 0; i < links.length; i++) {
+        String linkPath = links[i];
         if (!linkPath.endsWith("/"))
           linkPath += "/";
         linkPath += fileName;
-        FileUtils.createLink(session, node, linkPath, slingRepository);
+        FileUtils.createLink(session, node, linkPath, sites[i], slingRepository);
         createdLinks.add(linkPath);
       }
 

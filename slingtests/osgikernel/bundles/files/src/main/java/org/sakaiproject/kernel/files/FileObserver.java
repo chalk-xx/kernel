@@ -25,31 +25,32 @@ import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.AccessDeniedException;
+import javax.jcr.InvalidItemStateException;
+import javax.jcr.ItemExistsException;
+import javax.jcr.LoginException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.nodetype.NoSuchNodeTypeException;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
 import javax.jcr.observation.ObservationManager;
+import javax.jcr.version.VersionException;
 
 /**
- * Listens to all newly created nodes in the repository and adds some properties to it (if
- * nescecary)
- * 
- * 
- * @scr.component metatype="no" immediate="true" label="FileObserver"
- *                description="Listens to uploaded files trough webdav"
- * @scr.property name="service.description"
- *               value="Listens to uploaded files trough webdav."
+ * @scr.component label="FileObserver" immediate="true"
+ * @scr.property name="service.description" value="Observer who listens to added nodes."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.reference name="SlingRepository"
  *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class FileObserver {
-
+  private static final Logger log = LoggerFactory.getLogger(FileObserver.class);
   private SlingRepository slingRepository;
-  public static final Logger log = LoggerFactory.getLogger(FileObserver.class);
 
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
@@ -61,71 +62,114 @@ public class FileObserver {
 
   private Session session = null;
 
-  /**
-   * Register the listener.
-   * 
-   * @param ctx
-   * @throws Exception
-   */
-  public void activate(ComponentContext ctx) throws Exception {
-    session = slingRepository.loginAdministrative(null);
-    ObservationManager observationManager = session.getWorkspace()
-        .getObservationManager();
-    String[] types = { "nt:file" };
-    observationManager.addEventListener(new EventListener() {
-      public void onEvent(EventIterator eventIterator) {
-        while (eventIterator.hasNext()) {
-          Event event = eventIterator.nextEvent();
-          if (event.getType() == Event.NODE_ADDED) {
-            Session adminSession = null;
-            Node node = null;
-            try {
-              Thread.sleep(1000);
-              log.info("Node added: " + event.getPath());
-              adminSession = slingRepository.loginAdministrative(null);
-              node = (Node) adminSession.getItem(event.getPath());
-              if (node.getName().equals(JcrConstants.JCR_CONTENT)) {
-                node = node.getParent();
-              }
+  protected void activate(ComponentContext ctxt) {
+    try {
+      log.info("Activating service.");
+      session = slingRepository.loginAdministrative(null);
+      ObservationManager observationManager = session.getWorkspace()
+          .getObservationManager();
+      String[] types = { "nt:file" };
+      observationManager.addEventListener(new EventListener() {
+        public void onEvent(EventIterator eventIterator) {
+          while (eventIterator.hasNext()) {
+            Event event = eventIterator.nextEvent();
+            if (event.getType() == Event.NODE_ADDED) {
+              log.info("New event.");
 
-              // If the name contains a : it's not uploaded trough webdav, so we
-              // should ignore it.
-              // Files starting with a dot are ignored as well.
-              if (!node.getName().startsWith(".") && node.getName().indexOf(":") == -1
-                  && !node.isLocked()) {
-                // We only catch nodes who don't have a sling resource type property set.
-                if (!node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-                  log.info("Node doesn't have a sling resourceType");
-                  // Add the mixin so we can set properties on this file.
-                  if (node.canAddMixin("sakai:propertiesmix")) {
-                    node.addMixin("sakai:propertiesmix");
-                  }
-                  // Set resourcetype to sakai/file, set the sakai:filename and the
-                  // sakai:user
-                  node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-                      FilesConstants.RT_SAKAI_FILE);
-                  node.setProperty(FilesConstants.SAKAI_FILENAME, node.getName());
-                  node.setProperty(FilesConstants.SAKAI_USER, event.getUserID());
+              Session adminSession = null;
+              try {
+                String path = event.getPath();
+                adminSession = slingRepository.loginAdministrative(null);
+                Node node = (Node) adminSession.getItem(path);
 
-                  node.save();
+                if (node.getName().equals(JcrConstants.JCR_CONTENT)) {
+                  node = node.getParent();
                 }
+
+                path = node.getPath();
+
+                log.info("Grabbed node: " + node.getPath());
+
+                // If the name contains a : it's not uploaded trough webdav, so we
+                // should ignore it.
+                // Files starting with a dot are ignored as well.
+                if (!node.getName().startsWith(".") && node.getName().indexOf(":") == -1) {
+                  // We only catch nodes who don't have a sling resource type property
+                  // set.
+                  if (!node
+                      .hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+                    log.info("Node doesn't have a sling resourceType");
+
+                    // Thread.sleep(1000);
+                    addProps(node, path, adminSession);
+
+                  }
+                }
+              } catch (LoginException e) {
+                log.error(e.getMessage(), e);
+                e.printStackTrace();
+              } catch (RepositoryException e) {
+                log.error(e.getMessage(), e);
+                e.printStackTrace();
+              } finally {
+                if (adminSession != null)
+                  adminSession.logout();
               }
 
-            } catch (InterruptedException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
-            } catch (RepositoryException e) {
-              e.printStackTrace();
-            } finally {
-              if (adminSession != null) {
-                adminSession.logout();
-              }
             }
           }
         }
-      }
-    }, Event.NODE_ADDED, "/", true, null, types, true);
-    log.info("Started listening for new files.");
+      }, Event.NODE_ADDED, "/", true, null, types, true);
+      log.info("Started observing changes to the repository.");
+    } catch (RepositoryException e1) {
+      e1.printStackTrace();
+    }
+
+  }
+
+  protected void addProps(Node node, String path, Session adminSession)
+      throws NoSuchNodeTypeException, VersionException, ConstraintViolationException,
+      LockException, RepositoryException {
+
+    while (node.isNew() || node.isLocked()) {
+      log.info("Node is new/locked wait untill it is not.");
+      Thread.yield();
+    }
+
+    // Add the mixin so we can set properties on this file.
+    if (node.canAddMixin("sakai:propertiesmix")) {
+      log.info("Adding sakai:propertiesmix.");
+      node.addMixin("sakai:propertiesmix");
+    }
+    // Set resourcetype to sakai/file, set the sakai:filename and the
+    // sakai:user
+    node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        FilesConstants.RT_SAKAI_FILE);
+    node.setProperty(FilesConstants.SAKAI_FILENAME, node.getName());
+    node.setProperty(FilesConstants.SAKAI_USER, node.getSession().getUserID());
+
+    log.info("Set properties.");
+
+    saveSession(node, path, adminSession);
+
+    log.info("Saved session.");
+  }
+
+  private void saveSession(Node node, String path, Session adminSession)
+      throws AccessDeniedException, ItemExistsException, ConstraintViolationException,
+      VersionException, LockException, NoSuchNodeTypeException, RepositoryException {
+    try {
+      if (adminSession.hasPendingChanges())
+        adminSession.save();
+    } catch (InvalidItemStateException e) {
+      // kep retrying...
+      log.info("Failed to save session, retrying...");
+      Thread.yield();
+      adminSession.logout();
+      adminSession = slingRepository.loginAdministrative(null);
+      node = (Node) adminSession.getItem(path);
+      addProps(node, path, adminSession);
+    }
   }
 
   protected void deactivate(ComponentContext componentContext) {

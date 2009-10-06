@@ -18,6 +18,7 @@
 package org.sakaiproject.kernel.api.files;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.value.ValueFactoryImpl;
@@ -39,13 +40,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.AccessControlException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -166,10 +167,10 @@ public class FileUtils {
    * @throws RepositoryException
    */
   public static String createLink(Session session, Node fileNode, String linkPath,
-      SlingRepository slingRepository) throws RepositoryException {
+      String sitePath, SlingRepository slingRepository) throws RepositoryException {
     String fileUUID = fileNode.getUUID();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    //linkNode.addMixin("sakai:propertiesmix");
+    // linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         FilesConstants.RT_SAKAI_LINK);
     linkNode.setProperty(FilesConstants.SAKAI_FILENAME, PathUtils.lastElement(linkPath));
@@ -196,7 +197,7 @@ public class FileUtils {
       Node adminFileNode = adminSession.getNodeByUUID(fileUUID);
 
       addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
-      addValue(adminFileNode, "sakai:sites", linkNode.getUUID());
+      addValue(adminFileNode, "sakai:sites", sitePath);
 
       // Save the reference.
       if (adminSession.hasPendingChanges()) {
@@ -213,6 +214,7 @@ public class FileUtils {
 
   /**
    * Add a value to to a multi-valued property.
+   * 
    * @param adminFileNode
    * @param property
    * @param value
@@ -223,7 +225,9 @@ public class FileUtils {
     // Add a reference on the fileNode.
     Value[] references = JcrUtils.getValues(adminFileNode, property);
     if (references.length == 0) {
-      adminFileNode.setProperty(property, value);
+      Value[] vals = { ValueHelper.convert(value, PropertyType.STRING, ValueFactoryImpl
+          .getInstance()) };
+      adminFileNode.setProperty(property, vals);
     } else {
       Value[] newReferences = new Value[references.length + 1];
       for (int i = 0; i < references.length; i++) {
@@ -427,21 +431,26 @@ public class FileUtils {
     write.object();
     write.key("sites");
     write.array();
-    PropertyIterator pi = node.getReferences();
-    int total = 0;
-    while (pi.hasNext()) {
-      Property p = pi.nextProperty();
-      Node parent = p.getParent(); // Get the node for this property.
-      log.info(parent.getPath());
 
-      while (!parent.getPath().equals("/")) {
-        // If it is a site service then we print it out.
-        if (siteService.isSite(parent)) {
-          writeSiteInfo(parent, write, siteService);
+    Value[] sites = JcrUtils.getValues(node, "sakai:sites");
+    Session session = node.getSession();
+
+    int total = 0;
+    List<String> handledSites = new ArrayList<String>();
+    for (Value v : sites) {
+      String path = v.getString();
+      if (!handledSites.contains(path)) {
+        handledSites.add(path);
+        Node siteNode = (Node) session.getItem(v.getString());
+
+        AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+        Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
+        Privilege[] privs = new Privilege[] { read };
+        boolean hasAccess = acm.hasPrivileges(path, privs);
+        if (siteService.isSite(siteNode) && hasAccess) {
+          writeSiteInfo(siteNode, write, siteService);
           total++;
-          break;
         }
-        parent = parent.getParent();
       }
     }
     write.endArray();

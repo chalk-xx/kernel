@@ -104,6 +104,16 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
     }
 
+    RequestParameter siteParam = request.getRequestParameter("site");
+    if (siteParam != null) {
+      String site = siteParam.getString();
+      if (!site.startsWith("/")) {
+        response.sendError(500,
+            "If a site is specified, it should be absolute and point to a site.");
+        return;
+      }
+    }
+
     List<Node> fileNodes = Lists.newArrayList();
     List<String> links = Lists.newArrayList();
 
@@ -123,7 +133,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
 
       // Create a link for each file if there is a need for it.
-      if (linkParam != null) {
+      if (linkParam != null && siteParam != null) {
         Node linkFolder = (Node) session.getItem(linkParam.getString());
         // For each file .. create a link
         for (Node fileNode : fileNodes) {
@@ -131,7 +141,8 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
               .getString();
 
           String linkPath = linkFolder.getPath() + "/" + fileName;
-          FileUtils.createLink(session, fileNode, linkPath, slingRepository);
+          String sitePath = siteParam.getString();
+          FileUtils.createLink(session, fileNode, linkPath, sitePath, slingRepository);
           links.add(linkPath);
         }
       }

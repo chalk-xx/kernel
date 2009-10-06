@@ -33,6 +33,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Create a jcrinternal link to a file.
@@ -52,34 +53,55 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
   public static final Logger log = LoggerFactory.getLogger(FileCreateLinkServlet.class);
   private static final long serialVersionUID = -6206802633585722105L;
   private static final String LINK_PARAM = "link";
+  private static final String SITE_PARAM = "site";
 
   private SlingRepository slingRepository;
+
   protected void bindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = slingRepository;
   }
+
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
+
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+
+    String[] sites = request.getParameterValues(SITE_PARAM);
+    String[] links = request.getParameterValues(LINK_PARAM);
+    if (sites == null || links == null) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "A site and link parameter have to be provided.");
+      return;
+    }
+    if (sites.length != links.length) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "The site parameter's length doesn't match with the link's parameter length.");
+      return;
+    }
+
     try {
-      String[] links = request.getParameterValues(LINK_PARAM);
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node fileNode = request.getResource().adaptTo(Node.class);
       JSONWriter write = new JSONWriter(response.getWriter());
       write.array();
-      for (String link : links) {
+      for (int i = 0; i < links.length; i++) {
+        String link = links[i];
+        String site = sites[i];
         write.object();
         write.key("link");
         write.value(link);
         try {
-          String linkPath = FileUtils.createLink(session, fileNode, link, slingRepository);
+          String linkPath = FileUtils.createLink(session, fileNode, link, site,
+              slingRepository);
           write.key("path");
           write.value(linkPath);
           write.key("succes");
           write.value(true);
         } catch (RepositoryException e) {
+          e.printStackTrace();
           write.key("succes");
           write.value(false);
         }
