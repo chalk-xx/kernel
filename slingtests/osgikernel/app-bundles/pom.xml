@@ -399,7 +399,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.fsresource</artifactId>
-      <version>0.9.3-incubator-SNAPSHOT</version>
+      <version>0.9.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 -->
