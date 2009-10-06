@@ -168,6 +168,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.auth.trusted</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.formauth</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -477,7 +482,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.files,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.chat,org.sakaiproject.kernel.discussion,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email,org.sakaiproject.kernel.auth.ldap,org.sakaiproject.kernel.proxy</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.files,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.chat,org.sakaiproject.kernel.discussion,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email,org.sakaiproject.kernel.auth.ldap,org.sakaiproject.kernel.proxy,org.sakaiproject.kernel.auth.trusted</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
