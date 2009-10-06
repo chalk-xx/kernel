@@ -89,6 +89,11 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
       write.array();
       for (int i = 0; i < links.length; i++) {
         String link = links[i];
+        if (!link.endsWith("/")) {
+          link += "/";
+        }
+        link += fileNode.getName();
+
         String site = sites[i];
         write.object();
         write.key("link");
@@ -110,6 +115,8 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
       write.endArray();
     } catch (JSONException ex) {
       response.sendError(500, "Could not write JSON response.");
+    } catch (RepositoryException e) {
+      response.sendError(500, "Unable to get filename");
     }
   }
 }
