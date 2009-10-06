@@ -22,6 +22,7 @@ import com.novell.ldap.LDAPException;
 
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 import org.slf4j.Logger;
@@ -56,6 +57,18 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    * exception
    */
   private static final int POOL_MAX_WAIT = 60000;
+
+  private LdapConnectionBroker broker;
+  private String poolName;
+
+  public PoolingLdapConnectionManager() {
+
+  }
+
+  protected PoolingLdapConnectionManager(LdapConnectionBroker broker, String poolName) {
+    this.broker = broker;
+    this.pool = pool;
+  }
 
   /**
    * {@inheritDoc}
@@ -155,14 +168,18 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    */
   @Override
   public void destroy() {
-    try {
-      log.debug("destroy(): closing connection pool");
-      pool.close();
-      log.debug("destroy(): successfully closed connection pool");
-    } catch (Exception e) {
-      throw new RuntimeException("failed to shutdown connection pool", e);
+    if (broker != null && poolName != null) {
+      broker.destroy(poolName);
+    } else {
+      try {
+        log.debug("destroy(): closing connection pool");
+        pool.close();
+        log.debug("destroy(): successfully closed connection pool");
+      } catch (Exception e) {
+        throw new RuntimeException("failed to shutdown connection pool", e);
+      }
+      log.debug("destroy(): delegating to parent destroy() impl");
     }
-    log.debug("destroy(): delegating to parent destroy() impl");
   }
 
   public PooledLDAPConnectionFactory getFactory() {

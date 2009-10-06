@@ -84,6 +84,13 @@ public class LdapConnectionManagerConfig {
     this.poolMaxConns = poolMaxConns;
   }
 
+  public LdapConnectionManagerConfig copy() {
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig(secureConnection, tls,
+        keystoreLocation, keystorePassword, operationTimeout, ldapHost, ldapPort, loginUser,
+        loginPassword, followReferrals, autoBind, pooling, poolMaxConns);
+    return config;
+  }
+
   /**
    * If <code>true</code>, connect to LDAP over a secure protocol.
    */

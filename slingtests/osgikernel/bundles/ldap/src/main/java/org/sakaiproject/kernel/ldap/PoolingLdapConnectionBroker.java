@@ -110,23 +110,26 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#create(java.lang.String,
    *      org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig)
    */
-  public void create(String name, LdapConnectionManagerConfig config) throws LdapException {
+  public LdapConnectionManager create(String name, LdapConnectionManagerConfig config)
+      throws LdapException {
     if (config == null) {
       config = defaults;
     }
 
     // create a new connection manager, set the config and initialize it.
-    PoolingLdapConnectionManager mgr = newPoolingLdapConnectionManager();
+    PoolingLdapConnectionManager mgr = newPoolingLdapConnectionManager(name);
     mgr.setConfig(config);
     mgr.init();
 
     // put the new connection manager in the store and set it to be
     // available outside of this block.
     factories.put(name, mgr);
+
+    return mgr;
   }
 
-  protected PoolingLdapConnectionManager newPoolingLdapConnectionManager() {
-    return new PoolingLdapConnectionManager();
+  protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName) {
+    return new PoolingLdapConnectionManager(this, poolName);
   }
 
   /**
@@ -195,7 +198,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
   }
 
   public LdapConnectionManagerConfig getDefaultConfig() {
-    return defaults;
+    return defaults.copy();
   }
 
   public void update(Map<String, String> props) {
