@@ -408,6 +408,11 @@
       <scope>provided</scope>
     </dependency>
 -->
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.fileinstall</artifactId>
+      <version>1.2.0</version>
+    </dependency>
 
   </dependencies>
   <profiles>
@@ -501,7 +506,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp,org.apache.felix.fileinstall</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>
