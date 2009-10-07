@@ -79,7 +79,7 @@ public class SmtpRouter implements MessageRouter {
         try {
           Session session = slingRepository.loginAdministrative(null);
           Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
-          if (PersonalUtils.getPreferredMessageTransport(profileNode) == MessageConstants.TYPE_SMTP) {
+          if (isPreferredTransportSmtp(profileNode) || isMessageTypeSmtp(n)) {
             String rcptEmailAddress = PersonalUtils.getEmailAddress(profileNode);
             MessageRoute smtpRoute = new MessageRouteImpl(MessageConstants.TYPE_SMTP
                 + ":" + rcptEmailAddress);
@@ -92,5 +92,16 @@ public class SmtpRouter implements MessageRouter {
       }
     }
     routing.addAll(rewrittenRoutes);
+  }
+
+  private boolean isMessageTypeSmtp(Node n) throws RepositoryException {
+    return n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)
+        && MessageConstants.TYPE_SMTP.equals(n.getProperty(
+            MessageConstants.PROP_SAKAI_TYPE).getString());
+  }
+
+  private boolean isPreferredTransportSmtp(Node profileNode) throws RepositoryException {
+    return MessageConstants.TYPE_SMTP.equals(PersonalUtils
+        .getPreferredMessageTransport(profileNode));
   }
 }
