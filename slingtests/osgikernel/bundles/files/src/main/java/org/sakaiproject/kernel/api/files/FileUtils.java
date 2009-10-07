@@ -330,6 +330,11 @@ public class FileUtils {
       write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());
       write.key(FilesConstants.SAKAI_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+
+      if (contentNode.hasProperty(JcrConstants.JCR_DATA)) {
+        write.key("filesize");
+        write.value(contentNode.getProperty(JcrConstants.JCR_DATA).getLength());
+      }
     }
 
     // Get all the sites where this file is referenced.
