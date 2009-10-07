@@ -30,13 +30,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Allocates connected, constrained, bound and optionally secure
- * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of
- * connections instead of creating a new connection for each request. Originally
- * tried implementing this with
- * <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
- * recovering connections that had suffered a network error or connections that
- * were never returned but dropped out of scope.
- *
+ * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of connections
+ * instead of creating a new connection for each request. Originally tried implementing
+ * this with <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
+ * recovering connections that had suffered a network error or connections that were never
+ * returned but dropped out of scope.
+ * 
  * @see LdapConnectionManagerConfig
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
@@ -53,8 +52,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   private PooledLDAPConnectionFactory factory;
 
   /**
-   * How long to block waiting for an available connection before throwing an
-   * exception
+   * How long to block waiting for an available connection before throwing an exception
    */
   private static final int POOL_MAX_WAIT = 60000;
 
@@ -67,7 +65,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
   protected PoolingLdapConnectionManager(LdapConnectionBroker broker, String poolName) {
     this.broker = broker;
-    this.pool = pool;
+    this.poolName = poolName;
   }
 
   /**
@@ -121,18 +119,22 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     LDAPConnection conn = null;
     try {
       conn = (LDAPConnection) pool.borrowObject();
-      log.debug("getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
+      log.debug(
+          "getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
       conn.bind(LDAPConnection.LDAP_V3, dn, pw.getBytes("UTF8"));
       log.debug("getBoundConnection():dn=[{}] successfully bound to dn", dn);
       return conn;
     } catch (Exception e) {
       if (conn != null) {
         try {
-          log.debug("getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
-              dn);
+          log
+              .debug(
+                  "getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
+                  dn);
           returnConnection(conn);
         } catch (Exception ee) {
-          log.debug("getBoundConnection():dn=[" + dn + "] failed to return connection to pool", ee);
+          log.debug("getBoundConnection():dn=[" + dn
+              + "] failed to return connection to pool", ee);
         }
       }
       if (e instanceof LDAPException) {
@@ -192,13 +194,13 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
   /**
    * Assign a pool implementation. If not specified, one will be constructed by
-   * {@link #init()}. If specified,
-   * {@link #setFactory(PooledLDAPConnectionFactory)} will have no effect.
-   *
+   * {@link #init()}. If specified, {@link #setFactory(PooledLDAPConnectionFactory)} will
+   * have no effect.
+   * 
    * <p>
    * This method exists almost entirely for testing purposes.
    * </p>
-   *
+   * 
    * @param pool
    *          the pool to cache; accepts <code>null</code>
    */
