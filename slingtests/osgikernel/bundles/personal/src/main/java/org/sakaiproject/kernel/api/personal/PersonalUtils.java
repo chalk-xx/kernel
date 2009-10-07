@@ -24,6 +24,7 @@ import static org.sakaiproject.kernel.api.personal.PersonalConstants._USER_PUBLI
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,10 +159,14 @@ public class PersonalUtils {
   }
 
   public static String getEmailAddress(Node profileNode) throws RepositoryException {
+    String addr = null;
     if (profileNode.hasProperty(PersonalConstants.EMAIL_ADDRESS)) {
-      return profileNode.getProperty(PersonalConstants.EMAIL_ADDRESS).getString();
+      Value[] addrs = JcrUtils.getValues(profileNode, PersonalConstants.EMAIL_ADDRESS);
+      if (addrs.length > 0) {
+        addr = addrs[0].getString();
+      }
     }
-    return null;
+    return addr;
   }
 
   public static String getPreferredMessageTransport(Node profileNode)
