@@ -91,15 +91,14 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // Set all my bookmarks
     propertiesMap.put("_mybookmarks", getMyBookmarks(session, user));
 
+    // request specific.
     // Sorting order
     propertiesMap.put("_order", doSortOrder(request));
 
-    // Path
-    RequestParameter pathParam = request.getRequestParameter("path");
-    String path = (pathParam != null) ? pathParam.getString() : "";
-    propertiesMap.put("_path", path);
+    // Filter by site
+    propertiesMap.put("_usedin", doUsedIn(request));
 
-    // Tags
+    // Filter by tags
     propertiesMap.put("_tags", doTags(request));
 
     // ###########################
@@ -123,13 +122,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // ###########################
     String types[] = request.getParameterValues("type");
     String typesWhere = "";
-    RequestParameter searchParam = request.getRequestParameter("search");
-    String search = "*";
-    if (searchParam != null) {
-      search = escapeString(searchParam.getString(), Query.XPATH);
-      if (search.equals(""))
-        search = "*";
-    }
+    String search = getSearchValue(request);
     if (types != null && types.length > 0) {
       StringBuilder sb = new StringBuilder("");
       sb.append("(");
@@ -164,6 +157,45 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
   }
 
   /**
+   * Filter files by looking up where they are used.
+   * 
+   * @param request
+   * @return
+   */
+  private String doUsedIn(SlingHttpServletRequest request) {
+    String usedin[] = request.getParameterValues("usedin");
+    if (usedin != null && usedin.length > 0) {
+      StringBuilder sb = new StringBuilder();
+
+      for (String u : usedin) {
+        sb.append("jcr:contains(@sakai:linkpaths,\"").append(u).append("\") or ");
+      }
+
+      String usedinClause = sb.toString();
+      int i = usedinClause.lastIndexOf(" or ");
+      if (i > -1) {
+        usedinClause = usedinClause.substring(0, i);
+      }
+      if (usedinClause.length() > 0) {
+        usedinClause = " and (" + usedinClause + ")";
+        return usedinClause;
+      }
+    }
+    return "";
+  }
+
+  private String getSearchValue(SlingHttpServletRequest request) {
+    RequestParameter searchParam = request.getRequestParameter("search");
+    String search = "*";
+    if (searchParam != null) {
+      search = escapeString(searchParam.getString(), Query.XPATH);
+      if (search.equals(""))
+        search = "*";
+    }
+    return search;
+  }
+
+  /**
    * Returns default sort order.
    * 
    * @param request
@@ -187,13 +219,14 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   /**
    * Gets a clause for a query by looking at the sakai:tags request parameter.
+   * 
    * @param request
    * @return
    */
   private String doTags(SlingHttpServletRequest request) {
     String[] tags = request.getParameterValues("sakai:tags");
     if (tags != null) {
-      StringBuilder sb = new StringBuilder(" and (");
+      StringBuilder sb = new StringBuilder();
 
       for (String t : tags) {
         sb.append("@sakai:tags=\"");
@@ -201,7 +234,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         sb.append("\" and ");
       }
       String tagClause = sb.toString();
-      int i = tagClause.lastIndexOf(" or ");
+      int i = tagClause.lastIndexOf(" and ");
       if (i > -1) {
         tagClause = tagClause.substring(0, i);
       }
