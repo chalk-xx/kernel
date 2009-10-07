@@ -2,10 +2,15 @@ package org.sakaiproject.kernel.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 
+import java.awt.geom.PathIterator;
 import java.io.IOException;
 
 import javax.jcr.AccessDeniedException;
@@ -14,6 +19,8 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -32,7 +39,8 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 6387824420269087079L;
   public static final String RESOURCE_PATH_PARAMETER = "resources";
-
+  
+  
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -54,7 +62,7 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
         write.value(resourcePath);
         write.key("succes");
         try {
-          removeResource(resourcePath, session);
+          removeResource(resourcePath, session, request);
           write.value(200);
         } catch (AccessDeniedException e) {
           write.value(401);
@@ -79,15 +87,28 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
    * @param session
    * @throws RepositoryException
    */
-  private void removeResource(String resourcePath, Session session)
-      throws AccessDeniedException, PathNotFoundException, RepositoryException {
+  private void removeResource(String resourcePath, Session session,
+      SlingHttpServletRequest request) throws AccessDeniedException,
+      PathNotFoundException, RepositoryException {
     try {
-      if (!session.itemExists(resourcePath)) {
-        throw new PathNotFoundException();
+      if (session.itemExists(resourcePath)) {
+        Item i = session.getItem(resourcePath);
+        i.remove();
+        session.save();
+      } else {
+        // TODO resolve this path in a different way. There could be multiple bigstore..
+        // The path doesn't exists in JCR, maybe it exists in a bigstore..
+        String store = PathUtils.getParentReference(resourcePath);
+        String id = PathUtils.lastElement(resourcePath);
+        String full = PathUtils.toInternalHashedPath(store, id, "");
+        if (session.itemExists(full)) {
+          Item i = session.getItem(full);
+          i.remove();
+          session.save();
+        } else {
+          throw new PathNotFoundException();
+        }
       }
-      Item i = session.getItem(resourcePath);
-      i.remove();
-      session.save();
     } catch (AccessDeniedException e) {
       throw e;
     }
