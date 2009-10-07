@@ -20,6 +20,8 @@ package org.sakaiproject.kernel.files.search;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.sakaiproject.kernel.api.connections.ConnectionManager;
+import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.site.SiteException;
@@ -46,6 +48,8 @@ import javax.jcr.query.Query;
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
  * @scr.reference name="SiteService"
  *                interface="org.sakaiproject.kernel.api.site.SiteService"
+ * @scr.reference name="ConnectionManager"
+ *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
 public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
@@ -59,6 +63,16 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     this.siteService = null;
   }
 
+  private ConnectionManager connectionManager;
+
+  protected void bindConnectionManager(ConnectionManager connectionManager) {
+    this.connectionManager = connectionManager;
+  }
+
+  protected void unbindConnectionManager(ConnectionManager connectionManager) {
+    this.connectionManager = connectionManager;
+  }
+
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
 
@@ -68,54 +82,17 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     // Set the userid.
     propertiesMap.put("_me", user);
 
-    // Set all mysites.
-    try {
-      StringBuilder sb = new StringBuilder();
-      Map<String, List<Group>> membership = siteService.getMembership(session, user);
-      for (Entry<String, List<Group>> site : membership.entrySet()) {
-        sb.append("@sakai:sites=\"").append(site.getKey()).append("\" or ");
-      }
-      String sites = sb.toString();
-      int i = sites.lastIndexOf(" or ");
-      if (i > -1) {
-        sites = sites.substring(0, i);
-      }
-      if (sites.length() > 0) {
-        sites = " and (" + sites + ")";
-      }
-      propertiesMap.put("_mysites", sites);
+    // Set the contacts.
+    propertiesMap.put("_mycontacts", getMyContacts(user));
 
-    } catch (SiteException e1) {
-      e1.printStackTrace();
-    }
+    // Set all mysites.
+    propertiesMap.put("_mysites", getMySites(session, user));
 
     // Set all my bookmarks
-    String userPath = PersonalUtils.getPrivatePath(user, "");
-    String bookmarksPath = userPath + "/mybookmarks";
-    String ids = "and (@sakai:id=\"somenoneexistingid\")";
-    try {
-      if (session.itemExists(bookmarksPath)) {
-        Node node = (Node) session.getItem(bookmarksPath);
-        Value[] values = JcrUtils.getValues(node, "files");
+    propertiesMap.put("_mybookmarks", getMyBookmarks(session, user));
 
-        StringBuilder sb = new StringBuilder("");
-
-        for (Value val : values) {
-          sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
-        }
-
-        String bookmarks = sb.toString();
-        int i = bookmarks.lastIndexOf(" or ");
-        if (i > -1) {
-          bookmarks = bookmarks.substring(0, i);
-        }
-        if (bookmarks.length() > 0) {
-          ids = " and (" + bookmarks + ")";
-        }
-      }
-    } catch (RepositoryException e) {
-    }
-    propertiesMap.put("_mybookmarks", ids);
+    // Sorting order
+    propertiesMap.put("_order", doSortOrder(request));
 
     // Path
     RequestParameter pathParam = request.getRequestParameter("path");
@@ -123,38 +100,12 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     propertiesMap.put("_path", path);
 
     // Tags
-    String tags = "";
-    RequestParameter[] tagsParams = request.getRequestParameters("sakai:tags");
-    if (tagsParams != null) {
-      StringBuilder sb = new StringBuilder(" and (");
+    propertiesMap.put("_tags", doTags(request));
 
-      for (RequestParameter tag : tagsParams) {
-        sb.append("@sakai:tags=\"");
-        sb.append(tag.getString());
-        sb.append("\" and ");
-      }
-      tags = sb.substring(0, sb.length() - 5) + ")";
-    }
-    propertiesMap.put("_tags", tags);
-
-    // Sorting order
-    RequestParameter sortOnParam = request.getRequestParameter("sortOn");
-    RequestParameter sortOrderParam = request.getRequestParameter("sortOrder");
-    String sortOn = "sakai:filename";
-    String sortOrder = "ascending";
-    if (sortOrderParam != null
-        && (sortOrderParam.getString().equals("ascending") || sortOrderParam.getString()
-            .equals("descending"))) {
-      sortOrder = sortOrderParam.getString();
-    }
-    if (sortOnParam != null) {
-      sortOn = sortOnParam.getString();
-    }
-    String order = " order by @" + sortOn + " " + sortOrder;
-    propertiesMap.put("_order", order);
-
+    // ###########################
     // TODO /var/search/files/resources.json should be deleted.
     // Resource types (used in resources.json).
+    // ###########################
     RequestParameter resourceParam = request.getRequestParameter("resource");
     String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
     if (resourceParam != null) {
@@ -167,7 +118,9 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     }
     propertiesMap.put("_resourceTypes", resourceTypes);
 
+    // ###########################
     // Resource types (used in files.json)
+    // ###########################
     String types[] = request.getParameterValues("type");
     String typesWhere = "";
     RequestParameter searchParam = request.getRequestParameter("search");
@@ -210,6 +163,131 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     propertiesMap.put("_typesWhere", typesWhere);
   }
 
+  /**
+   * Returns default sort order.
+   * 
+   * @param request
+   * @return
+   */
+  private String doSortOrder(SlingHttpServletRequest request) {
+    RequestParameter sortOnParam = request.getRequestParameter("sortOn");
+    RequestParameter sortOrderParam = request.getRequestParameter("sortOrder");
+    String sortOn = "sakai:filename";
+    String sortOrder = "ascending";
+    if (sortOrderParam != null
+        && (sortOrderParam.getString().equals("ascending") || sortOrderParam.getString()
+            .equals("descending"))) {
+      sortOrder = sortOrderParam.getString();
+    }
+    if (sortOnParam != null) {
+      sortOn = sortOnParam.getString();
+    }
+    return " order by @" + sortOn + " " + sortOrder;
+  }
+
+  /**
+   * Gets a clause for a query by looking at the sakai:tags request parameter.
+   * @param request
+   * @return
+   */
+  private String doTags(SlingHttpServletRequest request) {
+    String[] tags = request.getParameterValues("sakai:tags");
+    if (tags != null) {
+      StringBuilder sb = new StringBuilder(" and (");
+
+      for (String t : tags) {
+        sb.append("@sakai:tags=\"");
+        sb.append(t);
+        sb.append("\" and ");
+      }
+      String tagClause = sb.toString();
+      int i = tagClause.lastIndexOf(" or ");
+      if (i > -1) {
+        tagClause = tagClause.substring(0, i);
+      }
+      if (tagClause.length() > 0) {
+        tagClause = " and (" + tagClause + ")";
+        return tagClause;
+      }
+    }
+    return "";
+  }
+
+  /**
+   * Gets the user his bookmarks in a string that can be used in a query.
+   * 
+   * @param session
+   * @param user
+   * @return
+   */
+  private String getMyBookmarks(Session session, String user) {
+    String userPath = PersonalUtils.getPrivatePath(user, "");
+    String bookmarksPath = userPath + "/mybookmarks";
+    String ids = "and (@sakai:id=\"somenoneexistingid\")";
+    try {
+      if (session.itemExists(bookmarksPath)) {
+        Node node = (Node) session.getItem(bookmarksPath);
+        Value[] values = JcrUtils.getValues(node, "files");
+
+        StringBuilder sb = new StringBuilder("");
+
+        for (Value val : values) {
+          sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
+        }
+
+        String bookmarks = sb.toString();
+        int i = bookmarks.lastIndexOf(" or ");
+        if (i > -1) {
+          bookmarks = bookmarks.substring(0, i);
+        }
+        if (bookmarks.length() > 0) {
+          bookmarks = " and (" + bookmarks + ")";
+          return bookmarks;
+        }
+      }
+    } catch (RepositoryException e) {
+      // Well, we failed..
+      e.printStackTrace();
+    }
+    return ids;
+  }
+
+  /**
+   * Get a user his sites.
+   * 
+   * @param session
+   * @param user
+   * @return
+   */
+  private String getMySites(Session session, String user) {
+    try {
+      StringBuilder sb = new StringBuilder();
+      Map<String, List<Group>> membership = siteService.getMembership(session, user);
+      for (Entry<String, List<Group>> site : membership.entrySet()) {
+        sb.append("@sakai:sites=\"").append(site.getKey()).append("\" or ");
+      }
+      String sites = sb.toString();
+      int i = sites.lastIndexOf(" or ");
+      if (i > -1) {
+        sites = sites.substring(0, i);
+      }
+      if (sites.length() > 0) {
+        sites = " and (" + sites + ")";
+      }
+      return sites;
+
+    } catch (SiteException e1) {
+      return "";
+    }
+  }
+
+  /**
+   * Escape a parameter string so it doesn't contain anything that might break the query.
+   * 
+   * @param value
+   * @param queryLanguage
+   * @return
+   */
   private String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
@@ -220,6 +298,33 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       }
     }
     return escaped;
+  }
+
+  /**
+   * Get a string of all the connected users.
+   * 
+   * @param user
+   *          The user to get the contacts for.
+   * @return and (@sakai:user=\"simon\" or @sakai:user=\"ieb\")
+   */
+  private String getMyContacts(String user) {
+    List<String> connectedUsers = connectionManager.getConnectedUsers(user,
+        ConnectionState.ACCEPTED);
+    StringBuilder sb = new StringBuilder();
+    for (String u : connectedUsers) {
+      sb.append("@sakai:user=\"").append(u).append("\" or ");
+    }
+    String usersClause = sb.toString();
+    int i = usersClause.lastIndexOf(" or ");
+    if (i > -1) {
+      usersClause = usersClause.substring(0, i);
+    }
+    if (usersClause.length() > 0) {
+      usersClause = " and (" + usersClause + ")";
+      return usersClause;
+    }
+
+    return "";
   }
 
 }
