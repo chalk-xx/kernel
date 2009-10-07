@@ -173,7 +173,8 @@ public class FileUtils {
     // linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         FilesConstants.RT_SAKAI_LINK);
-    linkNode.setProperty(FilesConstants.SAKAI_FILENAME, PathUtils.lastElement(linkPath));
+    String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
+    linkNode.setProperty(FilesConstants.SAKAI_FILENAME, fileName);
     String uri = FileUtils.getDownloadPath(fileNode);
     linkNode.setProperty(FilesConstants.SAKAI_LINK, "jcrinternal:" + uri);
     linkNode.setProperty("jcr:reference", fileUUID);
@@ -198,6 +199,7 @@ public class FileUtils {
 
       addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
       addValue(adminFileNode, "sakai:sites", sitePath);
+      addValue(adminFileNode, "sakai:linkpaths", linkPath);
 
       // Save the reference.
       if (adminSession.hasPendingChanges()) {
@@ -436,22 +438,29 @@ public class FileUtils {
     Session session = node.getSession();
 
     int total = 0;
-    List<String> handledSites = new ArrayList<String>();
-    for (Value v : sites) {
-      String path = v.getString();
-      if (!handledSites.contains(path)) {
-        handledSites.add(path);
-        Node siteNode = (Node) session.getItem(v.getString());
+    try {
+      List<String> handledSites = new ArrayList<String>();
+      for (Value v : sites) {
+        String path = v.getString();
+        if (!handledSites.contains(path)) {
+          handledSites.add(path);
+          Node siteNode = (Node) session.getItem(v.getString());
 
-        AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
-        Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
-        Privilege[] privs = new Privilege[] { read };
-        boolean hasAccess = acm.hasPrivileges(path, privs);
-        if (siteService.isSite(siteNode) && hasAccess) {
-          writeSiteInfo(siteNode, write, siteService);
-          total++;
+          AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+          Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
+          Privilege[] privs = new Privilege[] { read };
+          boolean hasAccess = acm.hasPrivileges(path, privs);
+          if (siteService.isSite(siteNode) && hasAccess) {
+            writeSiteInfo(siteNode, write, siteService);
+            total++;
+          }
         }
       }
+    } catch (Exception e) {
+      // We ignore every exception it has when looking up sites.
+      // it is dirty ..
+      log.info("Catched exception when looking up used sites for a file.");
+      e.printStackTrace();
     }
     write.endArray();
     write.key("total");

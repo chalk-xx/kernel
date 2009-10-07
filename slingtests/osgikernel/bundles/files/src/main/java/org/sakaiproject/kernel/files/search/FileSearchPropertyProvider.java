@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.files.search;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.site.SiteException;
@@ -66,63 +65,61 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String user = request.getRemoteUser();
 
-    // Path
-    // If path equals mybookmarks then the results id's have to be in the mybookmars node.
-    RequestParameter pathParam = request.getRequestParameter("path");
-    String path = FilesConstants.USER_FILESTORE;
-    if (pathParam != null) {
-      path = pathParam.getString();
+    // Set the userid.
+    propertiesMap.put("_me", user);
 
-      // Only check the files that are in the user his bookmarks node.
-      if (path.equals("mybookmarks")) {
-        path = FilesConstants.USER_FILESTORE;
-
-        String userPath = PersonalUtils.getPrivatePath(user, "");
-        String bookmarksPath = userPath + "/mybookmarks";
-        String ids = "and (@sakai:id=\"somenoneexistingid\")";
-        try {
-          if (session.itemExists(bookmarksPath)) {
-            Node node = (Node) session.getItem(bookmarksPath);
-            Value[] values = JcrUtils.getValues(node, "files");
-
-            StringBuilder sb = new StringBuilder(" and (");
-
-            for (Value val : values) {
-              sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
-            }
-
-            ids = sb.toString();
-            ids = ids.substring(0, ids.lastIndexOf(" or ")) + ")";
-            propertiesMap.put("_ids", ids);
-          } else {
-            propertiesMap.put("_ids", ids);
-          }
-        } catch (RepositoryException e) {
-          propertiesMap.put("_ids", ids);
-        }
+    // Set all mysites.
+    try {
+      StringBuilder sb = new StringBuilder();
+      Map<String, List<Group>> membership = siteService.getMembership(session, user);
+      for (Entry<String, List<Group>> site : membership.entrySet()) {
+        sb.append("@sakai:sites=\"").append(site.getKey()).append("\" or ");
       }
-
-      // Only check the files that are in sites where the user is part of.
-      else if (path.equals("mysites")) {
-        path = "/sites";
-        String sites = "and (@sakai:site=\"somenoneexistingid\")";
-        try {
-          // Get the user his sites.
-          Map<String, List<Group>> membership = siteService.getMembership(session, user);
-
-          StringBuilder sb = new StringBuilder(" and (");
-          for (Entry<String, List<Group>> site : membership.entrySet()) {
-            sb.append("@sakai:site=\"").append(site.getKey()).append("\" or ");
-          }
-          sites = sb.toString();
-          sites = sites.substring(0, sites.lastIndexOf(" or ")) + ")";
-          propertiesMap.put("_sites", sites);
-
-        } catch (SiteException e) {
-          propertiesMap.put("_sites", sites);
-        }
+      String sites = sb.toString();
+      int i = sites.lastIndexOf(" or ");
+      if (i > -1) {
+        sites = sites.substring(0, i);
       }
+      if (sites.length() > 0) {
+        sites = " and (" + sites + ")";
+      }
+      propertiesMap.put("_mysites", sites);
+
+    } catch (SiteException e1) {
+      e1.printStackTrace();
     }
+
+    // Set all my bookmarks
+    String userPath = PersonalUtils.getPrivatePath(user, "");
+    String bookmarksPath = userPath + "/mybookmarks";
+    String ids = "and (@sakai:id=\"somenoneexistingid\")";
+    try {
+      if (session.itemExists(bookmarksPath)) {
+        Node node = (Node) session.getItem(bookmarksPath);
+        Value[] values = JcrUtils.getValues(node, "files");
+
+        StringBuilder sb = new StringBuilder("");
+
+        for (Value val : values) {
+          sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
+        }
+
+        String bookmarks = sb.toString();
+        int i = bookmarks.lastIndexOf(" or ");
+        if (i > -1) {
+          bookmarks = bookmarks.substring(0, i);
+        }
+        if (bookmarks.length() > 0) {
+          ids = " and (" + bookmarks + ")";
+        }
+      }
+    } catch (RepositoryException e) {
+    }
+    propertiesMap.put("_mybookmarks", ids);
+
+    // Path
+    RequestParameter pathParam = request.getRequestParameter("path");
+    String path = (pathParam != null) ? pathParam.getString() : "";
     propertiesMap.put("_path", path);
 
     // Tags
@@ -186,10 +183,9 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       for (String s : types) {
         if (s.equals("sakai/file")) {
           // Every sakai/file with search in it's filename or content.
-          sb.append(
-              "(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"")
-              .append(search).append("\") or jcr:contains(jcr:content,\"")
-              .append(search).append("\"))) or ");
+          sb.append("(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"").append(
+              search).append("\") or jcr:contains(jcr:content,\"").append(search).append(
+              "\"))) or ");
         } else if (s.equals("sakai/link")) {
           // Every link that has the search param in the filename.
           sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"").append(
@@ -208,7 +204,8 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       typesWhere += ")";
     } else {
       // Default is sakai/files
-      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search + "*\"))";
+      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search
+          + "*\"))";
     }
     propertiesMap.put("_typesWhere", typesWhere);
   }

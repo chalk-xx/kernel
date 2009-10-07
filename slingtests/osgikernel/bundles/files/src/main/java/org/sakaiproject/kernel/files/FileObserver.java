@@ -69,6 +69,7 @@ public class FileObserver {
       ObservationManager observationManager = session.getWorkspace()
           .getObservationManager();
       String[] types = { "nt:file" };
+      /*
       observationManager.addEventListener(new EventListener() {
         public void onEvent(EventIterator eventIterator) {
           while (eventIterator.hasNext()) {
@@ -121,6 +122,7 @@ public class FileObserver {
         }
       }, Event.NODE_ADDED, "/", true, null, types, true);
       log.info("Started observing changes to the repository.");
+      */
     } catch (RepositoryException e1) {
       e1.printStackTrace();
     }
@@ -157,19 +159,25 @@ public class FileObserver {
 
   private void saveSession(Node node, String path, Session adminSession)
       throws AccessDeniedException, ItemExistsException, ConstraintViolationException,
-      VersionException, LockException, NoSuchNodeTypeException, RepositoryException {
+      VersionException, NoSuchNodeTypeException, RepositoryException {
     try {
       if (adminSession.hasPendingChanges())
         adminSession.save();
     } catch (InvalidItemStateException e) {
-      // kep retrying...
-      log.info("Failed to save session, retrying...");
-      Thread.yield();
-      adminSession.logout();
-      adminSession = slingRepository.loginAdministrative(null);
-      node = (Node) adminSession.getItem(path);
-      addProps(node, path, adminSession);
+      retry(node, path, adminSession);
+    } catch (LockException e) {
+      retry(node, path, adminSession);
     }
+  }
+
+  private void retry(Node node, String path, Session adminSession) throws RepositoryException {
+    // kep retrying...
+    log.info("Failed to save session, retrying...");
+    Thread.yield();
+    adminSession.logout();
+    adminSession = slingRepository.loginAdministrative(null);
+    node = (Node) adminSession.getItem(path);
+    addProps(node, path, adminSession);
   }
 
   protected void deactivate(ComponentContext componentContext) {
