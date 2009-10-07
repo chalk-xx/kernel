@@ -68,7 +68,7 @@ public class PoolingLdapConnectionBrokerTest {
 
     broker = new PoolingLdapConnectionBroker(configService) {
       @Override
-      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager() {
+      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName) {
         return mgr;
       }
     };
