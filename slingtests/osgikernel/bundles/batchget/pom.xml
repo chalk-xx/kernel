@@ -110,5 +110,11 @@
     	<version>2.0.4-incubator</version>
     	<scope>provided</scope>
     </dependency>
+    <dependency>
+    	<groupId>org.sakaiproject.kernel</groupId>
+    	<artifactId>org.sakaiproject.kernel.resource</artifactId>
+    	<version>0.1-SNAPSHOT</version>
+    	<scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>

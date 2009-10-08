@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.sakaiproject.kernel.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -5,7 +22,8 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
-import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -28,13 +46,24 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.paths" value="/system/batch/delete"
  * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.reference name="URIExpander" interface="org.sakaiproject.kernel.batch.URIExpander"
  */
 public class BatchDeleteServlet extends SlingAllMethodsServlet {
 
+  public static final Logger log = LoggerFactory.getLogger(BatchDeleteServlet.class);
   private static final long serialVersionUID = 6387824420269087079L;
   public static final String RESOURCE_PATH_PARAMETER = "resources";
-  
-  
+
+  private URIExpander uriExpander;
+
+  protected void bindURIExpander(URIExpander uriExpander) {
+    this.uriExpander = uriExpander;
+  }
+
+  protected void unbindURIExpander(URIExpander uriExpander) {
+    this.uriExpander = null;
+  }
+
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -90,13 +119,14 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
         i.remove();
         session.save();
       } else {
-        // TODO resolve this path in a different way. There could be multiple bigstore..
         // The path doesn't exists in JCR, maybe it exists in a bigstore..
-        String store = PathUtils.getParentReference(resourcePath);
-        String id = PathUtils.lastElement(resourcePath);
-        String full = PathUtils.toInternalHashedPath(store, id, "");
-        if (session.itemExists(full)) {
-          Item i = session.getItem(full);
+        String absPath = uriExpander.getJCRPathFromURI(session, request
+            .getResourceResolver(), resourcePath);
+
+        log.info("Trying to delete: " + absPath);
+
+        if (session.itemExists(absPath)) {
+          Item i = session.getItem(absPath);
           i.remove();
           session.save();
         } else {
@@ -106,6 +136,6 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
     } catch (AccessDeniedException e) {
       throw e;
     }
-  }
 
+  }
 }
