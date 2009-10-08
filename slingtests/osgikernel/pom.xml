@@ -164,6 +164,7 @@
 <!-- ====================================================================== -->
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <slf4j.version>1.5.6</slf4j.version>
   </properties>
   <build>
     <defaultGoal>install</defaultGoal>
@@ -563,7 +564,26 @@
   </dependencies>
   <dependencyManagement>
     <dependencies>
+<!-- scr annotations -->
+      <dependency>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>org.apache.felix.scr.annotations</artifactId>
+        <version>0.9.0</version>
+      </dependency>
+
 <!-- testing libraries -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-nop</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>test</scope>
+      </dependency>
       <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
@@ -575,6 +595,13 @@
         <artifactId>subethasmtp-wiser</artifactId>
         <version>1.2</version>
       </dependency>
+      <dependency>
+         <groupId>org.apache.sling</groupId>
+         <artifactId>org.apache.sling.commons.testing</artifactId>
+         <version>2.0.4-incubator</version>
+         <scope>test</scope>
+     </dependency>
+
 <!-- OSGi Libraries -->
       <dependency>
         <groupId>org.apache.felix</groupId>
@@ -625,6 +652,7 @@
         <version>2.4</version>
         <scope>provided</scope>
       </dependency>
+
 <!-- JCR API -->
       <dependency>
         <groupId>javax.jcr</groupId>
@@ -632,6 +660,7 @@
         <version>1.0</version>
         <scope>provided</scope>
       </dependency>
+
 <!-- Jetty, for utilities -->
       <dependency>
         <groupId>org.mortbay.jetty</groupId>
@@ -652,7 +681,7 @@
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.5.6</version>
+        <version>${slf4j.version}</version>
         <scope>provided</scope>
       </dependency>
 
@@ -710,10 +739,10 @@
 
 <!-- EJB (for JMX) -->
       <dependency>
-	      <groupId>org.apache.geronimo.specs</groupId>
-	      <artifactId>geronimo-ejb_3.0_spec</artifactId>
-	      <version>1.0.1</version>
-	    </dependency>
+	    <groupId>org.apache.geronimo.specs</groupId>
+	    <artifactId>geronimo-ejb_3.0_spec</artifactId>
+	    <version>1.0.1</version>
+	  </dependency>
 
       <dependency>
         <groupId>org.apache.sling</groupId>
@@ -728,12 +757,12 @@
 
 
 <!-- Pax Web -->
-    <dependency>
-      <groupId>org.ops4j.pax.web</groupId>
-      <artifactId>pax-web-service</artifactId>
-      <version>0.6.0</version>
-      <scope>provided</scope>
-    </dependency>
+      <dependency>
+        <groupId>org.ops4j.pax.web</groupId>
+        <artifactId>pax-web-service</artifactId>
+        <version>0.6.0</version>
+        <scope>provided</scope>
+      </dependency>
 
     </dependencies>
   </dependencyManagement>

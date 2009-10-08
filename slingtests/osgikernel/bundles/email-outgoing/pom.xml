@@ -117,19 +117,14 @@
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-nop</artifactId>
-      <version>1.5.6</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.subethamail</groupId>
       <artifactId>subethasmtp-wiser</artifactId>
-      <version>1.2</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
