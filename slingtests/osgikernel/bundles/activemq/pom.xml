@@ -60,6 +60,7 @@ org.w3c.dom.traversal*;resolution:=optional,
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1.1</version>
     </dependency>
 
 <!-- osgi -->
@@ -76,6 +77,7 @@ org.w3c.dom.traversal*;resolution:=optional,
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-core</artifactId>
+      <version>5.2.0</version>
     </dependency>
     <!--
     <dependency>
