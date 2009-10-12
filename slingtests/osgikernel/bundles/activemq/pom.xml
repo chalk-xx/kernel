@@ -54,7 +54,6 @@ org.w3c.dom.traversal*;resolution:=optional,
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
-      <version>0.9.0</version>
     </dependency>
 
     <dependency>
