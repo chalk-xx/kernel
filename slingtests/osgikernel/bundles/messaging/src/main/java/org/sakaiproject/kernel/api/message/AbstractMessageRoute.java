@@ -15,23 +15,26 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel.api.message;
 
-package org.sakaiproject.kernel.discussion;
-
-import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.util.StringUtils;
 
-public class DiscussionRoute implements MessageRoute {
+/**
+ *
+ */
+public abstract class AbstractMessageRoute implements MessageRoute {
 
+  /**
+   * 
+   */
   private static final String INTERNAL = "internal";
   private String transport;
   private String rcpt;
 
-  // TODO Just use MessageRouteImpl ?
   /**
    * @param r
    */
-  public DiscussionRoute(String r) {
+  public AbstractMessageRoute(String r) {
     String[] routing = StringUtils.split(r, ':', 2);
     if (routing == null || routing.length == 0) {
       transport = null;
@@ -58,5 +61,4 @@ public class DiscussionRoute implements MessageRoute {
   public String getRcpt() {
     return rcpt;
   }
-
 }
