@@ -10,6 +10,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
@@ -29,7 +30,8 @@ import javax.jcr.SimpleCredentials;
  * Authentication plugin for verifying a user against an LDAP instance.
  */
 @Component(immediate = true, metatype = true)
-@Service
+@Services(value = { @Service(value = AuthenticationPlugin.class),
+    @Service(value = LdapAuthenticationPlugin.class) })
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 

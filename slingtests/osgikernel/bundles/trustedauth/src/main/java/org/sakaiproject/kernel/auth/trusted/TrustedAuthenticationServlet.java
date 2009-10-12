@@ -16,6 +16,7 @@
  */
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -49,7 +50,7 @@ import javax.servlet.http.HttpSession;
  * handler on subsequent calls.
  * </p>
  */
-@Component
+@Component(immediate = true)
 @Service
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
@@ -65,14 +66,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
   @Reference
   private WebContainer webContainer;
 
-  protected void bindWebContainer(WebContainer webContainer) {
-    this.webContainer = webContainer;
-  }
-
-  protected void unbindWebContainer(WebContainer webContainer) {
-    this.webContainer = null;
-  }
-
+  @Activate
   protected void activate(ComponentContext context) {
     try {
       webContainer.registerServlet(REGISTRATION_PATH, this, null, null);

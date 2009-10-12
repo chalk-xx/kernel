@@ -71,6 +71,7 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
   @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
 
+  // -------------------- AuthenticationHandler methods --------------------
   /**
    * {@inheritDoc}
    *
@@ -99,6 +100,8 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
       throws IOException {
     return false;
   }
+
+  // -------------------- LoginModulePlugin methods --------------------
 
   /**
    * {@inheritDoc}
