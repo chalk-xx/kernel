@@ -50,7 +50,7 @@ import javax.servlet.http.HttpSession;
  * handler on subsequent calls.
  * </p>
  */
-@Component(immediate = true)
+@Component(enabled = false, immediate = true)
 @Service
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
