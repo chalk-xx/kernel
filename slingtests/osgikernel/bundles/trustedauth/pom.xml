@@ -42,6 +42,7 @@
           <instructions>
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Export-Package>org.sakaiproject.kernel.auth.trusted</Export-Package>
+            <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

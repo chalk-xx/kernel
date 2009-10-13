@@ -43,7 +43,8 @@ public interface LdapConnectionBroker {
    * @param config
    * @return {@link LDAPConnection} from the named manager.
    */
-  void create(String name, LdapConnectionManagerConfig config) throws LdapException;
+  LdapConnectionManager create(String name, LdapConnectionManagerConfig config)
+      throws LdapException;
 
   /**
    * Destroy a named connection manager.
@@ -94,7 +95,9 @@ public interface LdapConnectionBroker {
       throws LdapException;
 
   /**
-   * Gets the default configuration settings for LDAP connections.
+   * Gets a copy of the default configuration settings for LDAP connections.
+   * Editing the returned value does not modify the default configuration
+   * settings of the broker.
    *
    * @return The default configuration settings as set in the central property
    *         manager.

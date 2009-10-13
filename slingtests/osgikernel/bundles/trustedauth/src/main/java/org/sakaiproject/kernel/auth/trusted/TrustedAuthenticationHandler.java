@@ -46,7 +46,7 @@ import javax.servlet.http.HttpSession;
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
  */
-@Component
+@Component(enabled = false)
 @Service
 public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
   /**
