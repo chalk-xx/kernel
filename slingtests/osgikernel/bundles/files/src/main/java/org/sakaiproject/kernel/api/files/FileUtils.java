@@ -104,6 +104,8 @@ public class FileUtils {
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
+        log.info(Calendar.getInstance().toString());
+        
         if (session.hasPendingChanges()) {
           session.save();
         }
@@ -137,7 +139,7 @@ public class FileUtils {
 
         content.setProperty(JcrConstants.JCR_DATA, is);
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        // content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
       }
 
@@ -327,7 +329,8 @@ public class FileUtils {
     if (node.hasNode(JcrConstants.JCR_CONTENT)) {
       Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
       write.key(JcrConstants.JCR_LASTMODIFIED);
-      write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());
+      Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+      write.value(FilesConstants.DATEFORMAT.format(cal));
       write.key(FilesConstants.SAKAI_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
 

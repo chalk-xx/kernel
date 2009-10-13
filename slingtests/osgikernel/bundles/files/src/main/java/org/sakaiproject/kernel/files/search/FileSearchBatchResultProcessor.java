@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -52,6 +53,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(FileSearchBatchResultProcessor.class);
+
   private SiteService siteService;
 
   public void bindSiteService(SiteService siteService) {
@@ -124,7 +126,8 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       write.key(FilesConstants.SAKAI_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
       write.key(JcrConstants.JCR_LASTMODIFIED);
-      write.value(contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getString());
+      Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+      write.value(FilesConstants.DATEFORMAT.format(cal));
     }
     write.endObject();
   }
