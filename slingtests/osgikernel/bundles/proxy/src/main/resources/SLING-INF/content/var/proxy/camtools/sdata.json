@@ -4,5 +4,5 @@
     "sakai:request-proxy-method": "GET",
     "sakai:preprocessor" : "camtools",
     "sakai:title": "Camtools 2008 GET sites",
-    "sakai:description": ["Proxies Get status to the Camtools sdata service my courses and sites as GET"]
+    "sakai:description": ["GET all the courses and sites from camtools for the current user."]
 }
