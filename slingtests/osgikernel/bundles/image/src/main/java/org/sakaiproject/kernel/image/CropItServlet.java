@@ -26,8 +26,6 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.jcr.JCRService;
-import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,28 +54,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
   // .getLogger(CropItServlet.class);
   private static final long serialVersionUID = 7893384805719426200L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CropItServlet.class);
-
-  /** @scr.reference */
-  private JCRNodeFactoryService jcrNodeFactoryService;
-
-  protected void bindJcr(JCRNodeFactoryService jcrNodeFactoryService) {
-    this.jcrNodeFactoryService = jcrNodeFactoryService;
-  }
-
-  protected void unbindJcr(JCRNodeFactoryService jcrNodeFactoryService) {
-    this.jcrNodeFactoryService = null;
-  }
-
-  /** @scr.reference */
-  private JCRService jcrService;
-
-  protected void bindJcr(JCRService jcrService) {
-    this.jcrService = jcrService;
-  }
-
-  protected void unbindJcr(JCRService jcrService) {
-    this.jcrService = null;
-  }
 
   /**
    * Perform the actual request. {@inheritDoc}
@@ -125,16 +101,14 @@ public class CropItServlet extends SlingAllMethodsServlet {
       // Get the resource from the path we are now. (for node.cropit.json)
       // Resource resource = request.getResource();
 
-      // Convert the resource to a node and take the session from it and add it
-      // to jcrService.
+      // Convert the resource to a node
       Node imgToCrop = resource.adaptTo(Node.class);
 
-      Session s = imgToCrop.getSession();
-
-      jcrService.setSession(s);
+      // Grab the session
+      Session session = request.getResourceResolver().adaptTo(Session.class);
 
       String[] crop = CropItProcessor.crop(x, y, width, height, dimensions,
-          urlSaveIn, imgToCrop, jcrNodeFactoryService);
+          urlSaveIn, imgToCrop, session);
 
       // Send output back.
       JSONWriter output = new JSONWriter(response.getWriter());

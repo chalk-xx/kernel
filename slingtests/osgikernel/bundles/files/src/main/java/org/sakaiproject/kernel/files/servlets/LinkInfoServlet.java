@@ -37,7 +37,7 @@ import javax.servlet.ServletException;
 /**
  * Dumps the info for a link.
  * 
- * @scr.component metatype="no" immediate="true" label="FileLinkInfoServlet"
+ * @scr.component metatype="no" immediate="true" label="LinkInfoServlet"
  *                description="Gives info about the actual file"
  * @scr.property name="service.description" value="Links nodes to files"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -48,9 +48,9 @@ import javax.servlet.ServletException;
  * @scr.reference name="SiteService"
  *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
-public class FileLinkInfoServlet extends SlingAllMethodsServlet {
+public class LinkInfoServlet extends SlingAllMethodsServlet {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FileLinkInfoServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LinkInfoServlet.class);
   private static final long serialVersionUID = -527034533334782419L;
   private SiteService siteService;
 

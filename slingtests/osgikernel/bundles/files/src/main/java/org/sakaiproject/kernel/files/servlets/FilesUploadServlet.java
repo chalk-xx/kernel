@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
+  public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
   private static final long serialVersionUID = -2582970789079249113L;
 
   private ClusterTrackingService clusterTrackingService;
@@ -83,8 +84,6 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
     this.slingRepository = null;
   }
 
-  public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
-
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -101,6 +100,16 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
         response
             .sendError(500,
                 "If a link location is specified, it should be absolute and point to a folder.");
+        return;
+      }
+    }
+
+    RequestParameter siteParam = request.getRequestParameter("site");
+    if (siteParam != null) {
+      String site = siteParam.getString();
+      if (!site.startsWith("/")) {
+        response.sendError(500,
+            "If a site is specified, it should be absolute and point to a site.");
         return;
       }
     }
@@ -124,7 +133,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
 
       // Create a link for each file if there is a need for it.
-      if (linkParam != null) {
+      if (linkParam != null && siteParam != null) {
         Node linkFolder = (Node) session.getItem(linkParam.getString());
         // For each file .. create a link
         for (Node fileNode : fileNodes) {
@@ -132,11 +141,11 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
               .getString();
 
           String linkPath = linkFolder.getPath() + "/" + fileName;
-          FileUtils.createLink(session, fileNode, linkPath);
+          String sitePath = siteParam.getString();
+          FileUtils.createLink(session, fileNode, linkPath, sitePath, slingRepository);
           links.add(linkPath);
         }
       }
-      session.save();
 
       // Send a response back to the user.
 
