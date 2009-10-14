@@ -18,8 +18,11 @@
 package org.sakaiproject.kernel.api.files;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.value.ValueFactoryImpl;
+import org.apache.jackrabbit.value.ValueHelper;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -37,28 +40,31 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.AccessControlException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 
 public class FileUtils {
 
   public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
   /**
-   * Save a file. You will have to call session.save() your self.
+   * Save a file.
    * 
    * @param session
    * @param path
    * @param id
    * @param file
    * @param contentType
+   * @param slingRepository
    * @return
    * @throws RepositoryException
    * @throws IOException
@@ -83,6 +89,10 @@ public class FileUtils {
       Node content = null;
       // If this is a new node then we have to add certain things.
       if (fileNode.isNew()) {
+        // Make sure we can reference this node.
+        if (fileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+          fileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+        }
         fileNode.addMixin("sakai:propertiesmix");
         fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             FilesConstants.RT_SAKAI_FILE);
@@ -94,6 +104,8 @@ public class FileUtils {
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
+        log.info(Calendar.getInstance().toString());
+        
         if (session.hasPendingChanges()) {
           session.save();
         }
@@ -128,7 +140,7 @@ public class FileUtils {
 
         content.setProperty(JcrConstants.JCR_DATA, is);
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        // content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
       }
 
@@ -136,15 +148,17 @@ public class FileUtils {
       fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
       fileNode.setProperty("sakai:filename", fileName);
-      fileNode.setProperty("sakai:mimeType", contentType);
 
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
       return fileNode;
     }
     return null;
   }
 
   /**
-   * Create a link to a file. Note: You will have to call session.save() your self!.
+   * Create a link to a file.
    * 
    * @param session
    *          The current session.
@@ -155,14 +169,79 @@ public class FileUtils {
    *          link.
    * @throws RepositoryException
    */
-  public static void createLink(Session session, Node fileNode, String linkPath)
-      throws RepositoryException {
+  public static String createLink(Session session, Node fileNode, String linkPath,
+      String sitePath, SlingRepository slingRepository) throws RepositoryException {
+    String fileUUID = fileNode.getUUID();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
+    // linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         FilesConstants.RT_SAKAI_LINK);
+    String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
+    linkNode.setProperty(FilesConstants.SAKAI_FILENAME, fileName);
     String uri = FileUtils.getDownloadPath(fileNode);
     linkNode.setProperty(FilesConstants.SAKAI_LINK, "jcrinternal:" + uri);
-    linkNode.setProperty("jcr:reference", fileNode.getUUID());
+    linkNode.setProperty("jcr:reference", fileUUID);
+
+    // Make sure we can reference this node.
+    if (linkNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+      linkNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+    }
+    // Save the linkNode.
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
+
+    Session adminSession = null;
+    try {
+      // Login as admin.
+      // This way we can set an ACL on the fileNode even if it is read only.
+      adminSession = slingRepository.loginAdministrative(null);
+
+      // Get the node trough the admin session.
+      Node adminFileNode = adminSession.getNodeByUUID(fileUUID);
+
+      addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
+      addValue(adminFileNode, "sakai:sites", sitePath);
+      addValue(adminFileNode, "sakai:linkpaths", linkPath);
+
+      // Save the reference.
+      if (adminSession.hasPendingChanges()) {
+        adminSession.save();
+      }
+    } finally {
+      if (adminSession != null)
+        adminSession.logout();
+    }
+
+    return linkNode.getPath();
+
+  }
+
+  /**
+   * Add a value to to a multi-valued property.
+   * 
+   * @param adminFileNode
+   * @param property
+   * @param value
+   * @throws RepositoryException
+   */
+  private static void addValue(Node adminFileNode, String property, String value)
+      throws RepositoryException {
+    // Add a reference on the fileNode.
+    Value[] references = JcrUtils.getValues(adminFileNode, property);
+    if (references.length == 0) {
+      Value[] vals = { ValueHelper.convert(value, PropertyType.STRING, ValueFactoryImpl
+          .getInstance()) };
+      adminFileNode.setProperty(property, vals);
+    } else {
+      Value[] newReferences = new Value[references.length + 1];
+      for (int i = 0; i < references.length; i++) {
+        newReferences[i] = references[i];
+      }
+      newReferences[references.length] = ValueHelper.convert(value, PropertyType.STRING,
+          ValueFactoryImpl.getInstance());
+      adminFileNode.setProperty(property, newReferences);
+    }
   }
 
   public static String getHashedPath(String store, String id) {
@@ -247,6 +326,20 @@ public class FileUtils {
     // The download path to this file.
     write.key("path");
     write.value(FileUtils.getDownloadPath(node));
+
+    if (node.hasNode(JcrConstants.JCR_CONTENT)) {
+      Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
+      write.key(JcrConstants.JCR_LASTMODIFIED);
+      Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+      write.value(FilesConstants.DATEFORMAT.format(cal));
+      write.key(FilesConstants.SAKAI_MIMETYPE);
+      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+
+      if (contentNode.hasProperty(JcrConstants.JCR_DATA)) {
+        write.key("filesize");
+        write.value(contentNode.getProperty(JcrConstants.JCR_DATA).getLength());
+      }
+    }
 
     // Get all the sites where this file is referenced.
     getSites(node, write, siteService);
@@ -349,22 +442,34 @@ public class FileUtils {
     write.object();
     write.key("sites");
     write.array();
-    PropertyIterator pi = node.getReferences();
-    int total = 0;
-    while (pi.hasNext()) {
-      Property p = pi.nextProperty();
-      Node parent = p.getParent(); // Get the node for this property.
-      log.info(parent.getPath());
 
-      while (!parent.getPath().equals("/")) {
-        // If it is a site service then we print it out.
-        if (siteService.isSite(parent)) {
-          writeSiteInfo(parent, write, siteService);
-          total++;
-          break;
+    Value[] sites = JcrUtils.getValues(node, "sakai:sites");
+    Session session = node.getSession();
+
+    int total = 0;
+    try {
+      List<String> handledSites = new ArrayList<String>();
+      for (Value v : sites) {
+        String path = v.getString();
+        if (!handledSites.contains(path)) {
+          handledSites.add(path);
+          Node siteNode = (Node) session.getItem(v.getString());
+
+          AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+          Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
+          Privilege[] privs = new Privilege[] { read };
+          boolean hasAccess = acm.hasPrivileges(path, privs);
+          if (siteService.isSite(siteNode) && hasAccess) {
+            writeSiteInfo(siteNode, write, siteService);
+            total++;
+          }
         }
-        parent = parent.getParent();
       }
+    } catch (Exception e) {
+      // We ignore every exception it has when looking up sites.
+      // it is dirty ..
+      log.info("Catched exception when looking up used sites for a file.");
+      e.printStackTrace();
     }
     write.endArray();
     write.key("total");

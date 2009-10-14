@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -52,6 +53,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(FileSearchBatchResultProcessor.class);
+
   private SiteService siteService;
 
   public void bindSiteService(SiteService siteService) {
@@ -73,36 +75,60 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
           JcrConstants.NT_RESOURCE)) {
         node = node.getParent();
       }
+
+      // We hide the .files
+      String name = node.getName();
+      if (name.startsWith(".")) {
+        i--;
+        continue;
+      }
+
+      // Check that we didn't handle this file already.
       String path = node.getPath();
       if (!processedNodes.contains(path)) {
         processedNodes.add(path);
+
         Session session = node.getSession();
         String type = "";
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
           type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
               .getString();
+        }
 
         // If it is a file node we provide some extra properties.
         if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
           FileUtils.writeFileNode(node, session, write, siteService);
-
         } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
           // This is a linked file.
           FileUtils.writeLinkNode(node, session, write, siteService);
-
-        } else {
-          write.object();
-
-          // dump all the properties.
-          ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-          write.key("path");
-          write.value(node.getPath());
-          write.key("name");
-          write.value(node.getName());
-          write.endObject();
+        }
+        // Every other file..
+        else {
+          writeNormalFile(write, node);
         }
       }
     }
 
+  }
+
+  private void writeNormalFile(JSONWriter write, Node node) throws JSONException,
+      RepositoryException {
+    write.object();
+
+    // dump all the properties.
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+    write.key("path");
+    write.value(node.getPath());
+    write.key("name");
+    write.value(node.getName());
+    if (node.hasNode("jcr:content")) {
+      Node contentNode = node.getNode("jcr:content");
+      write.key(FilesConstants.SAKAI_MIMETYPE);
+      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+      write.key(JcrConstants.JCR_LASTMODIFIED);
+      Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+      write.value(FilesConstants.DATEFORMAT.format(cal));
+    }
+    write.endObject();
   }
 }

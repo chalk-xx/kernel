@@ -12,13 +12,24 @@ import javax.jcr.RepositoryException;
  * @scr.component metatype="no" immediate="true"
  * @scr.service
  * @scr.property name="sling.post.operation" value="removeProperty"
+ * @scr.reference name="URIExpander" interface="org.sakaiproject.kernel.batch.URIExpander"
  */
 public class RemovePropertyOperation extends AbstractPropertyOperationModifier {
 
+  private URIExpander uriExpander;
+
+  protected void bindURIExpander(URIExpander uriExpander) {
+    this.uriExpander = uriExpander;
+  }
+
+  protected void unbindURIExpander(URIExpander uriExpander) {
+    this.uriExpander = null;
+  }
+  
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
-    modifyProperties(request, response, changes);
+    doModify(request, response, changes, uriExpander);
 
   }
 
