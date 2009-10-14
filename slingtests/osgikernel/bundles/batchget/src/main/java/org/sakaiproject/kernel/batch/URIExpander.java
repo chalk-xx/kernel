@@ -15,17 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.message.listener;
+package org.sakaiproject.kernel.batch;
 
-import org.sakaiproject.kernel.api.message.AbstractMessageRoute;
+import org.apache.sling.api.resource.ResourceResolver;
 
-/**
- *
- */
-public class MessageRouteImpl extends AbstractMessageRoute {
+import javax.jcr.Session;
 
-  public MessageRouteImpl(String r) {
-    super(r);
-  }
+public interface URIExpander {
 
+  /**
+   * Expands a URI to a full JCR path.
+   * ex: /_user/files/abcdefgh gets transformed into /_user/files/aa/bb/cc/dd/abcdefgh
+   * @param session A JCR session.
+   * @param resourceResolver A resource resolver associated to a request.
+   * @param uri The uri to transform.
+   * @return The full JCR path associated to this URL.
+   */
+  public String getJCRPathFromURI(Session session, ResourceResolver resourceResolver, String uri);
+  
 }

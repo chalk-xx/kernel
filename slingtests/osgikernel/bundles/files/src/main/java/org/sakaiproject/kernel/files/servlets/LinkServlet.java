@@ -39,7 +39,7 @@ import javax.servlet.ServletException;
 /**
  * Points the request to the actual file.
  * 
- * @scr.component metatype="no" immediate="true" label="FileLinkServlet"
+ * @scr.component metatype="no" immediate="true" label="LinkServlet"
  *                description="Links nodes to files"
  * @scr.property name="service.description" value="Links nodes to files"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
@@ -50,9 +50,9 @@ import javax.servlet.ServletException;
  *                interface="org.sakaiproject.kernel.api.files.LinkHandler"
  *                cardinality="0..n" policy="dynamic"
  */
-public class FileLinkServlet extends SlingAllMethodsServlet {
+public class LinkServlet extends SlingAllMethodsServlet {
 
-  public static final Logger LOGGER = LoggerFactory.getLogger(FileLinkServlet.class);
+  public static final Logger LOGGER = LoggerFactory.getLogger(LinkServlet.class);
   private static final long serialVersionUID = -1536743371265952323L;
 
   @Override

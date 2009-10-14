@@ -20,12 +20,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.kernel.api.message.AbstractMessageRoute;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRouter;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
-import org.sakaiproject.kernel.message.listener.MessageRouteImpl;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,9 +80,10 @@ public class SmtpRouter implements MessageRouter {
           Session session = slingRepository.loginAdministrative(null);
           Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
           if (isPreferredTransportSmtp(profileNode) || isMessageTypeSmtp(n)) {
-            String rcptEmailAddress = PersonalUtils.getEmailAddress(profileNode);
-            MessageRoute smtpRoute = new MessageRouteImpl(MessageConstants.TYPE_SMTP
-                + ":" + rcptEmailAddress);
+            String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
+            AbstractMessageRoute smtpRoute = new AbstractMessageRoute(
+                MessageConstants.TYPE_SMTP + ":" + rcptEmailAddress) {
+            };
             rewrittenRoutes.add(smtpRoute);
             routeIterator.remove();
           }

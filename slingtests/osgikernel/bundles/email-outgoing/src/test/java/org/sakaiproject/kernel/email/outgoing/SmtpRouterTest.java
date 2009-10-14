@@ -18,6 +18,8 @@ import org.sakaiproject.kernel.util.PathUtils;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.nodetype.PropertyDefinition;
 
 public class SmtpRouterTest {
   private SmtpRouter smtpRouter;
@@ -48,15 +50,23 @@ public class SmtpRouterTest {
     Property transportProp = createMock(Property.class);
     expect(transportProp.getString()).andReturn(MessageConstants.TYPE_SMTP);
 
+    PropertyDefinition propDef = createMock(PropertyDefinition.class);
+    expect(propDef.isMultiple()).andReturn(false);
+
+    Value emailValue = createMock(Value.class);
+    expect(emailValue.getString()).andReturn(username + "@localhost");
+
     Property emailProp = createMock(Property.class);
-    expect(emailProp.getString()).andReturn(username + "@localhost");
+    expect(emailProp.getDefinition()).andReturn(propDef);
+    expect(emailProp.getValue()).andReturn(emailValue);
 
     Node authProfile = createMock(Node.class);
     expect(authProfile.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT))
         .andReturn(true);
     expect(authProfile.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT))
         .andReturn(transportProp);
-    expect(authProfile.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true);
+    expect(authProfile.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
+        .times(2);
     expect(authProfile.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(emailProp);
 
     String authProfilePath = PathUtils.toInternalHashedPath("/_user/public", username,
@@ -64,7 +74,8 @@ public class SmtpRouterTest {
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
 
-    replay(toProp, routeNode, transportProp, emailProp, authProfile, session);
+    replay(toProp, routeNode, transportProp, propDef, emailValue, emailProp, authProfile,
+        session);
     MessageRoutes routing = new MessageRoutesImpl(routeNode);
     smtpRouter.route(null, routing);
 
@@ -129,15 +140,23 @@ public class SmtpRouterTest {
     Property transportProp = createMock(Property.class);
     expect(transportProp.getString()).andReturn(MessageConstants.TYPE_INTERNAL);
 
+    PropertyDefinition propDef = createMock(PropertyDefinition.class);
+    expect(propDef.isMultiple()).andReturn(false);
+
+    Value emailValue = createMock(Value.class);
+    expect(emailValue.getString()).andReturn(username + "@localhost");
+
     Property emailProp = createMock(Property.class);
-    expect(emailProp.getString()).andReturn(username + "@localhost");
+    expect(emailProp.getDefinition()).andReturn(propDef);
+    expect(emailProp.getValue()).andReturn(emailValue);
 
     Node authProfile = createMock(Node.class);
     expect(authProfile.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT))
         .andReturn(true);
     expect(authProfile.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT))
         .andReturn(transportProp);
-    expect(authProfile.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true);
+    expect(authProfile.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
+        .times(2);
     expect(authProfile.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(emailProp);
 
     String authProfilePath = PathUtils.toInternalHashedPath("/_user/public", username,
@@ -145,8 +164,8 @@ public class SmtpRouterTest {
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
 
-    replay(typeProp, messageNode, toProp, routeNode, transportProp, emailProp,
-        authProfile, session);
+    replay(typeProp, messageNode, toProp, routeNode, transportProp, propDef, emailValue,
+        emailProp, authProfile, session);
     MessageRoutes routing = new MessageRoutesImpl(routeNode);
     smtpRouter.route(messageNode, routing);
 

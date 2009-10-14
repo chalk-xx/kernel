@@ -54,7 +54,20 @@ public class ProxyResponseImpl implements ProxyResponse {
         newValues[values.length] = h.getValue();
         values = newValues;
       }
+
+      boolean add = true;
+      // We ignore JSESSIONID cookies coming back.
+      if (name.toLowerCase().equals("set-cookie")) {
+        for (String v : values) {
+          if (v.contains("JSESSIONID")) {
+            add = false;
+            break;
+          }
+        }
+      }
+      if (add) {
         headers.put(name, values);
+      }
     }
   }
 
