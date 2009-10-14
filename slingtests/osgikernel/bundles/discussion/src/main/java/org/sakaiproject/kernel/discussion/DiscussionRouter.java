@@ -16,12 +16,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-
 package org.sakaiproject.kernel.discussion;
 
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
 import org.sakaiproject.kernel.api.discussion.DiscussionTypes;
+import org.sakaiproject.kernel.api.message.AbstractMessageRoute;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRouter;
@@ -76,10 +76,10 @@ public class DiscussionRouter implements MessageRouter {
         String marker = n.getProperty(DiscussionConstants.PROP_MARKER).getString();
         String type = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
 
-        // TODO: I have a feeling that this is really part of something more generic 
-        //   and not specific to discussion. If we make it specific to discussion we 
-        //   will loose unified messaging and control of that messaging.
-        
+        // TODO: I have a feeling that this is really part of something more generic
+        // and not specific to discussion. If we make it specific to discussion we
+        // will loose unified messaging and control of that messaging.
+
         Node settings = discussionManager.findSettings(marker, n.getSession(), type);
         if (settings != null
             && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
@@ -88,7 +88,8 @@ public class DiscussionRouter implements MessageRouter {
           if (sendMail && settings.hasProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS)) {
             String address = settings
                 .getProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS).getString();
-            toAdd.add(new DiscussionRoute("internal:" + address));
+            toAdd.add(new AbstractMessageRoute("internal:" + address) {
+            });
 
           }
         }
@@ -107,7 +108,8 @@ public class DiscussionRouter implements MessageRouter {
 
     for (MessageRoute route : routing) {
       if (DiscussionTypes.hasValue(route.getTransport())) {
-        toAdd.add(new DiscussionRoute("internal:" + route.getRcpt()));
+        toAdd.add(new AbstractMessageRoute("internal:" + route.getRcpt()) {
+        });
         toRemove.add(route);
       }
     }
