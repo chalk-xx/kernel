@@ -13,3 +13,6 @@ maven-eclipse.xml
 .checkstyle
 generated-src
 override.properties
+sling
+cachedir
+activemq-data
