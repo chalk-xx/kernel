@@ -4,6 +4,7 @@ import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -28,8 +29,8 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(immediate = true, metatype = true)
-@Service
+@Component(enabled = false, metatype = true)
+@Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 
@@ -77,6 +78,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     passwordGuards.remove(guard.toString());
   }
 
+  @Activate
   protected void activate(ComponentContext ctx) {
     Dictionary<?, ?> props = ctx.getProperties();
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();

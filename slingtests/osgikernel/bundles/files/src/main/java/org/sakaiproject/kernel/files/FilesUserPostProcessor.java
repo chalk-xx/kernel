@@ -19,6 +19,10 @@ package org.sakaiproject.kernel.files;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -41,13 +45,12 @@ import javax.jcr.Value;
  * This PostProcessor listens to post operations on User objects and processes the
  * changes.
  * 
- * @scr.service interface="org.sakaiproject.kernel.api.user.UserPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="FilesUserPostProcessor" description="Post Processor for User and Group operations and creates the bookmarks folder for a user."
- *                metatype="no"
- * @scr.property name="service.description" value=
- *               "Post Processes User and Group operations and creates the bookmarks folder for a user."
  */
+@Service(value = UserPostProcessor.class)
+@Component(immediate = true, label = "FilesUserPostProcessor", description = "Post Processor for User and Group operations and creates the bookmarks folder for a user.", metatype = false)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Post Processes User and Group operations and creates the bookmarks folder for a user.") })
 public class FilesUserPostProcessor implements UserPostProcessor {
 
   public void process(Session session, SlingHttpServletRequest request,

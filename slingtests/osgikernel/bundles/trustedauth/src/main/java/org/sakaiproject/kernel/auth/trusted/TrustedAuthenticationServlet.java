@@ -16,18 +16,21 @@
  */
 package org.sakaiproject.kernel.auth.trusted;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
 import org.osgi.service.http.NamespaceException;
 import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler.TrustedAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Dictionary;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -49,37 +52,55 @@ import javax.servlet.http.HttpSession;
  * handler on subsequent calls.
  * </p>
  */
-@Component
+@Component(enabled = false, immediate = true, metatype = true)
 @Service
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
   private static final long serialVersionUID = 1L;
-  public static final String REGISTRATION_PATH = "/trusted";
+  private static final String PARAM_DESTINATION = "d";
 
-  @Property(value = "Trusted Authentication Servlet")
+  @Property(value = "Trusted Authentication Servlet", propertyPrivate = true)
   static final String DESCRIPTION_PROPERTY = "service.description";
 
-  @Property(value = "The Sakai Foundation")
+  @Property(value = "The Sakai Foundation", propertyPrivate = true)
   static final String VENDOR_PROPERTY = "service.vendor";
 
+  /** Property for the path to which to register this servlet. */
+  @Property(value = "/trusted")
+  static final String REGISTRATION_PATH = "sakai.auth.trusted.path.registration";
+
+  /**
+   * Property for the default destination to go to if no destination is
+   * specified.
+   */
+  @Property(value = "/dev")
+  static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
+
+  /** Reference to web container to register this servlet. */
   @Reference
   private WebContainer webContainer;
 
-  protected void bindWebContainer(WebContainer webContainer) {
-    this.webContainer = webContainer;
-  }
+  /** The registration path for this servlet. */
+  private String registrationPath;
 
-  protected void unbindWebContainer(WebContainer webContainer) {
-    this.webContainer = null;
-  }
+  /** The default destination to go to if none is specified. */
+  private String defaultDestination;
 
+  @SuppressWarnings("unchecked")
+  @Activate
   protected void activate(ComponentContext context) {
+    Dictionary props = context.getProperties();
+    registrationPath = (String) props.get(REGISTRATION_PATH);
+    defaultDestination = (String) props.get(DEFAULT_DESTINATION);
+
     try {
-      webContainer.registerServlet(REGISTRATION_PATH, this, null, null);
+      webContainer.registerServlet(registrationPath, this, null, null);
     } catch (NamespaceException e) {
       LOG.error(e.getMessage(), e);
+      throw new ComponentException(e.getMessage(), e);
     } catch (ServletException e) {
       LOG.error(e.getMessage(), e);
+      throw new ComponentException(e.getMessage(), e);
     }
   }
 
@@ -106,6 +127,12 @@ public class TrustedAuthenticationServlet extends HttpServlet {
       Credentials cred = getCredentials(req);
       session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, cred);
     }
+
+    String destination = req.getParameter(PARAM_DESTINATION);
+    if (destination == null) {
+      destination = defaultDestination;
+    }
+    resp.sendRedirect(destination);
   }
 
   /**

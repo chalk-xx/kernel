@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -37,30 +41,20 @@ import javax.servlet.ServletException;
 /**
  * Dumps the info for a link.
  * 
- * @scr.component metatype="no" immediate="true" label="LinkInfoServlet"
- *                description="Gives info about the actual file"
- * @scr.property name="service.description" value="Links nodes to files"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/link"
- * @scr.property name="sling.servlet.methods" values.0="GET"
- * @scr.property name="sling.servlet.selectors" value="info"
- * @scr.reference name="SiteService"
- *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
+@SlingServlet(resourceTypes={"sakai/link"}, methods={"GET"}, selectors={"info"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Gives info about the actual file"),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+
 public class LinkInfoServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LinkInfoServlet.class);
   private static final long serialVersionUID = -527034533334782419L;
+  
+  @Reference
   private SiteService siteService;
 
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

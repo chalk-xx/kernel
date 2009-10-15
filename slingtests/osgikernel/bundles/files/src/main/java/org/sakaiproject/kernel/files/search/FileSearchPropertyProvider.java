@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -41,37 +46,18 @@ import javax.jcr.query.Query;
 /**
  * Provides properties to process the search
  * 
- * @scr.component immediate="true" label="FileSearchPropertyProvider"
- *                description="Property provider for file searches"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.provider" value="Files"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- * @scr.reference name="SiteService"
- *                interface="org.sakaiproject.kernel.api.site.SiteService"
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
+@Component(immediate = true, label = "FileSearchPropertyProvider", description = "Property provider for file searches")
+@Service(value = SearchPropertyProvider.class)
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.provider", value = "Files") })
 public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
+  @Reference
   private SiteService siteService;
 
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
-
+  @Reference
   private ConnectionManager connectionManager;
-
-  protected void bindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  protected void unbindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {

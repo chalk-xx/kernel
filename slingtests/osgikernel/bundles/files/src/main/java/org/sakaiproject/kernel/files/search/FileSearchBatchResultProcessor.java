@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -41,28 +46,30 @@ import javax.jcr.Session;
 /**
  * Formats the files search results.
  * 
- * @scr.component immediate="true" label="FileSearchBatchResultProcessor"
- *                description="Formatter for file searches"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.batchprocessor" value="Files"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
- * @scr.reference name="SiteService"
- *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
+
+@Component(immediate = true, label = "FileSearchBatchResultProcessor", description = "Formatter for file searches")
+@Service(value = SearchBatchResultProcessor.class)
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.batchprocessor", value = "Files") })
 public class FileSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
   public static final Logger LOGGER = LoggerFactory
       .getLogger(FileSearchBatchResultProcessor.class);
 
+  @Reference
   private SiteService siteService;
 
-  public void bindSiteService(SiteService siteService) {
+  /**
+   * @param siteService
+   */
+  public FileSearchBatchResultProcessor(SiteService siteService) {
     this.siteService = siteService;
   }
-
-  public void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
+  
+  public FileSearchBatchResultProcessor() {
   }
+    
 
   public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
       long end) throws JSONException, RepositoryException {

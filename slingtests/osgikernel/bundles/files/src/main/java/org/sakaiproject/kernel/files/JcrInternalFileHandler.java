@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.files;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -38,12 +42,12 @@ import javax.servlet.ServletException;
 /**
  * Handles files that are linked to a jcrinternal resource.
  * 
- * @scr.component immediate="true" label="JcrInternalFileHandler"
- *                description="Handles files that are linked to a jcrinternal resource."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.files.handler" value="jcrinternal"
- * @scr.service interface="org.sakaiproject.kernel.api.files.LinkHandler"
  */
+
+@Component(immediate = true, label = "JcrInternalFileHandler")
+@Service(value = LinkHandler.class)
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.files.handler", value = "jcrinternal") })
 public class JcrInternalFileHandler implements LinkHandler {
 
   public static final Logger LOGGER = LoggerFactory

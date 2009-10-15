@@ -46,7 +46,7 @@ import javax.servlet.http.HttpSession;
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
  */
-@Component(label = "%auth.http.name", description = "%auth.http.description")
+@Component(enabled = false, label = "%auth.http.name", description = "%auth.http.description")
 @Service
 public class LdapAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
   /** Authentication type name */
@@ -70,7 +70,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
 
   @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
-  
+
   @Reference
   private LdapAuthenticationPlugin ldapAuthenticationPlugin;
 

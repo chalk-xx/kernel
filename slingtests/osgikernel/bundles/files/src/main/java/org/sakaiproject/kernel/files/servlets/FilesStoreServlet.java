@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -27,12 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/files"
- * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
- *               values.2="DELETE" values.3="GET"
  */
+@SlingServlet(resourceTypes = { "sakai/files" }, methods = { "POST", "PUT", "DELETE",
+    "GET" })
+    @Properties(value = {
+    @Property(name = "service.description", value = "Provides support for file stores."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+
 public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);

@@ -1,0 +1,8 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "http://localhost:8080/sdata/mcp",
+    "sakai:request-proxy-method": "GET",
+    "sakai:preprocessor" : "trusted-token",
+    "sakai:title": "SData GET sites",
+    "sakai:description": ["GET all the courses and sites from Sakai 2 SData Endpoint for the current user."]
+}
