@@ -125,7 +125,9 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     // the request.
     else {
       Credentials cred = getCredentials(req);
-      session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, cred);
+      if (cred != null) {
+        session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, cred);
+      }
     }
 
     String destination = req.getParameter(PARAM_DESTINATION);
@@ -148,14 +150,20 @@ public class TrustedAuthenticationServlet extends HttpServlet {
    */
   private Credentials getCredentials(HttpServletRequest req) {
     String userId = null;
+
     if (req.getUserPrincipal() != null) {
       userId = req.getUserPrincipal().getName();
     } else if (req.getRemoteUser() != null) {
       userId = req.getRemoteUser();
     }
-    SimpleCredentials sc = new SimpleCredentials(userId, null);
-    TrustedUser user = new TrustedUser(userId);
-    sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
+
+    SimpleCredentials sc = null;
+
+    if (userId != null) {
+      sc = new SimpleCredentials(userId, new char[0]);
+      TrustedUser user = new TrustedUser(userId);
+      sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
+    }
     return sc;
   }
 
