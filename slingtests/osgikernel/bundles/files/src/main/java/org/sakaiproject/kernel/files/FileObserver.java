@@ -17,7 +17,10 @@
  */
 package org.sakaiproject.kernel.files;
 
-import org.apache.jackrabbit.JcrConstants;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
@@ -28,37 +31,27 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.InvalidItemStateException;
 import javax.jcr.ItemExistsException;
-import javax.jcr.LoginException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.nodetype.NoSuchNodeTypeException;
-import javax.jcr.observation.Event;
-import javax.jcr.observation.EventIterator;
-import javax.jcr.observation.EventListener;
 import javax.jcr.observation.ObservationManager;
 import javax.jcr.version.VersionException;
 
 /**
- * @scr.component label="FileObserver" immediate="true"
- * @scr.property name="service.description" value="Observer who listens to added nodes."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
+ * TODO: needs javadoc
  */
+
+@Component(label="FileObserver", immediate=true)
+@Properties(value={@Property(name="service.description", value="Observer who listens to added nodes."),
+    @Property(name="service.vendor", value="The Sakai Foundation")})
 public class FileObserver {
   private static final Logger log = LoggerFactory.getLogger(FileObserver.class);
+  
+  @Reference
   private SlingRepository slingRepository;
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   private Session session = null;
 

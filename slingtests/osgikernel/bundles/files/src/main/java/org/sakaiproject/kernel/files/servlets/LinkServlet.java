@@ -17,6 +17,12 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -39,21 +45,21 @@ import javax.servlet.ServletException;
 /**
  * Points the request to the actual file.
  * 
- * @scr.component metatype="no" immediate="true" label="LinkServlet"
- *                description="Links nodes to files"
- * @scr.property name="service.description" value="Links nodes to files"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/link"
- * @scr.property name="sling.servlet.methods" values.0="GET"
- * @scr.reference name="LinkHandler"
- *                interface="org.sakaiproject.kernel.api.files.LinkHandler"
- *                cardinality="0..n" policy="dynamic"
  */
+@SlingServlet(resourceTypes={"sakai/link"}, methods={"GET"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Links nodes to files."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Reference(name="LinkHandler", referenceInterface=LinkHandler.class, cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
 public class LinkServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(LinkServlet.class);
   private static final long serialVersionUID = -1536743371265952323L;
+
+  //
+  // Needed to bind all the file handlers out there to this servlet.
+  //
+  private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -88,10 +94,6 @@ public class LinkServlet extends SlingAllMethodsServlet {
     }
   }
 
-  //
-  // Needed to bind all the file handlers out there to this servlet.
-  //
-  private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
 
   protected void bindLinkHandler(ServiceReference serviceReference) {
     fileHandlerTracker.bindLinkHandler(serviceReference);

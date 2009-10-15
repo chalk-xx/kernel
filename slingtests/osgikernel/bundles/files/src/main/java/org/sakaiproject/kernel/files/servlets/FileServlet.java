@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -36,14 +39,11 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Stream the file.
  * 
- * @scr.component metatype="no" immediate="true" label="FileServlet"
- *                description="Stream the file"
- * @scr.property name="service.description" value="Stream the file."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/file"
- * @scr.property name="sling.servlet.methods" values.0="GET"
  */
+@SlingServlet(resourceTypes = "sakai/file", methods = { "GET" })
+@Properties(value = {
+    @Property(name = "service.description", value = "Stream the file."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class FileServlet extends SlingAllMethodsServlet {
 
   /**

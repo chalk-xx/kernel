@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -37,17 +41,11 @@ import javax.servlet.ServletException;
 /**
  * Dumps all the files of a sakai/folder.
  * 
- * @scr.component metatype="no" immediate="true" label="FolderServlet"
- *                description="Links nodes to files"
- * @scr.property name="service.description" value="Dumps all the files of a sakai/folder."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/folder"
- * @scr.property name="sling.servlet.methods" values.0="GET"
- * @scr.property name="sling.servlet.selectors" values.0="files"
- * @scr.reference name="SiteService"
- *                interface="org.sakaiproject.kernel.api.site.SiteService"
  */
+@SlingServlet(resourceTypes = { "FolderServlet.java" }, methods = { "GET" }, selectors = { "files" })
+@Properties(value = {
+    @Property(name = "service.description", value = "Links nodes to files."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class FolderServlet extends SlingAllMethodsServlet {
 
   /**
@@ -56,15 +54,8 @@ public class FolderServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 2602398397981186645L;
   private static final Logger LOGGER = LoggerFactory.getLogger(FolderServlet.class);
 
+  @Reference
   private SiteService siteService;
-
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -82,41 +73,26 @@ public class FolderServlet extends SlingAllMethodsServlet {
       JSONWriter write = new JSONWriter(response.getWriter());
       NodeIterator it = node.getNodes();
 
-      FileSearchBatchResultProcessor processor = new FileSearchBatchResultProcessor();
+      FileSearchBatchResultProcessor processor = new FileSearchBatchResultProcessor(siteService);
       write.array();
-      
+
       long size = it.getSize();
-      processor.bindSiteService(siteService);
       processor.writeNodeIterator(write, it, 0, size);
-      
+
       /*
-      while (it.hasNext()) {
-        Node child = it.nextNode();
-        // File node
-        if (child.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-          String resourceType = child.getProperty(
-              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
-          if (resourceType.equals(FilesConstants.RT_SAKAI_LINK)) {
-            FileUtils.writeLinkNode(child, session, write, siteService);
-          }
-          // Folder node
-          else if (resourceType.equals(FilesConstants.RT_SAKAI_FOLDER)) {
-            write.object();
-            ExtendedJSONWriter.writeNodeContentsToWriter(write, child);
-            write.key("path");
-            write.value(child.getPath());
-            write.key("name");
-            write.value(child.getName());
-            write.endObject();
-          } else if (resourceType.equals(FilesConstants.RT_SAKAI_FILE)) {
-            FileUtils.writeFileNode(node, session, write, siteService);
-          }
-          else {
-            ExtendedJSONWriter.writeNodeToWriter(write, node);
-          }
-        }
-      }
-      */
+       * while (it.hasNext()) { Node child = it.nextNode(); // File node if
+       * (child.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) { String
+       * resourceType = child.getProperty(
+       * JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString(); if
+       * (resourceType.equals(FilesConstants.RT_SAKAI_LINK)) {
+       * FileUtils.writeLinkNode(child, session, write, siteService); } // Folder node
+       * else if (resourceType.equals(FilesConstants.RT_SAKAI_FOLDER)) { write.object();
+       * ExtendedJSONWriter.writeNodeContentsToWriter(write, child); write.key("path");
+       * write.value(child.getPath()); write.key("name"); write.value(child.getName());
+       * write.endObject(); } else if (resourceType.equals(FilesConstants.RT_SAKAI_FILE))
+       * { FileUtils.writeFileNode(node, session, write, siteService); } else {
+       * ExtendedJSONWriter.writeNodeToWriter(write, node); } } }
+       */
       write.endArray();
 
     } catch (RepositoryException e) {

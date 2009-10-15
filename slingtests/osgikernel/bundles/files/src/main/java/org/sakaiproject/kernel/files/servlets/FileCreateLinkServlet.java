@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -37,17 +41,11 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Create a jcrinternal link to a file.
- * 
- * @scr.component metatype="no" immediate="true" label="FileCreateLinkServlet"
- * @scr.property name="service.description" value="Creates an internal link to a file."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/file"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="link"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@SlingServlet(methods = { "POST" }, selectors = { "link" }, resourceTypes = { "sakai/file" })
+@Properties(value = {
+    @Property(name = "service.description", value = "Creates an internal link to a file."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class FileCreateLinkServlet extends SlingAllMethodsServlet {
 
   public static final Logger log = LoggerFactory.getLogger(FileCreateLinkServlet.class);
@@ -55,15 +53,8 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
   private static final String LINK_PARAM = "link";
   private static final String SITE_PARAM = "site";
 
+  @Reference
   private SlingRepository slingRepository;
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

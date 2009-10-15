@@ -19,6 +19,10 @@ package org.sakaiproject.kernel.files.servlets;
 
 import com.google.common.collect.Lists;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -45,44 +49,21 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Create a file
  * 
- * @scr.component metatype="no" immediate="true" label="FilesUploadServlet" description
- *                ="Servlet to allow uploading of files to the store."
- * @scr.property name="service.description" value="Uploads files to the store."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/files"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="upload"
- * @scr.reference name="ClusterTrackingService"
- *                interface="org.sakaiproject.kernel.api.cluster.ClusterTrackingService"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@SlingServlet(resourceTypes = { "sakai/files" }, methods = { "POST" }, selectors = { "upload" })
+@Properties(value = {
+    @Property(name = "service.description", value = "Servlet to allow uploading of files to the store."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
   private static final long serialVersionUID = -2582970789079249113L;
 
+  @Reference
   private ClusterTrackingService clusterTrackingService;
 
-  protected void bindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
-    this.clusterTrackingService = clusterTrackingService;
-  }
-
-  protected void unbindClusterTrackingService(
-      ClusterTrackingService clusterTrackingService) {
-    this.clusterTrackingService = null;
-  }
-
+  @Reference
   private SlingRepository slingRepository;
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

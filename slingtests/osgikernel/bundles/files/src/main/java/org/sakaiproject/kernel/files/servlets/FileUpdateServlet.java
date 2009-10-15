@@ -19,6 +19,10 @@ package org.sakaiproject.kernel.files.servlets;
 
 import com.google.common.collect.Lists;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -44,31 +48,20 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Update a file
  * 
- * @scr.component metatype="no" immediate="true" label="FileUpdateServlet" description
- *                ="Servlet to allow to update a file."
- * @scr.property name="service.description" value="Updates files in the store."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/file"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="update"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@SlingServlet(resourceTypes={"sakai/file"}, methods={"POST"}, selectors={"update"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Servlet to allow to update a file."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+
 public class FileUpdateServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FileUpdateServlet.class);
   private static final long serialVersionUID = -625686874623971605L;
 
+  @Reference
   private SlingRepository slingRepository;
 
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

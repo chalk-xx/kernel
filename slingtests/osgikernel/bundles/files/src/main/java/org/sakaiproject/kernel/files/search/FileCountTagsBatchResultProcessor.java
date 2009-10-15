@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.files.FilesConstants;
@@ -36,16 +40,15 @@ import javax.jcr.Value;
 /**
  * Formats file tag count search results
  * 
- * @scr.component immediate="true" label="FileCountTagsBatchResultProcessor"
- *                description="Formatter for file tag counting"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.batchprocessor" value="FilesCountTags"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  */
+@Component(immediate = true, label = "FileCountTagsBatchResultProcessor", description = "Formatter for file tag counting")
+@Service(value = SearchBatchResultProcessor.class)
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.batchprocessor", value = "FilesCountTags") })
 public class FileCountTagsBatchResultProcessor implements SearchBatchResultProcessor {
 
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
-      throws JSONException, RepositoryException {
+  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
+      long end) throws JSONException, RepositoryException {
 
     Map<String, Integer> map = new HashMap<String, Integer>();
 

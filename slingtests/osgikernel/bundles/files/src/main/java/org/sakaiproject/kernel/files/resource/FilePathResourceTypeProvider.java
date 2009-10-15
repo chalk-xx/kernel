@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.kernel.files.resource;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.jcr.resource.PathResourceTypeProvider;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
 
@@ -31,6 +36,11 @@ import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
+@Component(immediate=true, label="FilePathResourceTypeProvider")
+@Service(value=PathResourceTypeProvider.class)
+@Properties(value={@Property(name="service.description",value="Handles requests for file store resources"),
+@Property(name="service.vendor", value="The Sakai Foundation")})
+
 public class FilePathResourceTypeProvider extends AbstractPathResourceTypeProvider {
 
   @Override
