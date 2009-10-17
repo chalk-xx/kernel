@@ -70,7 +70,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String store = request.getResource().getPath();
-    LOG.info("Attempted upload for " + session.getUserID());
+    LOG.info("Attempted upload for " + session.getUserID() + " - " + request.getRemoteUser());
 
     // If there is a link parameter provided than we will create a
     // link for each file under this path.
@@ -137,7 +137,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       for (Node fileNode : fileNodes) {
         writer.object();
         writer.key("filename");
-        writer.value(fileNode.getName());
+        writer.value(fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString());
         writer.key("path");
         writer.value(FileUtils.getDownloadPath(fileNode));
         writer.key("id");
