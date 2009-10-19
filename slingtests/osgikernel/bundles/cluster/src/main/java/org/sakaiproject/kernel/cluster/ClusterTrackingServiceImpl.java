@@ -135,7 +135,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
     componentStartTime = String.valueOf(System.currentTimeMillis());
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name = new ObjectName("java.lang:type=Runtime");
-    serverId = (String) mbeanServer.getAttribute(name, "Name");
+    serverId = ((String) mbeanServer.getAttribute(name, "Name")).replace("@", "-");
     isActive = true;
     pingInstance();
     isReady = true;
