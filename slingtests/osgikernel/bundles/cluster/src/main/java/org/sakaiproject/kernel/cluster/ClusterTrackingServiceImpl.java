@@ -209,6 +209,9 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @return
    */
   public ClusterUser getUser(String trackingCookie) {
+    if ( trackingCookie == null ) {
+      return null;
+    }
     Cache<ClusterUser> cache = getTrackingCache();
     ClusterUser cuser = cache.get(trackingCookie);
     if (cuser == null) {
