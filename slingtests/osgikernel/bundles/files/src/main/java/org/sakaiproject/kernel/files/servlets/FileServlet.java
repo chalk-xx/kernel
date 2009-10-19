@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.files.servlets;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -60,6 +61,13 @@ public class FileServlet extends SlingAllMethodsServlet {
 
     String filename = null;
     try {
+      if (node.hasNode(JcrConstants.JCR_CONTENT)) {
+        Node content = node.getNode(JcrConstants.JCR_CONTENT);
+        response.setHeader("Content-Type", content.getProperty(JcrConstants.JCR_MIMETYPE)
+            .getString());
+        response.setHeader("Content-Length", ""
+            + content.getProperty(JcrConstants.JCR_DATA).getLength());
+      }
       if (node.hasProperty(FilesConstants.SAKAI_FILENAME)) {
         filename = node.getProperty(FilesConstants.SAKAI_FILENAME).getString();
       }
