@@ -30,7 +30,7 @@ import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
  * the path is not a jcr path.
  * 
  */
-
+@Component(immediate = true)
 @Service(value = PathResourceTypeProvider.class)
 @Properties(value = {
     @Property(name = "service.description", value = "Handles requests for file store resources"),
