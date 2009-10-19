@@ -21,6 +21,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.util.URIExpander;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.paths" value="/system/batch/delete"
  * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.reference name="URIExpander" interface="org.sakaiproject.kernel.batch.URIExpander"
+ * @scr.reference name="URIExpander" interface="org.sakaiproject.kernel.util.URIExpander"
  */
 public class BatchDeleteServlet extends SlingAllMethodsServlet {
 

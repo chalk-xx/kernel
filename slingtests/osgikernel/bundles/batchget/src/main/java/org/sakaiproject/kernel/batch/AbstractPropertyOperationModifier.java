@@ -25,6 +25,7 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.kernel.util.StringUtils;
+import org.sakaiproject.kernel.util.URIExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
