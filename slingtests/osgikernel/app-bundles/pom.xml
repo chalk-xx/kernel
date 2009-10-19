@@ -482,7 +482,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.files,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.chat,org.sakaiproject.kernel.discussion,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email,org.sakaiproject.kernel.auth.ldap,org.sakaiproject.kernel.proxy,org.sakaiproject.kernel.auth.trusted</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server,org.sakaiproject.kernel.jcr,org.sakaiproject.kernel.persistence,org.sakaiproject.kernel.locking,org.sakaiproject.kernel.presence,org.sakaiproject.kernel.messaging,org.sakaiproject.kernel.chat,org.sakaiproject.kernel.discussion,org.sakaiproject.kernel.formauth,org.apache.felix.commons.commons-email,org.sakaiproject.kernel.auth.ldap,org.sakaiproject.kernel.proxy,org.sakaiproject.kernel.auth.trusted</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/15 
                   </outputDirectory>
@@ -506,7 +506,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp,org.apache.felix.fileinstall</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.files,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp,org.apache.felix.fileinstall</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

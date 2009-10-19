@@ -29,14 +29,11 @@ import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- */
 @SlingServlet(resourceTypes = { "sakai/files" }, methods = { "POST", "PUT", "DELETE",
     "GET" })
-    @Properties(value = {
+@Properties(value = {
     @Property(name = "service.description", value = "Provides support for file stores."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-
 public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);

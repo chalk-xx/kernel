@@ -203,7 +203,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
     if (id.endsWith("=="))
       id = id.substring(0, id.length() - 2);
 
-    id = id.replace('/', '_');
+    id = id.replace('/', '_').replace('=', '-');
 
     String path = FileUtils.getHashedPath(store, id);
 
