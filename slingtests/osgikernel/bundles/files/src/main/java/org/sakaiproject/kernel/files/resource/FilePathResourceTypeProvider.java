@@ -29,18 +29,12 @@ import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
  * 
- * @scr.component immediate="true" label="FilePathResourceTypeProvider"
- *                description="Files Service path resource type provider"
- * @scr.property name="service.description"
- *               value="Handles requests for file store resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-@Component(immediate=true, label="FilePathResourceTypeProvider")
-@Service(value=PathResourceTypeProvider.class)
-@Properties(value={@Property(name="service.description",value="Handles requests for file store resources"),
-@Property(name="service.vendor", value="The Sakai Foundation")})
-
+@Component(immediate = true)
+@Service(value = PathResourceTypeProvider.class)
+@Properties(value = {
+    @Property(name = "service.description", value = "Handles requests for file store resources"),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class FilePathResourceTypeProvider extends AbstractPathResourceTypeProvider {
 
   @Override

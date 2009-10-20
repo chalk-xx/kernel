@@ -341,7 +341,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
   private String getServerId() throws Exception {
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name = new ObjectName("java.lang:type=Runtime");
-    return (String) mbeanServer.getAttribute(name, "Name");
+    return ((String) mbeanServer.getAttribute(name, "Name")).replace('@', '-');
   }
 
 }
