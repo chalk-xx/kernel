@@ -28,6 +28,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +77,7 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node fileNode = request.getResource().adaptTo(Node.class);
+      String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
       JSONWriter write = new JSONWriter(response.getWriter());
       write.array();
       for (int i = 0; i < links.length; i++) {
@@ -83,7 +85,7 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
         if (!link.endsWith("/")) {
           link += "/";
         }
-        link += fileNode.getName();
+        link += fileName;
 
         String site = sites[i];
         write.object();

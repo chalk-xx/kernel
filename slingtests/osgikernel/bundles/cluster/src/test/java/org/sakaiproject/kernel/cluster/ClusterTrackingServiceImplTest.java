@@ -96,7 +96,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
       ReflectionException {
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name = new ObjectName("java.lang:type=Runtime");
-    return (String) mbeanServer.getAttribute(name, "Name");
+    return ((String) mbeanServer.getAttribute(name, "Name")).replace('@', '-');
   }
 
   @Test
