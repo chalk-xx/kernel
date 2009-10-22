@@ -45,7 +45,7 @@ public class SmtpRouter implements MessageRouter {
 
   /**
    * The JCR Repository we access.
-   * 
+   *
    */
   @Reference
   private SlingRepository slingRepository;
@@ -96,13 +96,16 @@ public class SmtpRouter implements MessageRouter {
   }
 
   private boolean isMessageTypeSmtp(Node n) throws RepositoryException {
-    return n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)
-        && MessageConstants.TYPE_SMTP.equals(n.getProperty(
-            MessageConstants.PROP_SAKAI_TYPE).getString());
+    boolean isSmtp = false;
+    if (n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)) {
+      String prop = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
+      isSmtp = MessageConstants.TYPE_SMTP.equals(prop);
+    }
+    return isSmtp;
   }
 
   private boolean isPreferredTransportSmtp(Node profileNode) throws RepositoryException {
-    return MessageConstants.TYPE_SMTP.equals(PersonalUtils
-        .getPreferredMessageTransport(profileNode));
+    String transport = PersonalUtils.getPreferredMessageTransport(profileNode);
+    return MessageConstants.TYPE_SMTP.equals(transport);
   }
 }
