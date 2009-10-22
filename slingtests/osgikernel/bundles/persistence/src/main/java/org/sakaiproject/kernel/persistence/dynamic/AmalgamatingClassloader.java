@@ -124,6 +124,7 @@ public class AmalgamatingClassloader extends ClassLoader {
     try {
       return getResourceWithOverride(name);
     } catch (IOException ioe) {
+      LOG.warn("Failed to get resource with override cause {} ",ioe.getMessage());
       return super.getResource(name);
     }
   }
@@ -153,7 +154,9 @@ public class AmalgamatingClassloader extends ClassLoader {
 
     // The base directory must be empty since JPA will scan it searching for
     // classes.
-    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai/"
+    
+    File file = new File(System.getProperty("java.io.tmpdir") + "/sakai." 
+        + System.getProperty("user.name") + "/"
         + System.currentTimeMillis() + "/" + filename);
     if (file.getParentFile().mkdirs()) {
       LOG.debug("Created " + file);
