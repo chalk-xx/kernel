@@ -155,11 +155,16 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
                 email.send();
               } catch (EmailException e) {
-                setError(messageNode, e.getMessage());
+                String exMessage = e.getMessage();
+                Throwable cause = e.getCause();
+
+                setError(messageNode, exMessage);
+                LOGGER.warn("Unable to send email: " + exMessage);
+
                 // Get the SMTP error code
                 // There has to be a better way to do this
-                if (e.getCause() != null && e.getCause().getMessage() != null) {
-                  String smtpError = e.getCause().getMessage().trim();
+                if (cause != null && cause.getMessage() != null) {
+                  String smtpError = cause.getMessage().trim();
                   try {
                     int errorCode = Integer.parseInt(smtpError.substring(0, 3));
                     // All retry-able SMTP errors should have codes starting
@@ -176,6 +181,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
                       scheduleRetry(errorCode, messageNode);
                     }
                   }
+                } else {
+                  LOGGER.error("Unable to reschedule email for delivery: " + e.getMessage(), e);
                 }
               }
             } else {
