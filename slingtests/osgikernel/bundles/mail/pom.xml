@@ -19,7 +19,7 @@
   </parent>
   <artifactId>javax.mail</artifactId>
   <packaging>bundle</packaging>
-  <version>1.4.1</version>
+  <version>1.4</version>
   <name>Javax Mail Bundle</name>
   <description>Provides javax.mail and implementation libraries </description>
   <build>
@@ -35,7 +35,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> javax.mail.*;version=1.4.1, com.sun.mail.*;version=1.4.1
+            <Export-Package> javax.mail.*;version=1.4, com.sun.mail.*;version=1.4
             </Export-Package>
             <Include-Resource>
               target/unpacked-resources
