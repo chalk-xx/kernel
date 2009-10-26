@@ -36,7 +36,8 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.casauth </Export-Package>
+            <Embed-Dependency>cas-client-core</Embed-Dependency>
+            <Import-Package>!org.jasig.cas.client.*,!org.opensaml,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
