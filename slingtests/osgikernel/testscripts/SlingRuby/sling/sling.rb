@@ -218,8 +218,8 @@ module SlingInterface
       result = execute_post(url_for(path), ":operation" => "delete")
     end
     
-    def create_file_node(path, fieldname, filename, content_type="text/plain")
-      result = execute_file_post(url_for(path), fieldname, filename, content_type)
+    def create_file_node(path, fieldname, filename, data, content_type="text/plain")
+      result = execute_file_post(url_for(path), fieldname, filename, data, content_type)
     end
     
     def create_node(path, params)
