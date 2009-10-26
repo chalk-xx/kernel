@@ -114,6 +114,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @SuppressWarnings("unchecked")
   public void onMessage(Message message) {
     try {
+      LOGGER.info("Started handling email jms message.");
+
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
       Object objRcpt = message.getObjectProperty(RECIPIENTS);
       List<String> recipients = null;
@@ -155,16 +157,23 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
                 email.send();
               } catch (EmailException e) {
-                setError(messageNode, e.getMessage());
+                String exMessage = e.getMessage();
+                Throwable cause = e.getCause();
+
+                setError(messageNode, exMessage);
+                LOGGER.warn("Unable to send email: " + exMessage);
+
                 // Get the SMTP error code
                 // There has to be a better way to do this
-                if (e.getCause() != null && e.getCause().getMessage() != null) {
-                  String smtpError = e.getCause().getMessage().trim();
+                if (cause != null && cause.getMessage() != null) {
+                  boolean rescheduled = false;
+                  String smtpError = cause.getMessage().trim();
                   try {
                     int errorCode = Integer.parseInt(smtpError.substring(0, 3));
                     // All retry-able SMTP errors should have codes starting
                     // with 4
                     scheduleRetry(errorCode, messageNode);
+                    rescheduled = true;
                   } catch (NumberFormatException nfe) {
                     // smtpError didn't start with an error code, let's dig for
                     // it
@@ -174,8 +183,12 @@ public class OutgoingEmailMessageListener implements MessageListener {
                       int errorCode = Integer.parseInt(smtpError.substring(searchFor.length(),
                           searchFor.length() + 3));
                       scheduleRetry(errorCode, messageNode);
+                      rescheduled = true;
                     }
                   }
+                  LOGGER.info("Email scheduled for redelivery: " + rescheduled);
+                } else {
+                  LOGGER.error("Unable to reschedule email for delivery: " + e.getMessage(), e);
                 }
               }
             } else {

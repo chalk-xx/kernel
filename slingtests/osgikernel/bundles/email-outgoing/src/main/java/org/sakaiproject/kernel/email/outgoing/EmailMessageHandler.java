@@ -62,19 +62,27 @@ public class EmailMessageHandler implements MessageTransport {
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node n) {
-    LOGGER.debug("Started handling an email message");
-    List<String> recipents = new ArrayList<String>();
+    LOGGER.info("Started handling an email message");
+
+    // delay list instantiation to save object creation when not needed.
+    List<String> recipients = null;
     for (MessageRoute route : routes) {
       if (TYPE.equals(route.getTransport())) {
-        recipents.add(route.getRcpt());
+        if (recipients == null) {
+          recipients = new ArrayList<String>();
+        }
+        recipients.add(route.getRcpt());
       }
     }
-    if (recipents.size() > 0) {
+
+    if (recipients != null) {
       Properties props = new Properties();
       try {
-        props.put(OutgoingEmailMessageListener.RECIPIENTS, recipents);
+        props.put(OutgoingEmailMessageListener.RECIPIENTS, recipients);
         props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, n.getPath());
         Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);
+
+        LOGGER.debug("Sending event [" + emailEvent + "]");
         eventAdmin.postEvent(emailEvent);
       } catch (RepositoryException e) {
         LOGGER.error(e.getMessage(), e);
