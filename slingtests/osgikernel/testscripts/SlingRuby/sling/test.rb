@@ -34,11 +34,7 @@ class SlingTest < Test::Unit::TestCase
   end
 
   def create_file_node(path, fieldname, data, content_type="text/plain")
-    temp_file = Tempfile.new('some_temp_file')
-    temp_file.write(data)
-    temp_file.close
-    res = @s.create_file_node(path, fieldname, temp_file.path, content_type)
-    File.delete(temp_file.path)
+    res = @s.create_file_node(path, "content", fieldname, data, content_type)
     @created_nodes << path unless @created_nodes.include?(path)
     return res
   end
