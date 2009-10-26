@@ -62,7 +62,8 @@ public class EmailMessageHandler implements MessageTransport {
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node n) {
-    LOGGER.debug("Started handling an email message");
+    LOGGER.info("Started handling an email message");
+
     // delay list instantiation to save object creation when not needed.
     List<String> recipients = null;
     for (MessageRoute route : routes) {

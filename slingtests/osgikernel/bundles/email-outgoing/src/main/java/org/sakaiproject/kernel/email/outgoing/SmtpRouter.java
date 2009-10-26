@@ -67,25 +67,35 @@ public class SmtpRouter implements MessageRouter {
     Iterator<MessageRoute> routeIterator = routing.iterator();
     while (routeIterator.hasNext()) {
       MessageRoute route = routeIterator.next();
+      String rcpt = route.getRcpt();
       String transport = route.getTransport();
 
-      boolean rcptNotNull = route.getRcpt() != null;
+      boolean rcptNotNull = rcpt != null;
       boolean transportNullOrInternal = transport == null || "internal".equals(transport);
 
       if (rcptNotNull && transportNullOrInternal) {
         // check the user's profile for message delivery preference. if the
         // preference is set to smtp, change the transport to 'smtp'.
-        String profilePath = PersonalUtils.getProfilePath(route.getRcpt());
+        String profilePath = PersonalUtils.getProfilePath(rcpt);
         try {
           Session session = slingRepository.loginAdministrative(null);
           Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
-          if (isPreferredTransportSmtp(profileNode) || isMessageTypeSmtp(n)) {
+
+          boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
+          boolean smtpMessage = isMessageTypeSmtp(n);
+          if (smtpPreferred || smtpMessage) {
             String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
-            AbstractMessageRoute smtpRoute = new AbstractMessageRoute(
-                MessageConstants.TYPE_SMTP + ":" + rcptEmailAddress) {
-            };
-            rewrittenRoutes.add(smtpRoute);
-            routeIterator.remove();
+
+            if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
+              LOG.warn("Can't find a primary email address for [" + rcpt
+                  + "]; smtp message will not be sent to user.");
+            } else {
+              AbstractMessageRoute smtpRoute = new AbstractMessageRoute(MessageConstants.TYPE_SMTP
+                  + ":" + rcptEmailAddress) {
+              };
+              rewrittenRoutes.add(smtpRoute);
+              routeIterator.remove();
+            }
           }
         } catch (RepositoryException e) {
           LOG.error(e.getMessage());
@@ -97,15 +107,23 @@ public class SmtpRouter implements MessageRouter {
 
   private boolean isMessageTypeSmtp(Node n) throws RepositoryException {
     boolean isSmtp = false;
-    if (n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)) {
+
+    if (n != null && n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)) {
       String prop = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
       isSmtp = MessageConstants.TYPE_SMTP.equals(prop);
     }
+
     return isSmtp;
   }
 
   private boolean isPreferredTransportSmtp(Node profileNode) throws RepositoryException {
-    String transport = PersonalUtils.getPreferredMessageTransport(profileNode);
-    return MessageConstants.TYPE_SMTP.equals(transport);
+    boolean prefersSmtp = false;
+
+    if (profileNode != null) {
+      String transport = PersonalUtils.getPreferredMessageTransport(profileNode);
+      prefersSmtp = MessageConstants.TYPE_SMTP.equals(transport);
+    }
+
+    return prefersSmtp;
   }
 }

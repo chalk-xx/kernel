@@ -114,6 +114,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
   @SuppressWarnings("unchecked")
   public void onMessage(Message message) {
     try {
+      LOGGER.info("Started handling email jms message.");
+
       String nodePath = message.getStringProperty(NODE_PATH_PROPERTY);
       Object objRcpt = message.getObjectProperty(RECIPIENTS);
       List<String> recipients = null;
@@ -164,12 +166,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
                 // Get the SMTP error code
                 // There has to be a better way to do this
                 if (cause != null && cause.getMessage() != null) {
+                  boolean rescheduled = false;
                   String smtpError = cause.getMessage().trim();
                   try {
                     int errorCode = Integer.parseInt(smtpError.substring(0, 3));
                     // All retry-able SMTP errors should have codes starting
                     // with 4
                     scheduleRetry(errorCode, messageNode);
+                    rescheduled = true;
                   } catch (NumberFormatException nfe) {
                     // smtpError didn't start with an error code, let's dig for
                     // it
@@ -179,8 +183,10 @@ public class OutgoingEmailMessageListener implements MessageListener {
                       int errorCode = Integer.parseInt(smtpError.substring(searchFor.length(),
                           searchFor.length() + 3));
                       scheduleRetry(errorCode, messageNode);
+                      rescheduled = true;
                     }
                   }
+                  LOGGER.info("Email scheduled for redelivery: " + rescheduled);
                 } else {
                   LOGGER.error("Unable to reschedule email for delivery: " + e.getMessage(), e);
                 }
