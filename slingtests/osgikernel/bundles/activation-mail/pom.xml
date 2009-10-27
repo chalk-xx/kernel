@@ -20,7 +20,7 @@
   <artifactId>javax.activation-mail</artifactId>
   <packaging>bundle</packaging>
   <version>1.1-1.4</version>
-  <name>Javax Activation & Mail Bundle</name>
+  <name>Javax Activation and Mail Bundle</name>
   <description>Provides javax.activation, javax.mail and implementation libraries </description>
   <build>
     <plugins>
@@ -40,7 +40,7 @@
 
             <Export-Package>
               javax.activation.*;version=1.1,
-              com.sun.activation.*;version=1.1
+              com.sun.activation.*;version=1.1,
               javax.mail.*;version=1.4,
               com.sun.mail.*;version=1.4
             </Export-Package>
@@ -61,7 +61,7 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>activation</includeArtifactIds>
+              <includeArtifactIds>activation,mail</includeArtifactIds>
               <outputDirectory>target/unpacked-resources</outputDirectory>
               <includes>META-INF/**</includes>
               <excludes>META-INF/MANIFEST.MF</excludes>
@@ -77,7 +77,6 @@
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>1.1</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>

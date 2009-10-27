@@ -335,14 +335,8 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>javax.activation</artifactId>
-      <version>1.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>javax.mail</artifactId>
-      <version>1.4</version>
+      <artifactId>javax.activation-mail</artifactId>
+      <version>1.1-1.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -446,7 +440,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>javax.activation,javax.mail,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,org.sakaiproject.kernel.activemq,geronimo-jta_1.1_spec,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
+                  <includeArtifactIds>javax.activation-mail,javax.xml.bind.jsr173,javax.xml.bind.jaxb,org.sakaiproject.kernel.jaxp-api,org.sakaiproject.kernel.specs.jmx,org.sakaiproject.kernel.specs.ejb,org.sakaiproject.kernel.specs.jms,org.sakaiproject.kernel.activemq,geronimo-jta_1.1_spec,geronimo-j2ee-connector_1.5_spec</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/1 
                   </outputDirectory>
