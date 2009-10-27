@@ -158,7 +158,6 @@ module SlingInterface
     end
     
     def execute_post(path, post_params={})
-      puts "URL: #{path} params: #{post_params.dump}"
       write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
