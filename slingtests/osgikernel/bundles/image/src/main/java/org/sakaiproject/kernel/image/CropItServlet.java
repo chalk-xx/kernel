@@ -17,124 +17,41 @@
  */
 package org.sakaiproject.kernel.image;
 
-import net.sf.json.JSONArray;
-
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sakaiproject.kernel.util.StringUtils;
+import org.sakaiproject.kernel.util.URIExpander;
 
+import java.awt.Dimension;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * This servlet will crop and cut images.
- * 
- * @scr.component immediate="true" label="%cropit.get.operation.name"
- *                description="%cropit.get.operation.description"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.paths" value="/system/image/cropit"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.extensions" value="json"
  */
+@SlingServlet(paths = "/var/image/cropit", methods = { "POST" })
+@Properties(value = { @Property(name = "service.description", value = "Crops an image."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Reference(referenceInterface = URIExpander.class, name = "URIExpander")
 public class CropItServlet extends SlingAllMethodsServlet {
 
-  // private static final Logger LOGGER = LoggerFactory
-  // .getLogger(CropItServlet.class);
   private static final long serialVersionUID = 7893384805719426200L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(CropItServlet.class);
-
-  /**
-   * Perform the actual request. {@inheritDoc}
-   * 
-   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
-   */
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws IOException {
-
-    // Get the parameters.
-    int x = Integer.parseInt(request.getRequestParameter("x").toString());
-    int y = Integer.parseInt(request.getRequestParameter("y").toString());
-    int width = Integer.parseInt(request.getRequestParameter("width")
-        .toString());
-    int height = Integer.parseInt(request.getRequestParameter("height")
-        .toString());
-    String urlSaveIn = request.getRequestParameter("urlSaveIn").toString();
-    String urlToCrop = request.getRequestParameter("urlToCrop").toString();
-
-    // Make sure that we have correct values for the cropping.
-    x = checkIntBiggerThanZero(x, 1);
-    y = checkIntBiggerThanZero(y, 1);
-    // We check for a width and a height.
-    // If none is provided we pass along 0.
-    // The Processor will use the entire image then.
-    width = checkIntBiggerThanZero(width, 0);
-    height = checkIntBiggerThanZero(height, 0);
-
-    // Make sure that the path is a right path.
-    urlSaveIn = PathUtils.normalizePath(urlSaveIn) + "/";
-
-    JSONArray dimensions = JSONArray.fromObject(request.getRequestParameter(
-        "dimensions").toString());
-
-    try {
-      // Get the resource at the provided path. (for /var/image/cropit)
-      ResourceResolver resourceResolver = request.getResourceResolver();
-      Resource resource = resourceResolver.getResource(urlToCrop);
-      if (resource == null) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND, "No image found at location: " + urlToCrop);
-        return;
-      }
-
-      // Get the resource from the path we are now. (for node.cropit.json)
-      // Resource resource = request.getResource();
-
-      // Convert the resource to a node
-      Node imgToCrop = resource.adaptTo(Node.class);
-
-      // Grab the session
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-
-      String[] crop = CropItProcessor.crop(x, y, width, height, dimensions,
-          urlSaveIn, imgToCrop, session);
-
-      // Send output back.
-      JSONWriter output = new JSONWriter(response.getWriter());
-      output.object();
-      output.key("files");
-      output.array();
-      for (String url : crop) {
-        output.value(url);
-      }
-      output.endArray();
-      output.key("response");
-      output.value("OK");
-      output.endObject();
-
-    } catch (RepositoryException e) {
-      LOGGER.error("Repository exception processing image {}", e);
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-    } catch (JSONException e) {
-      LOGGER.error("JSON exception building result {}", e);
-    } catch (ImageException e) {
-      LOGGER.error("Image exception processing image {}", e);
-      response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "Invalid image supplied");
-    }
-    return;
-
-  }
+  private URIExpander expander;
 
   /**
    * {@inheritDoc}
@@ -145,11 +62,101 @@ public class CropItServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    this.doGet(request, response);
+
+    RequestParameter imgParam = request.getRequestParameter("img");
+    RequestParameter saveParam = request.getRequestParameter("save");
+    RequestParameter xParam = request.getRequestParameter("x");
+    RequestParameter yParam = request.getRequestParameter("y");
+    RequestParameter widthParam = request.getRequestParameter("width");
+    RequestParameter heightParam = request.getRequestParameter("height");
+    RequestParameter dimensionsParam = request.getRequestParameter("dimensions");
+
+    if (imgParam == null || saveParam == null || xParam == null || yParam == null
+        || widthParam == null || heightParam == null || dimensionsParam == null) {
+      response
+          .sendError(HttpServletResponse.SC_BAD_REQUEST,
+              "The following parameters are required: img, save, x, y, width, height, dimensions");
+      return;
+    }
+
+    try {
+      // Grab the session
+      ResourceResolver resourceResolver = request.getResourceResolver();
+      Session session = resourceResolver.adaptTo(Session.class);
+
+      String img = imgParam.getString();
+      String save = saveParam.getString();
+      int x = Integer.parseInt(xParam.getString());
+      int y = Integer.parseInt(yParam.getString());
+      int width = Integer.parseInt(widthParam.getString());
+      int height = Integer.parseInt(heightParam.getString());
+      String[] dimensionsList = StringUtils.split(dimensionsParam.getString(), ';');
+      List<Dimension> dimensions = new ArrayList<Dimension>();
+      for (String s : dimensionsList) {
+        Dimension d = new Dimension();
+        String[] size = StringUtils.split(s, 'x');
+        int diWidth = Integer.parseInt(size[0]);
+        int diHeight = Integer.parseInt(size[1]);
+
+        diWidth = checkIntBiggerThanZero(diWidth, 0);
+        diHeight = checkIntBiggerThanZero(diHeight, 0);
+
+        d.setSize(diWidth, diHeight);
+        dimensions.add(d);
+      }
+
+      // Make sure we have correct values.
+      img = expander.getJCRPathFromURI(session, resourceResolver, img);
+      save = expander.getJCRPathFromURI(session, resourceResolver, save);
+      x = checkIntBiggerThanZero(x, 0);
+      y = checkIntBiggerThanZero(y, 0);
+      width = checkIntBiggerThanZero(width, 0);
+      height = checkIntBiggerThanZero(height, 0);
+
+      // Make sure the save path is correct.
+      save = PathUtils.normalizePath(save) + "/";
+
+      String[] crop = CropItProcessor.crop(session, x, y, width, height, dimensions, img,
+          save);
+
+      JSONWriter output = new JSONWriter(response.getWriter());
+      output.object();
+      output.key("files");
+      output.array();
+      for (String url : crop) {
+        output.value(url);
+      }
+      output.endArray();
+      output.endObject();
+
+    } catch (ArrayIndexOutOfBoundsException e) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "The dimensions have to be specified in a widthxheight;widthxheight fashion.");
+      return;
+    } catch (NumberFormatException e) {
+      response
+          .sendError(
+              HttpServletResponse.SC_BAD_REQUEST,
+              "The following parameters have to be integers: x, y, width, height. (Dimensions has to be of the form widthxheight;widthxheight");
+      return;
+    } catch (ImageException e) {
+      // Something went wrong..
+      response.sendError(e.getCode(), e.getMessage());
+    } catch (JSONException e) {
+      response.sendError(500, "Unable to output JSON.");
+    }
+  }
+
+  protected void bindURIExpander(URIExpander expander) {
+    this.expander = expander;
+  }
+
+  protected void unbindURIExpander(URIExpander expander) {
+    this.expander = null;
   }
 
   private int checkIntBiggerThanZero(int val, int defaultVal) {
-    if (val <= 0) {
+    if (val < 0) {
       return defaultVal;
     }
     return val;

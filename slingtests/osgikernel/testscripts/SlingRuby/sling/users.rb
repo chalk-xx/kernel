@@ -33,7 +33,7 @@ module SlingUsers
 
     def add_members(sling, principals)
       principal_paths = principals.collect do |principal|
-        if principal.start_with?("g-")
+        if principal.index("g-") == 0
           type = "group"
         else
           type = "user"
@@ -65,7 +65,7 @@ module SlingUsers
 
     def remove_members(sling, principals)
       principal_paths = principals.collect do |principal|
-        if principal.start_with?("g-")
+        if principal.index("g-") == 0
           type = "group"
         else
           type = "user"

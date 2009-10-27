@@ -23,7 +23,7 @@ class TC_NodeCreateTest < SlingTest
     puts("test_create_file_node----------------------------------------------START")
     filedata = "<html><head><title>fish</title></head><body><p>cat</p></body></html>"
     filepath = "test/filepath"
-    create_file_node(filepath, "file", filedata)
+    create_file_node(filepath, "file", "file", filedata)
     res = @s.execute_get(@s.url_for(filepath + "/file"))
     assert_equal(200, res.code.to_i, "Expected GET to succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")
@@ -34,7 +34,7 @@ class TC_NodeCreateTest < SlingTest
     puts("test_create_file_node_and_version----------------------------------START")
     filedata = "<html><head><title>fish</title></head><body><p>cat</p></body></html>"
     filepath = "test/filepath"
-    create_file_node(filepath, "file", filedata)
+    create_file_node(filepath, "file", "file", filedata)
     res = @s.execute_get(@s.url_for(filepath + "/file"))
     assert_equal(200, res.code.to_i, "Expected GET to succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")
@@ -50,7 +50,7 @@ class TC_NodeCreateTest < SlingTest
 	
     filedata = "<html><head><title>fishfingers</title></head><body><p>cat</p></body></html>"
     filepath = "test/filepath"
-    create_file_node(filepath, "file", filedata)
+    create_file_node(filepath, "file", "file", filedata)
     res = @s.execute_get(@s.url_for(filepath + "/file"))
     assert_equal(200, res.code.to_i, "Expected GET to of second version succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")
@@ -64,7 +64,7 @@ class TC_NodeCreateTest < SlingTest
     puts("test_create_file_node_and_get_version_history----------------------START")
     filedata = "<html><head><title>fish</title></head><body><p>cat</p></body></html>"
     filepath = "test/filepath"
-    create_file_node(filepath, "file", filedata)
+    create_file_node(filepath, "file", "file", filedata)
     res = @s.execute_get(@s.url_for(filepath + "/file"))
     assert_equal(200, res.code.to_i, "Expected GET to succeed")
     assert_equal(filedata, res.body, "Expected body back unmodified")

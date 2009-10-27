@@ -98,6 +98,26 @@ module SlingInterface
              "#{content}\r\n"
     end
         
+        
+    def execute_base64_file_post(path, fieldname, filename, data, content_type)
+      
+    end
+    
+    
+     def old_execute_file_post(path, fieldname, filepath, content_type)
+      write_log("POSTFILE: #{path}/#{fieldname} (as '#{@user.name}')")
+      post_data = Curl::PostField.file(fieldname, filepath)
+      post_data.content_type = content_type
+      c = Curl::Easy.new(path)
+      c.multipart_form_post = true
+      @user.do_curl_auth(c)
+      c.http_auth_types = Curl::CURLAUTH_BASIC
+      c.http_post(post_data)
+      res = WrappedCurlResponse.new(c)
+      dump_response(res)
+      return res
+    end
+    
     
     def execute_file_post(path, fieldname, filename, data, content_type)
       uri = URI.parse(path)
@@ -112,7 +132,7 @@ module SlingInterface
       end
       pwd = "#{@user.name}:#{p}"
       pwd = pwd.base64_encode()
-      res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post("/_user/files.upload.json",query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
+      res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
       dump_response(res)
       return res
     end
@@ -138,7 +158,7 @@ module SlingInterface
     end
     
     def execute_post(path, post_params={})
-      puts "URL: #{path} params: #{post_params.dump}" if @debug
+      puts "URL: #{path} params: #{post_params.dump}"
       write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
@@ -218,8 +238,9 @@ module SlingInterface
       result = execute_post(url_for(path), ":operation" => "delete")
     end
     
-    def create_file_node(path, fieldname, filename, content_type="text/plain")
-      result = execute_file_post(url_for(path), fieldname, filename, content_type)
+    def create_file_node(path, fieldname, filename, data, content_type="text/plain")
+      puts "execute_file_post(#{url_for(path)}, #{fieldname}, #{filename}, #{data}, #{content_type})"
+      result = execute_file_post(url_for(path), fieldname, filename, data, content_type)
     end
     
     def create_node(path, params)

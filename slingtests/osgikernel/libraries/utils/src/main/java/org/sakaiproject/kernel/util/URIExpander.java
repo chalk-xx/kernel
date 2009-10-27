@@ -15,40 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.image;
+package org.sakaiproject.kernel.util;
 
-public class ImageException extends Exception {
+import org.apache.sling.api.resource.ResourceResolver;
 
-  private static final long serialVersionUID = -4376383518792880320L;
-  private int code;
+import javax.jcr.Session;
 
-  public ImageException() {
-    super();
-  }
+public interface URIExpander {
 
-  public ImageException(int code, String message) {
-    super(message);
-    this.setCode(code);
-  }
-
-  public ImageException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public ImageException(String message) {
-    super(message);
-  }
-
-  public ImageException(Throwable cause) {
-    super(cause);
-  }
-
-  public void setCode(int code) {
-    this.code = code;
-  }
-
-  public int getCode() {
-    return code;
-  }
-
+  /**
+   * Expands a URI to a full JCR path.
+   * ex: /_user/files/abcdefgh gets transformed into /_user/files/aa/bb/cc/dd/abcdefgh
+   * @param session A JCR session.
+   * @param resourceResolver A resource resolver associated to a request.
+   * @param uri The uri to transform.
+   * @return The full JCR path associated to this URL.
+   */
+  public String getJCRPathFromURI(Session session, ResourceResolver resourceResolver, String uri);
+  
 }
