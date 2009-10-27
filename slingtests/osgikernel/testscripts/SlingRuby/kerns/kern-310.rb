@@ -12,7 +12,7 @@ $expected = "<html><body><h1>some title</h1></body></html>"
 class TC_Kern310Test < SlingTest
 
   def upload_file(nodename, filename, data)
-    n = create_file_node(nodename, filename, data, "text/html")
+    n = create_file_node(nodename, filename, filename, data, "text/html")
     filepath = "#{nodename}/#{filename}"
     res = @s.execute_get(@s.url_for(filepath))
     assert_equal(data, res.body, "Expected content to upload cleanly")
