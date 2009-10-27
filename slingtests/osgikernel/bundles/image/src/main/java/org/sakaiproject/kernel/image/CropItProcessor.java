@@ -18,15 +18,12 @@
 
 package org.sakaiproject.kernel.image;
 
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
-import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryServiceException;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -37,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -53,6 +51,8 @@ public class CropItProcessor {
 
   /**
    * 
+   * @param session
+   *          The JCR session
    * @param x
    *          Where to start cutting on the x-axis.
    * @param y
@@ -61,24 +61,20 @@ public class CropItProcessor {
    *          The width of the image to cut out. If <=0 then the entire image width will
    *          be used.
    * @param height
-   *          The height of the image to cut out.If <=0 then the entire image height will
+   *          The height of the image to cut out. If <=0 then the entire image width will
    *          be used.
    * @param dimensions
-   *          A JSONArray with the different dimensions.
-   * @param urlSaveIn
-   *          Where to save the new images.
-   * @param imgToCrop
-   *          The node that contains the base image.
-   * @param Session
-   *          The JCR session
-   * @return
+   *          A List of Dimension who contain the width and height for each dimension the
+   *          image should be scaled into.
+   * @param img
+   *          The location of the image to scale.
+   * @param save
+   *          The location where to save all the scaled instances.
+   * @return returns an array with all the location of the scaled instances.
    * @throws ImageException
-   * @throws IOException
-   * @throws RepositoryException
    */
-  public static String[] crop(int x, int y, int width, int height, JSONArray dimensions,
-      String urlSaveIn, Node imgToCrop, Session session) throws ImageException,
-      IOException, RepositoryException {
+  public static String[] crop(Session session, int x, int y, int width, int height,
+      List<Dimension> dimensions, String img, String save) throws ImageException {
 
     InputStream in = null;
     ByteArrayOutputStream out = null;
@@ -87,12 +83,15 @@ public class CropItProcessor {
     String[] arrFiles = new String[dimensions.size()];
 
     try {
-      if (imgToCrop != null) {
 
-        String sImg = imgToCrop.getName();
+      Node imgNode = (Node) session.getItem(img);
+
+      if (imgNode != null) {
+
+        String sImg = imgNode.getName();
 
         // get the MIME type of the image
-        String sType = getMimeTypeForNode(imgToCrop, sImg);
+        String sType = getMimeTypeForNode(imgNode, sImg);
 
         // check if this is a valid image
         if (sType.equalsIgnoreCase("image/png") || sType.equalsIgnoreCase("image/jpg")
@@ -100,49 +99,44 @@ public class CropItProcessor {
             || sType.equalsIgnoreCase("image/jpeg")) {
 
           // Read the image
-          Node contentNode = imgToCrop.getNode(JCRConstants.JCR_CONTENT);
+          Node contentNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
           in = contentNode.getProperty(JCRConstants.JCR_DATA).getStream();
 
-          BufferedImage img = ImageIO.read(in);
+          BufferedImage imgBuf = ImageIO.read(in);
 
           // Set the correct width & height.
-          width = (width <= 0) ? img.getWidth() : width;
-          height = (height <= 0) ? img.getHeight() : height;
+          width = (width <= 0) ? imgBuf.getWidth() : width;
+          height = (height <= 0) ? imgBuf.getHeight() : height;
 
-          if (x + width > img.getWidth()) {
-            width = img.getWidth() - x;
+          if (x + width > imgBuf.getWidth()) {
+            width = imgBuf.getWidth() - x;
           }
-          if (y + height > img.getHeight()) {
-            height = img.getHeight() - y;
+          if (y + height > imgBuf.getHeight()) {
+            height = imgBuf.getHeight() - y;
           }
 
           // Cut the desired piece out of the image.
-          BufferedImage subImage = img.getSubimage(x, y, width, height);
+          BufferedImage subImage = imgBuf.getSubimage(x, y, width, height);
 
           // Loop the dimensions and create and save an image for each
           // one.
           for (int i = 0; i < dimensions.size(); i++) {
 
-            JSONObject o = dimensions.getJSONObject(i);
+            Dimension d = dimensions.get(i);
 
             // get dimension size
-            int iWidth = Integer.parseInt(o.get("width").toString());
-            int iHeight = Integer.parseInt(o.get("height").toString());
+            int iWidth = d.width;
+            int iHeight = d.height;
 
-            iWidth = (iWidth <= 0) ? img.getWidth() : iWidth;
-            iHeight = (iHeight <= 0) ? img.getHeight() : iHeight;
+            iWidth = (iWidth <= 0) ? imgBuf.getWidth() : iWidth;
+            iHeight = (iHeight <= 0) ? imgBuf.getHeight() : iHeight;
 
             // Create the image.
             out = scaleAndWriteToStream(iWidth, iHeight, subImage, sType, sImg);
 
-            String sPath = urlSaveIn + iWidth + "x" + iHeight + "_" + sImg;
+            String sPath = save + iWidth + "x" + iHeight + "_" + sImg;
             // Save new image to JCR.
-            try {
-              saveImageToJCR(sPath, sType, out, imgToCrop, session);
-            } catch (JCRNodeFactoryServiceException e) {
-              LOGGER.error("Error saving cropped image", e);
-              throw new IOException("Unable to save cropped image");
-            }
+            saveImageToJCR(sPath, sType, out, imgNode, session);
 
             out.close();
             arrFiles[i] = sPath;
@@ -150,19 +144,29 @@ public class CropItProcessor {
         } else {
           // This is not a valid image.
           LOGGER.error("Unknown image type: " + sType);
-          throw new ImageException("Invalid filetype: " + sType);
+          throw new ImageException(400, "Invalid filetype: " + sType);
         }
       } else {
-        throw new ImageException("No file found.");
+        throw new ImageException(400, "No image file found.");
       }
 
+    } catch (PathNotFoundException e) {
+      throw new ImageException(400, "Could not find image.");
+    } catch (RepositoryException e) {
+      LOGGER.warn("Unable to crop image.");
+      e.printStackTrace();
+      throw new ImageException(500, "Unable to crop image.");
+    } catch (IOException e) {
+      LOGGER.warn("Unable to read image in order to crop it.");
+      e.printStackTrace();
+      throw new ImageException(500, "Unable to read image in order to crop it.");
     } finally {
       // close the streams
       if (in != null) {
         try {
           in.close();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
+          LOGGER.debug("Exception closing inputstream.");
           e.printStackTrace();
         }
       }
@@ -170,7 +174,7 @@ public class CropItProcessor {
         try {
           out.close();
         } catch (IOException e) {
-          // TODO Auto-generated catch block
+          LOGGER.debug("Exception closing outputstream.");
           e.printStackTrace();
         }
       }
@@ -179,47 +183,26 @@ public class CropItProcessor {
   }
 
   /**
-   * Generate a JSON response.
-   * 
-   * @param response
-   *          ERROR or OK
-   * @param typeOfResponse
-   *          The name of the extra tag you want to add. ex: message or files
-   * @param parameters
-   *          The object you wish to parse.
-   * @return
-   */
-  public static String generateResponse(String response, String typeOfResponse,
-      Object parameters) {
-    Map<String, Object> mapResponse = new HashMap<String, Object>();
-    mapResponse.put("response", response);
-    mapResponse.put(typeOfResponse, parameters);
-    return JSONObject.fromObject(mapResponse).toString();
-  }
-
-  /**
    * Will save a stream of an image to the JCR.
    * 
    * @param path
    *          The JCR path to save the image in.
-   * @param sType
+   * @param mimetype
    *          The Mime type of the node that will be saved.
    * @param out
    *          The stream you wish to save.
-   * @throws RepositoryException
-   * @throws JCRNodeFactoryServiceException
-   * @throws IOException
+   * @throws ImageException
    */
-  public static void saveImageToJCR(String path, String sType, ByteArrayOutputStream out,
-      Node baseNode, Session session) throws RepositoryException,
-      JCRNodeFactoryServiceException, IOException {
+  public static void saveImageToJCR(String path, String mimetype,
+      ByteArrayOutputStream out, Node baseNode, Session session) throws ImageException {
 
     // Save image into the jcr
-    Node node = JcrUtils.deepGetOrCreateNode(session, path);
-
-    // convert stream to inputstream
-    ByteArrayInputStream bais = new ByteArrayInputStream(out.toByteArray());
+    ByteArrayInputStream bais = null;
     try {
+      Node node = JcrUtils.deepGetOrCreateNode(session, path, "nt:file");
+
+      // convert stream to inputstream
+      bais = new ByteArrayInputStream(out.toByteArray());
       Node contentNode = null;
       if (node.hasNode(JCRConstants.JCR_CONTENT)) {
         contentNode = node.getNode(JCRConstants.JCR_CONTENT);
@@ -227,12 +210,24 @@ public class CropItProcessor {
         contentNode = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_RESOURCE);
       }
       contentNode.setProperty(JCRConstants.JCR_DATA, bais);
-      contentNode.setProperty(JCRConstants.JCR_MIMETYPE, sType);
+      contentNode.setProperty(JCRConstants.JCR_MIMETYPE, mimetype);
       contentNode.setProperty(JCRConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      throw new ImageException(500, "Unable to save image to JCR.");
     } finally {
-      bais.close();
+      if (bais != null) {
+        try {
+          bais.close();
+        } catch (IOException e) {
+          LOGGER.warn("Unable to close inputstream.");
+          e.printStackTrace();
+        }
+      }
     }
-    session.save();
   }
 
   /**

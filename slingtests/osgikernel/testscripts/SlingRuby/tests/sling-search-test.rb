@@ -28,7 +28,7 @@ class TC_MySearchTest < SlingTest
     assert_not_nil(result, "Expected result back")
     users = result["results"]
     assert_equal(1, users.size, "Expected one matching user")
-    assert_equal("unusualuser", users[0]["rep:principalName"][0], "Expected user to match")
+    assert_equal("unusualuser", users[0]["rep:userId"][0], "Expected user to match")
   end
 
 end

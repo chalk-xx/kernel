@@ -279,7 +279,6 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    */
   private void versionNode(Node n, String userID, Session createSession) {
     try {
-      LOGGER.info("Versioning " + n.getPath());
       // TODO do better check
       if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
         versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
