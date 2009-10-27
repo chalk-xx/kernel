@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
@@ -31,12 +32,15 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.sakaiproject.kernel.util.URIExpander;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -47,11 +51,10 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(paths = "/var/image/cropit", methods = { "POST" })
 @Properties(value = { @Property(name = "service.description", value = "Crops an image."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@Reference(referenceInterface = URIExpander.class, name = "URIExpander")
 public class CropItServlet extends SlingAllMethodsServlet {
 
+  private static final Logger logger = LoggerFactory.getLogger(CropItServlet.class);
   private static final long serialVersionUID = 7893384805719426200L;
-  private URIExpander expander;
 
   /**
    * {@inheritDoc}
@@ -104,10 +107,11 @@ public class CropItServlet extends SlingAllMethodsServlet {
         d.setSize(diWidth, diHeight);
         dimensions.add(d);
       }
-
+      
       // Make sure we have correct values.
-      img = expander.getJCRPathFromURI(session, resourceResolver, img);
-      save = expander.getJCRPathFromURI(session, resourceResolver, save);
+      img = URIExpander.expandStorePath(session, img);
+      save = URIExpander.expandStorePath(session, save);
+
       x = checkIntBiggerThanZero(x, 0);
       y = checkIntBiggerThanZero(y, 0);
       width = checkIntBiggerThanZero(width, 0);
@@ -141,18 +145,16 @@ public class CropItServlet extends SlingAllMethodsServlet {
       return;
     } catch (ImageException e) {
       // Something went wrong..
+      logger.warn("ImageException e: " + e.getMessage());
+      e.printStackTrace();
       response.sendError(e.getCode(), e.getMessage());
     } catch (JSONException e) {
       response.sendError(500, "Unable to output JSON.");
+    } catch (RepositoryException e) {
+      logger.warn("ReposityoryException: " + e.getMessage());
+      e.printStackTrace();
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
-  }
-
-  protected void bindURIExpander(URIExpander expander) {
-    this.expander = expander;
-  }
-
-  protected void unbindURIExpander(URIExpander expander) {
-    this.expander = null;
   }
 
   private int checkIntBiggerThanZero(int val, int defaultVal) {

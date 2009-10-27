@@ -17,20 +17,66 @@
  */
 package org.sakaiproject.kernel.util;
 
-import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-public interface URIExpander {
+public class URIExpander {
 
   /**
-   * Expands a URI to a full JCR path.
-   * ex: /_user/files/abcdefgh gets transformed into /_user/files/aa/bb/cc/dd/abcdefgh
-   * @param session A JCR session.
-   * @param resourceResolver A resource resolver associated to a request.
-   * @param uri The uri to transform.
-   * @return The full JCR path associated to this URL.
+   * This will expand a path. By default, any stores are expanded with PathUtils.
+   * 
+   * @param session
+   *          The current session.
+   * @param path
+   *          The path to expand.
+   * @return The expanded path.
+   * @throws RepositoryException
    */
-  public String getJCRPathFromURI(Session session, ResourceResolver resourceResolver, String uri);
-  
+  public static String expandStorePath(Session session, String path)
+      throws RepositoryException {
+    // Get the first existing item.
+    
+    if (session.itemExists(path)) {
+      return path;
+    }
+    
+    String absPath = path;
+
+    List<String> types = new ArrayList<String>();
+    types.add("sakai/files");
+    types.add("sakai/personalPrivate");
+    types.add("sakai/personalPublic");
+    types.add("sakai/groupPrivate");
+    types.add("sakai/groupPublic");
+    types.add("sakai/contactstore");
+    types.add("sakai/messagestore");
+
+    String[] parts = StringUtils.split(path, '/');
+    String p = "";
+    for(int i = 0; i < parts.length;i++) {
+      p += "/" + parts[i];
+      if (session.itemExists(p)) {
+        Node node = (Node) session.getItem(p);
+        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+          String rt = node.getProperty(
+              JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
+          if (types.contains(rt)) {
+            p += PathUtils.getHashedPath((i < parts.length) ? parts[i+1] : "", 4);
+            if (p.endsWith("/")) {
+              p = p.substring(0, p.length() - 1);
+            }
+            i++;
+          }
+        }
+      }
+    }
+    
+    return p;
+  }
 }

@@ -123,41 +123,39 @@ class CropitTest < SlingTest
  
   def test_upload_image
     imagedata = upload_image()
-    r = @s.execute_get(@s.url_for("logo_test/logo"))
-    assert_equal(r.body, imagedata, "Expected image uploaded")
+    r = @s.execute_get(@s.url_for("/logo_test/logo"))
+    assert_equal(imagedata, r.body, "Expected image uploaded")
   end
 
   def test_crop_image_bad_mime_type
+    @s.switch_user(SlingUsers::User.admin_user())
     upload_image("text/plain")
-    cropreq = { "dimensions" => [{"width" => 250, "height" => 100}, 
-                                 {"width" => 100, "height" => 50}], 
+    cropreq = { "dimensions" => "250x100;100x50", 
                 "height" => 10, 
                 "width" => 50, 
                 "x" => 15, 
                 "y" => 20,
-                "urlToCrop" => "/logo_test/logo", 
-                "urlSaveIn" => "/logo_results" }
-    res = @s.execute_get(@s.url_for("system/image/cropit"), cropreq)
+                "img" => "/logo_test/logo", 
+                "save" => "/logo_results" }
+    res = @s.execute_post(@s.url_for("var/image/cropit"), cropreq)
     assert_equal("406", res.code, "Expected invalid image type")
   end
 
   def test_crop_image
-    upload_image()
-    dimensions =  [{"width" => 250, "height" => 100},
-                   {"width" => 100, "height" => 50}]
-    cropreq = { "dimensions" => dimensions, 
+    @s.switch_user(SlingUsers::User.admin_user())
+    upload_image("image/png")
+    cropreq = { "dimensions" => "250x100;100x50", 
                 "height" => 10, 
                 "width" => 50, 
                 "x" => 15, 
                 "y" => 20,
-                "urlToCrop" => "/logo_test/logo", 
-                "urlSaveIn" => "/logo_results" }
-    @s.debug = true
-    res = @s.execute_get(@s.url_for("system/image/cropit"), cropreq)
-    @s.debug = false
+                "img" => "/logo_test/logo", 
+                "save" => "/logo_results" }
+    #@s.debug = true
+    res = @s.execute_post(@s.url_for("var/image/cropit"), cropreq)
+    #@s.debug = false
     assert_equal("200", res.code, "Expected crop to succeed")
-    result = JSON.parse(res.body)
-    assert_equal("OK", result["response"], "Expected response to be okay") 
+    result = JSON.parse(res.body) 
     assert_equal(2, result["files"].size, "Expected two files back")
     result["files"].each do |file|
       assert_not_nil(file, "Expected file not to be nil")
@@ -172,11 +170,10 @@ class CropitTest < SlingTest
   private
   def upload_image(mime_type="image/png")
     imagedata = Base64.decode64($image)
-    create_file_node("logo_test", "logo", imagedata, mime_type)
+    create_file_node("logo_test", "logo", "logo", imagedata, mime_type)
     return imagedata
   end
 
 end
 
 Test::Unit::UI::Console::TestRunner.run(CropitTest)
-

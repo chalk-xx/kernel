@@ -47,23 +47,12 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sling.servlet.paths" value="/system/batch/delete"
  * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.reference name="URIExpander" interface="org.sakaiproject.kernel.util.URIExpander"
  */
 public class BatchDeleteServlet extends SlingAllMethodsServlet {
 
   public static final Logger log = LoggerFactory.getLogger(BatchDeleteServlet.class);
   private static final long serialVersionUID = 6387824420269087079L;
   public static final String RESOURCE_PATH_PARAMETER = "resources";
-
-  private URIExpander uriExpander;
-
-  protected void bindURIExpander(URIExpander uriExpander) {
-    this.uriExpander = uriExpander;
-  }
-
-  protected void unbindURIExpander(URIExpander uriExpander) {
-    this.uriExpander = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -121,8 +110,7 @@ public class BatchDeleteServlet extends SlingAllMethodsServlet {
         session.save();
       } else {
         // The path doesn't exists in JCR, maybe it exists in a bigstore..
-        String absPath = uriExpander.getJCRPathFromURI(session, request
-            .getResourceResolver(), resourcePath);
+        String absPath = URIExpander.expandStorePath(session, resourcePath);
 
         log.info("Trying to delete: " + absPath);
 
