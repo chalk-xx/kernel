@@ -42,20 +42,20 @@ import javax.servlet.http.HttpSession;
 
 /**
  * <p>
- * Servlet for storing authentication credentials from requests using an
- * external trusted mechanism such as CAS.
+ * Servlet for storing authentication credentials from requests using an external trusted
+ * mechanism such as CAS.
  * </p>
  * <p>
- * This servlet does not perform the authentication itself but looks for
- * information in the request from the authentication authority. This
- * information is then stored in the session for use by the authentication
- * handler on subsequent calls.
+ * This servlet does not perform the authentication itself but looks for information in
+ * the request from the authentication authority. This information is then stored in the
+ * session for use by the authentication handler on subsequent calls.
  * </p>
  */
 @Component(enabled = false, immediate = true, metatype = true)
 @Service
 public class TrustedAuthenticationServlet extends HttpServlet {
-  private static final Logger LOG = LoggerFactory.getLogger(TrustedAuthenticationServlet.class);
+  private static final Logger LOG = LoggerFactory
+      .getLogger(TrustedAuthenticationServlet.class);
   private static final long serialVersionUID = 1L;
   private static final String PARAM_DESTINATION = "d";
 
@@ -70,8 +70,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
   static final String REGISTRATION_PATH = "sakai.auth.trusted.path.registration";
 
   /**
-   * Property for the default destination to go to if no destination is
-   * specified.
+   * Property for the default destination to go to if no destination is specified.
    */
   @Property(value = "/dev")
   static final String DEFAULT_DESTINATION = "sakai.auth.trusted.destination.default";
@@ -106,20 +105,21 @@ public class TrustedAuthenticationServlet extends HttpServlet {
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,
-      IOException {
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws ServletException, IOException {
     HttpSession session = req.getSession(true);
 
     TrustedAuthentication auth = (TrustedAuthentication) req
         .getAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS);
     // check for authentication on request. if found, store on request
     if (auth != null && auth.isValid()) {
-      session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, auth.getCredentials());
+      session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, auth
+          .getCredentials());
     }
     // if authentication missing or invalid in session, get the information from
     // the request.
@@ -137,11 +137,10 @@ public class TrustedAuthenticationServlet extends HttpServlet {
 
   /**
    * Get the user ID from the request. Currently checks getRemoteUser() and
-   * getUserPrincipal() but may need to change based on how the external
-   * authentication passes the user information back. Once the user is
-   * determined, {@link Credentials} are constructed with the user and a trusted
-   * attribute.
-   *
+   * getUserPrincipal() but may need to change based on how the external authentication
+   * passes the user information back. Once the user is determined, {@link Credentials}
+   * are constructed with the user and a trusted attribute.
+   * 
    * @param req
    *          The request to sniff for a user.
    * @return
@@ -153,25 +152,24 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     } else if (req.getRemoteUser() != null) {
       userId = req.getRemoteUser();
     }
-    SimpleCredentials sc = new SimpleCredentials(userId, null);
+    SimpleCredentials sc = new SimpleCredentials(userId, new char[0]);
     TrustedUser user = new TrustedUser(userId);
     sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
     return sc;
   }
 
   /**
-   * "Trusted" inner class for passing the user on to the authentication
-   * handler.<br/>
+   * "Trusted" inner class for passing the user on to the authentication handler.<br/>
    * <br/>
-   * By being a static, inner class with a private constructor, it is harder for
-   * an external source to inject into the authentication chain.
+   * By being a static, inner class with a private constructor, it is harder for an
+   * external source to inject into the authentication chain.
    */
   static final class TrustedUser {
     private final String user;
 
     /**
      * Constructor.
-     *
+     * 
      * @param user
      *          The user to represent.
      */
@@ -181,7 +179,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
 
     /**
      * Get the user that is being represented.
-     *
+     * 
      * @return The represented user.
      */
     String getUser() {
