@@ -19,15 +19,15 @@
   </parent>
   <artifactId>javax.activation-mail</artifactId>
   <packaging>bundle</packaging>
-  <version>1.1-1.4</version>
+  <version>${javax.activation.version}-${javax.mail.version}</version>
   <name>Javax Activation and Mail Bundle</name>
   <description>Provides javax.activation, javax.mail and implementation libraries </description>
+  <properties>
+    <javax.activation.version>1.1.1</javax.activation.version>
+    <javax.mail.version>1.4.2</javax.mail.version>
+  </properties>
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
-      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -38,11 +38,20 @@
               sakai-kernel
             </Bundle-Category>
 
+            <Import-Package>
+              !javax.activation.*,
+              !com.sun.activation.*,
+              !javax.mail.*,
+              !com.sun.mail.*,
+              sun.security.util;resolution:=optional,
+              *
+            </Import-Package>
+
             <Export-Package>
-              javax.activation.*;version=1.1,
-              com.sun.activation.*;version=1.1,
-              javax.mail.*;version=1.4,
-              com.sun.mail.*;version=1.4
+              javax.activation.*;version=${javax.activation.version},
+              com.sun.activation.*;version=${javax.activation.version},
+              javax.mail.*;version=${javax.mail.version},
+              com.sun.mail.*;version=${javax.mail.version}
             </Export-Package>
 
             <Include-Resource>
@@ -76,12 +85,12 @@
     <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
-      <version>1.1</version>
+      <version>${javax.activation.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>
       <artifactId>mail</artifactId>
-      <version>1.4</version>
+      <version>${javax.mail.version}</version>
     </dependency>
   </dependencies>
 </project>
