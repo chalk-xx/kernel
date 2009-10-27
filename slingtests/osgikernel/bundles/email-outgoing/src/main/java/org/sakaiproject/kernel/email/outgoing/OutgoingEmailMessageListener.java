@@ -165,8 +165,8 @@ public class OutgoingEmailMessageListener implements MessageListener {
 
                 // Get the SMTP error code
                 // There has to be a better way to do this
+                boolean rescheduled = false;
                 if (cause != null && cause.getMessage() != null) {
-                  boolean rescheduled = false;
                   String smtpError = cause.getMessage().trim();
                   try {
                     int errorCode = Integer.parseInt(smtpError.substring(0, 3));
@@ -186,7 +186,9 @@ public class OutgoingEmailMessageListener implements MessageListener {
                       rescheduled = true;
                     }
                   }
-                  LOGGER.info("Email scheduled for redelivery: " + rescheduled);
+                }
+                if (rescheduled) {
+                  LOGGER.info("Email rescheduled for redelivery.");
                 } else {
                   LOGGER.error("Unable to reschedule email for delivery: " + e.getMessage(), e);
                 }

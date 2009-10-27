@@ -48,7 +48,6 @@
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
-        <module>bundles/mail</module>
         <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
@@ -58,7 +57,6 @@
         <module>bundles/jpa</module>
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
-        <module>bundles/activation</module>
         <module>bundles/filters</module>
         <module>bundles/session</module>
         <module>bundles/jcr</module>
@@ -80,6 +78,7 @@
         <module>bundles/uxloader</module>
         <module>bundles/events</module>
         <module>bundles/batchget</module>
+        <module>bundles/activation-mail</module>
         <module>bundles/email-outgoing</module>
         <module>bundles/commons/commons-email</module>
         <module>bundles/commons/commons-pool</module>

@@ -155,14 +155,9 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     } else if (req.getRemoteUser() != null) {
       userId = req.getRemoteUser();
     }
-
-    SimpleCredentials sc = null;
-
-    if (userId != null) {
-      sc = new SimpleCredentials(userId, new char[0]);
-      TrustedUser user = new TrustedUser(userId);
-      sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
-    }
+    SimpleCredentials sc = new SimpleCredentials(userId, new char[0]);
+    TrustedUser user = new TrustedUser(userId);
+    sc.setAttribute(TrustedAuthenticationHandler.class.getName(), user);
     return sc;
   }
 
