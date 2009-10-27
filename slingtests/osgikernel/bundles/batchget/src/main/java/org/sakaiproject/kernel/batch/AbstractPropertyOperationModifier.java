@@ -60,10 +60,10 @@ public abstract class AbstractPropertyOperationModifier extends
    */
   @SuppressWarnings("unchecked")
   public void doModify(SlingHttpServletRequest request, HtmlResponse response,
-      List<Modification> changes, URIExpander uriExpander) throws RepositoryException {
+      List<Modification> changes) throws RepositoryException {
     // Get all the resources
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    String[] res = getExplodedApplyToPaths(request, session, uriExpander);
+    String[] res = getExplodedApplyToPaths(request, session);
     String operation = request.getRequestParameter(":operation").getString();
     Map<String, String[]> params = request.getParameterMap();
 
@@ -72,8 +72,7 @@ public abstract class AbstractPropertyOperationModifier extends
       Resource resource = request.getResource();
       Item item = resource.adaptTo(Item.class);
       if (item == null) {
-        String path = uriExpander.getJCRPathFromURI(session, request
-            .getResourceResolver(), resource.getPath());
+        String path = URIExpander.expandStorePath(session, resource.getPath());
         if (session.itemExists(path)) {
           item = session.getItem(path);
         } else {
@@ -103,17 +102,17 @@ public abstract class AbstractPropertyOperationModifier extends
    * @param session
    * @param uriExpander
    * @return
+   * @throws RepositoryException
    */
   private String[] getExplodedApplyToPaths(SlingHttpServletRequest request,
-      Session session, URIExpander uriExpander) {
+      Session session) throws RepositoryException {
     String[] applyTo = request.getParameterValues(SlingPostConstants.RP_APPLY_TO);
     if (applyTo == null) {
       return null;
     }
 
     for (String uri : applyTo) {
-      String path = uriExpander.getJCRPathFromURI(session, request.getResourceResolver(),
-          uri);
+      String path = URIExpander.expandStorePath(session, uri);
       applyTo = StringUtils.removeString(applyTo, uri);
       applyTo = StringUtils.addString(applyTo, path);
     }

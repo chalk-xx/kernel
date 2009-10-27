@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.image;
 
 import org.sakaiproject.kernel.api.jcr.JCRConstants;
 import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +89,12 @@ public class CropItProcessor {
 
       if (imgNode != null) {
 
+        if (imgNode.hasNode(JCRConstants.JCR_CONTENT)) {
+          imgNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
+        } else if (!imgNode.hasProperty(JCRConstants.JCR_DATA)) {
+          throw new ImageException(500, "Invalid image");
+        }
+
         String sImg = imgNode.getName();
 
         // get the MIME type of the image
@@ -99,8 +106,7 @@ public class CropItProcessor {
             || sType.equalsIgnoreCase("image/jpeg")) {
 
           // Read the image
-          Node contentNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
-          in = contentNode.getProperty(JCRConstants.JCR_DATA).getStream();
+          in = imgNode.getProperty(JCRConstants.JCR_DATA).getStream();
 
           BufferedImage imgBuf = ImageIO.read(in);
 
@@ -144,7 +150,7 @@ public class CropItProcessor {
         } else {
           // This is not a valid image.
           LOGGER.error("Unknown image type: " + sType);
-          throw new ImageException(400, "Invalid filetype: " + sType);
+          throw new ImageException(406, "Invalid filetype: " + sType);
         }
       } else {
         throw new ImageException(400, "No image file found.");
@@ -199,6 +205,7 @@ public class CropItProcessor {
     // Save image into the jcr
     ByteArrayInputStream bais = null;
     try {
+      path = PathUtils.normalizePath(path);
       Node node = JcrUtils.deepGetOrCreateNode(session, path, "nt:file");
 
       // convert stream to inputstream
@@ -217,6 +224,8 @@ public class CropItProcessor {
         session.save();
       }
     } catch (RepositoryException e) {
+      LOGGER.warn("Repository exception: " + e.getMessage());
+      e.printStackTrace();
       throw new ImageException(500, "Unable to save image to JCR.");
     } finally {
       if (bais != null) {
@@ -313,13 +322,10 @@ public class CropItProcessor {
     mapExtensionsToMimes.put("bmp", "image/bmp");
 
     // check the MIME type out of JCR
-    if (imgToCrop.hasNode(JCRConstants.JCR_CONTENT)) {
-      Node contentNode = imgToCrop.getNode(JCRConstants.JCR_CONTENT);
-      if (contentNode.hasProperty(JCRConstants.JCR_MIMETYPE)) {
-        Property mimeTypeProperty = contentNode.getProperty(JCRConstants.JCR_MIMETYPE);
-        if (mimeTypeProperty != null) {
-          sType = mimeTypeProperty.getString();
-        }
+    if (imgToCrop.hasProperty(JCRConstants.JCR_MIMETYPE)) {
+      Property mimeTypeProperty = imgToCrop.getProperty(JCRConstants.JCR_MIMETYPE);
+      if (mimeTypeProperty != null) {
+        sType = mimeTypeProperty.getString();
       }
     }
     // If we couldn't find it in the JCR we will check the extension
@@ -328,9 +334,9 @@ public class CropItProcessor {
       if (mapExtensionsToMimes.containsKey(ext)) {
         sType = mapExtensionsToMimes.get(ext);
       }
-      // default = jpg
+      // default = text/plain".. This means we won't handle this image..
       else {
-        sType = mapExtensionsToMimes.get("jpg");
+        sType = "text/plain";
       }
     }
 

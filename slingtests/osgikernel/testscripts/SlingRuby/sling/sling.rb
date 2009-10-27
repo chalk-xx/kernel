@@ -97,27 +97,6 @@ module SlingInterface
              "\r\n" + 
              "#{content}\r\n"
     end
-        
-        
-    def execute_base64_file_post(path, fieldname, filename, data, content_type)
-      
-    end
-    
-    
-     def old_execute_file_post(path, fieldname, filepath, content_type)
-      write_log("POSTFILE: #{path}/#{fieldname} (as '#{@user.name}')")
-      post_data = Curl::PostField.file(fieldname, filepath)
-      post_data.content_type = content_type
-      c = Curl::Easy.new(path)
-      c.multipart_form_post = true
-      @user.do_curl_auth(c)
-      c.http_auth_types = Curl::CURLAUTH_BASIC
-      c.http_post(post_data)
-      res = WrappedCurlResponse.new(c)
-      dump_response(res)
-      return res
-    end
-    
     
     def execute_file_post(path, fieldname, filename, data, content_type)
       uri = URI.parse(path)
@@ -238,7 +217,6 @@ module SlingInterface
     end
     
     def create_file_node(path, fieldname, filename, data, content_type="text/plain")
-      puts "execute_file_post(#{url_for(path)}, #{fieldname}, #{filename}, #{data}, #{content_type})"
       result = execute_file_post(url_for(path), fieldname, filename, data, content_type)
     end
     
