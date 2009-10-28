@@ -84,11 +84,13 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
 
   public AuthenticationInfo authenticate(HttpServletRequest request,
       HttpServletResponse response) {
+    LOGGER.debug("authenticate called");
     AuthenticationInfo authnInfo = null;
     final HttpSession session = request.getSession(false);
     final Assertion assertion = session != null ? (Assertion) session
         .getAttribute(CONST_CAS_ASSERTION) : null;
     if (assertion != null) {
+      LOGGER.debug("assertion found");
       authnInfo = new AuthenticationInfo(AUTH_TYPE, new SimpleCredentials(assertion
           .getPrincipal().getName(), new char[0]));
     } else {
@@ -98,6 +100,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
           serviceUrl);
 
       if (CommonUtils.isNotBlank(ticket) || wasGatewayed) {
+        LOGGER.debug("found ticket: \"{}\" or was gatewayed", ticket);
         authnInfo = getUserFromTicket(ticket, serviceUrl);
       } else {
         LOGGER.debug("no ticket and no assertion found");
@@ -108,7 +111,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
 
   public boolean requestAuthentication(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
-
+    LOGGER.debug("requestAuthentication called");
     final String serviceUrl = constructServiceUrl(request, response);
     final String modifiedServiceUrl;
 
@@ -125,6 +128,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
         this.casServerLoginUrl, this.serviceParameterName, modifiedServiceUrl,
         this.renew, gateway);
 
+    LOGGER.debug("Redirecting to: \"{}\"", urlToRedirectTo);
     response.sendRedirect(urlToRedirectTo);
     return true;
   }
