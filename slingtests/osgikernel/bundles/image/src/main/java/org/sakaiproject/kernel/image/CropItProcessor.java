@@ -89,13 +89,17 @@ public class CropItProcessor {
 
       if (imgNode != null) {
 
+        String sImg = "";
         if (imgNode.hasNode(JCRConstants.JCR_CONTENT)) {
+          sImg = imgNode.getName();
           imgNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
-        } else if (!imgNode.hasProperty(JCRConstants.JCR_DATA)) {
+        } else if (imgNode.hasProperty(JCRConstants.JCR_DATA)) {
+          sImg = imgNode.getParent().getPath();
+        }
+        else {
           throw new ImageException(500, "Invalid image");
         }
 
-        String sImg = imgNode.getName();
 
         // get the MIME type of the image
         String sType = getMimeTypeForNode(imgNode, sImg);
