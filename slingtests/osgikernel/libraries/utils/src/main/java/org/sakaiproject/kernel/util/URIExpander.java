@@ -46,8 +46,6 @@ public class URIExpander {
       return path;
     }
     
-    String absPath = path;
-
     List<String> types = new ArrayList<String>();
     types.add("sakai/files");
     types.add("sakai/personalPrivate");
