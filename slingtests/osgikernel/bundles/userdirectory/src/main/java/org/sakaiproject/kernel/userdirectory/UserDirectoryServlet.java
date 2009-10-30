@@ -27,7 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Writer;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 
 /**
@@ -62,10 +68,27 @@ public class UserDirectoryServlet extends SlingSafeMethodsServlet {
     String[] splitPath = StringUtils.split(path, '/');
     String username = splitPath[splitPath.length - 2];
 
-	String msg = "Getting information for [" + username + "]";
+	String msg = "Getting information for [" + username + "]\n";
     LOGGER.info(msg);
 
-	response.getWriter().println(msg);
+	Writer writer = response.getWriter();
+	writer.append(msg);
+
+	// get the node's properties
+	Node node = (Node) request.getResource().adaptTo(Node.class);
+
+	writer.append("Properties:\n");
+	try {
+		PropertyIterator props = node.getProperties();
+		while (props.hasNext()) {
+			Property prop = props.nextProperty();
+			writer.append(prop.getName() + ": " + prop.getString() + "\n");
+		}
+	} catch (ValueFormatException e) {
+		LOGGER.error(e.getMessage(), e);
+	} catch (RepositoryException e) {
+		LOGGER.error(e.getMessage(), e);
+	}
   }
 
 }
