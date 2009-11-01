@@ -111,7 +111,24 @@ class Kern356Test < SlingTest
 	
 	
   end
-
+  
+  def test_GetAllProfiles
+	m = Time.now.to_i.to_s
+	@authz = SlingAuthz::Authz.new(@s)
+	user1 = "user1-"+m
+	u1 = create_user(user1)
+  	@s.switch_user(u1)
+	res = @s.execute_post(@s.url_for("_user/private/GetAllProfilesTest"+m+".html"),"testprop" => "testset")
+	assert_equal("201",res.code,"Expected to be able to Create a private node ")
+	res = @s.execute_get(@s.url_for("_user.infinity.json"))
+	assert_equal("200",res.code,"Expected to be able to get the base json in user at lest ")
+	assert_equal(true,res.body.include?("GetAllProfilesTest"+m),"Found User in response ")
+	
+  	@s.switch_user(SlingUsers::AnonymousUser.new)
+	res = @s.execute_get(@s.url_for("_user.infinity.json"))
+	assert_equal("200",res.code,"Expected to be able to get the base json in user at lest ")
+	assert_equal(false,res.body.include?("GetAllProfilesTest"+m),"Found User in response ")
+  end
 
 
 end
