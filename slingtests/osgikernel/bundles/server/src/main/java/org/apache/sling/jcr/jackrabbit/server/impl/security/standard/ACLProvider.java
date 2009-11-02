@@ -526,8 +526,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           stmt.append(") and @");
           stmt.append(resolver.getJCRName(P_PRIVILEGES));
           stmt.append(" = '").append(jcrReadPrivilegeName).append("']");
+          
 
           Query q = qm.createQuery(stmt.toString(), Query.XPATH);
+//          log.info("Executing Query "+stmt.toString()+" with Session of "+session.getUserID());
 
           NodeIterator it = q.execute().getNodes();
           isReadAllowed = !it.hasNext();
@@ -536,6 +538,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // unable to determine... -> no shortcut upon grants
         }
       }
+      log.info("+++ Is Read Allowed gave "+isReadAllowed);
       return isReadAllowed;
     }
 
@@ -749,7 +752,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class Entries {
 
     private final Map<String, List<AccessControlEntry>> principalNamesToEntries;
-    private final List<AccessControlEntry> orderedAccessControlEntries;
+    private final List<ComparableAccessControlEntry> orderedAccessControlEntries;
 
     /**
      * @param node The Access control node from which the entries are to be taken.
@@ -760,12 +763,14 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     @SuppressWarnings("unchecked")
     private Entries(NodeImpl node, Collection<String> principalNames, String userId)
         throws RepositoryException {
-      orderedAccessControlEntries = new ArrayList<AccessControlEntry>();
+      orderedAccessControlEntries = new ArrayList<ComparableAccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
       }
       collectEntries(node, userId);
+      Collections.sort(orderedAccessControlEntries);
+      log.info("ACL Order for "+node.getPath()+" is "+orderedAccessControlEntries);
     }
 
     /**
@@ -797,6 +802,9 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 //        Object key = it.next();
 //        entries.addAll(principalNamesToEntries.get(key));
 //      }
+      
+      /* The order this needs to come out in is by node, then by principal type, then any order */
+      
       return new AccessControlEntryIterator(orderedAccessControlEntries);
     }
   }

@@ -43,7 +43,7 @@ public interface EntryCollector {
    * @throws RepositoryException
    */
   void collectEntries(NodeImpl aclNode,
-      Map<String, List<AccessControlEntry>> principalNamesToEntries, List<AccessControlEntry> orderedAccessControlEntries, String userId)
+      Map<String, List<AccessControlEntry>> principalNamesToEntries, List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId)
       throws RepositoryException;
 
 }
