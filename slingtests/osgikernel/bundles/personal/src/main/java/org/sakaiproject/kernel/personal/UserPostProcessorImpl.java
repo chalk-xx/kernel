@@ -17,17 +17,24 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import static org.sakaiproject.kernel.util.ACLUtils.READ_DENIED;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_DENIED;
+
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
 import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_ACL_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_ACL_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -105,6 +112,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
           if (authorizable != null) {
+            createPrivate(session, authorizable);
             Node profileNode = createProfile(session, authorizable);
             updateProperties(session, profileNode, authorizable, principalName, changes);
           }
@@ -119,6 +127,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
           if (authorizable != null) {
+            createPrivate(session, authorizable);
             Node profileNode = createProfile(session, authorizable);
             updateProperties(session, profileNode, authorizable, principalName, changes);
           }
@@ -133,6 +142,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         }
         authorizable = userManager.getAuthorizable(principalName);
         if (authorizable != null) {
+          createPrivate(session, authorizable);
           Node profileNode = createProfile(session, authorizable);
           updateProperties(session, profileNode, authorizable, principalName, changes);
         }
@@ -146,10 +156,15 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         }
         authorizable = userManager.getAuthorizable(principalName);
         if (authorizable != null) {
+          createPrivate(session, authorizable);
           Node profileNode = createProfile(session, authorizable);
           updateProperties(session, profileNode, authorizable, principalName, changes);
         }
         fireEvent(request, principalName, changes);
+      }
+      // If I dont do this, errors happen later.
+      if ( session.hasPendingChanges() ) {
+        session.save();
       }
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
@@ -238,22 +253,48 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
-    String privatePath = PersonalUtils.getPrivatePath(authorizable.getID(), "created");
-    if (!session.itemExists(privatePath)) {
-      Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
-      privateNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
-      addEntry(privateNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
-          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-          REMOVE_NODE_GRANTED);
-    }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
+    // must save before setting the ACL
+    if ( session.hasPendingChanges()) {
+      session.save();
+    }
+    
     addEntry(profileNode.getParent().getPath(), authorizable, session, WRITE_GRANTED,
         REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
         REMOVE_NODE_GRANTED);
     return profileNode;
   }
-
+  
+  private Node createPrivate(Session session, Authorizable authorizable)
+      throws RepositoryException {
+    String privatePathCreated = PersonalUtils.getPrivatePath(authorizable.getID(), "created");
+    if (session.itemExists(privatePathCreated)) {
+      return (Node) session.getItem(privatePathCreated).getParent();
+    } 
+    UserManager userManager = AccessControlUtil.getUserManager(session);
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
+    Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
+    
+    Node createdNode = JcrUtils.deepGetOrCreateNode(session, privatePathCreated);
+    createdNode.setProperty(UserConstants.JCR_CREATED_BY, authorizable.getID());
+    if ( session.hasPendingChanges()) {
+      session.save();
+    }
+    // must save before setting the ACL
+    Node privateNode = createdNode.getParent();
+    String privateNodePath = privateNode.getPath();
+    addEntry(privateNodePath, authorizable, session, WRITE_GRANTED,
+          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+          REMOVE_NODE_GRANTED);
+    // explicitly deny anon and everyone, this is private space.
+    LOGGER.info("++++++++++++++++++++++++++++++++++++++++++++++++++++ Setting Private ACLS on "+privateNodePath);
+    addEntry(privateNodePath, anon, session,READ_DENIED, WRITE_DENIED );
+    addEntry(privateNodePath, everyone, session, READ_DENIED, WRITE_DENIED );
+    return privateNode;
+  }
+  
   private void deleteProfileNode(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = PersonalUtils.getProfilePath(authorizable.getID());

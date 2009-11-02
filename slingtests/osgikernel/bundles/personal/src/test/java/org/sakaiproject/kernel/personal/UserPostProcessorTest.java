@@ -67,7 +67,7 @@ public class UserPostProcessorTest {
     propNames.add("rep:userId");
 
     Authorizable authorizable = createMock(Authorizable.class);
-    expect(authorizable.getID()).andReturn("bar");
+    expect(authorizable.getID()).andReturn("bar").times(2);
     expect(authorizable.isGroup()).andReturn(false);
     expect(authorizable.getPrincipal()).andReturn(principal);
     expect(authorizable.getPropertyNames()).andReturn(propNames.iterator());
@@ -96,14 +96,29 @@ public class UserPostProcessorTest {
     expect(profileNode.getParent()).andReturn(node);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
+    
+    expect(session.itemExists("/_user/private/62/cd/b7/02/bar/created")).andReturn(
+        true);
+    Node createdNode = createMock(Node.class);
+    expect(session.getItem("/_user/private/62/cd/b7/02/bar/created")).andReturn(
+        createdNode);
+    
+    Node privateNode = createMock(Node.class);
+    expect(createdNode.getParent()).andReturn(privateNode);
+
     expect(session.getUserManager()).andReturn(userManager);
     expect(session.itemExists("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
         true);
     expect(session.getItem("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
         profileNode);
 
+    
+
+
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.adaptTo(Session.class)).andReturn(session);
+
+    expect(session.getUserID()).andReturn("admin");
 
     RequestPathInfo requestPathInfo = createMock(RequestPathInfo.class);
     expect(requestPathInfo.getResourcePath()).andReturn(path);
@@ -116,6 +131,8 @@ public class UserPostProcessorTest {
     expect(request.getRequestPathInfo()).andReturn(requestPathInfo);
     expect(request.getRequestParameter(SlingPostConstants.RP_NODE_NAME)).andReturn(
         requestParameter);
+    
+    expect(session.hasPendingChanges()).andReturn(false).times(1);
 
     List<Modification> changes = new ArrayList<Modification>();
 
