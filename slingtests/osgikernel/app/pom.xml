@@ -166,6 +166,7 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.launchpad.base</artifactId>
       <version>2.0.5-SNAPSHOT</version>
+      <classifier>app</classifier>
       <scope>provided</scope>
     </dependency>
     <dependency>
