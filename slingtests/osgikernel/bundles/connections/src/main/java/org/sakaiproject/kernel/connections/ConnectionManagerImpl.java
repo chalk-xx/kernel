@@ -57,9 +57,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
@@ -201,53 +204,60 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *      org.sakaiproject.kernel.api.connections.ConnectionConstants.ConnectionOperation,
    *      java.lang.String)
    */
-  public String connect(Map<String,String[]> requestProperties, Resource resource,
+  public boolean connect(Map<String,String[]> requestParameters, Resource resource,
       String thisUserId, String otherUserId, ConnectionOperation operation)
       throws ConnectionException {
-    String contactsPath = contactsPathForConnectResource(resource);
+    boolean isProcessingIncomplete = true;
+
     Session session = resource.getResourceResolver().adaptTo(Session.class);
-    // fail is the supplied users are invalid
+    // fail if the supplied users are invalid
     checkValidUserId(session, thisUserId);
     checkValidUserId(session, otherUserId);
     if ( thisUserId.equals(otherUserId)) {
-      throw new ConnectionException(400, "A user cant operate on their own connection, this user and the other user are the same");
+      throw new ConnectionException(400, "A user cannot operate on their own connection, this user and the other user are the same");
     }
-    String path = null;
+
+    Session adminSession = null;
     try {
-      Session adminSession = slingRepository.loginAdministrative(null);
+      adminSession = slingRepository.loginAdministrative(null);
 
-      try {
-        // get the contact userstore nodes
-        Node thisNode = getConnectionNode(requestProperties, adminSession, contactsPath, thisUserId,
-            otherUserId);
-        Node otherNode = getConnectionNode(requestProperties, adminSession, contactsPath, otherUserId,
-            thisUserId);
+      // get the contact userstore nodes
+      Node thisNode = getOrCreateConnectionNode(adminSession, thisUserId, otherUserId);
+      Node otherNode = getOrCreateConnectionNode(adminSession, otherUserId, thisUserId);
 
-        // check the current states
-        ConnectionState thisState = getConnectionState(thisNode);
-        ConnectionState otherState = getConnectionState(otherNode);
+      // check the current states
+      ConnectionState thisState = getConnectionState(thisNode);
+      ConnectionState otherState = getConnectionState(otherNode);
+      StatePair sp = stateMap.get(tk(thisState, otherState, operation));
+      if (sp == null) {
+        throw new ConnectionException(400, "Cant perform operation "
+            + operation.toString() + " on " + thisState.toString() + ":"
+            + otherState.toString());
+      }
 
-        StatePair sp = stateMap.get(tk(thisState, otherState, operation));
-        if (sp == null) {
-          throw new ConnectionException(400, "Cant perform operation "
-              + operation.toString() + " on " + thisState.toString() + ":"
-              + otherState.toString());
-        }
-        sp.transition(thisNode, otherNode);
+      // A legitimate invitation can set properties on the invited
+      // user's view of the connection, including relationship types
+      // that differ from those viewed by the inviting user.
+      if (operation == ConnectionOperation.invite) {
+        handleInvitation(requestParameters, adminSession, thisNode, otherNode);
+        isProcessingIncomplete = false;
+      }
 
-        path = thisNode.getPath();
-        // save changes if any were actually made
-        if (adminSession.hasPendingChanges()) {
-          adminSession.save();
-        }
-      } finally {
-        // destroy the admin session
-        adminSession.logout();
+      sp.transition(thisNode, otherNode);
+
+      // save changes if any were actually made
+      if (adminSession.hasPendingChanges()) {
+        adminSession.save();
       }
     } catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
+    } finally {
+      if (adminSession != null) {
+        // destroy the admin session
+        adminSession.logout();
+      }
     }
-    return path;
+    return isProcessingIncomplete;
   }
 
   /**
@@ -263,11 +273,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       Session adminSession = slingRepository.loginAdministrative(null);
       try {
-        // TODO probably better not to hard code /_user/contacts but I am not sure how to
-        // avoid it right now -AZ
         // this will generate the bigstore path
-        String connectionPath = ConnectionUtils.getConnectionPathBase("/_user/contacts",
-            user);
+        String connectionPath = ConnectionUtils.getConnectionPathBase(user);
         // create the search query string
         String search = "/jcr:root" + ISO9075.encodePath(connectionPath)
             + "//element(*)[@" + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY
@@ -295,31 +302,15 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return l;
   }
 
-  private String contactsPathForConnectResource(Resource resource) {
-    String requestPath = resource.getPath();
-    int lastSlash = requestPath.lastIndexOf('/');
-    if (lastSlash > -1)
-      return requestPath.substring(0, lastSlash);
-    return requestPath;
-  }
-
-  /**
-   * @param session
-   * @param thisUserId
-   * @param otherUserId
-   * @param otherUserId2
-   * @return
-   * @throws RepositoryException
-   */
-  private Node getConnectionNode(Map<String,String[]> requestProperties, Session session, String path, String user1, String user2)
+  private Node getOrCreateConnectionNode(Session session, String fromUser, String toUser)
       throws RepositoryException {
-    String nodePath = ConnectionUtils.getConnectionPath(path, user1, user2, "");
+    String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
     try {
       return (Node) session.getItem(nodePath);
     } catch (PathNotFoundException pnfe) {
       // Fall through and create node
     }
-    String basePath = ConnectionUtils.getConnectionPathBase(path, user1);
+    String basePath = ConnectionUtils.getConnectionPathBase(fromUser);
     try {
       lockManager.waitForLock(basePath);
     } catch (LockTimeoutException e) {
@@ -332,30 +323,62 @@ public class ConnectionManagerImpl implements ConnectionManager {
       } catch (PathNotFoundException pnfe) {
         JcrUtils.deepGetOrCreateNode(session, basePath);
         Authorizable authorizable = AccessControlUtil.getUserManager(session)
-            .getAuthorizable(user1);
+            .getAuthorizable(fromUser);
         addEntry(basePath, authorizable, session, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
             REMOVE_NODE_GRANTED);
         LOGGER.info("Added ACL to [{}]", basePath);
       }
-      Node n = JcrUtils.deepGetOrCreateNode(session, ConnectionUtils.getConnectionPath(
-          path, user1, user2, ""));
-      if (n.isNew()) {
-        n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+      Node node = JcrUtils.deepGetOrCreateNode(session, nodePath);
+      if (node.isNew()) {
+        node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
-        for (Entry<String,String[]> param: requestProperties.entrySet()) {
-          String[] values = param.getValue();
-          if (values.length == 1) {
-            n.setProperty(param.getKey(), values[0]);
-          } else {
-            n.setProperty(param.getKey(), values);
-          }
-        }
       }
-      session.save();
-      return n;
+      return node;
     } finally {
       lockManager.clearLocks();
+    }
+  }
+
+  private void handleInvitation(Map<String,String[]> requestProperties, Session session, Node fromNode, Node toNode)
+      throws RepositoryException {
+    Set<String> toRelationships = new HashSet<String>();
+    Set<String> fromRelationships = new HashSet<String>();
+    Map<String, String[]> sharedProperties = new HashMap<String, String[]>();
+    for (String key : requestProperties.keySet()) {
+      String[] values = requestProperties.get(key);
+      if (ConnectionConstants.PARAM_FROM_RELATIONSHIPS.equals(key)) {
+        fromRelationships.addAll(Arrays.asList(values));
+      } else if (ConnectionConstants.PARAM_TO_RELATIONSHIPS.equals(key)) {
+        toRelationships.addAll(Arrays.asList(values));
+      } else if (ConnectionConstants.SAKAI_CONNECTION_TYPES.equals(key)) {
+        fromRelationships.addAll(Arrays.asList(values));
+        toRelationships.addAll(Arrays.asList(values));
+      } else {
+        sharedProperties.put(key, values);
+      }
+    }
+    addArbitraryProperties(fromNode, sharedProperties);
+    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+        fromRelationships.toArray(new String[fromRelationships.size()]));
+    addArbitraryProperties(toNode, sharedProperties);
+    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
+        toRelationships.toArray(new String[toRelationships.size()]));
+  }
+
+  /**
+   * Add property values as individual strings or as string arrays.
+   * @param node
+   * @param properties
+   */
+  private void addArbitraryProperties(Node node, Map<String, String[]> properties) throws RepositoryException {
+    for (Entry<String,String[]> param: properties.entrySet()) {
+      String[] values = param.getValue();
+      if (values.length == 1) {
+        node.setProperty(param.getKey(), values[0]);
+      } else {
+        node.setProperty(param.getKey(), values);
+      }
     }
   }
 
