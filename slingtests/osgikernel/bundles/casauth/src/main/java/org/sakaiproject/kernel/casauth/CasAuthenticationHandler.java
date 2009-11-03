@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
 import org.jasig.cas.client.authentication.GatewayResolver;
 import org.jasig.cas.client.util.CommonUtils;
@@ -34,16 +36,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Dictionary;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
+import javax.jcr.Credentials;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.FailedLoginException;
+import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 @Component(immediate = false, label = "%auth.cas.name", description = "%auth.cas.description", enabled = false, metatype = true)
 @Service
-public final class CasAuthenticationHandler implements AuthenticationHandler {
+public final class CasAuthenticationHandler implements AuthenticationHandler,
+    LoginModulePlugin {
 
   @Property(value = "https://localhost:8443")
   protected static final String serverName = "auth.cas.server.name";
@@ -69,9 +82,6 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
   /** Defines the parameter to look for for the artifact. */
   private String artifactParameterName = "ticket";
 
-  /** Sets where response.encodeUrl should be called on service urls when constructed. */
-  private boolean encodeServiceUrl = true;
-
   private boolean renew = false;
 
   private GatewayResolver gatewayStorage = new DefaultGatewayResolverImpl();
@@ -91,8 +101,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
         .getAttribute(CONST_CAS_ASSERTION) : null;
     if (assertion != null) {
       LOGGER.debug("assertion found");
-      authnInfo = new AuthenticationInfo(AUTH_TYPE, new SimpleCredentials(assertion
-          .getPrincipal().getName(), new char[0]));
+      authnInfo = createAuthnInfo(assertion);
     } else {
       final String serviceUrl = constructServiceUrl(request, response);
       final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
@@ -101,11 +110,24 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
 
       if (CommonUtils.isNotBlank(ticket) || wasGatewayed) {
         LOGGER.debug("found ticket: \"{}\" or was gatewayed", ticket);
-        authnInfo = getUserFromTicket(ticket, serviceUrl);
+        authnInfo = getUserFromTicket(ticket, serviceUrl, request);
       } else {
         LOGGER.debug("no ticket and no assertion found");
       }
     }
+    return authnInfo;
+  }
+
+  @SuppressWarnings("unchecked")
+  private AuthenticationInfo createAuthnInfo(final Assertion assertion) {
+    AuthenticationInfo authnInfo;
+    SimpleCredentials creds = new SimpleCredentials(assertion.getPrincipal().getName(),
+        new char[0]);
+    Map<String, String> attribs = assertion.getAttributes();
+    for (Entry<String, String> e : attribs.entrySet()) {
+      creds.setAttribute(e.getKey(), e.getValue());
+    }
+    authnInfo = new AuthenticationInfo(AUTH_TYPE, creds);
     return authnInfo;
   }
 
@@ -133,14 +155,14 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
     return true;
   }
 
-  private AuthenticationInfo getUserFromTicket(String ticket, String serviceUrl) {
+  private AuthenticationInfo getUserFromTicket(String ticket, String serviceUrl,
+      HttpServletRequest request) {
     AuthenticationInfo authnInfo = null;
     Cas20ServiceTicketValidator sv = new Cas20ServiceTicketValidator(casServerUrl);
-    // sv.setAcceptAnyProxy(true);
     try {
       Assertion a = sv.validate(ticket, serviceUrl);
-      authnInfo = new AuthenticationInfo(AUTH_TYPE, new SimpleCredentials(a
-          .getPrincipal().getName(), new char[0]));
+      request.getSession().setAttribute(CONST_CAS_ASSERTION, a);
+      authnInfo = createAuthnInfo(a);
     } catch (TicketValidationException e) {
       LOGGER.error(e.getMessage());
     }
@@ -149,8 +171,8 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
 
   private String constructServiceUrl(HttpServletRequest request,
       HttpServletResponse response) {
-    String serviceUrl = CommonUtils.constructServiceUrl(request, response, null, request
-        .getServerName(), this.artifactParameterName, this.encodeServiceUrl);
+    String serviceUrl = request.getRequestURL().toString();
+    serviceUrl = response.encodeURL(serviceUrl);
     return serviceUrl;
   }
 
@@ -160,5 +182,42 @@ public final class CasAuthenticationHandler implements AuthenticationHandler {
     Dictionary properties = context.getProperties();
     casServerUrl = (String) properties.get(serverName);
     casServerLoginUrl = (String) properties.get(loginUrl);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void addPrincipals(Set principals) {
+    // Nothing to do
+
+  }
+
+  public boolean canHandle(Credentials credentials) {
+    boolean result = (credentials instanceof SimpleCredentials);
+    return result;
+  }
+
+  @SuppressWarnings("unchecked")
+  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
+      throws LoginException {
+    // Nothing to do
+  }
+
+  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
+      throws RepositoryException {
+    // TODO Auto-generated method stub
+    return new CasAuthentication(principal);
+  }
+
+  public Principal getPrincipal(Credentials credentials) {
+    CasPrincipal user = null;
+    if (credentials != null && credentials instanceof SimpleCredentials) {
+      SimpleCredentials sc = (SimpleCredentials) credentials;
+      user = new CasPrincipal(sc.getUserID());
+    }
+    return user;
+  }
+
+  public int impersonate(Principal principal, Credentials credentials)
+      throws RepositoryException, FailedLoginException {
+    return LoginModulePlugin.IMPERSONATION_DEFAULT;
   }
 }
