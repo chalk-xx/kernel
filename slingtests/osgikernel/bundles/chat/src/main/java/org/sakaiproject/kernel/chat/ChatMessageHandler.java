@@ -146,7 +146,8 @@ public class ChatMessageHandler implements MessageTransport {
           }
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_READ, "false");
+          n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
+          n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,

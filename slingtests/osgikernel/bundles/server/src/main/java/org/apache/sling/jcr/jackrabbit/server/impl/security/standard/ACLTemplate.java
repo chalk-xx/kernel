@@ -350,10 +350,88 @@ class ACLTemplate implements JackrabbitAccessControlList {
     /**
      *
      */
-    static class Entry extends AccessControlEntryImpl {
+    static class Entry extends AccessControlEntryImpl  {
+
 
         Entry(Principal principal, Privilege[] privileges, boolean allow) throws AccessControlException {
             super(principal, privileges, allow, Collections.EMPTY_MAP);
         }
+
+        
     }
+    
+    static class ComparableEntry extends Entry implements ComparableAccessControlEntry {
+
+      private String path;
+      private boolean isGroup;
+      private Principal principal;
+
+      ComparableEntry(String path, boolean isGroup, Principal principal, Privilege[] privileges, boolean allow) throws AccessControlException {
+          super(principal, privileges, allow);
+          this.principal = principal;
+          this.path = path;
+          this.isGroup = isGroup;
+      }
+
+      /**
+       * Ordering is set to make nodes take preference over group or user.
+       * {@inheritDoc}
+       * @see java.lang.Comparable#compareTo(java.lang.Object)
+       */
+      public int compareTo(ComparableAccessControlEntry o) {
+        boolean pathSorted = false;
+        if ( pathSorted ) {
+        int i =  o.getPath().length()-path.length();
+        if (i == 0 ) {
+          if ( isGroup && o.isGroup() ) {
+            return 0;
+          } else if ( !isGroup && !o.isGroup() ) {
+            return 0;
+          } else if ( isGroup ) {
+            return 1;
+          } else {
+            return -1;
+          }
+        }
+        return i;
+        } else {
+          if ( isGroup && o.isGroup() ) {
+            return  o.getPath().length()-path.length();
+          } else if ( !isGroup && !o.isGroup() ) {
+            return  o.getPath().length()-path.length();
+          } else if ( isGroup ) {
+            return 1;
+          } else {
+            return -1;
+          }
+          
+        }
+      }
+      
+      /**
+      * {@inheritDoc}
+      * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ComparableAccessControlEntry#getPath()
+      */
+      public String getPath() {
+        return path;
+      }
+      /**
+      * {@inheritDoc}
+      * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ComparableAccessControlEntry#isGroup()
+      */
+      public boolean isGroup() {
+        return isGroup;
+      }
+      
+      /**
+       * {@inheritDoc}
+       * @see java.lang.Object#toString()
+       */
+      @Override
+      public String toString() {
+        return "["+path+"]["+isGroup+"]["+principal.getName()+"]";
+      }
+      
+  }
+
 }
