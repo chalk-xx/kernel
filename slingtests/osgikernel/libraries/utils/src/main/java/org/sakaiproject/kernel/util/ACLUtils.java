@@ -108,7 +108,7 @@ public class ACLUtils {
       if (spec.startsWith(GRANTED)) {
         grantedPrivilegeNames.add(spec.substring(GRANTED.length()));
       } else if (spec.startsWith(DENIED)) {
-        grantedPrivilegeNames.add(spec.substring(DENIED.length()));
+        deniedPrivilegeNames.add(spec.substring(DENIED.length()));
       }
     }
 
@@ -195,30 +195,27 @@ public class ACLUtils {
           .toArray(new Privilege[grantedPrivilegeList.size()]));
     }
 
-    // if the authorizable is a user (not a group) process any denied privileges
-    if (!authorizable.isGroup()) {
-      // add a fresh ACE with the denied privileges
-      List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : deniedPrivilegeNames) {
-        if (name.length() == 0) {
-          continue; // empty, skip it.
-        }
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        deniedPrivilegeList.add(privilege);
+    // add a fresh ACE with the denied privileges
+    List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
+    for (String name : deniedPrivilegeNames) {
+      if (name.length() == 0) {
+        continue; // empty, skip it.
+      }
+      Privilege privilege = accessControlManager.privilegeFromName(name);
+      deniedPrivilegeList.add(privilege);
 
-        if (LOGGER.isInfoEnabled()) {
-          if (newPrivileges.length() > 0) {
-            newPrivileges.append(", "); // separate entries by commas
-          }
-          newPrivileges.append("denied=");
-          newPrivileges.append(privilege.getName());
+      if (LOGGER.isInfoEnabled()) {
+        if (newPrivileges.length() > 0) {
+          newPrivileges.append(", "); // separate entries by commas
         }
+        newPrivileges.append("denied=");
+        newPrivileges.append(privilege.getName());
       }
-      if (deniedPrivilegeList.size() > 0) {
-        Principal principal = authorizable.getPrincipal();
-        AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
-            .toArray(new Privilege[deniedPrivilegeList.size()]), false);
-      }
+    }
+    if (deniedPrivilegeList.size() > 0) {
+      Principal principal = authorizable.getPrincipal();
+      AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
+          .toArray(new Privilege[deniedPrivilegeList.size()]), false);
     }
 
     accessControlManager.setPolicy(path, updatedAcl);

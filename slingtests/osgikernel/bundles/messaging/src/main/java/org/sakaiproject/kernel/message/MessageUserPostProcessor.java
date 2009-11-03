@@ -19,12 +19,16 @@ package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_DENIED;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_DENIED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -34,6 +38,7 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -70,6 +75,7 @@ public class MessageUserPostProcessor implements UserPostProcessor {
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       String principalName = null;
       UserManager userManager = AccessControlUtil.getUserManager(session);
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       RequestParameter rpid = request
           .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
       if (rpid != null) {
@@ -91,10 +97,17 @@ public class MessageUserPostProcessor implements UserPostProcessor {
           messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGESTORE_RT);
           // ACL's are managed by the Personal User Post processor.
+          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
+          Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
 
-          addEntry(messageStore.getPath(), authorizable, session, WRITE_GRANTED,
+          addEntry(messageStore.getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
               REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
               ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+          
+          // explicitly deny anon and everyone, this is private space.
+          addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED );
+          addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED );
+          
         }
       }
     }
