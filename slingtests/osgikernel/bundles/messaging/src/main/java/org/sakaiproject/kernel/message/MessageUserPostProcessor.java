@@ -25,6 +25,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -96,15 +97,15 @@ public class MessageUserPostProcessor implements UserPostProcessor {
           messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGESTORE_RT);
           // ACL's are managed by the Personal User Post processor.
+          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
+          Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
 
-          addEntry(messageStore.getPath(), authorizable, session, WRITE_GRANTED,
+          addEntry(messageStore.getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
               REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
               ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
           
           // explicitly deny anon and everyone, this is private space.
-          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
           addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED );
-          Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
           addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED );
           
         }
