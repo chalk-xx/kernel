@@ -21,6 +21,7 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.principal.NoSuchPrincipalException;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.SessionImpl;
@@ -107,23 +108,29 @@ class ACLTemplate implements JackrabbitAccessControlList {
         AccessControlManager acMgr = sImpl.getAccessControlManager();
         NodeIterator itr = aclNode.getNodes();
         while (itr.hasNext()) {
+            
             NodeImpl aceNode = (NodeImpl) itr.nextNode();
 
             String principalName = aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString();
-            Principal princ = principalMgr.getPrincipal(principalName);
+            try {
+                Principal princ = principalMgr.getPrincipal(principalName);
 
-            Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES).getValues();
-            Privilege[] privs = new Privilege[privValues.length];
-            for (int i = 0; i < privValues.length; i++) {
-                privs[i] = acMgr.privilegeFromName(privValues[i].getString());
+                Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES).getValues();
+                Privilege[] privs = new Privilege[privValues.length];
+                for (int i = 0; i < privValues.length; i++) {
+                    privs[i] = acMgr.privilegeFromName(privValues[i].getString());
+                }
+                // create a new ACEImpl (omitting validation check)
+                Entry ace = new Entry(
+                        princ,
+                        privs,
+                        aceNode.isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
+                // add the entry
+                internalAdd(ace);
+            } catch ( NoSuchPrincipalException e ) {
+              // do nothing, the ACE can be ignored, if it was granted, there is no effect, if denied, no effect
+              // since the user no longer exists. This is fixed slightly differently post 1.5.7 JR
             }
-            // create a new ACEImpl (omitting validation check)
-            Entry ace = new Entry(
-                    princ,
-                    privs,
-                    aceNode.isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
-            // add the entry
-            internalAdd(ace);
         }
     }
 
