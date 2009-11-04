@@ -32,4 +32,4 @@ The following 2 need to be updated on OSX 10.5
 
 Or, on debian installing the following packages will get you at least some of the way:
 
-apt-get install libwww-perl libterm-shell-perl libjson-perl libhttp-request-ascgi-perl libtext-csv-xs-perl libtext-csv-perl libspreadsheet-writeexcel-perl libpdf-create-perl librtf-document-perl libooolib-perl libstring-random-perl libxml-perl libxml-writer-perl
+apt-get install libwww-perl libterm-shell-perl libjson-perl libhttp-request-ascgi-perl libtext-csv-xs-perl libtext-csv-perl libspreadsheet-writeexcel-perl libpdf-create-perl librtf-document-perl libooolib-perl libstring-random-perl libxml-perl libxml-writer-perl libhttp-dav-perl
