@@ -9,7 +9,7 @@
   </parent>
   <name>Sakai 2/3 Hybrid Project</name>
   <groupId>org.sakaiproject</groupId>
-  <artifactId>sakai-hybrid-tool</artifactId>
+  <artifactId>sakai-hybrid</artifactId>
   <organization>
     <name>Sakai Project</name>
     <url>http://sakaiproject.org/</url>
