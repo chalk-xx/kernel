@@ -47,7 +47,41 @@
  		"privilege@jcr:read":"granted",
  		"privilege@jcr:addChildNodes":"granted"
  		
- 	}
+ 	},
+ 	{
+ 		"path":"/_user/private/d0/33/e2/2a/admin",
+ 		"principal":"admin",
+        "privilege@jcr:read":"granted",
+ 		"privilege@jcr:write":"granted",
+ 		"privilege@jcr:removeChildNodes":"granted",
+ 		"privilege@jcr:modifyProperties":"granted",
+ 		"privilege@jcr:addChildNodes":"granted",
+ 		"privilege@jcr:removeNode":"granted"
+ 		
+ 	},
+ 	{
+ 		"path":"/_user/private/d0/33/e2/2a/admin",
+ 		"principal":"everyone",
+        "privilege@jcr:read":"denied",
+        "privilege@jcr:write":"denied"
+ 	},
+ 	{
+ 		"path":"/_user/private/d0/33/e2/2a/admin",
+ 		"principal":"anonymous",
+        "privilege@jcr:read":"denied",
+        "privilege@jcr:write":"denied"
+ 	},
+ 	{
+ 		"path":"/_user/private/0a/92/fa/b3/anonymous",
+ 		"principal":"anonymous",
+        "privilege@jcr:read":"granted"
+ 	},
+ 	{
+ 		"path":"/_user/private/0a/92/fa/b3/anonymous",
+ 		"principal":"everyone",
+        "privilege@jcr:read":"denied",
+        "privilege@jcr:write":"denied"
+ 	} 
  ],
 
 "privileges" : [

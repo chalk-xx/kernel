@@ -8,12 +8,13 @@ module SlingContacts
       @sling = sling
     end
 
-    def invite_contact(name, types)
-      case types
+    def invite_contact(name, sharedRelationships, fromRelationships=[], toRelationships=[])
+      case sharedRelationships
         when String
-          types = [types]
+        sharedRelationships = [sharedRelationships]
       end
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "sakai:types" => types)
+      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "sakai:types" => sharedRelationships,
+        "fromRelationships" => fromRelationships, "toRelationships" => toRelationships)
     end
  
     def accept_contact(name)

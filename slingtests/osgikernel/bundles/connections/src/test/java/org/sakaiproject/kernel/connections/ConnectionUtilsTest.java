@@ -33,37 +33,36 @@ public class ConnectionUtilsTest {
 
   @Test
   public void testBasePath() {
-    assertEquals(BASE, ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
-        "user2", null));
+    assertEquals(BASE, ConnectionUtils.getConnectionPath("user1", "user2", null));
+    assertEquals(BASE, ConnectionUtils.getConnectionPath("user1", "user2"));
   }
 
   @Test
   public void testPathEmpty() {
-    assertEquals(BASE, ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
-        "user2", ""));
+    assertEquals(BASE, ConnectionUtils.getConnectionPath("user1", "user2", ""));
   }
 
   @Test
   public void testPathSelector() {
-    assertEquals(BASE+".dsfljksfkjs.sdfsdf", ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
+    assertEquals(BASE+".dsfljksfkjs.sdfsdf", ConnectionUtils.getConnectionPath("user1",
         "user2", ".dsfljksfkjs.sdfsdf"));
   }
 
   @Test
   public void testPathStub() {
-    assertEquals(BASE+"/sdfsd/sdfsdf", ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
+    assertEquals(BASE+"/sdfsd/sdfsdf", ConnectionUtils.getConnectionPath("user1",
         "user2", "/sdfsd/sdfsdf"));
   }
 
   @Test
   public void testPathUserStub() {
-    assertEquals(BASE+"/sdfsdf/sdfsdf", ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
+    assertEquals(BASE+"/sdfsdf/sdfsdf", ConnectionUtils.getConnectionPath("user1",
         "user2", "user2/sdfsdf/sdfsdf"));
   }
 
   @Test
   public void testPathUserSelector() {
-    assertEquals(BASE+".dfsdfds.sdfsdf", ConnectionUtils.getConnectionPath("/_user/contacts", "user1",
+    assertEquals(BASE+".dfsdfds.sdfsdf", ConnectionUtils.getConnectionPath("user1",
         "user2", "user2.dfsdfds.sdfsdf"));
   }
 }

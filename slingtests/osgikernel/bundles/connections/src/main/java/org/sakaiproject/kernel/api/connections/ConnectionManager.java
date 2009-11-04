@@ -28,17 +28,24 @@ import java.util.Map;
 public interface ConnectionManager {
 
   /**
-   * Handle a connection operation from the current user to another user
-   * 
-   * @param request The request which generated the invitation
+   * Handle a connection operation from the current user to another user.
+   * After an invitation is sent, the current user loses access rights
+   * to the target user's view of the connection.
+   * @param requestParameters properties (if any) to add to both sides of the connection
    * @param resource a Sling resource (like a JCR node) which represents the path to the contacts node (the base of the connections storage)
    * @param thisUser the id of the user sending the invitation.
    * @param otherUser the id of the user we are connecting to
    * @param operation the operation to perform when connecting (accept, reject, etc.)
-   * @return the path to the connection node
+   *
+   * @return true if normal Sling processing should continue; false if this method took
+   *         care of the operation (as will usually be the case with a successful
+   *         invitation)
    * @throws ConnectionException 
    */
-  String connect(Map<String,String[]> requestProperties, Resource resource, String thisUser, String otherUser, ConnectionOperation operation) throws ConnectionException;
+  boolean connect(Map<String, String[]> requestParameters, Resource resource,
+      String thisUser, String otherUser,
+      ConnectionOperation operation)
+      throws ConnectionException;
 
   /**
    * This will get the listing of all users which this user is connected to

@@ -25,12 +25,15 @@ import org.sakaiproject.kernel.util.PathUtils;
  * 
  */
 public class ConnectionUtils {
+  /**
+   * The root of the personal connections path. Needed because several ConnectionManager
+   * clients supply only a user ID from which to retrieve information.
+   */
+  public static final String CONNECTION_PATH_ROOT = "/_user/contacts";
 
   /**
    * Builds a path to the connection node.
    * 
-   * @param realPath
-   *          the root of the connection store
    * @param user
    *          the user who owns the connection
    * @param targetUser
@@ -42,7 +45,7 @@ public class ConnectionUtils {
    *          element. / is not used to separate.
    * @return the path to the connection node or subtree node.
    */
-  public static String getConnectionPath(String realPath, String user, String targetUser,
+  public static String getConnectionPath(String user, String targetUser,
       String remainderPath) {
     // /_user/contacts.invite.html
     // /_user/contacts/aaron.accept.html
@@ -53,8 +56,12 @@ public class ConnectionUtils {
     if (remainderPath.startsWith(targetUser)) {
       remainderPath = remainderPath.substring(targetUser.length());
     }
-    String path = getConnectionPathBase(realPath, user);
+    String path = getConnectionPathBase(user);
     return PathUtils.toInternalHashedPath(path, targetUser, "") + remainderPath;
+  }
+
+  public static String getConnectionPath(String user, String targetUser) {
+    return getConnectionPath(user, targetUser, "");
   }
 
   /**
@@ -62,8 +69,8 @@ public class ConnectionUtils {
    * @param user1
    * @return
    */
-  public static String getConnectionPathBase(String path, String user1) {
-    return PathUtils.toInternalHashedPath(path, user1, "");
+  public static String getConnectionPathBase(String user1) {
+    return PathUtils.toInternalHashedPath(CONNECTION_PATH_ROOT, user1, "");
   }
 
 }
