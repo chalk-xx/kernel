@@ -113,12 +113,12 @@ public class ChatMessageHandler implements MessageTransport {
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
     try {
-      LOG.info("Started handling the message.");
 
       Session session = slingRepository.loginAdministrative(null);
 
       for (MessageRoute route : routes) {
         if (CHAT_TRANSPORT.equals(route.getTransport())) {
+          LOG.info("Started handling a message.");
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
