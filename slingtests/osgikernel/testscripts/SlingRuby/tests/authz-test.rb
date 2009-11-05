@@ -11,7 +11,93 @@ include SlingAuthz
 
 class TC_MyAuthZTest < SlingTest
 
+# This method assumes that the node, users and groups exist, read a write are denied for the denyUserread read and write are granted
+# all are granted read
+# 
+  def updateAcl(path, principal, readGrant, writeGrant)
+      if ( readGrant ) then
+         @authz.grant(path,principal,"jcr:read" => "granted")
+      else
+         @authz.grant(path,principal,"jcr:read" => "denied")
+      end
+      if ( writeGrant ) then
+         @authz.grant(path,principal,"jcr:write" => "granted")
+      else
+         @authz.grant(path,principal,"jcr:write" => "denied")
+      end
+  end
 
+# This functon checks that the permissions are correct on a node
+# It makes the assumption that the permissions are expressed on the node and not on a parent node.
+
+  def checkAcl(path,principal,readGranted,writeGranted)
+       acl = @authz.getacl(path)
+	# check user1
+	assert_not_nil(acl[principal],"Expected for find ACE for #{principal}"+@authz.hashToString(acl))
+	ace = acl[principal]
+	if ( readGranted || writeGranted ) then
+	  assert_not_nil(ace["granted"],"Expected ace for #{principal} to have granted something granted ace was nil "+@authz.hashToString(acl))
+	  puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
+	end
+	if ( !readGranted || !writeGranted ) then
+      assert_not_nil(ace["denied"],"Expected ace for #{principal} to have denied something, denied was nil "+@authz.hashToString(acl))
+      puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
+     end
+
+        if ( readGranted ) then
+          assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{principal} to have jcr:read granted ace was "+@authz.hashToString(ace))
+          if ( ace["denied"] != nil ) then
+             assert_equal(false,ace["denied"].include?("jcr:read"),"Expected ace for #{principal} not to have jcr:read denied ace was "+@authz.hashToString(ace))
+	  end
+        else
+          assert_equal(true,ace["denied"].include?("jcr:read"),"Expected ace for #{principal} to have jcr:read denied ace was "+@authz.hashToString(ace))
+          if ( ace["granted"] != nil ) then
+             assert_equal(false,ace["granted"].include?("jcr:read"),"Expected ace for #{principal} not to have jcr:read granted ace was "+@authz.hashToString(ace))
+	  end
+        end
+        if ( writeGranted ) then
+          assert_equal(true,ace["granted"].include?("jcr:write"),"Expected ace for #{principal} to have jcr:write granted ace was "+@authz.hashToString(ace))
+          if ( ace["denied"] != nil ) then
+             assert_equal(false,ace["denied"].include?("jcr:write"),"Expected ace for #{principal} not to have jcr:write denied ace was "+@authz.hashToString(ace))
+	  end
+        else
+          assert_equal(true,ace["denied"].include?("jcr:write"),"Expected ace for #{principal} to have jcr:write denied ace was "+@authz.hashToString(ace))
+          if ( ace["granted"] != nil ) then
+             assert_equal(false,ace["granted"].include?("jcr:write"),"Expected ace for #{principal} not to have jcr:write granted ace was "+@authz.hashToString(ace))
+	  end
+        end
+  end
+  
+  # check http access on the path
+  def checkHttpAccess(path, user, because, canRead, canWrite)
+	@s.switch_user(user)
+	res = @s.execute_get(@s.url_for(path+".json"))
+	if ( canRead ) then 
+	    assert_equal("200",res.code,"Should have been able to read the child node as "+user.to_s()+because)
+	else 
+	  assert_equal("404",res.code," Expected to get read denied for "+user.to_s()+because)	
+	end
+	res = @s.execute_post(@s.url_for(path+".html"),user.name => "testset")
+	if ( canWrite ) then
+		if ( res.code != "200" ) then
+			puts(res.body)
+		end 
+		assert_equal("200",res.code,"Should have been able to write to the node as "+user.to_s()+because)
+	else
+		assert_equal("500",res.code," Expected to get write denied for "+user.to_s()+because)
+		assert_equal(true,res.body.include?("AccessDeniedException"), " Error was not an access denied exception for "+user.to_s()+because)
+	end
+  end
+
+#
+# This test creates a node at test/authztest/node* , sets a property on that node
+# grants read and write to user1
+# grants read to user2 denies write to user2
+# grants read and write to group1
+# grants read to group2 and denies write to group2 
+# And then checks that the final ACL matches that.
+# It does not test if user1 and user2 have permissions granted or denied.
+#
   def test_authz
     m = Time.now.to_i.to_s
 	@authz = SlingAuthz::Authz.new(@s)
@@ -28,78 +114,246 @@ class TC_MyAuthZTest < SlingTest
 	puts("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	
-	@authz.grant(path,user1,"jcr:read" => "granted")
-	@authz.grant(path,user1,"jcr:write" => "granted")
-    acl = @authz.getacl(path)
-	
-	
-	@authz.grant(path,user2,"jcr:read" => "granted")
-	@authz.grant(path,user2,"jcr:write" => "denied")
-    acl = @authz.getacl(path)
-	
-	
-	@authz.grant(path,group1,"jcr:read" => "granted")
-	@authz.grant(path,group1,"jcr:write" => "granted")
-    acl = @authz.getacl(path)
-	
-	@authz.grant(path,group2,"jcr:read" => "granted")
-	@authz.grant(path,group2,"jcr:write" => "denied")
+        updateAcl(path,user1,true,true)
+        updateAcl(path,user2,true,false)
+        updateAcl(path,group1,true,true)
+        updateAcl(path,group2,true,false)
+
+        acl = @authz.getacl(path)
 	
 
-    acl = @authz.getacl(path)
-	
-	# check user1
-	assert_not_nil(acl[user1],"Expected for find ACE for #{user1}"+@authz.hashToString(acl))
-	ace = acl[user1]
-	assert_not_nil(ace["granted"],"Expected ace for #{user1} to have jcr:read granted ace was nil "+@authz.hashToString(acl))
-	puts("ACE for user #{user1} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
-	
-	assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{user1} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(true,ace["granted"].include?("jcr:write"),"Expected ace for #{user1} to have jcr:write granted ace was "+@authz.hashToString(ace))
-	if ( ace["denied"] != nil ) 
-		assert_equal(false,ace["denied"].include?("jcr:read"),"Expected ace for #{user1} to have jcr:read granted ace was "+@authz.hashToString(ace))
-		assert_equal(false,ace["denied"].include?("jcr:write"),"Expected ace for #{user1} to have jcr:write granted ace was "+@authz.hashToString(ace))
-	end
+        checkAcl(path,user1,true,true)
+        checkAcl(path,user2,true,false)
+        checkAcl(path,group1,true,true)
+        checkAcl(path,group2,true,false)
 
-    # check user2
-	assert_not_nil(acl[user2],"Expected for find ACE for #{user2}"+@authz.hashToString(acl))
-	ace = acl[user2]
-	assert_not_nil(ace["granted"],"Expected ace for #{user2} to have jcr:read granted ace was nil "+@authz.hashToString(acl))
-	puts("ACE for user #{user2} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
-	
-	assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{user2} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(false,ace["granted"].include?("jcr:write"),"Expected ace for #{user2} to have jcr:write denied ace was "+@authz.hashToString(ace))
-	
-	assert_not_nil(ace["denied"],"Expected ace for #{user2} denied to be present, was nil "+@authz.hashToString(acl))
-	
-    assert_equal(false,ace["denied"].include?("jcr:read"),"Expected ace for #{user1} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(true,ace["denied"].include?("jcr:write"),"Expected ace for #{user2} to have jcr:write denied ace was "+@authz.hashToString(ace))
-
-    # check group1
-	assert_not_nil(acl[group1],"Expected for find ACE for #{group1}"+@authz.hashToString(acl))
-	ace = acl[group1]
-	assert_not_nil(ace["granted"],"Expected ace for #{group1} to have jcr:read granted ace was nil "+@authz.hashToString(acl))
-	puts("ACE for user #{group1} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
-	
-	assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{group1} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(true,ace["granted"].include?("jcr:write"),"Expected ace for #{group1} to have jcr:write granted ace was "+@authz.hashToString(ace))
-
-    # check group2
-	assert_not_nil(acl[group2],"Expected for find ACE for #{group2}"+@authz.hashToString(acl))
-	ace = acl[group2]
-	assert_not_nil(ace["granted"],"Expected ace for #{group2} to have jcr:read granted ace was nil "+@authz.hashToString(acl))
-	puts("ACE for user #{group2} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
-	
-	assert_equal(true,ace["granted"].include?("jcr:read"),"Expected ace for #{group2} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(false,ace["granted"].include?("jcr:write"),"Expected ace for #{group2} to have jcr:write denied ace was "+@authz.hashToString(ace))
-	
-	assert_not_nil(ace["denied"],"Expected ace for #{group2} denied to be present, was nil, indicates that DENIED is silently NOT allowed on groups "+@authz.hashToString(acl))
-	
-    assert_equal(false,ace["denied"].include?("jcr:read"),"Expected ace for #{group2} to have jcr:read granted ace was "+@authz.hashToString(ace))
-	assert_equal(true,ace["denied"].include?("jcr:write"),"Expected ace for #{group2} to have jcr:write denied ace was "+@authz.hashToString(ace))
-
-		
+          
   end
+  
+  def test_NodeAuthZ
+  
+	m = Time.now.to_i.to_s
+	@authz = SlingAuthz::Authz.new(@s)
+	user1 = "user1-"+m
+	user2 = "user2-"+m
+	group1 = "g-group1-"+m
+	group2 = "g-group2-"+m
+	group3 = "g-group3-"+m
+	user3 = "user3-"+m
+	user4 = "user4-"+m
+	user5 = "user5-"+m
+	user6 = "user6-"+m
+	user7 = "user7-"+m
+	
+	# add user3 to group1 and user4 to group2
+	
+	
+	path = "test/authztest/node"+m
+	u1 = create_user(user1)
+	u2 = create_user(user2)
+	u3 = create_user(user3)
+	u4 = create_user(user4)
+	u5 = create_user(user5)
+	u6 = create_user(user6)
+	u7 = create_user(user7)
+	g1 = create_group(group1)
+	g2 = create_group(group2)
+	g3 = create_group(group3)
+	# Add user3 to group 1 and user4 to group2
+	g1.add_member(@s,user3,"user")
+	g2.add_member(@s,user4,"user")
+	g3.add_member(@s,user6,"user")
+	
+	# check that the users are members in the right way.ZZ
+	assert_equal(true,g1.has_member(@s,user3))
+	assert_equal(true,g2.has_member(@s,user4))
+	assert_equal(true,g3.has_member(@s,user6))
+	
+		
+	puts("Creating Node at #{path}")
+	create_node(path,"testproperty" => "testvalue")
+	
+	# set all the acls
+    updateAcl(path,user1,true,true)
+	updateAcl(path,user2,true,false)
+	updateAcl(path,user5,false,false)
+	updateAcl(path,group1,true,true)
+	updateAcl(path,group2,true,false)
+	updateAcl(path,group3,false,false)
+
+    # check the acls are set right on the node
+	checkAcl(path,user1,true,true)
+	checkAcl(path,user2,true,false)
+	checkAcl(path,group1,true,true)
+	checkAcl(path,group2,true,false)
+
+	# check Http access (read, write)
+	checkHttpAccess(path,u1,"",true,true)
+	checkHttpAccess(path,u2,"",true,false)
+	checkHttpAccess(path,u3," as a member of group 1",true,true)
+	checkHttpAccess(path,u4," as a member of group 2",true,false)
+	checkHttpAccess(path,u5,"",false,false)
+	checkHttpAccess(path,u6," as a member og group 3",false,false)
+	checkHttpAccess(path,u7," as a member of the root group everyone ",true,false)
+
+  end
+
+  def test_NodeAuthZChild
+  
+	m = Time.now.to_i.to_s
+	@authz = SlingAuthz::Authz.new(@s)
+	user1 = "user1-"+m
+	user2 = "user2-"+m
+	group1 = "g-group1-"+m
+	group2 = "g-group2-"+m
+	group3 = "g-group3-"+m
+	user3 = "user3-"+m
+	user4 = "user4-"+m
+	user5 = "user5-"+m
+	user6 = "user6-"+m
+	user7 = "user7-"+m
+	
+	# add user3 to group1 and user4 to group2
+	
+	
+	path = "test/authztest/node"+m
+	u1 = create_user(user1)
+	u2 = create_user(user2)
+	u3 = create_user(user3)
+	u4 = create_user(user4)
+	u5 = create_user(user5)
+	u6 = create_user(user6)
+	u7 = create_user(user7)
+	g1 = create_group(group1)
+	g2 = create_group(group2)
+	g3 = create_group(group3)
+	# Add user3 to group 1 and user4 to group2
+	g1.add_member(@s,user3,"user")
+	g2.add_member(@s,user4,"user")
+	g3.add_member(@s,user6,"user")
+	
+	# check that the users are members in the right way.ZZ
+	assert_equal(true,g1.has_member(@s,user3))
+	assert_equal(true,g2.has_member(@s,user4))
+	assert_equal(true,g3.has_member(@s,user6))
+	
+		
+	puts("Creating Node at #{path}")
+	create_node(path,"testproperty" => "testvalue")
+	childPath = path+"/childnode"
+	create_node(path+"/childnode","testchildproperty" => "testvalue")
+	
+	# set all the acls
+    updateAcl(path,user1,true,true)
+	updateAcl(path,user2,true,false)
+	updateAcl(path,user5,false,false)
+	updateAcl(path,group1,true,true)
+	updateAcl(path,group2,true,false)
+	updateAcl(path,group3,false,false)
+
+    # check the acls are set right on the node
+	checkAcl(path,user1,true,true)
+	checkAcl(path,user2,true,false)
+	checkAcl(path,group1,true,true)
+	checkAcl(path,group2,true,false)
+
+	# check Http access (read, write)
+	checkHttpAccess(childPath,u1,"",true,true)
+	checkHttpAccess(childPath,u2,"",true,false)
+	checkHttpAccess(childPath,u3," as a member of group 1",true,true)
+	checkHttpAccess(childPath,u4," as a member of group 2",true,false)
+	checkHttpAccess(childPath,u5,"",false,false)
+	checkHttpAccess(childPath,u6," as a member og group 3",false,false)
+	checkHttpAccess(childPath,u7," as a member of the root group everyone ",true,false)
+	checkHttpAccess(childPath,SlingUsers::AnonymousUser.new,"",true,false)
+	
+	
+  end
+  
+def test_NodeAuthZChildPrivate
+  
+	m = Time.now.to_i.to_s
+	@authz = SlingAuthz::Authz.new(@s)
+	user1 = "user1-"+m
+	user2 = "user2-"+m
+	group1 = "g-group1-"+m
+	group2 = "g-group2-"+m
+	group3 = "g-group3-"+m
+	user3 = "user3-"+m
+	user4 = "user4-"+m
+	user5 = "user5-"+m
+	user6 = "user6-"+m
+	user7 = "user7-"+m
+	
+	# add user3 to group1 and user4 to group2
+	
+	
+	path = "test/authztest/node"+m
+	u1 = create_user(user1)
+	u2 = create_user(user2)
+	u3 = create_user(user3)
+	u4 = create_user(user4)
+	u5 = create_user(user5)
+	u6 = create_user(user6)
+	u7 = create_user(user7)
+	g1 = create_group(group1)
+	g2 = create_group(group2)
+	g3 = create_group(group3)
+	everyone = SlingUsers::Group.new("everyone")
+	# Add user3 to group 1 and user4 to group2
+	g1.add_member(@s,user3,"user")
+	g2.add_member(@s,user4,"user")
+	g3.add_member(@s,user6,"user")
+	
+	# check that the users are members in the right way.ZZ
+	assert_equal(true,g1.has_member(@s,user3))
+	assert_equal(true,g2.has_member(@s,user4))
+	assert_equal(true,g3.has_member(@s,user6))
+	
+		
+	puts("Creating Node at #{path}")
+	create_node(path,"testproperty" => "testvalue")
+	childPath = path+"/childnode"
+	create_node(path+"/childnode","testchildproperty" => "testvalue")
+	
+	# set all the acls
+    updateAcl(path,user1,true,true)
+	updateAcl(path,user2,true,false)
+	updateAcl(path,user5,false,false)
+	updateAcl(path,group1,true,true)
+	updateAcl(path,group2,true,false)
+	updateAcl(path,group3,false,false)
+	# deny everyone from the node
+	updateAcl(path,"everyone",false,false)
+	# but also explicity deny anon, since everyone is all authenticated users
+	updateAcl(path,"anonymous",false,false)
+
+    # check the acls are set right on the node
+	checkAcl(path,user1,true,true)
+	checkAcl(path,user2,true,false)
+	checkAcl(path,group1,true,true)
+	checkAcl(path,group2,true,false)
+	checkAcl(path,group3,false,false)
+	checkAcl(path,"everyone",false,false)
+	checkAcl(path,"anonymous",false,false)
+
+	# check Http access (read, write)
+	checkHttpAccess(childPath,u1,"",true,true)
+	checkHttpAccess(childPath,u2,"",true,false)
+	checkHttpAccess(childPath,u3," as a member of group 1",true,true)
+	checkHttpAccess(childPath,u4," as a member of group 2",true,false)
+	checkHttpAccess(childPath,u5,"",false,false)
+	checkHttpAccess(childPath,u6," as a member og group 3",false,false)
+	checkHttpAccess(childPath,u7," as a member of the root group everyone ",false,false)
+	
+	
+	@s.execute_get(@s.url_for("A_3MARKER_BEFORE"))
+	checkHttpAccess(childPath,SlingUsers::AnonymousUser.new," authenticated users are allowed access, but anon users are not, this is a BUG somewhere ",false,false)
+	@s.execute_get(@s.url_for("A_3MARKER_AFTER"))
+	
+	
+  end
+
 
 
 end

@@ -19,7 +19,8 @@ class TC_Kern289Test < SlingTest
     contacts = @s.get_node_props("/_user/contacts/all")
     types = contacts["results"][0]["details"]["sakai:types"]
     assert_not_nil(types, "Expected type to be stored")
-    assert_equal(types, "follower", "Expected type to be 'follower'")
+    types = [*types]
+    assert_equal("follower", types.first, "Expected type to be 'follower'")
   end
 
 end

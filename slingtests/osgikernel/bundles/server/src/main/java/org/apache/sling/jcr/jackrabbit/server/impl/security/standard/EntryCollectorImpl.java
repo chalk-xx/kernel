@@ -21,10 +21,12 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
-import org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ACLTemplate.Entry;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ACLTemplate.ComparableEntry;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -63,10 +65,11 @@ public class EntryCollectorImpl implements EntryCollector {
    */
   public void collectEntries(NodeImpl aclNode,
       Map<String, List<AccessControlEntry>> principalNamesToEntries,
-      List<AccessControlEntry> orderedAccessControlEntries, String userId) throws RepositoryException {
+      List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId) throws RepositoryException {
     SessionImpl sImpl = (SessionImpl) aclNode.getSession();
     PrincipalManager principalMgr = sImpl.getPrincipalManager();
     AccessControlManager acMgr = sImpl.getAccessControlManager();
+    UserManager uMgr = sImpl.getUserManager();
 
     NodeIterator itr = aclNode.getNodes();
     while (itr.hasNext()) {
@@ -78,6 +81,17 @@ public class EntryCollectorImpl implements EntryCollector {
 
       if (hasPrincipal(principalName, aclNode, principalNamesToEntries, userId)) {
         Principal princ = principalMgr.getPrincipal(principalName);
+        boolean isGroup = false;
+        if (principalName.startsWith("g-") || princ.equals(principalMgr.getEveryone()) || principalName.equals("administrators") ) {
+          isGroup = true;
+        }
+        try {
+          Authorizable auth = uMgr.getAuthorizable(principalName);
+          isGroup = auth.isGroup();
+        } catch ( Exception e ) {
+          isGroup = false;
+        }
+        
 
         Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
             .getValues();
@@ -86,7 +100,7 @@ public class EntryCollectorImpl implements EntryCollector {
           privs[i] = acMgr.privilegeFromName(privValues[i].getString());
         }
         // create a new ACEImpl (omitting validation check)
-        Entry ace = new Entry(princ, privs, aceNode
+        ComparableEntry ace = new ComparableEntry(aceNode.getPath(), isGroup, princ, privs, aceNode
             .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
         // add it to the proper list (e.g. separated by principals)
         List<AccessControlEntry> l = principalNamesToEntries.get(principalName);

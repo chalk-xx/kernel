@@ -86,7 +86,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
       String[] virtualParts = StringUtils.split(virtualPath, '.');
       if (virtualParts.length > 0) {
         String targetUser = virtualParts[0];
-        path = ConnectionUtils.getConnectionPath(realPath,user,targetUser,virtualPath);        
+        path = ConnectionUtils.getConnectionPath(user,targetUser,virtualPath);
         request.setAttribute(TARGET_USERID, targetUser);
       } else {
         // nothing extra included so use the base
@@ -135,15 +135,12 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
           return false;
         }
       }
-      connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
+      return connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
     } catch (ConnectionException e) {
       LOGGER.error("Connection exception: {}", e);
       response.sendError(e.getCode(), e.getMessage());
       return false;
     }
-
-    return true;
-
   }
 
 }
