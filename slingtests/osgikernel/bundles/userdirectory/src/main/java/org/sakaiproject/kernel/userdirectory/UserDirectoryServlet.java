@@ -40,14 +40,14 @@ import javax.servlet.ServletException;
  * <p>
  * Servlet for looking up user information from various federated sources. This
  * servlet is triggered by accessing a node that has
- * resourceType="sakai/userdirectory".  This node should be a 
- * user's space in JCR.
+ * resourceType="sakai/userdirectory". This node should be a user's space in
+ * JCR.
  * </p>
  * <p>
  * <em>Example structure:</em><br/>
  * /_user/public/ad/80/11/98/dsf/authprofile<br/>
- * Where 'authprofile' has a property of resourceType = "sakai/user-profile"
- * and the node 'dsf' is the username.
+ * Where 'authprofile' has a property of resourceType = "sakai/user-profile" and
+ * the node 'dsf' is the username.
  * </p>
  * <p>
  * Having the requested node as a first level subnode of a node that is named
@@ -68,27 +68,29 @@ public class UserDirectoryServlet extends SlingSafeMethodsServlet {
     String[] splitPath = StringUtils.split(path, '/');
     String username = splitPath[splitPath.length - 2];
 
-	String msg = "Getting information for [" + username + "]\n";
+    String msg = "Getting information for [" + username + "]\n";
     LOGGER.info(msg);
 
-	Writer writer = response.getWriter();
-	writer.append(msg);
+    Writer writer = response.getWriter();
+    writer.append(msg);
 
-	// get the node's properties
-	Node node = (Node) request.getResource().adaptTo(Node.class);
+    // get the node's properties
+    Node node = (Node) request.getResource().adaptTo(Node.class);
 
-	writer.append("Properties:\n");
-	try {
-		PropertyIterator props = node.getProperties();
-		while (props.hasNext()) {
-			Property prop = props.nextProperty();
-			writer.append(prop.getName() + ": " + prop.getString() + "\n");
-		}
-	} catch (ValueFormatException e) {
-		LOGGER.error(e.getMessage(), e);
-	} catch (RepositoryException e) {
-		LOGGER.error(e.getMessage(), e);
-	}
+    try {
+      if (node.hasProperties()) {
+        writer.append("Properties:\n");
+        PropertyIterator props = node.getProperties();
+        while (props.hasNext()) {
+          Property prop = props.nextProperty();
+          writer.append(prop.getName() + ": " + prop.getString() + "\n");
+        }
+      }
+    } catch (ValueFormatException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
   }
 
 }
