@@ -23,16 +23,23 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.jasig.services.persondir.support.ldap.LdapPersonAttributeDao;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
 
@@ -74,8 +81,25 @@ public class UserDirectoryServlet extends SlingSafeMethodsServlet {
     Writer writer = response.getWriter();
     writer.append(msg);
 
+    printNode(resource, writer);
+
+    try {
+      printLdap(username);
+    } catch (Exception e) {
+      throw new ServletException(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * @param resource
+   * @param writer
+   * @throws IOException
+   */
+  private void printNode(Resource resource, Writer writer) throws IOException {
+    writer.append(resource.toString() + "\n");
+
     // get the node's properties
-    Node node = (Node) request.getResource().adaptTo(Node.class);
+    Node node = (Node) resource.adaptTo(Node.class);
 
     try {
       if (node.hasProperties()) {
@@ -83,7 +107,11 @@ public class UserDirectoryServlet extends SlingSafeMethodsServlet {
         PropertyIterator props = node.getProperties();
         while (props.hasNext()) {
           Property prop = props.nextProperty();
-          writer.append(prop.getName() + ": " + prop.getString() + "\n");
+          Value[] values = JcrUtils.getValues(node, prop.getName());
+          writer.append("\n" + prop.getName() + ":\n");
+          for (Value value : values) {
+            writer.append(value.getString() + "\n");
+          }
         }
       }
     } catch (ValueFormatException e) {
@@ -93,4 +121,29 @@ public class UserDirectoryServlet extends SlingSafeMethodsServlet {
     }
   }
 
+  private void printLdap(String username) throws Exception {
+    String baseDN = "uid=sakai2-gted,ou=Local Accounts,dc=gted,dc=gatech,dc=edu";
+    String name = "username";
+    String password = "cta&HWR!";
+
+    LdapTemplate ldapTemplate = new LdapTemplate();
+    LdapContextSource contextSource = new LdapContextSource();
+    contextSource.setBase(baseDN);
+    contextSource.setUrl("r.gted.gatech.edu");
+    contextSource.setUserDn(baseDN);
+    contextSource.setPassword(password);
+
+    LinkedList<String> queryAttributes = new LinkedList<String>();
+    HashMap<String, Object> queryAttributeMapping = new HashMap<String, Object>();
+
+    LdapPersonAttributeDao dao = new LdapPersonAttributeDao();
+    dao.setBaseDN(baseDN);
+    dao.setContextSource(contextSource);
+    // dao.setDefaultAttributeName(name);
+    dao.setQueryAttributeMapping(queryAttributeMapping);
+    // dao.setQuery(uidQuery);
+    // dao.setQueryAttributes(queryAttributes);
+    // dao.setSearchControls(searchControls);
+    dao.afterPropertiesSet();
+  }
 }

@@ -87,7 +87,24 @@
     <dependency>
       <groupId>org.jasig.service</groupId>
       <artifactId>person-directory-api</artifactId>
-      <version>1.1.2</version>
+      <version>1.5.0-RC6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jasig.service</groupId>
+      <artifactId>person-directory-impl</artifactId>
+      <version>1.5.0-RC6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ldap</groupId>
+      <artifactId>spring-ldap</artifactId>
+      <version>1.2.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
