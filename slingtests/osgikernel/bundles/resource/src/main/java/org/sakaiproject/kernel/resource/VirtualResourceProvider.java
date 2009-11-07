@@ -27,6 +27,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,14 +119,20 @@ public class VirtualResourceProvider implements ResourceProvider {
     // prevent recursion 
     try {
       Session session = resourceResolver.adaptTo(Session.class);
-      
-      
+
+
       Item item = null;
       try {
         item = session.getItem(absRealPath);
       } catch (PathNotFoundException ex) {
       }
       String parentPath = absRealPath;
+      String lastElement = PathUtils.lastElement(parentPath);
+      if ( "jcr:content".equals(lastElement) ) {
+        // this is a property so we would return null anyway.
+        // not certain if there is away to detect properties over nodes before they have been created.
+        return null;
+      }
       while (item == null && !"/".equals(parentPath)) {
         parentPath = getParentReference(parentPath);
         try {
