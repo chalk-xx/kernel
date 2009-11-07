@@ -19,7 +19,6 @@ package org.sakaiproject.kernel.resource;
 
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.apache.sling.jcr.resource.PathResourceTypeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,22 +32,22 @@ import javax.jcr.Session;
  * This class checks resource paths to see if there is a prefered resoruce type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="MessagePathResourceTypeProvider"
+ * @xscr.component immediate="true" label="MessagePathResourceTypeProvider"
  *                description="Message Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Message resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
+ * @xscr.property name="service.description" value="Handles requests for Message resources"
+ * @xscr.property name="service.vendor" value="The Sakai Foundation"
+ * @xscr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-public abstract class AbstractPathResourceTypeProvider implements PathResourceTypeProvider {
+public abstract class AbstractPathResourceTypeProviderX  {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(AbstractPathResourceTypeProvider.class);
+      .getLogger(AbstractPathResourceTypeProviderX.class);
   private String resourceType;
   
   /**
    * 
    */
-  public AbstractPathResourceTypeProvider() {
+  public AbstractPathResourceTypeProviderX() {
     resourceType = getResourceType();
   }
 

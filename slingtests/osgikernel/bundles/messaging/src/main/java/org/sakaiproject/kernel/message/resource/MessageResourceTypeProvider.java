@@ -15,9 +15,9 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.personal.resource;
+package org.sakaiproject.kernel.message.resource;
 
-import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PRIVATE_RESOURCE_TYPE;
+import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -36,20 +36,20 @@ import javax.servlet.http.HttpServletRequest;
  * path is not a jcr path.
  * 
  */
-@Component(immediate=true, label="PersonalResourceTypeProvider",  description="Personal Service path resource type provider")
+@Component(immediate=true, label="MessageResourceTypeProvider",  description="Message path resource type provider")
 @Properties(value={
-    @Property(name="service.description", value="Handles requests for Personal resources"),
+    @Property(name="service.description", value="Handles requests for Message resources"),
     @Property(name="service.vendor",value="The Sakai Foundation")
 })
 @Service(value=VirtualResourceType.class)
-public class PersonalResourceTypeProvider implements VirtualResourceType {
+public class MessageResourceTypeProvider implements VirtualResourceType {
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   public String getResourceType() {
-    return USER_PRIVATE_RESOURCE_TYPE;
+    return SAKAI_MESSAGESTORE_RT;
   }
 
   /**
@@ -58,7 +58,7 @@ public class PersonalResourceTypeProvider implements VirtualResourceType {
    */
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
-    return new SyntheticResource(resourceResolver, absRealPath, USER_PRIVATE_RESOURCE_TYPE);
+    return new SyntheticResource(resourceResolver, absRealPath, SAKAI_MESSAGESTORE_RT);
   }
 
 

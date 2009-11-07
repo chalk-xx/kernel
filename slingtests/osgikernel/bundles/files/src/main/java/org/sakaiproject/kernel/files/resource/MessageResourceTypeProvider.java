@@ -17,29 +17,49 @@
  */
 package org.sakaiproject.kernel.files.resource;
 
+
+import static org.sakaiproject.kernel.api.files.FilesConstants.RT_FILE_STORE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.jcr.resource.PathResourceTypeProvider;
-import org.sakaiproject.kernel.api.files.FilesConstants;
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
+
+import javax.jcr.Node;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
  * 
  */
-@Component(immediate = true)
-@Service(value = PathResourceTypeProvider.class)
-@Properties(value = {
+@Component(immediate=true, label="MessageResourceTypeProvider",  description="Message path resource type provider")
+@Properties(value={
     @Property(name = "service.description", value = "Handles requests for file store resources"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-public class FilePathResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Service(value=VirtualResourceType.class)
+public class MessageResourceTypeProvider implements VirtualResourceType {
 
-  @Override
-  protected String getResourceType() {
-    return FilesConstants.RT_FILE_STORE;
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
+   */
+  public String getResourceType() {
+    return RT_FILE_STORE;
   }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.VirtualResourceType#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, javax.jcr.Node, javax.jcr.Node, java.lang.String)
+   */
+  public Resource getResource(ResourceResolver resourceResolver,
+      HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
+    return new SyntheticResource(resourceResolver, absRealPath, RT_FILE_STORE);
+  }
+
 
 }

@@ -19,25 +19,47 @@ package org.sakaiproject.kernel.activity;
 
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE;
 
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
+
+import javax.jcr.Node;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
  * 
- * @scr.component immediate="true" label="ActivityStoreResourceTypeProvider"
- *                description="ActivityStoreResourceTypeProvider"
- * @scr.property name="service.description"
- *               value="Handles requests for ActivityStore resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  * 
  */
-public class ActivityStoreResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Component(immediate=true, label="ActivityStoreResourceTypeProvider",  description="Activity Store resource type provider")
+@Properties(value={
+    @Property(name = "service.description", value = "Handles requests for Activity Store resources"),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Service(value=VirtualResourceType.class)
+public class ActivityStoreResourceTypeProvider implements VirtualResourceType {
 
-  @Override
-  protected String getResourceType() {
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
+   */
+  public String getResourceType() {
     return ACTIVITY_STORE_RESOURCE_TYPE;
   }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.VirtualResourceType#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, javax.jcr.Node, javax.jcr.Node, java.lang.String)
+   */
+  public Resource getResource(ResourceResolver resourceResolver,
+      HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
+    return new SyntheticResource(resourceResolver, absRealPath, ACTIVITY_STORE_RESOURCE_TYPE);
+  }
+
 
 }

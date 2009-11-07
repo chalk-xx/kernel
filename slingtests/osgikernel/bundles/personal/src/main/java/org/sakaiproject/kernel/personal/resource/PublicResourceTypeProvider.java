@@ -19,28 +19,46 @@ package org.sakaiproject.kernel.personal.resource;
 
 import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PUBLIC_RESOURCE_TYPE;
 
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.api.resource.SyntheticResource;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
+
+import javax.jcr.Node;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="PersonalResourceTypeProvider"
- *                description="Personal Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Personal resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-
-public class PublicResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Component(immediate=true, label="PublicResourceTypeProvider",  description="Public Service path resource type provider")
+@Properties(value={
+    @Property(name="service.description", value="Handles requests for Public resources"),
+    @Property(name="service.vendor",value="The Sakai Foundation")
+})
+@Service(value=VirtualResourceType.class)
+public class PublicResourceTypeProvider implements VirtualResourceType {
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
-  @Override
-  protected String getResourceType() {
+  public String getResourceType() {
     return USER_PUBLIC_RESOURCE_TYPE;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.VirtualResourceType#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, javax.jcr.Node, javax.jcr.Node, java.lang.String)
+   */
+  public Resource getResource(ResourceResolver resourceResolver,
+      HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
+    return new SyntheticResource(resourceResolver, absRealPath, USER_PUBLIC_RESOURCE_TYPE);
   }
 
 
