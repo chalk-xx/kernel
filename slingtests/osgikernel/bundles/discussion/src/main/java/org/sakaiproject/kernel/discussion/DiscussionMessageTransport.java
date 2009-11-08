@@ -16,17 +16,19 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.chat;
+package org.sakaiproject.kernel.discussion;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.service.event.Event;
-import org.sakaiproject.kernel.api.chat.ChatManagerService;
+import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
 import org.sakaiproject.kernel.api.message.MessageTransport;
 import org.sakaiproject.kernel.api.message.MessagingService;
+import org.sakaiproject.kernel.util.ACLUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,72 +40,25 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- * Handler for chat messages. This will also write to a logfile.
+ * Handler for messages that are sent locally and intended for local delivery. Needs to be
+ * started immediately to make sure it registers with JCR as soon as possible.
  * 
- * @scr.component label="ChatMessageHandler"
- *                description="Handler for internally delivered chat messages."
- *                immediate="true"
+ * @scr.component label="DiscussionMessageTransport"
+ *                description="Handler for discussion messages." immediate="true"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessageTransport"
  * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
  *                name="SlingRepository"
  * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService"
  *                name="MessagingService"
- * @scr.reference name="ChatManagerService"
- *                interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
  */
-public class ChatMessageHandler implements MessageTransport {
-  private static final Logger LOG = LoggerFactory.getLogger(ChatMessageHandler.class);
-  private static final String TYPE = MessageConstants.TYPE_CHAT;
-  private static final Object CHAT_TRANSPORT = "chat";
+public class DiscussionMessageTransport implements MessageTransport {
+  private static final Logger LOG = LoggerFactory
+      .getLogger(DiscussionMessageTransport.class);
+  private static final String TYPE = DiscussionConstants.TYPE_DISCUSSION;
 
-  private ChatManagerService chatManagerService;
-
-  protected void bindChatManagerService(ChatManagerService chatManagerService) {
-    this.chatManagerService = chatManagerService;
-  }
-
-  protected void unbindChatManagerService(ChatManagerService chatManagerService) {
-    this.chatManagerService = null;
-  }
-
-  /**
-   * The JCR Repository we access.
-   * 
-   */
   private SlingRepository slingRepository;
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to unset
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
   private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
-
-  /**
-   * Default constructor
-   */
-  public ChatMessageHandler() {
-  }
 
   /**
    * {@inheritDoc}
@@ -112,29 +67,22 @@ public class ChatMessageHandler implements MessageTransport {
    *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
+    Session session = null;
     try {
-
-      Session session = slingRepository.loginAdministrative(null);
+      // Login as admin.
+      session = slingRepository.loginAdministrative(null);
 
       for (MessageRoute route : routes) {
-        if (CHAT_TRANSPORT.equals(route.getTransport())) {
-          LOG.info("Started handling a message.");
+        if (DiscussionConstants.TYPE_DISCUSSION.equals(route.getTransport())) {
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
               .getString();
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
-          LOG.info("Writing {} to {}", originalMessage.getPath(), toPath);
-
-          // Copy the node into the user his folder.
+          // Copy the node to the destination
           JcrUtils.deepGetOrCreateNode(session, toPath);
           session.save();
-
-          /*
-           * This gives PathNotFoundExceptions... Workspace workspace =
-           * session.getWorkspace(); workspace.copy(originalMessage.getPath(), toPath);
-           */
 
           Node n = (Node) session.getItem(toPath);
 
@@ -146,23 +94,36 @@ public class ChatMessageHandler implements MessageTransport {
           }
 
           // Add some extra properties on the just created node.
-          n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
-          n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
+          n.setProperty(MessageConstants.PROP_SAKAI_TYPE, route.getTransport());
+          n.setProperty(MessageConstants.PROP_SAKAI_TO, route.getRcpt());
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
-          n.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.SAKAI_MESSAGE_RT);
+          // Save it so we can place an ACL on it.
           n.save();
 
-          // Set it in the cache.
-          chatManagerService.addUpdate(rcpt, System.currentTimeMillis());
+          // This will probably be saved in a site store. Not all the users will have
+          // access to their message. So we add an ACL that allows the user to edit and
+          // delete it later on.
+          String from = originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM)
+              .getString();
+          Authorizable authorizable = AccessControlUtil.getUserManager(session)
+              .getAuthorizable(from);
+          ACLUtils.addEntry(n.getPath(), authorizable, session, ACLUtils.WRITE_GRANTED,
+              ACLUtils.READ_GRANTED, ACLUtils.REMOVE_NODE_GRANTED);
+
+          if (session.hasPendingChanges()) {
+            session.save();
+          }
         }
       }
-
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
     }
   }
 
@@ -173,6 +134,22 @@ public class ChatMessageHandler implements MessageTransport {
    */
   public String getType() {
     return TYPE;
+  }
+
+  protected void bindMessagingService(MessagingService messagingService) {
+    this.messagingService = messagingService;
+  }
+
+  protected void unbindMessagingService(MessagingService messagingService) {
+    this.messagingService = null;
+  }
+
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 
 }
