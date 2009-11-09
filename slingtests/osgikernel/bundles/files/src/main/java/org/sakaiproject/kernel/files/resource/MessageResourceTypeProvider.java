@@ -24,13 +24,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.SyntheticResource;
+import org.sakaiproject.kernel.resource.AbstractVirtualResourceType;
 import org.sakaiproject.kernel.resource.VirtualResourceType;
-
-import javax.jcr.Node;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where
@@ -42,7 +37,7 @@ import javax.servlet.http.HttpServletRequest;
     @Property(name = "service.description", value = "Handles requests for file store resources"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @Service(value=VirtualResourceType.class)
-public class MessageResourceTypeProvider implements VirtualResourceType {
+public class MessageResourceTypeProvider extends AbstractVirtualResourceType {
 
   /**
    * {@inheritDoc}
@@ -52,14 +47,6 @@ public class MessageResourceTypeProvider implements VirtualResourceType {
     return RT_FILE_STORE;
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.kernel.resource.VirtualResourceType#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, javax.jcr.Node, javax.jcr.Node, java.lang.String)
-   */
-  public Resource getResource(ResourceResolver resourceResolver,
-      HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
-    return new SyntheticResource(resourceResolver, absRealPath, RT_FILE_STORE);
-  }
-
+ 
 
 }

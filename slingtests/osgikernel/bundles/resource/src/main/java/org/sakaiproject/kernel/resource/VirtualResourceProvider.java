@@ -102,8 +102,6 @@ public class VirtualResourceProvider implements ResourceProvider {
    * @see org.apache.sling.api.resource.ResourceProvider#listChildren(org.apache.sling.api.resource.Resource)
    */
   public Iterator<Resource> listChildren(Resource parent) {
-    
-    LOGGER.info("Listing children of "+parent);
     return null;
   }
   
