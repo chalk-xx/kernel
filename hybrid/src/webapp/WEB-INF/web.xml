@@ -17,7 +17,7 @@
 
     <filter-mapping>
         <filter-name>sakai.request</filter-name>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
+        <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>INCLUDE</dispatcher>
@@ -25,7 +25,7 @@
 
     <filter-mapping>
         <filter-name>sakai.trusted</filter-name>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
+        <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>INCLUDE</dispatcher>
@@ -37,9 +37,20 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet>
+        <servlet-name>sakai.hybrid.SiteVisitToolPlacementServlet</servlet-name>
+        <servlet-class>org.sakaiproject.hybrid.tool.SiteVisitToolPlacementServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
     <servlet-mapping>
         <servlet-name>sakai.hybrid.servlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/sites</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>sakai.hybrid.SiteVisitToolPlacementServlet</servlet-name>
+        <url-pattern>/site</url-pattern>
     </servlet-mapping>
 
     <listener>
