@@ -31,6 +31,8 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.event.api.Event;
+import org.sakaiproject.event.api.EventTrackingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.portal.charon.ToolHelperImpl;
@@ -47,6 +49,7 @@ import org.sakaiproject.tool.api.Tool;
  * -sdata-impl/src/main/java/org/sakaiproject/sdata/services/site/SiteBean.java
  * <p>
  * Requires one getParameter: siteId.
+ * Option getParameter: writeEvent=true -- Records presence.begin and site.visit events.
  * <p>
  * Servlet runs in the context of the current user, so they must have access to
  * the siteId specified. Normal HTTP error codes to expect are:
@@ -62,6 +65,7 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 
 	private SessionManager sessionManager;
 	private SiteService siteService;
+	private EventTrackingService eventTrackingService;
 	private ToolHelperImpl toolHelper = new ToolHelperImpl();
 
 	/**
@@ -86,6 +90,9 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 						"HttpServletResponse.SC_BAD_REQUEST");
 			}
 		}
+		// should we record a site visit event?
+		final boolean writeEvent = Boolean.parseBoolean(req
+				.getParameter("writeEvent"));
 		// current user
 		final String principal = sessionManager.getCurrentSession()
 				.getUserEid();
@@ -157,6 +164,15 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 			}
 			json.element("site", siteJson);
 			json.write(resp.getWriter());
+			if (writeEvent) {
+				final Event presenceBegin = eventTrackingService
+						.newEvent("pres.begin", "/presence/" + siteId
+								+ "-presence", true);
+				eventTrackingService.post(presenceBegin);
+				final Event siteVisit = eventTrackingService.newEvent(
+						"site.visit", "/site/" + siteId, true);
+				eventTrackingService.post(siteVisit);
+			}
 		} else {
 			sendError(resp, HttpServletResponse.SC_NOT_FOUND,
 					"HttpServletResponse.SC_NOT_FOUND: " + siteId);
@@ -210,5 +226,7 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 		sessionManager = org.sakaiproject.tool.cover.SessionManager
 				.getInstance();
 		siteService = org.sakaiproject.site.cover.SiteService.getInstance();
+		eventTrackingService = org.sakaiproject.event.cover.EventTrackingService
+				.getInstance();
 	}
 }
