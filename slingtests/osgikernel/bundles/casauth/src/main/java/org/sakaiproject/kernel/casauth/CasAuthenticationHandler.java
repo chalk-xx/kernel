@@ -20,9 +20,11 @@ package org.sakaiproject.kernel.casauth;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.engine.auth.AuthenticationHandler;
 import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
@@ -69,6 +71,9 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
    */
   @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
+
+  @Reference
+  private SlingRepository repository;
 
   /** Defines the parameter to look for for the service. */
   private String serviceParameterName = "service";
@@ -203,8 +208,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
 
   public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
       throws RepositoryException {
-    // TODO Auto-generated method stub
-    return new CasAuthentication(principal);
+    return new CasAuthentication(principal, repository);
   }
 
   public Principal getPrincipal(Credentials credentials) {
@@ -219,5 +223,9 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
   public int impersonate(Principal principal, Credentials credentials)
       throws RepositoryException, FailedLoginException {
     return LoginModulePlugin.IMPERSONATION_DEFAULT;
+  }
+
+  protected void bindRepository(SlingRepository repository) {
+    this.repository = repository;
   }
 }
