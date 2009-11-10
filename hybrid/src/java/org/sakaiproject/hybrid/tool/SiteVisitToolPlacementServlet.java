@@ -19,6 +19,7 @@ package org.sakaiproject.hybrid.tool;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -31,6 +32,10 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.authz.api.AuthzGroup;
+import org.sakaiproject.authz.api.AuthzGroupService;
+import org.sakaiproject.authz.api.GroupNotDefinedException;
+import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.event.api.Event;
 import org.sakaiproject.event.api.EventTrackingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -48,8 +53,8 @@ import org.sakaiproject.tool.api.Tool;
  * https://source.caret.cam.ac.uk/camtools/trunk/camtools/sdata/tool/sakai
  * -sdata-impl/src/main/java/org/sakaiproject/sdata/services/site/SiteBean.java
  * <p>
- * Requires one getParameter: siteId.
- * Option getParameter: writeEvent=true -- Records presence.begin and site.visit events.
+ * Requires one getParameter: siteId. Option getParameter: writeEvent=true --
+ * Records presence.begin and site.visit events.
  * <p>
  * Servlet runs in the context of the current user, so they must have access to
  * the siteId specified. Normal HTTP error codes to expect are:
@@ -67,6 +72,7 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 	private SiteService siteService;
 	private EventTrackingService eventTrackingService;
 	private ToolHelperImpl toolHelper = new ToolHelperImpl();
+	private AuthzGroupService authzGroupService;
 
 	/**
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
@@ -162,8 +168,28 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 				}
 				siteJson.element("pages", pagesArray);
 			}
+			// get roles for site
+			final JSONArray rolesArray = new JSONArray();
+			try {
+				final AuthzGroup group = authzGroupService
+						.getAuthzGroup("/site/" + siteId);
+				final Set<Role> roles = group.getRoles();
+				for (Role role : roles) {
+					final JSONObject roleJson = new JSONObject();
+					roleJson.element("id", role.getId());
+					roleJson.element("description", role.getDescription());
+					rolesArray.add(roleJson);
+				}
+			} catch (GroupNotDefinedException e) {
+				LOG.warn("No AuthzGroup found for site: " + siteId, e);
+			}
+			siteJson.element("roles", rolesArray);
+
+			// write siteJson to containing json
 			json.element("site", siteJson);
+			// dump json to response writer
 			json.write(resp.getWriter());
+			// post events if requested
 			if (writeEvent) {
 				final Event presenceBegin = eventTrackingService
 						.newEvent("pres.begin", "/presence/" + siteId
@@ -225,8 +251,22 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 		super.init(config);
 		sessionManager = org.sakaiproject.tool.cover.SessionManager
 				.getInstance();
+		if (sessionManager == null) {
+			throw new IllegalStateException("SessionManager == null");
+		}
 		siteService = org.sakaiproject.site.cover.SiteService.getInstance();
+		if (siteService == null) {
+			throw new IllegalStateException("SiteService == null");
+		}
 		eventTrackingService = org.sakaiproject.event.cover.EventTrackingService
 				.getInstance();
+		if (eventTrackingService == null) {
+			throw new IllegalStateException("EventTrackingService == null");
+		}
+		authzGroupService = org.sakaiproject.authz.cover.AuthzGroupService
+				.getInstance();
+		if (authzGroupService == null) {
+			throw new IllegalStateException("AuthzGroupService == null");
+		}
 	}
 }
