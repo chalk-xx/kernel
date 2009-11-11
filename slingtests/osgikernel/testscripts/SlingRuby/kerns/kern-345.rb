@@ -56,7 +56,11 @@ class TC_Kern345Test < SlingTest
   end
 
   def check_contact_relationships(cm, *relationships)
-    firstContact = cm.get_all()["results"][0]["details"]
+    contact = cm.get_all()
+    assert_not_nil(contact["results"])
+    assert_not_nil(contact["results"][0]," Expected to have a contact  "+contact["results"].to_s())
+    assert_not_nil(contact["results"][0]["details"])
+    firstContact = contact["results"][0]["details"]
     types = firstContact["sakai:types"]
     assert_not_nil(types, "Expected relationships to be stored")
     assert_equal(relationships.length, types.length, "Should have #{relationships.length} relationships")
