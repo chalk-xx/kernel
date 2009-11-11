@@ -34,16 +34,23 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.site.api.Site;
-import org.sakaiproject.site.cover.SiteService;
+import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.SessionManager;
 
 /**
- *
+ * Based on
+ * https://source.caret.cam.ac.uk/camtools/trunk/camtools/sdata/tool/sakai
+ * -sdata-impl/src/main/java/org/sakaiproject/sdata/services/mcp/
+ * MyCoursesAndProjectsBean.java
+ * <p>
+ * No required get parameters. Runs in the context of the current user. Returns
+ * all sites that the user has access to visit.
  */
-public class HybridServlet extends HttpServlet {
+public class SitesServlet extends HttpServlet {
 	private static final long serialVersionUID = 7907409301065984518L;
-	private static final Log LOG = LogFactory.getLog(HybridServlet.class);
+	private static final Log LOG = LogFactory.getLog(SitesServlet.class);
 	private SessionManager sessionManager;
+	private SiteService siteService;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -53,53 +60,36 @@ public class HybridServlet extends HttpServlet {
 					+ ", HttpServletResponse " + resp + ")");
 		}
 		// sites for current user
-		if (req.getRequestURI().endsWith("/sites")) {
-			final JSONObject json = new JSONObject();
-			json.element("principal", sessionManager.getCurrentSession()
-					.getUserEid());
-			final List<Site> siteList = getSites();
-			if (siteList != null) {
-				final JSONArray sites = new JSONArray();
-				for (Site site : siteList) {
-					final JSONObject siteJson = new JSONObject();
-					siteJson.element("title", site.getTitle());
-					siteJson.element("id", site.getId());
-					// TODO why is "sakai-hybrid-tool" in the site.getUrl()?
-					// http://localhost:8080/sakai-hybrid-tool/site/!admin
-					siteJson.element("url", site.getUrl());
-					siteJson.element("iconUrl", site.getIconUrl());
-					siteJson.element("owner", site.getCreatedBy()
-							.getDisplayName());
-					siteJson.element("members", site.getMembers().size());
-					siteJson.element("description", site.getDescription());
-					siteJson.element("siteType", site.getType());
-					// TODO ISO8601 date format or other?
-					siteJson.element("creationDate", new SimpleDateFormat(
-							"yyyy-MM-dd").format(new Date(site.getCreatedTime()
-							.getTime())));
-					sites.add(siteJson);
-				}
-				json.element("sites", sites);
-			}
-			json.write(resp.getWriter());
-		}
-		// bad request
-		else {
-			if (!resp.isCommitted()) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			} else {
-				throw new IllegalAccessError(
-						"HttpServletResponse.SC_BAD_REQUEST");
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private List<Site> getSites() {
-		return SiteService.getSites(
+		final JSONObject json = new JSONObject();
+		json.element("principal", sessionManager.getCurrentSession()
+				.getUserEid());
+		final List<Site> siteList = siteService.getSites(
 				org.sakaiproject.site.api.SiteService.SelectionType.ACCESS,
 				null, null, null,
 				org.sakaiproject.site.api.SiteService.SortType.TITLE_ASC, null);
+		if (siteList != null) {
+			final JSONArray sites = new JSONArray();
+			for (Site site : siteList) {
+				final JSONObject siteJson = new JSONObject();
+				siteJson.element("title", site.getTitle());
+				siteJson.element("id", site.getId());
+				// TODO why is "sakai-hybrid" in the site.getUrl()?
+				// e.g. http://localhost:8080/sakai-hybrid-tool/site/!admin
+				siteJson.element("url", site.getUrl());
+				siteJson.element("iconUrl", site.getIconUrl());
+				siteJson.element("owner", site.getCreatedBy().getDisplayName());
+				siteJson.element("members", site.getMembers().size());
+				siteJson.element("description", site.getDescription());
+				siteJson.element("siteType", site.getType());
+				// TODO ISO8601 date format or other?
+				siteJson.element("creationDate", new SimpleDateFormat(
+						"yyyy-MM-dd").format(new Date(site.getCreatedTime()
+						.getTime())));
+				sites.add(siteJson);
+			}
+			json.element("sites", sites);
+		}
+		json.write(resp.getWriter());
 	}
 
 	@Override
@@ -107,5 +97,12 @@ public class HybridServlet extends HttpServlet {
 		super.init(config);
 		sessionManager = org.sakaiproject.tool.cover.SessionManager
 				.getInstance();
+		if (sessionManager == null) {
+			throw new IllegalStateException("SessionManager == null");
+		}
+		siteService = org.sakaiproject.site.cover.SiteService.getInstance();
+		if (siteService == null) {
+			throw new IllegalStateException("SiteService == null");
+		}
 	}
 }

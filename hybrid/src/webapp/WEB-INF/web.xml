@@ -32,8 +32,8 @@
     </filter-mapping>
 
     <servlet>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
-        <servlet-class>org.sakaiproject.hybrid.tool.HybridServlet</servlet-class>
+        <servlet-name>sakai.hybrid.SitesServlet</servlet-name>
+        <servlet-class>org.sakaiproject.hybrid.tool.SitesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
@@ -44,7 +44,7 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
+        <servlet-name>sakai.hybrid.SitesServlet</servlet-name>
         <url-pattern>/sites</url-pattern>
     </servlet-mapping>
 
