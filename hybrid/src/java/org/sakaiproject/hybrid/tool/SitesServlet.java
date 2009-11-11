@@ -73,8 +73,6 @@ public class SitesServlet extends HttpServlet {
 				final JSONObject siteJson = new JSONObject();
 				siteJson.element("title", site.getTitle());
 				siteJson.element("id", site.getId());
-				// TODO why is "sakai-hybrid" in the site.getUrl()?
-				// e.g. http://localhost:8080/sakai-hybrid-tool/site/!admin
 				siteJson.element("url", site.getUrl());
 				siteJson.element("iconUrl", site.getIconUrl());
 				siteJson.element("owner", site.getCreatedBy().getDisplayName());

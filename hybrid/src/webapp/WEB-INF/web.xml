@@ -8,6 +8,11 @@
     <filter>
         <filter-name>sakai.request</filter-name>
         <filter-class>org.sakaiproject.util.RequestFilter</filter-class>
+				<init-param>
+					<!-- change the context to /portal instead of /sakai-hybrid-tool -->
+					<param-name>context</param-name>
+					<param-value>portal</param-value>
+				</init-param>
     </filter>
 
     <filter>
