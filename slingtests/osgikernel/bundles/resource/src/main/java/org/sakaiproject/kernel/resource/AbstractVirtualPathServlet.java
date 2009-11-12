@@ -47,6 +47,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   private static final long serialVersionUID = -7892996718559864951L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(AbstractVirtualPathServlet.class);
+  
 
   /**
    * {@inheritDoc}
@@ -106,7 +107,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
      * Process the path to expand , then dispatch to the resource at that location.
      */
     Resource baseResource = request.getResource();
-    LOGGER.debug("Went into virtual servlet with {}", baseResource);
+    LOGGER.info("Went into virtual servlet with {}", baseResource);
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String uriPath = baseResource.getPath();
@@ -163,8 +164,15 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
     final String resourcePath = fullResourcePath;
 
     LOGGER.info("{} final Path is {} ", this.getClass(), resourcePath);
-
-    Resource resource = request.getResourceResolver().resolve(resourcePath);
+    
+    Resource resource = null;
+    try {
+      getVirtualResourceProvider().pushLastPath(realPath);
+      resource = request.getResourceResolver().resolve(request, resourcePath);
+    } finally {
+      getVirtualResourceProvider().popLastPath(realPath);
+    }
+    LOGGER.info("{} final Path is {} resolved to {} ", new Object[]{this.getClass(), resourcePath, resource});
     if (resource == null || resource instanceof NonExistingResource) {
       // we need to use dispatch a wrapped resource to the default servlet
       if ("GET|OPTIONS|HEAD".indexOf(request.getMethod()) >= 0) {
@@ -185,6 +193,11 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
     }
 
   }
+
+  /**
+   * @return
+   */
+  protected abstract VirtualResourceProvider getVirtualResourceProvider(); 
 
   /**
    * Override this is you do not want to remove selectors.
