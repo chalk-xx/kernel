@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 
-package TestDataBuilder::Excel;
+package TestDataBuilder::ExcelXML;
 
 =head1 NAME
 
-Excel - Output an Excel format file filled with random words up to a given size.
+ExcelXML - Output an Excel XML format file filled with random words up to a given size.
 
 =head1 ABSTRACT
 
-Excel - Output an Excel format file filled with random words up to a given size.
+ExcelXML - Output an Excel XML format file filled with random words up to a given size.
 
 =cut
 
@@ -16,7 +16,7 @@ Excel - Output an Excel format file filled with random words up to a given size.
 use strict;
 use POSIX qw( ceil );
 use CGI qw/:standard/;
-use Spreadsheet::WriteExcel;
+use Spreadsheet::WriteExcelXML;
 use Sling::Print;
 #}}}
 
@@ -30,15 +30,15 @@ use Sling::Print;
 
 =head2 new
 
-Create, set up, and return an Excel object.
+Create, set up, and return an Excel XML object.
 
 =cut
 
 sub new {
     my ( $class ) = @_;
-    my $excel = { Extension => "xls" };
-    bless( $excel, $class );
-    return $excel;
+    my $excelXML = { Extension => "xlsx" };
+    bless( $excelXML, $class );
+    return $excelXML;
 }
 #}}}
 
@@ -54,12 +54,12 @@ Creates test environment then forks a configured number of times to run tests.
 
 sub create {
     my ( $text, $kb, $folder, $name, $wordList, $commonWordList ) = @_;
-    my $workbook = Spreadsheet::WriteExcel->new("$folder/$name.xls");
+    my $workbook = Spreadsheet::WriteExcelXML->new("$folder/$name.xlsx");
     # set_properties does not seem to be universally supported by library versions:
     # $workbook->set_properties(
-        # title => 'TestDataBuilder Excel',
+        # title => 'TestDataBuilder Excel XML',
 	# author => 'Daniel Parry',
-        # comments => 'Created with TestDataBuilder::Excel' );
+        # comments => 'Created with TestDataBuilder::ExcelXML' );
     my $worksheet = $workbook->add_worksheet();
     my $max_rows = 65000;
     my $max_columns = 256;

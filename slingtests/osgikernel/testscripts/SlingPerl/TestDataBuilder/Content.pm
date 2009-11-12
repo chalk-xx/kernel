@@ -19,6 +19,7 @@ use Data::Random::WordList;
 use File::Path;
 use TestDataBuilder::Content;
 use TestDataBuilder::Excel;
+use TestDataBuilder::ExcelXML;
 use TestDataBuilder::Group;
 use TestDataBuilder::HTML;
 use TestDataBuilder::JSON;
@@ -321,6 +322,9 @@ sub generate {
     elsif ( $testData->{ 'Type' } =~ /^excel$/ ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::Excel );
     }
+    elsif ( $testData->{ 'Type' } =~ /^excelx$/ ) {
+        $testData->generateFiles( \@allDirectories, new TestDataBuilder::ExcelXML );
+    }
     elsif ( $testData->{ 'Type' } =~ /^json$/ ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::JSON );
     }
@@ -370,6 +374,13 @@ sub generate {
 	if ( $pid ) { push( @childs, $pid ); } # parent
 	elsif ( $pid == 0 ) { # child
             $testData->generateFiles( \@allDirectories, new TestDataBuilder::Excel );
+	    exit( 0 );
+	}
+	else { print "ERROR: Could not fork!\n"; }
+	$pid = fork();
+	if ( $pid ) { push( @childs, $pid ); } # parent
+	elsif ( $pid == 0 ) { # child
+            $testData->generateFiles( \@allDirectories, new TestDataBuilder::ExcelXML );
 	    exit( 0 );
 	}
 	else { print "ERROR: Could not fork!\n"; }
