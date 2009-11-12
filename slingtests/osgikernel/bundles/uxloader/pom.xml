@@ -43,53 +43,37 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-gitexe</artifactId>
+            <version>1.1</version>
+          </dependency>
+        </dependencies>
+
         <executions>
           <execution>
-            <id>checkout-dev</id>
+            <id>checkout</id>
             <goals>
               <goal>checkout</goal>
             </goals>
             <phase>generate-resources</phase>
             <configuration>
               <skipCheckoutIfExists>true</skipCheckoutIfExists>
-              <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/SLING-INF/content/dev</checkoutDirectory>
+              <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
+              <checkoutDirectory>src/main/resources/SLING-INF/content</checkoutDirectory>
             </configuration>
           </execution>
           <execution>
-            <id>checkout-widgets</id>
-            <goals>
-              <goal>checkout</goal>
-            </goals>
-            <phase>generate-resources</phase>
-            <configuration>
-              <skipCheckoutIfExists>true</skipCheckoutIfExists>
-              <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
-              <checkoutDirectory>src/main/resources/SLING-INF/content/devwidgets</checkoutDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>update-dev</id>
+            <id>update</id>
             <goals>
               <goal>update</goal>
             </goals>
             <phase>generate-resources</phase>
             <configuration>
-              <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxportal/src/main/webapp/</connectionUrl>
-              <workingDirectory>src/main/resources/SLING-INF/content/dev</workingDirectory>
-              <runChangelog>true</runChangelog>
-            </configuration>
-          </execution>
-          <execution>
-            <id>update-widgets</id>
-            <goals>
-              <goal>update</goal>
-            </goals>
-            <phase>generate-resources</phase>
-            <configuration>
-              <connectionUrl>scm:svn:https://source.sakaiproject.org/svn/ux/branches/K2-Sling/uxwidgets/src/main/webapp/</connectionUrl>
-              <workingDirectory>src/main/resources/SLING-INF/content/devwidgets</workingDirectory>
+              <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
+              <workingDirectory>src/main/resources/SLING-INF/content</workingDirectory>
               <runChangelog>true</runChangelog>
             </configuration>
           </execution>
