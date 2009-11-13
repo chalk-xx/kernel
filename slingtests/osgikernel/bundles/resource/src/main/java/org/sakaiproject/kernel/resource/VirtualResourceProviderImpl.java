@@ -217,6 +217,9 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
           if (virtualResourceTypes.containsKey(resourceType)) {
             VirtualResourceType virtualResourceType = virtualResourceTypes
                 .get(resourceType);
+            
+            // this has to be a full resolution since we have no idea if the resource exists or not.
+            
             Resource resource = virtualResourceType.getResource(resourceResolver,
                 request, n, firstRealNode, absRealPath);
             LOGGER.info("Is  a virtual resource [{}] {} {} ", new Object[] { storeName,
