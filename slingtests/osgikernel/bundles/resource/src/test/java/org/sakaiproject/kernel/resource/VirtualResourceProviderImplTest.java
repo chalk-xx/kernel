@@ -45,18 +45,18 @@ public class VirtualResourceProviderImplTest {
      v = new VirtualResourceProviderImpl();
      session = createMock(Session.class);
   }
-  
+ 
   @After
   public void after() {
     verify();
-    
+
   }
-  
+
   /**
-   * 
+   *
    */
   private void clear() {
-   all.clear(); 
+   all.clear();
   }
   public <T> T createMock(Class<T> c) {
     T t = EasyMock.createMock(c);
@@ -87,12 +87,12 @@ public class VirtualResourceProviderImplTest {
   public void testIgnoreThisPath1() throws RepositoryException {
     assertTrue(checkIgnore("/trertre/erter", true, true));
   }
-  
+ 
   @Test
   public void testIgnoreThisPath2() throws RepositoryException {
     assertFalse(checkIgnore("/trertre/erter", true, false));
   }
-  
+ 
   @Test
   public void testIgnoreThisPath3() throws RepositoryException {
     assertFalse(checkIgnore("/tre.rtre/erter", true, false));

@@ -42,7 +42,6 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
           </instructions>
         </configuration>
