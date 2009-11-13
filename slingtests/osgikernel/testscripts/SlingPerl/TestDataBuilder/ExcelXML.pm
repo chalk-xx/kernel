@@ -53,8 +53,8 @@ Creates test environment then forks a configured number of times to run tests.
 =cut
 
 sub create {
-    my ( $text, $kb, $folder, $name, $wordList, $commonWordList ) = @_;
-    my $workbook = Spreadsheet::WriteExcelXML->new("$folder/$name.xlsx");
+    my ( $excelXML, $kb, $folder, $name, $wordList, $commonWordList ) = @_;
+    my $workbook = Spreadsheet::WriteExcelXML->new("$folder/$name." . $excelXML->{ 'Extension' } );
     # set_properties does not seem to be universally supported by library versions:
     # $workbook->set_properties(
         # title => 'TestDataBuilder Excel XML',
@@ -100,7 +100,7 @@ sub create {
 	$char_count += $added_length;
     }
     $workbook->close();
-    return -s "$folder/$name.xls";
+    return -s "$folder/$name." . $excelXML->{ 'Extension' };
 }
 #}}}
 
