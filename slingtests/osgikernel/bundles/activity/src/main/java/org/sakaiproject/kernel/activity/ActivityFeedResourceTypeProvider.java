@@ -19,25 +19,32 @@ package org.sakaiproject.kernel.activity;
 
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_FEED_RESOURCE_TYPE;
 
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.resource.AbstractVirtualResourceType;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
- * 
- * @scr.component immediate="true" label="ActivityFeedResourceTypeProvider"
- *                description="ActivityFeedResourceTypeProvider"
- * @scr.property name="service.description"
- *               value="Handles requests for ActivityFeed resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
- * 
+ *   
  */
-public class ActivityFeedResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Component(immediate=true, label="ActivityFeedResourceTypeProvider",  description="Activity Feed resource type provider")
+@Properties(value={
+    @Property(name = "service.description", value = "Handles requests for Activity Feed resources"),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Service(value=VirtualResourceType.class)
+public class ActivityFeedResourceTypeProvider extends AbstractVirtualResourceType {
 
-  @Override
-  protected String getResourceType() {
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
+   */
+  public String getResourceType() {
     return ACTIVITY_FEED_RESOURCE_TYPE;
   }
+
 
 }

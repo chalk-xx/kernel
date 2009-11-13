@@ -775,7 +775,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       }
       collectEntries(node, userId);
       Collections.sort(orderedAccessControlEntries);
-      log.info("ACL Order for "+node.getPath()+" is "+orderedAccessControlEntries);
+      log.debug("ACL Order for {} is {} ", node.getPath(), orderedAccessControlEntries);
     }
 
     /**

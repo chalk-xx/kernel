@@ -4,13 +4,13 @@
 
 # environment
 source /etc/profile
-export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.5/Home
+export JAVA_HOME=/Library/Java/Home
 export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
-export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
+export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
 BUILD_DATE=`date "+%D %R"`
 BUILD_DIR="/Users/hybrid"
 cd $BUILD_DIR
@@ -25,6 +25,16 @@ rm -rf sakai2-demo
 rm -rf sling
 rm -rf sakai3
 rm -rf ~/.m2/repository/
+
+# build abdera/trunk
+# workaround for abdera artifacts not found in snapshot repos
+cd $BUILD_DIR
+rm -rf abdera/
+svn co http://svn.apache.org/repos/asf/abdera/java/trunk/ abdera
+cd abdera/
+mvn clean install -Dmaven.test.skip=true
+cd $BUILD_DIR
+rm -rf abdera/
 
 # build sling/trunk
 # not needed as long as hudson builds are getting deployed to apache-snapshot repo
