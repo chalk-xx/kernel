@@ -80,7 +80,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
    */
   public Resource getResource(ResourceResolver resourceResolver, String path) {
     Session session = resourceResolver.adaptTo(Session.class);
-    if (isJcrNode(session, path)) {
+    if (ignoreThisPath(session, path)) {
       return null;
     }
     return getVirtualResource(resourceResolver, null, path);
@@ -91,43 +91,30 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
    * @return
    * @throws RepositoryException
    */
-  private boolean isJcrNode(Session session, String path) {
+  protected boolean ignoreThisPath(Session session, String path) {
     String resourcePath = path;
     if (resourcePath == null || resourcePath.length() == 0 || resourcePath.equals("/")) {
       return true;
     }
-    while (!resourcePath.endsWith("/")) {
-      try {
-        if (session.itemExists(resourcePath)) {
-          LOGGER.info("Is a JcrNode [{}]",resourcePath);
-          return true;
-        }
-      } catch (RepositoryException e) {
+    // does the last element contain a ., we dont attempt to resolve these, since we cant tell 
+    // if the element exists or not.
+    int i = resourcePath.lastIndexOf('/');
+    int j = resourcePath.indexOf('.',i);
+    if ( j >= 0 ) {
+      return true;
+    }
+    // does the node exist ?
+    try {
+      if (session.itemExists(resourcePath)) {
+        LOGGER.info("Is a JcrNode [{}]",resourcePath);
+        return true;
       }
-      resourcePath = getResourcePath(resourcePath);
+    } catch (RepositoryException e) {
     }
     return false;
   }
 
-  /**
-   * @param path
-   * @return
-   */
-  protected String getResourcePath(String path) {
-    int i = path.lastIndexOf('/');
 
-    if (i == path.length() - 1) {
-      return path;
-    }
-    if (i < 0) {
-      return "/";
-    }
-    int j = path.lastIndexOf('.');
-    if (j < 0 || j < i) {
-      return path.substring(0, i + 1);
-    }
-    return path.substring(0, j);
-  }
 
   /**
    * {@inheritDoc}
@@ -138,7 +125,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, String path) {
     Session session = resourceResolver.adaptTo(Session.class);
-    if (isJcrNode(session, path)) {
+    if (ignoreThisPath(session, path)) {
       return null;
     }
     return getVirtualResource(resourceResolver, request, path);
@@ -217,9 +204,6 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
           if (virtualResourceTypes.containsKey(resourceType)) {
             VirtualResourceType virtualResourceType = virtualResourceTypes
                 .get(resourceType);
-            
-            // this has to be a full resolution since we have no idea if the resource exists or not.
-            
             Resource resource = virtualResourceType.getResource(resourceResolver,
                 request, n, firstRealNode, absRealPath);
             LOGGER.info("Is  a virtual resource [{}] {} {} ", new Object[] { storeName,

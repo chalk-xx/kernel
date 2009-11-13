@@ -17,12 +17,9 @@
  */
 package org.sakaiproject.kernel.resource;
 
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,22 +38,9 @@ public abstract class AbstractVirtualResourceType implements VirtualResourceType
    * @see org.sakaiproject.kernel.resource.VirtualResourceType#getResource(org.apache.sling.api.resource.ResourceResolver, javax.servlet.http.HttpServletRequest, javax.jcr.Node, javax.jcr.Node, java.lang.String)
    */
   public Resource getResource(ResourceResolver resourceResolver,
-      SlingHttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
-    ResourceMetadata resourceMetadata = new ResourceMetadata();
-    // resolution path + resolution path info == original URI
-    
-    int j = absRealPath.lastIndexOf('/');
-    int i = absRealPath.indexOf('.',j);
-    if ( i >= 0 ) {
-      LOGGER.info("Trim trim {} {} {}",new Object[]{absRealPath,j,absRealPath.substring(0,i)});
-      resourceMetadata.setResolutionPath(absRealPath.substring(0,i));
-    } else {
-      LOGGER.info("No trim {} {} ",new Object[] {absRealPath,i});
-      resourceMetadata.setResolutionPath(absRealPath);
-    }
-    resourceMetadata.setResolutionPathInfo(absRealPath);
-    LOGGER.info("Created Resource with Metadata {} {} ",resourceMetadata.getResolutionPath(), resourceMetadata.getResolutionPathInfo());
-    return new SyntheticResource(resourceResolver, resourceMetadata, getResourceType());
+      HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
+    LOGGER.info("Created Resoruce for Virtual path  {}",absRealPath);
+    return new SyntheticResource(resourceResolver, absRealPath, getResourceType());
   }
 
 
