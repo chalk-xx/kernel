@@ -22,6 +22,8 @@ import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.SyntheticResource;
 import org.sakaiproject.kernel.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +32,8 @@ import javax.servlet.http.HttpServletRequest;
  *
  */
 public abstract class AbstractVirtualResourceType implements VirtualResourceType {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualResourceType.class);
 
   /**
    * {@inheritDoc}
@@ -47,6 +51,7 @@ public abstract class AbstractVirtualResourceType implements VirtualResourceType
       resourceMetadata.setResolutionPath(absRealPath);
     }
     resourceMetadata.setResolutionPathInfo(absRealPath);
+    LOGGER.info("Created Resource with Metadata {} {} ",resourceMetadata.getResolutionPath(), resourceMetadata.getResolutionPathInfo());
     return new SyntheticResource(resourceResolver, resourceMetadata, getResourceType());
   }
 

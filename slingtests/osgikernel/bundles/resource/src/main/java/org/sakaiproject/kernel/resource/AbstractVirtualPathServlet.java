@@ -137,7 +137,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
     LOGGER.debug(pathInfo);
 
     if (pathInfo.length() == 0 || "/".equals(pathInfo)) {
-      response.sendError(HttpServletResponse.SC_NOT_FOUND, "Resource does not exist");
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, "Resource does not exist");
       return;
     }
 
@@ -146,25 +146,26 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
     String fullResourcePath = getTargetPath(baseResource, request, response, realPath,
         virtualPath);
 
-    if (removeSelectors(baseResource, request, response, realPath, virtualPath)) {
+    String resourcePath = fullResourcePath;
+    
+    if (false) {
       // clean back to a resource, removing the selector and anything else since this will
       // be
       // part of the resource info
-      int i = fullResourcePath.lastIndexOf("/");
+      int i = resourcePath.lastIndexOf("/");
       if (i < 0) {
         i = 0;
       }
-      int j = fullResourcePath.indexOf(".", i);
+      int j = resourcePath.indexOf(".", i);
 
       if (j > 0) {
-        fullResourcePath = fullResourcePath.substring(0, j);
+        resourcePath = resourcePath.substring(0, j);
       }
     }
 
-    final String resourcePath = fullResourcePath;
 
     LOGGER.info("{} final Path is {} ", this.getClass(), resourcePath);
-    
+
     Resource resource = null;
     try {
       getVirtualResourceProvider().pushLastPath(realPath);
@@ -197,7 +198,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
   /**
    * @return
    */
-  protected abstract VirtualResourceProvider getVirtualResourceProvider(); 
+  protected abstract VirtualResourceProvider getVirtualResourceProvider();
 
   /**
    * Override this is you do not want to remove selectors.
@@ -212,11 +213,11 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
    * @param virtualPath
    *          the virtual path.
    * @return true if you want to remove selectors
-   */
   public boolean removeSelectors(Resource baseResource, SlingHttpServletRequest request,
       SlingHttpServletResponse response, String realPath, String virtualPath) {
-    return true;
+    return false;
   }
+   */
 
   /**
    * Override this if you want to perform some actions before the request is dispatched to

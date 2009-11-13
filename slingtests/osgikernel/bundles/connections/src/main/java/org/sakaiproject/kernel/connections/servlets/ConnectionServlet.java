@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.connections.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -26,6 +30,7 @@ import org.sakaiproject.kernel.api.connections.ConnectionOperation;
 import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.connections.ConnectionUtils;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
+import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,17 +40,12 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/contactstore"
- * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
- *               values.2="DELETE" values.3="GET"
- * @scr.property name="sling.servlet.selectors" values.0="invite" values.1="accept"
- *               values.2="reject" values.3="ignore" values.4="block" values.5="remove" 
- *               values.6="cancel"
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.kernel.api.connections.ConnectionManager"
  */
+@SlingServlet(resourceTypes="sakai/contactstore",methods={"GET","POST","PUT","DELETE"}, 
+    selectors={"invite", "accept", "reject", "ignore", "block", "remove", "cancel"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Provides support for connection stores."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class ConnectionServlet extends AbstractVirtualPathServlet {
 
   private static final Logger LOGGER = LoggerFactory
@@ -54,7 +54,11 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
 
   private static final String TARGET_USERID = "connections:targetUserId";
 
+  @Reference
   protected ConnectionManager connectionManager;
+
+  @Reference
+  protected VirtualResourceProvider virtualResourceProvider;
 
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
@@ -135,6 +139,7 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
           return false;
         }
       }
+      LOGGER.info("Connection {} {} {} ",new Object[]{user,targetUserId,operation});
       return connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
     } catch (ConnectionException e) {
       LOGGER.error("Connection exception: {}", e);
@@ -142,5 +147,16 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
       return false;
     }
   }
+
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getVirtualResourceProvider()
+   */
+  @Override
+  protected VirtualResourceProvider getVirtualResourceProvider() {
+    return virtualResourceProvider;
+  }
+
 
 }
