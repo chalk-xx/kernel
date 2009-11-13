@@ -69,7 +69,9 @@ rm -rf login/
 svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223/ login
 # KERN-360 Servlet and TrustedLoginFilter RESTful services
 cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
-sed -i 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml 
+#sed -i 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml 
+# work around for broken sed on some systems
+perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
 #
 mvn clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
 cd ..
