@@ -26,6 +26,16 @@ rm -rf sling
 rm -rf sakai3
 rm -rf ~/.m2/repository/
 
+# build abdera/trunk
+# workaround for abdera artifacts not found in snapshot repos
+cd $BUILD_DIR
+rm -rf abdera/
+svn co http://svn.apache.org/repos/asf/abdera/java/trunk/ abdera
+cd abdera/
+mvn clean install -Dmaven.test.skip=true
+cd $BUILD_DIR
+rm -rf abdera/
+
 # build sling/trunk
 # not needed as long as hudson builds are getting deployed to apache-snapshot repo
 # org.apache.sling.launchpad.base-2.0.5-SNAPSHOT-app.jar cannot be found - build sling
