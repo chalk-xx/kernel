@@ -28,7 +28,7 @@ class TC_MyContactTest < SlingTest
     @s.switch_user(a)
     puts("Aaron Adding Nico as a coworker and friend")
     res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
-    assert_equal("200", res.code, "Expected to be able to request contact addition")
+    assert_equal("200", res.code, "Expected to be able to request contact addition "+res.body)
     puts("Checking that The invitation to Nico is pending")
     contacts = @cm.get_pending()
     assert_not_nil(contacts, "Expected to get contacts back")

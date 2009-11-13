@@ -15,9 +15,10 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.activity;
+package org.sakaiproject.kernel.files.resource;
 
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE;
+
+import static org.sakaiproject.kernel.api.files.FilesConstants.RT_FILE_STORE;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -30,23 +31,22 @@ import org.sakaiproject.kernel.resource.VirtualResourceType;
  * This class checks resource paths to see if there is a preferred resource type, where
  * the path is not a jcr path.
  * 
- * 
  */
-@Component(immediate=true, label="ActivityStoreResourceTypeProvider",  description="Activity Store resource type provider")
+@Component(immediate=true, label="MessageResourceTypeProvider",  description="Message path resource type provider")
 @Properties(value={
-    @Property(name = "service.description", value = "Handles requests for Activity Store resources"),
+    @Property(name = "service.description", value = "Handles requests for file store resources"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @Service(value=VirtualResourceType.class)
-public class ActivityStoreResourceTypeProvider extends AbstractVirtualResourceType {
+public class MessageResourceTypeProvider extends AbstractVirtualResourceType {
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
   public String getResourceType() {
-    return ACTIVITY_STORE_RESOURCE_TYPE;
+    return RT_FILE_STORE;
   }
 
-
+ 
 
 }

@@ -31,16 +31,16 @@ import java.util.List;
 /**
  * This Class implements the post processing operations on resource types.
  */
-public abstract class AbstractResourceTypePostProcessor implements SlingPostProcessor {
+public abstract class AbstractVirtualResourcePostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(AbstractResourceTypePostProcessor.class);
+      .getLogger(AbstractVirtualResourcePostProcessor.class);
   private String targetResourceType;
 
   /**
    * 
    */
-  public AbstractResourceTypePostProcessor() {
+  public AbstractVirtualResourcePostProcessor() {
     targetResourceType = getResourceType();
   }
 

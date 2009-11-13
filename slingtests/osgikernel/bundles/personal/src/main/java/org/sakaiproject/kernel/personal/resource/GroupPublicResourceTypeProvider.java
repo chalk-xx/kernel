@@ -19,27 +19,36 @@ package org.sakaiproject.kernel.personal.resource;
 
 import static org.sakaiproject.kernel.api.personal.PersonalConstants.GROUP_PUBLIC_RESOURCE_TYPE;
 
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.sakaiproject.kernel.resource.AbstractVirtualResourceType;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
+
+import javax.jcr.Node;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="PersonalResourceTypeProvider"
- *                description="Personal Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Personal resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-
-public class GroupPublicResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Component(immediate=true, label="GroupPublicResourceTypeProvider",  description="Group Public Service path resource type provider")
+@Properties(value={
+    @Property(name="service.description", value="Handles requests for Group Public resources"),
+    @Property(name="service.vendor",value="The Sakai Foundation")
+})
+@Service(value=VirtualResourceType.class)
+public class GroupPublicResourceTypeProvider extends AbstractVirtualResourceType {
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
-  @Override
-  protected String getResourceType() {
+  public String getResourceType() {
     return GROUP_PUBLIC_RESOURCE_TYPE;
   }
 
