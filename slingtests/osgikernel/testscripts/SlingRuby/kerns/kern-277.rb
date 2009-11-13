@@ -45,7 +45,7 @@ class TC_Kern277Test < SlingTest
     assert_equal("cat", @s.get_node_props(path)["fish"], "Expected property to be updated")
     @s.switch_user(user2)
     res = @s.update_node_props(path, "dog" => "pig")
-    assert_equal("500", res.code, "Expected modification to fail")
+    assert_equal("500", res.code, "Expected modification to fail "+res.body)
     assert_nil(@s.get_node_props(path)["pig"], "Expected property to be absent")
   end
 

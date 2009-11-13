@@ -22,6 +22,7 @@ SlingPerl Install instructions
    cpan> install Pod::Usage
    cpan> install RTF::Writer
    cpan> install Spreadsheet::WriteExcel
+   cpan> install Spreadsheet::WriteExcelXML
    cpan> install Term::ANSIColor
    cpan> install Text::CSV
    cpan> install Time::HiRes

@@ -55,10 +55,11 @@ Creates test environment then forks a configured number of times to run tests.
 sub create {
     my ( $text, $kb, $folder, $name, $wordList, $commonWordList ) = @_;
     my $workbook = Spreadsheet::WriteExcel->new("$folder/$name.xls");
-    $workbook->set_properties(
-        title => 'TestDataBuilder Excel',
-	author => 'Daniel Parry',
-        comments => 'Created with TestDataBuilder::Excel' );
+    # set_properties does not seem to be universally supported by library versions:
+    # $workbook->set_properties(
+        # title => 'TestDataBuilder Excel',
+	# author => 'Daniel Parry',
+        # comments => 'Created with TestDataBuilder::Excel' );
     my $worksheet = $workbook->add_worksheet();
     my $max_rows = 65000;
     my $max_columns = 256;

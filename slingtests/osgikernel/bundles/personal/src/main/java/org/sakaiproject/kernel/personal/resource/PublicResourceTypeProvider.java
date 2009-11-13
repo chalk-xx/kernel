@@ -19,29 +19,34 @@ package org.sakaiproject.kernel.personal.resource;
 
 import static org.sakaiproject.kernel.api.personal.PersonalConstants.USER_PUBLIC_RESOURCE_TYPE;
 
-import org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.resource.AbstractVirtualResourceType;
+import org.sakaiproject.kernel.resource.VirtualResourceType;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the
  * path is not a jcr path.
  * 
- * @scr.component immediate="true" label="PersonalResourceTypeProvider"
- *                description="Personal Service path resource type provider"
- * @scr.property name="service.description" value="Handles requests for Personal resources"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.apache.sling.jcr.resource.PathResourceTypeProvider"
  */
-
-public class PublicResourceTypeProvider extends AbstractPathResourceTypeProvider {
+@Component(immediate=true, label="PublicResourceTypeProvider",  description="Public Service path resource type provider")
+@Properties(value={
+    @Property(name="service.description", value="Handles requests for Public resources"),
+    @Property(name="service.vendor",value="The Sakai Foundation")
+})
+@Service(value=VirtualResourceType.class)
+public class PublicResourceTypeProvider extends AbstractVirtualResourceType {
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.resource.AbstractPathResourceTypeProvider#getResourceType()
    */
-  @Override
-  protected String getResourceType() {
+  public String getResourceType() {
     return USER_PUBLIC_RESOURCE_TYPE;
   }
+
 
 
 }

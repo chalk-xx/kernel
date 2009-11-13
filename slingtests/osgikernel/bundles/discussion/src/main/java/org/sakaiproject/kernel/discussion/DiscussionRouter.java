@@ -20,22 +20,21 @@ package org.sakaiproject.kernel.discussion;
 
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.DiscussionManager;
-import org.sakaiproject.kernel.api.discussion.DiscussionTypes;
 import org.sakaiproject.kernel.api.message.AbstractMessageRoute;
 import org.sakaiproject.kernel.api.message.MessageConstants;
-import org.sakaiproject.kernel.api.message.MessageRoute;
 import org.sakaiproject.kernel.api.message.MessageRouter;
 import org.sakaiproject.kernel.api.message.MessageRoutes;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 
 /**
+ * This router will check for messages who have a transport of discussion or comment, then
+ * checks the settings for this discussion. If there is a property that states all
+ * discussion messages should be re-routed to an email address, this router will take care
+ * of it.
  * 
  * @scr.component inherit="true" label="DiscussionRouter" immediate="true"
  * @scr.service interface="org.sakaiproject.kernel.api.message.MessageRouter"
@@ -48,6 +47,7 @@ import javax.jcr.ValueFormatException;
 public class DiscussionRouter implements MessageRouter {
 
   private DiscussionManager discussionManager;
+  private static final Logger logger = LoggerFactory.getLogger(DiscussionRouter.class);
 
   protected void bindDiscussionManager(DiscussionManager discussionManager) {
     this.discussionManager = discussionManager;
@@ -62,64 +62,44 @@ public class DiscussionRouter implements MessageRouter {
   }
 
   public void route(Node n, MessageRoutes routing) {
-    List<MessageRoute> toRemove = new ArrayList<MessageRoute>();
-    List<MessageRoute> toAdd = new ArrayList<MessageRoute>();
-
-    // Check if this message is a discussion message.
+    // Check if this message is a discussion/comment transport.
     try {
+      // TODO check sakai:to because I think sakai:type won't be staying?
       if (n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)
-          && n.hasProperty(DiscussionConstants.PROP_MARKER)
-          && DiscussionTypes.hasValue(n.getProperty(MessageConstants.PROP_SAKAI_TYPE)
-              .getString())) {
+          && n.hasProperty(DiscussionConstants.PROP_MARKER)) {
 
-        // This is a discussion message, find the settings file for it.
-        String marker = n.getProperty(DiscussionConstants.PROP_MARKER).getString();
         String type = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
 
-        // TODO: I have a feeling that this is really part of something more generic
-        // and not specific to discussion. If we make it specific to discussion we
-        // will loose unified messaging and control of that messaging.
+        if ("comment".equals(type) || "discussion".equals(type)) {
 
-        Node settings = discussionManager.findSettings(marker, n.getSession(), type);
-        if (settings != null
-            && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
-          boolean sendMail = settings.getProperty(DiscussionConstants.PROP_NOTIFICATION)
-              .getBoolean();
-          if (sendMail && settings.hasProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS)) {
-            String address = settings
-                .getProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS).getString();
-            toAdd.add(new AbstractMessageRoute("internal:" + address) {
-            });
+          // TODO: I have a feeling that this is really part of something more generic
+          // and not specific to discussion. If we make it specific to discussion we
+          // will loose unified messaging and control of that messaging.
 
+          // This is a discussion message, find the settings file for it.
+
+          String marker = n.getProperty(DiscussionConstants.PROP_MARKER).getString();
+          Node settings = discussionManager.findSettings(marker, n.getSession(), type);
+          if (settings != null
+              && settings.hasProperty(DiscussionConstants.PROP_NOTIFICATION)) {
+            boolean sendMail = settings
+                .getProperty(DiscussionConstants.PROP_NOTIFICATION).getBoolean();
+            if (sendMail && settings.hasProperty(DiscussionConstants.PROP_NOTIFY_ADDRESS)) {
+              String address = settings.getProperty(
+                  DiscussionConstants.PROP_NOTIFY_ADDRESS).getString();
+              // TODO: make this smtp.
+              routing.add(new AbstractMessageRoute("internal:" + address) {
+              });
+
+            }
           }
         }
 
       }
-    } catch (ValueFormatException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (PathNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
+      logger.warn("Catched an exception when trying to re-route discussion messages: {}",
+          e.getMessage());
       e.printStackTrace();
-    }
-
-    for (MessageRoute route : routing) {
-      if (DiscussionTypes.hasValue(route.getTransport())) {
-        toAdd.add(new AbstractMessageRoute("internal:" + route.getRcpt()) {
-        });
-        toRemove.add(route);
-      }
-    }
-    // Add the new routes
-    for (MessageRoute route : toAdd) {
-      routing.add(route);
-    }
-    // Remove the discussion route (if there is any).
-    for (MessageRoute route : toRemove) {
-      routing.remove(route);
     }
   }
 

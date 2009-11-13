@@ -25,7 +25,7 @@
             <Bundle-Category>sakai-kernel</Bundle-Category>
             <Bundle-Activator>org.sakaiproject.kernel.activemq.Activator</Bundle-Activator>
             <!-- '=META-INF.services.org.apache.xbean.spring.http.activemq.apache.org.schema' -->
-            <Export-Package>org.sakaiproject.kernel.api.activemq,org.apache.activemq*;version=5.3.0</Export-Package>
+            <Export-Package>org.sakaiproject.kernel.api.activemq,org.apache.activemq*;version=5.3.0;-split-package:=merge-first</Export-Package>
             <Private-Package>org.sakaiproject.kernel.activemq</Private-Package>
             <Embed-Dependency>activemq-core</Embed-Dependency>
             <Import-Package>com.thoughtworks.xstream*;resolution:=optional,
@@ -42,6 +42,8 @@ org.codehaus.jam*;resolution:=optional,
 org.springframework*;resolution:=optional,
 org.springframework.beans.factory.xml;resolution:=optional,
 org.w3c.dom.traversal*;resolution:=optional,
+org.apache.commons.net*;resolution:=optional,
+org.apache.kahadb*;resolution:=optional,
 *
             </Import-Package>
           </instructions>
@@ -78,6 +80,11 @@ org.w3c.dom.traversal*;resolution:=optional,
       <artifactId>activemq-core</artifactId>
       <version>5.3.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>kahadb</artifactId>
+      <version>5.3.0</version>
+    </dependency>
     <!--
     <dependency>
       <groupId>org.apache.activemq</groupId>
@@ -100,5 +107,10 @@ org.w3c.dom.traversal*;resolution:=optional,
       <version>5.3.0</version>
     </dependency>
     -->
+    <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>2.0</version>
+    </dependency>
   </dependencies>
 </project>

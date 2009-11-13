@@ -17,24 +17,31 @@
  */
 package org.sakaiproject.kernel.activity;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
+import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/activityStore"
- * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
- *               values.2="PUT" values.3="DELETE"
  */
+@SlingServlet(resourceTypes="sakai/activityStore",methods={"GET","POST","PUT","DELETE"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Provides support for activity stores."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class ActivityStoreServlet extends AbstractVirtualPathServlet {
   private static final long serialVersionUID = -8014319281629970139L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityStoreServlet.class);
+
+  @Reference
+  protected VirtualResourceProvider virtualResourceProvider;
 
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
@@ -50,5 +57,15 @@ public class ActivityStoreServlet extends AbstractVirtualPathServlet {
     String[] pathParts = PathUtils.getNodePathParts(virtualPath);
     return PathUtils.toInternalHashedPath(realPath, pathParts[0], pathParts[1]);
   }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getVirtualResourceProvider()
+   */
+  @Override
+  protected VirtualResourceProvider getVirtualResourceProvider() {
+    return virtualResourceProvider;
+  }
+
 
 }

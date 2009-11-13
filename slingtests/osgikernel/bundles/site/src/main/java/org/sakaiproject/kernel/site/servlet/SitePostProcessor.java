@@ -20,7 +20,7 @@ package org.sakaiproject.kernel.site.servlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.resource.AbstractResourceTypePostProcessor;
+import org.sakaiproject.kernel.resource.AbstractVirtualResourcePostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ import javax.jcr.Session;
  * @scr.property name="service.description" value="Post Processes site operations"
  * 
  */
-public class SitePostProcessor extends AbstractResourceTypePostProcessor {
+public class SitePostProcessor extends AbstractVirtualResourcePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SitePostProcessor.class);
 

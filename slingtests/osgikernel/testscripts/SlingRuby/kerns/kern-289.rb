@@ -17,6 +17,9 @@ class TC_Kern289Test < SlingTest
     @s.switch_user(u1)
     cm.invite_contact(u2.name, "follower")
     contacts = @s.get_node_props("/_user/contacts/all")
+    assert_not_nil(contacts)
+    assert_not_nil(contacts["results"]," No Contacts found")
+    assert_not_nil(contacts["results"][0], " No Contacts found ")
     types = contacts["results"][0]["details"]["sakai:types"]
     assert_not_nil(types, "Expected type to be stored")
     types = [*types]

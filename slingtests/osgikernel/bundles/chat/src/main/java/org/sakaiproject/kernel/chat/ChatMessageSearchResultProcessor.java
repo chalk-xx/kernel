@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.util.StringUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -59,7 +60,18 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
     // TODO : This should probably be using an Authorizable. However, updated
     // properties were not included in this..
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
-      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO, "userTo");
+      // This can either be chat:userid or just userid
+      String to = resultNode.getProperty(MessageConstants.PROP_SAKAI_TO).getString();
+      if (to.contains("chat:")) {
+        String[] rcpts = StringUtils.split(to, ',');
+        for (String rcpt : rcpts) {
+          if (rcpt.startsWith("chat:")) {
+            to = rcpt.substring(5);
+            break;
+          }
+        }
+      }
+      PersonalUtils.writeUserInfo(resultNode.getSession(), to, write, "userTo");
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
