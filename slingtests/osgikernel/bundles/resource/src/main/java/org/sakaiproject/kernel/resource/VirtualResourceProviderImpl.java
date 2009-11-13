@@ -29,8 +29,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceProvider;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +71,6 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
       return new ArrayList<String>();
     };
   };
-
-  private ComponentContext componentContext;
 
   /**
    * {@inheritDoc}
