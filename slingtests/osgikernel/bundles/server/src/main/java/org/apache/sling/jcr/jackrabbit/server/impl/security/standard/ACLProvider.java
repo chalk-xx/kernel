@@ -526,8 +526,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           stmt.append(") and @");
           stmt.append(resolver.getJCRName(P_PRIVILEGES));
           stmt.append(" = '").append(jcrReadPrivilegeName).append("']");
+          
 
           Query q = qm.createQuery(stmt.toString(), Query.XPATH);
+//          log.info("Executing Query "+stmt.toString()+" with Session of "+session.getUserID());
 
           NodeIterator it = q.execute().getNodes();
           isReadAllowed = !it.hasNext();
@@ -536,6 +538,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // unable to determine... -> no shortcut upon grants
         }
       }
+      log.debug("+++ Is Read Allowed gave {}", isReadAllowed);
       return isReadAllowed;
     }
 
@@ -612,10 +615,12 @@ public class ACLProvider extends AbstractAccessControlProvider implements
             // remove privileges that have already been denied from the etryBits, and add them to the 
             // allows, this makes the order of the entries significant
             parentAllows |= Permission.diff(entryBits, parentDenies);
+            logState("NotLocalAllow ",ace,allows,denies,allowPrivileges,denyPrivileges,parentAllows,parentDenies);
           } else {
             // remove privileges that have already been allowed from the entryBits and add them to the 
             // denies, this makes the order of the entries significant
             parentDenies |= Permission.diff(entryBits, parentAllows);
+            logState("NotLocalDeny ",ace,allows,denies,allowPrivileges,denyPrivileges,parentAllows,parentDenies);
           }
         }
         if (ace.isAllow()) {
@@ -628,6 +633,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // remove permissions that have allready been denied from the permissions and add them 
           // to the allows
           allows |= Permission.diff(permissions, denies);
+          logState("LocalAllow ",ace,allows,denies,allowPrivileges,denyPrivileges,parentAllows,parentDenies);
         } else {
           // remove privileges that have already been allowed from the entryBits and add them to the deny privileges
           denyPrivileges |= Permission.diff(entryBits, allowPrivileges);
@@ -635,11 +641,13 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           int permissions = Permission.calculatePermissions(denyPrivileges, parentDenies,
               false, isAcItem);
           denies |= Permission.diff(permissions, allows);
+          logState("LocalDeny ",ace,allows,denies,allowPrivileges,denyPrivileges,parentAllows,parentDenies);
         }
       }
       //
       return new Result(allows, denies, allowPrivileges, denyPrivileges);
     }
+
 
     // --------------------------------------------< CompiledPermissions >---
     /**
@@ -749,7 +757,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private class Entries {
 
     private final Map<String, List<AccessControlEntry>> principalNamesToEntries;
-    private final List<AccessControlEntry> orderedAccessControlEntries;
+    private final List<ComparableAccessControlEntry> orderedAccessControlEntries;
 
     /**
      * @param node The Access control node from which the entries are to be taken.
@@ -760,12 +768,14 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     @SuppressWarnings("unchecked")
     private Entries(NodeImpl node, Collection<String> principalNames, String userId)
         throws RepositoryException {
-      orderedAccessControlEntries = new ArrayList<AccessControlEntry>();
+      orderedAccessControlEntries = new ArrayList<ComparableAccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
       }
       collectEntries(node, userId);
+      Collections.sort(orderedAccessControlEntries);
+      log.debug("ACL Order for {} is {} ", node.getPath(), orderedAccessControlEntries);
     }
 
     /**
@@ -797,8 +807,73 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 //        Object key = it.next();
 //        entries.addAll(principalNamesToEntries.get(key));
 //      }
+      
+      /* The order this needs to come out in is by node, then by principal type, then any order */
+      
       return new AccessControlEntryIterator(orderedAccessControlEntries);
     }
+  }
+
+  
+  /**
+   * @param string
+   * @param ace
+   * @param allows
+   * @param denies
+   * @param allowPrivileges
+   * @param denyPrivileges
+   * @param parentAllows
+   * @param parentDenies
+   */
+  public static void logState(String message, JackrabbitAccessControlEntry ace,
+      int allows, int denies, int allowPrivileges, int denyPrivileges, int parentAllows,
+      int parentDenies) {
+    if (log.isDebugEnabled()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("allows(").append(bitToString(allows));
+      sb.append(")denies(").append(bitToString(denies));
+      sb.append(")allowPrivileges(").append(bitToString(allowPrivileges));
+      sb.append(")denyPrivileges(").append(bitToString(denyPrivileges));
+      sb.append(")parentAllows(").append(bitToString(parentAllows));
+      sb.append(")parentDenies(").append(bitToString(parentDenies));
+      sb.append(")").append(ace.toString()).append(",").append(message);
+      log.debug(sb.toString());
+    }
+  }
+
+  /**
+   * @param parentDenies
+   * @return
+   */
+  private static String bitToString(int v) {
+    int i = 1;
+    StringBuilder sb = new StringBuilder();
+    if ( (v&PrivilegeRegistry.READ) == 0 ) {
+      sb.append("-");
+    } else {
+      sb.append("r");
+    }
+    if ( (v&PrivilegeRegistry.WRITE) == 0 ) {
+      sb.append("-");
+    } else {
+      sb.append("w");
+    }
+    if ( (v&PrivilegeRegistry.MODIFY_PROPERTIES) == 0 ) {
+      sb.append("-");
+    } else {
+      sb.append("P");
+    }
+    if ( (v&PrivilegeRegistry.REMOVE_NODE) == 0 ) {
+      sb.append("-");
+    } else {
+      sb.append("R");
+    }
+    if ( (v&PrivilegeRegistry.REMOVE_CHILD_NODES) == 0 ) {
+      sb.append("-");
+    } else {
+      sb.append("C");
+    }    
+    return sb.toString();
   }
 
 }

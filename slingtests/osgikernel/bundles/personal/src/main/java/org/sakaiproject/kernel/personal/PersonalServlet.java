@@ -17,25 +17,33 @@
  */
 package org.sakaiproject.kernel.personal;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceStrategy;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
+import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.PathUtils;
 
 /**
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/personalPrivate"
- * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
- *               values.2="PUT" values.3="DELETE"
  */
+@SlingServlet(resourceTypes="sakai/personalPrivate",methods={"GET","POST","PUT","DELETE"})
+@Properties(value = {
+    @Property(name = "service.description", value = "Provides support for private/personal user stores."),
+    @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class PersonalServlet extends AbstractVirtualPathServlet {
 
   /**
    *
    */
   private static final long serialVersionUID = -2663916166760531044L;
+
+  @Reference
+  protected VirtualResourceProvider virtualResourceProvider;
 
   /**
    * {@inheritDoc}
@@ -47,5 +55,16 @@ public class PersonalServlet extends AbstractVirtualPathServlet {
     return PathUtils.toInternalHashedPath(realPath, userId, virtualPath);
 
   }
+
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getVirtualResourceProvider()
+   */
+  @Override
+  protected VirtualResourceProvider getVirtualResourceProvider() {
+    return virtualResourceProvider;
+  }
+
 
 }

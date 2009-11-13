@@ -96,13 +96,13 @@ public class InternalMessageHandler implements MessageTransport {
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
     try {
-      LOG.info("Started handling the message.");
 
       Session session = slingRepository.loginAdministrative(null);
       
       
       for ( MessageRoute route : routes ) {
         if ( MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport()) ) {
+          LOG.info("Started handling a message.");
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
           String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
@@ -131,6 +131,7 @@ public class InternalMessageHandler implements MessageTransport {
           n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
+          n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
           n.save();

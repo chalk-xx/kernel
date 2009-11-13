@@ -56,7 +56,7 @@ class TC_MyFileTest < SlingTest
     
     #Get the content and check if it match up.
     res = @ff.download(file['files'][0]['id'])
-    assert_equal("200", res.code.to_s(), "Expected to download the file url was (/_user/files/#{file['files'][0]['id']}).")
+    assert_equal("200", res.code.to_s(), "Expected to download the file url was (/_user/files/#{file['files'][0]['id']}). "+res.body)
     assert_equal(res.body, "<html><head><title>KERN 312</title></head><body><p>Should work</p></body></html>", "Content of the file does not match up.")
     
     

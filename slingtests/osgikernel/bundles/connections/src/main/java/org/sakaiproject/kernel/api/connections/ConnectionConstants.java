@@ -34,18 +34,23 @@ public interface ConnectionConstants {
    */
   public static final String SAKAI_CONTACT_RT = "sakai/contact";
 
-
   public static final String SAKAI_CONNECTION_STATE = "sakai:state";
-  public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
-  public static final String SAKAI_CONNECTION_REQUESTER = "sakai:requester";
-  
-  /**
-  *
-  */
- public static final String SEARCH_PROP_CONNECTIONSTORE = "_connectionstore";
 
-  
-  public static final String PARAM_CONTACT = "contact";
-  public static final String PARAM_CONTACT_TYPES = "type";
+  public static final String SEARCH_PROP_CONNECTIONSTORE = "_connectionstore";
+
+  /**
+   * The multi-valued property used to tell the user what sorts of personal connection this is.
+   */
+  public static final String SAKAI_CONNECTION_TYPES = "sakai:types";
+
+  /**
+   * The parameter used to specify the relationship from the requester's point of view.
+   */
+  public static final String PARAM_FROM_RELATIONSHIPS = "fromRelationships";
+
+  /**
+   * The parameter used to specify the relationship from the target's point of view.
+   */
+  public static final String PARAM_TO_RELATIONSHIPS = "toRelationships";
 
 }

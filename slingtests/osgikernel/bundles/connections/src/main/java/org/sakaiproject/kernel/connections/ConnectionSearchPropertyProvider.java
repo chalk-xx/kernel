@@ -18,10 +18,10 @@
 package org.sakaiproject.kernel.connections;
 
 import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE;
+
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
-import org.sakaiproject.kernel.util.PathUtils;
 
 import java.util.Map;
 
@@ -44,9 +44,7 @@ public class ConnectionSearchPropertyProvider implements SearchPropertyProvider 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
-    String path = request.getResource().getPath();
-    path = PathUtils.removeLastElement(path);
-    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, ISO9075.encodePath(ConnectionUtils.getConnectionPathBase(path, user)));    
+    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, ISO9075.encodePath(ConnectionUtils.getConnectionPathBase(user)));
   }
 
   

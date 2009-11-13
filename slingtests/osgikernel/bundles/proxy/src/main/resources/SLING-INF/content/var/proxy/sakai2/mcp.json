@@ -1,0 +1,8 @@
+{
+    "sling:resourceType": "sakai/proxy",
+    "sakai:request-proxy-endpoint": "https://camtools-labs.caret.cam.ac.uk/sdata/mcp",
+    "sakai:request-proxy-method": "GET",
+    "sakai:preprocessor" : "trusted-token",
+    "sakai:title" : "Camtools 2008 GET courses and projects",
+    "sakai:description" : ["Proxies a GET request to the Camtools 2008 sdata service to get the user's courses and projects."]
+}
