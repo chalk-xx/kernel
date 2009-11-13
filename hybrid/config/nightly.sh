@@ -29,6 +29,7 @@ rm -rf ~/.m2/repository/
 # build abdera/trunk
 # workaround for abdera artifacts not found in snapshot repos
 cd $BUILD_DIR
+rm -rf abdera/
 svn co http://svn.apache.org/repos/asf/abdera/java/trunk/ abdera
 cd abdera/
 mvn clean install -Dmaven.test.skip=true
