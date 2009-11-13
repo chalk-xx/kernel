@@ -106,7 +106,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
     // does the node exist ?
     try {
       if (session.itemExists(resourcePath)) {
-        LOGGER.info("Is a JcrNode [{}]",resourcePath);
+        LOGGER.debug("Is a JcrNode [{}]",resourcePath);
         return true;
       }
     } catch (RepositoryException e) {
@@ -206,7 +206,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
                 .get(resourceType);
             Resource resource = virtualResourceType.getResource(resourceResolver,
                 request, n, firstRealNode, absRealPath);
-            LOGGER.info("Is  a virtual resource [{}] {} {} ", new Object[] { storeName,
+            LOGGER.debug("Is  a virtual resource [{}] {} {} ", new Object[] { storeName,
                 resource, resourceType });
             return resource;
           } else {
@@ -228,7 +228,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
 
   protected void bindVirtualResourceType(VirtualResourceType virtualResourceType) {
     LOGGER
-        .info(
+        .debug(
             "\n\n\n\n=====================BOUND VIRTUAL RESOURCE TYPE {} ===============================",
             virtualResourceType.getResourceType());
     virtualResourceTypes.put(virtualResourceType.getResourceType(), virtualResourceType);
@@ -236,7 +236,7 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
 
   protected void unbindVirtualResourceType(VirtualResourceType virtualResourceType) {
     LOGGER
-        .info(
+        .debug(
             "\n\n\n\n=====================UnBOUND VIRTUAL RESOURCE TYPE {} ===============================",
             virtualResourceType.getResourceType());
     virtualResourceTypes.remove(virtualResourceType.getResourceType());

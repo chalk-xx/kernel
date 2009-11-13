@@ -39,7 +39,7 @@ public abstract class AbstractVirtualResourceType implements VirtualResourceType
    */
   public Resource getResource(ResourceResolver resourceResolver,
       HttpServletRequest request, Node n, Node firstRealNode, String absRealPath) {
-    LOGGER.info("Created Resoruce for Virtual path  {}",absRealPath);
+    LOGGER.debug("Created Resoruce for Virtual path  {}", absRealPath);
     return new SyntheticResource(resourceResolver, absRealPath, getResourceType());
   }
 
