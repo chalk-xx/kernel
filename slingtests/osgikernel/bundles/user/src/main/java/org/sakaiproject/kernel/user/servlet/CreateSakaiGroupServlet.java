@@ -39,6 +39,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -115,6 +120,23 @@ import javax.servlet.http.HttpServletResponse;
  *                cardinality="0..n" policy="dynamic"
  * 
  */
+@ServiceDocumentation(name="Create Group Servlet",
+    description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
+    		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
+    		"/system/userManager/group. This servlet responds at /system/userManager/group.create.html",
+    shortDescription="Creates a new group",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/group.create.html"),
+    methods=@ServiceMethod(name="POST",
+        description={"Creates a new group with a name :name, " +
+            "storing additional parameters as properties of the new group.",
+            "Response<ul><li>200 Success, a redirect is sent to the users resource locator with HTML describing status</li>" +
+            "<li>500 Failure, including group already exists. HTML explains failure.</li></ul>",
+            "Example<br>" +
+            "<pre>curl -F:name=g-groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html</pre>"},
+        parameters={
+        @ServiceParameter(name=":name", description="The name of the new group (required)"),
+        @ServiceParameter(name="",description="Additional parameters become groups node properties (optional)")
+        }))   
 
 public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {

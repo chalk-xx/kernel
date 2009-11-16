@@ -33,6 +33,11 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -116,6 +121,25 @@ import javax.servlet.http.HttpServletResponse;
  *                cardinality="0..n" policy="dynamic"
  */
 
+@ServiceDocumentation(name="Create User Servlet",
+    description="Creates a new user. Maps on to nodes of resourceType sling/users like " +
+    		"/rep:system/rep:userManager/rep:users mapped to a resource url /system/userManager/user. " +
+    		"This servlet responds at /system/userManager/user.create.html",
+    shortDescription="Creates a new user",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager"),
+    methods=@ServiceMethod(name="POST",
+        description={"Creates a new user with a name :name, and password pwd, " +
+        		"storing additional parameters as properties of the new user.",
+        		"Response<ul><li>200 Success, a redirect is sent to the users resource locator with HTML describing status</li>" +
+        		"<li>500 Failure, including user already exists. HTML explains failure.</li></ul>",
+        		"Example<br><pre>curl -F:name=username -Fpwd=password -FpwdConfirm=password " +
+        		"-Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html</pre>"},
+        parameters={
+        @ServiceParameter(name=":name", description="The name of the new user (required)"),
+        @ServiceParameter(name="pwd", description="The password of the new user (required)"),
+        @ServiceParameter(name="pwdConfirm", description="The password of the new user (required)"),
+        @ServiceParameter(name="",description="Additional parameters become user node properties (optional)")
+        }))		
 public class CreateSakaiUserServlet extends AbstractUserPostServlet {
 
   /**

@@ -23,6 +23,11 @@ import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +89,26 @@ import javax.servlet.http.HttpServletResponse;
  *                cardinality="0..n" policy="dynamic"
  * 
  */
+@ServiceDocumentation(name="Update User Servlet",
+    description="Updates a user's properties. Maps on to nodes of resourceType sling/user " +
+    		"like /rep:system/rep:userManager/rep:users mapped to a resource url " +
+    		"/system/userManager/user/username . This servlet responds at " +
+    		"/system/userManager/user/username.update.html",
+    shortDescription="Update a user properties",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/user", "selector update"}),
+    methods=@ServiceMethod(name="POST",
+        description={"Updates a user setting or deleting properties, " +
+            "storing additional parameters as properties of the new user.",
+            "Response<ul>" +
+            "<li>200 Success, a redirect is sent to the user's resource locator with HTML describing status.</li>" +
+            "<li>404 Resource was not found</li>" +
+            "<li>500 Failure</li></ul>",
+            "Example<br>" +
+            "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/user/username.update.html</pre>"},
+        parameters={
+        @ServiceParameter(name="propertyName@Delete", description="Delete property, eg property1@Delete means delete property1 (optional)"),
+        @ServiceParameter(name="",description="Additional parameters become user node properties (optional)")
+        }))   
 
 public class UpdateSakaiUserServlet extends UpdateUserServlet {
 
