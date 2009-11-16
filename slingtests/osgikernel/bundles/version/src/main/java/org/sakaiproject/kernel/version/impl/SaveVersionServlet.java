@@ -22,6 +22,10 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
@@ -47,6 +51,23 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * 
  */
+
+@ServiceDocumentation(name="Save a version Servlet",
+    description="Saves a new version of a resource",
+    shortDescription="List versions of a resource",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default", "selector save"}),
+    methods=@ServiceMethod(name="POST",
+        description={"Lists previous versions of a resource. The url is of the form " +
+            "http://host/resource.save.json ",
+            "Response<ul>" +
+            "<li>200 Success a body is returned containing a json ove the name of the version saved</li>" +
+            "<li>404 Resource was not found</li>" +
+            "<li>500 Some Other error</li>" +
+            "</ul>",
+            "Example<br>" +
+            "<pre>curl http://localhost:8080/sresource/resource.save.json</pre>"}
+    )) 
+
 public class SaveVersionServlet extends SlingAllMethodsServlet {
 
 

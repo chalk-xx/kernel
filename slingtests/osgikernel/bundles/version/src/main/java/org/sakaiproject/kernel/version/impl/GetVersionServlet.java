@@ -29,6 +29,10 @@ import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.apache.sling.jcr.resource.JcrModifiablePropertyMap;
 import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.NodeInputStream;
 import org.slf4j.Logger;
@@ -58,6 +62,28 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * 
  */
+@ServiceDocumentation(name="Get Version Servlet",
+    description="Gets a previous version of a resource",
+    shortDescription="Get a version of a resource",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default", "selector version"}),
+    methods=@ServiceMethod(name="GET",
+        description={"Gets a previous version of a resource. The url is of the form " +
+        		"http://host/resource.version.,versionnumber,.json " +
+        		" where versionnumber is the version number of version to be retrieved. Note that the , " +
+        		"at the start and end of versionnumber" +
+        		" delimit the version number. Once the version of the node requested has been extracted the request " +
+        		" is processed as for other Sling requests ",
+            "Response<ul>" +
+            "<li>200 Success a body is returned.</li>" +
+            "<li>404 Group was not found</li>" +
+            "<li>400 If the version name is not known</li>" +
+            "<li>500 Some Other error</li>" +
+            "</ul>",
+            "Example<br>" +
+            "<pre>curl http://localhost:8080/sresource/resource.version.,1.1,.json</pre>"}
+        )) 
+        
+        
 public class GetVersionServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOG = LoggerFactory.getLogger(GetVersionServlet.class);
