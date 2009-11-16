@@ -21,12 +21,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- *
+ * Documentation for methods implemented by the service.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceMethod {
+  /**
+   * @return the name of the method, GET, POST, PUT etc
+   */
   String name() default "Please ask the developer to document";
+
+  /**
+   * @return description of the service method. Each element of the array will be displayed in its own paragraph.
+   */
   String[] description() default "Please as the developer to document";
-  ServiceParameter[] parameters() default{};
+
+  /**
+   * @return an array of parameters used by the service method.
+   */
+  ServiceParameter[] parameters() default {};
 
 }

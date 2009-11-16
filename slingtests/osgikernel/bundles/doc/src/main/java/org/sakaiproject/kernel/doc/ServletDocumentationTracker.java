@@ -27,10 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.Servlet;
 
 /**
- *
+ * Track servlets and record them in a map, keyed by class name, its beleived that there
+ * will in general be only one servlet per service as we tend to generated the
+ * serviceComponents.xml for OSGi from the class and not manually add services to that xml
+ * with the same classname.
  */
 public class ServletDocumentationTracker extends ServiceTracker {
 
+  /**
+   * A map of servlet Documetnation objects.
+   */
   private Map<String, ServletDocumentation> servletDocumentation = new ConcurrentHashMap<String, ServletDocumentation>();
 
   /**
@@ -41,27 +47,40 @@ public class ServletDocumentationTracker extends ServiceTracker {
     super(context, Servlet.class.getName(), null);
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.util.tracker.ServiceTracker#addingService(org.osgi.framework.ServiceReference)
+   */
   @Override
   public Object addingService(ServiceReference reference) {
     Object service = super.addingService(reference);
     if (service instanceof Servlet) {
-      ServletDocumentation doc = new ServletDocumentation(reference,
-          (Servlet) service);
-      servletDocumentation.put(doc.getKey(),doc);
+      ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
+      servletDocumentation.put(doc.getKey(), doc);
     }
     return service;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.osgi.util.tracker.ServiceTracker#removedService(org.osgi.framework.ServiceReference,
+   *      java.lang.Object)
+   */
   @Override
   public void removedService(ServiceReference reference, Object service) {
     if (service instanceof Servlet) {
-      ServletDocumentation doc = new ServletDocumentation(reference,
-          (Servlet) service);
+      ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
       servletDocumentation.remove(doc.getKey());
     }
     super.removedService(reference, service);
   }
 
+  /**
+   * @return the map of servlet documents, this map is the internal map and should not be
+   *         modified.
+   */
   public Map<String, ServletDocumentation> getServletDocumentation() {
     return servletDocumentation;
   }

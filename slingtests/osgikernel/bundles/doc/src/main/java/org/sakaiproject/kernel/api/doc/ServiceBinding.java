@@ -21,10 +21,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- *
+ * Documents a service binding for a Service, this annotation should be nested inside
+ * {@link ServiceDocumentation} annotation. If used on its own it will not have any
+ * effect.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceBinding {
-    BindingType type() default BindingType.PATH;
-    String[] bindings() default "";
+  /**
+   * @return The type of the binding, defined in {@link BindingType}, PATH type bindings
+   *         define fixed paths. TYPE binding are bound to resource types.
+   */
+  BindingType type() default BindingType.PATH;
+
+  /**
+   * @return an array of binding locations, all of the binding type.
+   */
+  String[] bindings() default "";
 }

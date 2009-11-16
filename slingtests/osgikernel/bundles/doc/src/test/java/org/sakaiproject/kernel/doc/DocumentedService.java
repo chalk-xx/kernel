@@ -24,26 +24,20 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 
 /**
- *
+ * Testing the documentation annotations.
  */
-@ServiceDocumentation(name="DocmentedService", description={
+@ServiceDocumentation(name = "DocmentedService", description = {
     "This service has been documented using annotations, this is really just a test ",
     "of what is possible. I am using annotations to ensure that this information is ",
     "available at runtime so that we can extract it and processes it automatically",
-    "Perhapse this inst the right way of doing this, and OSGi Properties are going to be" +
-    "a better way of exposing this information"},
-    bindings={@ServiceBinding(type=BindingType.PATH,bindings={"/system/documentationTest"}),
-    @ServiceBinding(type=BindingType.TYPE,bindings={"sakai/connectionStore"})},
-    methods={
-    @ServiceMethod(name="GET",description="Get Responds with a page of documentation, depending on the " +
-    		"type of extension there will be different serializations of the output of the resource," +
-    		"a .json extention will take the node properties and serialize them into a json tree. ",
-        parameters={
-        @ServiceParameter(name="any parameter not starting with a :",
-            description={"There are no parameters to the get"})
-    }),
-    @ServiceMethod(name="POST", description="Does nothing")}
-)
+    "Perhapse this inst the right way of doing this, and OSGi Properties are going to be"
+        + "a better way of exposing this information" }, bindings = {
+    @ServiceBinding(type = BindingType.PATH, bindings = { "/system/documentationTest" }),
+    @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/connectionStore" }) }, methods = {
+    @ServiceMethod(name = "GET", description = "Get Responds with a page of documentation, depending on the "
+        + "type of extension there will be different serializations of the output of the resource,"
+        + "a .json extention will take the node properties and serialize them into a json tree. ", parameters = { @ServiceParameter(name = "any parameter not starting with a :", description = { "There are no parameters to the get" }) }),
+    @ServiceMethod(name = "POST", description = "Does nothing") })
 public class DocumentedService {
 
 }

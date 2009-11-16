@@ -18,9 +18,16 @@
 package org.sakaiproject.kernel.api.doc;
 
 /**
- *
+ * The type of binding used by the servlet.
  */
 public enum BindingType {
-  PATH, TYPE;
+  /**
+   * A path binding, binds a Servlet to a fixed path.
+   */
+  PATH,
+  /**
+   * A type binding bind the Servlet to a resource type.
+   */
+  TYPE;
 
 }

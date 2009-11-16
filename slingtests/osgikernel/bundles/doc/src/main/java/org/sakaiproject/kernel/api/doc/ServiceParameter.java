@@ -21,10 +21,19 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- *
+ * Documentation for a parameters used by a method. This annotation is nested inside a
+ * {@link ServiceMethod} annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceParameter {
+  /**
+   * @return the name of the parameter.
+   */
   String name() default "Please ask the developer to describe the parameters of this service";
+
+  /**
+   * @return description of the parameter, each element will be placed in its own
+   *         paragraph.
+   */
   String[] description() default "Please ask the developer to document this parameter";
 }

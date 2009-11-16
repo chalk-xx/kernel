@@ -33,11 +33,10 @@ import java.io.PrintWriter;
 import javax.servlet.Servlet;
 
 /**
- *
+ * Hold documentation for the servlet and provides an HTML serialization.
  */
 public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
-  private String bundleName;
   private ServiceDocumentation serviceDocumetation;
   private String serviceName;
   private Servlet service;
@@ -50,17 +49,12 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   public ServletDocumentation(ServiceReference reference, Servlet service) {
     this.service = service;
     this.reference = reference;
-    bundleName = getBundleName(reference);
     serviceDocumetation = (ServiceDocumentation) service.getClass().getAnnotation(
         ServiceDocumentation.class);
     serviceName = getServiceName(reference, service, serviceDocumetation);
 
   }
 
-  /**
-   * @param reference2
-   * @return
-   */
   private static String getBundleName(ServiceReference reference) {
     Bundle bundle = reference.getBundle();
     String bundleName = (String) bundle.getHeaders().get(Constants.BUNDLE_NAME);
@@ -74,10 +68,15 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   }
 
   /**
-   * @param reference2
-   * @param service2
-   * @param serviceDocumetation2
-   * @return
+   * Generate a service name for the supplied service and reference.
+   *
+   * @param reference
+   *          OSGi reference for the service.
+   * @param service
+   *          the Servlet.
+   * @param serviceDocumetation
+   *          the documentation annotation, if present, null if not.
+   * @return the service name.
    */
   private static String getServiceName(ServiceReference reference, Servlet service,
       ServiceDocumentation serviceDocumetation) {
@@ -94,9 +93,14 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   }
 
   /**
+   * Documentation of the service.
+   *
    * @param request
+   *          the current request.
    * @param response
+   *          the current response.
    * @throws IOException
+   *           of there were issues writing to the response.
    */
   public void send(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws IOException {
@@ -108,7 +112,9 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     } else {
       writer.append("<h3>Description</h3><p>");
       for (String desc : serviceDocumetation.description()) {
+        writer.append("<p>");
         writer.append(desc);
+        writer.append("</p>");
       }
 
       writer.append("</p><h3>Bindings</h3><ul>");
@@ -129,17 +135,21 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       for (ServiceMethod sm : serviceDocumetation.methods()) {
         writer.append("<li><h4>Method:");
         writer.append(sm.name());
-        writer.append("</h4><p>");
+        writer.append("</h4>");
         for (String desc : sm.description()) {
+          writer.append("<p>");
           writer.append(desc);
+          writer.append("</p>");
         }
-        writer.append("</p><h4>Parameters</h4><ul>");
+        writer.append("<h4>Parameters</h4><ul>");
         for (ServiceParameter sp : sm.parameters()) {
           writer.append("<li><ul><li>");
           writer.append(sp.name());
           writer.append("</li><li>");
           for (String desc : sp.description()) {
+            writer.append("<p>");
             writer.append(desc);
+            writer.append("</p>");
           }
           writer.append("</li></ul></li>");
         }
@@ -182,14 +192,14 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   }
 
   /**
-   * @return
+   * @return the name of the servlet.
    */
   public String getName() {
     return serviceName;
   }
 
   /**
-   * @return
+   * @return a short description of the Servlet.
    */
   public String getShortDescription() {
     if (serviceDocumetation == null) {
@@ -232,7 +242,8 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   }
 
   /**
-   * @return
+   * @return the Key used for the ServletDocumention in the map of registered
+   *         documentation objects.
    */
   public String getKey() {
     return String.valueOf(service.getClass().getName());

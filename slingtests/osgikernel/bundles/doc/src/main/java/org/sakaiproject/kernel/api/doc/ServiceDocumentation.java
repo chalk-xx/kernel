@@ -23,17 +23,36 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
+ * The root documtation annotation that is intended to be applied to the class.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceDocumentation {
-    String name() default "no name supplied";
-    String[] description() default {};
-    ServiceBinding[] bindings() default {};
-    ServiceMethod[] methods() default {};
-    /**
-     * @return
-     */
-    String shortDescription() default "no description supplied";
+  /**
+   * @return the name of the service being documented.
+   */
+  String name() default "no name supplied";
+
+  /**
+   * @return an array of documentation paragraphs. Each element in the array is placed in
+   *         its own paragraph.
+   */
+  String[] description() default {};
+
+  /**
+   * @return an array of bindings, each binding defines either a binding to path, or a
+   *         binding to a resource type.
+   */
+  ServiceBinding[] bindings() default {};
+
+  /**
+   * @return an array of methods one for each HTTP method that is implemented by the
+   *         service.
+   */
+  ServiceMethod[] methods() default {};
+
+  /**
+   * @return a short description used in listings of the service.
+   */
+  String shortDescription() default "no description supplied";
 }
