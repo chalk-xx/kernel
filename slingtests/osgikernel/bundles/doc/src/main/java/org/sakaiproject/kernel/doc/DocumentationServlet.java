@@ -30,6 +30,7 @@ import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,7 +60,9 @@ import javax.servlet.ServletException;
              description = "GETs to this servlet will produce documentation for the class, " +
              		"or an index of all servlets.", 
              parameters = @ServiceParameter(name = "p", 
-                 description = "The name of the class to display the documentation for")) })
+                 description = "The name of the class to display the documentation for"),
+              response= {@ServiceResponse(code=200,description="html page for the requested resource"),
+           @ServiceResponse(code=404,description="Servlet class not found")}) })
 public class DocumentationServlet extends SlingSafeMethodsServlet {
 
   /**

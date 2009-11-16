@@ -24,8 +24,11 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -69,7 +72,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
   /**
    * Generate a service name for the supplied service and reference.
-   *
+   * 
    * @param reference
    *          OSGi reference for the service.
    * @param service
@@ -94,7 +97,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
   /**
    * Documentation of the service.
-   *
+   * 
    * @param request
    *          the current request.
    * @param response
@@ -111,24 +114,43 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
           .append("<p>No Service documentation has been provided by the developer, tut tut!</p>");
     } else {
       writer.append("<h3>Description</h3><p>");
-      for (String desc : serviceDocumetation.description()) {
-        writer.append("<p>");
-        writer.append(desc);
-        writer.append("</p>");
-      }
+      sendDoc(writer, serviceDocumetation.description());
 
       writer.append("</p><h3>Bindings</h3><ul>");
 
       for (ServiceBinding sb : serviceDocumetation.bindings()) {
-        writer.append("<li>Type:");
+        writer.append("<li><p>Type:");
         writer.append(sb.type().toString());
-        writer.append("<ul>");
-        for (String binding : sb.bindings()) {
-          writer.append("<li>");
-          writer.append(binding);
-          writer.append("</li>");
+        sendList(writer, sb.bindings());
+        writer.append("</p><p>Selectors:");
+        if (sb.selectors().length == 0) {
+          writer.append("None");
+        } else {
+          writer.append("<ul>");
+          for (ServiceSelector ss : sb.selectors()) {
+            writer.append("<li><p>");
+            writer.append(ss.name());
+            writer.append("</p>");
+            sendDoc(writer, ss.description());
+            writer.append("</li>");
+          }
+          writer.append("</ul>");
         }
-        writer.append("</ul></li>");
+        writer.append("</p><p>Extensions:");
+        if (sb.extensions().length == 0) {
+          writer.append("None");
+        } else {
+          writer.append("<ul>");
+          for (ServiceExtension se : sb.extensions()) {
+            writer.append("<li><p>");
+            writer.append(se.name());
+            writer.append("</p>");
+            sendDoc(writer, se.description());
+            writer.append("</li>");
+          }
+          writer.append("</ul>");
+        }
+        writer.append("</li>");
 
       }
       writer.append("</ul><h3>Methods</h3><ul>");
@@ -136,22 +158,22 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
         writer.append("<li><h4>Method:");
         writer.append(sm.name());
         writer.append("</h4>");
-        for (String desc : sm.description()) {
-          writer.append("<p>");
-          writer.append(desc);
-          writer.append("</p>");
-        }
+        sendDoc(writer, sm.description());
         writer.append("<h4>Parameters</h4><ul>");
         for (ServiceParameter sp : sm.parameters()) {
-          writer.append("<li><ul><li>");
+          writer.append("<li><p>");
           writer.append(sp.name());
-          writer.append("</li><li>");
-          for (String desc : sp.description()) {
-            writer.append("<p>");
-            writer.append(desc);
-            writer.append("</p>");
-          }
-          writer.append("</li></ul></li>");
+          writer.append("</p>");
+          sendDoc(writer, sp.description());
+          writer.append("</li>");
+        }
+        writer.append("</ul><h4>Status Codes</h4><ul>");
+        for (ServiceResponse sp : sm.response()) {
+          writer.append("<li><p>");
+          writer.append(String.valueOf(sp.code()));
+          writer.append("</p>");
+          sendDoc(writer, sp.description());
+          writer.append("</li>");
         }
         writer.append("</ul></li>");
       }
@@ -189,6 +211,32 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     }
     writer.append("</ul>");
 
+  }
+
+  /**
+   * @param writer
+   * @param bindings
+   */
+  private void sendList(PrintWriter writer, String[] list) {
+    writer.append("<ul>");
+    for (String binding : list) {
+      writer.append("<li>");
+      writer.append(binding);
+      writer.append("</li>");
+    }
+    writer.append("</ul>");
+  }
+
+  /**
+   * @param writer
+   * @param description
+   */
+  private void sendDoc(PrintWriter writer, String[] description) {
+    for (String desc : description) {
+      writer.append("<p>");
+      writer.append(desc);
+      writer.append("</p>");
+    }
   }
 
   /**
