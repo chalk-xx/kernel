@@ -144,7 +144,7 @@
     <dependency>
       <groupId>org.codehaus.woodstox</groupId>
       <artifactId>wstx-asl</artifactId>
-      <version>4.0.0</version>
+      <version>4.0.6</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -186,6 +186,11 @@
       <artifactId>json-lib</artifactId>
       <version>2.2</version>
       <classifier>jdk15</classifier>
+    </dependency>
+    <dependency>
+    	<groupId>org.codehaus.woodstox</groupId>
+    	<artifactId>stax2-api</artifactId>
+    	<version>3.0.1</version>
     </dependency> 
   </dependencies>
 </project>
