@@ -28,8 +28,11 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.version.VersionService;
@@ -65,21 +68,22 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(name="List Versions Servlet",
     description="Lists versions of a resource in json format",
     shortDescription="List versions of a resource",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default", "selector versions"}),
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default"},
+    selectors=@ServiceSelector(name="versions", description="Retrieves a paged list of versions for the resource"),
+    extensions=@ServiceExtension(name="json", description="A list over versions in json format")),
     methods=@ServiceMethod(name="GET",
         description={"Lists previous versions of a resource. The url is of the form " +
             "http://host/resource.versions.json ",
-            "Response<ul>" +
-            "<li>200 Success a body is returned containing a json tree</li>" +
-            "<li>404 Resource was not found</li>" +
-            "<li>500 Some Other error</li>" +
-            "</ul>",
             "Example<br>" +
             "<pre>curl http://localhost:8080/sresource/resource.versions.json</pre>"},
         parameters={
         @ServiceParameter(name="items", description="The number of items per page"),
         @ServiceParameter(name="page", description="The page to of items to return")
-    }
+    },
+    response={
+    @ServiceResponse(code=200,description="Success a body is returned containing a json tree"),
+    @ServiceResponse(code=404,description="Resource was not found."),
+    @ServiceResponse(code=500,description="Failure with HTML explanation.")}
     )) 
         
 
