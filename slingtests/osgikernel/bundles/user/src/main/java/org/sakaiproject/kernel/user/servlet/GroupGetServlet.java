@@ -11,7 +11,9 @@ import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import java.io.IOException;
@@ -44,15 +46,17 @@ import javax.servlet.http.HttpServletResponse;
         "url /system/userManager/group/g-groupname. This servlet responds at " +
         "/system/userManager/group/g-groupname.json",
     shortDescription="Get a group as json",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group", "selector update"}),
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group"},
+        extensions=@ServiceExtension(name="*", description="All the standard Sling serializations are possible, json, xml, html")),
     methods=@ServiceMethod(name="GET",
         description={"Get the group json.",
-            "Response<ul>" +
-            "<li>200 Success, th body contains the Group json with profile.</li>" +
-            "<li>404 Group was not found</li>" +
-            "<li>500 Failure</li></ul>",
             "Example<br>" +
-            "<pre>curl http://localhost:8080/system/userManager/group/g-groupname.json</pre>"})) 
+            "<pre>curl http://localhost:8080/system/userManager/group/g-groupname.json</pre>"},
+        response={
+          @ServiceResponse(code=200,description="Success, the body contains the Group json with profile."),
+          @ServiceResponse(code=404,description="Group was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+   )) 
 public class GroupGetServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 2792407832129918578L;
