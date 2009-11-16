@@ -8,6 +8,11 @@
     <filter>
         <filter-name>sakai.request</filter-name>
         <filter-class>org.sakaiproject.util.RequestFilter</filter-class>
+				<init-param>
+					<!-- change the context to /portal instead of /sakai-hybrid-tool -->
+					<param-name>context</param-name>
+					<param-value>portal</param-value>
+				</init-param>
     </filter>
 
     <filter>
@@ -32,8 +37,8 @@
     </filter-mapping>
 
     <servlet>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
-        <servlet-class>org.sakaiproject.hybrid.tool.HybridServlet</servlet-class>
+        <servlet-name>sakai.hybrid.SitesServlet</servlet-name>
+        <servlet-class>org.sakaiproject.hybrid.tool.SitesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
@@ -44,7 +49,7 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>sakai.hybrid.servlet</servlet-name>
+        <servlet-name>sakai.hybrid.SitesServlet</servlet-name>
         <url-pattern>/sites</url-pattern>
     </servlet-mapping>
 

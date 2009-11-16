@@ -18,6 +18,11 @@
 package org.sakaiproject.kernel.user.servlet;
 
 import org.apache.sling.jackrabbit.usermanager.impl.post.ChangeUserPasswordServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
 
 /**
  * Sling Post Operation implementation for updating the password of a user in the 
@@ -64,6 +69,29 @@ import org.apache.sling.jackrabbit.usermanager.impl.post.ChangeUserPasswordServl
  * @scr.property name="sling.servlet.methods" value="POST" 
  * @scr.property name="sling.servlet.selectors" value="changePassword" 
  */
+
+@ServiceDocumentation(name="Change Password Servlet",
+    description="Changes user password. Maps on to nodes of resourceType sling/user " +
+    		"like /rep:system/rep:userManager/rep:users/ae/fd/3e/username mapped to a resource " +
+    		"url /system/userManager/user/username . This servlet responds at " +
+    		"/system/userManager/user/username.changePassword.html",
+    shortDescription="Change a user password",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/user", "selector changePassword"}),
+    methods=@ServiceMethod(name="POST",
+        description={"Creates a new user with a name :name, and password pwd, " +
+            "storing additional parameters as properties of the new user.",
+            "Response<ul>" +
+            "<li>200 Sucess sent with no body.</li>" +
+            "<li>404 User was not found</li>" +
+            "<li>500 Failure with HTML explanation</li></ul>",
+            "Example<br><pre>curl -FoldPwd=oldpassword -FnewPwd=newpassword =FnewPwdConfirm=newpassword " +
+            "http://localhost:8080/system/userManager/user/username.changePassword.html</pre>"},
+        parameters={
+        @ServiceParameter(name="oldPwd", description="current password for user (required)"),
+        @ServiceParameter(name="newPwd", description="new password for user (required)"),
+        @ServiceParameter(name="newPwdConfirm", description="confirm new password for user (required)")
+        }))   
+
 public class ChangeSakaiUserPasswordServlet extends ChangeUserPasswordServlet {
 
   /**

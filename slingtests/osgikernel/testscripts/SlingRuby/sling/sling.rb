@@ -226,7 +226,8 @@ module SlingInterface
     
     def get_node_props_json(path)
       puts "Getting props for path: #{path}" if @debug
-      return execute_get(url_for("#{path}.json")).body
+      result = execute_get(url_for("#{path}.json"))
+      return result.body
     end
     
     def get_node_props(path)

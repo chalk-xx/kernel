@@ -19,11 +19,13 @@ package org.sakaiproject.kernel.files.servlets;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
+import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);
   private static final long serialVersionUID = -1960932906632564021L;
+
+  @Reference
+  protected VirtualResourceProvider virtualResourceProvider;
 
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
@@ -55,4 +60,14 @@ public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
     return PathUtils.toInternalHashedPath(realPath, parts[0], sel);
   }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.resource.AbstractVirtualPathServlet#getVirtualResourceProvider()
+   */
+  @Override
+  protected VirtualResourceProvider getVirtualResourceProvider() {
+    return virtualResourceProvider;
+  }
+
 }
