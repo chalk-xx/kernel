@@ -23,6 +23,8 @@ import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 
 /**
  * Sling Post Operation implementation for updating the password of a user in the 
@@ -76,21 +78,25 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
     		"url /system/userManager/user/username . This servlet responds at " +
     		"/system/userManager/user/username.changePassword.html",
     shortDescription="Change a user password",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/user", "selector changePassword"}),
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/user"},
+        selectors={@ServiceSelector(name="changePassword",description="selects this servlet to change the users password")
+        }),
     methods=@ServiceMethod(name="POST",
         description={"Creates a new user with a name :name, and password pwd, " +
             "storing additional parameters as properties of the new user.",
-            "Response<ul>" +
-            "<li>200 Sucess sent with no body.</li>" +
-            "<li>404 User was not found</li>" +
-            "<li>500 Failure with HTML explanation</li></ul>",
             "Example<br><pre>curl -FoldPwd=oldpassword -FnewPwd=newpassword =FnewPwdConfirm=newpassword " +
             "http://localhost:8080/system/userManager/user/username.changePassword.html</pre>"},
         parameters={
         @ServiceParameter(name="oldPwd", description="current password for user (required)"),
         @ServiceParameter(name="newPwd", description="new password for user (required)"),
         @ServiceParameter(name="newPwdConfirm", description="confirm new password for user (required)")
-        }))   
+        },
+        response={
+        @ServiceResponse(code=200,description="Sucess sent with no body."),
+        @ServiceResponse(code=404,description="User was not found."),
+        @ServiceResponse(code=500,description="Failure with HTML explanation.")
+    }))   
+    
 
 public class ChangeSakaiUserPasswordServlet extends ChangeUserPasswordServlet {
 

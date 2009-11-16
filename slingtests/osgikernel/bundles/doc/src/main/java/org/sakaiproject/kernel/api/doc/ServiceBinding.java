@@ -37,4 +37,14 @@ public @interface ServiceBinding {
    * @return an array of binding locations, all of the binding type.
    */
   String[] bindings() default "";
+  
+  /**
+   * @return a list of selectors that this servlet binds to
+   */
+  ServiceSelector[] selectors() default {};
+  
+  /**
+   * @return a list of extensions that this servlet allows
+   */
+  ServiceExtension[] extensions() default {};
 }

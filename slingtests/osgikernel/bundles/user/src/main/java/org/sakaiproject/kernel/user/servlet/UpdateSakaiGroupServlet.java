@@ -36,8 +36,11 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.slf4j.Logger;
@@ -116,20 +119,23 @@ import javax.servlet.http.HttpServletResponse;
     		"url /system/userManager/group/g-groupname. This servlet responds at " +
     		"/system/userManager/group/groupname.update.html",
     shortDescription="Update a group properties",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group", "selector update"}),
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group"},
+    selectors=@ServiceSelector(name="update", description="Updates the properties of a group"),
+    extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
     methods=@ServiceMethod(name="POST",
         description={"Updates a group setting or deleting properties, " +
             "storing additional parameters as properties of the group.",
-            "Response<ul>" +
-            "<li>200 Success, a redirect is sent to the group's resource locator with HTML describing status.</li>" +
-            "<li>404 Group was not found</li>" +
-            "<li>500 Failure</li></ul>",
             "Example<br>" +
             "<pre>curl -Fproperty1@Delete -Fproperty2=value2 http://localhost:8080/system/userManager/group/g-groupname.update.html</pre>"},
         parameters={
         @ServiceParameter(name="propertyName@Delete", description="Delete property, eg property1@Delete means delete property1 (optional)"),
         @ServiceParameter(name="",description="Additional parameters become group node properties (optional)")
-        })) 
+        },
+        response={
+        @ServiceResponse(code=200,description="Success, a redirect is sent to the group's resource locator with HTML describing status."),
+        @ServiceResponse(code=404,description="Group was not found."),
+        @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+        )) 
 public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
   /**
