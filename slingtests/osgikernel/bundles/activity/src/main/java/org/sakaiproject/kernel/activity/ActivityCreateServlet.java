@@ -17,10 +17,10 @@
  */
 package org.sakaiproject.kernel.activity;
 
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTOR_PROPERTY;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_APPLICATION_ID;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_TEMPLATE_ID;
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -33,6 +33,13 @@ import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.activity.ActivityConstants;
 import org.sakaiproject.kernel.api.activity.ActivityUtils;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +74,11 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="EventAdmin" bind="bindEventAdmin" unbind="unbindEventAdmin"
  *                interface="org.osgi.service.event.EventAdmin"
  */
+@ServiceDocumentation(name = "ActivityCreateServlet", description = "Record activity related to a specific node.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "*", selectors = @ServiceSelector(name = "activity")), methods = { @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.", parameters = {
+		@ServiceParameter(name = "applicationId", description = "i.e. used to locate the bundles"),
+		@ServiceParameter(name = "templateId", description = "The id of the template that will be used for text and macro expansion."
+				+ "Locale will be appended to the templateId for resolution"),
+		@ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in templateId.") }, response = { @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)") }) })
 public class ActivityCreateServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityCreateServlet.class);
