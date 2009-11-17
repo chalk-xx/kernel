@@ -46,14 +46,16 @@ import javax.servlet.ServletException;
  * Creates documentation by tracking servlets and inspecting some annotations.
  */
 @SlingServlet(methods = "GET", paths = "/system/doc")
-@ServiceDocumentation(name = "DocumentationServlet", description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
+@ServiceDocumentation(name = "DocumentationServlet", 
+    description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
     + "service registration properties, or annotations if present."
     + " Requests to this servlet take the form /system/doc?p=&lt;classname&gt where <em>classname</em>"
     + " is the fully qualified name of the class deployed into the OSGi container. If the class is "
     + "not present a 404 will be retruned, if the class is present, it will be interogated to extract "
     + "documentation from the class. In addition to extracting annotation based documention the servlet will "
     + "display the OSGi service properties. All documentation is assumed to be HTML encoded. If the browser is "
-    + "directed to <a href=\"/system/doc\" >/system/doc</a> a list of all servlets in the system will be displayed ", 
+    + "directed to <a href=\"/system/doc\" >/system/doc</a> a list of all servlets in the system will be displayed ",
+    shortDescription="Documentation servlet that renders service documentation ",
     bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc"), 
     methods = { 
          @ServiceMethod(name = "GET", 
