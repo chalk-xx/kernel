@@ -29,6 +29,8 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,6 +42,8 @@ import javax.servlet.Servlet;
  */
 public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
+  private static final String PACKAGE = "org.sakaiproject.kernel.doc.proxy.Doc_";
+  private static final Logger LOGGER = LoggerFactory.getLogger(ServletDocumentation.class);
   private ServiceDocumentation serviceDocumetation;
   private String serviceName;
   private Servlet service;
@@ -54,6 +58,19 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     this.reference = reference;
     serviceDocumetation = (ServiceDocumentation) service.getClass().getAnnotation(
         ServiceDocumentation.class);
+    if ( serviceDocumetation == null ) {
+      // try and load an info class.
+      String name = service.getClass().getName();
+      name = PACKAGE+name.replace('.', '_');
+      try {
+        Class<?> c = this.getClass().getClassLoader().loadClass(name);
+        serviceDocumetation = (ServiceDocumentation) c.getAnnotation(
+          ServiceDocumentation.class);
+      } catch ( ClassNotFoundException ex ) {
+        LOGGER.warn("No documentation proxy {} ", name);
+        // no doc class present.
+      }
+    }
     serviceName = getServiceName(reference, service, serviceDocumetation);
 
   }
@@ -194,20 +211,25 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       Object service = k.getBundle().getBundleContext().getService(k);
       if (service instanceof Servlet) {
         ServletDocumentation sd = new ServletDocumentation(k, (Servlet) service);
-        writer.append("<li><a href=\"");
-        writer.append("?p=");
-        writer.append(sd.getKey());
-        writer.append("\">");
-        writer.append(sd.getName());
-        writer.append("</a>");
-        writer.append("</li>");
+        String key = sd.getKey();
+        if ( key != null ) {
+          writer.append("<li><a href=\"");
+          writer.append("?p=");
+          writer.append(sd.getKey());
+          writer.append("\">");
+          writer.append(sd.getName());
+          writer.append("</a>");
+          writer.append("</li>");
+        } else {
+          writer.append("<li>");
+          writer.append(service.getClass().getName());
+          writer.append("</li>");
+        }
       } else {
         writer.append("<li>");
         writer.append(service.getClass().getName());
         writer.append("</li>");
-
       }
-
     }
     writer.append("</ul>");
 
@@ -294,6 +316,9 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
    *         documentation objects.
    */
   public String getKey() {
+    if ( serviceDocumetation != null && serviceDocumetation.ignore() ) {
+      return null;
+    }
     return String.valueOf(service.getClass().getName());
   }
 

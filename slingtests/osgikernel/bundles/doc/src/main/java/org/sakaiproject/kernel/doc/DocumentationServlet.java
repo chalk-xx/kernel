@@ -144,15 +144,18 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
     List<ServletDocumentation> o = new ArrayList<ServletDocumentation>(m.values());
     Collections.sort(o);
     for (ServletDocumentation k : o) {
-      writer.append("<li><a href=\"");
-      writer.append(PREFIX);
-      writer.append("?p=");
-      writer.append(k.getKey());
-      writer.append("\">");
-      writer.append(k.getName());
-      writer.append("</a><p>");
-      writer.append(k.getShortDescription());
-      writer.append("</p></li>");
+      String key = k.getKey();
+      if ( key != null ) {
+        writer.append("<li><a href=\"");
+        writer.append(PREFIX);
+        writer.append("?p=");
+        writer.append(k.getKey());
+        writer.append("\">");
+        writer.append(k.getName());
+        writer.append("</a><p>");
+        writer.append(k.getShortDescription());
+        writer.append("</p></li>");
+      }
     }
     writer.append("</ul>");
     writer.append(HTML_FOOTER);
