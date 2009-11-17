@@ -20,6 +20,14 @@ package org.sakaiproject.kernel.site.servlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.slf4j.Logger;
@@ -45,6 +53,36 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="unjoin"
  */
+@ServiceDocumentation(name="Site UnJoin Servlet",
+    description=" The <code>SiteServiceJoinServlet</code> supports UnJoin for sites.",
+    shortDescription="Supports site UnJoin operations.",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sakai/site"},
+        selectors=@ServiceSelector(name="unjoin", description="Initiates UnJoining workflow"),
+        extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
+    methods=@ServiceMethod(name="POST",
+        description={"UnJoins the user to the site in the specified group. The group must exist and be associated with the site. " +
+            "The site must exist.",
+            "Example<br>" +
+            "<pre>curl -FtargetGroup=g-qastaff http://user:pass@localhost:8080/sites/physics101/year3.unjoin.html</pre>"
+        },
+        parameters={
+          @ServiceParameter(name="targetGroup", description="The group to remove the user from (required)")
+        
+        },
+        response={
+          @ServiceResponse(code=200,description="The body will be empty on sucess."),
+          @ServiceResponse(code=204,description="When A site is not found"),
+          @ServiceResponse(code=400,description={
+              "If the location does not represent a site.",
+              "The target group is not a group.",
+              "The group is not associated with the site.",
+              "The user is not a member of the site"
+          }),
+          @ServiceResponse(code=403,description="Current user is not allowed to unjoin."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=409,description="User is not a member"),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 public class SiteUnJoinServlet extends AbstractSiteServlet {
 
   /**

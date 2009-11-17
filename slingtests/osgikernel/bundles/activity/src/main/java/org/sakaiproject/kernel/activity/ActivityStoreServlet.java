@@ -24,6 +24,10 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -36,6 +40,11 @@ import org.slf4j.LoggerFactory;
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for activity stores."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(name = "sakai/activityStore BigStore", description = "BigStore URL hash mapping for sakai/activityStore", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/activityStore") }, methods = {
+		@ServiceMethod(name = "GET", description = ""),
+		@ServiceMethod(name = "POST", description = ""),
+		@ServiceMethod(name = "PUT", description = ""),
+		@ServiceMethod(name = "DELETE", description = "") })
 public class ActivityStoreServlet extends AbstractVirtualPathServlet {
   private static final long serialVersionUID = -8014319281629970139L;
   private static final Logger LOG = LoggerFactory.getLogger(ActivityStoreServlet.class);
