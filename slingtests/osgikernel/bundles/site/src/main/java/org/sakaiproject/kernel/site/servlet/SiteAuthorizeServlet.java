@@ -22,6 +22,14 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +64,36 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="authorize"
  */
+@ServiceDocumentation(name="Site Authorize Servlet",
+    description=" The <code>SiteServiceGroupServlet</code> supports add and remove groups from the site.",
+    shortDescription="Adds or removes groups from a site.",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sakai/site"},
+        selectors=@ServiceSelector(name="authorize", description="Authorize a group with a site"),
+        extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
+    methods=@ServiceMethod(name="POST",
+        description={"Adds or removes the groups listed in the addauth, and removeauth request parameters to the site." +
+        		" All of the groups must already exist. The service will also store the sites where the group is used on the " +
+        		"group object.",
+            "Example<br>" +
+            "<pre>Example needed</pre>"
+        },
+        parameters={
+          @ServiceParameter(name="addauth", description="The Path to the site being created (required)"),
+          @ServiceParameter(name="removeauth", description="Path to a template node in JCR to use when creating the site (optional)")
+        
+        },
+        response={
+          @ServiceResponse(code=200,description="The body will be empty on sucess."),
+          @ServiceResponse(code=204,description="When A site is not found"),
+          @ServiceResponse(code=400,description={
+              "If the location does not represent a site.",
+              "If the addauth and removeauth parameters dont make sense either becuase there are " +
+              "the wrong numer of items or the groups dont exists"
+          }),
+          @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**

@@ -25,6 +25,13 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
@@ -59,6 +66,32 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.selectors" value="members"
  * 
  */
+@ServiceDocumentation(name="Site Members Servlet",
+    description=" Gets the members of a site, both groups and users",
+    shortDescription="Get the members of a site.",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sakai/site"},
+        selectors=@ServiceSelector(name="members", description="Initiates Joining workflow")),
+    methods=@ServiceMethod(name="GET",
+        description={"Gets the members of a site in json format paged and sorted",
+            "Example<br>" +
+            "<pre>curl http://user:pass@localhost:8080/sites/physics101/year3.members</pre>"
+        },
+        parameters={
+          @ServiceParameter(name="page", description="The page number to list."),
+          @ServiceParameter(name="items", description="The number of items per page."),
+          @ServiceParameter(name="sort", description="one or more sort properties, processed in order.")
+        
+        },
+        response={
+          @ServiceResponse(code=200,description="The body will contain a sorted, pages list of members in json format."),
+          @ServiceResponse(code=204,description="When A site is not found"),
+          @ServiceResponse(code=400,description={
+              "If the location does not represent a site."
+          }),
+          @ServiceResponse(code=403,description="Current user is not allowed to list members."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 public class SiteMembersServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
