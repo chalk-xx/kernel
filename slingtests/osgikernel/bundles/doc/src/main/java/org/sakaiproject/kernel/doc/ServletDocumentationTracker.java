@@ -57,7 +57,10 @@ public class ServletDocumentationTracker extends ServiceTracker {
     Object service = super.addingService(reference);
     if (service instanceof Servlet) {
       ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
-      servletDocumentation.put(doc.getKey(), doc);
+      String key = doc.getKey();
+      if ( key != null ) {
+        servletDocumentation.put(key, doc);
+      }
     }
     return service;
   }
@@ -72,7 +75,10 @@ public class ServletDocumentationTracker extends ServiceTracker {
   public void removedService(ServiceReference reference, Object service) {
     if (service instanceof Servlet) {
       ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
-      servletDocumentation.remove(doc.getKey());
+      String key = doc.getKey();
+      if ( key != null ) {
+        servletDocumentation.remove(key);
+      }
     }
     super.removedService(reference, service);
   }

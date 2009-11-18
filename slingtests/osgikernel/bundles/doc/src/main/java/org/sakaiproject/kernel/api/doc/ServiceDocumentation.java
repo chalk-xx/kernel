@@ -55,4 +55,14 @@ public @interface ServiceDocumentation {
    * @return a short description used in listings of the service.
    */
   String shortDescription() default "no description supplied";
+
+  /**
+   * @return is this set of description a proxy for a real servlet.
+   */
+  String proxy() default "";
+
+  /**
+   * @return if true, ignore this class.
+   */
+  boolean ignore() default false;
 }

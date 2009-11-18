@@ -14,10 +14,12 @@ text for testing purposes.
 =cut
 
 #{{{imports
+use warnings;
 use strict;
+use Carp;
 use Data::Random::WordList;
 use File::Path;
-use TestDataBuilder::Content;
+use TestDataBuilder::Docx;
 use TestDataBuilder::Excel;
 use TestDataBuilder::ExcelXML;
 use TestDataBuilder::Group;
@@ -30,7 +32,9 @@ use TestDataBuilder::RTF;
 use TestDataBuilder::Site;
 use TestDataBuilder::Text;
 use TestDataBuilder::User;
+use TestDataBuilder::WordXML;
 use TestDataBuilder::XML;
+
 #}}}
 
 =head1 VARIABLES
@@ -38,6 +42,7 @@ use TestDataBuilder::XML;
 =cut
 
 #{{{Files To Folders Ratio
+
 =pod
 
 =head2 Folders to files ratio:
@@ -55,9 +60,11 @@ Comparison of the number of subfolders to the number of files created.
 =cut
 
 my $filesToFoldersRatio = 300;
+
 #}}}
 
 #{{{ Folder Depth Percentages
+
 =pod
 
 =head2 Folder depth
@@ -82,9 +89,11 @@ top level folder and so on.
 =cut
 
 my @folderDepthPercentages = ( 60, 25, 7, 5, 3 );
+
 #}}}
 
 #{{{ File Sizes
+
 =pod
 
 =head2 File sizes
@@ -110,24 +119,25 @@ Sizes of files created in content hosting (in kB):
 =cut
 
 my %fileSizes = (
-    '0-10k' =>       { kb => 5,     '%' => 26 },
-    '10-20k' =>      { kb => 15,    '%' => 7 },
-    '20-30k' =>      { kb => 25,    '%' => 9 },
-    '30-40k' =>      { kb => 35,    '%' => 6 },
-    '40-50k' =>      { kb => 45,    '%' => 4 },
-    '50-100k' =>     { kb => 75,    '%' => 9 },
-    '100-200k' =>    { kb => 150,   '%' => 8 },
-    '200-300k' =>    { kb => 250,   '%' => 4 },
-    '300-400k' =>    { kb => 350,   '%' => 3 },
-    '400-500k' =>    { kb => 450,   '%' => 2 },
-    '500-1000k' =>   { kb => 750,   '%' => 7 },
-    '1000-2000k' =>  { kb => 1500,  '%' => 6 },
-    '2000-3000k' =>  { kb => 2500,  '%' => 3 },
-    '3000-4000k' =>  { kb => 3500,  '%' => 1 },
-    '4000-5000k' =>  { kb => 4500,  '%' => 1 },
+    '0-10k'       => { kb => 5,     '%' => 26 },
+    '10-20k'      => { kb => 15,    '%' => 7 },
+    '20-30k'      => { kb => 25,    '%' => 9 },
+    '30-40k'      => { kb => 35,    '%' => 6 },
+    '40-50k'      => { kb => 45,    '%' => 4 },
+    '50-100k'     => { kb => 75,    '%' => 9 },
+    '100-200k'    => { kb => 150,   '%' => 8 },
+    '200-300k'    => { kb => 250,   '%' => 4 },
+    '300-400k'    => { kb => 350,   '%' => 3 },
+    '400-500k'    => { kb => 450,   '%' => 2 },
+    '500-1000k'   => { kb => 750,   '%' => 7 },
+    '1000-2000k'  => { kb => 1500,  '%' => 6 },
+    '2000-3000k'  => { kb => 2500,  '%' => 3 },
+    '3000-4000k'  => { kb => 3500,  '%' => 1 },
+    '4000-5000k'  => { kb => 4500,  '%' => 1 },
     '5000-10000k' => { kb => 7500,  '%' => 2 },
-    '10000+k' =>     { kb => 20000, '%' => 2 }
+    '10000+k'     => { kb => 20000, '%' => 2 }
 );
+
 #}}}
 
 #{{{ File Size Array
@@ -136,13 +146,14 @@ my %fileSizes = (
 # value.
 my @fileSizeArray;
 foreach my $key ( keys %fileSizes ) {
-    my $size = $fileSizes{ $key }->{ 'kb' };
-    my $number = $fileSizes{ $key }->{ '%' };
+    my $size   = $fileSizes{$key}->{'kb'};
+    my $number = $fileSizes{$key}->{'%'};
     for ( my $i = 0 ; $i < $number ; $i++ ) {
         push( @fileSizeArray, $size );
     }
 }
 @fileSizeArray = sort { $a <=> $b } @fileSizeArray;
+
 #}}}
 
 =head1 METHODS
@@ -160,44 +171,52 @@ Create, set up, and return a Content object.
 =cut
 
 sub new {
-    my ( $class, $testDataDirectory, $MB, $type, $numberOfDirs, $verbose, $log ) = @_;
-    die "ERROR: Test data directory not defined\n" unless defined $testDataDirectory;
+    my ( $class, $testDataDirectory, $MB, $type, $numberOfDirs, $verbose, $log )
+      = @_;
+    croak "ERROR: Test data directory not defined\n"
+      unless defined $testDataDirectory;
     my $contentDir = "$testDataDirectory/content";
 
-    if ( ! -d $contentDir ) {
+    if ( !-d $contentDir ) {
         my $success = mkdir $contentDir;
-	if ( ! $success ) {
-	    die "ERROR: Could not create Test data directory: \"$contentDir\"";
-	}
+        if ( !$success ) {
+            croak
+              "ERROR: Could not create Test data directory: \"$contentDir\"";
+        }
     }
     else {
-        my $success = rmtree( $contentDir );
-	if ( ! $success ) {
-	    die "ERROR: Could not clear Test data directory: \"$contentDir\"";
-	}
+        my $success = rmtree($contentDir);
+        if ( !$success ) {
+            croak "ERROR: Could not clear Test data directory: \"$contentDir\"";
+        }
         $success = mkdir $contentDir;
-	if ( ! $success ) {
-	    die "ERROR: Could not create Test data directory: \"$contentDir\"";
-	}
+        if ( !$success ) {
+            croak
+              "ERROR: Could not create Test data directory: \"$contentDir\"";
+        }
     }
-    $MB = 100 unless defined $MB;
-    $type = "text" unless defined $type;
-    $numberOfDirs = 0 unless defined $numberOfDirs;
+    $MB           = 100    unless defined $MB;
+    $type         = "text" unless defined $type;
+    $numberOfDirs = 0      unless defined $numberOfDirs;
     my $wl = new Data::Random::WordList( wordlist => '/usr/share/dict/words' );
-    my $cwl = new Data::Random::WordList( wordlist => 'TestDataBuilder/commonWords.txt' );
-    my $bytes = $MB * 1024 * 1024;
-    my $testData={ BaseDir        => $testDataDirectory,
-                   Bytes          => $bytes,
-		   ContentDir     => $contentDir,
-		   WordList       => $wl,
-		   CommonWordList => $cwl,
-		   Type           => $type,
-		   NumberOfDirs   => $numberOfDirs,
-		   Verbose        => $verbose,
-		   Log            => $log };
+    my $cwl = new Data::Random::WordList(
+        wordlist => 'TestDataBuilder/commonWords.txt' );
+    my $bytes    = $MB * 1024 * 1024;
+    my $testData = {
+        BaseDir        => $testDataDirectory,
+        Bytes          => $bytes,
+        ContentDir     => $contentDir,
+        WordList       => $wl,
+        CommonWordList => $cwl,
+        Type           => $type,
+        NumberOfDirs   => $numberOfDirs,
+        Verbose        => $verbose,
+        Log            => $log
+    };
     bless( $testData, $class );
     return $testData;
 }
+
 #}}}
 
 #{{{sub generateFiles
@@ -212,31 +231,46 @@ Generate files for specified generator.
 
 sub generateFiles {
     my ( $testData, $allDirectories, $generator ) = @_;
-    my $count = 0;
+    my $count         = 0;
     my $sizeGenerated = 0;
-    while ( $sizeGenerated < $testData->{ 'Bytes' } ) {
-        my $size = $fileSizeArray[ $count++ % ( $#fileSizeArray + 1 ) ];
-        my $directory = @{ $allDirectories }[ $count % @{ $allDirectories } ];
-        my $increase = $generator->create(
-	    $size, $directory, "$size.kb.$count",
-	    \$testData->{ WordList }, \$testData->{ CommonWordList } );
-	my $file_created = "$directory/$size.kb.$count." . $generator->{ 'Extension' };
-	# Typically 4k is allocated for file info etc:
-	$sizeGenerated = $sizeGenerated + $increase + 4096;
-	if ( $sizeGenerated > $testData->{ 'Bytes' } ) {
-	    # Last file took us past the limit:
-	    unlink "$file_created";
-	}
-	else {
-            if ( $testData->{ 'Verbose' } >= 1 ) {
-                Sling::Print::print_with_lock( "Created file: \"$file_created\", size \"$size kb\".", $testData->{ 'Log' } );
+    my $verbose =
+      ( defined $testData->{'Verbose'} ? $testData->{'Verbose'} : 0 );
+    while ( $sizeGenerated < $testData->{'Bytes'} ) {
+        my $size      = $fileSizeArray[ $count++ % ( $#fileSizeArray + 1 ) ];
+        my $directory = @{$allDirectories}[ $count % @{$allDirectories} ];
+        my $increase  = $generator->create(
+            $size, $directory, "$size.kb.$count",
+            \$testData->{WordList},
+            \$testData->{CommonWordList}
+        );
+        my $file_created =
+          "$directory/$size.kb.$count." . $generator->{'Extension'};
+
+        # Typically 4k is allocated for file info etc:
+        $sizeGenerated = $sizeGenerated + $increase + 4096;
+        if ( $sizeGenerated > $testData->{'Bytes'} ) {
+
+            # Last file took us past the limit:
+            unlink "$file_created";
+        }
+        else {
+            if ( $verbose >= 1 ) {
+                Sling::Print::print_with_lock(
+                    "Created file: \"$file_created\", size \"$size kb\".",
+                    $testData->{'Log'} );
             }
-            Sling::Print::print_with_lock( "$file_created,$file_created", $testData->{ 'BaseDir' } . "/content_additions.txt" );
-	}
-        if ( $testData->{ 'Verbose' } >= 2 ) {
+            Sling::Print::print_with_lock( "$file_created,$file_created",
+                $testData->{'BaseDir'} . "/content_additions.txt" );
+        }
+        if ( $verbose >= 2 ) {
             Sling::Print::print_with_lock(
-	        "Type \"" . $generator->{ 'Extension' } . "\" created \"$sizeGenerated\" bytes of \"" .
-		$testData->{ 'Bytes' } . "\" total.", $testData->{ 'Log' } );
+                "Type \""
+                  . $generator->{'Extension'}
+                  . "\" created \"$sizeGenerated\" bytes of \""
+                  . $testData->{'Bytes'}
+                  . "\" total.",
+                $testData->{'Log'}
+            );
         }
     }
     return 1;
@@ -255,158 +289,221 @@ Generate test data of the type specified.
 =cut
 
 sub generate {
-    my ( $testData ) = @_;
+    my ($testData) = @_;
 
     # Create content additions file:
-    my $content_data_file = $testData->{ 'BaseDir' } . "/content_additions.txt";
+    my $content_data_file = $testData->{'BaseDir'} . "/content_additions.txt";
     if ( -f $content_data_file ) {
-        my $success = unlink( $content_data_file );
-	die "Could not clear existing content data file" unless $success;
+        my $success = unlink($content_data_file);
+        croak "Could not clear existing content data file" unless $success;
     }
 
     # Create sample content:
-    Sling::Print::print_with_lock( "Creating \"" . $testData->{ 'Bytes' } . "\" bytes of test data in directory: \"" . $testData->{ 'ContentDir' } . "\".", $testData->{ 'Log' });
-    Sling::Print::print_with_lock( "Creating \"" . $testData->{ 'NumberOfDirs' } . "\" directories.", $testData->{ 'Log' } );
-    my @allDirectories = ( $testData->{ ContentDir } );
+    Sling::Print::print_with_lock(
+        "Creating \""
+          . $testData->{'Bytes'}
+          . "\" bytes of test data in directory: \""
+          . $testData->{'ContentDir'} . "\".",
+        $testData->{'Log'}
+    );
+    Sling::Print::print_with_lock(
+        "Creating \"" . $testData->{'NumberOfDirs'} . "\" directories.",
+        $testData->{'Log'} );
+    my @allDirectories = ( $testData->{ContentDir} );
     my %directories;
-    my $depth = 1;
-    my $directories_remaining = $testData->{ 'NumberOfDirs' };
-    foreach my $folderAtDepthPercentage ( @folderDepthPercentages ) {
-	# Finish if there are no more directories to create:
-	my $number_dirs_at_level = $folderAtDepthPercentage * $testData->{ 'NumberOfDirs' } / 100;
-	my @directoriesAtLevel;
-	for ( my $dirCount = 0 ; $dirCount < $number_dirs_at_level ; $dirCount++ ) {
-	    last unless ( $directories_remaining && $testData->{ 'Bytes' } > 0 );
-	    $directories_remaining--;
-	    my $folder_size;
-	    if ( $depth == 1 ) {
-                mkdir $testData->{ ContentDir }."/dir-l$depth-$dirCount";
-		$folder_size = -s $testData->{ ContentDir }."/dir-l$depth-$dirCount";
-		push ( @directoriesAtLevel, $testData->{ ContentDir }."/dir-l$depth-$dirCount" );
-		push ( @allDirectories, $testData->{ ContentDir }."/dir-l$depth-$dirCount" );
-	    }
-	    else {
-	        my $depthAbove = $depth - 1;
-	        my $directoriesAbove = $directories{ $depthAbove };
-		my $numberDirectoriesAbove = @{ $directoriesAbove };
-		my $directoryAbove = $$directoriesAbove[ $dirCount % $numberDirectoriesAbove ];
-		mkdir ( "$directoryAbove/dir-l$depth-$dirCount" );
-		$folder_size = -s "$directoryAbove/dir-l$depth-$dirCount";
-		push ( @directoriesAtLevel, "$directoryAbove/dir-l$depth-$dirCount" );
-		push ( @allDirectories, "$directoryAbove/dir-l$depth-$dirCount" );
-	    }
-	    # each direcory created uses up 4k storage typically:
-	    $testData->{ 'Bytes' } = $testData->{ 'Bytes' } - $folder_size;
-	}
-	$directories{ $depth } = \@directoriesAtLevel;
-	$depth++;
+    my $depth                 = 1;
+    my $directories_remaining = $testData->{'NumberOfDirs'};
+    foreach my $folderAtDepthPercentage (@folderDepthPercentages) {
+
+        # Finish if there are no more directories to create:
+        my $number_dirs_at_level =
+          $folderAtDepthPercentage * $testData->{'NumberOfDirs'} / 100;
+        my @directoriesAtLevel;
+        for (
+            my $dirCount = 0 ;
+            $dirCount < $number_dirs_at_level ;
+            $dirCount++
+          )
+        {
+            if ( !$directories_remaining && $testData->{'Bytes'} <= 0 ) {
+                last;
+            }
+            $directories_remaining--;
+            my $folder_size;
+            if ( $depth == 1 ) {
+                mkdir $testData->{ContentDir} . "/dir-l$depth-$dirCount";
+                $folder_size =
+                  -s $testData->{ContentDir} . "/dir-l$depth-$dirCount";
+                push( @directoriesAtLevel,
+                    $testData->{ContentDir} . "/dir-l$depth-$dirCount" );
+                push( @allDirectories,
+                    $testData->{ContentDir} . "/dir-l$depth-$dirCount" );
+            }
+            else {
+                my $depthAbove             = $depth - 1;
+                my $directoriesAbove       = $directories{$depthAbove};
+                my $numberDirectoriesAbove = @{$directoriesAbove};
+                my $directoryAbove =
+                  $$directoriesAbove[ $dirCount % $numberDirectoriesAbove ];
+                mkdir("$directoryAbove/dir-l$depth-$dirCount");
+                $folder_size = -s "$directoryAbove/dir-l$depth-$dirCount";
+                push( @directoriesAtLevel,
+                    "$directoryAbove/dir-l$depth-$dirCount" );
+                push( @allDirectories,
+                    "$directoryAbove/dir-l$depth-$dirCount" );
+            }
+
+            # each direcory created uses up 4k storage typically:
+            $testData->{'Bytes'} = $testData->{'Bytes'} - $folder_size;
+        }
+        $directories{$depth} = \@directoriesAtLevel;
+        $depth++;
     }
-    Sling::Print::print_with_lock( "Directories Created.", $testData->{ Log } );
-    Sling::Print::print_with_lock( "Generating files of type: \"" . $testData->{ 'Type' } . "\".", $testData->{ Log } );
-    Sling::Print::print_with_lock( "Please be patient, this may take some time.", $testData->{ Log } );
-    if ( $testData->{ 'Type' } =~ /^text$/ ) {
+    Sling::Print::print_with_lock( "Directories Created.", $testData->{Log} );
+    Sling::Print::print_with_lock(
+        "Generating files of type: \"" . $testData->{'Type'} . "\".",
+        $testData->{Log} );
+    Sling::Print::print_with_lock(
+        "Please be patient, this may take some time.",
+        $testData->{Log} );
+    if ( $testData->{'Type'} eq "text" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::Text );
     }
-    elsif ( $testData->{ 'Type' } =~ /^html$/ ) {
+    elsif ( $testData->{'Type'} eq "html" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::HTML );
     }
-    elsif ( $testData->{ 'Type' } =~ /^xml$/ ) {
+    elsif ( $testData->{'Type'} eq "xml" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::XML );
     }
-    elsif ( $testData->{ 'Type' } =~ /^pdf$/ ) {
+    elsif ( $testData->{'Type'} eq "wordxml" ) {
+        $testData->generateFiles( \@allDirectories,
+            new TestDataBuilder::WordXML );
+    }
+    elsif ( $testData->{'Type'} eq "pdf" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::PDF );
     }
-    elsif ( $testData->{ 'Type' } =~ /^rtf$/ ) {
+    elsif ( $testData->{'Type'} eq "rtf" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::RTF );
     }
-    elsif ( $testData->{ 'Type' } =~ /^excel$/ ) {
-        $testData->generateFiles( \@allDirectories, new TestDataBuilder::Excel );
+    elsif ( $testData->{'Type'} eq "docx" ) {
+        $testData->generateFiles( \@allDirectories, new TestDataBuilder::Docx );
     }
-    elsif ( $testData->{ 'Type' } =~ /^excelx$/ ) {
-        $testData->generateFiles( \@allDirectories, new TestDataBuilder::ExcelXML );
+    elsif ( $testData->{'Type'} eq "excel" ) {
+        $testData->generateFiles( \@allDirectories,
+            new TestDataBuilder::Excel );
     }
-    elsif ( $testData->{ 'Type' } =~ /^json$/ ) {
+    elsif ( $testData->{'Type'} eq "excelx" ) {
+        $testData->generateFiles( \@allDirectories,
+            new TestDataBuilder::ExcelXML );
+    }
+    elsif ( $testData->{'Type'} eq "json" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::JSON );
     }
-    elsif ( $testData->{ 'Type' } =~ /^odt$/ ) {
+    elsif ( $testData->{'Type'} eq "odt" ) {
         $testData->generateFiles( \@allDirectories, new TestDataBuilder::ODT );
     }
-    elsif ( $testData->{ 'Type' } =~ /^all$/ ) {
+    elsif ( $testData->{'Type'} eq "all" ) {
+
         # Divide the remaining allocation between the 8 content types:
-	$testData->{ 'Bytes' } = $testData->{ 'Bytes' } / 8;
+        $testData->{'Bytes'} = $testData->{'Bytes'} / 8;
         my @childs = ();
-	my $pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::Text );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::HTML );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::XML );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::PDF );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::RTF );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::Excel );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::ExcelXML );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::JSON );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-	$pid = fork();
-	if ( $pid ) { push( @childs, $pid ); } # parent
-	elsif ( $pid == 0 ) { # child
-            $testData->generateFiles( \@allDirectories, new TestDataBuilder::ODT );
-	    exit( 0 );
-	}
-	else { print "ERROR: Could not fork!\n"; }
-        foreach ( @childs ) { waitpid( $_, 0 ); }
+        my $pid    = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::Text );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::HTML );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::XML );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::WordXML );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::PDF );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::RTF );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::Docx );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::Excel );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::ExcelXML );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::JSON );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        $pid = fork();
+        if ($pid) { push( @childs, $pid ); }    # parent
+        elsif ( $pid == 0 ) {                   # child
+            $testData->generateFiles( \@allDirectories,
+                new TestDataBuilder::ODT );
+            exit(0);
+        }
+        else { print "ERROR: Could not fork!\n"; }
+        foreach (@childs) { waitpid( $_, 0 ); }
     }
     else {
-        die "ERROR: unable to generate data of type: \"" .
-	    $testData->{ 'Type' } . "\".\nSupported types are: " .
-	    "\"text\", \"html\", \"pdf\", \"rtf\", \"xml\", \"excel\", \"json\", \"odt\", \"all\".\n";
-	return 0;
+        croak "ERROR: unable to generate data of type: \""
+          . $testData->{'Type'}
+          . "\".\nSupported types are: "
+          . "\"text\", \"html\", \"pdf\", \"rtf\", \"xml\", \"excel\", \"json\", \"odt\", \"all\".\n";
     }
-    Sling::Print::print_with_lock( "Content data Created.", $testData->{ Log } );
+    Sling::Print::print_with_lock( "Content data Created.", $testData->{Log} );
     return 1;
 }
 
