@@ -31,6 +31,13 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.message.CreateMessagePreProcessor;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingException;
@@ -79,13 +86,39 @@ import javax.servlet.http.HttpServletResponse;
  *                unbind="unbindCreateMessagePreProcessor" cardinality="0..n"
  *                policy="dynamic"
  */
+@ServiceDocumentation(
+    name = "CreateMessageServlet",
+    shortDescription = "Create a message.",
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/message and /_group/message",
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/messagestore", 
+        selectors = @ServiceSelector(name = "create")), 
+    methods = @ServiceMethod(name = "POST",
+        description = "Create a message. <br />" +
+        "A message will only be sent if it has the sakai:messagebox property set to 'sent' and the sakai:sendstate property set to 'pending'. " +
+        "This means the actual sending of a message can be done by just doing a request to a message-node. " +
+        "This servlet will only create message nodes. " + 
+        "All other POST headers sent along in this request will end up as properties on the message-node. <br />" +
+        "Example:<br />" +
+        "curl -d\"sakai:to=internal:user1\" -d\"sakai:subject=Title\" -d\"sakai:type=internal\" -d\"sakai:body=Loremlipsum\" -d\"sakai:messagebox=outbox\" -d\"sakai:category=message\" -d\"sakai:sendstate=pending\" http://user2:test2@localhost:8080/_user/message.create.html",
+        response = {
+          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
+            "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
+          @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
+          @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
+          @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
+        parameters = {
+          @ServiceParameter(name = "sakai:to", description = "Comma seperated list of recipients. A messageroute should be specified for each recipient.eg: sakai:to=interal:admin,smtp:address@email.com. Note that each messageroute has it's own checks!"),
+          @ServiceParameter(name = "sakai:messagebox", description = "This specifies in which box the message is located. Note: This is just a property on the message(=node). The message will not fysicly be saved on a different location. eg: sakai:messagebox=outbox"),
+          @ServiceParameter(name = "sakai:sendstate", description = "The state this message is in. eg: sakai:sendsate=pending") }))
 public class CreateMessageServlet extends SlingAllMethodsServlet {
 
   /**
    *
    */
   private static final long serialVersionUID = 3813877071190736742L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(CreateMessageServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(CreateMessageServlet.class);
 
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
@@ -132,13 +165,15 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
 
     // This is the only check we always do, because to much code handling depends on it.
     if (request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE) == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No type for this message specified.");
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "No type for this message specified.");
       return;
     }
 
     // Get the sakai:type and depending on this type we call a preprocessor.
     // If no preprocessor is found we use the internal one.
-    String type = request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE).getString();
+    String type = request.getRequestParameter(MessageConstants.PROP_SAKAI_TYPE)
+        .getString();
     CreateMessagePreProcessor preProcessor = null;
     preProcessor = processors.get(type);
     if (preProcessor == null) {
@@ -231,7 +266,8 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     };
 
     RequestDispatcherOptions options = new RequestDispatcherOptions();
-    SlingHttpServletResponseWrapper wrappedResponse = new SlingHttpServletResponseWrapper(response) {
+    SlingHttpServletResponseWrapper wrappedResponse = new SlingHttpServletResponseWrapper(
+        response) {
       ServletOutputStream servletOutputStream = new ServletOutputStream() {
 
         @Override
