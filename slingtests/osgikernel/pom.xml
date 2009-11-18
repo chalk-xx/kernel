@@ -94,6 +94,7 @@
         <module>bundles/sling/accessmanager</module>
         <module>bundles/cluster</module>
         <module>bundles/chat</module>
+        <module>bundles/doc</module>
       </modules>
     </profile>
     <profile>

@@ -223,6 +223,11 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
@@ -442,7 +447,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.cluster,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider,org.apache.sling.commons.scheduler</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.cluster,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider,org.apache.sling.commons.scheduler,org.sakaiproject.kernel.doc</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>

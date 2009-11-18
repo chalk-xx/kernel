@@ -29,6 +29,13 @@ import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.apache.sling.jcr.resource.JcrModifiablePropertyMap;
 import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.NodeInputStream;
 import org.slf4j.Logger;
@@ -58,6 +65,31 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * 
  */
+@ServiceDocumentation(name="Get Version Servlet",
+    description="Gets a previous version of a resource",
+    shortDescription="Get a version of a resource",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default"},
+    selectors=@ServiceSelector(name="version", description="Retrieves a named version of a resource, the version specified in the URL"),
+    extensions=@ServiceExtension(name="*", description="All selectors availalble in SLing (jcon, html, xml)")),
+    methods=@ServiceMethod(name="GET",
+        description={"Gets a previous version of a resource. The url is of the form " +
+        		"http://host/resource.version.,versionnumber,.json " +
+        		" where versionnumber is the version number of version to be retrieved. Note that the , " +
+        		"at the start and end of versionnumber" +
+        		" delimit the version number. Once the version of the node requested has been extracted the request " +
+        		" is processed as for other Sling requests ",
+            "Example<br>" +
+            "<pre>curl http://localhost:8080/sresource/resource.version.,1.1,.json</pre>"
+          },
+          response={
+          @ServiceResponse(code=200,description="Success a body is returned"),
+          @ServiceResponse(code=400,description="If the version name is not known."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+
+        )) 
+        
+        
 public class GetVersionServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOG = LoggerFactory.getLogger(GetVersionServlet.class);

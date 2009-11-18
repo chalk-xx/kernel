@@ -22,6 +22,13 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
@@ -47,6 +54,25 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * 
  */
+
+@ServiceDocumentation(name="Save a version Servlet",
+    description="Saves a new version of a resource",
+    shortDescription="List versions of a resource",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default", "selector save"},
+        selectors=@ServiceSelector(name="save", description="Saves  the current version of a resource creating a new version."),
+        extensions=@ServiceExtension(name="json", description="A json tree containing the name of the saved version.")),
+    methods=@ServiceMethod(name="POST",
+        description={"Lists previous versions of a resource. The url is of the form " +
+            "http://host/resource.save.json ",
+            "Example<br>" +
+            "<pre>curl http://localhost:8080/sresource/resource.save.json</pre>"
+        },
+        response={
+          @ServiceResponse(code=200,description="Success a body is returned containing a json ove the name of the version saved"),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
+
 public class SaveVersionServlet extends SlingAllMethodsServlet {
 
 
