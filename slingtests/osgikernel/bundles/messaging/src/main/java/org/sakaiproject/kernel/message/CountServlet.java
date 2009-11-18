@@ -85,8 +85,9 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
           @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
         parameters = {
-          @ServiceParameter(name = "filters", description = "Comma seperated list of recipients. A messageroute should be specified for each recipient.eg: sakai:to=interal:admin,smtp:address@email.com. Note that each messageroute has it's own checks!"),
-          @ServiceParameter(name = "values", description = "This specifies in which box the message is located. Note: This is just a property on the message(=node). The message will not fysicly be saved on a different location. eg: sakai:messagebox=outbox") }))
+          @ServiceParameter(name = "filters", description = "Comma seperated list of properties that should be matched"),
+          @ServiceParameter(name = "values", description = "Comma seperated list of values for each property."),
+          @ServiceParameter(name = "groupedby", description = "Comma seperated list of property names on what to group by.") }))
 
 public class CountServlet extends SlingAllMethodsServlet {
 
