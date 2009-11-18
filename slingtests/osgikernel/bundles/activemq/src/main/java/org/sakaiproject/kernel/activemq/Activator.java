@@ -25,18 +25,10 @@ public class Activator implements BundleActivator {
   private BrokerService broker;
 
   public void start(BundleContext arg0) throws Exception {
-    String brokerUrl = System.getProperty("activemq.broker.url");
-    if (brokerUrl == null) {
-      String brokerProtocol = System.getProperty("activemq.broker.protocol", "tcp");
-      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
-      String brokerPort = System.getProperty("activemq.broker.port", "61616");
-      brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
-    }
-
     broker = new BrokerService();
 
     // configure the broker
-    broker.addConnector(brokerUrl);
+    broker.addConnector("tcp://localhost:61616");
 
     broker.start();
   }
