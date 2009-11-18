@@ -79,6 +79,13 @@ public class OsgiJmsBridge implements EventHandler {
    * Default constructor.
    */
   public OsgiJmsBridge() {
+    brokerUrl = System.getProperty("activemq.broker.url");
+    if (brokerUrl == null) {
+      String brokerProtocol = System.getProperty("activemq.broker.protocol", "vm");
+      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
+      String brokerPort = System.getProperty("activemq.broker.port", "61616");
+      brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
+    }
   }
 
   /**
@@ -92,6 +99,7 @@ public class OsgiJmsBridge implements EventHandler {
    *          be created not using the one passed in.
    */
   protected OsgiJmsBridge(ConnectionFactoryService connFactoryService) {
+    this();
     this.connFactoryService = connFactoryService;
   }
 
