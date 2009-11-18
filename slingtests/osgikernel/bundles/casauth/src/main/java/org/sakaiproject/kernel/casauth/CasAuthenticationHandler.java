@@ -101,12 +101,22 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
       HttpServletResponse response) {
     LOGGER.debug("authenticate called");
     AuthenticationInfo authnInfo = null;
+    // See if we already have auth info on the request
     final HttpSession session = request.getSession(false);
     final Assertion assertion = session != null ? (Assertion) session
         .getAttribute(CONST_CAS_ASSERTION) : null;
     if (assertion != null) {
       LOGGER.debug("assertion found");
       authnInfo = createAuthnInfo(assertion);
+      // See if the user requested forced auth
+    } else if (isForcedAuth(request)) {
+      try {
+        redirectToCas(request, response);
+        authnInfo = AuthenticationInfo.DOING_AUTH;
+      } catch (IOException e) {
+        LOGGER.error(e.getMessage(), e);
+      }
+      // See if the user is already authenticated through CAS
     } else {
       final String serviceUrl = constructServiceUrl(request, response);
       final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
@@ -121,6 +131,10 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
       }
     }
     return authnInfo;
+  }
+
+  private boolean isForcedAuth(HttpServletRequest request) {
+    return (request.getParameter("sling:authRequestLogin") != null);
   }
 
   @SuppressWarnings("unchecked")
@@ -139,6 +153,12 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
   public boolean requestAuthentication(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
     LOGGER.debug("requestAuthentication called");
+    redirectToCas(request, response);
+    return true;
+  }
+
+  private void redirectToCas(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
     final String serviceUrl = constructServiceUrl(request, response);
     final String modifiedServiceUrl;
 
@@ -157,7 +177,6 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
 
     LOGGER.debug("Redirecting to: \"{}\"", urlToRedirectTo);
     response.sendRedirect(urlToRedirectTo);
-    return true;
   }
 
   private AuthenticationInfo getUserFromTicket(String ticket, String serviceUrl,
