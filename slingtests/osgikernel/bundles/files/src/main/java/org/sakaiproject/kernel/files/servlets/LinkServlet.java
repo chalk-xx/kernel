@@ -29,6 +29,10 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.files.LinkHandler;
 import org.sakaiproject.kernel.files.JcrInternalFileHandler;
@@ -51,6 +55,16 @@ import javax.servlet.ServletException;
     @Property(name = "service.description", value = "Links nodes to files."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @Reference(name="LinkHandler", referenceInterface=LinkHandler.class, cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+@ServiceDocumentation(
+    name = "LinkServlet", 
+    shortDescription = "Download the file that this link points to.", 
+    description = "When a user hits a sakai/link the file will be downloaded, or if nescecary the request will be redirected to the appropriate url.", 
+    bindings = @ServiceBinding(
+        type = BindingType.TYPE, 
+        bindings = "sakai/link"
+    ), 
+    methods = @ServiceMethod(name = "GET", description = "Downloads the file.")
+)
 public class LinkServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(LinkServlet.class);
