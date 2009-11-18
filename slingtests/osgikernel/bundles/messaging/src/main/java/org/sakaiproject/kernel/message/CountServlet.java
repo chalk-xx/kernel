@@ -23,6 +23,13 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.slf4j.Logger;
@@ -60,6 +67,27 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.selectors" value="count"
  * @scr.reference interface="org.sakaiproject.kernel.api.message.MessagingService" name="MessagingService"
  */
+@ServiceDocumentation(
+    name = "CountServlet",
+    shortDescription = "Count all the internal messages a user has.",
+    description = "Counts all the internal messaegs a user has.", 
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/messagestore", 
+        selectors = @ServiceSelector(name = "count")), 
+    methods = @ServiceMethod(name = "POST",
+        description = "Count all the internal messages a user has. <br />" +
+        "Example:<br />" +
+        "curl http://admin:admin@localhost:8080/_user/message.count.json",
+        response = {
+          @ServiceResponse(code = 200, description = "The servlet will send a JSON response which holds 2 keys." + 
+            "<ul><li>id: The id for the newly created message.</li><li>message: This is an object which will hold all the key/values for the newly created message.</li></ul>"),
+          @ServiceResponse(code = 400, description = "The request did not contain all the (correct) parameters."),
+          @ServiceResponse(code = 401, description = "The user is not logged. Anonymous users are not allowed to send messages."),
+          @ServiceResponse(code = 500, description = "The server was unable to create the message.")},
+        parameters = {
+          @ServiceParameter(name = "filters", description = "Comma seperated list of recipients. A messageroute should be specified for each recipient.eg: sakai:to=interal:admin,smtp:address@email.com. Note that each messageroute has it's own checks!"),
+          @ServiceParameter(name = "values", description = "This specifies in which box the message is located. Note: This is just a property on the message(=node). The message will not fysicly be saved on a different location. eg: sakai:messagebox=outbox") }))
+
 public class CountServlet extends SlingAllMethodsServlet {
 
   /**
