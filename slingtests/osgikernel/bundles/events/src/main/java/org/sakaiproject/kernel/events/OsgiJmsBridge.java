@@ -112,7 +112,6 @@ public class OsgiJmsBridge implements EventHandler {
    *          be created not using the one passed in.
    */
   protected OsgiJmsBridge(ConnectionFactoryService connFactoryService) {
-    this();
     this.connFactoryService = connFactoryService;
   }
 

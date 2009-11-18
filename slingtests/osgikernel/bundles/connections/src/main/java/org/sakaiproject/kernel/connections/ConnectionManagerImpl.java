@@ -230,7 +230,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       ConnectionState otherState = getConnectionState(otherNode);
       StatePair sp = stateMap.get(tk(thisState, otherState, operation));
       if (sp == null) {
-        throw new ConnectionException(400, "Cant perform operation "
+        throw new ConnectionException(400, "Cannot perform operation "
             + operation.toString() + " on " + thisState.toString() + ":"
             + otherState.toString());
       }

@@ -25,6 +25,11 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.IOUtils;
 
@@ -45,6 +50,15 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Stream the file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(
+   name = "FileServlet",
+   shortDescription = "Streams a file too the browser",
+   description = "Streams a file too the browser.",
+   bindings = @ServiceBinding(
+       type = BindingType.TYPE,
+       bindings = "sakai/file"
+   )
+)
 public class FileServlet extends SlingAllMethodsServlet {
 
   /**
