@@ -74,17 +74,30 @@ public class OsgiJmsBridge implements EventHandler {
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
+  private String cliBrokerUrl;
 
   /**
    * Default constructor.
    */
   public OsgiJmsBridge() {
-    brokerUrl = System.getProperty("activemq.broker.url");
-    if (brokerUrl == null) {
-      String brokerProtocol = System.getProperty("activemq.broker.protocol", "vm");
-      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
-      String brokerPort = System.getProperty("activemq.broker.port", "61616");
-      brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
+    cliBrokerUrl = System.getProperty("activemq.broker.url");
+    if (cliBrokerUrl == null) {
+      String brokerProtocol = System.getProperty("activemq.broker.protocol");
+      String brokerHost = System.getProperty("activemq.broker.host");
+      String brokerPort = System.getProperty("activemq.broker.port");
+
+      if (brokerProtocol != null || brokerHost != null || brokerPort != null) {
+        if (brokerProtocol == null) {
+          brokerProtocol = "vm";
+        }
+        if (brokerHost == null) {
+          brokerHost = "localhost";
+        }
+        if (brokerPort == null) {
+          brokerPort = "61616";
+        }
+        cliBrokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
+      }
     }
   }
 
@@ -121,11 +134,18 @@ public class OsgiJmsBridge implements EventHandler {
         "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
         new Object[] { _brokerUrl, transacted, acknowledgeMode, connectionClientId });
 
-    boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-    if (!urlEmpty) {
-      if (diff(brokerUrl, _brokerUrl)) {
-        LOGGER.info("Creating a new ActiveMQ Connection Factory");
-        connFactory = connFactoryService.createFactory(_brokerUrl);
+    if (brokerUrl == null && cliBrokerUrl != null) {
+      LOGGER.info("Creating a new ActiveMQ Connection Factory");
+      connFactory = connFactoryService.createFactory(_brokerUrl);
+      brokerUrl = cliBrokerUrl;
+    } else {
+      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+      if (!urlEmpty) {
+        if (diff(brokerUrl, _brokerUrl)) {
+          LOGGER.info("Creating a new ActiveMQ Connection Factory");
+          connFactory = connFactoryService.createFactory(_brokerUrl);
+          brokerUrl = _brokerUrl;
+        }
       }
     }
 
@@ -134,7 +154,6 @@ public class OsgiJmsBridge implements EventHandler {
       LOGGER.error(msg);
       throw new RuntimeException(msg);
     }
-    brokerUrl = _brokerUrl;
 
     // may want to consider getting this connection from a pool but activity
     // is expected to be high enough that the connection will be used almost
