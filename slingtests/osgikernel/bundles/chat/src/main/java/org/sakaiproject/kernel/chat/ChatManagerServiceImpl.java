@@ -66,7 +66,8 @@ public class ChatManagerServiceImpl implements ChatManagerService {
    */
   public boolean checkUpdate(String userID, long time) {
     Cache<Long> cache = getCachedMap();
-    if (cache.containsKey(userID) && !cache.get(userID).equals(time)) {
+    if (cache.containsKey(userID) && cache.get(userID) != null
+        && !cache.get(userID).equals(time)) {
       // Apparently there is a new chat message.
       return true;
     }
