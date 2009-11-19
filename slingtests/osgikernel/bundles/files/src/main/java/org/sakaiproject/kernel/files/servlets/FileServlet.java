@@ -32,6 +32,8 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,13 +53,18 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Stream the file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @ServiceDocumentation(
-   name = "FileServlet",
-   shortDescription = "Streams a file too the browser",
-   description = "Streams a file too the browser.",
-   bindings = @ServiceBinding(
-       type = BindingType.TYPE,
-       bindings = "sakai/file"
-   )
+    name = "FileServlet", 
+    shortDescription = "Streams a file too the browser", 
+    description = "Streams a file too the browser.", 
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/file"),
+    methods = @ServiceMethod(
+        name = "GET", 
+        description = "Download a file.", 
+        response = {
+            @ServiceResponse(code = 200, description = "Download succeeded."),
+            @ServiceResponse(code = 500, description = "Download failed.")
+        }
+    )
 )
 public class FileServlet extends SlingAllMethodsServlet {
 
@@ -65,6 +72,7 @@ public class FileServlet extends SlingAllMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -6591047521699263996L;
+  public static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -85,20 +93,21 @@ public class FileServlet extends SlingAllMethodsServlet {
       if (node.hasProperty(FilesConstants.SAKAI_FILENAME)) {
         filename = node.getProperty(FilesConstants.SAKAI_FILENAME).getString();
       }
+
+      // If we provided a filename and we haven't changed the name in a previous request.
+      if (filename != null && !response.containsHeader("Content-Disposition")) {
+        response.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
+      }
+
+      response.setStatus(HttpServletResponse.SC_OK);
+      InputStream in = (InputStream) request.getResource().adaptTo(InputStream.class);
+      OutputStream out = response.getOutputStream();
+
+      IOUtils.stream(in, out);
     } catch (RepositoryException e) {
-      // TODO Auto-generated catch block
+      logger.warn("Unable to download file due to repositoryexception!");
       e.printStackTrace();
+      response.sendError(500);
     }
-
-    // If we provided a filename and we haven't changed the name in a previous request.
-    if (filename != null && !response.containsHeader("Content-Disposition")) {
-      response.setHeader("Content-Disposition", "filename=\"" + filename + "\"");
-    }
-
-    response.setStatus(HttpServletResponse.SC_OK);
-    InputStream in = (InputStream) request.getResource().adaptTo(InputStream.class);
-    OutputStream out = response.getOutputStream();
-
-    IOUtils.stream(in, out);
   }
 }

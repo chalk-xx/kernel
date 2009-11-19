@@ -32,6 +32,7 @@ import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.files.search.FileSearchBatchResultProcessor;
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ import javax.servlet.ServletException;
     bindings = @ServiceBinding(
         type = BindingType.TYPE,
         bindings = "sakai/folder",
-        extensions = @ServiceExtension(
+        selectors = @ServiceSelector(
             name = "files", 
             description = "Get all files underneath this folder."
         )
