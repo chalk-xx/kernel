@@ -46,7 +46,7 @@ public class Activator implements BundleActivator {
   }
 
   public void stop(BundleContext arg0) throws Exception {
-    if (broker != null) {
+    if (broker != null && broker.isStarted()) {
       broker.stop();
     }
   }
