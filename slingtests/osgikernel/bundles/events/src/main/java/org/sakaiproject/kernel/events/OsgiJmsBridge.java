@@ -86,6 +86,10 @@ public class OsgiJmsBridge implements EventHandler {
       String brokerHost = System.getProperty("activemq.broker.host");
       String brokerPort = System.getProperty("activemq.broker.port");
 
+      // check for any non-null entries. Do this check separately without
+      // specifying defaults so that we can determine if command line parameters
+      // were specified and if not, use the parameters from the config
+      // properties.
       if (brokerProtocol != null || brokerHost != null || brokerPort != null) {
         if (brokerProtocol == null) {
           brokerProtocol = "vm";
