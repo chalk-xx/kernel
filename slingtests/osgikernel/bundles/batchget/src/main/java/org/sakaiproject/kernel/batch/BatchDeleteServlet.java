@@ -21,6 +21,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.util.URIExpander;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -48,6 +54,39 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.paths" value="/system/batch/delete"
  * @scr.property name="sling.servlet.methods" value="POST"
  */
+@ServiceDocumentation(
+    name = "BatchDeleteServlet",
+    shortDescription = "Deletes multiple resource in one request.",
+    description = "Allows you to delete multiple resources in one single request.",
+    bindings = @ServiceBinding(
+        type = BindingType.PATH,
+        bindings = "/system/batch/delete"
+    ),
+    methods = @ServiceMethod(
+        name = "GET", 
+        description = "Get multiple resource requests into a single response.",
+        parameters = @ServiceParameter(
+            name = "resources",
+            description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
+                "<pre>curl -d\"resources=/_user/public/admin/fileA.doc\" -d\"resources=/_user/public/admin/fileA.doc\" -G http://admin:admin@localhost:8080/system/batch/delete</pre>"
+        ),
+        response = {@ServiceResponse(
+            code = 200,
+            description = "Looped over all the resources and attempted to delete each one.<br />" +
+            		"This will return a JSON array with an object for each resource. This object will have a path and succes key.<br />" +
+            		"The success key can be one of the following:" +
+            		"<ul><li>200: Resource was removed succesfully.</li>" +
+            		"<li>401: Current user does not have appropriate accessrights to this resource.</li>" +
+            		"<li>404: This resource was not found.</li>" +
+            		"<li>500: Something went wrong.</li>"
+          ),
+          @ServiceResponse(
+              code = 500,
+              description = "Unable to parse a proper JSON string."
+            )
+        }
+    )
+)
 public class BatchDeleteServlet extends SlingAllMethodsServlet {
 
   public static final Logger log = LoggerFactory.getLogger(BatchDeleteServlet.class);

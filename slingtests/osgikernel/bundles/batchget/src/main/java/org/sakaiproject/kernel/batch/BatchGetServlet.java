@@ -24,6 +24,12 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +52,35 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.paths" value="/system/batch"
  * @scr.property name="sling.servlet.methods" value="GET"
  */
+@ServiceDocumentation(
+    name = "BatchGetServlet",
+    shortDescription = "Bundles multiple resource requests into a single response.",
+    description = "Allows you to fetch multiple resources in one single request.",
+    bindings = @ServiceBinding(
+        type = BindingType.PATH,
+        bindings = "/system/batch"
+    ),
+    methods = @ServiceMethod(
+        name = "GET", 
+        description = "Get multiple resource requests into a single response.",
+        parameters = @ServiceParameter(
+            name = "resources",
+            description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
+            		"<pre>curl -d\"resources=/dev.json\" -d\"resources=/devwidgets.json\" -G http://localhost:8080/system/batch</pre>"
+        ),
+        response = {@ServiceResponse(
+            code = 200,
+            description = "All requests are succesfull. <br />" +
+                "A JSON array is returning which holds an object for each resource. Example:" +
+                "<pre></pre>"
+          ),
+          @ServiceResponse(
+              code = 500,
+              description = "Unable to get and parse all the requests."
+            )
+        }
+    )
+)
 public class BatchGetServlet extends SlingAllMethodsServlet {
 
   /**
