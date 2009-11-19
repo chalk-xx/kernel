@@ -27,6 +27,13 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.slf4j.Logger;
@@ -41,12 +48,49 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Create a jcrinternal link to a file.
+ * Create an interal jcr link to a file.
  */
 @SlingServlet(methods = { "POST" }, selectors = { "link" }, resourceTypes = { "sakai/file" })
 @Properties(value = {
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(
+    name = "FileCreateLinkServlet", 
+    shortDescription = "Create an interal jcr link to a file.",
+    bindings = @ServiceBinding(
+        type = BindingType.TYPE,
+        selectors = @ServiceSelector(name="link", description = "Create an interal jcr link to a file."),
+        bindings = "sakai/file"
+    ),
+    methods = {@ServiceMethod(
+        name = "POST", 
+        description = "Create one or more links for a file.",
+        parameters = {
+            @ServiceParameter(
+                name="link", 
+                description="Required: absolute path where you want to create a link for the file. " +
+                		"This can be multivalued. It has to be the same size as the site parameter though."),
+            @ServiceParameter(
+                name="site", 
+                description="Required: absolute path to a site that should be associated with this file. " +
+                		"This can be multivalued. It has to be the same size as the link parameter though.")
+        },
+        response = {
+            @ServiceResponse(
+                code = 200, 
+                description = "Everything went OK.<br />" +
+                    "The body will also contain a JSON response that lists all the links and if they were sucesfully created or not."),
+            @ServiceResponse(
+                code = 400,
+                description = "Filedata parameter was not provided."
+            ),
+            @ServiceResponse(
+                code = 500,
+                description = "Failure with HTML explanation."
+            )
+        }
+    )}
+)
 public class FileCreateLinkServlet extends SlingAllMethodsServlet {
 
   public static final Logger log = LoggerFactory.getLogger(FileCreateLinkServlet.class);

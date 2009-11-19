@@ -30,6 +30,13 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
@@ -54,6 +61,48 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Servlet to allow uploading of files to the store."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(
+    name = "FilesUploadServlet", 
+    shortDescription = "Upload a file in the repository.",
+    bindings = @ServiceBinding(
+        type = BindingType.TYPE,
+        selectors = @ServiceSelector(name="upload", description = "Upload one or more files."),
+        bindings = "sakai/files"
+    ),
+    methods = {@ServiceMethod(
+        name = "POST", 
+        description = "Upload one or more files to the repository. " +
+    		"By default there is a filestore at /_user/files",
+    		parameters = {
+            @ServiceParameter(
+                name="Filedata", 
+                description="Required: the parameter that holds the actual data for the file that should be uploaded. This can be multivalued."),
+            @ServiceParameter(
+                name="link", 
+                description="Optional: absolute path where you want to create a link for the uploaded file(s).<br />" +
+            		"If this is a multiple file upload then there will be a link for each file at this directory.<br />" +
+            		"The link will have the same name as the uploaded file."),
+            @ServiceParameter(
+                name="site", 
+                description="Optional: the absolute path to a site that should be associated with this file.")
+        },
+        response = {
+            @ServiceResponse(
+                code = 200, 
+                description = "Everything went OK and all the files (and associated links) were created.<br />" +
+                		"The body will also contain a JSON response holding 2 keys. 'files' and 'links'.<br />" +
+                		"Each is an array with the respective properties for both."),
+        		@ServiceResponse(
+                code = 400,
+                description = "Filedata parameter was not provided."
+            ),
+            @ServiceResponse(
+                code = 500,
+                description = "Failure with HTML explanation."
+            )
+        }
+    )}
+)
 public class FilesUploadServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOG = LoggerFactory.getLogger(FilesUploadServlet.class);
