@@ -33,6 +33,7 @@ import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.files.LinkHandler;
 import org.sakaiproject.kernel.files.JcrInternalFileHandler;
@@ -63,7 +64,14 @@ import javax.servlet.ServletException;
         type = BindingType.TYPE, 
         bindings = "sakai/link"
     ), 
-    methods = @ServiceMethod(name = "GET", description = "Downloads the file.")
+    methods = @ServiceMethod(
+        name = "GET", 
+        description = "Downloads the file.",
+        response = {
+            @ServiceResponse(code = 200, description = "User was succesfully linked to the real download (can be file/url)."),
+            @ServiceResponse(code = 500, description = "Failed to redirect, explanation in HTML.")
+        }
+    )
 )
 public class LinkServlet extends SlingAllMethodsServlet {
 
