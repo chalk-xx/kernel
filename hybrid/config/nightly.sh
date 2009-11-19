@@ -1,9 +1,13 @@
-#!/bin/sh
-# automatic error checking; i.e. exit on any error
-set -e
+#!/bin/bash
+
 #Sakai 2+3 Hybrid Nightly
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 # and svn info https://source.caret.cam.ac.uk/camtools
+
+# Treat unset variables as an error when performing parameter expansion
+set -o nounset
+# Exit immediately if a simple command exits with a non-zero status
+set -o errexit
 
 # environment
 source /etc/profile
@@ -18,6 +22,14 @@ export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
 export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
 BUILD_DATE=`date "+%D %R"`
 cd $BUILD_DIR
+
+# ensure logs directory exists
+if [ ! -d $BUILD_DIR/logs ]
+then
+	mkdir $BUILD_DIR/logs
+else
+	echo "$BUILD_DIR/logs already exists - probably should clean"
+fi
 
 # shutdown all running instances
 killall -9 java
@@ -52,7 +64,7 @@ mvn clean install -Dmaven.test.skip=true
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java -jar org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - > $BUILD_DIR/sakai3/log.txt 2>&1 &
+java -jar org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-log.txt 2>&1 &
 
 # untar tomcat
 cd $BUILD_DIR
