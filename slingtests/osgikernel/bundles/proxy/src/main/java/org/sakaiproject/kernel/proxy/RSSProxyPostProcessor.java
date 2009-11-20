@@ -17,11 +17,6 @@
  */
 package org.sakaiproject.kernel.proxy;
 
-import com.ctc.wstx.api.InvalidCharHandler;
-import com.ctc.wstx.api.WstxOutputProperties;
-import com.ctc.wstx.stax.WstxInputFactory;
-import com.ctc.wstx.stax.WstxOutputFactory;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -46,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
@@ -61,7 +57,7 @@ import javax.xml.stream.events.XMLEvent;
     @Property(name = "service.description", value = "Post processor who checks if requests are valid RSS requests.") })
 public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
-  private WstxInputFactory xmlInputFactory;
+  private XMLInputFactory xmlInputFactory;
 
   private static final int MAX_RSS_LENGTH = 10000000;
   public static final Logger logger = LoggerFactory
@@ -70,11 +66,10 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
   private List<String> contentTypes;
 
   protected void activate(ComponentContext ctxt) {
-    xmlInputFactory = new WstxInputFactory();
+    xmlInputFactory = XMLInputFactory.newInstance();
     xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
     xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
-    xmlInputFactory.configureForConvenience();
-
+    
     contentTypes = new ArrayList<String>();
     contentTypes.add("application/rss+xml");
     contentTypes.add("application/rdf+xml");
@@ -151,11 +146,11 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       checkedElements.put("title", false);
       checkedElements.put("link", false);
 
-      WstxOutputFactory outputFactory = new WstxOutputFactory();
-      outputFactory.configureForRobustness();
-      outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
-          new InvalidCharHandler.ReplacingHandler(' '));
-      outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT, true);
+      XMLOutputFactory outputFactory =  XMLOutputFactory.newInstance();
+      //outputFactory.configureForRobustness();
+      //outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
+      //    new InvalidCharHandler.ReplacingHandler(' '));
+      //outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT, true);
 
       // writer = outputFactory.createXMLStreamWriter(response.getOutputStream());
       writer = outputFactory.createXMLEventWriter(response.getOutputStream());
