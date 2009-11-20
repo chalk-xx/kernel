@@ -113,7 +113,7 @@ echo "samigo.answerUploadRepositoryPath= /tmp/sakai2-hybrid/" >> sakai2-demo/sak
 echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
 echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication=true" >> sakai2-demo/sakai/sakai.properties
-echo "login.k2.authentication.vaildateUrl=http://localhost:8080/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
+echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
 
 # start sakai 2 tomcat
 echo "Starting sakai2 instance..."
