@@ -6,9 +6,9 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.userdirectory</artifactId>
+  <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Kernel User Directory Bundle</name>
+  <name>Sakai Kernel Person Directory Bundle</name>
   <version>0.1-SNAPSHOT</version>
   <build>
     <plugins>
@@ -30,25 +30,23 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-        <id>jasig</id>
-        <url>http://developer.jasig.org/repo/content/repositories/m2/</url>
-        <releases>
-           <enabled>true</enabled>
-        </releases>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>
-     </repository>
-  </repositories>
-
   <dependencies>
 <!-- annotations -->
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+<!-- kernel -->
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
 <!-- sling -->
@@ -77,33 +75,10 @@
     </dependency>
 
 <!-- logging -->
+    <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-<!-- person directory -->
-    <dependency>
-      <groupId>org.jasig.service</groupId>
-      <artifactId>person-directory-api</artifactId>
-      <version>1.5.0-RC6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jasig.service</groupId>
-      <artifactId>person-directory-impl</artifactId>
-      <version>1.5.0-RC6</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.ldap</groupId>
-      <artifactId>spring-ldap</artifactId>
-      <version>1.2.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
