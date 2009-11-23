@@ -83,7 +83,8 @@ import org.slf4j.LoggerFactory;
            @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
-        })public class PresenceGetServlet extends SlingAllMethodsServlet {
+        })
+public class PresenceGetServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PresenceGetServlet.class);
 
