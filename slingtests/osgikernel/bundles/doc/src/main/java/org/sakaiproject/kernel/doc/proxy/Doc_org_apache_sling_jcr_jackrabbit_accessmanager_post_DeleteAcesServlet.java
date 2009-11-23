@@ -20,7 +20,6 @@ package org.sakaiproject.kernel.doc.proxy;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
-import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
@@ -38,7 +37,7 @@ import org.sakaiproject.kernel.api.doc.ServiceResponse;
     methods = { 
          @ServiceMethod(name = "POST", 
              description = {
-                 "Processes the GET to a resource of type sling:redirect"
+                 "Processes the list of princiapls for the resource."
              },
              parameters={
              @ServiceParameter(name=":applyTo", description="A list of principal ID's to be deleted from the ACL on the node.")
