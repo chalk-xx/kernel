@@ -6,11 +6,8 @@
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
-# Exit immediately if a simple command exits with a non-zero status
-set -o errexit
 
 # environment
-source /etc/profile
 export PATH=/usr/local/bin:$PATH
 export BUILD_DIR="/home/hybrid"
 export JAVA_HOME=/opt/jdk1.6.0_17
@@ -20,21 +17,23 @@ export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
 export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
+export K2_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 BUILD_DATE=`date "+%D %R"`
-cd $BUILD_DIR
 
 # ensure logs directory exists
 if [ ! -d $BUILD_DIR/logs ]
 then
 	mkdir $BUILD_DIR/logs
-else
-	echo "$BUILD_DIR/logs already exists - probably should clean"
 fi
 
 # shutdown all running instances
 killall -9 java
 
+# Exit immediately if a simple command exits with a non-zero status
+set -o errexit
+
 # clean previous builds
+cd $BUILD_DIR
 rm -rf sakai
 rm -rf kernel
 rm -rf sakai2-demo
@@ -45,9 +44,9 @@ rm -rf ~/.m2/repository/
 # build sling/trunk
 # not needed as long as hudson builds are getting deployed to apache-snapshot repo
 # org.apache.sling.launchpad.base-2.0.5-SNAPSHOT-app.jar cannot be found - build sling
-echo "Building slink/trunk..."
+echo "Building sling/trunk..."
 cd $BUILD_DIR
-svn checkout -q http://svn.apache.org/repos/asf/sling/trunk sling
+svn export -q http://svn.apache.org/repos/asf/sling/trunk sling
 cd sling
 mvn clean install -Dmaven.test.skip=true
 rm -rf sling
@@ -64,7 +63,7 @@ mvn clean install -Dmaven.test.skip=true
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java -jar org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-log.txt 2>&1 &
+java $K2_OPTS -jar org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # untar tomcat
 cd $BUILD_DIR
@@ -74,7 +73,7 @@ mkdir sakai2-demo/sakai
 
 # build kernel 1
 echo "Building k1/trunk..."
-svn checkout -q https://source.sakaiproject.org/svn/kernel/trunk/ kernel
+svn export -q https://source.sakaiproject.org/svn/kernel/trunk/ kernel
 cd kernel
 mvn clean install -Dmaven.test.skip=true
 cd ..
@@ -115,7 +114,7 @@ echo "samigo.answerUploadRepositoryPath= /tmp/sakai2-hybrid/" >> sakai2-demo/sak
 echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
 echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication=true" >> sakai2-demo/sakai/sakai.properties
-echo "login.k2.authentication.vaildateUrl=http://localhost:8080/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
+echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
 
 # start sakai 2 tomcat
 echo "Starting sakai2 instance..."

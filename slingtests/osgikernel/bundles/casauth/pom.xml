@@ -107,7 +107,6 @@
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
       <version>0.1-SNAPSHOT</version>
-      <type>bundle</type>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
