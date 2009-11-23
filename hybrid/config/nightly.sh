@@ -15,7 +15,7 @@ export PATH=$JAVA_HOME/bin:${PATH}
 export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
-export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
+export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
 export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
 export K2_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 BUILD_DATE=`date "+%D %R"`
