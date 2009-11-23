@@ -34,6 +34,7 @@
         <module>app-bundles</module>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
+        <module>bundles/casauth</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/ldap</module>

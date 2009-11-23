@@ -261,6 +261,10 @@ public class OsgiJmsBridgeTest {
     // handling.
     sess = createMock(Session.class);
     expect(conn.createSession(false, Session.AUTO_ACKNOWLEDGE)).andReturn(sess);
+    sess.run();
+    expectLastCall();
+    conn.start();
+    expectLastCall();
     sess.close();
     expectLastCall();
 
@@ -273,9 +277,10 @@ public class OsgiJmsBridgeTest {
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
     sendMessage(props);
+    bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
-    verify(ctx, connFactory);
+    verify(ctx, conn, connFactory);
   }
 
   /**

@@ -111,11 +111,13 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 			LOG.warn("Site not found: " + siteId, e);
 			sendError(resp, HttpServletResponse.SC_NOT_FOUND,
 					"HttpServletResponse.SC_NOT_FOUND: " + siteId);
+			return;
 		} catch (PermissionException e) {
 			LOG.warn("Permission denied: " + principal
 					+ " could not access site " + siteId, e);
 			sendError(resp, HttpServletResponse.SC_FORBIDDEN,
 					"HttpServletResponse.SC_FORBIDDEN");
+			return;
 		}
 		if (site != null) { // normal program flow
 			final JSONObject json = new JSONObject();
@@ -202,6 +204,7 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 		} else {
 			sendError(resp, HttpServletResponse.SC_NOT_FOUND,
 					"HttpServletResponse.SC_NOT_FOUND: " + siteId);
+			return;
 		}
 	}
 
