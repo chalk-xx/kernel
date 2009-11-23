@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.kernel.proxy;
 
+import com.ctc.wstx.stax.WstxInputFactory;
+import com.ctc.wstx.stax.WstxOutputFactory;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -59,6 +63,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
   private XMLInputFactory xmlInputFactory;
 
+  // Maximum size is 10 megabyte.
   private static final int MAX_RSS_LENGTH = 10000000;
   public static final Logger logger = LoggerFactory
       .getLogger(RSSProxyPostProcessor.class);
@@ -66,10 +71,10 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
   private List<String> contentTypes;
 
   protected void activate(ComponentContext ctxt) {
-    xmlInputFactory = XMLInputFactory.newInstance();
+    xmlInputFactory = new WstxInputFactory();
     xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
     xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
-    
+
     contentTypes = new ArrayList<String>();
     contentTypes.add("application/rss+xml");
     contentTypes.add("application/rdf+xml");
@@ -96,13 +101,8 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       throws IOException {
     Map<String, String[]> headers = proxyResponse.getResponseHeaders();
 
-    // Check if the content-length is smaller than the maximum.
+    // Check if the content-length is smaller than the maximum (if any).
     String[] header = headers.get("Content-Length");
-    // if (header == null) {
-    // response.sendError(HttpServletResponse.SC_FORBIDDEN,
-    // "No Content-Length header found, rejecting request.");
-    // return;
-    // }
     if (header != null) {
       int length = Integer.parseInt(header[0]);
       if (length > MAX_RSS_LENGTH) {
@@ -112,7 +112,7 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       }
     }
 
-    // Check if the Content-Type we get is valid.
+    // Check if the Content-Type we get is valid (if any).
     String contentType = headers.get("Content-Type")[0];
     if (header != null) {
       if (contentType.contains(";")) {
@@ -131,10 +131,12 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
     // XMLStreamWriter writer = null;
     XMLEventWriter writer = null;
+    ByteArrayOutputStream out = null;
 
     try {
-      // XMLStreamReader streamReader = xmlInputFactory.createXMLStreamReader(reader);
       XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(reader);
+      // Create a temporary outputstream where we can write to.
+      out = new ByteArrayOutputStream();
 
       int i = 0;
       Map<String, Boolean> checkedElements = new HashMap<String, Boolean>();
@@ -146,19 +148,12 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
       checkedElements.put("title", false);
       checkedElements.put("link", false);
 
-      XMLOutputFactory outputFactory =  XMLOutputFactory.newInstance();
-      //outputFactory.configureForRobustness();
-      //outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_INVALID_CHAR_HANDLER,
-      //    new InvalidCharHandler.ReplacingHandler(' '));
-      //outputFactory.setProperty(WstxOutputProperties.P_OUTPUT_FIX_CONTENT, true);
-
-      // writer = outputFactory.createXMLStreamWriter(response.getOutputStream());
-      writer = outputFactory.createXMLEventWriter(response.getOutputStream());
+      XMLOutputFactory outputFactory = new WstxOutputFactory();
+      writer = outputFactory.createXMLEventWriter(out);
 
       while (eventReader.hasNext()) {
         XMLEvent e = eventReader.nextEvent();
-        // Stream it to the user.
-        // e.writeAsEncodedUnicode(response.getWriter());
+        // Stream it to an output stream.
         writer.add(e);
 
         if (!isValid) {
@@ -182,8 +177,8 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
           }
 
           if (i > 100) {
-            response.reset();
-            response.sendError(500, "Invalid RSS.");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                "This file does not match an RSS formatted XML file..");
             break;
           }
           i++;
@@ -194,30 +189,39 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
         response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid RSS file.");
         return;
       }
+      
+      // Check if we are not streaming a gigantic file..
+      if (out.size() > MAX_RSS_LENGTH) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "This file is to big.");
+        return;
+      }
+      
       for (Entry<String, String[]> h : proxyResponse.getResponseHeaders().entrySet()) {
         for (String v : h.getValue()) {
           response.setHeader(h.getKey(), v);
         }
       }
-      int code = proxyResponse.getResultCode();
-      response.setStatus(code);
+      // We always return 200 when we get to this point.
+      response.setStatus(200);
+      response.setHeader("Content-Length", "" + out.size());
+      // Write the cached stream to the output.
+      out.writeTo(response.getOutputStream());
 
     } catch (XMLStreamException e) {
-      logger.warn("Exception reading RSS feed.");
-      e.printStackTrace();
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid RSS file.");
+      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+          "This is not a valid XML file.");
     } catch (Exception e) {
       logger.warn("Exception reading RSS feed.");
-      e.printStackTrace();
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid RSS file.");
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, "General exception caught.");
     } finally {
+      out.close();
+      reader.close();
       try {
         writer.close();
       } catch (XMLStreamException e) {
-        // TODO Auto-generated catch block
+        // Not much we can do?
         e.printStackTrace();
       }
-      reader.close();
     }
 
   }

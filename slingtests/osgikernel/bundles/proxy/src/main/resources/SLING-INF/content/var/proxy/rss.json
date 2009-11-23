@@ -3,6 +3,7 @@
     "sakai:request-proxy-endpoint": "${rss}",
     "sakai:request-proxy-method": "GET",
     "sakai:postprocessor": "rss",
+    "sakai:preprocessor": "rss",
     "sakai:title" : "Get an RSS feed.",
     "sakai:description" : ["Get the xml from an rss feed."]
 }

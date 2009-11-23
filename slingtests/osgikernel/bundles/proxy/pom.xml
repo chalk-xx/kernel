@@ -30,7 +30,7 @@
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*,!kaffe.rmi.*,!org.apache.bsf,org.apache.tools.ant.*;resolution:=optional,!org.apache.bcel.*,!org.jdom.*,!org.apache.avalon.*,*</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro</Embed-Dependency>
+            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,oro,woodstox-core-asl,stax2-api,relaxngDatatype</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -44,7 +44,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro</includeArtifactIds>
+              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,woodstox-core-asl,stax2-api,relaxngDatatype</includeArtifactIds>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>
@@ -191,6 +191,11 @@
     	<groupId>org.codehaus.woodstox</groupId>
     	<artifactId>woodstox-core-asl</artifactId>
     	<version>4.0.6</version>
+    </dependency>
+    <dependency>
+    	<groupId>relaxngDatatype</groupId>
+    	<artifactId>relaxngDatatype</artifactId>
+    	<version>20020414</version>
     </dependency>
   </dependencies>
 </project>
