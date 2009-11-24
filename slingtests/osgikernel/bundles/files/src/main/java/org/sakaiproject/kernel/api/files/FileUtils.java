@@ -55,6 +55,7 @@ import javax.jcr.Value;
 // TODO: Javadoc
 public class FileUtils {
 
+  private static final int MAX_PREVIEW_SIZE = 10240;
   public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
   /**
@@ -106,7 +107,7 @@ public class FileUtils {
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
         log.info(Calendar.getInstance().toString());
-        
+
         if (session.hasPendingChanges()) {
           session.save();
         }
@@ -334,11 +335,30 @@ public class FileUtils {
       Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
       write.value(FilesConstants.DATEFORMAT.format(cal));
       write.key(FilesConstants.SAKAI_MIMETYPE);
-      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
+      String mimetype = contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString();
+      write.value(mimetype);
 
       if (contentNode.hasProperty(JcrConstants.JCR_DATA)) {
+        long filesize = contentNode.getProperty(JcrConstants.JCR_DATA).getLength();
         write.key("filesize");
-        write.value(contentNode.getProperty(JcrConstants.JCR_DATA).getLength());
+        write.value(filesize);
+        if (mimetype.startsWith("text/") && filesize < MAX_PREVIEW_SIZE) {
+          write.key("preview");
+          InputStream stream = null;
+          try {
+            stream = contentNode.getProperty(JcrConstants.JCR_DATA).getStream();
+            write.value(org.apache.commons.io.IOUtils.toString(stream));
+          } catch (IOException e) {
+            log.warn("Unable to read file and output it.");
+          } finally {
+            try {
+              stream.close();
+            } catch (IOException e) {
+              // Not much we can do.
+              e.printStackTrace();
+            }
+          }
+        }
       }
     }
 
