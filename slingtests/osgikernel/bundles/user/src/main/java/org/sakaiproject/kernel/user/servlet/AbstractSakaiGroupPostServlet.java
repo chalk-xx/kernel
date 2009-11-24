@@ -28,9 +28,7 @@ import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourc
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.sakaiproject.kernel.api.user.GroupModification;
 import org.sakaiproject.kernel.api.user.UserConstants;
-import org.sakaiproject.kernel.api.user.UserModification;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
