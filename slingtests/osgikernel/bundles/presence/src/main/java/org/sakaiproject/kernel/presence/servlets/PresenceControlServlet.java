@@ -27,6 +27,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +54,72 @@ import org.slf4j.LoggerFactory;
  * @scr.reference name="PresenceService"
  *                interface="org.sakaiproject.kernel.api.presence.PresenceService"
  */
+@ServiceDocumentation(name = "Presence Control Servlet", 
+    description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
+    shortDescription="Controls the presence for the current user",
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/presence",
+        extensions = @ServiceExtension(name="html", description={
+            "The response to the action is html, although no content is returned from this servlet, only status messages."
+        })
+    ), 
+    methods = { 
+         @ServiceMethod(name = "POST", 
+             description = {
+                 "Pings the user and sets the location if specified.",
+                 "<pre>" +
+                 "curl -Fsakai:location=\"At Home\" http://ieb:password@localhost:8080/_user/presence.html\n" +
+                 "</pre>"
+         },
+         parameters = {
+             @ServiceParameter(name="sakai:location", description={
+                 "The location of the current user."
+             })
+         },
+        response = {
+             @ServiceResponse(code=204,description="On sucess no content response is sent."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         }),
+         @ServiceMethod(name = "PUT", 
+             description = {
+                 "Updates the status and location of the user, also pings the user.",
+                 "<pre>" +
+                 "curl -XPUT -Fsakai:status=online -Fsakai:location=\"At Home\" http://ieb:password@localhost:8080/_user/presence.html\n" +
+                 "</pre>"
+         },
+         parameters = {
+             @ServiceParameter(name="sakai:location", description={
+                 "The location of the current user."
+             }),
+             @ServiceParameter(name="sakai:status", description={
+                 "The status of the current user."
+             })
+         },
+        response = {
+             @ServiceResponse(code=204,description="On sucess no content response is sent."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         }),
+         @ServiceMethod(name = "DELETE", 
+             description = {
+                 "Clears the presence for the current user.",
+                 "<pre>" +
+                 "curl -XDELETE http://ieb:password@localhost:8080/_user/presence.html\n" +
+                 "</pre>"
+         },
+        response = {
+             @ServiceResponse(code=204,description="On sucess no content response is sent."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         })
+})
 public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory

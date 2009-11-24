@@ -28,6 +28,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.sakaiproject.kernel.presence.PresenceUtils;
 import org.slf4j.Logger;
@@ -45,6 +52,38 @@ import org.slf4j.LoggerFactory;
  * @scr.reference name="PresenceService"
  *                interface="org.sakaiproject.kernel.api.presence.PresenceService"
  */
+@ServiceDocumentation(name = "Presence Servlet", 
+    description = "Gets presence for the current user only.",
+    shortDescription="Gets the presence for the current user only.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/presence",
+        extensions = @ServiceExtension(name="json", description={
+            "the presence information is returned as a json tree."
+        })
+    ), 
+    methods = { 
+         @ServiceMethod(name = "GET", 
+             description = {
+                 "Gets the presence for the current user. The servlet is bound " +
+                 "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
+                 "path.",
+                 "<pre>" +
+                 "curl http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "  \"user\": \"ieb\"  \n" +
+                 "  \"sakai:status\": \"online\",\n" +
+                 "  \"sakai:location\": \"At Home\",\n" +
+                 "}\n" +
+                 "</pre>"
+         },
+        response = {
+             @ServiceResponse(code=200,description="On sucess a a json tree of the presence of the current user."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         })
+        })
 public class PresenceGetServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PresenceGetServlet.class);
