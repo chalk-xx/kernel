@@ -37,6 +37,7 @@ import org.sakaiproject.kernel.util.ExtendedJSONWriter;
  *                description="Formatter for pages search results."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Page"
+ * @scr.property name="sakai.seach.resourcetype" value="sakai/page"
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */

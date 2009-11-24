@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.search.processors;
+package org.sakaiproject.kernel.site.search;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -18,6 +18,7 @@ import javax.jcr.RepositoryException;
  *                description="Formatter for user search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Site"
+ * @scr.property name="sakai.seach.resourcetype" value="sakai/site"
  * @scr.service 
  *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */

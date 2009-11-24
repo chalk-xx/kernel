@@ -42,6 +42,7 @@ import javax.jcr.ValueFormatException;
  *                description="Procsessor for message search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Message"
+ * @scr.property name="sakai.seach.resourcetype" value="sakai/message"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  * @scr.reference name="MessagingService"
  *                interface="org.sakaiproject.kernel.api.message.MessagingService"
