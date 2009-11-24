@@ -19,6 +19,8 @@ package org.sakaiproject.kernel.api.user;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.Event;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
+import org.sakaiproject.kernel.user.servlet.GroupModification;
+import org.sakaiproject.kernel.user.servlet.UserModification;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -57,15 +59,31 @@ public class AuthorizableEventUtil {
     }
     return new Event(operation.getTopic(), eventDictionary);
   }
+  
+  public static boolean isAuthorizableModification(Modification m ) {
+    return ( m instanceof UserModification ) || (m instanceof GroupModification );
+  }
 
-  public static Event newGroupEvent(UserModification um) throws RepositoryException {
-    Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
-    Operation operation = (um.isJoin() ? Operation.join : Operation.part);
-    eventDictionary.put(AuthorizableEvent.OPERATION, operation);
-    eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, um.getGroup().getID());
-    eventDictionary.put(AuthorizableEvent.USER, um.getUser());
-    eventDictionary.put(AuthorizableEvent.GROUP, um.getGroup());
-    return new Event(operation.getTopic(), eventDictionary);    
+  public static Event newGroupEvent(Modification m) throws RepositoryException {
+    if ( m instanceof UserModification ) {
+      UserModification um = (UserModification) m;
+      Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
+      Operation operation = (um.isJoin() ? Operation.join : Operation.part);
+      eventDictionary.put(AuthorizableEvent.OPERATION, operation);
+      eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, um.getGroup().getID());
+      eventDictionary.put(AuthorizableEvent.USER, um.getUser());
+      eventDictionary.put(AuthorizableEvent.GROUP, um.getGroup());
+      return new Event(operation.getTopic(), eventDictionary);  
+    } else if ( m instanceof GroupModification ) {
+      GroupModification gm = (GroupModification) m;
+      Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
+      Operation operation = (gm.isJoin() ? Operation.join : Operation.part);
+      eventDictionary.put(AuthorizableEvent.OPERATION, operation);
+      eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, gm.getGroup().getID());
+      eventDictionary.put(AuthorizableEvent.GROUP, gm.getGroup());
+      return new Event(operation.getTopic(), eventDictionary);   
+    }
+    return null;
   }
 
 }

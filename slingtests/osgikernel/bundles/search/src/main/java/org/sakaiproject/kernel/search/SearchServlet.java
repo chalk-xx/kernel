@@ -45,6 +45,10 @@ import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchConstants;
@@ -98,6 +102,98 @@ import javax.servlet.http.HttpServletResponse;
  *                unbind="unbindSearchPropertyProvider" cardinality="0..n"
  *                policy="dynamic"
  */
+@ServiceDocumentation(name="Search Servlet", 
+    shortDescription="The Search servlet provides search results.",
+    description={
+      "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved " +
+      "as resources of type sakai/search. The node at the resource containing properties that represent a search template that is " +
+      "used to perform the search operation. This allows the UI developer to create nodes in the JCR and configure those nodes to " +
+      "act as an end point for a search based view into the JCR. If the propertyprovider or the batchresultprocessor are not specified, " +
+      "default implementations will be used.",
+      "The format of the template is ",
+      "<pre>" +
+      " nt:unstructured \n" +
+      "        -sakai:query-template - a message query template for the query, wiht placeholders \n" +
+      "                                for parameters of the form {request-parameter-name}\n" +
+      "        -sakai:query-language - either XPATH or SQL depending on the dialect used for the query\n" +
+      "        -sakai:propertyprovider - the name of a Property Provider used to populate the properties \n" +
+      "                                  to be used in the query \n" +
+      "        -sakai:batchresultprocessor - the name of a SearchResultProcessor to be used processing \n" +
+      "                                      the result set.\n" +
+      "</pre>",
+      "For example:",
+      "<pre>" +
+      "/var/search/content\n" +
+      "{  \n" +
+      "   \"sakai:query-language\": \"xpath\", \n"+
+      "   \"sakai:query-template\": \"//*[jcr:contains(.,\\\"{q}\\\")]\", \n"+
+      "   \"sling:resourceType\": \"sakai/search\", \n"+
+      "   \"sakai:resultprocessor\": \"Node\" \n"+
+      "} \n" +
+      "</pre>"
+    },
+    methods={
+      @ServiceMethod(name="GET",
+          description={"Processes the query request against the selected resource, using the properties on the resource as a " +
+          		"template for processing the request and a specification for the pre and post processing steps on the search." +
+          		" results.",
+          		"For example",
+          		"<pre>" +
+          		"curl http://localhost:8080/var/search/content.json?q=a\n" +
+          		"{\n"+
+          	  "  \"query\": \"//*[jcr:contains(.,\\\"a\\\")]\",\n"+
+          	  "  \"items\": 25,\n"+
+          	  "  \"total\": 56,\n"+
+          	  "  \"results\": [\n"+
+          	  "      {\n"+
+          	  "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"+
+          	  "          \"jcr:primaryType\": \"nt:resource\",\n"+
+          	  "          \"jcr:mimeType\": \"text/plain\",\n"+
+          	  "          \"jcr:uuid\": \"0b6bd369-f0dd-4eb3-87cb-7fa8e079cccf\",\n"+
+          	  "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n"+
+          	  "      },\n"+
+          	  "      {\n"+
+          	  "          \"sakai:is-site-template\": \"true\",\n"+
+          	  "          \"sakai:authorizables\": [\n"+
+          	  "              \"g-temp-collaborators\",\n"+
+          	  "              \"g-temp-viewers\"\n"+
+          	  "          ],\n"+
+          	  "          \"description\": \"This is a template!\",\n"+
+          	  "          \"id\": \"template\",\n"+
+          	  "          \"sling:resourceType\": \"sakai/site\",\n"+
+          	  "          \"sakai:site-template\": \"/dev/_skins/original/original.html\",\n"+
+          	  "          \"jcr:mixinTypes\": [\n"+
+          	  "              \"rep:AccessControllable\"\n"+
+          	  "          ],\n"+
+          	  "          \"jcr:primaryType\": \"nt:unstructured\",\n"+
+          	  "          \"status\": \"online\",\n"+
+          	  "          \"name\": \"template\"\n"+
+          	  "      },\n"+
+          	  "      ...\n"+
+          	  "      {\n"+
+          	  "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"+
+          	  "          \"jcr:primaryType\": \"nt:resource\",\n"+
+          	  "          \"jcr:mimeType\": \"text/html\",\n"+
+          	  "          \"jcr:uuid\": \"a9b46582-b30c-4489-b9e3-8fdc20cb5429\",\n"+
+          	  "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n"+
+          	  "      }\n"+
+          	  "  ]\n"+
+          	  "}\n"+
+          		"</pre>"
+          },
+          parameters={
+             @ServiceParameter(name="items", description={"The number of items per page in the result set."}),
+             @ServiceParameter(name="page", description={"The page number to start listing the results on."}),
+             @ServiceParameter(name="*", description={"Any other parameters may be used by the template."})
+          },
+          response={
+            @ServiceResponse(code=200, description="A search response simular to the above will be emitted "),
+            @ServiceResponse(code=500, description="Any error with the html containing the error")
+      
+          }
+      )
+    }
+    )
 public class SearchServlet extends SlingAllMethodsServlet {
 
   /**

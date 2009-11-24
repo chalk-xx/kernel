@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.user;
+package org.sakaiproject.kernel.user.servlet;
 
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.servlets.post.Modification;
