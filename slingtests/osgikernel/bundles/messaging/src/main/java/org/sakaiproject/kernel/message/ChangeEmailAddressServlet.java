@@ -23,6 +23,13 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -42,6 +49,38 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="email"
  */
+@ServiceDocumentation(name = "Change Email Address Servlet", 
+    description = "Administratively changes the address of a mailbox.",
+    shortDescription="Change the address of a mailbox",
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/messagestore",
+        selectors = @ServiceSelector(name="email", description=" requires a selector of resource.user.json to get the presence for the user and one named user.")
+    ), 
+    methods = { 
+         @ServiceMethod(name = "POST", 
+             description = {
+                 "Changes the address of a mailbox, only administrative users can perform this action. " +
+                 "Assuming /_user/message is of type sakai/messagestore then the following post will change" +
+                 " the address of that messagestore.",
+                 "<pre>" +
+                 "curl -Faddress=foo@bar.com http://admin:admin@localhost:8080/_user/message/ieb.email.html\n" +
+                 "status: 200\n" +
+                 "</pre>"
+         },
+         parameters = {
+             @ServiceParameter(name="address", description={
+                 "The new email address for the user."
+             })
+         },
+        response = {
+             @ServiceResponse(code=200,description="On sucess a blank respinse is sent."),
+             @ServiceResponse(code=400,description="If the address is not specified."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         })
+        })
 public class ChangeEmailAddressServlet extends SlingAllMethodsServlet {
 
   /**
