@@ -87,7 +87,8 @@ import javax.servlet.http.HttpServletResponse;
     response={
       @ServiceResponse(code=200,description="Success."),
       @ServiceResponse(code=400,description="Failure due to illegal operation request."),
-      @ServiceResponse(code=404,description="Failure due to unknown user.")
+      @ServiceResponse(code=404,description="Failure due to unknown user."),
+      @ServiceResponse(code=409,description="There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)")
     }
   )
 )
