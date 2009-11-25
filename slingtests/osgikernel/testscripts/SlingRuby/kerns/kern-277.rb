@@ -33,7 +33,7 @@ class TC_Kern277Test < SlingTest
     user1 = create_user("user1-" + @m)
     user2 = create_user("user2-" + @m)
     group1.add_member(@s, user1.name, "user")
-    group1.add_member(@s, user2.name, "user")
+    #group1.add_member(@s, user2.name, "user")
     group2.add_member(@s, user2.name, "user")
     @authz.grant(path, group2.name, "jcr:write" => "denied")
     @authz.grant(path, group1.name, "jcr:write" => "granted")

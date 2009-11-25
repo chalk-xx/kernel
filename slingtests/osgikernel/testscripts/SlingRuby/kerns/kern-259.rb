@@ -23,7 +23,7 @@ class TC_Kern259Test < SlingTest
     members = test_site.get_members
     assert_not_nil(members, "Expected to get member list")
     assert_equal(1, members.size, "Expected site members")
-    assert_equal(test_user.name, members[0]["rep:userId"][0], "Expected user to match")
+    assert_equal(test_user.name, members[0]["rep:userId"], "Expected user to match")
     membership = @sm.get_membership()
     assert_equal(1, membership.size, "Expected one member")
     member = membership[0]
