@@ -39,6 +39,8 @@
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Bundle-Name>EclipseLink JPA</Bundle-Name>
             <Require-Bundle>org.eclipse.persistence.core;bundle-version="1.1.0";visibility:=reexport</Require-Bundle>
+            <Embed-Dependency>ant</Embed-Dependency>
+            <Private-Package>org.apache.tools.ant.*</Private-Package>
 
             <Export-Package>
 org.eclipse.persistence.internal.jpa;version="1.1.0",
@@ -73,8 +75,6 @@ org.eclipse.persistence.tools.weaving.jpa;version="1.1.0"
 javax.persistence;version="[1.99.0,2.1.0)",
 javax.persistence.spi;version="[1.99.0,2.1.0)",
 javax.transaction;version="1.1.0";resolution:=optional,
-org.apache.tools.ant;version="1.6.0";resolution:=optional,
-org.apache.tools.ant.types;version="1.6.0";resolution:=optional,
 org.osgi.framework;resolution:=optional,
 org.osgi.service.packageadmin;resolution:=optional,
 org.xml.sax;resolution:=optional,
@@ -94,6 +94,11 @@ javax.sql;resolution:=optional,
       <artifactId>org.eclipse.persistence.jpa</artifactId>
       <version>1.1.0</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.1</version>
     </dependency>
   </dependencies>
 </project>
