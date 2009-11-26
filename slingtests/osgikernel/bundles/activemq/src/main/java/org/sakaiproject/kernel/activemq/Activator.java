@@ -23,6 +23,9 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
+
 public class Activator implements BundleActivator {
   private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
 
@@ -36,8 +39,19 @@ public class Activator implements BundleActivator {
       String brokerPort = System.getProperty("activemq.broker.port", "61616");
       brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
     }
+    
+    
     broker = new BrokerService();
-
+    
+    // generate a full path
+    File ddir = broker.getDataDirectoryFile();
+    String dpath = ddir.getAbsolutePath();
+    
+    String basePath = dpath.substring(0, dpath.length()-"/activemq-data".length());
+    String dataPath = basePath+"/sling/activemq-data";
+    LOG.info("Setting Data Path to  [{}] [{}] ",new Object[]{dpath,basePath,dataPath});
+    broker.setDataDirectory(dataPath);
+    
     // configure the broker
     LOG.info("Adding ActiveMQ connector [" + brokerUrl + "]");
     broker.addConnector(brokerUrl);
