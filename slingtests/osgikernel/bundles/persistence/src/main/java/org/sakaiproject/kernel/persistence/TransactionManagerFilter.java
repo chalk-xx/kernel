@@ -16,17 +16,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.webapp.filter;
+package org.sakaiproject.kernel.persistence;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
-import org.sakaiproject.kernel.api.memory.CacheManagerService;
-import org.sakaiproject.kernel.api.memory.CacheScope;
-import org.sakaiproject.kernel.api.session.SessionManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +36,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.transaction.HeuristicMixedException;
 import javax.transaction.HeuristicRollbackException;
 import javax.transaction.NotSupportedException;
@@ -55,28 +50,20 @@ import javax.transaction.TransactionManager;
  */
 @Service(value=Filter.class)
 @Component(immediate=true, metatype=false)
-@Properties(value={@Property(name="service.description", value="Cache and Transaction Support Filter"),
+@Properties(value={@Property(name="service.description", value="Transaction Support Filter"),
     @Property(name="service.vendor",value="The Sakai Foundation"),
     @Property(name="filter.scope",value="request", propertyPrivate=true),
     @Property(name="filter.order",intValue={10}, propertyPrivate=true)})
-public class SakaiRequestFilter implements Filter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(SakaiRequestFilter.class);
+public class TransactionManagerFilter implements Filter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TransactionManagerFilter.class);
 
   private static final boolean debug = LOGGER.isDebugEnabled();
 
-  private boolean timeOn = false;
 
-  @Reference(name="transactionManager", bind="bindTransactionManager", unbind="unbindTransactionManager")
+  @Reference(name="transactionManager")
   private TransactionManager transactionManager;
 
-  @Reference(name="cacheManagerService", bind="bindCacheManagerService", unbind="unbindCacheManagerService")
-  private CacheManagerService cacheManagerService;
-  
-  @Reference(name="sessionManagerService", bind="bindSessionManagerService", unbind="unbindSessionManagerService")
-  private SessionManagerService sessionManagerService;
 
-  @Reference(name="clusterTrackingService", bind="bindClusterTrackingService", unbind="unbindClusterTrackingService")
-  private ClusterTrackingService clusterTrackingService;
 
   /**
    * {@inheritDoc}
@@ -104,32 +91,10 @@ public class SakaiRequestFilter implements Filter {
    */
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    HttpServletRequest hrequest = (HttpServletRequest) request;
     HttpServletResponse hresponse = (HttpServletResponse) response;
-    clusterTrackingService.trackClusterUser(hrequest, hresponse);
-    sessionManagerService.bindRequest(hrequest);
-    String requestedSessionID = hrequest.getRequestedSessionId();
     try {
       begin();
-      if (timeOn) {
-        long start = System.currentTimeMillis();
-        try {
-          chain.doFilter(request, response);
-
-        } finally {
-          long end = System.currentTimeMillis();
-          LOGGER.info("Request took " + hrequest.getMethod() + " "
-              + hrequest.getPathInfo() + " " + (end - start) + " ms");
-        }
-      } else {
-        chain.doFilter(request, response);
-      }
-      /*
-       * try { if (jcrService.hasActiveSession()) { Session session =
-       * jcrService.getSession(); session.save(); } } catch (AccessDeniedException e) {
-       * throw new SecurityException(e.getMessage(), e); } catch (Exception e) {
-       * LOGGER.warn(e.getMessage(), e); }
-       */
+      chain.doFilter(request, response);
       commit();
     } catch (SecurityException se) {
       se.printStackTrace();
@@ -149,16 +114,7 @@ public class SakaiRequestFilter implements Filter {
     } catch (Throwable t) {
       rollback();
       throw new ServletException(t.getMessage(), t);
-    } finally {
-      cacheManagerService.unbind(CacheScope.REQUEST);
     }
-    if (debug) {
-      HttpSession hsession = hrequest.getSession(false);
-      if (hsession != null && !hsession.getId().equals(requestedSessionID)) {
-        LOGGER.debug("New Session Created with ID " + hsession.getId());
-      }
-    }
-
   }
 
   /**
@@ -208,63 +164,6 @@ public class SakaiRequestFilter implements Filter {
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     }
-  }
-
-  /**
-   * @param transactionManager
-   */
-  protected void bindTransactionManager(TransactionManager transactionManager) {
-    this.transactionManager = transactionManager;
-  }
-
-  /**
-   * @param transactionManager
-   */
-  protected void unbindTransactionManager(TransactionManager transactionManager) {
-    this.transactionManager = null;
-  }
-
-  /**
-   * @param cacheManagerService
-   */
-  protected void bindCacheManagerService(CacheManagerService cacheManagerService) {
-    this.cacheManagerService = cacheManagerService;
-  }
-
-  /**
-   * @param cacheManagerService
-   */
-  protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
-    this.cacheManagerService = null;
-  }
-
-  /**
-   * @param sessionManagerService
-   */
-  protected void bindSessionManagerService(SessionManagerService sessionManagerService) {
-    this.sessionManagerService = sessionManagerService;
-  }
-
-  /**
-   * @param sessionManagerService
-   */
-  protected void unbindSessionManagerService(SessionManagerService sessionManagerService) {
-    this.sessionManagerService = null;
-  }
-
-  
-  /**
-   * @param clusterTrackingService
-   */
-  protected void bindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
-    this.clusterTrackingService = clusterTrackingService;
-  }
-
-  /**
-   * @param clusterTrackingService
-   */
-  protected void unbindClusterTrackingService(ClusterTrackingService clusterTrackingService) {
-    this.clusterTrackingService = null;
   }
 
 }
