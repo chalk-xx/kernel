@@ -116,6 +116,11 @@
 			<version>2.0.4-incubator</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.kernel</groupId>
+			<artifactId>org.sakaiproject.kernel.personal</artifactId>
+			<version>0.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 </project>

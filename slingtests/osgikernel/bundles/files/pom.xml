@@ -143,5 +143,10 @@
 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
 	  <version>0.1-SNAPSHOT</version>
 	</dependency>
+	<dependency>
+		<groupId>org.sakaiproject.kernel</groupId>
+		<artifactId>org.sakaiproject.kernel.site</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</dependency>
   </dependencies>
 </project>

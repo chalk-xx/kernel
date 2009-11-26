@@ -24,6 +24,11 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +47,37 @@ import javax.servlet.ServletException;
  */
 @SlingServlet(paths = "/system/rp", methods = "GET")
 @Reference(name = "virtualResourceType", cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = VirtualResourceType.class, policy = ReferencePolicy.DYNAMIC)
+@ServiceDocumentation(name = "Virtual Resource Provider Servlet", 
+    description = "Lists the available resource providers in text form.",
+    shortDescription="List all the resource providers in the system.",
+    bindings = @ServiceBinding(type = BindingType.PATH, 
+        bindings = "/system/rp"
+    ), 
+    methods = { 
+         @ServiceMethod(name = "GET", 
+             description = {
+                 "Lists the available resource providers responding with text/plain ",
+                 "<pre>" +
+                 "curl http://localhost:8080/system/rp\n" +
+                 "Virtual Resource Provieder = org.sakaiproject.kernel.resource.VirtualResourceProviderImpl@45e7c2\n"+
+                 "Virtual Resource Provieder Typess = [sakai/personalPrivate, sakai/contactstore, sakai/messagestore, " +
+                 "sakai/groupPublic, sakai/files, sakai/personalPublic]\n"+
+                 "Virtual Resource Provieder Types Map = {sakai/personalPrivate=org.sakaiproject.kernel.personal.resource." +
+                 "PersonalResourceTypeProvider@27f9d5, sakai/contactstore=org.sakaiproject.kernel.connections.resource." +
+                 "ConnectionResourceTypeProvider@833478, sakai/messagestore=org.sakaiproject.kernel.message.resource." +
+                 "MessageResourceTypeProvider@e9e345, sakai/groupPublic=org.sakaiproject.kernel.personal.resource." +
+                 "GroupPublicResourceTypeProvider@47d6de, sakai/files=org.sakaiproject.kernel.files.resource." +
+                 "MessageResourceTypeProvider@6b8fa1, sakai/personalPublic=org.sakaiproject.kernel.personal.resource." +
+                 "PublicResourceTypeProvider@a2c812}\n"+
+                 "Virtual Resource Provieder Types List = 0\n"+
+                 "Virtual Resource Provieder Types List = []\n"+
+                 "</pre>"
+         },
+        response = {
+            @ServiceResponse(code=200,description="On sucess a response simular to above."),
+            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         })
+        })
 public class VirtualResourceProviderServlet extends SlingSafeMethodsServlet {
 
   /**

@@ -57,6 +57,10 @@ public class SessionManagerServiceImpl implements SessionManagerService {
   public HttpServletRequest getCurrentRequest() {
     return getRequestScope().get(CURRENT_REQUEST);
   }
+  
+  public void unbindRequest(HttpServletRequest request) {
+    cacheManagerService.unbind(CacheScope.REQUEST);
+  }
 
   public HttpSession getCurrentSession() {
     try {
