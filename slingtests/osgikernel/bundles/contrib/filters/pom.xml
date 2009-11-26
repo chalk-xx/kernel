@@ -25,7 +25,7 @@
   <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Sakai Filters Bundle</name>
-  <description>Provides Caching and Transaction Support filters for Sakai into the Sling request lifecycle.</description>
+  <description>Sakai filtering into the Sling request lifecycle.</description>
   <build>
     <plugins>
       <plugin>
@@ -43,16 +43,6 @@
           </instructions>
         </configuration>
       </plugin>
-      <!--
-        <plugin> <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId> <executions>
-        <execution> <id>embed-dependencies</id> <goals>
-        <goal>copy-dependencies</goal> </goals> <configuration>
-        <includeArtifactIds></includeArtifactIds>
-        <excludeTransitive>false</excludeTransitive> <outputDirectory>
-        ${project.build.outputDirectory} </outputDirectory>
-        </configuration> </execution> </executions> </plugin>
-      -->
     </plugins>
   </build>
   <dependencies>
@@ -63,29 +53,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.memory</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.session</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.cluster</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.transaction</groupId>
-      <artifactId>jta</artifactId>
-      <version>1.1</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

@@ -51,4 +51,9 @@ public interface SessionManagerService {
    */
   String getCurrentUserId();
 
+  /**
+   * @param request
+   */
+  void unbindRequest(HttpServletRequest request);
+
 }
