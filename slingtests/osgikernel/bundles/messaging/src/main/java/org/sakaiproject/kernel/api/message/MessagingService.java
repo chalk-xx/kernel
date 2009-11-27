@@ -27,7 +27,6 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
-import javax.jcr.query.InvalidQueryException;
 
 /**
  * A messaging service that provides methods specific to messaging. There is some binding
@@ -65,6 +64,17 @@ public interface MessagingService {
       throws MessagingException;
 
   /**
+   * @param session
+   * @param mapProperties
+   * @param messageId
+   * @param messagePathBase
+   * @return
+   * @throws MessagingException
+   */
+  Node create(Session session, Map<String, Object> mapProperties, String messageId,
+      String messagePathBase) throws MessagingException;
+
+  /**
    * Gets the absolute path to the message store from a message. ex:
    * /_private/D0/33/E2/admin/messages
    * 
@@ -75,36 +85,6 @@ public interface MessagingService {
   public String getMessageStorePathFromMessageNode(Node msg) throws ValueFormatException,
       PathNotFoundException, ItemNotFoundException, AccessDeniedException,
       RepositoryException;
-
-  /**
-   * Gets the path for the message starting at the message store. ex:
-   * /fd/e1/df/h1/45fsdf4sd453uy4ods4fa45r4
-   * 
-   * @param msg
-   * @return
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
-   * @throws ItemNotFoundException
-   * @throws AccessDeniedException
-   * @throws RepositoryException
-   */
-  /*
-   * public String getMessagePathFromMessageStore(Node msg) throws ValueFormatException,
-   * PathNotFoundException, ItemNotFoundException, AccessDeniedException,
-   * RepositoryException;
-   */
-
-  /**
-   * Searches for mailboxes on the system associated with a supplied e-mail address
-   * 
-   * @param session
-   *          The session from which to execute the search
-   * @param emailAddress
-   *          The email address for which to search
-   * @return A list of the mailbox / principal names
-   */
-  public List<String> getMailboxesForEmailAddress(Session session, String emailAddress)
-      throws InvalidQueryException, RepositoryException;
 
   /**
    * Gets the full JCR path for a given recipient and a message ID.
@@ -150,14 +130,12 @@ public interface MessagingService {
    * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>
    * 
    * @param adminSession
-   * @param target
-   * @param source
-   * @param messageId
+   * @param sourceMessage
+   * @param targetMessageStore
    * @throws RepositoryException
    * @throws PathNotFoundException
    */
-  public void copyMessage(Session adminSession, String target, String source,
-      String messageId) throws PathNotFoundException, RepositoryException;
+  public void copyMessageNode(Node sourceMessage, String targetMessageStore) throws PathNotFoundException, RepositoryException;
 
   /**
    * Checks if the provided node is a message store node.
@@ -166,5 +144,15 @@ public interface MessagingService {
    * @return
    */
   public boolean isMessageStore(Node n);
+
+  /**
+   * Expand a local deliver alias into a list of recipients, these are all local (ie no @ or domain), external
+   * routing is not performed by the messaging service.
+   *
+   * @param localRecipient
+   * @return a list of local recipients
+   */
+  public List<String> expandAliases(String localRecipient);
+
 
 }

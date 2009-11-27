@@ -84,10 +84,6 @@ public interface MessageConstants {
    */
   public static final String PROP_SAKAI_RETRY_COUNT = "sakai:retrycount";
 
-  /**
-   * This property will hold the e-mail address for the mailbox
-   */
-  public static final String SAKAI_EMAIL_ADDRESS = "sakai:email";
 
   /**
    * Value for a date.

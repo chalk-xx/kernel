@@ -19,7 +19,6 @@ package org.sakaiproject.kernel.message;
 
 import static org.sakaiproject.kernel.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
-import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
@@ -42,14 +41,10 @@ import java.util.Map.Entry;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
-import javax.jcr.query.InvalidQueryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryResult;
 
 /**
  * Service for doing operations with messages.
@@ -72,23 +67,12 @@ public class MessagingServiceImpl implements MessagingService {
   protected void unbindSiteService(SiteService siteService) {
     this.siteService = null;
   }
-  
+
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
 
-  public List<String> getMailboxesForEmailAddress(Session session, String emailAddress) throws InvalidQueryException, RepositoryException {
-    String queryString = "/" + MessageConstants._USER_MESSAGE + "//element(*)MetaData[@sling:resourceType='" 
-                             + MessageConstants.SAKAI_MESSAGESTORE_RT + "' and @" 
-                             + MessageConstants.SAKAI_EMAIL_ADDRESS + "='" + emailAddress + "']";
-    Query query = session.getWorkspace().getQueryManager().createQuery(queryString, "xpath");
-    QueryResult result = query.execute();
-    NodeIterator iter = result.getNodes();
-    List<String> mailboxes = new ArrayList<String>();
-    while (iter.hasNext()) {
-      mailboxes.add(iter.nextNode().getName());
-    }
-    return mailboxes;
-  }
+  
+    
   /**
    * 
    * {@inheritDoc}
@@ -123,13 +107,19 @@ public class MessagingServiceImpl implements MessagingService {
   public Node create(Session session, Map<String, Object> mapProperties, String messageId)
       throws MessagingException {
 
-    Node msg = null;
     if (messageId == null) {
       messageId = generateMessageId();
     }
 
     String user = session.getUserID();
     String messagePathBase = getFullPathToStore(user, session);
+    return create(session, mapProperties, messageId, messagePathBase);
+
+  }
+
+  public Node create(Session session, Map<String, Object> mapProperties, String messageId, String messagePathBase)
+    throws MessagingException {
+    Node msg = null;
     try {
       lockManager.waitForLock(messagePathBase);
     } catch (LockTimeoutException e1) {
@@ -137,7 +127,7 @@ public class MessagingServiceImpl implements MessagingService {
     }
     try {
       //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
-      String messagePath = getFullPathToMessage(user, messageId, session);
+      String messagePath = PathUtils.toInternalHashedPath(messagePathBase, messageId, "");
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
@@ -192,15 +182,15 @@ public class MessagingServiceImpl implements MessagingService {
    * @throws PathNotFoundException 
    * @see org.sakaiproject.kernel.api.message.MessagingService#copyMessage(java.lang.String, java.lang.String, java.lang.String)
    */
-  public void copyMessage(Session adminSession, String target, String source, String messageId) throws PathNotFoundException, RepositoryException {
-    String encodedMessageId = ISO9075.encodePath(messageId);
-    String sourceNodePath = getFullPathToMessage(source, encodedMessageId, adminSession);
-    String targetNodePath = getFullPathToMessage(target, encodedMessageId, adminSession);
+  public void copyMessageNode(Node sourceMessage, String targetStore) throws PathNotFoundException, RepositoryException {
+    Session session = sourceMessage.getSession();
+    String messageId = sourceMessage.getName();
+    String targetNodePath = PathUtils.toInternalHashedPath(targetStore, messageId, "");
     String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
-    Node parentNode = JcrUtils.deepGetOrCreateNode(adminSession, parent);
+    Node parentNode = JcrUtils.deepGetOrCreateNode(session, parent);
     LOGGER.info("Created parent node at: " + parentNode.getPath());
-    adminSession.save();
-    adminSession.getWorkspace().copy(sourceNodePath, targetNodePath);
+    session.save();
+    session.getWorkspace().copy(sourceMessage.getPath(), targetNodePath);
   }
 
 
@@ -256,12 +246,10 @@ public class MessagingServiceImpl implements MessagingService {
         path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, rcpt, "");
       }
     } catch (SiteException e) {
-      LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt);
-      e.printStackTrace();
+      LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt,e);
       throw new MessagingException(e);
     } catch (RepositoryException e) {
-      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt);
-      e.printStackTrace();
+      LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
       throw new MessagingException(e);
     }
 
@@ -309,6 +297,16 @@ public class MessagingServiceImpl implements MessagingService {
     }
 
     return path;
+  }
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.message.MessagingService#expandAliases(java.lang.String)
+   */
+  public List<String> expandAliases(String localRecipient) {
+    List<String> expanded = new ArrayList<String>();
+    // at the moment we dont do alias expansion
+    expanded.add(localRecipient);
+    return expanded;
   }
 
 }
