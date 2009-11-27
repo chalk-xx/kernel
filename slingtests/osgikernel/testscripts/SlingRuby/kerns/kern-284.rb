@@ -26,7 +26,11 @@ class ContactCollisionTest < SlingTest
         cm = ContactManager.new(s)
         s.switch_user(u)
         others[u.name].each do |o|
-          results << cm.invite_contact(o, "friend")
+          res = cm.invite_contact(o, "friend")
+          while res.code.to_s == "409" do
+            res = cm.invite_contact(o, "friend")
+          end
+          results << res
         end
       end
     end
@@ -47,7 +51,11 @@ class ContactCollisionTest < SlingTest
         s.debug = true
         cm = ContactManager.new(s)
         s.switch_user(t[0])
-        results << cm.invite_contact(t[1].name, "friend")
+        res = cm.invite_contact(t[1].name, "friend")
+          while res.code.to_s == "409" do
+            res = cm.invite_contact(t[1].name, "friend")
+          end
+        results << res
       end
     end
     threads.each { |aThread|  aThread.join }
