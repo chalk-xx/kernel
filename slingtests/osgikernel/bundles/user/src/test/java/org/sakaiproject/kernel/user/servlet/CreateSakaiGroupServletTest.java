@@ -12,6 +12,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
@@ -54,6 +55,8 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     CreateSakaiGroupServlet csgs = new CreateSakaiGroupServlet();
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    expect(request.getRemoteUser()).andReturn(SecurityConstants.ADMIN_ID);  
+
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn(name);
 
     HtmlResponse response = new HtmlResponse();
@@ -71,11 +74,12 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
   @Test
   public void testNoSession() throws RepositoryException {
     CreateSakaiGroupServlet csgs = new CreateSakaiGroupServlet();
-
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    expect(request.getRemoteUser()).andReturn(SecurityConstants.ANONYMOUS_ID);  
+    
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.adaptTo(Session.class)).andReturn(null);
 
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("g-foo");
     expect(request.getResourceResolver()).andReturn(rr);
 
@@ -102,6 +106,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     SlingRepository repository = createMock(SlingRepository.class);
 
     csgs.repository = repository;
+    expect(request.getRemoteUser()).andReturn(SecurityConstants.ADMIN_ID);  
 
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("g-foo");
     expect(request.getResourceResolver()).andReturn(rr);
@@ -150,6 +155,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     ValueFactory valueFactory = createMock(ValueFactory.class);
     Value value = createMock(Value.class);
     csgs.repository = repository;
+    expect(request.getRemoteUser()).andReturn(SecurityConstants.ADMIN_ID);  
 
     expect(request.getResourceResolver()).andReturn(rr);
     expect(rr.adaptTo(Session.class)).andReturn(session);

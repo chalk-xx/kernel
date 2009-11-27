@@ -47,6 +47,7 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -244,6 +245,10 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
 
+    // KERN-432 dont allow anon users to access create group.
+    if ( SecurityConstants.ANONYMOUS_ID.equals(request.getRemoteUser()) ) {
+      response.setStatus(403, "AccessDenied");
+    }
     // check that the submitted parameter values have valid values.
     final String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
     if (principalName == null) {
