@@ -92,7 +92,7 @@ import javax.servlet.http.HttpServletResponse;
     }
   )
 )
-@SlingServlet(resourceTypes="sakai/contactstore",methods={"GET","POST","PUT","DELETE"}, 
+@SlingServlet(resourceTypes="sakai/contactstore",methods={"POST"}, 
     selectors={"invite", "accept", "reject", "ignore", "block", "remove", "cancel"})
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for connection stores."),
