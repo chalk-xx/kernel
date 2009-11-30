@@ -208,7 +208,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
   public boolean connect(Map<String,String[]> requestParameters, Resource resource,
       String thisUserId, String otherUserId, ConnectionOperation operation)
       throws ConnectionException {
-    boolean isProcessingIncomplete = true;
 
     Session session = resource.getResourceResolver().adaptTo(Session.class);
     // fail if the supplied users are invalid
@@ -241,7 +240,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
       // that differ from those viewed by the inviting user.
       if (operation == ConnectionOperation.invite) {
         handleInvitation(requestParameters, adminSession, thisNode, otherNode);
-        isProcessingIncomplete = false;
       }
 
       sp.transition(thisNode, otherNode);
@@ -250,6 +248,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
+
+      if (operation == ConnectionOperation.invite) {
+        throw new ConnectionException(200,
+            "Invitation made between "+thisNode.getPath()+" and "+otherNode.getPath());
+      }
+
     } catch (InvalidItemStateException e) {
       throw new ConnectionException(409, "There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)");
     }
@@ -261,7 +265,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         adminSession.logout();
       }
     }
-    return isProcessingIncomplete;
+    return true;
   }
 
   /**
