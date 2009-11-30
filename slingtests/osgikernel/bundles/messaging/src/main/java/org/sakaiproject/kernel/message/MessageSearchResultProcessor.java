@@ -24,6 +24,7 @@ import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.Row;
 
 /**
  * Formats message node search results
@@ -72,8 +74,17 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Node resultNode, String excerpt) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node resultNode = RowUtils.getNode(row, session);
+
+    writeNode(request, write, resultNode);
+  }
+
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node resultNode)
+      throws JSONException, RepositoryException {
+
     write.object();
 
     // Add some extra properties.
@@ -101,7 +112,7 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
       // node and parse it as well.
       if (p.getName().equalsIgnoreCase(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE)) {
         write.key(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE);
-        parsePreviousMessages(request, resultNode, write, excerpt);
+        parsePreviousMessages(request, write, resultNode);
 
       } else {
         // These are normal properties.., just parse them.
@@ -133,9 +144,9 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @throws PathNotFoundException
    * @throws RepositoryException
    */
-  private void parsePreviousMessages(SlingHttpServletRequest request, Node node,
-      JSONWriter write, String excerpt) throws JSONException, ValueFormatException,
-      PathNotFoundException, RepositoryException {
+  private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
+      Node node) throws JSONException, ValueFormatException, PathNotFoundException,
+      RepositoryException {
 
     Session s = node.getSession();
     String id = node.getProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE)
@@ -150,7 +161,7 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
     LOGGER.info("Getting message at {}", path);
 
     Node previousMessage = (Node) s.getItem(path);
-    writeNode(request, write, previousMessage, excerpt);
+    writeNode(request, write, previousMessage);
   }
 
 }

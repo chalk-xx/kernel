@@ -61,11 +61,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-
-    Session session = createMock(Session.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
     
     response = createMock(SlingHttpServletResponse.class);
     replay();
@@ -144,11 +139,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-
-    Session session = createMock(Session.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
     
     response = createMock(SlingHttpServletResponse.class);
     response.sendError(500, null);
@@ -183,12 +173,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);
-    
-
-    Session session = createMock(Session.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
 
     executeQuery(queryNode);
   }
@@ -210,8 +194,6 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     QueryResult queryResult = createMock(QueryResult.class);
     expect(queryResult.getRows()).andReturn(iterator);
-    
-    expect(queryResult.getColumnNames()).andReturn(new String[] {});
 
     Query query = createMock(Query.class);
     expect(query.execute()).andReturn(queryResult);

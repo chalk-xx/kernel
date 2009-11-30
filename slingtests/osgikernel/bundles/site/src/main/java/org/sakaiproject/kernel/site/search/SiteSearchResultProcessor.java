@@ -6,11 +6,14 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 /**
  * Formats user profile node search results
@@ -32,8 +35,10 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteSearchResultProcessor.class);
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Node resultNode, String excerpt) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node resultNode = RowUtils.getNode(row, session);
     if (!siteService.isSite(resultNode)) {
       LOGGER.warn("Search result was not a site node: " + resultNode.getPath());
       throw new JSONException("Unable to write non-site node result");
@@ -50,7 +55,7 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
   public void bindSiteService(SiteService siteService) {
     this.siteService = siteService;
   }
-  
+
   public void unbindSiteService(SiteService siteService) {
     this.siteService = null;
   }

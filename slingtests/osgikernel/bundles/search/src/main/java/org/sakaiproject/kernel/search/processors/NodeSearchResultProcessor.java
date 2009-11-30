@@ -5,9 +5,12 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 /**
  * Formats user profile node search results
@@ -20,8 +23,10 @@ import javax.jcr.RepositoryException;
  */
 public class NodeSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
-      String excerpt) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
     ExtendedJSONWriter.writeNodeToWriter(write, node);
   }
 

@@ -24,9 +24,12 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 /**
  * Formats sakai/page nodes.
@@ -39,8 +42,10 @@ import javax.jcr.RepositoryException;
  */
 public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
-      String excerpt) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);

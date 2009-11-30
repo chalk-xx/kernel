@@ -70,8 +70,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -198,7 +196,6 @@ public class SearchServlet extends SlingAllMethodsServlet {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
-      Session session = request.getResourceResolver().adaptTo(Session.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
         String queryLanguage = Query.SQL;
@@ -233,21 +230,6 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.value(total);
         write.key(JSON_RESULTS);
         write.array();
-
-        // Check if this query returned an excerpt.
-        boolean hasExcerpt = false;
-        String excerptParam = "";
-        String[] cols = result.getColumnNames();
-        for (String col : cols) {
-          if (col.equals("rep:excerpt()")) {
-            hasExcerpt = true;
-            if (node.hasProperty(SearchConstants.SAKAI_EXCERPT_PARAM)) {
-              excerptParam = node.getProperty(SearchConstants.SAKAI_EXCERPT_PARAM)
-                  .getString();
-            }
-            break;
-          }
-        }
         
         // Default processors
         NodeSearchBatchResultProcessor defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor();
@@ -286,26 +268,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
           
           // We only skip nodes if it is a regular processor.
           rowIterator.skip(start);
-          String excerpt = null;
           
           for (long i = start; i < end && rowIterator.hasNext(); i++) {
             Row row = rowIterator.nextRow();
-            // Get the actual node.
-            String path = row.getValue("jcr:path").getString();
-            Node resultNode = (Node) session.getItem(path);
-
-            // Get the excerpt (if any)
-            excerpt = null;
-            if (hasExcerpt) {
-              Value val = row.getValue("rep:excerpt(" + excerptParam + ")");
-              if (val == null) {
-                val = row.getValue("rep:excerpt()");
-              }
-              excerpt = val.getString();
-            }
             
             // Write the result for this node.
-            searchProcessor.writeNode(request, write, resultNode, excerpt);
+            searchProcessor.writeNode(request, write, row);
           }
         }
         write.endArray();

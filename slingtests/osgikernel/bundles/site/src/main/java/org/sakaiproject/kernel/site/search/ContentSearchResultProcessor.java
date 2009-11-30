@@ -30,9 +30,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 @Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
 @Properties(value = {
@@ -46,21 +49,25 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessor defaultProcessor = new SearchResultProcessor() {
 
-    public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
-        String excerpt) throws JSONException, RepositoryException {
+    public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+        throws JSONException, RepositoryException {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = RowUtils.getNode(row, session);
       write.object();
       write.key("path");
       write.value(node.getPath());
       write.key("excerpt");
-      write.value(excerpt);
+      write.value(RowUtils.getDefaultExcerpt(row));
       write.key("data");
       ExtendedJSONWriter.writeNodeToWriter(write, node);
       write.endObject();
     }
   };
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
-      String excerpt) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
     if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
       String type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
 
@@ -73,18 +80,18 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
         write.key("type");
         write.value(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString());
         write.key("excerpt");
-        write.value(excerpt);
+        write.value(RowUtils.getDefaultExcerpt(row));
         write.key("data");
-        processor.writeNode(request, write, node, excerpt);
+        processor.writeNode(request, write, row);
         write.endObject();
       } else {
         // No processor found, just dump the properties
-        defaultProcessor.writeNode(request, write, node, excerpt);
+        defaultProcessor.writeNode(request, write, row);
       }
 
     } else {
       // No type, just dump the properties
-      defaultProcessor.writeNode(request, write, node, excerpt);
+      defaultProcessor.writeNode(request, write, row);
     }
   }
 
