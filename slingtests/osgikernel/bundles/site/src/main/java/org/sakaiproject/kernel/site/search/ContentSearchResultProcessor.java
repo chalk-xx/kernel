@@ -44,10 +44,6 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessorTracker tracker;
 
-  public void setTrackter(SearchResultProcessorTracker tracker) {
-    this.tracker = tracker;
-  }
-
   private SearchResultProcessor defaultProcessor = new SearchResultProcessor() {
 
     public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,

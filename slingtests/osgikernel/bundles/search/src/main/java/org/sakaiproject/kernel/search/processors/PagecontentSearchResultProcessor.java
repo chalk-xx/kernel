@@ -13,14 +13,25 @@ import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-
-@Component(immediate = true, label = "PagecontentSearchResultProcessor", name = "PagecontentSearchResultProcessor")
+/*
+@Component(immediate = true, label = "PagecontentSearchResultProcessor", description = "Format search results of type sakai/pagecontent.")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formatter for pagecontent resourcetypes. This will actually dump the data for the above page instead the pagecontent one."),
     @Property(name = "sakai.search.resourcetype", value = "sakai/pagecontent"),
     @Property(name = "sakai.search.processor", value = "Pagecontent") })
 @Service(value = SearchResultProcessor.class)
+*/
+/**
+ * Formats user profile node search results
+ * 
+ * @scr.component immediate="true" label="PagecontentSearchResultProcessor"
+ *                description="Formatter for pagecontent search results"
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.property name="sakai.search.processor" value="Pagecontent"
+ * @scr.property name="sakai.seach.resourcetype" value="sakai/pagecontent"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ */
 public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
