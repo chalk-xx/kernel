@@ -201,7 +201,5 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
               "Failure setting current user (" + user + ") location (" + location + "): "
                   + e);
     }
-    response.setContentLength(0);
-    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 }
