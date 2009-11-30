@@ -222,7 +222,12 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
                 propertyName).getDefinition().isProtected())) {
-              Property prop = profileNode.setProperty(propertyName, v);
+              Property prop = null;
+              if (v.length == 1) {
+                prop = profileNode.setProperty(propertyName, v[0]);
+              } else {
+                prop = profileNode.setProperty(propertyName, v);
+              }
               changes.add(Modification.onModified(prop.getPath()));
             }
           }
