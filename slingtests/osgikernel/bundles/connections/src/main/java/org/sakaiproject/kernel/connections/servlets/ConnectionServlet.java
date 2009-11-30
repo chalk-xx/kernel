@@ -27,6 +27,14 @@ import org.apache.sling.api.resource.Resource;
 import org.sakaiproject.kernel.api.connections.ConnectionException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.connections.ConnectionOperation;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.connections.ConnectionUtils;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
@@ -40,8 +48,51 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
+ * Servlet interface to the personal connections/contacts service.
  */
-@SlingServlet(resourceTypes="sakai/contactstore",methods={"GET","POST","PUT","DELETE"}, 
+@ServiceDocumentation(name="Personal Connection Servlet",
+  description="Manage personal connections and contacts. " +
+    "Maps to node of resourceType sakai/contactstore at the URL /_user/contacts. " +
+    "Each new contact results in two new nodes of resourceType sakai/contact, one for the inviting user and one for the invited user. "+
+    "These contacts can be retrieved by GET requests which specify a connection-status: "+
+    "/_user/contacts/accepted.json, /_user/contacts/pending.json, /_user/contacts/all.json, etc.",
+  shortDescription="Manage personal connections/contacts",
+  bindings=@ServiceBinding(type=BindingType.PATH,bindings="/_user/contacts/OTHER_USER",
+      selectors={
+      @ServiceSelector(name="invite",description="Invite the other user to connect"),
+      @ServiceSelector(name="accept",description="Accept the invitation from the other user"),
+      @ServiceSelector(name="reject",description="Refuse the invitation from the other user"),
+      @ServiceSelector(name="ignore",description="Ignore the invitation from the other user"),
+      @ServiceSelector(name="block",description="Ignore this and any future invitations from the other user"),
+      @ServiceSelector(name="remove",description="Remove the invitation or connection, allowing future connections"),
+      @ServiceSelector(name="cancel",description="Cancel the pending invitation to the other user")
+  },
+  extensions={
+    @ServiceExtension(name="html", description="All POST operations produce HTML")
+  }),
+  methods=@ServiceMethod(name="POST",
+    description={"Manage a personal contact (a connection with another user), specifying an operation as a selector. ",
+      "Examples:<br>" +
+      "<pre>curl -u from_user:fromPwd -F toRelationships=Supervisor -F fromRelationships=Supervised " +
+      "http://localhost:8080/_user/contacts/to_user.invite.html</pre>" +
+      "<pre>curl -X POST -u to_user:toPwd http://localhost:8080/_user/contacts/from_user.accept.html</pre>"
+      },
+    parameters={
+      @ServiceParameter(name="toRelationships", description="The type of connection from the inviting user's point of view (only for invite)"),
+      @ServiceParameter(name="fromRelationships", description="The type of connection from the invited user's point of view (only for invite)"),
+      @ServiceParameter(name="sakai:types", description="Relationship types without regard to point-of-view " +
+          "(affects the current user's view of the connection on any POST; affects the other user's view only for invite)"),
+      @ServiceParameter(name="",description="Additional parameters become connection node properties (optional)")
+    },
+    response={
+      @ServiceResponse(code=200,description="Success."),
+      @ServiceResponse(code=400,description="Failure due to illegal operation request."),
+      @ServiceResponse(code=404,description="Failure due to unknown user."),
+      @ServiceResponse(code=409,description="There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)")
+    }
+  )
+)
+@SlingServlet(resourceTypes="sakai/contactstore",methods={"POST"}, 
     selectors={"invite", "accept", "reject", "ignore", "block", "remove", "cancel"})
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for connection stores."),

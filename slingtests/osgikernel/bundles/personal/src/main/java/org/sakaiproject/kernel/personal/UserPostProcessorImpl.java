@@ -44,7 +44,6 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.user.AuthorizableEventUtil;
 import org.sakaiproject.kernel.api.user.UserConstants;
-import org.sakaiproject.kernel.api.user.UserModification;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.api.user.AuthorizableEvent.Operation;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -223,7 +222,12 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
                 propertyName).getDefinition().isProtected())) {
-              Property prop = profileNode.setProperty(propertyName, v);
+              Property prop = null;
+              if (v.length == 1) {
+                prop = profileNode.setProperty(propertyName, v[0]);
+              } else {
+                prop = profileNode.setProperty(propertyName, v);
+              }
               changes.add(Modification.onModified(prop.getPath()));
             }
           }
@@ -324,18 +328,17 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (path == null) {
           path = m.getSource();
         }
-        if (m instanceof UserModification) {
-          LOGGER.info("Got user modification: " + m);
-          UserModification um = (UserModification) m;
-          switch (um.getType()) {
+        if (AuthorizableEventUtil.isAuthorizableModification(m)) {
+          LOGGER.info("Got Authorizable modification: " + m);
+          switch (m.getType()) {
             case COPY:
             case CREATE:
             case DELETE:
             case MOVE:
-              LOGGER.debug("Ignoring unknown modification type: " + um.getType());
+              LOGGER.debug("Ignoring unknown modification type: " + m.getType());
               break;
             case MODIFY:
-              eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(um));
+              eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(m));
               break;
             }
         } else if (path.endsWith(principalName)) {

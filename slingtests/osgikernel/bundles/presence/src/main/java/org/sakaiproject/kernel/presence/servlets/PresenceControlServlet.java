@@ -27,6 +27,14 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +48,82 @@ import org.slf4j.LoggerFactory;
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" values.0="POST" values.1="PUT"
- *               values.2="DELETE"
- * @scr.property name="sling.servlet.extensions" value="html"
+ * @scr.property name="sling.servlet.methods" values.0="POST" 
+ * @scr.property name="sling.servlet.extensions" value="json"
  * 
  * @scr.reference name="PresenceService"
  *                interface="org.sakaiproject.kernel.api.presence.PresenceService"
  */
+@ServiceDocumentation(name = "Presence Control Servlet", 
+    description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
+    shortDescription="Controls the presence for the current user",
+    bindings = @ServiceBinding(type = BindingType.TYPE, 
+        bindings = "sakai/presence",
+        extensions = @ServiceExtension(name="json", description={
+            "The response to the action is html, although no content is returned from this servlet, only status messages."
+        })
+    ), 
+    methods = { 
+         @ServiceMethod(name = "POST", 
+             description = {
+                 "Pings the user and sets the location and status if specified.",
+                 "<pre>" +
+                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "   \"location\" :\"At Home\",\n" +
+                 "   \"status\" :\"Online\",\n" +
+                 "}\n" +
+                 "</pre>",
+                 "Clear the status, set the location.",
+                 "<pre>" +
+                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"@clear\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "   \"location\" :\"At Home\",\n" +
+                 "   \"status\" :\"@clear\",\n" +
+                 "}\n" +
+                 "</pre>",
+                 "Set Only the location "+
+                 "<pre>"+
+                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "   \"location\" :\"At Home\",\n" +
+                 "}\n" +
+                 "</pre>",
+                 "Clear the location "+
+                 "<pre>"+
+                 "curl -XPOST  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "   \"location\" :\"null\",\n" +
+                 "}\n" +
+                 "</pre>",
+                 "Clear the presence "+
+                 "<pre>"+
+                 "curl -Fdelete=1  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "{\n" +
+                 "   \"deleted\" :\"1\",\n" +
+                 "}\n" +
+                 "</pre>"
+         },
+         parameters = {
+             @ServiceParameter(name="sakai:location", description={
+                 "The location of the current user, if missing the location is cleared"
+             }),
+             @ServiceParameter(name="sakai:status", description={
+                 "The status of the user, if missing no change will be made to the status. To clear the status set to <em>@clear</em>"
+             }),
+             @ServiceParameter(name="delete", description={
+                 "If set to anything eg <em>1</em> the presence record for the user will be removed."
+             })
+
+         },
+        response = {
+             @ServiceResponse(code=200,description="On sucess no content response is sent."),
+             @ServiceResponse(code=401,description="The user is not logged in and the resource is protected"),
+             @ServiceResponse(code=403,description="The user does not have permission to access the resource"),
+           @ServiceResponse(code=404,description="The resource does not exist, or the target is not found"),
+           @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
+         })
+})
 public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
@@ -82,8 +159,42 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       // update the status to something from the request parameter
       location = locationParam.getString("UTF-8");
     }
+    String status = null; // @clear status will clear the status
+    RequestParameter statusParam = request
+        .getRequestParameter(PresenceService.PRESENCE_STATUS_PROP);
+    if (statusParam != null) {
+      // update the status to something from the request parameter
+      status = statusParam.getString("UTF-8");
+    }
+    String clear = null; // @clear status will clear the status
+    RequestParameter clearParam = request
+        .getRequestParameter(PresenceService.PRESENCE_CLEAR);
+    if (clearParam != null) {
+      // update the status to something from the request parameter
+      clear = clearParam.getString("UTF-8");
+    }
     try {
-      presenceService.ping(user, location);
+      JSONWriter jsonWriter = new JSONWriter(response.getWriter());
+      jsonWriter.object();
+      if ( clear != null  && clear.length() > 0) {
+        presenceService.clear(user);
+        jsonWriter.key("deleted");
+        jsonWriter.value("1");
+      } else {
+        presenceService.ping(user, location);
+        jsonWriter.key("location");
+        jsonWriter.value(location);
+        if ( status != null ) {
+          if ( "@clear".equals(status) ) {
+            presenceService.setStatus(user, null);
+          } else {
+            presenceService.setStatus(user, status);
+          }
+          jsonWriter.key("status");
+          jsonWriter.value(status);
+        }
+      }
+      jsonWriter.endObject();
     } catch (Exception e) {
       response
           .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -93,66 +204,4 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     response.setContentLength(0);
     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
-
-  @Override
-  protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    // get current user
-    String user = request.getRemoteUser();
-    if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-          "User must be logged in to set their status");
-    }
-    LOGGER.info("PUT to PresenceControlServlet (" + user + ")");
-
-    String status = null; // null status will clear the status
-    RequestParameter statusParam = request
-        .getRequestParameter(PresenceService.PRESENCE_STATUS_PROP);
-    if (statusParam != null) {
-      // update the status to something from the request parameter
-      status = statusParam.getString("UTF-8");
-    }
-    // PUT allows a ping to happen as well to reduce number of requests
-    String location = null; // null location will cause no change
-    RequestParameter locationParam = request
-        .getRequestParameter(PresenceService.PRESENCE_LOCATION_PROP);
-    if (locationParam != null) {
-      // update the status to something from the request parameter
-      location = locationParam.getString("UTF-8");
-    }
-    try {
-      if (location != null) {
-        presenceService.ping(user, location);
-      }
-      presenceService.setStatus(user, status);
-    } catch (Exception e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Failure setting current user (" + user + ") status (" + status + ")"
-              + (location == null ? "" : " and location (" + location + ")") + ": " + e);
-    }
-    response.setContentLength(0);
-    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-  }
-
-  @Override
-  protected void doDelete(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    // get current user
-    String user = request.getRemoteUser();
-    if (user == null) {
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-          "User must be logged in to control their status");
-    }
-    LOGGER.info("DELETE to PresenceControlServlet (" + user + ")");
-
-    try {
-      presenceService.clear(user);
-    } catch (Exception e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Failure deleting current user (" + user + ") status: " + e);
-    }
-    response.setContentLength(0);
-    response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-  }
-
 }

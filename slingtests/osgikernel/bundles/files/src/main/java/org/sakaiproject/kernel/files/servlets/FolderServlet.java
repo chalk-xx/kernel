@@ -26,6 +26,13 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.files.search.FileSearchBatchResultProcessor;
 import org.slf4j.Logger;
@@ -42,10 +49,37 @@ import javax.servlet.ServletException;
  * Dumps all the files of a sakai/folder.
  * 
  */
-@SlingServlet(resourceTypes = { "FolderServlet.java" }, methods = { "GET" }, selectors = { "files" })
+@SlingServlet(resourceTypes = { "sakai/folder" }, methods = { "GET" }, selectors = { "files" })
 @Properties(value = {
     @Property(name = "service.description", value = "Links nodes to files."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(
+    name = "FolderServlet",
+    shortDescription = "Pretty print child items of a sakai/folder",
+    description = "Dumps all the sakai/link, sakai/file and any other file under a sakai/folder node." +
+    		"This is the same output as a search result.",
+    bindings = @ServiceBinding(
+        type = BindingType.TYPE,
+        bindings = "sakai/folder",
+        selectors = @ServiceSelector(
+            name = "files", 
+            description = "Get all files underneath this folder."
+        )
+    ), 
+    methods = @ServiceMethod(
+        name = "GET", 
+        response = {
+            @ServiceResponse(
+                code = 200,
+                description = "Success, a body is returned."
+            ),
+            @ServiceResponse(
+              code = 500,
+              description = "Failure, explanation is in the HTML."
+            )
+        }
+    )
+) 
 public class FolderServlet extends SlingAllMethodsServlet {
 
   /**

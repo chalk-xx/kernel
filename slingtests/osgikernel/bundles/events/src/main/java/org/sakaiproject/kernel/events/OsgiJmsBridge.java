@@ -44,7 +44,7 @@ import javax.jms.Topic;
 /**
  * Bridge to send OSGi events onto a JMS topic.
  */
-@Component(label = "%bridge.name", description = "%bridge.description", metatype = true)
+@Component(label = "%bridge.name", description = "%bridge.description", metatype = true, immediate=true)
 @Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
@@ -74,11 +74,35 @@ public class OsgiJmsBridge implements EventHandler {
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
+  private String cliBrokerUrl;
 
   /**
    * Default constructor.
    */
   public OsgiJmsBridge() {
+    cliBrokerUrl = System.getProperty("activemq.broker.url");
+    if (cliBrokerUrl == null) {
+      String brokerProtocol = System.getProperty("activemq.broker.protocol");
+      String brokerHost = System.getProperty("activemq.broker.host");
+      String brokerPort = System.getProperty("activemq.broker.port");
+
+      // check for any non-null entries. Do this check separately without
+      // specifying defaults so that we can determine if command line parameters
+      // were specified and if not, use the parameters from the config
+      // properties.
+      if (brokerProtocol != null || brokerHost != null || brokerPort != null) {
+        if (brokerProtocol == null) {
+          brokerProtocol = "vm";
+        }
+        if (brokerHost == null) {
+          brokerHost = "localhost";
+        }
+        if (brokerPort == null) {
+          brokerPort = "61616";
+        }
+        cliBrokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
+      }
+    }
   }
 
   /**
@@ -109,24 +133,33 @@ public class OsgiJmsBridge implements EventHandler {
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
     String _brokerUrl = (String) props.get(BROKER_URL);
 
-    LOGGER.debug(
-        "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
-        new Object[] { _brokerUrl, transacted, acknowledgeMode, connectionClientId });
-
-    boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-    if (!urlEmpty) {
-      if (diff(brokerUrl, _brokerUrl)) {
-        LOGGER.info("Creating a new ActiveMQ Connection Factory");
-        connFactory = connFactoryService.createFactory(_brokerUrl);
+    if (brokerUrl == null && cliBrokerUrl != null) {
+      LOGGER.info("Creating a new ActiveMQ Connection Factory from CLI params [" + cliBrokerUrl
+          + "]");
+      connFactory = connFactoryService.createFactory(cliBrokerUrl);
+      brokerUrl = cliBrokerUrl;
+      props.put(BROKER_URL, brokerUrl);
+    } else {
+      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+      if (!urlEmpty) {
+        if (diff(brokerUrl, _brokerUrl)) {
+          LOGGER.info("Creating a new ActiveMQ Connection Factory from config params ["
+              + _brokerUrl + "]");
+          connFactory = connFactoryService.createFactory(_brokerUrl);
+          brokerUrl = _brokerUrl;
+        }
       }
     }
+
+    LOGGER.debug(
+        "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
+        new Object[] { brokerUrl, transacted, acknowledgeMode, connectionClientId });
 
     if (connFactory == null) {
       String msg = "Couldn't create connection factory with empty broker url.";
       LOGGER.error(msg);
       throw new RuntimeException(msg);
     }
-    brokerUrl = _brokerUrl;
 
     // may want to consider getting this connection from a pool but activity
     // is expected to be high enough that the connection will be used almost
@@ -136,6 +169,9 @@ public class OsgiJmsBridge implements EventHandler {
       conn.setClientID(connectionClientId);
 
       clientSession = conn.createSession(transacted, acknowledgeMode);
+
+      clientSession.run();
+      conn.start();
     } catch (JMSException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
@@ -171,7 +207,7 @@ public class OsgiJmsBridge implements EventHandler {
   @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
-    if (connFactory != null) {
+    if (conn != null) {
       LOGGER.debug("Processing event {}", event);
       try {
         // post to JMS
@@ -191,8 +227,6 @@ public class OsgiJmsBridge implements EventHandler {
           }
         }
 
-        clientSession.run();
-        conn.start();
         client.send(msg);
       } catch (JMSException e) {
         LOGGER.error(e.getMessage(), e);

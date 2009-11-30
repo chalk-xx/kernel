@@ -34,6 +34,8 @@ public interface PresenceService {
 
   public static final String PRESENCE_LOCATION_PROP = "sakai:location";
 
+  public static final String PRESENCE_CLEAR = "delete";
+
   /**
    * keep presence for this user alive.
    * 

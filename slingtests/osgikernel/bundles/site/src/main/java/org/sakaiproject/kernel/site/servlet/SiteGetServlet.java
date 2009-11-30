@@ -21,6 +21,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.IOUtils;
@@ -47,6 +53,32 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="GET"
  * @scr.property name="sling.servlet.extensions" value="html"
  */
+@ServiceDocumentation(name="Get Site Servlet",
+    description=" Gets the site container or the site definition depending on serialization ",
+    shortDescription="Get site.",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sakai/site"},
+        extensions={
+        @ServiceExtension(name="html", description="Get the html template for the site, ready for population by the client"),
+        @ServiceExtension(name="json", description="Get a json tree of the site and metadata")
+    }),
+    
+    methods=@ServiceMethod(name="GET",
+        description={"This method gets one of two forms of the site. If json is requested, the site properties are seialized into" +
+        		"a json structure. If html is requested, the site object is inspected to determine the html template and then " +
+        		"the template is processed and sent back to the client.",
+            "Example<br>" +
+            "<pre>curl http://localhost:8080/sites/physics101/year3.html</pre>"
+        },
+        response={
+          @ServiceResponse(code=200,description="A HTML template for the site, or json tree of the site depending on the request."),
+          @ServiceResponse(code=204,description="When A site is not found"),
+          @ServiceResponse(code=400,description={
+              "If the location does not represent a site."
+          }),
+          @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 public class SiteGetServlet extends AbstractSiteServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);

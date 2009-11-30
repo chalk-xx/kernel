@@ -23,6 +23,14 @@ import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServl
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +89,28 @@ import javax.servlet.http.HttpServletResponse;
  *                cardinality="0..n" policy="dynamic"
  *
  */
-
+@ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet",
+    description="Deletes a group. Maps on to nodes of resourceType sling/groups like " +
+    		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
+    		"/system/userManager/group. This servlet responds at " +
+    		"/system/userManager/group.delete.html. The servlet also responds to single delete " +
+    		"requests eg /system/userManager/group/g-groupname.delete.html",
+    shortDescription="Delete a group or user",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/group", "sling/user"},
+        selectors=@ServiceSelector(name="delete", description="Deletes one or more authorizables (groups or users)"),
+        extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
+    methods=@ServiceMethod(name="POST",
+        description={"Delete a group or user, or set of groups.",
+            "Example<br>" +
+            "<pre>curl -Fgo=1 http://localhost:8080/system/userManager/group/g-groupname.delete.html</pre>"},
+        parameters={
+        @ServiceParameter(name=":applyTo", description="An array of relative resource references to groups to be deleted, if this parameter is present, the url is ignored and all listed groups are removed.")
+    },
+    response={
+    @ServiceResponse(code=200,description="Success, a redirect is sent to the group's resource locator with HTML describing status."),
+    @ServiceResponse(code=404,description="Group or User was not found."),
+    @ServiceResponse(code=500,description="Failure with HTML explanation.")
+        })) 
 public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
   /**

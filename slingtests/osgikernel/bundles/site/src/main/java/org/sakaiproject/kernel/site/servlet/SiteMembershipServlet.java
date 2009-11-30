@@ -23,6 +23,11 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -49,6 +54,19 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.paths" value="/system/sling/membership"
  * @scr.property name="sling.servlet.methods" value="GET"
  */
+@ServiceDocumentation(name="Site Membership Servlet",
+    description=" Get the membership for the current user in json format.",
+    shortDescription="Get the site membership for the current user.",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings={"/system/sling/membership"}),
+    methods=@ServiceMethod(name="GET",
+        description={"Get the site membership for the current user, serialized in json format",
+            "Example<br>" +
+            "<pre>curl http://user:pass@localhost:8080//system/sling/membership</pre>"
+        },
+        response={
+          @ServiceResponse(code=200,description="The body will contain json for the membership of the user."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 public class SiteMembershipServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory

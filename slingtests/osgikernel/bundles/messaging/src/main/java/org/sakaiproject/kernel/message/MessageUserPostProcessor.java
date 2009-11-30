@@ -93,7 +93,6 @@ public class MessageUserPostProcessor implements UserPostProcessor {
            * = (Node) session.getItem(pathPrivate); }
            */
           Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-          messageStore.setProperty(MessageConstants.SAKAI_EMAIL_ADDRESS, principalName + "@localhost");
           messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
               MessageConstants.SAKAI_MESSAGESTORE_RT);
           // ACL's are managed by the Personal User Post processor.

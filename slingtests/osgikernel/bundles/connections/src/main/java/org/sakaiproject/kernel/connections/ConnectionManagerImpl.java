@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import javax.jcr.InvalidItemStateException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
@@ -230,7 +231,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       ConnectionState otherState = getConnectionState(otherNode);
       StatePair sp = stateMap.get(tk(thisState, otherState, operation));
       if (sp == null) {
-        throw new ConnectionException(400, "Cant perform operation "
+        throw new ConnectionException(400, "Cannot perform operation "
             + operation.toString() + " on " + thisState.toString() + ":"
             + otherState.toString());
       }
@@ -249,7 +250,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
-    } catch (RepositoryException e) {
+    } catch (InvalidItemStateException e) {
+      throw new ConnectionException(409, "There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)");
+    }
+    catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     } finally {
       if (adminSession != null) {

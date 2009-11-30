@@ -39,6 +39,15 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
@@ -115,6 +124,27 @@ import javax.servlet.http.HttpServletResponse;
  *                cardinality="0..n" policy="dynamic"
  * 
  */
+@ServiceDocumentation(name="Create Group Servlet",
+    description="Creates a new group. Maps on to nodes of resourceType sling/groups like " +
+    		"/rep:system/rep:userManager/rep:groups mapped to a resource url " +
+    		"/system/userManager/group. This servlet responds at /system/userManager/group.create.html",
+    shortDescription="Creates a new group",
+    bindings=@ServiceBinding(type=BindingType.PATH,bindings="/system/userManager/group.create.html",
+        selectors=@ServiceSelector(name="create", description="Creates a new group"),
+        extensions=@ServiceExtension(name="html", description="Posts produce html containing the update status")),
+    methods=@ServiceMethod(name="POST",
+        description={"Creates a new group with a name :name, " +
+            "storing additional parameters as properties of the new group.",
+            "Example<br>" +
+            "<pre>curl -F:name=g-groupname -Fproperty1=value1 http://localhost:8080/system/userManager/group.create.html</pre>"},
+        parameters={
+        @ServiceParameter(name=":name", description="The name of the new group (required)"),
+        @ServiceParameter(name="",description="Additional parameters become groups node properties (optional)")
+        },
+        response={
+        @ServiceResponse(code=200,description="Success, a redirect is sent to the groups resource locator with HTML describing status."),
+        @ServiceResponse(code=500,description="Failure, including group already exists. HTML explains failure.")
+        }))   
 
 public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet implements
     ManagedService {
@@ -215,6 +245,10 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
 
+    // KERN-432 dont allow anon users to access create group.
+    if ( SecurityConstants.ANONYMOUS_ID.equals(request.getRemoteUser()) ) {
+      response.setStatus(403, "AccessDenied");
+    }
     // check that the submitted parameter values have valid values.
     final String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
     if (principalName == null) {

@@ -30,6 +30,13 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.slf4j.Logger;
@@ -53,7 +60,43 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Servlet to allow to update a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-
+@ServiceDocumentation(
+    name = "FilesUpdateServlet", 
+    shortDescription = "Update an already existing file in the repository.",
+    bindings = @ServiceBinding(
+        type = BindingType.TYPE,
+        selectors = @ServiceSelector(name="update", description = "Update a file in the repository."),
+        bindings = "sakai/files"
+    ),
+    methods = {@ServiceMethod(
+        name = "POST", 
+        description = "Update a file in the repository.",
+        parameters = {
+            @ServiceParameter(
+                name="Filedata", 
+                description="Required: the parameter that holds the actual data for the file that should be uploaded."),
+            @ServiceParameter(
+                name="link", 
+                description="Optional: absolute path where you want to create a link for the file. This can be multivalued. It has to be the same size as the site parameter though."),
+            @ServiceParameter(
+                name="site", 
+                description="Optional: absolute path to a site that should be associated with this file. This can be multivalued. It has to be the same size as the link parameter though.")
+        },
+        response = {
+            @ServiceResponse(
+                code = 200, 
+                description = "Everything went OK and the file was updated. All links and properties were created/set."),
+            @ServiceResponse(
+                code = 400,
+                description = "Filedata parameter was not provided."
+            ),
+            @ServiceResponse(
+                code = 500,
+                description = "Failure with HTML explanation."
+            )
+        }
+    )}
+)
 public class FileUpdateServlet extends SlingAllMethodsServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FileUpdateServlet.class);

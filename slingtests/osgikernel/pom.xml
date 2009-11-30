@@ -34,6 +34,7 @@
         <module>app-bundles</module>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
+        <module>bundles/casauth</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
         <module>bundles/ldap</module>
@@ -57,7 +58,6 @@
         <module>bundles/jpa</module>
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
-        <module>bundles/filters</module>
         <module>bundles/session</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
@@ -94,6 +94,7 @@
         <module>bundles/sling/accessmanager</module>
         <module>bundles/cluster</module>
         <module>bundles/chat</module>
+        <module>bundles/doc</module>
       </modules>
     </profile>
     <profile>

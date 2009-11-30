@@ -20,21 +20,47 @@ package org.sakaiproject.kernel.activemq;
 import org.apache.activemq.broker.BrokerService;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+
 
 public class Activator implements BundleActivator {
+  private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+
   private BrokerService broker;
 
   public void start(BundleContext arg0) throws Exception {
+    String brokerUrl = System.getProperty("activemq.broker.url");
+    if (brokerUrl == null) {
+      String brokerProtocol = System.getProperty("activemq.broker.protocol", "tcp");
+      String brokerHost = System.getProperty("activemq.broker.host", "localhost");
+      String brokerPort = System.getProperty("activemq.broker.port", "61616");
+      brokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
+    }
+    
+    
     broker = new BrokerService();
-
+    
+    // generate a full path
+    File ddir = broker.getDataDirectoryFile();
+    String dpath = ddir.getAbsolutePath();
+    
+    String basePath = dpath.substring(0, dpath.length()-"/activemq-data".length());
+    String dataPath = basePath+"/sling/activemq-data";
+    LOG.info("Setting Data Path to  [{}] [{}] ",new Object[]{dpath,basePath,dataPath});
+    broker.setDataDirectory(dataPath);
+    
     // configure the broker
-    broker.addConnector("tcp://localhost:61616");
+    LOG.info("Adding ActiveMQ connector [" + brokerUrl + "]");
+    broker.addConnector(brokerUrl);
 
     broker.start();
   }
 
   public void stop(BundleContext arg0) throws Exception {
-    if (broker != null) {
+    if (broker != null && broker.isStarted()) {
       broker.stop();
     }
   }

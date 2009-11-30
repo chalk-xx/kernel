@@ -38,6 +38,14 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.StringUtils;
@@ -79,6 +87,38 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="SlingRepository"
  *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@ServiceDocumentation(name="Create a Site",
+    description="The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite " +
+    		"/site/container/site.createsite If the node is of type of sakai/sites, then create the " +
+    		"site based on a request property. If the node is not of type sakai/sites, and exists make it a sakai/site",
+    shortDescription="Create a new Site",
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default","sakai/sites"},
+        selectors=@ServiceSelector(name="createsite", description="Create Site"),
+        extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
+    methods=@ServiceMethod(name="POST",
+        description={"Creates a site, with a name specified in :sitepath from an optional template. In the process the servlet" +
+        		"will also create all realted structures (message stores etc) and set up any groups associated with the site. " +
+        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed" +
+        		"to create sites that node. If the current user is not allowed to create a site in the chosen location, then" +
+        		"a 403 is returned.",
+            "Example<br>" +
+            "<pre>Example needed</pre>"
+        },
+        parameters={
+          @ServiceParameter(name=":sitepath", description="The Path to the site being created (required)"),
+          @ServiceParameter(name="sakai:site-template", description="Path to a template node in JCR to use when creating the site (optional)")
+        
+        },
+        response={
+          @ServiceResponse(code=200,description="Success a body is returned containing a json ove the name of the version saved"),
+          @ServiceResponse(code=400,description={
+              "If the :sitepath parameter is not present",
+              "If the sakai:site-template parameter does not point to a template in JCR"
+          }),
+          @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
+          @ServiceResponse(code=404,description="Resource was not found."),
+          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
+    )) 
 
 public class CreateSiteServlet extends AbstractSiteServlet {
 

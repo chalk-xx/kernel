@@ -24,6 +24,13 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.chat.ChatManagerService;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +49,19 @@ import javax.servlet.ServletException;
  * @scr.reference name="ChatManagerService"
  *                interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
  */
+@ServiceDocumentation(
+    name = "ChatServlet", shortDescription="Check for new chat messages.",
+    description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.",
+    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name="chatupdate")),
+    methods = { @ServiceMethod(name = "GET", 
+        response = {
+        @ServiceResponse(code = 200, description = "Normal retrieval."), 
+        @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.")
+        }, 
+        description = "GETs to this servlet will produce a JSON object with 2 keys. \n"
+    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The time since the last retrieval.</li></ul>", 
+    parameters = @ServiceParameter(name = "t", 
+        description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
 public class ChatServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
@@ -87,7 +107,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
       e.printStackTrace();
       response.sendError(500, "Unable to parse JSON.");
     }
-    
+
     // Make sure the connection is not keep-alive.
     response.setHeader("Connection", "close");
   }

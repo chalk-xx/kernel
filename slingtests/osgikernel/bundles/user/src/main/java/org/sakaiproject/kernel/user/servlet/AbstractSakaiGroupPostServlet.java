@@ -29,7 +29,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.kernel.api.user.UserConstants;
-import org.sakaiproject.kernel.api.user.UserModification;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +89,15 @@ public abstract class AbstractSakaiGroupPostServlet extends
                   for (removeIndex=0; removeIndex<membersToDelete.length; removeIndex++) {
                       if (removeMember(group, membersToDelete[removeIndex], baseResource, userManager, resolver)) {
                         String[] usernameParts = membersToDelete[removeIndex].split("\\/");
-                        userChanges.add(UserModification.onGroupLeave(groupPath + "/members", group, (User)userManager.getAuthorizable(usernameParts[usernameParts.length - 1])));
+                        Authorizable au = userManager.getAuthorizable(usernameParts[usernameParts.length - 1]);
+                        Modification mod;
+                        if (au.isGroup()) {
+                          mod = GroupModification.onGroupLeave(groupPath + "/members", group, (Group)au);
+                        }
+                        else {
+                          mod = UserModification.onGroupLeave(groupPath + "/members", group, (User)au);
+                        }
+                        userChanges.add(mod);
                         changed = true;
                       }
                   }
@@ -101,7 +108,15 @@ public abstract class AbstractSakaiGroupPostServlet extends
                 for (addIndex=0; addIndex<membersToAdd.length; addIndex++) {
                     if (addMember(group, membersToAdd[addIndex], baseResource, userManager, resolver)) {
                       String[] usernameParts = membersToAdd[addIndex].split("\\/");
-                      userChanges.add(UserModification.onGroupJoin(groupPath + "/members", group, (User)userManager.getAuthorizable(usernameParts[usernameParts.length - 1])));
+                      Authorizable au = userManager.getAuthorizable(usernameParts[usernameParts.length - 1]);
+                      Modification mod;
+                      if (au.isGroup()) {
+                        mod = GroupModification.onGroupLeave(groupPath + "/members", group, (Group)au);
+                      }
+                      else {
+                        mod = UserModification.onGroupLeave(groupPath + "/members", group, (User)au);
+                      }
+                      userChanges.add(mod);
                       changed = true;
                     }
                 }

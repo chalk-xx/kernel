@@ -24,6 +24,10 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.kernel.resource.VirtualResourceProvider;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -36,6 +40,20 @@ import org.slf4j.LoggerFactory;
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for file stores."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(
+    name = "FilesStoreServlet", shortDescription = "BigStore servlet for files", 
+    description = "This servlet transforms requests from /_user/files/grades.doc to a hashed path like /_user/files/aa/bb/cc/dd/grades.doc",
+    bindings = {@ServiceBinding(
+        type = BindingType.PATH, 
+        bindings="sakai/files"
+    )},
+    methods = {
+      @ServiceMethod(name = "GET", description = "This servlet transforms GET requests to the hashed address."), 
+      @ServiceMethod(name = "POST", description = "This servlet transforms POST requests to the hashed address."),
+      @ServiceMethod(name = "PUT", description = "This servlet transforms PUT requests to the hashed address."), 
+      @ServiceMethod(name = "DELETE", description = "This servlet transforms DELETE requests to the hashed address.")
+    }
+)
 public class FilesStoreServlet extends AbstractVirtualPathServlet {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(FilesStoreServlet.class);
