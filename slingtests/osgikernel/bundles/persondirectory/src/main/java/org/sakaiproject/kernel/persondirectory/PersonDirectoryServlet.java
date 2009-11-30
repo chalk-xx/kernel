@@ -29,6 +29,7 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProvider;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
+import org.sakaiproject.kernel.persondirectory.providers.FederatedPersonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProvider;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
+import org.sakaiproject.kernel.persondirectory.PersonImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,23 +45,47 @@ import java.util.Set;
 public class FederatedPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(FederatedPersonProvider.class);
 
+  /** Storage of providers available for looking up person information. */
   @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
   private Set<PersonProvider> providers = new HashSet<PersonProvider>();
 
+  /**
+   * Bind a provider to this component.
+   *
+   * @param provider
+   *          The provider to bind.
+   */
   protected void bindProvider(PersonProvider provider) {
     LOG.debug("Binding provider: {}", provider.getClass().getName());
     providers.add(provider);
   }
 
+  /**
+   * Unbind a provider from this component.
+   *
+   * @param provider
+   *          The provider to unbind.
+   */
   protected void unbindProvider(PersonProvider provider) {
     LOG.debug("Unbinding provider: {}", provider.getClass().getName());
     providers.remove(provider);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPeople(java.util.Set)
+   */
   public Set<Person> getPeople(Set<String> uids) throws PersonProviderException {
     return getPeople(uids, (String) null);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPeople(java.util.Set,
+   *      java.lang.String[])
+   */
   public Set<Person> getPeople(Set<String> uids, String... attributes)
       throws PersonProviderException {
     HashMap<String, PersonImpl> retPeople = null;
@@ -96,10 +121,21 @@ public class FederatedPersonProvider implements PersonProvider {
     return them;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPerson(java.lang.String)
+   */
   public Person getPerson(String uid) throws PersonProviderException {
     return getPerson(uid, (String) null);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPerson(java.lang.String,
+   *      java.lang.String[])
+   */
   public Person getPerson(String uid, String... attributes) throws PersonProviderException {
     PersonImpl retPerson = null;
     for (PersonProvider provider : providers) {

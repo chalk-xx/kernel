@@ -95,6 +95,7 @@
         <module>bundles/cluster</module>
         <module>bundles/chat</module>
         <module>bundles/doc</module>
+        <module>bundles/persondirectory</module>
       </modules>
     </profile>
     <profile>
