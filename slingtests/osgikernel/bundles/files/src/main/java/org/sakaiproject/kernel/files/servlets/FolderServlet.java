@@ -29,7 +29,6 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
-import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
@@ -111,22 +110,8 @@ public class FolderServlet extends SlingAllMethodsServlet {
       write.array();
 
       long size = it.getSize();
-      processor.writeNodeIterator(write, it, 0, size);
+      processor.writeNodes(request, write, it, 0, size);
 
-      /*
-       * while (it.hasNext()) { Node child = it.nextNode(); // File node if
-       * (child.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) { String
-       * resourceType = child.getProperty(
-       * JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString(); if
-       * (resourceType.equals(FilesConstants.RT_SAKAI_LINK)) {
-       * FileUtils.writeLinkNode(child, session, write, siteService); } // Folder node
-       * else if (resourceType.equals(FilesConstants.RT_SAKAI_FOLDER)) { write.object();
-       * ExtendedJSONWriter.writeNodeContentsToWriter(write, child); write.key("path");
-       * write.value(child.getPath()); write.key("name"); write.value(child.getName());
-       * write.endObject(); } else if (resourceType.equals(FilesConstants.RT_SAKAI_FILE))
-       * { FileUtils.writeFileNode(node, session, write, siteService); } else {
-       * ExtendedJSONWriter.writeNodeToWriter(write, node); } } }
-       */
       write.endArray();
 
     } catch (RepositoryException e) {

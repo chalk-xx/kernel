@@ -17,17 +17,21 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.sakaiproject.kernel.util.StringUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 /**
  * Formats message node search results
@@ -49,8 +53,11 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
-      RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node resultNode = RowUtils.getNode(row, session);
+
     write.object();
 
     // Add some extra properties.
@@ -75,7 +82,8 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM, "userFrom");
+      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM,
+          "userFrom");
     }
 
     // List all of the properties on here.
