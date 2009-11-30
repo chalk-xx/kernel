@@ -78,6 +78,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
       RowIterator iterator, long start, long end) throws JSONException,
       RepositoryException {
+    processedNodes = new ArrayList<String>();
     Session session = request.getResourceResolver().adaptTo(Session.class);
     iterator.skip(start);
     for (long i = start; i < end && iterator.hasNext(); i++) {
