@@ -18,6 +18,7 @@
 
 package org.sakaiproject.kernel.discussion;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
@@ -38,7 +39,8 @@ import javax.jcr.RepositoryException;
  */
 public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
+      String excerpt) throws JSONException, RepositoryException {
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);

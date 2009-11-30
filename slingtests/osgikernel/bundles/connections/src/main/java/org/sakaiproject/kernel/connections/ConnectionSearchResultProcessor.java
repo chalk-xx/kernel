@@ -1,5 +1,6 @@
 package org.sakaiproject.kernel.connections;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
@@ -24,7 +25,7 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionSearchResultProcessor.class);
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node, String excerpt) throws JSONException, RepositoryException {
     String targetUser = node.getName();
     write.object();
     write.key("target");

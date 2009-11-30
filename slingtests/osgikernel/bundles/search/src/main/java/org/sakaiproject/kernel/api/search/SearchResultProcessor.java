@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.api.search;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
@@ -29,9 +30,13 @@ import javax.jcr.RepositoryException;
 public interface SearchResultProcessor {
 
   /**
-   * @param write
-   * @param node
+   * The SearchServlet will already have sent a partial JSON response. This processor should continue using the JSON format.
+   * @param request The request that was issued for this search.
+   * @param write The JSONWriter to write the results to.
+   * @param node The result node.
+   * @param excerpt The excerpt retrieved from the matched property/content. This will be null if no excerpt was found or looked for.
+   * @throws JSONException
+   * @throws RepositoryException
    */
-  void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException;
-
+  void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node, String excerpt) throws JSONException, RepositoryException;
 }

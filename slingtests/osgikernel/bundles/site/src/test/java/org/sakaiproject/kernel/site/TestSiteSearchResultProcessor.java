@@ -45,7 +45,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     expect(resultNode.getPath()).andReturn("");
     replay();
     try {
-      siteSearchResultProcessor.writeNode(null, resultNode);
+      siteSearchResultProcessor.writeNode(null, null, resultNode, null);
       fail();
     } catch (JSONException e) {
       assertEquals("Unable to write non-site node result", e.getMessage());
@@ -72,7 +72,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     NodeIterator resultNodes = queryResult.getNodes();
     int i=0;
     while (resultNodes.hasNext() && i < itemCount) {
-      processor.writeNode(write, resultNodes.nextNode());
+      processor.writeNode(null, write, resultNodes.nextNode(), null);
       i++;
     }
     write.endArray();

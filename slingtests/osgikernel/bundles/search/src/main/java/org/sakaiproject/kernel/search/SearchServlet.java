@@ -21,16 +21,16 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_QUERY;
 import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_RESULTS;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.REG_BATCH_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROVIDER_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
-import static org.sakaiproject.kernel.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
-import static org.sakaiproject.kernel.api.search.SearchConstants.REG_BATCH_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.TOTAL;
 
 import org.apache.jackrabbit.util.ISO9075;
@@ -54,6 +54,8 @@ import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchConstants;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.search.processors.NodeSearchBatchResultProcessor;
+import org.sakaiproject.kernel.search.processors.NodeSearchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,9 +70,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
+import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -88,9 +94,8 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.extensions" value="json"
  * @scr.reference name="SearchResultProcessor"
  *                interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor"
- *                unbind="unbindSearchResultProcessor" cardinality="0..n"
- *                policy="dynamic"
+ *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
+ *                cardinality="0..n" policy="dynamic"
  * @scr.reference name="SearchBatchResultProcessor"
  *                interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
  *                bind="bindSearchBatchResultProcessor"
@@ -98,132 +103,80 @@ import javax.servlet.http.HttpServletResponse;
  *                policy="dynamic"
  * @scr.reference name="SearchPropertyProvider"
  *                interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- *                bind="bindSearchPropertyProvider"
- *                unbind="unbindSearchPropertyProvider" cardinality="0..n"
- *                policy="dynamic"
+ *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
+ *                cardinality="0..n" policy="dynamic"
  */
-@ServiceDocumentation(name="Search Servlet", 
-    shortDescription="The Search servlet provides search results.",
-    description={
-      "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved " +
-      "as resources of type sakai/search. The node at the resource containing properties that represent a search template that is " +
-      "used to perform the search operation. This allows the UI developer to create nodes in the JCR and configure those nodes to " +
-      "act as an end point for a search based view into the JCR. If the propertyprovider or the batchresultprocessor are not specified, " +
-      "default implementations will be used.",
-      "The format of the template is ",
-      "<pre>" +
-      " nt:unstructured \n" +
-      "        -sakai:query-template - a message query template for the query, wiht placeholders \n" +
-      "                                for parameters of the form {request-parameter-name}\n" +
-      "        -sakai:query-language - either XPATH or SQL depending on the dialect used for the query\n" +
-      "        -sakai:propertyprovider - the name of a Property Provider used to populate the properties \n" +
-      "                                  to be used in the query \n" +
-      "        -sakai:batchresultprocessor - the name of a SearchResultProcessor to be used processing \n" +
-      "                                      the result set.\n" +
-      "</pre>",
-      "For example:",
-      "<pre>" +
-      "/var/search/content\n" +
-      "{  \n" +
-      "   \"sakai:query-language\": \"xpath\", \n"+
-      "   \"sakai:query-template\": \"//*[jcr:contains(.,\\\"{q}\\\")]\", \n"+
-      "   \"sling:resourceType\": \"sakai/search\", \n"+
-      "   \"sakai:resultprocessor\": \"Node\" \n"+
-      "} \n" +
-      "</pre>"
-    },
-    methods={
-      @ServiceMethod(name="GET",
-          description={"Processes the query request against the selected resource, using the properties on the resource as a " +
-          		"template for processing the request and a specification for the pre and post processing steps on the search." +
-          		" results.",
-          		"For example",
-          		"<pre>" +
-          		"curl http://localhost:8080/var/search/content.json?q=a\n" +
-          		"{\n"+
-          	  "  \"query\": \"//*[jcr:contains(.,\\\"a\\\")]\",\n"+
-          	  "  \"items\": 25,\n"+
-          	  "  \"total\": 56,\n"+
-          	  "  \"results\": [\n"+
-          	  "      {\n"+
-          	  "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"+
-          	  "          \"jcr:primaryType\": \"nt:resource\",\n"+
-          	  "          \"jcr:mimeType\": \"text/plain\",\n"+
-          	  "          \"jcr:uuid\": \"0b6bd369-f0dd-4eb3-87cb-7fa8e079cccf\",\n"+
-          	  "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n"+
-          	  "      },\n"+
-          	  "      {\n"+
-          	  "          \"sakai:is-site-template\": \"true\",\n"+
-          	  "          \"sakai:authorizables\": [\n"+
-          	  "              \"g-temp-collaborators\",\n"+
-          	  "              \"g-temp-viewers\"\n"+
-          	  "          ],\n"+
-          	  "          \"description\": \"This is a template!\",\n"+
-          	  "          \"id\": \"template\",\n"+
-          	  "          \"sling:resourceType\": \"sakai/site\",\n"+
-          	  "          \"sakai:site-template\": \"/dev/_skins/original/original.html\",\n"+
-          	  "          \"jcr:mixinTypes\": [\n"+
-          	  "              \"rep:AccessControllable\"\n"+
-          	  "          ],\n"+
-          	  "          \"jcr:primaryType\": \"nt:unstructured\",\n"+
-          	  "          \"status\": \"online\",\n"+
-          	  "          \"name\": \"template\"\n"+
-          	  "      },\n"+
-          	  "      ...\n"+
-          	  "      {\n"+
-          	  "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"+
-          	  "          \"jcr:primaryType\": \"nt:resource\",\n"+
-          	  "          \"jcr:mimeType\": \"text/html\",\n"+
-          	  "          \"jcr:uuid\": \"a9b46582-b30c-4489-b9e3-8fdc20cb5429\",\n"+
-          	  "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n"+
-          	  "      }\n"+
-          	  "  ]\n"+
-          	  "}\n"+
-          		"</pre>"
-          },
-          parameters={
-             @ServiceParameter(name="items", description={"The number of items per page in the result set."}),
-             @ServiceParameter(name="page", description={"The page number to start listing the results on."}),
-             @ServiceParameter(name="*", description={"Any other parameters may be used by the template."})
-          },
-          response={
-            @ServiceResponse(code=200, description="A search response simular to the above will be emitted "),
-            @ServiceResponse(code=500, description="Any error with the html containing the error")
-      
-          }
-      )
-    }
-    )
+@ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
+    "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
+        + "as resources of type sakai/search. The node at the resource containing properties that represent a search template that is "
+        + "used to perform the search operation. This allows the UI developer to create nodes in the JCR and configure those nodes to "
+        + "act as an end point for a search based view into the JCR. If the propertyprovider or the batchresultprocessor are not specified, "
+        + "default implementations will be used.",
+    "The format of the template is ",
+    "<pre>"
+        + " nt:unstructured \n"
+        + "        -sakai:query-template - a message query template for the query, wiht placeholders \n"
+        + "                                for parameters of the form {request-parameter-name}\n"
+        + "        -sakai:query-language - either XPATH or SQL depending on the dialect used for the query\n"
+        + "        -sakai:propertyprovider - the name of a Property Provider used to populate the properties \n"
+        + "                                  to be used in the query \n"
+        + "        -sakai:batchresultprocessor - the name of a SearchResultProcessor to be used processing \n"
+        + "                                      the result set.\n" + "</pre>",
+    "For example:",
+    "<pre>" + "/var/search/content\n" + "{  \n"
+        + "   \"sakai:query-language\": \"xpath\", \n"
+        + "   \"sakai:query-template\": \"//*[jcr:contains(.,\\\"{q}\\\")]\", \n"
+        + "   \"sling:resourceType\": \"sakai/search\", \n"
+        + "   \"sakai:resultprocessor\": \"Node\" \n" + "} \n" + "</pre>" }, methods = { @ServiceMethod(name = "GET", description = {
+    "Processes the query request against the selected resource, using the properties on the resource as a "
+        + "template for processing the request and a specification for the pre and post processing steps on the search."
+        + " results.",
+    "For example",
+    "<pre>" + "curl http://localhost:8080/var/search/content.json?q=a\n" + "{\n"
+        + "  \"query\": \"//*[jcr:contains(.,\\\"a\\\")]\",\n" + "  \"items\": 25,\n"
+        + "  \"total\": 56,\n" + "  \"results\": [\n" + "      {\n"
+        + "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"
+        + "          \"jcr:primaryType\": \"nt:resource\",\n"
+        + "          \"jcr:mimeType\": \"text/plain\",\n"
+        + "          \"jcr:uuid\": \"0b6bd369-f0dd-4eb3-87cb-7fa8e079cccf\",\n"
+        + "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n" + "      },\n"
+        + "      {\n" + "          \"sakai:is-site-template\": \"true\",\n"
+        + "          \"sakai:authorizables\": [\n"
+        + "              \"g-temp-collaborators\",\n"
+        + "              \"g-temp-viewers\"\n" + "          ],\n"
+        + "          \"description\": \"This is a template!\",\n"
+        + "          \"id\": \"template\",\n"
+        + "          \"sling:resourceType\": \"sakai/site\",\n"
+        + "          \"sakai:site-template\": \"/dev/_skins/original/original.html\",\n"
+        + "          \"jcr:mixinTypes\": [\n"
+        + "              \"rep:AccessControllable\"\n" + "          ],\n"
+        + "          \"jcr:primaryType\": \"nt:unstructured\",\n"
+        + "          \"status\": \"online\",\n" + "          \"name\": \"template\"\n"
+        + "      },\n" + "      ...\n" + "      {\n"
+        + "          \"jcr:data\": \"org.apache.jackrabbit.value.BinaryValue@0\",\n"
+        + "          \"jcr:primaryType\": \"nt:resource\",\n"
+        + "          \"jcr:mimeType\": \"text/html\",\n"
+        + "          \"jcr:uuid\": \"a9b46582-b30c-4489-b9e3-8fdc20cb5429\",\n"
+        + "          \"jcr:lastModified\": \"2009-11-24T11:55:51\"\n" + "      }\n"
+        + "  ]\n" + "}\n" + "</pre>" }, parameters = {
+    @ServiceParameter(name = "items", description = { "The number of items per page in the result set." }),
+    @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
+    @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
+    @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
+    @ServiceResponse(code = 500, description = "Any error with the html containing the error")
+
+}) })
 public class SearchServlet extends SlingAllMethodsServlet {
 
   /**
    *
    */
   private static final long serialVersionUID = 4130126304725079596L;
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(SearchServlet.class);
-  private SearchResultProcessor defaultSearchProcessor = new SearchResultProcessor() {
-    public void writeNode(JSONWriter write, Node resultNode)
-        throws JSONException, RepositoryException {
-      write.value(resultNode);
-    }
-  };
-  
-  private SearchBatchResultProcessor defaultSearchBatchProcessor = new SearchBatchResultProcessor() {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SearchServlet.class);
 
-    public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
-        throws JSONException, RepositoryException {
-      for (long i = start; i < end && nodeIterator.hasNext(); i++) {
-        write.value(nodeIterator.nextNode());
-      }
-    }
-    
-  };
-  
   private Map<String, SearchBatchResultProcessor> batchProcessors = new ConcurrentHashMap<String, SearchBatchResultProcessor>();
   private Map<Long, SearchBatchResultProcessor> batchProcessorsById = new ConcurrentHashMap<Long, SearchBatchResultProcessor>();
 
-  
   private Map<String, SearchResultProcessor> processors = new ConcurrentHashMap<String, SearchResultProcessor>();
   private Map<Long, SearchResultProcessor> processorsById = new ConcurrentHashMap<Long, SearchResultProcessor>();
 
@@ -235,39 +188,36 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  protected void output(JSONWriter write, NodeIterator resultNodes, long start,
-      long end) throws RepositoryException, JSONException {
+  protected void output(JSONWriter write, NodeIterator resultNodes, long start, long end)
+      throws RepositoryException, JSONException {
   }
 
   @Override
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
       Node node = resource.adaptTo(Node.class);
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
-        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE)
-            .getString();
+        String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
         String queryLanguage = Query.SQL;
         if (node.hasProperty(SAKAI_QUERY_LANGUAGE)) {
           queryLanguage = node.getProperty(SAKAI_QUERY_LANGUAGE).getString();
         }
         String propertyProviderName = null;
         if (node.hasProperty(SAKAI_PROPERTY_PROVIDER)) {
-          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER)
-              .getString();
+          propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
         }
-        
-        
+
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
-        String queryString = processQueryTemplate(request, queryTemplate,
-            queryLanguage, propertyProviderName);
+        String queryString = processQueryTemplate(request, queryTemplate, queryLanguage,
+            propertyProviderName);
 
         LOGGER.debug("Posting Query {} ", queryString);
-        QueryManager queryManager = node.getSession().getWorkspace()
-            .getQueryManager();
+        QueryManager queryManager = node.getSession().getWorkspace().getQueryManager();
         Query query = queryManager.createQuery(queryString, queryLanguage);
         QueryResult result = query.execute();
 
@@ -277,25 +227,46 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.value(queryString);
         write.key(PARAMS_ITEMS_PER_PAGE);
         write.value(nitems);
-        NodeIterator resultNodes = result.getNodes();
+        RowIterator rowIterator = result.getRows();
         write.key(TOTAL);
-        long total = resultNodes.getSize();
+        long total = rowIterator.getSize();
         write.value(total);
         write.key(JSON_RESULTS);
         write.array();
+
+        // Check if this query returned an excerpt.
+        boolean hasExcerpt = false;
+        String excerptParam = "";
+        String[] cols = result.getColumnNames();
+        for (String col : cols) {
+          if (col.equals("rep:excerpt()")) {
+            hasExcerpt = true;
+            if (node.hasProperty(SearchConstants.SAKAI_EXCERPT_PARAM)) {
+              excerptParam = node.getProperty(SearchConstants.SAKAI_EXCERPT_PARAM)
+                  .getString();
+            }
+            break;
+          }
+        }
         
+        // Default processors
+        NodeSearchBatchResultProcessor defaultSearchBatchProcessor = new NodeSearchBatchResultProcessor();
+        NodeSearchResultProcessor defaultSearchProcessor = new NodeSearchResultProcessor();
+        
+
         SearchBatchResultProcessor searchBatchProcessor = defaultSearchBatchProcessor;
         if (node.hasProperty(SearchConstants.SAKAI_BATCHRESULTPROCESSOR)) {
-          searchBatchProcessor = batchProcessors.get(node.getProperty(SearchConstants.SAKAI_BATCHRESULTPROCESSOR).getString());
+          searchBatchProcessor = batchProcessors.get(node.getProperty(
+              SearchConstants.SAKAI_BATCHRESULTPROCESSOR).getString());
           if (searchBatchProcessor == null) {
             searchBatchProcessor = defaultSearchBatchProcessor;
           }
         }
-        
+
         SearchResultProcessor searchProcessor = defaultSearchProcessor;
         if (node.hasProperty(SAKAI_RESULTPROCESSOR)) {
-          searchProcessor = processors.get(node.getProperty(
-              SAKAI_RESULTPROCESSOR).getString());
+          searchProcessor = processors.get(node.getProperty(SAKAI_RESULTPROCESSOR)
+              .getString());
           if (searchProcessor == null) {
             searchProcessor = defaultSearchProcessor;
           }
@@ -307,33 +278,50 @@ public class SearchServlet extends SlingAllMethodsServlet {
         }
         long start = Math.min(offset, total);
         long end = Math.min(offset + nitems, total + 1);
-        resultNodes.skip(start);
         if (searchBatchProcessor != defaultSearchBatchProcessor) {
-          searchBatchProcessor.writeNodeIterator(write, resultNodes, start, end);
           LOGGER.info("Using batch processor for results");
-        }else {
-          for (long i = start; i < end && resultNodes.hasNext(); i++) {
-            LOGGER.info("Using regular processor for results");
-            Node resultNode = resultNodes.nextNode();
-            searchProcessor.writeNode(write, resultNode);
+          searchBatchProcessor.writeNodes(request, write, rowIterator, start, end);
+        } else {
+          LOGGER.info("Using regular processor for results");
+          
+          // We only skip nodes if it is a regular processor.
+          rowIterator.skip(start);
+          String excerpt = null;
+          
+          for (long i = start; i < end && rowIterator.hasNext(); i++) {
+            Row row = rowIterator.nextRow();
+            // Get the actual node.
+            String path = row.getValue("jcr:path").getString();
+            Node resultNode = (Node) session.getItem(path);
+
+            // Get the excerpt (if any)
+            excerpt = null;
+            if (hasExcerpt) {
+              Value val = row.getValue("rep:excerpt(" + excerptParam + ")");
+              if (val == null) {
+                val = row.getValue("rep:excerpt()");
+              }
+              excerpt = val.getString();
+            }
+            
+            // Write the result for this node.
+            searchProcessor.writeNode(request, write, resultNode, excerpt);
           }
         }
         write.endArray();
         write.endObject();
       }
     } catch (RepositoryException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (JSONException e) {
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getMessage());
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
       e.printStackTrace();
     }
   }
 
-  private int intRequestParameter(SlingHttpServletRequest request,
-      String paramName, int defaultVal) {
+  private int intRequestParameter(SlingHttpServletRequest request, String paramName,
+      int defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -347,9 +335,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Processes a template of the form select * from y where x = {q} so that
-   * strings enclosed in { and } are replaced by the same property in the
-   * request.
+   * Processes a template of the form select * from y where x = {q} so that strings
+   * enclosed in { and } are replaced by the same property in the request.
    * 
    * @param request
    *          the request.
@@ -361,8 +348,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
    */
   protected String processQueryTemplate(SlingHttpServletRequest request,
       String queryTemplate, String queryLanguage, String propertyProviderName) {
-    Map<String, String> propertiesMap = loadUserProperties(request,
-        propertyProviderName);
+    Map<String, String> propertiesMap = loadUserProperties(request, propertyProviderName);
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
@@ -424,24 +410,21 @@ public class SearchServlet extends SlingAllMethodsServlet {
    * @return
    * @throws RepositoryException
    */
-  private Map<String, String> loadUserProperties(
-      SlingHttpServletRequest request, String propertyProviderName) {
+  private Map<String, String> loadUserProperties(SlingHttpServletRequest request,
+      String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
-    String userPrivatePath = "/jcr:root"
-        + PersonalUtils.getPrivatePath(userId, "");
+    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
     propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
-      SearchPropertyProvider provider = propertyProvider
-          .get(propertyProviderName);
+      SearchPropertyProvider provider = propertyProvider.get(propertyProviderName);
       if (provider != null) {
         LOGGER.debug("Trying Provider {} ", provider);
         provider.loadUserProperties(request, propertiesMap);
       } else {
-        LOGGER.warn("No properties provider found for {} ",
-            propertyProviderName);
+        LOGGER.warn("No properties provider found for {} ", propertyProviderName);
       }
     } else {
       LOGGER.debug("No Provider ");
@@ -454,8 +437,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'",
-            "\\\\'").replaceAll("'", "''");
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''");
       } else {
         LOGGER.error("Unknown query language: " + queryLanguage);
       }
@@ -484,7 +467,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
     }
 
   }
-  
+
   protected void bindSearchBatchResultProcessor(ServiceReference serviceReference) {
     synchronized (delayedBatchReferences) {
       if (osgiComponentContext == null) {
@@ -564,8 +547,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
       processors.put(processorName, processor);
     }
   }
-  
-  
+
   /**
    * @param serviceReference
    */
@@ -597,13 +579,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
     String[] processorNames = OsgiUtil.toStringArray(serviceReference
         .getProperty(REG_BATCH_PROCESSOR_NAMES));
 
-    if(processorNames != null) {
+    if (processorNames != null) {
       for (String processorName : processorNames) {
         batchProcessors.put(processorName, processor);
       }
     }
   }
-  
 
   /**
    * @param serviceReference
@@ -613,8 +594,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
     SearchPropertyProvider provider = propertyProviderById.remove(serviceId);
     if (provider != null) {
       List<String> toRemove = new ArrayList<String>();
-      for (Entry<String, SearchPropertyProvider> e : propertyProvider
-          .entrySet()) {
+      for (Entry<String, SearchPropertyProvider> e : propertyProvider.entrySet()) {
         if (provider.equals(e.getValue())) {
           toRemove.add(e.getKey());
         }

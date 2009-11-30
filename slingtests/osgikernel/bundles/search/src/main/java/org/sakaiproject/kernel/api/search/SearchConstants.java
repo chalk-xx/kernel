@@ -49,6 +49,7 @@ public interface SearchConstants {
   *
   */
   public static final String SAKAI_QUERY_TEMPLATE = "sakai:query-template";
+  public static final String SAKAI_EXCERPT_PARAM = "sakai:excerpt-param";
   /**
  *
  */

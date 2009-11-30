@@ -20,35 +20,32 @@ package org.sakaiproject.kernel.search.processors;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
 /**
- * Formats sakai/page nodes.
- * Options are: 
- *   - path: The path where you want to search under.
- *   - properties: list of properties you want to filter on.
- *   - values: list of values for the properties
- *   - operators: list of operators: > = <
+ * Formats sakai/page nodes. Options are: - path: The path where you want to search under.
+ * - properties: list of properties you want to filter on. - values: list of values for
+ * the properties - operators: list of operators: > = <
  * 
  * @scr.component immediate="true" label="PageSearchResultProcessor"
  *                description="Formatter for pages search results."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Page"
  * @scr.property name="sakai.seach.resourcetype" value="sakai/page"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
 public class PageSearchResultProcessor implements SearchResultProcessor {
-  
-  public void writeNode(JSONWriter write, Node resultNode) throws JSONException, RepositoryException {    
+
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
+      String excerpt) throws JSONException, RepositoryException {
     write.object();
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
     write.key("path");
-    write.value(resultNode.getPath());
-    write.endObject(); 
-    
+    write.value(node.getPath());
+    write.endObject();
   }
 }

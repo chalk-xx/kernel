@@ -1,0 +1,7 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "//*[(@jcr:primaryType != 'nt:frozenNode' and @sling:resourceType and (jcr:contains(.,'{q}') or jcr:contains(jcr:content,'{q}'))){site}]/rep:excerpt()",
+  "sling:resourceType": "sakai/search",
+  "sakai:resultprocessor": "Content",
+  "sakai:provider": "Content"
+}

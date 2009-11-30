@@ -17,11 +17,12 @@
  */
 package org.sakaiproject.kernel.api.search;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
-import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.query.RowIterator;
 
 /**
  * 
@@ -29,19 +30,23 @@ import javax.jcr.RepositoryException;
 public interface SearchBatchResultProcessor {
 
   /**
+   * Process an entire result set for a query.
    * 
+   * @param request
+   *          The request associated with this search.
    * @param write
-   *          The writer to write to.
-   * @param nodeIterator
-   *          The iterator which holds all the nodes. This already should have appropriate
-   *          amount of nodes skipped.
+   *          The JSONWriter where the Search Servlet already has written a partial
+   *          response to.
+   * @param iterator
+   *          The RowIterator containing the results.
    * @param start
-   *          From where to start
+   *          Based on the request parameters, this is the start point.
    * @param end
-   *          Where to end
+   *          Based on the request parameters, this is the end point.
    * @throws JSONException
    * @throws RepositoryException
    */
-  void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start, long end)
-      throws JSONException, RepositoryException;
+  void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      RowIterator iterator, long start, long end) throws JSONException,
+      RepositoryException;
 }

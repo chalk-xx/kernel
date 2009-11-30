@@ -1,5 +1,6 @@
 package org.sakaiproject.kernel.search.processors;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
@@ -15,13 +16,13 @@ import javax.jcr.RepositoryException;
  *                description="Formatter for user search results"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Node"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
 public class NodeSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(JSONWriter write, Node resultNode) throws JSONException, RepositoryException {
-    ExtendedJSONWriter.writeNodeToWriter(write, resultNode);    
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
+      String excerpt) throws JSONException, RepositoryException {
+    ExtendedJSONWriter.writeNodeToWriter(write, node);
   }
 
 }

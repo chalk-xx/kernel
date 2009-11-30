@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
@@ -49,7 +50,7 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node resultNode, String excerpt) throws JSONException,
       RepositoryException {
     write.object();
 

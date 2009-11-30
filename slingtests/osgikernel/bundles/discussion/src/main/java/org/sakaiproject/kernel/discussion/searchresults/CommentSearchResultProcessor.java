@@ -18,6 +18,7 @@
 
 package org.sakaiproject.kernel.discussion.searchresults;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.Post;
@@ -25,7 +26,6 @@ import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-
 
 /**
  * Formats comment nodes.
@@ -38,7 +38,8 @@ import javax.jcr.RepositoryException;
  */
 public class CommentSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Node node,
+      String excerpt) throws JSONException, RepositoryException {
     Post p = new Post(node);
     p.outputPostAsJSON(write);
   }

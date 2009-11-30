@@ -1,5 +1,6 @@
 package org.sakaiproject.kernel.site.search;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
@@ -19,8 +20,7 @@ import javax.jcr.RepositoryException;
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="Site"
  * @scr.property name="sakai.seach.resourcetype" value="sakai/site"
- * @scr.service 
- *              interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
 public class SiteSearchResultProcessor implements SearchResultProcessor {
 
@@ -29,10 +29,11 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
    */
   private SiteService siteService;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SiteSearchResultProcessor.class);
-  
-  public void writeNode(JSONWriter write, Node resultNode) throws JSONException,
-      RepositoryException {
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(SiteSearchResultProcessor.class);
+
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Node resultNode, String excerpt) throws JSONException, RepositoryException {
     if (!siteService.isSite(resultNode)) {
       LOGGER.warn("Search result was not a site node: " + resultNode.getPath());
       throw new JSONException("Unable to write non-site node result");
