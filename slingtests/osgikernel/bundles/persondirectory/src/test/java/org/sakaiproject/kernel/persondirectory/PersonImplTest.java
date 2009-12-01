@@ -1,6 +1,7 @@
 package org.sakaiproject.kernel.persondirectory;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 import org.junit.Before;
@@ -121,6 +122,29 @@ public class PersonImplTest {
     assertEquals(2, vals.length);
     assertEquals("22", vals[0]);
     assertEquals("BLOCK_TEST", vals[1]);
+
+    assertTrue(attrs.containsKey("attr2"));
+    vals = p.getAttributeValues("attr2");
+    assertEquals(1, vals.length);
+    assertEquals("r4nd0m th!ngs", vals[0]);
+  }
+
+  @Test
+  public void testAddAttributesWithFilter() {
+    Map<String, String[]> mattrs = new HashMap<String, String[]>();
+    mattrs.put("attr0", new String[] { "a value 1", "true" });
+    mattrs.put("attr1", new String[] { "22", "BLOCK_TEST" });
+    mattrs.put("attr2", new String[] { "r4nd0m th!ngs" });
+    p.addAttributes(mattrs, "attr0", "attr2");
+
+    Map<String, String[]> attrs = p.getAttributes();
+    assertTrue(attrs.containsKey("attr0"));
+    String[] vals = p.getAttributeValues("attr0");
+    assertEquals(2, vals.length);
+    assertEquals("a value 1", vals[0]);
+    assertEquals("true", vals[1]);
+
+    assertFalse(attrs.containsKey("attr1"));
 
     assertTrue(attrs.containsKey("attr2"));
     vals = p.getAttributeValues("attr2");

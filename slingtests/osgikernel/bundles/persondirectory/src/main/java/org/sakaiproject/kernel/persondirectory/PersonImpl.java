@@ -19,6 +19,7 @@ package org.sakaiproject.kernel.persondirectory;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,15 +31,40 @@ import java.util.Set;
  */
 public class PersonImpl implements Person {
   private String uid;
-  private Map<String, String[]> attrs = new HashMap<String, String[]>();
+  private Map<String, String[]> attrs;
 
+  /**
+   * Create a person with a just a user ID.
+   *
+   * @param uid
+   */
   public PersonImpl(String uid) {
     this.uid = uid;
+    attrs = new HashMap<String, String[]>();
   }
 
+  /**
+   * Create a person with all attributes from another person.
+   *
+   * @param p
+   */
   public PersonImpl(Person p) {
-    this.uid = p.getName();
-    this.attrs = p.getAttributes();
+    uid = p.getName();
+    attrs = new HashMap<String, String[]>(p.getAttributes());
+  }
+
+  /**
+   * Create a person based on a filtered set of attributes from another person.
+   *
+   * @param p
+   * @param attributeFilter
+   */
+  public PersonImpl(Person p, String... attributeFilter) {
+    uid = p.getName();
+    Map<String, String[]> attributes = p.getAttributes();
+    int attrSize = (attributeFilter != null) ? attributeFilter.length : attributes.size();
+    attrs = new HashMap<String, String[]>(attrSize);
+    addAttributes(attributes, attributeFilter);
   }
 
   public Set<String> getAttributeNames() {
@@ -97,9 +123,42 @@ public class PersonImpl implements Person {
     }
   }
 
+  /**
+   * Add attributes to a person.
+   *
+   * @param attributes
+   *          The attributes to be added to the person.
+   */
   public void addAttributes(Map<String, String[]> attributes) {
+    addAttributes(attributes, (String[]) null);
+  }
+
+  /**
+   * Add attributes to a person but only those listed as part of the attribute
+   * filter.
+   *
+   * @param attributes
+   *          The attributes to add to the person.
+   * @param attributeFilter
+   *          The attributes names to add. If any attributes in
+   *          <code>attributes</code> are not in this list, they will not be
+   *          added.
+   */
+  public void addAttributes(Map<String, String[]> attributes, String... attributeFilter) {
+    HashSet<String> filter = null;
+    if (attributeFilter != null && attributeFilter.length > 0) {
+      filter = new HashSet<String>();
+      for (String attrFilter : attributeFilter) {
+        filter.add(attrFilter);
+      }
+    }
+
     for (Map.Entry<String, String[]> attribute : attributes.entrySet()) {
-      addAttribute(attribute.getKey(), attribute.getValue());
+      String key = attribute.getKey();
+      if (filter == null || filter.contains(key)) {
+        String[] value = attribute.getValue();
+        addAttribute(key, value);
+      }
     }
   }
 }
