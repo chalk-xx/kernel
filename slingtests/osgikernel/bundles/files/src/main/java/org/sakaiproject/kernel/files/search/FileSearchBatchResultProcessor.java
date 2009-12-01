@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -42,6 +43,8 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 
 /**
  * Formats the files search results.
@@ -60,62 +63,46 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   @Reference
   private SiteService siteService;
 
+  private List<String> processedNodes = new ArrayList<String>();
+
   /**
    * @param siteService
    */
   public FileSearchBatchResultProcessor(SiteService siteService) {
     this.siteService = siteService;
   }
-  
+
   public FileSearchBatchResultProcessor() {
   }
-    
 
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
-      long end) throws JSONException, RepositoryException {
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      RowIterator iterator, long start, long end) throws JSONException,
+      RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    iterator.skip(start);
+    for (long i = start; i < end && iterator.hasNext(); i++) {
+      Row row = iterator.nextRow();
+      String path = row.getValue("jcr:path").getString();
+      Node node = (Node) session.getItem(path);
 
-    List<String> processedNodes = new ArrayList<String>();
-    for (long i = start; i < end && nodeIterator.hasNext(); i++) {
-      Node node = nodeIterator.nextNode();
-      // Every other file..
-      if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
-          JcrConstants.NT_RESOURCE)) {
-        node = node.getParent();
-      }
-
-      // We hide the .files
-      String name = node.getName();
-      if (name.startsWith(".")) {
+      if (!handleNode(node, path, session, write)) {
         i--;
-        continue;
-      }
-
-      // Check that we didn't handle this file already.
-      String path = node.getPath();
-      if (!processedNodes.contains(path)) {
-        processedNodes.add(path);
-
-        Session session = node.getSession();
-        String type = "";
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-          type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-              .getString();
-        }
-
-        // If it is a file node we provide some extra properties.
-        if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
-          FileUtils.writeFileNode(node, session, write, siteService);
-        } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-          // This is a linked file.
-          FileUtils.writeLinkNode(node, session, write, siteService);
-        }
-        // Every other file..
-        else {
-          writeNormalFile(write, node);
-        }
       }
     }
+  }
 
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      NodeIterator iterator, int start, long end) throws RepositoryException,
+      JSONException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    iterator.skip(start);
+    for (long i = start; i < end && iterator.hasNext(); i++) {
+      Node node = iterator.nextNode();
+
+      if (!handleNode(node, node.getPath(), session, write)) {
+        i--;
+      }
+    }
   }
 
   private void writeNormalFile(JSONWriter write, Node node) throws JSONException,
@@ -137,5 +124,44 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       write.value(FilesConstants.DATEFORMAT.format(cal));
     }
     write.endObject();
+  }
+
+  private boolean handleNode(Node node, String path, Session session, JSONWriter write)
+      throws RepositoryException, JSONException {
+    // Every other file..
+    if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
+        JcrConstants.NT_RESOURCE)) {
+      node = node.getParent();
+    }
+
+    // We hide the .files
+    String name = node.getName();
+    if (name.startsWith(".")) {
+      return false;
+    }
+
+    // Check that we didn't handle this file already.
+    if (!processedNodes.contains(path)) {
+      processedNodes.add(path);
+
+      String type = "";
+      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+        type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+            .getString();
+      }
+
+      // If it is a file node we provide some extra properties.
+      if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
+        FileUtils.writeFileNode(node, session, write, siteService);
+      } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
+        // This is a linked file.
+        FileUtils.writeLinkNode(node, session, write, siteService);
+      }
+      // Every other file..
+      else {
+        writeNormalFile(write, node);
+      }
+    }
+    return true;
   }
 }

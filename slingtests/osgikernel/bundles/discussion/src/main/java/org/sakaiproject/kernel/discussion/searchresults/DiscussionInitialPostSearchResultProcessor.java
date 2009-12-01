@@ -18,15 +18,19 @@
 
 package org.sakaiproject.kernel.discussion.searchresults;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 /**
  * Formats discussion nodes who are initial posts.
@@ -42,7 +46,10 @@ public class DiscussionInitialPostSearchResultProcessor implements SearchResultP
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionInitialPostSearchResultProcessor.class);
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
 
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);

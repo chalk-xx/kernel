@@ -23,53 +23,75 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
 
 @Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
-@Properties(value = { 
+@Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
-    @Property(name = "sakai.search.processor", value = "Sitecontent")
-})
+    @Property(name = "sakai.search.processor", value = "Content") })
 @Service(value = SearchResultProcessor.class)
-public class SiteContentSearchResultProcessor implements SearchResultProcessor {
+public class ContentSearchResultProcessor implements SearchResultProcessor {
+
+  private SearchResultProcessorTracker tracker;
 
   private SearchResultProcessor defaultProcessor = new SearchResultProcessor() {
 
-    public void writeNode(JSONWriter write, Node node) throws JSONException,
-        RepositoryException {
+    public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+        throws JSONException, RepositoryException {
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = RowUtils.getNode(row, session);
       write.object();
       write.key("path");
       write.value(node.getPath());
-      ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
+      write.key("excerpt");
+      write.value(RowUtils.getDefaultExcerpt(row));
+      write.key("data");
+      ExtendedJSONWriter.writeNodeToWriter(write, node);
       write.endObject();
     }
   };
-  private SearchResultProcessorTracker tracker;
 
-  public void writeNode(JSONWriter write, Node node) throws JSONException,
-      RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+      throws JSONException, RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
     if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
       String type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
 
       // From looking at the type we determine how we should represent this node.
       SearchResultProcessor processor = tracker.getSearchResultProcessorByType(type);
-      if (type == null) {
-        processor = defaultProcessor;
+      if (processor != null) {
+        write.object();
+        write.key("path");
+        write.value(node.getPath());
+        write.key("type");
+        write.value(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString());
+        write.key("excerpt");
+        write.value(RowUtils.getDefaultExcerpt(row));
+        write.key("data");
+        processor.writeNode(request, write, row);
+        write.endObject();
+      } else {
+        // No processor found, just dump the properties
+        defaultProcessor.writeNode(request, write, row);
       }
-      processor.writeNode(write, node);
 
     } else {
       // No type, just dump the properties
-      defaultProcessor.writeNode(write, node);
+      defaultProcessor.writeNode(request, write, row);
     }
   }
 

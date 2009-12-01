@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -193,8 +194,15 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
       LOGGER.info("Connection {} {} {} ",new Object[]{user,targetUserId,operation});
       return connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
     } catch (ConnectionException e) {
-      LOGGER.error("Connection exception: {}", e);
-      response.sendError(e.getCode(), e.getMessage());
+      if ( e.getCode() == 200 ) {
+        PrintWriter writer = response.getWriter();
+        writer.write("<html><head></head><body><h1>Connection Status</h1><p>");
+        writer.write(e.getMessage());
+        writer.write("</p></body></html>");
+      } else {
+        LOGGER.error("Connection exception: {}", e);
+        response.sendError(e.getCode(), e.getMessage());
+      }
       return false;
     }
   }

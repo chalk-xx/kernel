@@ -3,15 +3,16 @@ package org.sakaiproject.kernel.search;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_BATCHRESULTPROCESSOR;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
-import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_BATCHRESULTPROCESSOR;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
@@ -21,14 +22,17 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
+import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 import javax.servlet.ServletException;
 
 public class SearchServletTest extends AbstractEasyMockTest {
@@ -57,7 +61,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-
+    
     response = createMock(SlingHttpServletResponse.class);
     replay();
 
@@ -70,9 +74,14 @@ public class SearchServletTest extends AbstractEasyMockTest {
   public void testGoodQuery() throws ValueFormatException, RepositoryException,
       IOException, ServletException {
 
-    Node resultNode = createMock(Node.class);
+    Row row = createMock(Row.class);
+    Value val = createMock(Value.class);
+    expect(val.getString()).andReturn("/foo/bar");
+    expect(row.getValue("jcr:path")).andReturn(val);
+    
+    
     Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
-        resultNode, "select * from y where x = 'foo'");
+        row, "select * from y where x = 'foo'");
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
@@ -88,6 +97,17 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
+    
+    Session session = createMock(Session.class);
+    Node resultNode = createMock(Node.class);
+    PropertyIterator propIterator = createMock(PropertyIterator.class);
+    expect(propIterator.hasNext()).andReturn(false);
+    expect(resultNode.getProperties()).andReturn(propIterator);
+    
+    expect(session.getItem("/foo/bar")).andReturn(resultNode);
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
 
     executeQuery(queryNode);
   }
@@ -119,7 +139,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
-
+    
     response = createMock(SlingHttpServletResponse.class);
     response.sendError(500, null);
     expectLastCall();
@@ -157,23 +177,23 @@ public class SearchServletTest extends AbstractEasyMockTest {
     executeQuery(queryNode);
   }
 
-  private Node prepareNodeSessionWithQueryManagerAndResultNode(Node resultNode,
+  private Node prepareNodeSessionWithQueryManagerAndResultNode(Row resultRow,
       String expectedQuery) throws RepositoryException {
     Node queryNode = createMock(Node.class);
 
-    NodeIterator nodeIterator = createMock(NodeIterator.class);
-    if (resultNode == null) {
-      expect(nodeIterator.hasNext()).andReturn(false);
+    RowIterator iterator = createMock(RowIterator.class);
+    if (resultRow == null) {
+      expect(iterator.hasNext()).andReturn(false);
     } else {
-      expect(nodeIterator.hasNext()).andReturn(true);
-      expect(nodeIterator.nextNode()).andReturn(resultNode);
-      expect(nodeIterator.hasNext()).andReturn(false);
+      expect(iterator.hasNext()).andReturn(true);
+      expect(iterator.nextRow()).andReturn(resultRow);
+      expect(iterator.hasNext()).andReturn(false);
     }
-    nodeIterator.skip(0);
-    expect(nodeIterator.getSize()).andReturn(500L).anyTimes();
+    iterator.skip(0);
+    expect(iterator.getSize()).andReturn(500L).anyTimes();
 
     QueryResult queryResult = createMock(QueryResult.class);
-    expect(queryResult.getNodes()).andReturn(nodeIterator);
+    expect(queryResult.getRows()).andReturn(iterator);
 
     Query query = createMock(Query.class);
     expect(query.execute()).andReturn(queryResult);

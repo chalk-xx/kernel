@@ -1,29 +1,40 @@
 package org.sakaiproject.kernel.search.processors;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
-import javax.jcr.NodeIterator;
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 
-/**
- * Formats node search results for batch queries
- * 
- * @scr.component immediate="true" label="NodeSearchBatchResultProcessor"
- *                description="Formatter for batch search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.batchprocessor" value="Node"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchBatchResultProcessor"
- */
+
+@Component(immediate = true, label = "NodeSearchBatchResultProcessor", description = "Formatter for batch search results.")
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.batchprocessor", value = "Node") })
+@Service(value = SearchBatchResultProcessor.class)
 public class NodeSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
-  public void writeNodeIterator(JSONWriter write, NodeIterator nodeIterator, long start,
-      long end) throws JSONException, RepositoryException {
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      RowIterator iterator, long start, long end) throws JSONException,
+      RepositoryException {
 
-    while (nodeIterator.hasNext()) {
-      ExtendedJSONWriter.writeNodeToWriter(write, nodeIterator.nextNode());
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    iterator.skip(start);
+
+    for (long i = start; i < end && iterator.hasNext(); i++) {
+      Row row = iterator.nextRow();
+      String path = row.getValue("jcr:path").getString();
+      Node node = (Node) session.getItem(path);
+      ExtendedJSONWriter.writeNodeToWriter(write, node);
     }
 
   }

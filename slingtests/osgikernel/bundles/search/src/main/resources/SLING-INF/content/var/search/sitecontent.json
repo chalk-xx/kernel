@@ -1,6 +1,0 @@
-{
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sakai:site='{site}' and jcr:contains(.,\"{q}\")]",
-  "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "Sitecontent"
-}

@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.discussion.searchresults;
 
+import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
@@ -30,10 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.RowIterator;
 
 /**
  * Formats message node search results
@@ -50,13 +52,16 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
 
-  public void writeNodeIterator(JSONWriter writer, NodeIterator nodeIterator, long start,
-      long end) throws JSONException, RepositoryException {
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
+      RowIterator iterator, long start, long end) throws JSONException,
+      RepositoryException {
 
-    LOG.info("Making a threaded view of discussions");
+    Session session = request.getResourceResolver().adaptTo(Session.class);
     List<Node> allNodes = new ArrayList<Node>();
-    for (; nodeIterator.hasNext();) {
-      allNodes.add(nodeIterator.nextNode());
+    for (; iterator.hasNext();) {
+      String path = iterator.nextRow().getValue("jcr:path").getString();
+      Node node = (Node) session.getItem(path);
+      allNodes.add(node);
     }
 
     List<Post> basePosts = new ArrayList<Post>();
