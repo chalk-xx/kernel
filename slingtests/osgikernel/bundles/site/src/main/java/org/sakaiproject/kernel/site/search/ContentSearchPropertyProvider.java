@@ -27,7 +27,7 @@ public class ContentSearchPropertyProvider implements SearchPropertyProvider {
       Map<String, String> propertiesMap) {
     RequestParameter siteParam = request.getRequestParameter(SITE_PARAM);
     if (siteParam != null) {
-      String site = "and @sakai:site = '" + escapeString(siteParam.getString(), Query.XPATH) + "'";
+      String site = " and @sakai:site = \"" + escapeString(siteParam.getString(), Query.XPATH) + "\"";
       propertiesMap.put("_site", site);
     }
   }
