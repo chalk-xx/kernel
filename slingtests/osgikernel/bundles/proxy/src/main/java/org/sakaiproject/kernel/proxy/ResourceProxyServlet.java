@@ -26,6 +26,11 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.proxy.ProxyClientException;
 import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.sakaiproject.kernel.api.proxy.ProxyPostProcessor;
@@ -58,6 +63,22 @@ import javax.servlet.ServletException;
 @Service(value = Servlet.class)
 @SlingServlet(resourceTypes = { "sakai/proxy" }, methods = { "GET", "POST", "PUT",
     "HEAD", "OPTIONS" },generateComponent=true, generateService=true)
+@ServiceDocumentation(name = "ResourceProxyServlet", shortDescription = "This servlet binds to a resource that defines an end point.", description = "This servlet binds to a resource that defines an end point.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/proxy") }, methods = {
+		@ServiceMethod(name = "GET", description = "Proxied GET request", response = {
+				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
+		@ServiceMethod(name = "POST", description = "Proxied POST request", response = {
+				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
+		@ServiceMethod(name = "PUT", description = "Proxied PUT request", response = {
+				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
+		@ServiceMethod(name = "HEAD", description = "Proxied HEAD request", response = {
+				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }),
+		@ServiceMethod(name = "OPTIONS", description = "Proxied OPTIONS request", response = {
+				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
+				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }) })
 public class ResourceProxyServlet extends SlingAllMethodsServlet {
 
   /**
