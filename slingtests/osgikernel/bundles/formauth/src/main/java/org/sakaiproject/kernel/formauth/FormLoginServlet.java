@@ -21,6 +21,12 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.engine.auth.NoAuthenticationHandlerException;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.formauth.FormAuthenticationHandler.FormAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +51,38 @@ import javax.servlet.http.HttpSession;
  * @scr.property name="sling.servlet.paths" value="/system/sling/formlogin"
  * @scr.property name="sling.servlet.methods" values.0="GET" values.1="POST"
  */
+
+@ServiceDocumentation(name="Form Login Servlet",
+    shortDescription="",
+    description={" In combination with the FormAuthenticationHandler that is bound to the Sling/OSGi handleSecurity Mechanism a POST to " +
+                  "this servlet results in the FormAuthentciation object that will have been placed in the request as an attribute, being added to the HTTPSession" +
+                  "for later use. So that the FormAuthenticationHandler can use the FormAuthentication object bound into the session on subsiquent requests, " +
+                  "to authenticate the request",
+                  "Security in the OSGi Http service is achieved through a method in that service handleSecurity that all requests pass through. Classes that are " +
+                  "bound into that method see all requests and can perform modifications to the request based on the details of the request and any state that they " +
+                  "can access at that time. Since we only want to modify session state when a user explicitly askes to login using a form, we dont store anything in  " +
+                  "outside the request scope until the user POSTs to this servlet. For anyone reading this documentation in the code, they should look at FormAuthenticatonHandler " +
+                  "for more informtion on the protocol, but for those reading this documentation online that information is reproduced here."},
+    bindings=@ServiceBinding(type=BindingType.PATH, bindings="/system/sling/formlogin"),
+    methods={
+      @ServiceMethod(name="GET",
+          description="Simply respond with the ID of the current user."),
+      @ServiceMethod(name="POST",
+          description="Performs the login or logout operations usign form data If sakai:login is set a username and password are required, which, " +
+          		"for a sucessfull login must be valid JCR session credentials",
+          parameters={
+          @ServiceParameter(name="sakaiauth:logout", description="Perform a logout operation removing all state related to the user"),
+          @ServiceParameter(name="sakaiauth:login", description="Perform a login operartion based on the username and password supplied."),
+          @ServiceParameter(name="sakaiauth:un", description="The Username for the login attempt"),
+          @ServiceParameter(name="sakaiauth:pw", description="The Password for the login attempt")
+      },
+      response={
+          @ServiceResponse(code=403,description="If the login is not sucessful a 403 will be returned at the point at which the credentials supplied are " +
+      		"used to establish a session in the JCR."),
+      		@ServiceResponse(code=200, description="On a sucessfull login the userid will be returned.")}
+      )
+    }
+)
 public class FormLoginServlet extends SlingAllMethodsServlet {
 
   /**
