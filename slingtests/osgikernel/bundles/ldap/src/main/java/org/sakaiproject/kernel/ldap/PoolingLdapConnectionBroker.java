@@ -19,20 +19,19 @@ package org.sakaiproject.kernel.ldap;
 
 import com.novell.ldap.LDAPConnection;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.api.configuration.ConfigurationListener;
-import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.Map;
 
 /**
  * Simple implementation of an {@link LdapConnectionBroker}. Maintains an
@@ -42,27 +41,15 @@ import java.util.Map;
  */
 @Component
 @Service
-public class PoolingLdapConnectionBroker implements LdapConnectionBroker, ConfigurationListener {
+public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   private Hashtable<String, LdapConnectionManager> factories;
   private LdapConnectionManagerConfig defaults;
-
-  @Reference
-  protected ConfigurationService configService;
 
   /**
    * Default constructor for normal usage.
    */
   public PoolingLdapConnectionBroker() {
-
-  }
-
-  /**
-   * Parameterized constructor for use in testing.
-   *
-   * @param configService
-   */
-  protected PoolingLdapConnectionBroker(ConfigurationService configService) {
-    this.configService = configService;
+    factories = new Hashtable<String, LdapConnectionManager>();
   }
 
   /**
@@ -70,15 +57,10 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    *
    * @param ctx
    */
+  @Activate
   protected void activate(ComponentContext ctx) {
-    factories = new Hashtable<String, LdapConnectionManager>();
-
-    // Do we want to listen for changes from the central config service?
-    // configService.addListener(this);
-
-    // read up properties for defaults
-    Map<String, String> config = configService.getProperties();
-    update(config);
+    Dictionary properties = ctx.getProperties();
+    update(properties);
   }
 
   /**
@@ -86,6 +68,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
    *
    * @param ctx
    */
+  @Deactivate
   protected void deactivate(ComponentContext ctx) {
     for (String mgr : factories.keySet()) {
       destroy(mgr);
@@ -201,22 +184,22 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker, Config
     return defaults.copy();
   }
 
-  public void update(Map<String, String> props) {
+  public void update(Dictionary props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
-      String autoBind = props.get(LdapConstants.AUTO_BIND);
-      String followReferrals = props.get(LdapConstants.FOLLOW_REFERRALS);
-      String keystoreLocation = props.get(LdapConstants.KEYSTORE_LOCATION);
-      String keystorePassword = props.get(LdapConstants.KEYSTORE_PASSWORD);
-      String secureConnection = props.get(LdapConstants.SECURE_CONNECTION);
-      String host = props.get(LdapConstants.HOST);
-      String port = props.get(LdapConstants.PORT);
-      String user = props.get(LdapConstants.USER);
-      String password = props.get(LdapConstants.PASSWORD);
-      String operationTimeout = props.get(LdapConstants.OPERATION_TIMEOUT);
-      String pooling = props.get(LdapConstants.POOLING);
-      String maxConns = props.get(LdapConstants.POOLING_MAX_CONNS);
-      String tls = props.get(LdapConstants.TLS);
+      String autoBind = (String) props.get(LdapConstants.AUTO_BIND);
+      String followReferrals = (String) props.get(LdapConstants.FOLLOW_REFERRALS);
+      String keystoreLocation = (String) props.get(LdapConstants.KEYSTORE_LOCATION);
+      String keystorePassword = (String) props.get(LdapConstants.KEYSTORE_PASSWORD);
+      String secureConnection = (String) props.get(LdapConstants.SECURE_CONNECTION);
+      String host = (String) props.get(LdapConstants.HOST);
+      String port = (String) props.get(LdapConstants.PORT);
+      String user = (String) props.get(LdapConstants.USER);
+      String password = (String) props.get(LdapConstants.PASSWORD);
+      String operationTimeout = (String) props.get(LdapConstants.OPERATION_TIMEOUT);
+      String pooling = (String) props.get(LdapConstants.POOLING);
+      String maxConns = (String) props.get(LdapConstants.POOLING_MAX_CONNS);
+      String tls = (String) props.get(LdapConstants.TLS);
 
       if (autoBind != null) {
         config.setAutoBind(Boolean.parseBoolean(autoBind));
