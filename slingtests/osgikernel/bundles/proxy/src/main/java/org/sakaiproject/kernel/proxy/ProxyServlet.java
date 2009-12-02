@@ -23,6 +23,13 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -50,6 +57,13 @@ import javax.servlet.Servlet;
 // FIXME: remove this servlet at some point.
 @Service(value = Servlet.class)
 @SlingServlet(generateComponent = true, generateService = true, extensions = { "json" }, methods = { "POST" }, paths = { "/system/proxy" })
+@ServiceDocumentation(name = "ProxyServlet", shortDescription = "TBD", description = "Please use the content proxy service by placing content in /var/proxy/* rather than using this method, which has now been disabled.", methods = { @ServiceMethod(name = "POST", description = "Please use the content proxy service by placing content in /var/proxy/* rather than using this method, which has now been disabled.", parameters = {
+		@ServiceParameter(name = "user", description = ""),
+		@ServiceParameter(name = "url", description = ""),
+		@ServiceParameter(name = "method", description = ""),
+		@ServiceParameter(name = "post", description = ""),
+		@ServiceParameter(name = "timeout", description = ""),
+		@ServiceParameter(name = "password", description = "") }, response = { @ServiceResponse(code = 400, description = "Please use the content proxy service by placing content in /var/proxy/* rather than using this method, which has now been disabled.") }) }, bindings = { @ServiceBinding(type = BindingType.PATH, bindings = "/system/proxy", extensions = { @ServiceExtension(name = "json") }) })
 public class ProxyServlet extends SlingAllMethodsServlet {
 
   /**
