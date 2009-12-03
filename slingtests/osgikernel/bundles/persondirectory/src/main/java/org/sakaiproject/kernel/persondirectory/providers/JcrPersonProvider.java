@@ -2,6 +2,7 @@ package org.sakaiproject.kernel.persondirectory.providers;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.sakaiproject.kernel.api.personal.PersonalConstants;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProvider;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
@@ -22,10 +23,10 @@ public class JcrPersonProvider implements PersonProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JcrPersonProvider.class);
 
-  public Person getPerson(String uid, Node authProfileNode)
-      throws PersonProviderException {
+  public Person getPerson(String uid, Node personNode) throws PersonProviderException {
     PersonImpl jcrPerson = new PersonImpl(uid);
     try {
+      Node authProfileNode = personNode.getNode(PersonalConstants.AUTH_PROFILE);
       PropertyIterator props = authProfileNode.getProperties();
 
       while (props.hasNext()) {
