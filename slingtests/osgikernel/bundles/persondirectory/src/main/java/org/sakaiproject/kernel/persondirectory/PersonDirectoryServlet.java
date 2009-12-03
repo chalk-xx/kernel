@@ -63,7 +63,7 @@ import javax.servlet.ServletException;
 @SlingServlet(methods = "GET", resourceTypes = "sakai/user-profile")
 @ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up user "
     + "information from various federated sources. This servlet is triggered by accessing a node "
-    + "that has resourceType=\"sakai/userdirectory\". This node should be a user's space in JCR.",
+    + "that has resourceType=\"sakai/user-profile\". This node should be a user's space in JCR.",
  methods = { @ServiceMethod(name = "GET", description = "GETs to nodes of type "
     + "\"sakai/user-profile\" will trigger this servlet to produce person information.") })
 public class PersonDirectoryServlet extends SlingSafeMethodsServlet {

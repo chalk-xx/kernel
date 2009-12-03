@@ -54,7 +54,7 @@ public class LdapPersonProvider implements PersonProvider {
 
   /**
    * Constructor for injecting dependencies. Targetted for tests.
-   * 
+   *
    * @param ldapBroker
    */
   protected LdapPersonProvider(LdapConnectionBroker ldapBroker) {
@@ -74,6 +74,7 @@ public class LdapPersonProvider implements PersonProvider {
     return getPerson(uid, (String[]) null);
   }
 
+  @SuppressWarnings("unchecked")
   public Person getPerson(String uid, String... attributes) throws PersonProviderException {
     try {
       String filter = "gtuserid=" + uid;
