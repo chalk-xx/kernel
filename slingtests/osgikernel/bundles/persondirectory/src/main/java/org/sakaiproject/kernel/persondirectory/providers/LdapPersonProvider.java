@@ -46,8 +46,23 @@ public class LdapPersonProvider implements PersonProvider {
   @Reference
   private LdapConnectionBroker ldapBroker;
 
+  /**
+   * Default constructor.
+   */
+  public LdapPersonProvider() {
+  }
+
+  /**
+   * Constructor for injecting dependencies. Targetted for tests.
+   * 
+   * @param ldapBroker
+   */
+  protected LdapPersonProvider(LdapConnectionBroker ldapBroker) {
+    this.ldapBroker = ldapBroker;
+  }
+
   public Set<Person> getPeople(Set<String> uids) throws PersonProviderException {
-    return getPeople(uids, (String) null);
+    return getPeople(uids, (String[]) null);
   }
 
   public Set<Person> getPeople(Set<String> uids, String... attributes)
@@ -56,7 +71,7 @@ public class LdapPersonProvider implements PersonProvider {
   }
 
   public Person getPerson(String uid) throws PersonProviderException {
-    return getPerson(uid, (String) null);
+    return getPerson(uid, (String[]) null);
   }
 
   public Person getPerson(String uid, String... attributes) throws PersonProviderException {

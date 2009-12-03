@@ -139,7 +139,7 @@ public class FederatedPersonProviderTest {
    * @throws Exception
    */
   @Test
-  public void testGetPeopelWithNoProviders() throws Exception {
+  public void testGetPeopleWithNoProviders() throws Exception {
     HashSet<String> uids = new HashSet<String>();
     uids.add("user0");
     uids.add("user2");
@@ -339,6 +339,70 @@ public class FederatedPersonProviderTest {
   }
 
   /**
+   * Get people and some associated attributes. Tests with all providers
+   * returning information for the requested person.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetPeopleSomeAttrsAllReturn() throws Exception {
+    HashSet<Person> people02 = new HashSet<Person>();
+    people02.add(person0);
+    people02.add(person2);
+
+    HashSet<String> uids = new HashSet<String>();
+    uids.add("user0");
+    uids.add("user2");
+
+    expect(provider0.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider1.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider2.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider3.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider4.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    replay(provider0, provider1, provider2, provider3, provider4);
+
+    Set<Person> people = provider.getPeople(uids, "attr0", "attr2");
+    assertNotNull(people);
+
+    for (Person person : people) {
+      // expected size == maximum number of attrs returned by a provider
+      // since we're using person2, we can get up to 3 attrs.
+      Map<String, String[]> attrs = person.getAttributes();
+      Set<String> attrNames = attrs.keySet();
+
+      assertTrue(attrNames.contains("attr0"));
+      assertFalse(attrNames.contains("attr1"));
+      assertFalse(attrNames.contains("attr3"));
+      assertFalse(attrNames.contains("attr4"));
+
+      // common things of all the returned people
+      String[] vals = person.getAttributeValues("attr0");
+      assertEquals(5, vals.length);
+      String iVal = "val0";
+      for (String val : vals) {
+        assertEquals(iVal, val);
+      }
+
+      if ("user0".equals(person.getName())) {
+        assertEquals(1, attrs.size());
+        assertEquals(1, attrNames.size());
+        assertFalse(attrNames.contains("attr2"));
+      } else if ("user2".equals(person.getName())) {
+        assertEquals(2, attrs.size());
+        assertEquals(2, attrNames.size());
+        assertTrue(attrNames.contains("attr2"));
+
+        vals = person.getAttributeValues("attr2");
+        assertEquals(5, vals.length);
+        iVal = "val2";
+        for (String val : vals) {
+          assertEquals(iVal, val);
+        }
+      }
+    }
+  }
+
+  /**
    * Get a person and all associated attributes. Tests with only some providers
    * returning information for the requested person.
    *
@@ -499,5 +563,70 @@ public class FederatedPersonProviderTest {
     vals = person.getAttributeValues("attr2");
     assertEquals(1, vals.length);
     assertEquals("val2", vals[0]);
+  }
+
+  /**
+   * Get people and some associated attributes. Tests with all providers
+   * returning information for the requested person.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetPeopleSomeAttrsSomeReturn() throws Exception {
+    HashSet<Person> people02 = new HashSet<Person>();
+    people02.add(person0);
+    people02.add(person2);
+
+    HashSet<String> uids = new HashSet<String>();
+    uids.add("user0");
+    uids.add("user2");
+
+    expect(provider0.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider1.getPeople(uids, "attr0", "attr2")).andReturn(null);
+    expect(provider2.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider3.getPeople(uids, "attr0", "attr2")).andReturn(people02);
+    expect(provider4.getPeople(uids, "attr0", "attr2")).andReturn(null);
+    replay(provider0, provider1, provider2, provider3, provider4);
+
+    Set<Person> people = provider.getPeople(uids, "attr0", "attr2");
+    assertNotNull(people);
+    assertEquals(2, people.size());
+
+    for (Person person : people) {
+      // expected size == maximum number of attrs returned by a provider
+      // since we're using person2, we can get up to 3 attrs.
+      Map<String, String[]> attrs = person.getAttributes();
+      Set<String> attrNames = attrs.keySet();
+
+      assertTrue(attrNames.contains("attr0"));
+      assertFalse(attrNames.contains("attr1"));
+      assertFalse(attrNames.contains("attr3"));
+      assertFalse(attrNames.contains("attr4"));
+
+      // common things of all the returned people
+      String[] vals = person.getAttributeValues("attr0");
+      assertEquals(3, vals.length);
+      String iVal = "val0";
+      for (String val : vals) {
+        assertEquals(iVal, val);
+      }
+
+      if ("user0".equals(person.getName())) {
+        assertEquals(1, attrs.size());
+        assertEquals(1, attrNames.size());
+        assertFalse(attrNames.contains("attr2"));
+      } else if ("user2".equals(person.getName())) {
+        assertEquals(2, attrs.size());
+        assertEquals(2, attrNames.size());
+        assertTrue(attrNames.contains("attr2"));
+
+        vals = person.getAttributeValues("attr2");
+        assertEquals(3, vals.length);
+        iVal = "val2";
+        for (String val : vals) {
+          assertEquals(iVal, val);
+        }
+      }
+    }
   }
 }

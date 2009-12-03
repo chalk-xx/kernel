@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership. The SF licenses this file to you
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package org.sakaiproject.kernel.persondirectory;
 
 import static junit.framework.Assert.assertEquals;
@@ -6,6 +22,7 @@ import static junit.framework.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.persondirectory.PersonImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +54,31 @@ public class PersonImplTest {
       String pVal = p.getAttributeValue(pAttrName);
       String mypVal = myp.getAttributeValue(pAttrName);
       assertEquals(pVal, mypVal);
+    }
+  }
+
+  @Test
+  public void testConstructPersons() {
+    String[] values = { "a value 1", "22", "true", "BLOCKY_TEST", "r4nd0m th!ngs" };
+    for (int i = 0; i < values.length; i++) {
+      p.addAttribute("attr" + i, values[i]);
+    }
+
+    PersonImpl myp0 = new PersonImpl(p);
+    PersonImpl myp1 = new PersonImpl(p, (String[]) null);
+    Set<String> pAttrNames = p.getAttributeNames();
+    Set<String> myp0AttrNames = myp0.getAttributeNames();
+    Set<String> myp1AttrNames = myp1.getAttributeNames();
+    assertEquals(pAttrNames.size(), myp0AttrNames.size());
+    assertEquals(pAttrNames.size(), myp1AttrNames.size());
+
+    for (String pAttrName : pAttrNames) {
+      assertTrue(myp0AttrNames.contains(pAttrName));
+      String pVal = p.getAttributeValue(pAttrName);
+      String myp0Val = myp0.getAttributeValue(pAttrName);
+      assertEquals(pVal, myp0Val);
+      String myp1Val = myp1.getAttributeValue(pAttrName);
+      assertEquals(pVal, myp1Val);
     }
   }
 
