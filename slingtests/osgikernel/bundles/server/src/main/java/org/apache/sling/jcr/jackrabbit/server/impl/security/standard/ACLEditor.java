@@ -21,14 +21,16 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.core.DynamicSecurityItemModifier;
 import org.apache.jackrabbit.core.NodeImpl;
+import org.apache.jackrabbit.core.ProtectedItemModifier;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEditor;
 import org.apache.jackrabbit.core.security.authorization.AccessControlUtils;
 import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlEntry;
 import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
+import org.apache.jackrabbit.core.security.authorization.Permission;
+import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlPolicy;
 import org.apache.jackrabbit.spi.Name;
 import org.apache.jackrabbit.spi.commons.conversion.NameException;
 import org.apache.jackrabbit.spi.commons.conversion.NameParser;
@@ -44,6 +46,8 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+import javax.jcr.PropertyType;
+import javax.jcr.ValueFormatException;
 
 /**
  * <code>ACLEditor</code>...
@@ -51,8 +55,7 @@ import javax.jcr.ValueFactory;
  * AFAIK, this class is a direct copy of the versions in JR code, only here to make the
  * other classes possible.
  */
-public class ACLEditor extends DynamicSecurityItemModifier implements
-    AccessControlEditor, AccessControlConstants {
+public class ACLEditor extends ProtectedItemModifier implements AccessControlEditor, AccessControlConstants {
 
   /**
    * the default logger
@@ -70,6 +73,7 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
   private final AccessControlUtils utils;
 
   ACLEditor(Session editingSession, AccessControlUtils utils) {
+    super(Permission.MODIFY_AC);
     if (editingSession instanceof SessionImpl) {
       session = ((SessionImpl) editingSession);
       // TODO: review and find better solution
@@ -117,27 +121,30 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
       throws AccessControlException, PathNotFoundException, RepositoryException {
     checkProtectsNode(nodePath);
 
-    AccessControlPolicy acl;
-    NodeImpl aclNode = getAclNode(nodePath);
+    AccessControlPolicy acl = null;
+    NodeImpl controlledNode = getNode(nodePath);
+    NodeImpl aclNode = getAclNode(controlledNode);    
     if (aclNode == null) {
-      // create an empty acl
-      acl = new ACLTemplate(nodePath, session.getPrincipalManager(), privilegeRegistry);
-    } else {
-      acl = getACL(aclNode);
-    }
-    return new AccessControlPolicy[] {acl};
+      // create an empty acl unless the node is protected or cannot have
+      // rep:AccessControllable mixin set (e.g. due to a lock)
+      String mixin = session.getJCRName(NT_REP_ACCESS_CONTROLLABLE);
+      if (controlledNode.isNodeType(mixin) || controlledNode.canAddMixin(mixin)) {
+        acl = new ACLTemplate(nodePath, session.getPrincipalManager(),
+          privilegeRegistry, session.getValueFactory());
+      }
+    } // else: acl already present -> getPolicies must be used.
+    return (acl != null) ? new AccessControlPolicy[] {acl} : new AccessControlPolicy[0];
   }
 
   /**
    * @see AccessControlEditor#editAccessControlPolicies(Principal)
    */
-  public AccessControlPolicy[] editAccessControlPolicies(Principal principal)
-      throws AccessDeniedException, AccessControlException, RepositoryException {
+  public JackrabbitAccessControlPolicy[] editAccessControlPolicies(Principal principal) throws AccessDeniedException, AccessControlException, RepositoryException {
     if (!session.getPrincipalManager().hasPrincipal(principal.getName())) {
       throw new AccessControlException("Unknown principal.");
     }
     // TODO: impl. missing
-    return new AccessControlPolicy[0];
+    return new JackrabbitAccessControlPolicy[0];
   }
 
   /**
@@ -155,7 +162,7 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
      * cleared without having to access and removed the explicitely
      */
     if (aclNode != null) {
-      removeSecurityItem(aclNode);
+       removeItem(aclNode);
     }
     // now (re) create it
     aclNode = createAclNode(nodePath);
@@ -169,16 +176,16 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
       ValueFactory vf = session.getValueFactory();
 
       // create the ACE node
-      NodeImpl aceNode = addSecurityNode(aclNode, nodeName, ntName);
+      NodeImpl aceNode = addNode(aclNode, nodeName, ntName);
 
       // write the rep:principalName property
       String principalName = ace.getPrincipal().getName();
-      setSecurityProperty(aceNode, P_PRINCIPAL_NAME, vf.createValue(principalName));
+      setProperty(aceNode, P_PRINCIPAL_NAME, vf.createValue(principalName));
 
       // ... and the rep:privileges property
       Privilege[] pvlgs = ace.getPrivileges();
       Value[] names = getPrivilegeNames(pvlgs, vf);
-      setSecurityProperty(aceNode, P_PRIVILEGES, names);
+      setProperty(aceNode, P_PRIVILEGES, names);
     }
   }
 
@@ -192,7 +199,7 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
 
     NodeImpl aclNode = getAclNode(nodePath);
     if (aclNode != null) {
-      removeSecurityItem(aclNode);
+      removeItem(aclNode);
     } else {
       throw new AccessControlException("No policy to remove at " + nodePath);
     }
@@ -246,9 +253,9 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
   }
 
   /**
-   * Returns the rep:Policy node below the Node identified by the given id or
-   * <code>null</code> if the node is not mix:AccessControllable or if no policy node
-   * exists.
+   * Returns the rep:Policy node below the Node identified at the given
+   * path or <code>null</code> if the node is not mix:AccessControllable   
+   * or if no policy node exists.
    * 
    * @param nodePath
    * @return node or <code>null</code>
@@ -256,11 +263,23 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
    * @throws RepositoryException
    */
   private NodeImpl getAclNode(String nodePath) throws PathNotFoundException,
-      RepositoryException {
+    RepositoryException {
+    NodeImpl controlledNode = getNode(nodePath);
+    return getAclNode(controlledNode);
+  }
+ 
+  /**
+   * Returns the rep:Policy node below the given Node or <code>null</code>
+   * if the node is not mix:AccessControllable or if no policy node exists.
+   *
+   * @param controlledNode
+   * @return node or <code>null</code>
+   * @throws RepositoryException
+   */
+  private NodeImpl getAclNode(NodeImpl controlledNode) throws RepositoryException {
     NodeImpl aclNode = null;
-    NodeImpl protectedNode = getNode(nodePath);
-    if (ACLProvider.isAccessControlled(protectedNode)) {
-      aclNode = protectedNode.getNode(N_POLICY);
+    if (ACLProvider.isAccessControlled(controlledNode)) {
+      aclNode = controlledNode.getNode(N_POLICY);      
     }
     return aclNode;
   }
@@ -276,7 +295,7 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
     if (!protectedNode.isNodeType(NT_REP_ACCESS_CONTROLLABLE)) {
       protectedNode.addMixin(NT_REP_ACCESS_CONTROLLABLE);
     }
-    return addSecurityNode(protectedNode, N_POLICY, NT_REP_ACL);
+    return addNode(protectedNode, N_POLICY, NT_REP_ACL);
   }
 
   /**
@@ -317,9 +336,9 @@ public class ACLEditor extends DynamicSecurityItemModifier implements
    * @param privileges
    * @param valueFactory
    * @return an array of Value.
+   * @throws javax.jcr.ValueFormatException
    */
-  private static Value[] getPrivilegeNames(Privilege[] privileges,
-      ValueFactory valueFactory) {
+  private static Value[] getPrivilegeNames(Privilege[] privileges, ValueFactory valueFactory) throws ValueFormatException {
     Value[] names = new Value[privileges.length];
     for (int i = 0; i < privileges.length; i++) {
       names[i] = valueFactory.createValue(privileges[i].getName());

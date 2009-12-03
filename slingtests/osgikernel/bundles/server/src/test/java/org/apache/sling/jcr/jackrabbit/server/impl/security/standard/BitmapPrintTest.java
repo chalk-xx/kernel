@@ -17,7 +17,6 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 
-import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlEntry;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,14 +32,14 @@ public class BitmapPrintTest {
 
   
   private List<Object> objects = new ArrayList<Object>();
-  private JackrabbitAccessControlEntry ace;
+  private ACLTemplate.Entry ace;
 
   
   @Before
   public void before() {
     try {
       objects = new ArrayList<Object>();
-      ace = createMock(JackrabbitAccessControlEntry.class);
+      ace = createMock(ACLTemplate.Entry.class);
     } catch (Exception ex) {
       ex.printStackTrace();
     }

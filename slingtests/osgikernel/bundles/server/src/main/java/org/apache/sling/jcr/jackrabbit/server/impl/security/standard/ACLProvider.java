@@ -41,7 +41,6 @@ import org.apache.jackrabbit.core.security.authorization.AccessControlEditor;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEntryIterator;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
-import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlEntry;
 import org.apache.jackrabbit.core.security.authorization.Permission;
 import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
 import org.apache.jackrabbit.core.security.authorization.UnmodifiableAccessControlList;
@@ -68,6 +67,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
@@ -107,6 +107,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
    * the default logger
    */
   private static final Logger log = LoggerFactory.getLogger(ACLProvider.class);
+
 
   /**
    * the system acl editor.
@@ -321,12 +322,13 @@ public class ACLProvider extends AbstractAccessControlProvider implements
    * 
    * @param session
    *          to the workspace to set-up inital ACL to
+   * @param editor for the specified session.
    * @throws RepositoryException
    */
   private static void initRootACL(SessionImpl session, AccessControlEditor editor)
       throws RepositoryException {
     try {
-      log.info("Install initial ACL:...");
+      log.debug("Install initial ACL:...");
       String rootPath = session.getRootNode().getPath();
       AccessControlPolicy[] acls = editor.editAccessControlPolicies(rootPath);
       ACLTemplate acl = (ACLTemplate) acls[0];
@@ -334,7 +336,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       PrincipalManager pMgr = session.getPrincipalManager();
       AccessControlManager acMgr = session.getAccessControlManager();
 
-      log.info("... Privilege.ALL for administrators.");
+      log.debug("... Privilege.ALL for administrators.");
       Principal administrators;
       String pName = SecurityConstants.ADMINISTRATORS_NAME;
       if (pMgr.hasPrincipal(pName)) {
@@ -347,19 +349,17 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       acl.addAccessControlEntry(administrators, privs);
 
       Principal everyone = pMgr.getEveryone();
-      log.info("... Privilege.READ for everyone.");
+      log.debug("... Privilege.READ for everyone.");
       privs = new Privilege[] {acMgr.privilegeFromName(Privilege.JCR_READ)};
       acl.addAccessControlEntry(everyone, privs);
 
       editor.setPolicy(rootPath, acl);
       session.save();
-      log.info("... done.");
 
     } catch (RepositoryException e) {
       log.error("Failed to set-up minimal access control for root node of workspace "
           + session.getWorkspace().getName());
       session.getRootNode().refresh(false);
-      throw e;
     }
   }
 
@@ -575,9 +575,10 @@ public class ACLProvider extends AbstractAccessControlProvider implements
 
       boolean isAcItem = isAcItem(absPath);
 
+      ValueFactory valueFactory = session.getValueFactory();
       // retrieve all ACEs at path or at the direct ancestor of path that
       // apply for the principal names.
-      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames, userId)
+      AccessControlEntryIterator entries = new Entries(getNode(node), principalNames, userId, valueFactory)
           .iterator();
       // build a list of ACEs that are defined locally at the node
       List<AccessControlEntry> localACEs;
@@ -601,8 +602,8 @@ public class ACLProvider extends AbstractAccessControlProvider implements
       int parentDenies = PrivilegeRegistry.NO_PRIVILEGE;
 
       // loop through all entries (for this node and ancestors for the principal name),unless allows grants everything.
-      while (entries.hasNext() && allows != PrivilegeRegistry.ALL) {
-        JackrabbitAccessControlEntry ace = (JackrabbitAccessControlEntry) entries.next();
+      while (entries.hasNext() && allows != privAll) {
+        ACLTemplate.Entry ace = (ACLTemplate.Entry) entries.next();
         // Determine if the ACE is defined on the node at absPath (locally):
         // Except for READ-privileges the permissions must be determined
         // from privileges defined for the parent. Consequently aces
@@ -628,8 +629,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // privileges
           allowPrivileges |= Permission.diff(entryBits, denyPrivileges);
           // apply rules to allowPrivileges merging with parentAllows (see impl of function)
-          int permissions = Permission.calculatePermissions(allowPrivileges,
-              parentAllows, true, isAcItem);
+          int permissions = PrivilegeRegistry.calculatePermissions(allowPrivileges, parentAllows, true, isAcItem);
           // remove permissions that have allready been denied from the permissions and add them 
           // to the allows
           allows |= Permission.diff(permissions, denies);
@@ -638,8 +638,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
           // remove privileges that have already been allowed from the entryBits and add them to the deny privileges
           denyPrivileges |= Permission.diff(entryBits, allowPrivileges);
           // apply rules to denyPrivileges merging with parentAllows (see impl of function)
-          int permissions = Permission.calculatePermissions(denyPrivileges, parentDenies,
-              false, isAcItem);
+          int permissions = PrivilegeRegistry.calculatePermissions(denyPrivileges, parentDenies, false, isAcItem);
           denies |= Permission.diff(permissions, allows);
           logState("LocalDeny ",ace,allows,denies,allowPrivileges,denyPrivileges,parentAllows,parentDenies);
         }
@@ -766,14 +765,14 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * @throws RepositoryException
      */
     @SuppressWarnings("unchecked")
-    private Entries(NodeImpl node, Collection<String> principalNames, String userId)
+    private Entries(NodeImpl node, Collection<String> principalNames, String userId, ValueFactory valueFactory)
         throws RepositoryException {
       orderedAccessControlEntries = new ArrayList<ComparableAccessControlEntry>();
       principalNamesToEntries = new ListOrderedMap();
       for (Iterator<String> it = principalNames.iterator(); it.hasNext();) {
         principalNamesToEntries.put(it.next(), new ArrayList<AccessControlEntry>());
       }
-      collectEntries(node, userId);
+      collectEntries(node, userId, valueFactory);
       Collections.sort(orderedAccessControlEntries);
       log.debug("ACL Order for {} is {} ", node.getPath(), orderedAccessControlEntries);
     }
@@ -783,19 +782,19 @@ public class ACLProvider extends AbstractAccessControlProvider implements
      * @param userId the userId which may be null
      * @throws RepositoryException
      */
-    private void collectEntries(NodeImpl node, String userId) throws RepositoryException {
+    private void collectEntries(NodeImpl node, String userId, ValueFactory valueFactory) throws RepositoryException {
       // if the given node is access-controlled, construct a new ACL and add
       // it to the list
       if (isAccessControlled(node)) {
         // build acl for the access controlled node
         NodeImpl aclNode = node.getNode(N_POLICY);
         // get the collector and collect entries
-        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries, userId);
+        getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries, userId, valueFactory);
       }
       // then, recursively look for access controlled parents up the hierarchy.
       if (!rootNodeId.equals(node.getId())) {
         NodeImpl parentNode = (NodeImpl) node.getParent();
-        collectEntries(parentNode, userId);
+        collectEntries(parentNode, userId, valueFactory);
       }
     }
 
@@ -825,7 +824,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements
    * @param parentAllows
    * @param parentDenies
    */
-  public static void logState(String message, JackrabbitAccessControlEntry ace,
+  public static void logState(String message,  ACLTemplate.Entry ace,
       int allows, int denies, int allowPrivileges, int denyPrivileges, int parentAllows,
       int parentDenies) {
     if (log.isDebugEnabled()) {
@@ -841,6 +840,17 @@ public class ACLProvider extends AbstractAccessControlProvider implements
     }
   }
 
+  // the following are private in privilage registry, so duplicated here
+  private static final int PrivilegeRegistry_READ = 1;
+
+  private static final int PrivilegeRegistry_WRITE = 30;
+
+  private static final int PrivilegeRegistry_MODIFY_PROPERTIES = 2;
+
+  private static final int PrivilegeRegistry_REMOVE_NODE = 16;
+
+  private static final int PrivilegeRegistry_REMOVE_CHILD_NODES = 8;
+
   /**
    * @param parentDenies
    * @return
@@ -848,27 +858,27 @@ public class ACLProvider extends AbstractAccessControlProvider implements
   private static String bitToString(int v) {
     int i = 1;
     StringBuilder sb = new StringBuilder();
-    if ( (v&PrivilegeRegistry.READ) == 0 ) {
+    if ( (v&PrivilegeRegistry_READ) == 0 ) {
       sb.append("-");
     } else {
       sb.append("r");
     }
-    if ( (v&PrivilegeRegistry.WRITE) == 0 ) {
+    if ( (v&PrivilegeRegistry_WRITE) == 0 ) {
       sb.append("-");
     } else {
       sb.append("w");
     }
-    if ( (v&PrivilegeRegistry.MODIFY_PROPERTIES) == 0 ) {
+    if ( (v&PrivilegeRegistry_MODIFY_PROPERTIES) == 0 ) {
       sb.append("-");
     } else {
       sb.append("P");
     }
-    if ( (v&PrivilegeRegistry.REMOVE_NODE) == 0 ) {
+    if ( (v&PrivilegeRegistry_REMOVE_NODE) == 0 ) {
       sb.append("-");
     } else {
       sb.append("R");
     }
-    if ( (v&PrivilegeRegistry.REMOVE_CHILD_NODES) == 0 ) {
+    if ( (v&PrivilegeRegistry_REMOVE_CHILD_NODES) == 0 ) {
       sb.append("-");
     } else {
       sb.append("C");
