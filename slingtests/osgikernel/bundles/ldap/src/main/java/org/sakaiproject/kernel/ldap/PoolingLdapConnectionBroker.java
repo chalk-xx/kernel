@@ -85,7 +85,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#create(java.lang.String)
    */
   public void create(String name) throws LdapException {
-    create(name, null);
+    create(name, defaults);
   }
 
   /**
@@ -97,7 +97,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   public LdapConnectionManager create(String name, LdapConnectionManagerConfig config)
       throws LdapException {
     if (config == null) {
-      config = defaults;
+      throw new IllegalArgumentException(
+          "A configuration must be provided. To use the default config, use create(String).");
     }
 
     // create a new connection manager, set the config and initialize it.

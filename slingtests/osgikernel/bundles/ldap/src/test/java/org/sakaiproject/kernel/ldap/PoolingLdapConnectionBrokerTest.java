@@ -24,6 +24,7 @@ import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertTrue;
 
 import com.novell.ldap.LDAPConnection;
 
@@ -196,23 +197,19 @@ public class PoolingLdapConnectionBrokerTest {
   }
 
   @Test
-  public void testGetConnectionBeforeCreate() {
-    try {
-      broker.getConnection("whatever");
-      fail("Should've thrown an exception since the manager wasn't created.");
-    } catch (LdapException e) {
-      // expected
-    }
+  public void testGetConnectionBeforeCreate() throws Exception {
+    LDAPConnection conn = broker.getConnection("whatever");
+    assertNotNull(conn);
+    boolean exists = broker.exists("whatever");
+    assertTrue(exists);
   }
 
   @Test
-  public void testGetBoundConnectionBeforeCreate() {
-    try {
-      broker.getBoundConnection("whatever", "dude", "sweet");
-      fail("Should've thrown an exception since the manager wasn't created.");
-    } catch (LdapException e) {
-      // expected
-    }
+  public void testGetBoundConnectionBeforeCreate() throws Exception {
+    LDAPConnection conn = broker.getBoundConnection("whatever", "dude", "sweet");
+    assertNotNull(conn);
+    boolean exists = broker.exists("whatever");
+    assertTrue(exists);
   }
 
   @Test
