@@ -74,7 +74,7 @@ public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = 6707040084319189872L;
 
   /** Storage of providers available for looking up person information. */
-  @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
+  @Reference(referenceInterface = PersonProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
   private Set<PersonProvider> providers = new HashSet<PersonProvider>();
 
   /**

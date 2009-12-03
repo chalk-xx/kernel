@@ -47,7 +47,7 @@ public class FederatedPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(FederatedPersonProvider.class);
 
   /** Storage of providers available for looking up person information. */
-  @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
+  @Reference(referenceInterface = PersonProvider.class, policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
   private Set<PersonProvider> providers = new HashSet<PersonProvider>();
 
   /**

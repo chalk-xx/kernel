@@ -23,12 +23,14 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 import com.novell.ldap.LDAPConnection;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapConstants;
@@ -73,7 +75,12 @@ public class PoolingLdapConnectionBrokerTest {
         return mgr;
       }
     };
-    broker.activate(null);
+
+    Properties props = new Properties();
+    ComponentContext ctx = createMock(ComponentContext.class);
+    expect(ctx.getProperties()).andReturn(props);
+    replay(ctx);
+    broker.activate(ctx);
 
     // Provide a port for the connection to attach to. Does not do anything LDAP
     // specific.

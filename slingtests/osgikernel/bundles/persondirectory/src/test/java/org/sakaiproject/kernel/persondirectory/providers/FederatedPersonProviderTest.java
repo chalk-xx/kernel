@@ -20,9 +20,9 @@ package org.sakaiproject.kernel.persondirectory.providers;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 
 import org.junit.After;
@@ -86,30 +86,34 @@ public class FederatedPersonProviderTest {
 
   @Before
   public void setUp() {
+    profileNode = createMock(Node.class);
+
     provider = new FederatedPersonProvider();
 
     // create some providers
     provider0 = createMock(PersonProvider.class);
-    provider.bindProvider(provider0);
     provider1 = createMock(PersonProvider.class);
-    provider.bindProvider(provider1);
     provider2 = createMock(PersonProvider.class);
-    provider.bindProvider(provider2);
     provider3 = createMock(PersonProvider.class);
-    provider.bindProvider(provider3);
     provider4 = createMock(PersonProvider.class);
+
+    provider.bindProvider(provider0);
+    provider.bindProvider(provider1);
+    provider.bindProvider(provider2);
+    provider.bindProvider(provider3);
     provider.bindProvider(provider4);
 
     // create some people to return
     person0 = new PersonImpl("user0");
-    person0.addAttributes(attrs0);
     person1 = new PersonImpl("user1");
-    person1.addAttributes(attrs1);
     person2 = new PersonImpl("user2");
-    person2.addAttributes(attrs2);
     person3 = new PersonImpl("user3");
-    person3.addAttributes(attrs3);
     person4 = new PersonImpl("user4");
+
+    person0.addAttributes(attrs0);
+    person1.addAttributes(attrs1);
+    person2.addAttributes(attrs2);
+    person3.addAttributes(attrs3);
     person4.addAttributes(attrs4);
   }
 
@@ -130,7 +134,7 @@ public class FederatedPersonProviderTest {
   @Test
   public void testGetPersonWithNoProviders() throws Exception {
     FederatedPersonProvider provider = new FederatedPersonProvider();
-    Person person = provider.getPerson("doesn't matter", (Node) anyObject());
+    Person person = provider.getPerson("doesn't matter", profileNode);
     assertNull(person);
   }
 
@@ -141,14 +145,14 @@ public class FederatedPersonProviderTest {
    */
   @Test
   public void testGetPersonAllAttrsNoneFound() throws Exception {
-    expect(provider0.getPerson("user0", (Node) anyObject())).andReturn(null);
-    expect(provider1.getPerson("user0", (Node) anyObject())).andReturn(null);
-    expect(provider2.getPerson("user0", (Node) anyObject())).andReturn(null);
-    expect(provider3.getPerson("user0", (Node) anyObject())).andReturn(null);
-    expect(provider4.getPerson("user0", (Node) anyObject())).andReturn(null);
+    expect(provider0.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider1.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider2.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider3.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider4.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
     replay(provider0, provider1, provider2, provider3, provider4);
 
-    Person person = provider.getPerson("user0", (Node) anyObject());
+    Person person = provider.getPerson("user0", profileNode);
     assertNull(person);
   }
 
@@ -160,14 +164,14 @@ public class FederatedPersonProviderTest {
    */
   @Test
   public void testGetPersonAllAttrsAllReturn() throws Exception {
-    expect(provider0.getPerson("user0", (Node) anyObject())).andReturn(person0);
-    expect(provider1.getPerson("user0", (Node) anyObject())).andReturn(person1);
-    expect(provider2.getPerson("user0", (Node) anyObject())).andReturn(person2);
-    expect(provider3.getPerson("user0", (Node) anyObject())).andReturn(person3);
-    expect(provider4.getPerson("user0", (Node) anyObject())).andReturn(person4);
+    expect(provider0.getPerson(isA(String.class), isA(Node.class))).andReturn(person0);
+    expect(provider1.getPerson(isA(String.class), isA(Node.class))).andReturn(person1);
+    expect(provider2.getPerson(isA(String.class), isA(Node.class))).andReturn(person2);
+    expect(provider3.getPerson(isA(String.class), isA(Node.class))).andReturn(person3);
+    expect(provider4.getPerson(isA(String.class), isA(Node.class))).andReturn(person4);
     replay(provider0, provider1, provider2, provider3, provider4);
 
-    Person person = provider.getPerson("user0", (Node) anyObject());
+    Person person = provider.getPerson("user0", profileNode);
     assertNotNull(person);
 
     // expected size == maximum number of attrs returned by a provider
@@ -194,14 +198,14 @@ public class FederatedPersonProviderTest {
    */
   @Test
   public void testGetPersonAllAttrsSomeReturn() throws Exception {
-    expect(provider0.getPerson("user1", (Node) anyObject())).andReturn(null);
-    expect(provider1.getPerson("user1", (Node) anyObject())).andReturn(person1);
-    expect(provider2.getPerson("user1", (Node) anyObject())).andReturn(null);
-    expect(provider3.getPerson("user1", (Node) anyObject())).andReturn(person3);
-    expect(provider4.getPerson("user1", (Node) anyObject())).andReturn(null);
+    expect(provider0.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider1.getPerson(isA(String.class), isA(Node.class))).andReturn(person1);
+    expect(provider2.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
+    expect(provider3.getPerson(isA(String.class), isA(Node.class))).andReturn(person3);
+    expect(provider4.getPerson(isA(String.class), isA(Node.class))).andReturn(null);
     replay(provider0, provider1, provider2, provider3, provider4);
 
-    Person person = provider.getPerson("user1", (Node) anyObject());
+    Person person = provider.getPerson("user1", profileNode);
     assertNotNull(person);
 
     // expected size == maximum number of attrs returned by a provider

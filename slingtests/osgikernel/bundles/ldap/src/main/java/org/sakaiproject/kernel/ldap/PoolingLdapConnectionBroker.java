@@ -57,6 +57,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    *
    * @param ctx
    */
+  @SuppressWarnings("unchecked")
   @Activate
   protected void activate(ComponentContext ctx) {
     Dictionary properties = ctx.getProperties();
@@ -146,16 +147,20 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   public LDAPConnection getConnection(String name) throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
-    if (factories.containsKey(name)) {
-      LdapConnectionManager mgr = factories.get(name);
-
-      // get a connection from the manager and return it
-      LDAPConnection conn = mgr.getConnection();
-      return conn;
-    } else {
-      throw new LdapException("No factory found for [" + name
-          + "].  Be sure to call create(String) before calling getConnection(String).");
+    if (!factories.containsKey(name)) {
+      create(name);
     }
+
+    LdapConnectionManager mgr = factories.get(name);
+
+    // get a connection from the manager and return it
+    LDAPConnection conn = mgr.getConnection();
+    return conn;
+    // } else {
+      // throw new LdapException("No factory found for [" + name
+      // +
+      // "].  Be sure to call create(String) before calling getConnection(String).");
+    // }
   }
 
   /**
@@ -168,22 +173,25 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
       throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
-    if (factories.containsKey(name)) {
-      LdapConnectionManager mgr = factories.get(name);
-
-      // get a connection from the manager and return it
-      LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
-      return conn;
-    } else {
-      throw new LdapException("No factory found for [" + name
-          + "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
+    if (!factories.containsKey(name)) {
+      create(name);
     }
+    LdapConnectionManager mgr = factories.get(name);
+
+    // get a connection from the manager and return it
+    LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
+    return conn;
+//    } else {
+//      throw new LdapException("No factory found for [" + name
+//          + "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
+//    }
   }
 
   public LdapConnectionManagerConfig getDefaultConfig() {
     return defaults.copy();
   }
 
+  @SuppressWarnings("unchecked")
   public void update(Dictionary props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
