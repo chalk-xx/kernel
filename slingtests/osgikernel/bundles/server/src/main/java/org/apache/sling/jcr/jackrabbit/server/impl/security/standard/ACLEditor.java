@@ -21,8 +21,8 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.core.DynamicProtectedItemModifier;
 import org.apache.jackrabbit.core.NodeImpl;
-import org.apache.jackrabbit.core.ProtectedItemModifier;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEditor;
@@ -46,7 +46,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
-import javax.jcr.PropertyType;
 import javax.jcr.ValueFormatException;
 
 /**
@@ -55,7 +54,7 @@ import javax.jcr.ValueFormatException;
  * AFAIK, this class is a direct copy of the versions in JR code, only here to make the
  * other classes possible.
  */
-public class ACLEditor extends ProtectedItemModifier implements AccessControlEditor, AccessControlConstants {
+public class ACLEditor extends DynamicProtectedItemModifier implements AccessControlEditor, AccessControlConstants {
 
   /**
    * the default logger

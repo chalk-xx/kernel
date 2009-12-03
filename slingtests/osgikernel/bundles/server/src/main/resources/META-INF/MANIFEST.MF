@@ -7,7 +7,8 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  apache.jackrabbit.api.security.principal,org.slf4j,org.apache.commons
  .collections.map,javax.jcr,org.apache.jackrabbit.api.security.user,or
  g.apache.commons.collections.iterators,javax.jcr.observation,org.apac
- he.commons.collections.set";version="1.6.0"
+ he.commons.collections.set";version="1.6.0",org.apache.sling.jcr.jack
+ rabbit.server.security.dynamic
 Service-Component: OSGI-INF/serviceComponents.xml
 Bundle-ClassPath: .,jackrabbit-jcr-rmi-1.4.1.jar,jackrabbit-core-1.6.0
  .jar,jackrabbit-jcr-commons-1.6.0.jar,jackrabbit-spi-commons-1.6.0.ja
