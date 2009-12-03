@@ -28,9 +28,10 @@ import org.sakaiproject.kernel.persondirectory.PersonImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.jcr.Node;
 
 /**
  * Person information provider that aggregates other person information
@@ -74,114 +75,17 @@ public class FederatedPersonProvider implements PersonProvider {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPeople(java.util.Set)
-   */
-  public Set<Person> getPeople(Set<String> uids) throws PersonProviderException {
-    HashMap<String, PersonImpl> retPeople = null;
-
-    for (PersonProvider provider : providers) {
-      Set<Person> people = provider.getPeople(uids);
-      if (people != null) {
-        for (Person person : people) {
-          if (retPeople == null) {
-            retPeople = new HashMap<String, PersonImpl>();
-          }
-          if (retPeople.containsKey(person.getName())) {
-            // concatenate attributes if user has been seen before.
-            PersonImpl p = retPeople.get(person.getName());
-            p.addAttributes(person.getAttributes());
-
-          } else {
-            // make sure we have an editable object in case we have to
-            // concatenate other attributes
-            PersonImpl p = new PersonImpl(person);
-            retPeople.put(p.getName(), p);
-
-          }
-        }
-      }
-    }
-    Set<Person> them = null;
-    if (retPeople != null) {
-      them = new HashSet<Person>(retPeople.values());
-    }
-    return them;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPeople(java.util.Set,
-   *      java.lang.String[])
-   */
-  public Set<Person> getPeople(Set<String> uids, String... attributes)
-      throws PersonProviderException {
-    HashMap<String, PersonImpl> retPeople = null;
-
-    for (PersonProvider provider : providers) {
-      Set<Person> people = provider.getPeople(uids, attributes);
-      if (people != null) {
-        for (Person person : people) {
-          if (retPeople == null) {
-            retPeople = new HashMap<String, PersonImpl>();
-          }
-          if (retPeople.containsKey(person.getName())) {
-            // concatenate attributes if user has been seen before.
-            PersonImpl p = retPeople.get(person.getName());
-            p.addAttributes(person.getAttributes(), attributes);
-
-          } else {
-            // make sure we have an editable object in case we have to
-            // concatenate other attributes
-            PersonImpl p = new PersonImpl(person, attributes);
-            retPeople.put(p.getName(), p);
-
-          }
-        }
-      }
-    }
-    Set<Person> them = null;
-    if (retPeople != null) {
-      them = new HashSet<Person>(retPeople.values());
-    }
-    return them;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
    * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPerson(java.lang.String)
    */
-  public Person getPerson(String uid) throws PersonProviderException {
+  public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
     PersonImpl retPerson = null;
     for (PersonProvider provider : providers) {
-      Person p = provider.getPerson(uid);
+      Person p = provider.getPerson(uid, profileNode);
       if (p != null) {
         if (retPerson == null) {
           retPerson = new PersonImpl(p);
         } else {
           retPerson.addAttributes(p.getAttributes());
-        }
-      }
-    }
-    return retPerson;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.kernel.api.persondirectory.PersonProvider#getPerson(java.lang.String,
-   *      java.lang.String[])
-   */
-  public Person getPerson(String uid, String... attributes) throws PersonProviderException {
-    PersonImpl retPerson = null;
-    for (PersonProvider provider : providers) {
-      Person p = provider.getPerson(uid, attributes);
-      if (p != null) {
-        if (retPerson == null) {
-          retPerson = new PersonImpl(p, attributes);
-        } else {
-          retPerson.addAttributes(p.getAttributes(), attributes);
         }
       }
     }

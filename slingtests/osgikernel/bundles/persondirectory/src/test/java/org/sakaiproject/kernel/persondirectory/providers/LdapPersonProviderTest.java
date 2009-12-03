@@ -16,11 +16,11 @@
  */
 package org.sakaiproject.kernel.persondirectory.providers;
 
-import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import static junit.framework.Assert.assertNotNull;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.ldap.PoolingLdapConnectionBroker;
 
@@ -53,7 +53,7 @@ public class LdapPersonProviderTest {
 
   @Test
   public void testGetPerson() throws Exception {
-    Person person = provider.getPerson("chall39");
+    Person person = provider.getPerson("chall39", null);
     assertNotNull(person);
   }
 }

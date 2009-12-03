@@ -16,10 +16,10 @@
  */
 package org.sakaiproject.kernel.api.persondirectory;
 
-import java.util.Set;
+import javax.jcr.Node;
 
 /**
- * Provider interface for looking up people ({@link Person}) and attributes
+ * Provider interface for looking up a person ({@link Person}) and attributes
  * associated to them.
  *
  * @author Carl Hall
@@ -33,39 +33,5 @@ public interface PersonProvider {
    * @return A {@link Person} with all found associated attributes. null if the
    *         UID is not found.
    */
-  Person getPerson(String uid) throws PersonProviderException;
-
-  /**
-   * Get specific attributes associated to a person.
-   * 
-   * @param uid
-   *          The user ID to lookup.
-   * @param attributes
-   *          The names of attributes to retrieve.
-   * @return A {@link Person} with all found associated attributes limited by
-   *         the list specified. null if the UID is not found.
-   */
-  Person getPerson(String uid, String... attributes) throws PersonProviderException;
-
-  /**
-   * Get all attributes associated to a .
-   *
-   * @param uid
-   *          The user ID to lookup.
-   * @return A {@link Person} with all found associated attributes. null if none
-   *         of the UIDs were found.
-   */
-  Set<Person> getPeople(Set<String> uids) throws PersonProviderException;
-
-  /**
-   * Get specific attributes associated to a person.
-   *
-   * @param uid
-   *          The user ID to lookup.
-   * @param attributes
-   *          The names of attributes to retrieve.
-   * @return A {@link Person} with all found associated attributes limited by
-   *         the list specified. null if none of the UIDs were found.
-   */
-  Set<Person> getPeople(Set<String> uids, String... attributes) throws PersonProviderException;
+  Person getPerson(String uid, Node profileNode) throws PersonProviderException;
 }

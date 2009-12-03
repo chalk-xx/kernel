@@ -19,6 +19,8 @@ package org.sakaiproject.kernel.persondirectory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -29,12 +31,13 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProvider;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
-import org.sakaiproject.kernel.persondirectory.providers.FederatedPersonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -63,21 +66,44 @@ import javax.servlet.ServletException;
 @SlingServlet(methods = "GET", resourceTypes = "sakai/user-profile")
 @ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up user "
     + "information from various federated sources. This servlet is triggered by accessing a node "
-    + "that has resourceType=\"sakai/user-profile\". This node should be a user's space in JCR.",
- methods = { @ServiceMethod(name = "GET", description = "GETs to nodes of type "
+    + "that has resourceType=\"sakai/user-profile\". This node should be a user's space in JCR.", methods = { @ServiceMethod(name = "GET", description = "GETs to nodes of type "
     + "\"sakai/user-profile\" will trigger this servlet to produce person information.") })
 public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonDirectoryServlet.class);
   private static final long serialVersionUID = 6707040084319189872L;
 
-  @Reference(referenceInterface = FederatedPersonProvider.class)
-  private PersonProvider provider;
+  /** Storage of providers available for looking up person information. */
+  @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY_MULTIPLE, bind = "bindProvider", unbind = "unbindProvider")
+  private Set<PersonProvider> providers = new HashSet<PersonProvider>();
+
+  /**
+   * Bind a provider to this component.
+   *
+   * @param provider
+   *          The provider to bind.
+   */
+  protected void bindProvider(PersonProvider provider) {
+    LOGGER.debug("Binding provider: {}", provider.getClass().getName());
+    providers.add(provider);
+  }
+
+  /**
+   * Unbind a provider from this component.
+   *
+   * @param provider
+   *          The provider to unbind.
+   */
+  protected void unbindProvider(PersonProvider provider) {
+    LOGGER.debug("Unbinding provider: {}", provider.getClass().getName());
+    providers.remove(provider);
+  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Resource resource = request.getResource();
+    Node node = (Node) resource.adaptTo(Node.class);
     String path = resource.getPath();
     String[] splitPath = StringUtils.split(path, '/');
     String uid = splitPath[splitPath.length - 2];
@@ -89,11 +115,20 @@ public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
     writer.append(msg);
 
     try {
-      Person person = provider.getPerson(uid);
+      PersonImpl retPerson = null;
+      for (PersonProvider provider : providers) {
+        Person p = provider.getPerson(uid, node);
+        if (p != null) {
+          if (retPerson == null) {
+            retPerson = new PersonImpl(p);
+          } else {
+            retPerson.addAttributes(p.getAttributes());
+          }
+        }
+      }
+      // return retPerson;
 
       // get the node's properties
-      Node node = (Node) request.getResource().adaptTo(Node.class);
-
       writer.append("Properties:\n");
       PropertyIterator props = node.getProperties();
       while (props.hasNext()) {

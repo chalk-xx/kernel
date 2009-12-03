@@ -21,7 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
-import java.util.Set;
+
+import javax.jcr.Node;
 
 /**
  * Person provider implementation that gets its information from an LDAP store.
@@ -61,21 +62,8 @@ public class LdapPersonProvider implements PersonProvider {
     this.ldapBroker = ldapBroker;
   }
 
-  public Set<Person> getPeople(Set<String> uids) throws PersonProviderException {
-    return getPeople(uids, (String[]) null);
-  }
-
-  public Set<Person> getPeople(Set<String> uids, String... attributes)
-      throws PersonProviderException {
-    return null;
-  }
-
-  public Person getPerson(String uid) throws PersonProviderException {
-    return getPerson(uid, (String[]) null);
-  }
-
   @SuppressWarnings("unchecked")
-  public Person getPerson(String uid, String... attributes) throws PersonProviderException {
+  public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
     try {
       String filter = "gtuserid=" + uid;
       LDAPConnection conn = ldapBroker.getConnection(LDAP_NAME);
@@ -86,6 +74,7 @@ public class LdapPersonProvider implements PersonProvider {
       constraints.setReferralFollowing(DEFAULT_IS_FOLLOW_REFERRALS);
       constraints.setBatchSize(0);
 
+      String[] attributes = null;
       LOG.debug("searchDirectory(): [baseDN = {}][filter = {}][return attribs = {}]", new Object[] {
           UID_ATTR + "=" + uid + SEARCH_BASE_DN, filter, attributes });
 
