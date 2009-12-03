@@ -31,6 +31,14 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +108,7 @@ import javax.servlet.http.HttpServletResponse;
  * </pre>
  */
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
+@ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This rest end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and if this is present requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "", parameters = { @ServiceParameter(name = "c", description = "The value of cookie SAKAI-TRACKING") }, response = { @ServiceResponse(code = 404, description = "Cookie is not registered.") }) })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl
