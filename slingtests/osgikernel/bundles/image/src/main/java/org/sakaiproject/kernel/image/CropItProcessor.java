@@ -264,12 +264,11 @@ public class CropItProcessor {
       BufferedImage img, String sType, String sImg) throws IOException {
     ByteArrayOutputStream out = null;
     try {
-      Image imgScaled = getScaledInstance(img, width, height);
 
       Map<String, Integer> mapExtensionsToRGBType = new HashMap<String, Integer>();
       mapExtensionsToRGBType.put("image/jpg", BufferedImage.TYPE_INT_RGB);
       mapExtensionsToRGBType.put("image/jpeg", BufferedImage.TYPE_INT_RGB);
-      mapExtensionsToRGBType.put("image/gif", BufferedImage.TYPE_INT_RGB);
+      mapExtensionsToRGBType.put("image/gif", BufferedImage.TYPE_INT_ARGB);
       mapExtensionsToRGBType.put("image/png", BufferedImage.TYPE_INT_ARGB_PRE);
       mapExtensionsToRGBType.put("image/bmp", BufferedImage.TYPE_INT_RGB);
 
@@ -277,6 +276,8 @@ public class CropItProcessor {
       if (mapExtensionsToRGBType.containsKey(sType)) {
         type = mapExtensionsToRGBType.get(sType);
       }
+      
+      Image imgScaled = getScaledInstance(img, width, height, type);
 
       BufferedImage biScaled = toBufferedImage(imgScaled, type);
 
@@ -391,7 +392,7 @@ public class CropItProcessor {
    * @return
    */
   private static BufferedImage getScaledInstance(BufferedImage img, int targetWidth,
-      int targetHeight) {
+      int targetHeight, int type) {
     BufferedImage ret = (BufferedImage) img;
 
     // Use multi-step technique: start with original size, then
@@ -413,7 +414,7 @@ public class CropItProcessor {
         h = targetHeight;
       }
 
-      BufferedImage tmp = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+      BufferedImage tmp = new BufferedImage(w, h, type);
       Graphics2D g2 = tmp.createGraphics();
       g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
