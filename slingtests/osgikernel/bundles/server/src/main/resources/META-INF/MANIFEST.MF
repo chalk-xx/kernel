@@ -1,4 +1,9 @@
 Manifest-Version: 1.0
+Sakai-Modifications-Doc: Added org.apache.sling.jcr.jackrabbit.server.
+ security.dynamic to the list of Exports. Added Bundle-Activator: org.
+ apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivat
+ or. Removed: Bundle-Activator: org.apache.sling.jcr.jackrabbit.server
+ .impl.Activator
 Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  "javax.jcr,javax.security.auth.callback,javax.security.auth.login";ve
  rsion="2.0.4.incubator",org.apache.sling.jcr.jackrabbit.server.securi
@@ -18,8 +23,10 @@ Bundle-ClassPath: .,jackrabbit-jcr-rmi-1.4.1.jar,jackrabbit-core-1.6.0
  hpad-3.2-FINAL.jar,nekohtml-1.9.7.jar,xercesImpl-2.8.1.jar
 Tool: Bnd-0.0.357
 Embed-Transitive: true
-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.Activato
- r
+Sling-Bundle-Activator-Ignored: org.apache.sling.jcr.jackrabbit.server
+ .impl.Activator
+Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security
+ .dynamic.SakaiActivator
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-SymbolicName: org.apache.sling.jcr.jackrabbit.server
 Note: Built by bundle profile
