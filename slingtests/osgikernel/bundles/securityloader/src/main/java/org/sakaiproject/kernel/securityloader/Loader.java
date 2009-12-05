@@ -121,18 +121,20 @@ public class Loader implements SecurityLoader {
     if (isUpdate) {
       this.unregisterBundle(session, bundle);
     }
-    LOGGER.info("Registering bundle {} for security loading.", bundle.getSymbolicName());
 
+    LOGGER.info("Trying to Load security from bundle {}.", bundle.getSymbolicName());
     if (registerBundleInternal(session, bundle, false, isUpdate)) {
 
       // handle delayed bundles, might help now
       int currentSize = -1;
+      // dont loop forever
       for (int i = delayedBundles.size(); i > 0 && currentSize != delayedBundles.size()
           && !delayedBundles.isEmpty(); i--) {
 
         for (Iterator<Bundle> di = delayedBundles.iterator(); di.hasNext();) {
 
           Bundle delayed = di.next();
+          LOGGER.info("Trying to Load security from delayed bundle {}.", delayed.getSymbolicName());
           if (registerBundleInternal(session, delayed, true, false)) {
             di.remove();
           }
@@ -143,6 +145,7 @@ public class Loader implements SecurityLoader {
       }
 
     } else if (!isUpdate) {
+      LOGGER.info("Delayed loading of security for {}.", bundle.getSymbolicName());
       // add to delayed bundles - if this is not an update!
       delayedBundles.add(bundle);
     }
@@ -200,6 +203,8 @@ public class Loader implements SecurityLoader {
           }
 
         }
+        LOGGER.info("Loaded security content for bundle {}.",
+            bundle.getSymbolicName());
 
         success = true;
         return true;
@@ -211,12 +216,14 @@ public class Loader implements SecurityLoader {
     } catch (RepositoryException re) {
       // if we are retrying we already logged this message once, so we
       // won't log it again
-      if (!isRetry) {
+      if (!isRetry || LOGGER.isInfoEnabled() ) {
         LOGGER.error("Cannot load security content for bundle " + bundle.getSymbolicName()
             + " : " + re.getMessage(), re);
       }
     }
 
+    LOGGER.info("Failed to load security content for bundle {}.",
+        bundle.getSymbolicName());
     return false;
   }
 
