@@ -52,6 +52,7 @@ import org.sakaiproject.kernel.api.connections.ConnectionOperation;
 import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,7 @@ import javax.jcr.InvalidItemStateException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -341,6 +343,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (node.isNew()) {
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ConnectionConstants.SAKAI_CONTACT_RT);
+        // Place a reference to the authprofile of the user.
+        Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
+        node.setProperty("jcr:reference", profileNode.getUUID(), PropertyType.REFERENCE);
       }
       return node;
     } finally {
