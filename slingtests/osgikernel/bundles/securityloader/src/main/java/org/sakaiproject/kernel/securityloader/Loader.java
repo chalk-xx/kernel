@@ -465,15 +465,27 @@ public class Loader implements SecurityLoader {
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
     AccessControlList updatedAcl = null;
-    AccessControlPolicyIterator applicablePolicies = accessControlManager
-        .getApplicablePolicies(resourcePath);
-    while (applicablePolicies.hasNext()) {
-      AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
+    
+    AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
+    for ( AccessControlPolicy policy : policies ) {
       if (policy instanceof AccessControlList) {
         updatedAcl = (AccessControlList) policy;
         break;
+      }      
+    }
+    
+    if (updatedAcl == null) {
+      AccessControlPolicyIterator applicablePolicies = accessControlManager
+          .getApplicablePolicies(resourcePath);
+      while (applicablePolicies.hasNext()) {
+        AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
+        if (policy instanceof AccessControlList) {
+          updatedAcl = (AccessControlList) policy;
+          break;
+        }
       }
     }
+    
     if (updatedAcl == null) {
       throw new RepositoryException("Unable to find an access conrol policy to update.");
     }
