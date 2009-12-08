@@ -1,6 +1,6 @@
 {
     "sling:resourceType": "sakai/proxy",
-    "sakai:request-proxy-endpoint": "/sakai-hybrid/sites",
+    "sakai:request-proxy-endpoint": "http://sakai3.caret.cam.ac.uk/sakai-hybrid/sites",
     "sakai:request-proxy-method": "GET",
     "sakai:title" : "Sakai2: sites",
     "sakai:description" : ["Get the sites from Sakai2 for the current logged in user."]
