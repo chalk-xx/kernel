@@ -32,6 +32,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -217,7 +218,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       Iterator<?> inames = authorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
-        if (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:")) {
+        // No need to copy in jcr:* properties, otherwise we would copy over the uuid which could lead to a lot of confusion.
+        if (!propertyName.startsWith("jcr:") && (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:"))) {
           if (!privateProperties.contains(propertyName)) {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(
@@ -253,6 +255,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
+    // Make sure we can place references to this profile node in the future.
+    // This will make it easier to search on it later on.
+    if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+      profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+    }
     
     addEntry(profileNode.getParent().getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
         REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,

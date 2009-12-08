@@ -21,6 +21,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 
+import java.util.AbstractCollection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -250,7 +251,7 @@ public interface SiteService {
    * @return An iterator of User elements representing the users of the the site, this
    *         does not include users that have membership of dynamic groups, or groups
    */
-  Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort);
+  AbstractCollection<User> getMembers(Node site, int start, int nitems, Sort[] sort);
 
   /**
    * Returns the number of declared members of a site

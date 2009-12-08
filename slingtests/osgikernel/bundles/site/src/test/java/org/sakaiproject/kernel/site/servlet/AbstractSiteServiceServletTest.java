@@ -25,6 +25,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.junit.Before;
 import org.sakaiproject.kernel.site.AbstractSiteServiceTest;
 
@@ -67,6 +68,13 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
   {
     String jsonString = new String(makeGetRequestReturningBytes());
     return new JSONArray(jsonString);
+  }
+  
+  public JSONArray makeGetRequestReturningJSONresults() throws IOException, ServletException, JSONException
+  {
+    String jsonString = new String(makeGetRequestReturningBytes());
+    JSONObject obj = new JSONObject(jsonString);
+    return obj.getJSONArray("results");
   }
 
 }
