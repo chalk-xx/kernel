@@ -115,6 +115,8 @@ echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
 echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
+# enable SAK-17538 auto provisioning of users in Sakai2 if they do not exist
+echo "login.k2.authentication.autoProvisionUser=true" >> sakai2-demo/sakai/sakai.properties
 
 # start sakai 2 tomcat
 echo "Starting sakai2 instance..."
