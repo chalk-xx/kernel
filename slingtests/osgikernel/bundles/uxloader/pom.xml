@@ -36,7 +36,7 @@
         <configuration>
           <instructions>
             <Private-Package>initial-content.*</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;overwrite:=true</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>
