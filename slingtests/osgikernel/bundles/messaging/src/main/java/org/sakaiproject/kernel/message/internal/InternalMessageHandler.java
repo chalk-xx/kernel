@@ -30,15 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- * Handler for messages that are sent locally and intended for local delivery.
- * Needs to be started immediately to make sure it registers with JCR as soon as
- * possible.
+ * Handler for messages that are sent locally and intended for local delivery. Needs to be
+ * started immediately to make sure it registers with JCR as soon as possible.
  * 
  * @scr.component label="InternalMessageHandler"
  *                description="Handler for internally delivered messages."
@@ -51,8 +48,7 @@ import javax.jcr.Session;
  *                name="MessagingService"
  */
 public class InternalMessageHandler implements MessageTransport {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(InternalMessageHandler.class);
+  private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
   /**
@@ -76,10 +72,13 @@ public class InternalMessageHandler implements MessageTransport {
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
   }
+
   private MessagingService messagingService;
+
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }
+
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
   }
@@ -92,40 +91,29 @@ public class InternalMessageHandler implements MessageTransport {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes, org.osgi.service.event.Event, javax.jcr.Node)
+   * 
+   * @see org.sakaiproject.kernel.api.message.MessageTransport#send(org.sakaiproject.kernel.api.message.MessageRoutes,
+   *      org.osgi.service.event.Event, javax.jcr.Node)
    */
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
     try {
 
       Session session = slingRepository.loginAdministrative(null);
-      
-      
-      for ( MessageRoute route : routes ) {
-        if ( MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport()) ) {
+
+      for (MessageRoute route : routes) {
+        if (MessageTransport.INTERNAL_TRANSPORT.equals(route.getTransport())) {
           LOG.info("Started handling a message.");
           String rcpt = route.getRcpt();
           // the path were we want to save messages in.
-          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID).getString();
+          String messageId = originalMessage.getProperty(MessageConstants.PROP_SAKAI_ID)
+              .getString();
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
-          JcrUtils.deepGetOrCreateNode(session, toPath);
+          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath.lastIndexOf("/")));
           session.save();
-
-          /*
-           * This gives PathNotFoundExceptions... Workspace workspace =
-           * session.getWorkspace(); workspace.copy(originalMessage.getPath(),
-           * toPath);
-           */
-
-          Node n = (Node) session.getItem(toPath);
-
-          PropertyIterator pi = originalMessage.getProperties();
-          while (pi.hasNext()) {
-            Property p = pi.nextProperty();
-            if (!p.getName().contains("jcr:"))
-              n.setProperty(p.getName(), p.getValue());
-          }
+          session.getWorkspace().copy(originalMessage.getPath(), toPath);
+          Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
 
           // Add some extra properties on the just created node.
           n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
@@ -134,6 +122,7 @@ public class InternalMessageHandler implements MessageTransport {
           n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
+
           n.save();
         }
       }
@@ -150,7 +139,5 @@ public class InternalMessageHandler implements MessageTransport {
   public String getType() {
     return TYPE;
   }
-
- 
 
 }

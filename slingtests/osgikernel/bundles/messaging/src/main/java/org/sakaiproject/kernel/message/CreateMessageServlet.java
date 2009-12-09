@@ -194,7 +194,17 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     Map<String, Object> mapProperties = new HashMap<String, Object>();
 
     for (Entry<String, RequestParameter[]> e : mapRequest.entrySet()) {
-      mapProperties.put(e.getKey(), e.getValue().toString());
+      RequestParameter[] parameter = e.getValue();
+      if (parameter.length == 1) {
+        mapProperties.put(e.getKey(), parameter[0].getString());
+      }
+      else {
+        String[] arr = new String[parameter.length];
+        for (int i = 0;i<parameter.length;i++) {
+          arr[i] = parameter[i].getString();
+        }
+        mapProperties.put(e.getKey(), arr);
+      }
     }
     mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         MessageConstants.SAKAI_MESSAGE_RT);
