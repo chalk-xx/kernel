@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.chat.ChatManagerService;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
@@ -24,16 +29,12 @@ import org.sakaiproject.kernel.api.memory.CacheScope;
 
 /**
  * The <code>ChatManagerServiceImpl</code>
- * 
- * @scr.component immediate="true" label="ChatManagerServiceImpl"
- *                description="Implementation of the Chat Manager Service"
- *                name="org.sakaiproject.kernel.api.chat.ChatManagerServiceImpl"
- * @scr.service interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="service.description" value="Chat Manager Service Implementation"
- * @scr.reference name="CacheManagerService"
- *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  */
+@Component(immediate = true, label = "ChatManagerServiceImpl", description = "Implementation of the Chat Manager Service")
+@Service(value = ChatManagerService.class)
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Chat Manager Implementation") })
+@Reference(name = "CacheManagerService", referenceInterface = CacheManagerService.class)
 public class ChatManagerServiceImpl implements ChatManagerService {
 
   private static final String CHAT_CACHE = "chat";
@@ -114,7 +115,7 @@ public class ChatManagerServiceImpl implements ChatManagerService {
    * 
    * @see org.sakaiproject.kernel.api.chat.ChatManagerService#getLastUpdate(java.lang.String)
    */
-  public long getLastUpdate(String userID) {
+  public Long getLastUpdate(String userID) {
     return getCachedMap().get(userID);
   }
 

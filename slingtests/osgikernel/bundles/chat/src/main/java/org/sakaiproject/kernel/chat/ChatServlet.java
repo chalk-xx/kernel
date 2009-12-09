@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -40,28 +42,13 @@ import javax.servlet.ServletException;
 
 /**
  * Will check if a user has any chat updates.
- * 
- * @scr.component metatype="no" immediate="true" label="ChatServlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="chatupdate"
- * @scr.reference name="ChatManagerService"
- *                interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
  */
-@ServiceDocumentation(
-    name = "ChatServlet", shortDescription="Check for new chat messages.",
-    description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.",
-    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name="chatupdate")),
-    methods = { @ServiceMethod(name = "GET", 
-        response = {
-        @ServiceResponse(code = 200, description = "Normal retrieval."), 
-        @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.")
-        }, 
-        description = "GETs to this servlet will produce a JSON object with 2 keys. \n"
-    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The time since the last retrieval.</li></ul>", 
-    parameters = @ServiceParameter(name = "t", 
-        description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
+@SlingServlet(selectors = { "chatupdate" }, resourceTypes = { "sakai/messagestore" }, generateComponent = true, methods = { "GET" })
+@Reference(referenceInterface = ChatManagerService.class, name = "ChatManagerService")
+@ServiceDocumentation(name = "ChatServlet", shortDescription = "Check for new chat messages.", description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")), methods = { @ServiceMethod(name = "GET", response = {
+    @ServiceResponse(code = 200, description = "Normal retrieval."),
+    @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 2 keys. \n"
+    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The time since the last retrieval.</li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
 public class ChatServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
@@ -80,19 +67,35 @@ public class ChatServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
 
     String userID = request.getRemoteUser();
-    long time = System.currentTimeMillis();
-    RequestParameter timestampParam = request.getRequestParameter("t");
-    if (timestampParam != null) {
-      time = Long.parseLong(timestampParam.getString());
-    }
-    boolean update = chatManagerService.checkUpdate(userID, time);
+    boolean update = false;
 
-    if (update) {
-      // Because there is an update and we just retrieved it. We set a new time and send
-      // the new one back to the user.
-      time = System.currentTimeMillis();
+    long time = System.currentTimeMillis();
+
+    Long lastUpdate = chatManagerService.getLastUpdate(userID);
+    LOGGER.info("lastUpdate = {}", lastUpdate);
+    if (lastUpdate == null) {
+      // This the first time (ever) the user poll's the chat update.
+      // Insert it.
       chatManagerService.addUpdate(userID, time);
+      update = true;
+    } else {
+      RequestParameter timestampParam = request.getRequestParameter("t");
+      if (timestampParam != null) {
+        time = Long.parseLong(timestampParam.getString());
+        LOGGER.info("?t = {}", time);
+        if (time < lastUpdate) {
+          // There is a new message.
+          time = lastUpdate;
+          update = true;
+        }
+      }
+      else {
+        time = lastUpdate;
+        update = true;
+      }
     }
+    
+    LOGGER.info("Returned time = {}, update = {}", time, update);
 
     JSONWriter write = new JSONWriter(response.getWriter());
     try {

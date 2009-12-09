@@ -60,7 +60,7 @@ public interface ChatManagerService {
    *          The ID of the user you wish to add.
    * @return
    */
-  public long getLastUpdate(String userID);
+  public Long getLastUpdate(String userID);
 
   /**
    * Removes a user out of the cache.
