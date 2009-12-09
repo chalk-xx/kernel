@@ -197,5 +197,10 @@
     	<artifactId>relaxngDatatype</artifactId>
     	<version>20020414</version>
     </dependency>
+	<dependency>
+		<groupId>org.sakaiproject.kernel</groupId>
+		<artifactId>org.sakaiproject.kernel.doc</artifactId>
+		<version>0.1-SNAPSHOT</version>
+	</dependency>
   </dependencies>
 </project>

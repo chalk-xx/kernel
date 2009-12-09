@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.user.api.UserNotDefinedException;
@@ -46,7 +47,7 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  *  The token contains:
  *  hash;user;other
  *  
- *  hash is a SHA1 hash, user is the username to assocoiate with the request and other is some random
+ *  hash is a SHA1 hash, user is the username to associate with the request and other is some random
  *  data to make the hash change per request.
  *  
  *  The hash is created by performing
@@ -101,6 +102,7 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  */
 public class TrustedLoginFilter implements Filter {
 	private final static Log LOG = LogFactory.getLog(TrustedLoginFilter.class);
+	private static final String ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET = "org.sakaiproject.util.TrustedLoginFilter.sharedSecret";
 
 	private SessionManager sessionManager;
 	private String sharedSecret;
@@ -187,7 +189,13 @@ public class TrustedLoginFilter implements Filter {
 	public void init(FilterConfig config) throws ServletException {
 		sessionManager = org.sakaiproject.tool.cover.SessionManager
 				.getInstance();
-		sharedSecret = config.getInitParameter("shared.secret");
+		// get sharedSecret from web.xml first
+		sharedSecret = config.getInitParameter("sharedSecret");
+		if (sharedSecret == null) {
+			// not in web.xml may be specified in sakai.properties
+			sharedSecret = ServerConfigurationService
+					.getString(ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET);
+		}
 	}
 
 	/**

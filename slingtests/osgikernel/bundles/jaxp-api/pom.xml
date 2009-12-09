@@ -42,7 +42,8 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> * 
+            <Export-Package>!edu.umd.cs.findbugs.*,
+              *;-split-package:=merge-first
             </Export-Package>
           </instructions>
         </configuration>

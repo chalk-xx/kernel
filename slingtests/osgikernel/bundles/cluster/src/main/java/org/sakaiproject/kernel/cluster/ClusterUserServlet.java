@@ -31,6 +31,14 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceExtension;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +108,36 @@ import javax.servlet.http.HttpServletResponse;
  * </pre>
  */
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
+@ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This rest end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and if this is present requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "<p>Sample JSON response</p><pre>"
+		+ "curl http://localhost:8080/var/cluster/user.cookie.json?c=8070-10-87-32-111.localhost.indiana.edu-c8029d4b68a88a0e3aa3d0f60ff7de5530295cf1"
+		+ "{\n"
+		+ "  \"server\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
+		+ "  \"user\": {\n"
+		+ "    \"lastUpdate\": 1259875554162,\n"
+		+ "    \"homeServer\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
+		+ "    \"id\": \"admin\",\n"
+		+ "    \"principal\": \"admin\",\n"
+		+ "    \"properties\": {\n"
+		+ "      \"firstName\": \"Lance\",\n"
+		+ "      \"rep:userId\": \"admin\",\n"
+		+ "      \"email\": \"lance@foo.bar\",\n"
+		+ "      \"lastName\": \"Speelmon\",\n"
+		+ "      \"rep:groups\": \"1a94507c-232a-4ae5-a042-50b5608a0460\",\n"
+		+ "      \"rep:principalName\": \"admin\",\n"
+		+ "      \"jcr:primaryType\": \"rep:User\"\n"
+		+ "    },\n"
+		+ "    \"principals\": [\n"
+		+ "      \"admin\"\n"
+		+ "    ],\n"
+		+ "    \"declaredMembership\": [\n"
+		+ "      \"administrators\"\n"
+		+ "    ],\n"
+		+ "    \"membership\": [\n"
+		+ "      \"administrators\"\n"
+		+ "    ]\n" + "}" + "</pre>", parameters = { @ServiceParameter(name = "c", description = { "The value of cookie SAKAI-TRACKING." }) }, response = {
+		@ServiceResponse(code = 200, description = "On sucess a json tree of the User object."),
+		@ServiceResponse(code = 404, description = "Cookie is not registered."),
+		@ServiceResponse(code = 0, description = "Any other status codes emmitted have the meaning prescribed in the RFC") }) })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl

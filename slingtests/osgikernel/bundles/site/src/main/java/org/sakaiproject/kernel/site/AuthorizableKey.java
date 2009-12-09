@@ -8,6 +8,8 @@ public class AuthorizableKey {
 
   private String id;
   private Authorizable authorizable;
+  private String firstName = "";
+  private String lastName = "";
 
   public AuthorizableKey(Authorizable authorizable) throws RepositoryException {
     this.id = authorizable.getID();
@@ -32,5 +34,21 @@ public class AuthorizableKey {
 
   public Authorizable getAuthorizable() {
     return authorizable;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+
+  public String getLastName() {
+    return lastName;
   }
 }

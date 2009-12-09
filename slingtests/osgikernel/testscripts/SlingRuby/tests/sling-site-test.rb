@@ -62,7 +62,7 @@ class TC_MySiteTest < SlingTest
     test_site.join(site_group.name)
     members = test_site.get_members
     assert_not_nil(members, "Expected to get member list")
-    assert_equal(0, members.size, "Expected no site members")
+    assert_equal(0, members["total"].to_i, "Expected no site members")
   end
 
   def do_join(site, group, user)
@@ -76,8 +76,8 @@ class TC_MySiteTest < SlingTest
     test_site.join(site_group.name)
     members = test_site.get_members
     assert_not_nil(members, "Expected to get member list")
-    assert_equal(1, members.size, "Expected site members")
-    assert_equal(site_user.name, members[0]["rep:userId"], "Expected user to match")
+    assert_equal(1, members["total"].to_i, "Expected site members")
+    assert_equal(site_user.name, members["results"][0]["rep:userId"], "Expected user to match")
     @s.switch_user(SlingUsers::User.admin_user)
     return test_site
   end
@@ -107,7 +107,7 @@ class TC_MySiteTest < SlingTest
     group2.add_member(@s, "mysiteuser"+@m, "user")
     site.add_group(group2.name)
     members = site.get_members
-    assert_equal(1, members.size, "Expected a single member")
+    assert_equal(1, members["total"].to_i, "Expected a single member")
   end
 
 end

@@ -1,7 +1,7 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"ACCEPTED\" and (jcr:like(@firstName, '%{s}%') or jcr:like(@lastName, '%{s}%') or jcr:like(@email, '%{s}%'))]/(@firstName|@lastName|@email)",
+  "sakai:query-template": "/{_connectionstore}//*[@sling:resourceType='sakai/contact' and @sakai:state='ACCEPTED']/jcr:deref(@jcr:reference, '*')[jcr:contains(@firstName, '*{s}*') or jcr:contains(@lastName, '*{s}*') or jcr:contains(@email, '*{s}*')]",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Connection",
-  "sakai:resultprocessor": "Connection"
+  "sakai:processor" : "ConnectionFinder"
 }

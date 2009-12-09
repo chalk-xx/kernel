@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -154,7 +155,8 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
     try {
       LOGGER.debug("Finding members for: {} ", site.getPath());
-      Iterator<User> members = getSiteService().getMembers(site, start, items, sort);
+      AbstractCollection<User> users = getSiteService().getMembers(site, start, items, sort);
+      Iterator<User> members = users.iterator();
       // LOGGER.info("Found members: ", members.hasNext());
 
       // get the list of group ids in this site
@@ -168,6 +170,12 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
       try {
         ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
+        output.object();
+        output.key("items");
+        output.value(items);
+        output.key("total");
+        output.value(users.size());
+        output.key("results");
         output.array();
         for (; members.hasNext();) {
           User u = members.next();
@@ -215,6 +223,7 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           output.endObject();
         }
         output.endArray();
+        output.endObject();
       } catch (JSONException e) {
         LOGGER.error(e.getMessage(), e);
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
