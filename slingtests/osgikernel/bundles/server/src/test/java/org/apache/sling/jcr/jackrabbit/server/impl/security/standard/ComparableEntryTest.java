@@ -18,7 +18,6 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
