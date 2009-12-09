@@ -22,7 +22,6 @@ import static junit.framework.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.persondirectory.PersonImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,31 +53,6 @@ public class PersonImplTest {
       String pVal = p.getAttributeValue(pAttrName);
       String mypVal = myp.getAttributeValue(pAttrName);
       assertEquals(pVal, mypVal);
-    }
-  }
-
-  @Test
-  public void testConstructPersons() {
-    String[] values = { "a value 1", "22", "true", "BLOCKY_TEST", "r4nd0m th!ngs" };
-    for (int i = 0; i < values.length; i++) {
-      p.addAttribute("attr" + i, values[i]);
-    }
-
-    PersonImpl myp0 = new PersonImpl(p);
-    PersonImpl myp1 = new PersonImpl(p, (String[]) null);
-    Set<String> pAttrNames = p.getAttributeNames();
-    Set<String> myp0AttrNames = myp0.getAttributeNames();
-    Set<String> myp1AttrNames = myp1.getAttributeNames();
-    assertEquals(pAttrNames.size(), myp0AttrNames.size());
-    assertEquals(pAttrNames.size(), myp1AttrNames.size());
-
-    for (String pAttrName : pAttrNames) {
-      assertTrue(myp0AttrNames.contains(pAttrName));
-      String pVal = p.getAttributeValue(pAttrName);
-      String myp0Val = myp0.getAttributeValue(pAttrName);
-      assertEquals(pVal, myp0Val);
-      String myp1Val = myp1.getAttributeValue(pAttrName);
-      assertEquals(pVal, myp1Val);
     }
   }
 

@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.kernel.persondirectory;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -26,6 +25,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.persondirectory.Person;
@@ -37,14 +38,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.ValueFormatException;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -63,7 +63,7 @@ import javax.servlet.ServletException;
  * after the username to be looked up is required.
  * </p>
  */
-@SlingServlet(methods = "GET", resourceTypes = "sakai/user-profile")
+@SlingServlet(methods = "GET", selectors = "profile", extensions = "json")
 @ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up user "
     + "information from various federated sources. This servlet is triggered by accessing a node "
     + "that has resourceType=\"sakai/user-profile\". This node should be a user's space in JCR.", methods = { @ServiceMethod(name = "GET", description = "GETs to nodes of type "
@@ -104,43 +104,61 @@ public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     Resource resource = request.getResource();
     Node node = (Node) resource.adaptTo(Node.class);
-    String path = resource.getPath();
-    String[] splitPath = StringUtils.split(path, '/');
-    String uid = splitPath[splitPath.length - 2];
-
-    String msg = "Getting information for [" + uid + "]\n";
-    LOGGER.info(msg);
-
-    Writer writer = response.getWriter();
-    writer.append(msg);
 
     try {
-      PersonImpl retPerson = null;
-      for (PersonProvider provider : providers) {
-        Person p = provider.getPerson(uid, node);
-        if (p != null) {
-          if (retPerson == null) {
-            retPerson = new PersonImpl(p);
-          } else {
-            retPerson.addAttributes(p.getAttributes());
-          }
-        }
-      }
-      // return retPerson;
+      String uid = node.getName();
+      LOGGER.info("Getting information for [" + uid + "]");
 
-      // get the node's properties
-      writer.append("Properties:\n");
-      PropertyIterator props = node.getProperties();
-      while (props.hasNext()) {
-        Property prop = props.nextProperty();
-        writer.append(prop.getName() + ": " + prop.getString() + "\n");
+      Person person = getPerson(uid, node);
+      if (person != null) {
+        response.setStatus(HttpServletResponse.SC_OK);
+        Map<String, String[]> attrs = person.getAttributes();
+        Writer writer = response.getWriter();
+        JSONWriter jsonWriter = new JSONWriter(writer);
+        jsonWriter.object();
+        for (Map.Entry<String, String[]> attr : attrs.entrySet()) {
+          jsonWriter.key(attr.getKey());
+          jsonWriter.array();
+          for (String val : attr.getValue()) {
+            jsonWriter.value(val);
+          }
+          jsonWriter.endArray();
+        }
+        jsonWriter.endObject();
+      } else {
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
       }
-    } catch (ValueFormatException e) {
+    } catch (JSONException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     } catch (PersonProviderException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.error(e.getMessage(), e);
     }
+  }
+
+  /**
+   * Get a person from providers.
+   *
+   * @param uid
+   * @param node
+   * @throws PersonProviderException
+   */
+  protected Person getPerson(String uid, Node node) throws PersonProviderException {
+    PersonImpl retPerson = null;
+    for (PersonProvider provider : providers) {
+      Person p = provider.getPerson(uid, node);
+      if (p != null) {
+        if (retPerson == null) {
+          retPerson = new PersonImpl(p);
+        } else {
+          retPerson.addAttributes(p.getAttributes());
+        }
+      }
+    }
+    return retPerson;
   }
 }

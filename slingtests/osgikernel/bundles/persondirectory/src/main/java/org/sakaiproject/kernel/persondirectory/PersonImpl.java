@@ -53,20 +53,6 @@ public class PersonImpl implements Person {
     attrs = new HashMap<String, String[]>(p.getAttributes());
   }
 
-  /**
-   * Create a person based on a filtered set of attributes from another person.
-   *
-   * @param p
-   * @param attributeFilter
-   */
-  public PersonImpl(Person p, String... attributeFilter) {
-    uid = p.getName();
-    Map<String, String[]> attributes = p.getAttributes();
-    int attrSize = (attributeFilter != null) ? attributeFilter.length : attributes.size();
-    attrs = new HashMap<String, String[]>(attrSize);
-    addAttributes(attributes, attributeFilter);
-  }
-
   public Set<String> getAttributeNames() {
     return attrs.keySet();
   }
