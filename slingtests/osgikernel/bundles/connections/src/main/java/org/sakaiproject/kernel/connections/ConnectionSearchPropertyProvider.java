@@ -19,35 +19,82 @@ package org.sakaiproject.kernel.connections;
 
 import static org.sakaiproject.kernel.api.connections.ConnectionConstants.SEARCH_PROP_CONNECTIONSTORE;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
+import org.sakaiproject.kernel.api.connections.ConnectionManager;
+import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 
+import java.util.List;
 import java.util.Map;
 
-/**
- * Provides properties to process the search
- * 
- * @scr.component immediate="true" label="ConnectionSearchPropertiesProvider"
- *                description="Formatter for connection search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.provider" value="Connection"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchPropertyProvider"
- */
+@Component(immediate = true, label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"), 
+    @Property(name = "sakai.search.provider", value="Connection")
+})
+@Service(value = SearchPropertyProvider.class)
 public class ConnectionSearchPropertyProvider implements SearchPropertyProvider {
 
+  @Reference
+  protected ConnectionManager connectionManager;
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest, java.util.Map)
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchPropertyProvider#loadUserProperties(org.apache.sling.api.SlingHttpServletRequest,
+   *      java.util.Map)
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
-    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, ISO9075.encodePath(ConnectionUtils.getConnectionPathBase(user)));
+    String connectionPath = ISO9075.encodePath(ConnectionUtils
+        .getConnectionPathBase(user));
+    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
+    String query = getConnectionQuery(request);
+    if (query == null) {
+      query = "/" + connectionPath + "//*[@sling:resourceType=\"sakai/contact\" and  @sakai:state!=\"NONE\"]";
+    }
+    propertiesMap.put("_friendsQuery", query);
   }
 
+  public String getConnectionQuery(SlingHttpServletRequest request) {
+    String user = request.getRemoteUser();
+    List<String> friends = connectionManager.getConnectedUsers(user,
+        ConnectionState.ACCEPTED);
+
+    RequestParameter param = request.getRequestParameter("s");
+    String s = (param != null) ? param.getString() : "";
+    // If our friends list is < 500 then we construct a query.
+    int size = friends.size();
+    if (size > 0 && size < 500) {
+      StringBuilder sbQuery = new StringBuilder();
+      sbQuery.append("//_user/public//*[@sling:resourceType=\"sakai/user-profile\" and ");
+      sbQuery.append("(jcr:contains(@firstName, \"*").append(s).append("*\") or ");
+      sbQuery.append("jcr:contains(@lastName, \"*").append(s).append("*\") or ");
+      sbQuery.append("jcr:contains(@email, \"*").append(s).append("*\")) and (");
+      for (String friend : friends) {
+        sbQuery.append("@rep:userId=\"").append(friend).append("\" or ");
+      }
+      String query = sbQuery.toString();
+      query = query.substring(0, sbQuery.lastIndexOf(" or "));
+      query += ")] order by @firstName, @lastName ascending";
+      return query;
+    }
+    return null;
+  }
   
+  protected void bindConnectionManager(ConnectionManager connectionManager) {
+    this.connectionManager = connectionManager;
+  }
 
-
+  protected void unbindConnectionManager(ConnectionManager connectionManager) {
+    this.connectionManager = null;
+  }
 }

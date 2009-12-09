@@ -29,6 +29,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.api.site.Sort;
@@ -37,6 +38,7 @@ import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.AbstractCollection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -464,19 +466,34 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.kernel.api.site.SiteService#getMembers(javax.jcr.Node, int,
    *      int, org.sakaiproject.kernel.api.site.Sort[])
    */
-  public Iterator<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
+  public AbstractCollection<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
     MembershipTree membership = getMembershipTree(site);
     if (sort != null && sort.length > 0) {
       Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
       List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(), comparitor);
       Iterator<UserKey> sortedIterator = sortedList.listIterator(start);
-      return unwrapUsers(Iterators.limit(sortedIterator, nitems));
+      return returnCollection(sortedIterator, nitems, sortedList.size());
     }
 
     // no sort requested.
     List<UserKey> finalList = Lists.immutableList(membership.getUsers().keySet());
     Iterator<UserKey> unsortedIterator = finalList.listIterator(start);
-    return unwrapUsers(Iterators.limit(unsortedIterator, nitems));
+    return returnCollection(unsortedIterator, nitems, finalList.size());
+  }
+
+  private AbstractCollection<User> returnCollection(final Iterator<UserKey> iterator, final int nitems, final int totalSize) {
+    return new AbstractCollection<User>() {
+
+      @Override
+      public Iterator<User> iterator() {
+        return unwrapUsers(Iterators.limit(iterator, nitems));
+      }
+
+      @Override
+      public int size() {
+        return totalSize;
+      }
+    };
   }
 
   public Iterator<User> unwrapUsers(final Iterator<UserKey> underlying) {
@@ -518,6 +535,7 @@ public class SiteServiceImpl implements SiteService {
     Map<GroupKey, Membership> groups = Maps.newLinkedHashMap();
     Map<UserKey, Membership> users = Maps.newLinkedHashMap();
     try {
+      Session session = site.getSession();
       UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Value[] values = getPropertyValues(site, SiteService.AUTHORIZABLE);
@@ -527,11 +545,13 @@ public class SiteServiceImpl implements SiteService {
           if (a instanceof Group) {
             if (!groups.containsKey(a)) {
               groups.put(new GroupKey((Group) a), new Membership(null, a));
-              populateMembers((Group) a, groups, users);
+              populateMembers((Group) a, groups, users, session);
             }
           } else if (a instanceof User) {
             if (!users.containsKey(a)) {
-              users.put(new UserKey((User) a), new Membership(null, a));
+              String profilePath = PersonalUtils.getProfilePath(a.getID());
+              Node profileNode = (Node) session.getItem(profilePath);
+              users.put(new UserKey((User) a, profileNode), new Membership(null, a));
             }
           } else if (a == null) {
             // if a is null
@@ -584,8 +604,17 @@ public class SiteServiceImpl implements SiteService {
             Object c2 = o2.getAuthorizable().getID();
             switch (s.getField()) {
             case firstName:
+              c1 = o1.getFirstName();
+              c2 = o2.getFirstName();
+              break;
             case id:
+              c1 = o1.getAuthorizable().getID();
+              c2 = o2.getAuthorizable().getID();
+              break;
             case lastName:
+              c1 = o1.getLastName();
+              c2 = o2.getLastName();
+              break;
             }
             switch (s.getOrder()) {
             case asc:
@@ -645,19 +674,23 @@ public class SiteServiceImpl implements SiteService {
    *          the groups associated with the site.
    * @param users
    *          the users associated with the sites, extracted from groups
+   * @param session
+   *          the session to grab the profile node for users.
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
   private void populateMembers(Group group, Map<GroupKey, Membership> groups,
-      Map<UserKey, Membership> users) throws RepositoryException {
+      Map<UserKey, Membership> users, Session session) throws RepositoryException {
     for (Iterator<Authorizable> igm = group.getDeclaredMembers(); igm.hasNext();) {
       Authorizable a = igm.next();
       if (!groups.containsKey(a)) {
         if (a instanceof Group) {
           groups.put(new GroupKey((Group) a), new Membership(group, a));
-          populateMembers((Group) a, groups, users);
+          populateMembers((Group) a, groups, users, session);
         } else {
-          users.put(new UserKey((User) a), new Membership(group, a));
+          String profilePath = PersonalUtils.getProfilePath(a.getID());
+          Node profileNode = (Node) session.getItem(profilePath);
+          users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }
       }
       if (users.size() > MAXLISTSIZE || groups.size() > MAXLISTSIZE) {

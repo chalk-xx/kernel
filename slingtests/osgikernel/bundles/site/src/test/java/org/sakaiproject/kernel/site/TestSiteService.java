@@ -13,14 +13,17 @@ import org.apache.sling.commons.testing.jcr.MockValue;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.api.site.SortField;
 import org.sakaiproject.kernel.site.SiteServiceImpl;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
+import java.util.AbstractCollection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
@@ -34,8 +37,16 @@ public class TestSiteService extends AbstractEasyMockTest {
     siteService.bindSlingRepository(slingRepository);
     Node siteNode = createMock(Node.class);
     JackrabbitSession session = createMock(JackrabbitSession.class);
-    expect(siteNode.getSession()).andReturn(session);
+    expect(siteNode.getSession()).andReturn(session).anyTimes();
     expect(session.getUserManager()).andReturn(userManager);
+    Node profileNode = createMock(Node.class);
+    expect(session.getItem("/_user/public/48/18/1a/cd/bob/authprofile")).andReturn(profileNode).anyTimes();
+    expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
+    expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
+    Property prop = createMock(Property.class);
+    expect(prop.getString()).andReturn("bob").anyTimes();
+    expect(profileNode.getProperty(SortField.firstName.toString())).andReturn(prop).anyTimes();
+    expect(profileNode.getProperty(SortField.lastName.toString())).andReturn(prop).anyTimes();
     addPropertyToNode(siteNode, SiteService.AUTHORIZABLE, new Value[] { new MockValue("group1"),
         new MockValue("group2") });
 
@@ -49,7 +60,8 @@ public class TestSiteService extends AbstractEasyMockTest {
     expect(group2.getID()).andReturn("group2").anyTimes();
 
     replay();
-    Iterator<User> members = siteService.getMembers(siteNode, 0, 3, null);
+    AbstractCollection<User> users = siteService.getMembers(siteNode, 0, 3, null); 
+    Iterator<User> members = users.iterator();
     Set<String> userNames = new HashSet<String>();
     while (members.hasNext()) {
       User result = members.next();

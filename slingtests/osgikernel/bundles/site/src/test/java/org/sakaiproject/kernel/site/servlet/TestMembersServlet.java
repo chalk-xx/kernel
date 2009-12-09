@@ -36,6 +36,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
 import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.api.site.SortField;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 
@@ -64,7 +67,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     expect(node.hasProperty(eq(SiteService.AUTHORIZABLE))).andReturn(false)
         .anyTimes();
 
-    JSONArray result = makeGetRequestReturningJSON();
+    JSONArray result = makeGetRequestReturningJSONresults();
     assertEquals("Expected nothing back", 0, result.length());
   }
 
@@ -81,7 +84,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     expect(node.hasProperty(eq(SiteService.AUTHORIZABLE))).andReturn(false)
         .anyTimes();
 
-    JSONArray result = makeGetRequestReturningJSON();
+    JSONArray result = makeGetRequestReturningJSONresults();
     assertEquals("Expected nothing back", 0, result.length());
   }
 
@@ -103,8 +106,17 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
         .anyTimes();
     expect(resourceResolver.resolve(PersonalUtils.getProfilePath(TEST_USER)))
         .andReturn(dummyUserResource(TEST_USER));
+    
+    Node profileNode = createMock(Node.class);
+    expect(session.getItem(PersonalUtils.getProfilePath(TEST_USER))).andReturn(profileNode).anyTimes();
+    expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
+    expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
+    Property prop = createMock(Property.class);
+    expect(prop.getString()).andReturn("bob").anyTimes();
+    expect(profileNode.getProperty(SortField.firstName.toString())).andReturn(prop).anyTimes();
+    expect(profileNode.getProperty(SortField.lastName.toString())).andReturn(prop).anyTimes();
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 1 member", 1, json.length());
     JSONObject user = (JSONObject) json.get(0);
     String username = user.getString("username");
@@ -124,7 +136,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
 
     createUsersInGroup(50, TEST_GROUP);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 25 members", 25, json.length());
     for (int i = 0; i < 25; i++) {
       JSONObject user = (JSONObject) json.get(i);
@@ -154,7 +166,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     superUsers.add(subGroup);
     createDummyGroupWithMembers(TEST_GROUP, superUsers);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 25 members", 25, json.length());
     Set<String> usernames = new HashSet<String>();
     for (int i = 0; i < json.length(); i++) {
@@ -181,7 +193,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
 
     createUsersInGroup(50, TEST_GROUP);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 25 members", 25, json.length());
     for (int i = 0; i < 25; i++) {
       JSONObject user = (JSONObject) json.get(i);
@@ -205,7 +217,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
 
     createUsersInGroup(50, TEST_GROUP);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 10 members", 10, json.length());
     for (int i = 0; i < 10; i++) {
       JSONObject user = (JSONObject) json.get(i);
@@ -228,7 +240,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
 
     createUsersInGroup(50, TEST_GROUP);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 25 members", 25, json.length());
     for (int i = 0; i < 25; i++) {
       JSONObject user = (JSONObject) json.get(i);
@@ -251,7 +263,7 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
 
     createUsersInGroup(10, TEST_GROUP);
 
-    JSONArray json = makeGetRequestReturningJSON();
+    JSONArray json = makeGetRequestReturningJSONresults();
     assertEquals("Expected 10 members", 10, json.length());
     for (int i = 0; i < 10; i++) {
       JSONObject user = (JSONObject) json.get(9 - i);
@@ -276,6 +288,16 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
       expect(
           resourceResolver.resolve(PersonalUtils.getProfilePath(testUserName)))
           .andReturn(dummyUserResource(testUserName)).anyTimes();
+      
+      Node profileNode = createMock(Node.class);
+      expect(session.getItem(PersonalUtils.getProfilePath(testUserName))).andReturn(profileNode).anyTimes();
+      expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
+      expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
+      Property prop = createMock(Property.class);
+      expect(prop.getString()).andReturn(testUserName).anyTimes();
+      expect(profileNode.getProperty(SortField.firstName.toString())).andReturn(prop).anyTimes();
+      expect(profileNode.getProperty(SortField.lastName.toString())).andReturn(prop).anyTimes();
+      
     }
     return users;
   }
