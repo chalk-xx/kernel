@@ -27,19 +27,22 @@ public class JcrPersonProvider implements PersonProvider {
     PersonImpl jcrPerson = new PersonImpl(uid);
     try {
       Node authProfileNode = personNode.getNode(PersonalConstants.AUTH_PROFILE);
-      PropertyIterator props = authProfileNode.getProperties();
+      if (authProfileNode != null) {
+        PropertyIterator props = authProfileNode.getProperties();
 
-      while (props.hasNext()) {
-        Property property = props.nextProperty();
-        String name = property.getName();
-        Value[] values = JcrUtils.getValues(authProfileNode, name);
-        String[] attrValues = new String[values.length];
-        for (int i = 0; i < values.length; i++) {
-          attrValues[i] = values[i].getString();
+        if (props != null) {
+          while (props.hasNext()) {
+            Property property = props.nextProperty();
+            String name = property.getName();
+            Value[] values = JcrUtils.getValues(authProfileNode, name);
+            String[] attrValues = new String[values.length];
+            for (int i = 0; i < values.length; i++) {
+              attrValues[i] = values[i].getString();
+            }
+            jcrPerson.addAttribute(name, attrValues);
+          }
         }
-        jcrPerson.addAttribute(name, attrValues);
       }
-
     } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
