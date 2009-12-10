@@ -35,9 +35,10 @@ class TC_Kern309Test < SlingTest
   def test_309
     @m = Time.now.to_i.to_s
 	u = create_user("ian"+@m)
+        admin = user = User.new("admin","admin")
 	nico = create_user("nico"+@m)
 	@s.switch_user(u)
-    do_site_create()
+        do_site_create()
 	
 	# try and create subnodes.
 	
@@ -45,6 +46,7 @@ class TC_Kern309Test < SlingTest
 	assert_not_nil(node,"expected the child node at #{@siteid}/tessubnode to have been created by the site owner")
 	
 	# set an acl on the subnode, using an existing group
+        @s.switch_user(admin)
 	@s.set_node_acl_entries(node, nico, { "jcr:removeNode" => "granted",
                                              "jcr:modifyProperties" => "granted",
                                              "jcr:removeChildNodes" => "granted",
