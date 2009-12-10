@@ -93,8 +93,7 @@ import javax.servlet.http.HttpServletResponse;
     }
   )
 )
-@SlingServlet(resourceTypes="sakai/contactstore",methods={"POST"}, 
-    selectors={"invite", "accept", "reject", "ignore", "block", "remove", "cancel"})
+@SlingServlet(resourceTypes="sakai/contactstore",methods={"POST","GET"})
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for connection stores."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
@@ -170,10 +169,12 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
     ConnectionOperation operation = ConnectionOperation.noop;
     if ("POST".equals(request.getMethod())) {
       String selector = request.getRequestPathInfo().getSelectorString();
-      try {
-        operation = ConnectionOperation.valueOf(selector);
-      } catch (IllegalArgumentException e) {
-        operation = ConnectionOperation.noop;
+      if (selector != null) {
+        try {
+          operation = ConnectionOperation.valueOf(selector);
+        } catch (IllegalArgumentException e) {
+          operation = ConnectionOperation.noop;
+        }
       }
     }
     try {
