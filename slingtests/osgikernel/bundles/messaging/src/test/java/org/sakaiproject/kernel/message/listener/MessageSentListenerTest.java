@@ -29,6 +29,8 @@ public class MessageSentListenerTest {
   private MessageRouterManager messageRouterManager;
   private SlingRepository slingRepository;
   private final String PATH = "/foo/bar";
+  private Session session;
+  private Node msgNode;
 
   @Before
   public void setup() throws Exception {
@@ -48,8 +50,26 @@ public class MessageSentListenerTest {
 
     replay(messageRouterManager);
     
+    session = createMock(Session.class);
+
+    Property msgProp = createMock(Property.class);
+    expect(msgProp.getString()).andReturn(MessageConstants.SAKAI_MESSAGE_RT);
+
+    msgNode = createMock(Node.class);
+    expect(msgNode.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .andReturn(msgProp);
+
+    expect(session.getItem(PATH)).andReturn(msgNode);
+
+    slingRepository = createMock(SlingRepository.class);
+    expect(slingRepository.loginAdministrative(null)).andReturn(session);
+    replay(msgProp, msgNode, session, slingRepository);
+
+
     msl = new MessageSentListener();
     msl.bindMessageRouterManager(messageRouterManager);
+    msl.bindSlingRepository(slingRepository);
+    msl.bindSession(session);
   }
 
   @After
@@ -61,33 +81,15 @@ public class MessageSentListenerTest {
   @Test
   public void testHandleEvent() throws Exception {
 
-    
-    Property prop = createMock(Property.class);
-    expect(prop.getString()).andReturn(MessageConstants.SAKAI_MESSAGE_RT);
-
-    Node node = createMock(Node.class);
-    expect(node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
-        .andReturn(prop);
-    
-    Session session = createMock(Session.class);
-    expect(session.getItem(PATH)).andReturn(node);
-    
-    slingRepository = createMock(SlingRepository.class);
-    expect(slingRepository.loginAdministrative(null)).andReturn(session);
-    session.logout();
-    expectLastCall();
-    replay(session, slingRepository);
-    msl.bindSlingRepository(slingRepository);
-
     Properties eventProps = new Properties();
     eventProps.put(MessageConstants.EVENT_LOCATION, PATH);
     Event event = new Event("myTopic", eventProps);
 
     MessageTransport transport = createMock(MessageTransport.class);
-    transport.send(isA(MessageRoutes.class), eq(event), eq(node));
+    transport.send(isA(MessageRoutes.class), eq(event), eq(msgNode));
     expectLastCall();
 
-    replay(prop, node, transport);
+    replay(transport);
 
     msl.addTransport(transport);
     msl.handleEvent(event);

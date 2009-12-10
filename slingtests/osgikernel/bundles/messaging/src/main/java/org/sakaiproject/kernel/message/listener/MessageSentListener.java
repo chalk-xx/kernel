@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.message.listener;
 
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.kernel.api.message.MessageConstants;
@@ -76,6 +77,31 @@ public class MessageSentListener implements EventHandler {
     this.slingRepository = null;
   }
 
+  private Session session;
+  /**
+   * Allows us to bind a session (for junit)
+   */
+  protected void bindSession(Session session) {
+    this.session = session;
+  }
+
+  protected void activate(ComponentContext context) {
+    try {
+      session = slingRepository.loginAdministrative(null);
+      LOG.info("Logged into the repository as an admin.");
+    } catch (RepositoryException e) {
+      LOG.warn("Unable to login to get a session for the message listener. {}",
+          e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  protected void deactivate(ComponentContext context) {
+    if (session != null) {
+      session.logout();
+    }
+  }
+
   /**
    * {@inheritDoc}
    * 
@@ -87,10 +113,8 @@ public class MessageSentListener implements EventHandler {
     // get the node, call up the appropriate handler and pass off based on
     // message type
     LOG.debug("handleEvent called");
-    Session session = null;
     try {
       String path = (String) event.getProperty(MessageConstants.EVENT_LOCATION);
-      session = slingRepository.loginAdministrative(null);
       Node n = (Node) session.getItem(path);
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
@@ -106,8 +130,6 @@ public class MessageSentListener implements EventHandler {
       LOG.error(e.getMessage(), e);
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
-    } finally {
-      session.logout();
     }
   }
 

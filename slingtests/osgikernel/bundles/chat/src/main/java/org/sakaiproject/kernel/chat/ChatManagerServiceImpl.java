@@ -32,7 +32,8 @@ import org.sakaiproject.kernel.api.memory.CacheScope;
  */
 @Component(immediate = true, label = "ChatManagerServiceImpl", description = "Implementation of the Chat Manager Service")
 @Service(value = ChatManagerService.class)
-@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Chat Manager Implementation") })
 @Reference(name = "CacheManagerService", referenceInterface = CacheManagerService.class)
 public class ChatManagerServiceImpl implements ChatManagerService {
@@ -45,7 +46,8 @@ public class ChatManagerServiceImpl implements ChatManagerService {
     this.cacheManagerService = cacheManagerService;
   }
 
-  protected void unbindCacheManagerService(CacheManagerService cacheManagerService) {
+  protected void unbindCacheManagerService(
+      CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
   }
 
@@ -55,57 +57,37 @@ public class ChatManagerServiceImpl implements ChatManagerService {
    * @return
    */
   private Cache<Long> getCachedMap() {
-    return cacheManagerService.getCache(CHAT_CACHE, CacheScope.CLUSTERREPLICATED);
+    return cacheManagerService.getCache(CHAT_CACHE,
+        CacheScope.CLUSTERREPLICATED);
   }
 
   /**
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#checkUpdate(java.lang.String,
-   *      long)
+   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#clear()
    */
-  public boolean checkUpdate(String userID, long time) {
-    Cache<Long> cache = getCachedMap();
-    if (cache.containsKey(userID) && cache.get(userID) != null
-        && !cache.get(userID).equals(time)) {
-      // Apparently there is a new chat message.
-      return true;
-    }
-
-    if (!cache.containsKey(userID)) {
-      // Because the user is not in the cache yet there can be some new messages we don't
-      // know about. We return true so the user can fetch them (and he get's added.)
-      return true;
-    }
-
-    // The user is in the cache but has the same timestamp as the provided time.
-    // Therefor there are no updates and we return false.
-    return false;
+  public void clear() {
+    getCachedMap().clear();
   }
 
   /**
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#setLastUpdate(java.lang.String,
-   *      long)
+   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#get(java.lang.String)
    */
-  public void setLastUpdate(String userID, long time) {
-    Cache<Long> cache = getCachedMap();
-    if (cache.containsKey(userID)) {
-      getCachedMap().put(userID, time);
-    }
+  public Long get(String userID) {
+    return (Long) getCachedMap().get(userID);
   }
 
   /**
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#addUpdate(java.lang.String,
-   *      long)
+   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#put(java.lang.String, long)
    */
-  public void addUpdate(String userID, long time) {
+  public void put(String userID, long time) {
     getCachedMap().put(userID, time);
   }
 
@@ -113,24 +95,10 @@ public class ChatManagerServiceImpl implements ChatManagerService {
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#getLastUpdate(java.lang.String)
+   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#remove(java.lang.String)
    */
-  public Long getLastUpdate(String userID) {
-    return getCachedMap().get(userID);
-  }
-
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.api.chat.ChatManagerService#clear(java.lang.String)
-   */
-  public void clear(String userID) {
-    Cache<Long> cache = getCachedMap();
-    if (cache.containsKey(userID)) {
-      cache.remove(userID);
-    }
-
+  public void remove(String userID) {
+    getCachedMap().remove(userID);
   }
 
 }

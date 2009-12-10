@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.commons.lang.time.FastDateFormat;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 import javax.servlet.ServletException;
 
@@ -47,12 +49,18 @@ import javax.servlet.ServletException;
 @Reference(referenceInterface = ChatManagerService.class, name = "ChatManagerService")
 @ServiceDocumentation(name = "ChatServlet", shortDescription = "Check for new chat messages.", description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")), methods = { @ServiceMethod(name = "GET", response = {
     @ServiceResponse(code = 200, description = "Normal retrieval."),
-    @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 2 keys. \n"
-    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The time since the last retrieval.</li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
+    @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 3 keys. \n"
+    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The current server time in millisecnds.</li><li>pulltime: The current time in a JCR formatted date.<li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
 public class ChatServlet extends SlingAllMethodsServlet {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
   private ChatManagerService chatManagerService;
+  private final static FastDateFormat dateFormat;
+
+  static {
+    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+  }
 
   protected void bindChatManagerService(ChatManagerService chatManagerService) {
     this.chatManagerService = chatManagerService;
@@ -63,47 +71,47 @@ public class ChatServlet extends SlingAllMethodsServlet {
   }
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
 
     String userID = request.getRemoteUser();
-    boolean update = false;
+    boolean hasUpdate = false;
+    RequestParameter timestampParam = request.getRequestParameter("t");
 
     long time = System.currentTimeMillis();
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
 
-    Long lastUpdate = chatManagerService.getLastUpdate(userID);
-    LOGGER.info("lastUpdate = {}", lastUpdate);
+    Long lastUpdate = chatManagerService.get(userID);
+
     if (lastUpdate == null) {
       // This the first time (ever) the user poll's the chat update.
       // Insert it.
-      chatManagerService.addUpdate(userID, time);
-      update = true;
+      chatManagerService.put(userID, time);
+      hasUpdate = true;
     } else {
-      RequestParameter timestampParam = request.getRequestParameter("t");
       if (timestampParam != null) {
         time = Long.parseLong(timestampParam.getString());
-        LOGGER.info("?t = {}", time);
+
         if (time < lastUpdate) {
-          // There is a new message.
-          time = lastUpdate;
-          update = true;
+          hasUpdate = true;
         }
-      }
-      else {
-        time = lastUpdate;
-        update = true;
+      } else {
+        hasUpdate = true;
       }
     }
-    
-    LOGGER.info("Returned time = {}, update = {}", time, update);
+
+    LOGGER.info("Returned time = {}, update = {}", time, hasUpdate);
 
     JSONWriter write = new JSONWriter(response.getWriter());
     try {
       write.object();
       write.key("update");
-      write.value(update);
+      write.value(hasUpdate);
       write.key("time");
-      write.value(time);
+      write.value(System.currentTimeMillis());
+      write.key("pulltime");
+      write.value(dateFormat.format(cal));
       write.endObject();
     } catch (JSONException e) {
       LOGGER.warn("Unable to parse JSON for user {} and time {}", userID, time);

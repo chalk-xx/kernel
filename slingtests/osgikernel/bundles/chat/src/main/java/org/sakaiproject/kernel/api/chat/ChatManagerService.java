@@ -20,30 +20,6 @@ package org.sakaiproject.kernel.api.chat;
 public interface ChatManagerService {
 
   /**
-   * Checks if a userID has a new chat message by checking the cache. If the user is in
-   * the cache it will check the timestamp along with it. Note: This will NOT add any
-   * values to the cache, it just checks for updates!
-   * 
-   * @param userID
-   *          The user ID to check on.
-   * @param time
-   *          The milliseconds when checked last time.
-   * @return
-   */
-  public boolean checkUpdate(String userID, long time);
-
-  /**
-   * Sets a new time for a user, this will only get set when the user is already in the
-   * cache.
-   * 
-   * @param userID
-   *          The ID of the user you wish to add.
-   * @param time
-   *          The timestamp (milliseconds)
-   */
-  public void setLastUpdate(String userID, long time);
-
-  /**
    * Adds a time for a user. Even if he/she is not in the cache already.
    * 
    * @param userID
@@ -51,7 +27,7 @@ public interface ChatManagerService {
    * @param time
    *          The timestamp (milliseconds)
    */
-  public void addUpdate(String userID, long time);
+  public void put(String userID, long time);
 
   /**
    * Gets the last time a user had his chat messages updated.
@@ -60,12 +36,17 @@ public interface ChatManagerService {
    *          The ID of the user you wish to add.
    * @return
    */
-  public Long getLastUpdate(String userID);
+  public Long get(String userID);
 
   /**
    * Removes a user out of the cache.
    * 
    * @param userID
    */
-  public void clear(String userID);
+  public void remove(String userID);
+
+  /**
+   * Flush the entire cache.
+   */
+  public void clear();
 }
