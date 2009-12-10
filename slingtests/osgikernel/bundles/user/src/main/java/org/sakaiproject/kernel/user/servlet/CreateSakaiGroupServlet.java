@@ -83,7 +83,7 @@ import javax.servlet.http.HttpServletResponse;
  * <dl>
  * <dt>:name</dt>
  * <dd>The name of the new group (required)</dd>
- * <dt></dt>
+ * <dt>*</dt>
  * <dd>Any additional parameters become properties of the group node (optional)</dd>
  * </dl>
  * <h4>Response</h4>
@@ -241,8 +241,9 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
-  protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
-      List<Modification> changes) throws RepositoryException {
+  protected void handleOperation(SlingHttpServletRequest request, 
+      HtmlResponse response, List<Modification> changes) 
+      throws RepositoryException {
 
     // KERN-432 dont allow anon users to access create group.
     if ( SecurityConstants.ANONYMOUS_ID.equals(request.getRemoteUser()) ) {

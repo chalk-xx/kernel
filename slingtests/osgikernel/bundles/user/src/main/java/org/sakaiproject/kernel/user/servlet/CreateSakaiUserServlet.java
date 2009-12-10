@@ -63,8 +63,7 @@ import javax.servlet.http.HttpServletResponse;
  * <p>
  * Creates a new user. Maps on to nodes of resourceType <code>sling/users</code> like
  * <code>/rep:system/rep:userManager/rep:users</code> mapped to a resource url
- * <code>/system/userManager/user</code>. This servlet responds at
- * <code>/system/userManager/user.create.html</code>
+ * <code>/system/userManager/user</code>. This servlet responds at <code>/system/userManager/user.create.html</code>
  * </p>
  * <h4>Methods</h4>
  * <ul>
@@ -78,7 +77,7 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>The password of the new user (required)</dd>
  * <dt>:pwdConfirm</dt>
  * <dd>The password of the new user (required)</dd>
- * <dt></dt>
+ * <dt>*</dt>
  * <dd>Any additional parameters become properties of the user node (optional)</dd>
  * </dl>
  * <h4>Response</h4>
@@ -90,13 +89,12 @@ import javax.servlet.http.HttpServletResponse;
  * <dd>Failure, including user already exists. HTML explains the failure.</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -F:name=ieb -Fpwd=password -FpwdConfirm=password -Fproperty1=value1 http://localhost:8080/system/userManager/user.create.html
  * </code>
- * 
- * 
- * 
+ *
+ *
  * @scr.component immediate="true" label="%createUser.post.operation.name"
  *                description="%createUser.post.operation.description"
  * @scr.service interface="javax.servlet.Servlet"
