@@ -40,12 +40,16 @@ import com.novell.ldap.LDAPSearchResults;
 
 import org.easymock.classextension.EasyMock;
 import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 public class LdapPersonProviderTest {
@@ -66,14 +70,63 @@ public class LdapPersonProviderTest {
     }
   }
 
+  @Test
+  public void testActivateWithAllProperties() {
+    LdapPersonProvider provider = new LdapPersonProvider();
+    String[] attrMap = new String[] { "attr0=>wow wee", "attr1 => camera 1" };
+    provider.activate(buildContext(attrMap));
+    Map<String, String> attributesMap = provider.getAttributesMap();
+    assertTrue(attributesMap.containsKey("attr0"));
+    assertEquals("wow wee", attributesMap.get("attr0"));
+    assertTrue(attributesMap.containsKey("attr1"));
+    assertEquals("camera 1", attributesMap.get("attr1"));
+  }
+
+  @Test
+  public void testActivateWithBadPropertySeparator() {
+    LdapPersonProvider provider = new LdapPersonProvider();
+    String[] attrMap = new String[] { "attr1 -> camera 1" };
+    try {
+      provider.activate(buildContext(attrMap));
+      fail("Should fail on improper mapping syntax.");
+    } catch (ComponentException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testActivateWithEmptyFirstKey() {
+    LdapPersonProvider provider = new LdapPersonProvider();
+    String[] attrMap = new String[] { "=>wow wee" };
+    try {
+      provider.activate(buildContext(attrMap));
+      fail("Should fail on improper mapping syntax.");
+    } catch (ComponentException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testActivateWithEmptySecondKey() {
+    LdapPersonProvider provider = new LdapPersonProvider();
+    String[] attrMap = new String[] { "attr0=> " };
+    try {
+      provider.activate(buildContext(attrMap));
+      fail("Should fail on improper mapping syntax.");
+    } catch (ComponentException e) {
+      // expected
+    }
+  }
+
   /**
    * Test getting a person from an ldap provider.
-   * 
+   *
    * @throws Exception
    */
   @Test
   public void testGetPerson() throws Exception {
-    LdapPersonProvider provider = setUpForPositiveTest();
+    String[] attrMap = new String[] { "firstname => called" };
+    LdapPersonProvider provider = setUpForPositiveTest(attrMap);
     Person person = provider.getPerson("tUser", null);
     assertNotNull(person);
 
@@ -82,8 +135,8 @@ public class LdapPersonProviderTest {
 
     assertEquals(2, attributeNames.size());
 
-    assertTrue(attributeNames.contains("firstname"));
-    assertEquals("Tester", person.getAttributeValue("firstname"));
+    assertTrue(attributeNames.contains("called"));
+    assertEquals("Tester", person.getAttributeValue("called"));
 
     assertTrue(attributeNames.contains("lastname"));
     assertEquals("User", person.getAttributeValue("lastname"));
@@ -103,6 +156,7 @@ public class LdapPersonProviderTest {
         .andThrow(new LdapException("oops"));
     replay(broker);
     LdapPersonProvider provider = new LdapPersonProvider(broker);
+    provider.activate(buildContext(null));
     try {
       provider.getPerson("tUser", null);
       fail("Should bubble up exceptions that are thrown internally.");
@@ -129,6 +183,7 @@ public class LdapPersonProviderTest {
     EasyMock.replay(connection);
 
     LdapPersonProvider provider = new LdapPersonProvider(broker);
+    provider.activate(buildContext(null));
     try {
       provider.getPerson("tUser", null);
       fail("Should bubble up exceptions that are thrown internally.");
@@ -144,7 +199,7 @@ public class LdapPersonProviderTest {
    * @return
    * @throws Exception
    */
-  private LdapPersonProvider setUpForPositiveTest() throws Exception {
+  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap) throws Exception {
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
     LDAPSearchResults results = EasyMock.createMock(LDAPSearchResults.class);
     LDAPAttributeSet attrSet = EasyMock.createMock(LDAPAttributeSet.class);
@@ -193,6 +248,24 @@ public class LdapPersonProviderTest {
     expect(results.hasMore()).andReturn(FALSE);
     EasyMock.replay(results);
 
-    return new LdapPersonProvider(broker);
+    LdapPersonProvider provider = new LdapPersonProvider(broker);
+    provider.activate(buildContext(attributeMap));
+    return provider;
+  }
+
+  private ComponentContext buildContext(String[] attributeMap) {
+    Properties props = new Properties();
+    props.put(LdapPersonProvider.PROP_BASE_DN_PATTERN, "uid={},ou=Local Accounts,dc=sakai");
+    props.put(LdapPersonProvider.PROP_FILTER_PATTERN, "uid={}");
+    props.put(LdapPersonProvider.PROP_PASSWORD, "passwd");
+    props.put(LdapPersonProvider.PROP_USER, "usr");
+    if (attributeMap != null) {
+      props.put(LdapPersonProvider.PROP_ATTRIBUTES, attributeMap);
+    }
+
+    ComponentContext ctx = createMock(ComponentContext.class);
+    expect(ctx.getProperties()).andReturn(props);
+    replay(ctx);
+    return ctx;
   }
 }

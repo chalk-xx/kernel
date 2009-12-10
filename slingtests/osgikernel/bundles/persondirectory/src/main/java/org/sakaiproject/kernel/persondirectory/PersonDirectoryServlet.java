@@ -109,20 +109,35 @@ public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
       String uid = node.getName();
       LOGGER.info("Getting information for [" + uid + "]");
 
+      // get the person
       Person person = getPerson(uid, node);
+
+      // if a person is returned, digest attributes into json
       if (person != null) {
-        response.setStatus(HttpServletResponse.SC_OK);
         Map<String, String[]> attrs = person.getAttributes();
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        // create a json writer using the response writer
         Writer writer = response.getWriter();
         JSONWriter jsonWriter = new JSONWriter(writer);
+
+        // start the object
         jsonWriter.object();
         for (Map.Entry<String, String[]> attr : attrs.entrySet()) {
           jsonWriter.key(attr.getKey());
-          jsonWriter.array();
-          for (String val : attr.getValue()) {
-            jsonWriter.value(val);
+          String[] vals = attr.getValue();
+
+          if (vals.length > 1) {
+            // if multiple values are found, output them as an array
+            jsonWriter.array();
+            for (String val : vals) {
+              jsonWriter.value(val);
+            }
+            jsonWriter.endArray();
+          } else {
+            // output single values as, well, single values
+            jsonWriter.value(vals[0]);
           }
-          jsonWriter.endArray();
         }
         jsonWriter.endObject();
       } else {

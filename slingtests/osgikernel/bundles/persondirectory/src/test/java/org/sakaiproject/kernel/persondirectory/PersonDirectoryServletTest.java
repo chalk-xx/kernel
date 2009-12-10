@@ -290,13 +290,11 @@ public class PersonDirectoryServletTest {
     assertEquals("val0", attr0.get(0));
     assertEquals("val0", attr0.get(1));
 
-    JSONArray attr1 = respObj.getJSONArray("attr1");
-    assertEquals(1, attr1.length());
-    assertEquals("val1", attr1.get(0));
+    String attr1 = respObj.getString("attr1");
+    assertEquals("val1", attr1);
 
-    JSONArray attr2 = respObj.getJSONArray("attr2");
-    assertEquals(1, attr2.length());
-    assertEquals("val2", attr2.get(0));
+    String attr2 = respObj.getString("attr2");
+    assertEquals("val2", attr2);
   }
 
   @Test
