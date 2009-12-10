@@ -66,6 +66,8 @@ public class ACLUtils {
   
   public static final String MODIFY_ACL_GRANTED = GRANTED +"jcr:modifyAccessControl";
   
+  public static final String NODE_TYPE_MANAGEMENT_GRANTED = GRANTED +"jcr:nodeTypeManagement";
+  
   public static final String ALL_GRANTED = GRANTED +"jcr:all";
 
   public static final String READ_DENIED = DENIED + "jcr:read";
@@ -83,6 +85,8 @@ public class ACLUtils {
   public static final String READ_ACL_DENIED = DENIED +"jcr:readAccessControl";
   
   public static final String MODIFY_ACL_DENIED = DENIED +"jcr:modifyAccessControl";
+  
+  public static final String NODE_TYPE_MANAGEMENT_DENIED = DENIED +"jcr:nodeTypeManagement";
   
   public static final String ALL_DENIED = DENIED +"jcr:all";
   
