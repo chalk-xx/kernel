@@ -138,7 +138,12 @@ public class MessagePostProcessor implements SlingPostProcessor {
           n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
 
           Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
-          messageDict.put(EVENT_LOCATION, n);
+          // WARNING
+          // We can't pass in the node, because the session might expire before the event gets handled
+          // This does mean that the listener will have to get the node each time, and probably create a new session for each message
+          // This might be heavy on performance.
+          messageDict.put(EVENT_LOCATION, n.getPath());
+          messageDict.put("user", request.getRemoteUser());
           LOGGER.info("Launched event for node: " + n.getPath());
           Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT,
               messageDict);

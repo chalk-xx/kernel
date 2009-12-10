@@ -18,7 +18,9 @@ package org.sakaiproject.kernel.message.listener;
  * specific language governing permissions and limitations under the License.
  */
 
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.kernel.api.message.MessageConstants;
@@ -34,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jcr.LoginException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * 
@@ -48,6 +51,7 @@ import javax.jcr.RepositoryException;
  *                policy="dynamic" cardinality="0..n" bind="addTransport"
  *                unbind="removeTransport"
  * @scr.reference name="MessageRouterManager" interface="org.sakaiproject.kernel.api.message.MessageRouterManager"
+ * @scr.reference name="SlingRepository" interface="org.apache.sling.jcr.api.SlingRepository"
  */
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
@@ -58,11 +62,44 @@ public class MessageSentListener implements EventHandler {
   private Map<MessageTransport, MessageTransport> transports = new ConcurrentHashMap<MessageTransport, MessageTransport>();
 
   private MessageRouterManager messageRouterManager;
+  private SlingRepository slingRepository;
   protected void bindMessageRouterManager(MessageRouterManager messageRouterManager) {
     this.messageRouterManager = messageRouterManager;
   }
   protected void unbindMessageRouterManager(MessageRouterManager messageRouterManager) {
     this.messageRouterManager = null;
+  }
+
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
+  }
+
+  private Session session;
+  /**
+   * Allows us to bind a session (for junit)
+   */
+  protected void bindSession(Session session) {
+    this.session = session;
+  }
+
+  protected void activate(ComponentContext context) {
+    try {
+      session = slingRepository.loginAdministrative(null);
+      LOG.info("Logged into the repository as an admin.");
+    } catch (RepositoryException e) {
+      LOG.warn("Unable to login to get a session for the message listener. {}",
+          e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  protected void deactivate(ComponentContext context) {
+    if (session != null) {
+      session.logout();
+    }
   }
 
   /**
@@ -77,7 +114,8 @@ public class MessageSentListener implements EventHandler {
     // message type
     LOG.debug("handleEvent called");
     try {
-      Node n = (Node) event.getProperty(MessageConstants.EVENT_LOCATION);
+      String path = (String) event.getProperty(MessageConstants.EVENT_LOCATION);
+      Node n = (Node) session.getItem(path);
       String resourceType = n.getProperty(
           JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
       if (resourceType.equals(MessageConstants.SAKAI_MESSAGE_RT)) {
