@@ -32,6 +32,7 @@
      <!--   <module>bundles/shindig</module> -->
         <module>app</module>
         <module>app-bundles</module>
+        <module>sling-bundles</module>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
         <module>bundles/casauth</module>

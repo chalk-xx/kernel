@@ -67,7 +67,7 @@ public class UserPostProcessorTest {
     propNames.add("rep:userId");
 
     Authorizable authorizable = createMock(Authorizable.class);
-    expect(authorizable.getID()).andReturn("bar").times(2);
+    expect(authorizable.getID()).andReturn("bar").times(3);
     expect(authorizable.isGroup()).andReturn(false);
     expect(authorizable.getPrincipal()).andReturn(principal);
     expect(authorizable.getPropertyNames()).andReturn(propNames.iterator());

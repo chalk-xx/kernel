@@ -58,18 +58,19 @@ import org.sakaiproject.kernel.api.doc.ServiceSelector;
  * <dd>Failure, including group already exists. HTML explains the failure.</dd>
  * </dl>
  * <h4>Example</h4>
- * 
+ *
  * <code>
  * curl -FoldPwd=oldpassword -FnewPwd=newpassword =FnewPwdConfirm=newpassword http://localhost:8080/system/userManager/user/ieb.changePassword.html
  * </code>
- * 
+ *
  * <h4>Notes</h4>
-  * 
+ *
+ *
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
- * @scr.property name="sling.servlet.methods" value="POST" 
- * @scr.property name="sling.servlet.selectors" value="changePassword" 
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="changePassword"
  */
 
 @ServiceDocumentation(name="Change Password Servlet",

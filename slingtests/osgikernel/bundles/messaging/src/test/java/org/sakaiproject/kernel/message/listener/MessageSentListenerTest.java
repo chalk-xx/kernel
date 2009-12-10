@@ -7,6 +7,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
 import org.junit.Before;
@@ -21,10 +22,15 @@ import java.util.Properties;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
+import javax.jcr.Session;
 
 public class MessageSentListenerTest {
   private MessageSentListener msl;
   private MessageRouterManager messageRouterManager;
+  private SlingRepository slingRepository;
+  private final String PATH = "/foo/bar";
+  private Session session;
+  private Node msgNode;
 
   @Before
   public void setup() throws Exception {
@@ -33,7 +39,9 @@ public class MessageSentListenerTest {
 
     Node node = createMock(Node.class);
     expect(node.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(prop);
-
+    expect(node.getPath()).andReturn("").anyTimes();
+    expect(node.isNew()).andReturn(true).anyTimes();
+    
     replay(prop, node);
 
     messageRouterManager = createMock(MessageRouterManager.class);
@@ -41,34 +49,47 @@ public class MessageSentListenerTest {
         new MessageRoutesImpl(node));
 
     replay(messageRouterManager);
+    
+    session = createMock(Session.class);
+
+    Property msgProp = createMock(Property.class);
+    expect(msgProp.getString()).andReturn(MessageConstants.SAKAI_MESSAGE_RT);
+
+    msgNode = createMock(Node.class);
+    expect(msgNode.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .andReturn(msgProp);
+
+    expect(session.getItem(PATH)).andReturn(msgNode);
+
+    slingRepository = createMock(SlingRepository.class);
+    expect(slingRepository.loginAdministrative(null)).andReturn(session);
+    replay(msgProp, msgNode, session, slingRepository);
+
 
     msl = new MessageSentListener();
     msl.bindMessageRouterManager(messageRouterManager);
+    msl.bindSlingRepository(slingRepository);
+    msl.bindSession(session);
   }
 
   @After
   public void cleanup() {
     msl.unbindMessageRouterManager(messageRouterManager);
+    msl.unbindSlingRepository(slingRepository);
   }
 
   @Test
   public void testHandleEvent() throws Exception {
-    Property prop = createMock(Property.class);
-    expect(prop.getString()).andReturn(MessageConstants.SAKAI_MESSAGE_RT);
-
-    Node node = createMock(Node.class);
-    expect(node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
-        .andReturn(prop);
 
     Properties eventProps = new Properties();
-    eventProps.put(MessageConstants.EVENT_LOCATION, node);
+    eventProps.put(MessageConstants.EVENT_LOCATION, PATH);
     Event event = new Event("myTopic", eventProps);
 
     MessageTransport transport = createMock(MessageTransport.class);
-    transport.send(isA(MessageRoutes.class), eq(event), eq(node));
+    transport.send(isA(MessageRoutes.class), eq(event), eq(msgNode));
     expectLastCall();
 
-    replay(prop, node, transport);
+    replay(transport);
 
     msl.addTransport(transport);
     msl.handleEvent(event);

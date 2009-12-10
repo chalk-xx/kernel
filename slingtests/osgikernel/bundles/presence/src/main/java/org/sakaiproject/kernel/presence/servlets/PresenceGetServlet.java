@@ -18,12 +18,6 @@
 
 package org.sakaiproject.kernel.presence.servlets;
 
-import java.io.IOException;
-import java.io.Writer;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -34,11 +28,16 @@ import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceExtension;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
-import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.presence.PresenceService;
 import org.sakaiproject.kernel.presence.PresenceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This servlet deals with JSON output only and the presence GET requests

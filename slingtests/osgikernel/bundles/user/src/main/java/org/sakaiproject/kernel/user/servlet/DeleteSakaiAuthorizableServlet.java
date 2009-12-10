@@ -76,8 +76,8 @@ import javax.servlet.http.HttpServletResponse;
  * <code>
  * curl -Fgo=1 http://localhost:8080/system/userManager/user/ieb.delete.html
  * </code>
- * 
- * 
+ *
+ *
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" values.0="sling/user" values.1="sling/group" values.2="sling/userManager"

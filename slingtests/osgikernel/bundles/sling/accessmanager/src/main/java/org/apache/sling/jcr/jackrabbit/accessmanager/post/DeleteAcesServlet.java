@@ -29,8 +29,6 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
@@ -40,14 +38,41 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 
 /**
- * Sling Post Servlet implementation for deleting the ACE for a set of principals on
- * a JCR resource.
- * 
- * @scr.component immediate="true" 
+ * <p>
+ * Sling Post Servlet implementation for deleting the ACE for a set of principals on a JCR
+ * resource.
+ * </p>
+ * <h2>Rest Service Description</h2>
+ * <p>
+ * Delete a set of Ace's from a node, the node is identified as a resource by the request
+ * url &gt;resource&lt;.deleteAce.html
+ * </p>
+ * <h4>Methods</h4>
+ * <ul>
+ * <li>POST</li>
+ * </ul>
+ * <h4>Post Parameters</h4>
+ * <dl>
+ * <dt>:applyTo</dt>
+ * <dd>An array of ace principal names to delete. Note the principal name is the primary
+ * key of the Ace in the Acl</dd>
+ * </dl>
+ *
+ * <h4>Response</h4>
+ * <dl>
+ * <dt>200</dt>
+ * <dd>Success.</dd>
+ * <dt>404</dt>
+ * <dd>The resource was not found.</dd>
+ * <dt>500</dt>
+ * <dd>Failure. HTML explains the failure.</dd>
+ * </dl>
+ *
+ * @scr.component immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/servlet/default"
- * @scr.property name="sling.servlet.methods" value="POST" 
- * @scr.property name="sling.servlet.selectors" value="deleteAce" 
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="deleteAce"
  */
 public class DeleteAcesServlet extends AbstractAccessPostServlet {
 	private static final long serialVersionUID = 3784866802938282971L;
@@ -59,7 +84,7 @@ public class DeleteAcesServlet extends AbstractAccessPostServlet {
 	protected void handleOperation(SlingHttpServletRequest request,
 			HtmlResponse htmlResponse, List<Modification> changes)
 			throws RepositoryException {
-		
+
         String[] applyTo = request.getParameterValues(SlingPostConstants.RP_APPLY_TO);
         if (applyTo == null) {
 			throw new RepositoryException("principalIds were not sumitted.");
@@ -76,31 +101,20 @@ public class DeleteAcesServlet extends AbstractAccessPostServlet {
         			throw new ResourceNotFoundException("Resource is not a JCR Node");
         		}
         	}
-        	
+
     		Session session = request.getResourceResolver().adaptTo(Session.class);
     		if (session == null) {
     			throw new RepositoryException("JCR Session not found");
     		}
-        	
+
     		//load the principalIds array into a set for quick lookup below
 			Set<String> pidSet = new HashSet<String>();
 			pidSet.addAll(Arrays.asList(applyTo));
-			
+
 			try {
 				AccessControlManager accessControlManager = AccessControlUtil.getAccessControlManager(session);
-				AccessControlList updatedAcl = null;
-				AccessControlPolicyIterator applicablePolicies = accessControlManager.getApplicablePolicies(resourcePath);
-				while (applicablePolicies.hasNext()) {
-					AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-					if (policy instanceof AccessControlList) {
-						updatedAcl = (AccessControlList)policy;
-						break;
-					}
-				}
-				if (updatedAcl == null) {
-					throw new RepositoryException("Unable to find an access control policy to update.");
-				}
-				
+				AccessControlList updatedAcl = getAccessControlList(accessControlManager, resourcePath, false);
+
 				//keep track of the existing Aces for the target principal
 				AccessControlEntry[] accessControlEntries = updatedAcl.getAccessControlEntries();
 				List<AccessControlEntry> oldAces = new ArrayList<AccessControlEntry>();
@@ -116,7 +130,7 @@ public class DeleteAcesServlet extends AbstractAccessPostServlet {
 						updatedAcl.removeAccessControlEntry(ace);
 					}
 				}
-				
+
 				//apply the changed policy
 				accessControlManager.setPolicy(resourcePath, updatedAcl);
 			} catch (RepositoryException re) {

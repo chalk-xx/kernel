@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -133,7 +134,8 @@ public abstract class AbstractPropertyOperationModifier extends
       Map<String, String[]> params) throws RepositoryException {
     if (item.isNode()) {
       Node node = (Node) item;
-      for (String prop : params.keySet()) {
+      for (Entry<String, String[]> e : params.entrySet()) {
+        String prop = e.getKey();
         // We skip the :operation property.
         if (!prop.equals(":operation") && !prop.equals(":applyTo")) {
 
@@ -145,13 +147,13 @@ public abstract class AbstractPropertyOperationModifier extends
               for (Value v : vals) {
                 oldValues.add(v.getString());
               }
-            } catch (ValueFormatException e) {
+            } catch (ValueFormatException vfe) {
               oldValues.add(node.getProperty(prop).getValue().getString());
             }
           }
 
           // Add or delete the vales.
-          for (String s : params.get(prop)) {
+          for (String s : e.getValue()) {
             if (operation.equals("addProperty") && !oldValues.contains(s)) {
               oldValues.add(s);
             } else if (operation.equals("removeProperty") && oldValues.contains(s)) {

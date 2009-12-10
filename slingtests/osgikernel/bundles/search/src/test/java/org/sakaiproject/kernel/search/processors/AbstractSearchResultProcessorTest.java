@@ -13,7 +13,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;

@@ -13,7 +13,7 @@ class TC_Kern307Test < SlingTest
     node = create_node("some/test/path#{m}", {})
     writers = create_group("g-test-writers-#{m}")
     writers.add_member(@s, user.name, "user")
-    @s.set_node_acl_entries(node, writers, { "jcr:addChildNodes" => "granted" })
+    @s.set_node_acl_entries(node, writers, { "jcr:addChildNodes" => "granted", "jcr:write" => "granted" })
     return node
   end
 

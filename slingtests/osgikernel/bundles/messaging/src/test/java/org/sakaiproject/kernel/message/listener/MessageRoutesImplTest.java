@@ -20,6 +20,8 @@ public class MessageRoutesImplTest {
 
     Node node = createMock(Node.class);
     expect(node.getProperty(MessageConstants.PROP_SAKAI_TO)).andReturn(prop);
+    expect(node.getPath()).andReturn("").anyTimes();
+    expect(node.isNew()).andReturn(true).anyTimes();
 
     replay(node, prop);
     MessageRoutesImpl mri = new MessageRoutesImpl(node);
