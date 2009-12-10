@@ -109,6 +109,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (rpid != null) {
           principalName = rpid.getString();
           authorizable = userManager.getAuthorizable(principalName);
+          
           if (authorizable != null) {
             createPrivate(session, authorizable);
             Node profileNode = createProfile(session, authorizable);
@@ -215,11 +216,16 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
     // copy the non blacklist set of properties into the users profile.
     if (authorizable != null) {
+      // explicitly add protected properties form the authorizable
+      if ( !profileNode.hasProperty("rep:userId") ) {
+        Property useridProp = profileNode.setProperty("rep:userId", authorizable.getID());
+        changes.add(Modification.onModified(useridProp.getPath()));
+      }
       Iterator<?> inames = authorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
         // No need to copy in jcr:* properties, otherwise we would copy over the uuid which could lead to a lot of confusion.
-        if (!propertyName.startsWith("jcr:") && (propertyName.equals("rep:userId") || !propertyName.startsWith("rep:"))) {
+        if (!propertyName.startsWith("jcr:") && !propertyName.startsWith("rep:")) {
           if (!privateProperties.contains(propertyName)) {
             Value[] v = authorizable.getProperty(propertyName);
             if (!(profileNode.hasProperty(propertyName) && profileNode.getProperty(

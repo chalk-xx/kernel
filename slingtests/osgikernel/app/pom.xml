@@ -71,11 +71,7 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds> org.apache.sling.launchpad.bundles </includeArtifactIds>
-              <excludes> resources/bundles/**/org.apache.sling.jcr.jackrabbit.usermanager*,
-                         resources/bundles/**/org.apache.sling.jcr.jackrabbit.accessmanager*,
-                         resources/bundles/**/org.apache.sling.jcr.jackrabbit.server*,
-                         </excludes>
+              <includeArtifactIds> org.sakaiproject.kernel.sling-bundles </includeArtifactIds>
               <includes> resources/** </includes>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
@@ -168,12 +164,15 @@
       <classifier>app</classifier>
       <scope>provided</scope>
     </dependency>
+    <!--  this may be problematic since the bundles will have moved on, we may have to generate our own sling bundles -->
     <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.launchpad.bundles</artifactId>
-      <version>6-SNAPSHOT</version>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
+      <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+    
+    
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>

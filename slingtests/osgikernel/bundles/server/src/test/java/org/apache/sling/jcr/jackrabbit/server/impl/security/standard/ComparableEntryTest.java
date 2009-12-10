@@ -18,7 +18,6 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.ValueFactory;
 
 /**
  *
@@ -48,6 +48,7 @@ public class ComparableEntryTest {
   private Principal principalAdmin;
   private NameResolver nameResolver;
   private Principal principalAnon;
+  private ValueFactory valueFactory;
 
   @Before
   public void before() {
@@ -56,6 +57,7 @@ public class ComparableEntryTest {
       principalAdmin = createMock(Principal.class);
       principalAnon = createMock(Principal.class);
       nameResolver = createMock(NameResolver.class);
+      valueFactory = createMock(ValueFactory.class);
       NameFactory nf = NameFactoryImpl.getInstance();
       expect(nameResolver.getQName(Privilege.JCR_READ)).andReturn(
           nf.create(Privilege.JCR_READ));
@@ -74,9 +76,9 @@ public class ComparableEntryTest {
     PrivilegeRegistry pr = new PrivilegeRegistry(nameResolver);
     Privilege[] privileges = new Privilege[] { pr.getPrivilege(Privilege.JCR_READ) };
     ComparableEntry entry1 = new ComparableEntry("/pathlonger", false, principalAnon,
-        privileges, true);
+        privileges, true, valueFactory);
     ComparableEntry entry2 = new ComparableEntry("/path", false, principalAdmin, privileges,
-        true);
+        true, valueFactory);
     compare(entry1,entry2);    
 
   }
@@ -89,9 +91,9 @@ public class ComparableEntryTest {
     PrivilegeRegistry pr = new PrivilegeRegistry(nameResolver);
     Privilege[] privileges = new Privilege[] { pr.getPrivilege(Privilege.JCR_READ) };
     ComparableEntry entry1 = new ComparableEntry("/pathlonger", false, principalAnon,
-        privileges, true);
+        privileges, true, valueFactory);
     ComparableEntry entry2 = new ComparableEntry("/path", true, principalAdmin, privileges,
-        true);
+        true, valueFactory);
     compare(entry1,entry2);   
   }
 
@@ -103,9 +105,9 @@ public class ComparableEntryTest {
     PrivilegeRegistry pr = new PrivilegeRegistry(nameResolver);
     Privilege[] privileges = new Privilege[] { pr.getPrivilege(Privilege.JCR_READ) };
     ComparableEntry entry1 = new ComparableEntry("/path", false, principalAdmin, privileges,
-        true);
+        true, valueFactory);
     ComparableEntry entry2 = new ComparableEntry("/pathlonger", true, principalAnon,
-        privileges, true);
+        privileges, true, valueFactory);
     compare(entry1,entry2);   
   }
 
@@ -119,9 +121,9 @@ public class ComparableEntryTest {
     PrivilegeRegistry pr = new PrivilegeRegistry(nameResolver);
     Privilege[] privileges = new Privilege[] { pr.getPrivilege(Privilege.JCR_READ) };
     ComparableEntry entry1 = new ComparableEntry("/path", false, principalAnon,
-        privileges, true);
+        privileges, true, valueFactory);
     ComparableEntry entry2 = new ComparableEntry("/path", true, principalAdmin, privileges,
-        true);
+        true, valueFactory);
     compare(entry1,entry2);
 
   }

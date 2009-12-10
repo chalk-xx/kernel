@@ -189,7 +189,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
     try {
       session = this.getSession();
       this.createRepositoryPath(session, BUNDLE_SECURITY_NODE);
-      LOGGER.info("Activated - attempting to load content from all "
+      LOGGER.debug("Activated - attempting to load content from all "
           + "bundles which are neither INSTALLED nor UNINSTALLED");
 
       int ignored = 0;

@@ -115,6 +115,8 @@ public class ACLUtils {
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
     AccessControlList updatedAcl = null;
+    
+    
     AccessControlPolicyIterator applicablePolicies = accessControlManager
         .getApplicablePolicies(path);
     while (applicablePolicies.hasNext()) {
@@ -124,6 +126,17 @@ public class ACLUtils {
         break;
       }
     }
+    
+    if (updatedAcl == null) {
+      AccessControlPolicy[] policies = accessControlManager.getPolicies(path);
+      for ( AccessControlPolicy policy : policies ) {
+        if (policy instanceof AccessControlList) {
+          updatedAcl = (AccessControlList) policy;
+          break;
+        }      
+      }
+    }
+
     if (updatedAcl == null) {
       throw new RepositoryException("Unable to find an access conrol policy to update.");
     }
