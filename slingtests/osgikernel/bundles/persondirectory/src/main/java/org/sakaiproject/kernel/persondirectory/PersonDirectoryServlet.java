@@ -47,27 +47,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * <p>
  * Servlet for looking up person information from various federated sources.
- * This servlet is triggered by accessing a node that has
- * resourceType="sakai/user-profile". This node should be a user's space in JCR.
- * </p>
- * <p>
- * <em>Example structure:</em><br/>
- * /_user/public/ad/80/11/98/dsf/authprofile<br/>
- * Where 'authprofile' has a property of resourceType = "sakai/user-profile" and
- * the node 'dsf' is the username.
- * </p>
- * <p>
- * Having the requested node as a first level subnode of a node that is named
- * after the username to be looked up is required.
- * </p>
+ * This servlet is triggered by accessing a user node a 'profile' selector and
+ * 'json' extension.
  */
-@SlingServlet(methods = "GET", selectors = "profile", extensions = "json")
-@ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up user "
-    + "information from various federated sources. This servlet is triggered by accessing a node "
-    + "that has resourceType=\"sakai/user-profile\". This node should be a user's space in JCR.", methods = { @ServiceMethod(name = "GET", description = "GETs to nodes of type "
-    + "\"sakai/user-profile\" will trigger this servlet to produce person information.") })
+@SlingServlet(methods = "GET", selectors = "xprofilex", extensions = "json")
+@ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up person information from various federated sources. This servlet is triggered by accessing a user node a 'profile' selector and 'json' extension.", methods = { @ServiceMethod(name = "GET", description = "Returns the person information found by querying all registered person providers.") })
 public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonDirectoryServlet.class);
