@@ -42,6 +42,7 @@ class TC_Kern335Test < SlingTest
     @s.switch_user(user1)
     @mm.create("chat:chatuser2-#{m}", "chat", "outbox")
     
+    sleep(1)
     
     res = @s.execute_get(@s.url_for("_user/message.chatupdate.json?t=#{time}"))
     json = JSON.parse(res.body)

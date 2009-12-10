@@ -84,7 +84,6 @@ import javax.servlet.http.HttpServletResponse;
         },
         response={
           @ServiceResponse(code=200,description="The body will be empty on sucess."),
-          @ServiceResponse(code=204,description="When A site is not found"),
           @ServiceResponse(code=400,description={
               "If the location does not represent a site.",
               "If the addauth and removeauth parameters dont make sense either becuase there are " +
@@ -120,7 +119,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       Session session = site.getSession();
       UserManager userManager = AccessControlUtil.getUserManager(session);
       if (site == null) {
-        response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Couldn't find site node");
         return;
       }
       if (!getSiteService().isSite(site)) {
