@@ -121,18 +121,20 @@ public class Loader implements SecurityLoader {
     if (isUpdate) {
       this.unregisterBundle(session, bundle);
     }
-    LOGGER.info("Registering bundle {} for security loading.", bundle.getSymbolicName());
 
+    LOGGER.debug("Trying to Load security from bundle {}.", bundle.getSymbolicName());
     if (registerBundleInternal(session, bundle, false, isUpdate)) {
 
       // handle delayed bundles, might help now
       int currentSize = -1;
+      // dont loop forever
       for (int i = delayedBundles.size(); i > 0 && currentSize != delayedBundles.size()
           && !delayedBundles.isEmpty(); i--) {
 
         for (Iterator<Bundle> di = delayedBundles.iterator(); di.hasNext();) {
 
           Bundle delayed = di.next();
+          LOGGER.debug("Trying to Load security from delayed bundle {}.", delayed.getSymbolicName());
           if (registerBundleInternal(session, delayed, true, false)) {
             di.remove();
           }
@@ -143,6 +145,7 @@ public class Loader implements SecurityLoader {
       }
 
     } else if (!isUpdate) {
+      LOGGER.debug("Delayed loading of security for {}.", bundle.getSymbolicName());
       // add to delayed bundles - if this is not an update!
       delayedBundles.add(bundle);
     }
@@ -187,7 +190,7 @@ public class Loader implements SecurityLoader {
 
         if (!isUpdate && contentAlreadyLoaded) {
 
-          LOGGER.info("Content of security bundle already loaded {}.", bundle.getSymbolicName());
+          LOGGER.debug("Content of security bundle already loaded {}.", bundle.getSymbolicName());
 
         } else {
 
@@ -195,11 +198,13 @@ public class Loader implements SecurityLoader {
 
           if (isRetry) {
             // log success of retry
-            LOGGER.info("Retrytring to load security content for bundle {} succeeded.",
+            LOGGER.debug("Retrytring to load security content for bundle {} succeeded.",
                 bundle.getSymbolicName());
           }
 
         }
+        LOGGER.debug("Loaded security content for bundle {}.",
+            bundle.getSymbolicName());
 
         success = true;
         return true;
@@ -211,12 +216,14 @@ public class Loader implements SecurityLoader {
     } catch (RepositoryException re) {
       // if we are retrying we already logged this message once, so we
       // won't log it again
-      if (!isRetry) {
+      if (!isRetry || LOGGER.isInfoEnabled() ) {
         LOGGER.error("Cannot load security content for bundle " + bundle.getSymbolicName()
             + " : " + re.getMessage(), re);
       }
     }
 
+    LOGGER.debug("Failed to load security content for bundle {}.",
+        bundle.getSymbolicName());
     return false;
   }
 
@@ -301,7 +308,7 @@ public class Loader implements SecurityLoader {
       throws RepositoryException, JSONException, IOException {
     final List<String> createdNodes = new ArrayList<String>();
 
-    LOGGER.info("Installing initial security from bundle {}", bundle.getSymbolicName());
+    LOGGER.debug("Installing initial security from bundle {}", bundle.getSymbolicName());
     try {
 
       while (pathIter.hasNext()) {
@@ -368,7 +375,7 @@ public class Loader implements SecurityLoader {
   private void installFromPath(Session session, Bundle bundle, String path,
       PathEntry entry, Node targetNode, List<String> list) throws JSONException,
       IOException, RepositoryException {
-    LOGGER.info("Processing security content entry {}", entry);
+    LOGGER.debug("Processing security content entry {}", entry);
     URL file = bundle.getEntry(path);
     JSONObject aclSetup = parse(file);
 
@@ -417,14 +424,13 @@ public class Loader implements SecurityLoader {
     String path = acl.getString(PATH);
     String targetPath = targetNode.getPath();
     
-    LOGGER.info("Base Path "+targetPath);
-    LOGGER.info("Source Path "+path);
+    LOGGER.debug("Base Path {} Source Path {} ", targetPath, path);
     
     String resourcePath = path;
     if ( !"/".equals(targetPath) )  {
       resourcePath = targetPath + resourcePath;
     }
-    LOGGER.info("Resource Path "+resourcePath);
+    LOGGER.debug("Resource Path {} ", resourcePath);
     
     // create the path, if it doesnt exist.
     // this may cause problems if we are putting files with acls
@@ -458,6 +464,7 @@ public class Loader implements SecurityLoader {
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
     AccessControlList updatedAcl = null;
+    
     AccessControlPolicyIterator applicablePolicies = accessControlManager
         .getApplicablePolicies(resourcePath);
     while (applicablePolicies.hasNext()) {
@@ -467,6 +474,17 @@ public class Loader implements SecurityLoader {
         break;
       }
     }
+    
+    if (updatedAcl == null) {
+      AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
+      for ( AccessControlPolicy policy : policies ) {
+        if (policy instanceof AccessControlList) {
+          updatedAcl = (AccessControlList) policy;
+          break;
+        }      
+      }
+    }
+    
     if (updatedAcl == null) {
       throw new RepositoryException("Unable to find an access conrol policy to update.");
     }
@@ -483,13 +501,11 @@ public class Loader implements SecurityLoader {
     List<AccessControlEntry> oldAces = new ArrayList<AccessControlEntry>();
     for (AccessControlEntry ace : accessControlEntries) {
       if (principalId.equals(ace.getPrincipal().getName())) {
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info("Found Existing ACE for principal {} on resource: ",
+        LOGGER.debug("Found Existing ACE for principal {} on resource: ",
               new Object[] {principalId, resourcePath});
-        }
         oldAces.add(ace);
 
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
           // collect the information for debug logging
           boolean isAllow = AccessControlUtil.isAllow(ace);
           Privilege[] privileges = ace.getPrivileges();
@@ -524,7 +540,7 @@ public class Loader implements SecurityLoader {
       Privilege privilege = accessControlManager.privilegeFromName(name);
       grantedPrivilegeList.add(privilege);
 
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isDebugEnabled()) {
         if (newPrivileges.length() > 0) {
           newPrivileges.append(", "); // separate entries by commas
         }
@@ -549,7 +565,7 @@ public class Loader implements SecurityLoader {
         Privilege privilege = accessControlManager.privilegeFromName(name);
         deniedPrivilegeList.add(privilege);
 
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
           if (newPrivileges.length() > 0) {
             newPrivileges.append(", "); // separate entries by commas
           }
@@ -570,8 +586,8 @@ public class Loader implements SecurityLoader {
     }
 
     jcrContentHelper.fireEvent(resourcePath, newPrivileges.toString());
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Updated ACE for principalId {} for resource {} from {} to {}",
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Updated ACE for principalId {} for resource {} from {} to {}",
           new Object[] {authorizable.getID(), resourcePath, oldPrivileges.toString(),
               newPrivileges.toString()});
     }
@@ -615,7 +631,7 @@ public class Loader implements SecurityLoader {
 
       jcrContentHelper.fireEvent(Operation.create, session, user, changes);
     } else {
-      LOGGER.info("Principal "+principalName+" exists, no action required");
+      LOGGER.debug("Principal "+principalName+" exists, no action required");
       //
     }
 

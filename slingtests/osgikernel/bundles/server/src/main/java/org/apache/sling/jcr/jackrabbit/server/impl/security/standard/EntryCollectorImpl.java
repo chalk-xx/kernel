@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 
 /**
  * This EntryCollector implementation uses a principal manager to check each potential
@@ -65,7 +66,7 @@ public class EntryCollectorImpl implements EntryCollector {
    */
   public void collectEntries(NodeImpl aclNode,
       Map<String, List<AccessControlEntry>> principalNamesToEntries,
-      List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId) throws RepositoryException {
+      List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId, ValueFactory valueFactory) throws RepositoryException {
     SessionImpl sImpl = (SessionImpl) aclNode.getSession();
     PrincipalManager principalMgr = sImpl.getPrincipalManager();
     AccessControlManager acMgr = sImpl.getAccessControlManager();
@@ -101,7 +102,7 @@ public class EntryCollectorImpl implements EntryCollector {
         }
         // create a new ACEImpl (omitting validation check)
         ComparableEntry ace = new ComparableEntry(aceNode.getPath(), isGroup, princ, privs, aceNode
-            .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
+            .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE), valueFactory);
         // add it to the proper list (e.g. separated by principals)
         List<AccessControlEntry> l = principalNamesToEntries.get(principalName);
         if (l == null) {

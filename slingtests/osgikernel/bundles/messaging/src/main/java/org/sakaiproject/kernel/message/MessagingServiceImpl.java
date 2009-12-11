@@ -27,13 +27,13 @@ import org.sakaiproject.kernel.api.message.MessagingException;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.site.SiteException;
 import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.util.DateUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -132,12 +132,19 @@ public class MessagingServiceImpl implements MessagingService {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
         for (Entry<String, Object> e : mapProperties.entrySet()) {
-          msg.setProperty(e.getKey(), e.getValue().toString());
+          String val = e.getValue().toString();
+          try {
+            long l = Long.parseLong(val);
+            msg.setProperty(e.getKey(), l);
+          } catch (NumberFormatException ex) {
+            msg.setProperty(e.getKey(), val);
+          }
         }
         // Add the id for this message.
         msg.setProperty(MessageConstants.PROP_SAKAI_ID, messageId);
-        msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, DateUtils.rfc3339());
-        
+        Calendar cal = Calendar.getInstance();
+        msg.setProperty(MessageConstants.PROP_SAKAI_CREATED, cal);
+
         if (session.hasPendingChanges()) {
           session.save();
         }

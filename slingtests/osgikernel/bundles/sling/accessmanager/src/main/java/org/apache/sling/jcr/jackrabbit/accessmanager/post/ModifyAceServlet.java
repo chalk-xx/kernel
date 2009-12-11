@@ -28,8 +28,6 @@ import javax.jcr.Session;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -43,14 +41,51 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Sling Post Servlet implementation for modifying the ACE for a principal on
- * a JCR resource.
- * 
- * @scr.component immediate="true" 
+ * <p>
+ * Sling Post Servlet implementation for modifying the ACE for a principal on a JCR
+ * resource.
+ * </p>
+ * <h2>Rest Service Description</h2>
+ * <p>
+ * Delete a set of Ace's from a node, the node is identified as a resource by the request
+ * url &gt;resource&lt;.modifyAce.html
+ * </p>
+ * <h4>Methods</h4>
+ * <ul>
+ * <li>POST</li>
+ * </ul>
+ * <h4>Post Parameters</h4>
+ * <dl>
+ * <dt>principalId</dt>
+ * <dd>The principal of the Ace to modify in the ACL specified by the path.</dd>
+ * <dt>privilege@*</dt>
+ * <dd>One of more privileges, either granted or denied, where set the permission in the
+ * stored ACE is modified to match the request. Any permissions that are present in the
+ * stored ACE, but are not in the request are left untouched.</dd>
+ * </dl>
+ *
+ * <h4>Response</h4>
+ * <dl>
+ * <dt>200</dt>
+ * <dd>Success.</dd>
+ * <dt>404</dt>
+ * <dd>The resource was not found.</dd>
+ * <dt>500</dt>
+ * <dd>Failure. HTML explains the failure.</dd>
+ * </dl>
+ *
+ * <h4>Notes</h4>
+ * <p>
+ * The principalId is assumed to refer directly to an Authorizable, that comes direct from
+ * the UserManager. This can be a group or a user, but if its a group, denied permissions
+ * will not be added to the group. The group will only contain granted privileges.
+ * </p>
+ *
+ * @scr.component immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/servlet/default"
- * @scr.property name="sling.servlet.methods" value="POST" 
- * @scr.property name="sling.servlet.selectors" value="modifyAce" 
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="modifyAce"
  */
 public class ModifyAceServlet extends AbstractAccessPostServlet {
 	private static final long serialVersionUID = -9182485466670280437L;
@@ -95,8 +130,8 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
     			throw new ResourceNotFoundException("Resource is not a JCR Node");
     		}
     	}
-		
-		
+
+
 		List<String> grantedPrivilegeNames = new ArrayList<String>();
 		List<String> deniedPrivilegeNames = new ArrayList<String>();
 		Enumeration parameterNames = request.getParameterNames();
@@ -121,18 +156,7 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 
 		try {
 			AccessControlManager accessControlManager = AccessControlUtil.getAccessControlManager(session);
-			AccessControlList updatedAcl = null;
-			AccessControlPolicyIterator applicablePolicies = accessControlManager.getApplicablePolicies(resourcePath);
-			while (applicablePolicies.hasNext()) {
-				AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-				if (policy instanceof AccessControlList) {
-					updatedAcl = (AccessControlList)policy;
-					break;
-				}
-			}
-			if (updatedAcl == null) {
-				throw new RepositoryException("Unable to find an access conrol policy to update.");
-			}
+			AccessControlList updatedAcl = getAccessControlList(accessControlManager, resourcePath, true);
 
 			StringBuilder oldPrivileges = null;
 			StringBuilder newPrivileges = null;
@@ -150,7 +174,7 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 						log.debug("Found Existing ACE for principal {0} on resource: ", new Object[] {principalId, resourcePath});
 					}
 					oldAces.add(ace);
-					
+
 					if (log.isDebugEnabled()) {
 						//collect the information for debug logging
 						boolean isAllow = AccessControlUtil.isAllow(ace);
@@ -176,7 +200,7 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 					updatedAcl.removeAccessControlEntry(ace);
 				}
 			}
-			
+
 			//add a fresh ACE with the granted privileges
 			List<Privilege> grantedPrivilegeList = new ArrayList<Privilege>();
 			for (String name : grantedPrivilegeNames) {
@@ -185,7 +209,7 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 				}
 				Privilege privilege = accessControlManager.privilegeFromName(name);
 				grantedPrivilegeList.add(privilege);
-					
+
 				if (log.isDebugEnabled()) {
 					if (newPrivileges.length() > 0) {
 						newPrivileges.append(", "); //separate entries by commas
@@ -199,27 +223,30 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 				updatedAcl.addAccessControlEntry(principal, grantedPrivilegeList.toArray(new Privilege[grantedPrivilegeList.size()]));
 			}
 
-			//Sling trunk doesn't allow group denies - we do.
-			//add a fresh ACE with the denied privileges
-			List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
-			for (String name : deniedPrivilegeNames) {
-				if (name.length() == 0) {
-					continue; //empty, skip it.
-				}
-				Privilege privilege = accessControlManager.privilegeFromName(name);
-				deniedPrivilegeList.add(privilege);
-
-				if (log.isDebugEnabled()) {
-					if (newPrivileges.length() > 0) {
-						newPrivileges.append(", "); //separate entries by commas
+			//if the authorizable is a user (not a group) process any denied privileges
+			boolean allowGroupDeny = true; // Sakai allows group deny.
+      if (allowGroupDeny || !authorizable.isGroup()) {
+				//add a fresh ACE with the denied privileges
+				List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
+				for (String name : deniedPrivilegeNames) {
+					if (name.length() == 0) {
+						continue; //empty, skip it.
 					}
-					newPrivileges.append("denied=");
-					newPrivileges.append(privilege.getName());
+					Privilege privilege = accessControlManager.privilegeFromName(name);
+					deniedPrivilegeList.add(privilege);
+
+					if (log.isDebugEnabled()) {
+						if (newPrivileges.length() > 0) {
+							newPrivileges.append(", "); //separate entries by commas
+						}
+						newPrivileges.append("denied=");
+						newPrivileges.append(privilege.getName());
+					}
 				}
-			}
-			if (deniedPrivilegeList.size() > 0) {
-				Principal principal = authorizable.getPrincipal();
-				AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList.toArray(new Privilege[deniedPrivilegeList.size()]), false);
+				if (deniedPrivilegeList.size() > 0) {
+					Principal principal = authorizable.getPrincipal();
+					AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList.toArray(new Privilege[deniedPrivilegeList.size()]), false);
+				}
 			}
 
 			accessControlManager.setPolicy(resourcePath, updatedAcl);

@@ -23,13 +23,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.sakaiproject.kernel.resource.AbstractVirtualResourceType;
 import org.sakaiproject.kernel.resource.VirtualResourceType;
-
-import javax.jcr.Node;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the

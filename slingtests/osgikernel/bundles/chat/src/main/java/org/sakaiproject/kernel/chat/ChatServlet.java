@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.chat;
 
+import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -35,37 +38,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 import javax.servlet.ServletException;
 
 /**
  * Will check if a user has any chat updates.
- * 
- * @scr.component metatype="no" immediate="true" label="ChatServlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="chatupdate"
- * @scr.reference name="ChatManagerService"
- *                interface="org.sakaiproject.kernel.api.chat.ChatManagerService"
  */
-@ServiceDocumentation(
-    name = "ChatServlet", shortDescription="Check for new chat messages.",
-    description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.",
-    bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name="chatupdate")),
-    methods = { @ServiceMethod(name = "GET", 
-        response = {
-        @ServiceResponse(code = 200, description = "Normal retrieval."), 
-        @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.")
-        }, 
-        description = "GETs to this servlet will produce a JSON object with 2 keys. \n"
-    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The time since the last retrieval.</li></ul>", 
-    parameters = @ServiceParameter(name = "t", 
-        description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
+@SlingServlet(selectors = { "chatupdate" }, resourceTypes = { "sakai/messagestore" }, generateComponent = true, methods = { "GET" })
+@Reference(referenceInterface = ChatManagerService.class, name = "ChatManagerService")
+@ServiceDocumentation(name = "ChatServlet", shortDescription = "Check for new chat messages.", description = "Provides a mechanism to check if the currently logged in user has new chat messages awaiting.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/messagestore", selectors = @ServiceSelector(name = "chatupdate")), methods = { @ServiceMethod(name = "GET", response = {
+    @ServiceResponse(code = 200, description = "Normal retrieval."),
+    @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 3 keys. \n"
+    + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The current server time in millisecnds.</li><li>pulltime: The current time in a JCR formatted date.<li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
 public class ChatServlet extends SlingAllMethodsServlet {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
   private ChatManagerService chatManagerService;
+  private final static FastDateFormat dateFormat;
+
+  static {
+    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+  }
 
   protected void bindChatManagerService(ChatManagerService chatManagerService) {
     this.chatManagerService = chatManagerService;
@@ -76,31 +71,47 @@ public class ChatServlet extends SlingAllMethodsServlet {
   }
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
 
     String userID = request.getRemoteUser();
-    long time = System.currentTimeMillis();
+    boolean hasUpdate = false;
     RequestParameter timestampParam = request.getRequestParameter("t");
-    if (timestampParam != null) {
-      time = Long.parseLong(timestampParam.getString());
-    }
-    boolean update = chatManagerService.checkUpdate(userID, time);
 
-    if (update) {
-      // Because there is an update and we just retrieved it. We set a new time and send
-      // the new one back to the user.
-      time = System.currentTimeMillis();
-      chatManagerService.addUpdate(userID, time);
+    long time = System.currentTimeMillis();
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
+
+    Long lastUpdate = chatManagerService.get(userID);
+
+    if (lastUpdate == null) {
+      // This the first time (ever) the user poll's the chat update.
+      // Insert it.
+      chatManagerService.put(userID, time);
+      hasUpdate = true;
+    } else {
+      if (timestampParam != null) {
+        time = Long.parseLong(timestampParam.getString());
+
+        if (time < lastUpdate) {
+          hasUpdate = true;
+        }
+      } else {
+        hasUpdate = true;
+      }
     }
+
+    LOGGER.info("Returned time = {}, update = {}", time, hasUpdate);
 
     JSONWriter write = new JSONWriter(response.getWriter());
     try {
       write.object();
       write.key("update");
-      write.value(update);
+      write.value(hasUpdate);
       write.key("time");
-      write.value(time);
+      write.value(System.currentTimeMillis());
+      write.key("pulltime");
+      write.value(dateFormat.format(cal));
       write.endObject();
     } catch (JSONException e) {
       LOGGER.warn("Unable to parse JSON for user {} and time {}", userID, time);

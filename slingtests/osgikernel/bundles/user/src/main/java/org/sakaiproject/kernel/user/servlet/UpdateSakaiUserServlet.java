@@ -47,8 +47,8 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  * <h2>Rest Service Description</h2>
  * <p>
- * Updates a users properties. Maps on to nodes of resourceType <code>sling/users</code>
- * like <code>/rep:system/rep:userManager/rep:users</code> mapped to a resource url
+ * Updates a users properties. Maps on to nodes of resourceType <code>sling/users</code> like
+ * <code>/rep:system/rep:userManager/rep:users</code> mapped to a resource url
  * <code>/system/userManager/user/ieb</code>. This servlet responds at
  * <code>/system/userManager/user/ieb.update.html</code>
  * </p>
@@ -58,9 +58,9 @@ import javax.servlet.http.HttpServletResponse;
  * </ul>
  * <h4>Post Parameters</h4>
  * <dl>
- * <dt></dt>
+ * <dt>*</dt>
  * <dd>Any additional parameters become properties of the user node (optional)</dd>
- * <dt>@Delete</dt>
+ * <dt>*@Delete</dt>
  * <dd>Delete the property eg prop3@Delete means prop3 will be deleted (optional)</dd>
  * </dl>
  * <h4>Response</h4>
@@ -79,8 +79,8 @@ import javax.servlet.http.HttpServletResponse;
  * curl -Fprop1=value2 -Fproperty1=value1 http://localhost:8080/system/userManager/user/ieb.update.html
  * </code>
  * 
- * 
- * 
+ *
+ *
  * @scr.component metatype="no" immediate="true"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="sling.servlet.resourceTypes" value="sling/user"

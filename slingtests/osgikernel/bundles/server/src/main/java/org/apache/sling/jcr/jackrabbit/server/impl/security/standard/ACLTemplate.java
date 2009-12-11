@@ -19,18 +19,26 @@ package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 import org.apache.commons.collections.map.ListOrderedMap;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.principal.NoSuchPrincipalException;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.principal.NoSuchPrincipalException;
 import org.apache.jackrabbit.core.NodeImpl;
 import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
 import org.apache.jackrabbit.core.security.authorization.AccessControlEntryImpl;
 import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlList;
-import org.apache.jackrabbit.core.security.authorization.Permission;
 import org.apache.jackrabbit.core.security.authorization.PrivilegeRegistry;
+import org.apache.jackrabbit.core.security.authorization.Permission;
+import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.PropertyType;
+import javax.jcr.ValueFactory;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,12 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-
 /**
- * <p>
  * Implementation of the {@link JackrabbitAccessControlList} interface that
  * is detached from the effective access control content. Consequently, any
  * modifications applied to this ACL only take effect, if the policy gets
@@ -53,8 +56,10 @@ import javax.jcr.Value;
  * This is a modified version of the ACLTemplate that has the static collectEntries removed and replaced by a EntryCollector. This is the only change.
  * </p>
  */
-@SuppressWarnings("unchecked")
+// PLEASE DO NOT REFORMAT THIS CODE IF YOU DO THIS LINE WILL WRAP AND IT WILL MAKE FUTURE PATCHING VERY HARD, THANKS
 class ACLTemplate implements JackrabbitAccessControlList {
+
+    private static final Logger log = LoggerFactory.getLogger(ACLTemplate.class);
 
     /**
      * Path of the node this ACL template has been created for.
@@ -66,7 +71,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
      * name as key. The value represents a List containing maximal one grant
      * and one deny ACE per principal.
      */
-    private final Map<String,List<AccessControlEntry>> entries = new ListOrderedMap();
+    private final Map entries = new ListOrderedMap();
 
     /**
      * The principal manager used for validation checks
@@ -79,41 +84,63 @@ class ACLTemplate implements JackrabbitAccessControlList {
     private final PrivilegeRegistry privilegeRegistry;
 
     /**
+     * The value factory
+     */
+    private final ValueFactory valueFactory;
+
+    /**
      * Construct a new empty {@link ACLTemplate}.
      *
      * @param path
+     * @param privilegeRegistry
      * @param principalMgr
      */
-    ACLTemplate(String path, PrincipalManager principalMgr, PrivilegeRegistry privilegeRegistry) {
+    ACLTemplate(String path, PrincipalManager principalMgr, 
+                PrivilegeRegistry privilegeRegistry, ValueFactory valueFactory) {
         this.path = path;
         this.principalMgr = principalMgr;
         this.privilegeRegistry = privilegeRegistry;
+        this.valueFactory = valueFactory;
     }
 
     /**
      * Create a {@link ACLTemplate} that is used to edit an existing ACL
      * node.
+     *
+     * @param aclNode
+     * @param privilegeRegistry
+     * @throws RepositoryException
      */
     ACLTemplate(NodeImpl aclNode, PrivilegeRegistry privilegeRegistry) throws RepositoryException {
         if (aclNode == null || !aclNode.isNodeType(AccessControlConstants.NT_REP_ACL)) {
-            throw new IllegalArgumentException("Node must be of type: " +
-                    AccessControlConstants.NT_REP_ACL);
+            throw new IllegalArgumentException("Node must be of type 'rep:ACL'");
         }
         SessionImpl sImpl = (SessionImpl) aclNode.getSession();
         path = aclNode.getParent().getPath();
         principalMgr = sImpl.getPrincipalManager();
+        valueFactory = sImpl.getValueFactory();
+        
         this.privilegeRegistry = privilegeRegistry;
 
         // load the entries:
         AccessControlManager acMgr = sImpl.getAccessControlManager();
         NodeIterator itr = aclNode.getNodes();
         while (itr.hasNext()) {
-            
             NodeImpl aceNode = (NodeImpl) itr.nextNode();
-
-            String principalName = aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString();
             try {
-                Principal princ = principalMgr.getPrincipal(principalName);
+                String principalName = aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString();
+                Principal princ = null;
+                if (principalMgr.hasPrincipal(principalName)) {
+                    try {
+                        princ = principalMgr.getPrincipal(principalName);
+                    } catch (NoSuchPrincipalException e) {
+                        // should not get here.
+                    }
+                }
+                if (princ == null) {
+                    log.debug("Principal with name " + principalName + " unknown to PrincipalManager.");
+                    princ = new PrincipalImpl(principalName);
+                }
 
                 Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES).getValues();
                 Privilege[] privs = new Privilege[privValues.length];
@@ -124,37 +151,36 @@ class ACLTemplate implements JackrabbitAccessControlList {
                 Entry ace = new Entry(
                         princ,
                         privs,
-                        aceNode.isNodeType(AccessControlConstants.NT_REP_GRANT_ACE));
+                        aceNode.isNodeType(AccessControlConstants.NT_REP_GRANT_ACE),
+                        valueFactory);
                 // add the entry
                 internalAdd(ace);
-            } catch ( NoSuchPrincipalException e ) {
-              // do nothing, the ACE can be ignored, if it was granted, there is no effect, if denied, no effect
-              // since the user no longer exists. This is fixed slightly differently post 1.5.7 JR
+            } catch (RepositoryException e) {
+                log.debug("Failed to build ACE from content.", e.getMessage());
             }
         }
     }
 
-
-    private List<AccessControlEntry> internalGetEntries() {
-        List<AccessControlEntry> l = new ArrayList<AccessControlEntry>();
-        for (Iterator<List<AccessControlEntry>> it = entries.values().iterator(); it.hasNext();) {
-            l.addAll(it.next());
+    private List internalGetEntries() {
+        List l = new ArrayList();
+        for (Iterator it = entries.values().iterator(); it.hasNext();) {
+            l.addAll((List) it.next());
         }
         return l;
     }
 
-    private List<AccessControlEntry> internalGetEntries(Principal principal) {
+    private List internalGetEntries(Principal principal) {
         String principalName = principal.getName();
         if (entries.containsKey(principalName)) {
-            return entries.get(principalName);
+            return (List) entries.get(principalName);
         } else {
-            return new ArrayList<AccessControlEntry>(2);
+            return new ArrayList(2);
         }
     }
 
     private synchronized boolean internalAdd(Entry entry) throws AccessControlException {
         Principal principal = entry.getPrincipal();
-        List<AccessControlEntry> l = internalGetEntries(principal);
+        List l = internalGetEntries(principal);
         if (l.isEmpty()) {
             // simple case: just add the new entry
             l.add(entry);
@@ -183,7 +209,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
                     int mergedBits = entries[i].getPrivilegeBits() | entry.getPrivilegeBits();
                     Privilege[] mergedPrivs = privilegeRegistry.getPrivileges(mergedBits);
                     // omit validation check.
-                    entry = new Entry(entry.getPrincipal(), mergedPrivs, entry.isAllow());
+                    entry = new Entry(entry.getPrincipal(), mergedPrivs, entry.isAllow(), valueFactory);
                 } else {
                     complementEntry = entries[i];
                 }
@@ -202,7 +228,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
                     // omit validation check
                     Entry tmpl = new Entry(entry.getPrincipal(),
                             privilegeRegistry.getPrivileges(resultPrivs),
-                            !entry.isAllow());
+                            !entry.isAllow(), valueFactory);
                     l.add(tmpl);
                 } /* else: does not need to be modified.*/
             }
@@ -240,7 +266,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
      * @see org.apache.jackrabbit.api.jsr283.security.AccessControlList#getAccessControlEntries()
      */
     public AccessControlEntry[] getAccessControlEntries() throws RepositoryException {
-        List<AccessControlEntry> l = internalGetEntries();
+        List l = internalGetEntries();
         return (AccessControlEntry[]) l.toArray(new AccessControlEntry[l.size()]);
     }
 
@@ -260,7 +286,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
         if (!(ace instanceof Entry)) {
             throw new AccessControlException("Invalid AccessControlEntry implementation " + ace.getClass().getName() + ".");
         }
-        List<AccessControlEntry> l = internalGetEntries(ace.getPrincipal());
+        List l = internalGetEntries(ace.getPrincipal());
         if (l.remove(ace)) {
             if (l.isEmpty()) {
                 entries.remove(ace.getPrincipal().getName());
@@ -276,6 +302,25 @@ class ACLTemplate implements JackrabbitAccessControlList {
      */
     public String getPath() {
         return path;
+    }
+
+    /**
+     * Returns an empty String array.
+     *
+     * @see JackrabbitAccessControlList#getRestrictionType(String)
+     */
+    public String[] getRestrictionNames() {
+        return new String[0];
+    }
+
+    /**
+     * Always returns {@link PropertyType#UNDEFINED} as no restrictions are
+     * supported.
+     *
+     * @see JackrabbitAccessControlList#getRestrictionType(String)
+     */
+    public int getRestrictionType(String restrictionName) {
+        return PropertyType.UNDEFINED;
     }
 
     /**
@@ -311,7 +356,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
         }
 
         checkValidEntry(principal, privileges, isAllow);
-        Entry ace = new Entry(principal, privileges, isAllow);
+        Entry ace = new Entry(principal, privileges, isAllow, valueFactory);
         return internalAdd(ace);
     }
 
@@ -330,7 +375,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
     /**
      * Returns true if the path and the entries are equal; false otherwise.
      *
-     * @param obj
+     * @param obj Object to be tested.
      * @return true if the path and the entries are equal; false otherwise.
      * @see Object#equals(Object)
      */
@@ -340,7 +385,7 @@ class ACLTemplate implements JackrabbitAccessControlList {
         }
 
         if (obj instanceof ACLTemplate) {
-          ACLTemplate acl = (ACLTemplate) obj;
+            ACLTemplate acl = (ACLTemplate) obj;
             return path.equals(acl.path) && entries.equals(acl.entries);
         }
         return false;
@@ -350,14 +395,11 @@ class ACLTemplate implements JackrabbitAccessControlList {
     /**
      *
      */
-    static class Entry extends AccessControlEntryImpl  {
+    static class Entry extends AccessControlEntryImpl {
 
-
-        Entry(Principal principal, Privilege[] privileges, boolean allow) throws AccessControlException {
-            super(principal, privileges, allow, Collections.EMPTY_MAP);
+        Entry(Principal principal, Privilege[] privileges, boolean allow, ValueFactory valueFactory) throws AccessControlException {
+            super(principal, privileges, allow, Collections.EMPTY_MAP, valueFactory);
         }
-
-        
     }
     
     static class ComparableEntry extends Entry implements ComparableAccessControlEntry {
@@ -366,8 +408,8 @@ class ACLTemplate implements JackrabbitAccessControlList {
       private boolean isGroup;
       private Principal principal;
 
-      ComparableEntry(String path, boolean isGroup, Principal principal, Privilege[] privileges, boolean allow) throws AccessControlException {
-          super(principal, privileges, allow);
+      ComparableEntry(String path, boolean isGroup, Principal principal, Privilege[] privileges, boolean allow, ValueFactory valueFactory) throws AccessControlException {
+          super(principal, privileges, allow, valueFactory);
           this.principal = principal;
           this.path = path;
           this.isGroup = isGroup;

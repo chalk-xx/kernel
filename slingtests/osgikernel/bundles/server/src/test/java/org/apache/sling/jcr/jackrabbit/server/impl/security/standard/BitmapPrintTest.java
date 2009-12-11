@@ -17,18 +17,10 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 
-import static org.easymock.EasyMock.expect;
-
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.core.security.authorization.JackrabbitAccessControlEntry;
-import org.apache.jackrabbit.spi.NameFactory;
-import org.apache.jackrabbit.spi.commons.conversion.NameResolver;
-import org.apache.jackrabbit.spi.commons.name.NameFactoryImpl;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,14 +32,14 @@ public class BitmapPrintTest {
 
   
   private List<Object> objects = new ArrayList<Object>();
-  private JackrabbitAccessControlEntry ace;
+  private ACLTemplate.Entry ace;
 
   
   @Before
   public void before() {
     try {
       objects = new ArrayList<Object>();
-      ace = createMock(JackrabbitAccessControlEntry.class);
+      ace = createMock(ACLTemplate.Entry.class);
     } catch (Exception ex) {
       ex.printStackTrace();
     }
