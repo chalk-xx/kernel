@@ -37,7 +37,7 @@ import javax.jcr.Node;
  *
  * @author Carl Hall
  */
-@Component
+@Component(metatype = true, enabled = false)
 @Service
 public class LdapPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(LdapPersonProvider.class);

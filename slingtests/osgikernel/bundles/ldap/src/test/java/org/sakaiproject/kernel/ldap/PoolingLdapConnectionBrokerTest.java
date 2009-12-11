@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.net.ServerSocket;
@@ -156,44 +155,49 @@ public class PoolingLdapConnectionBrokerTest {
     String t = Boolean.TRUE.toString();
     String f = Boolean.FALSE.toString();
     Properties m = new Properties();
-    m.put(LdapConstants.AUTO_BIND, t);
-    m.put(LdapConstants.FOLLOW_REFERRALS, t);
-    m.put(LdapConstants.HOST, "localhoster");
-    m.put(LdapConstants.KEYSTORE_LOCATION, "over there");
-    m.put(LdapConstants.KEYSTORE_PASSWORD, "open sesame");
-    m.put(LdapConstants.OPERATION_TIMEOUT, Integer.toString(Integer.MIN_VALUE));
-    m.put(LdapConstants.PASSWORD, "secret");
-    m.put(LdapConstants.POOLING, f);
-    m.put(LdapConstants.POOLING_MAX_CONNS, Integer.toString(Integer.MAX_VALUE));
-    m.put(LdapConstants.PORT, Integer.toString(LDAPConnection.DEFAULT_SSL_PORT));
-    m.put(LdapConstants.SECURE_CONNECTION, f);
-    m.put(LdapConstants.TLS, t);
-    m.put(LdapConstants.USER, "user1");
+    m.put(PoolingLdapConnectionBroker.AUTO_BIND, t);
+    m.put(PoolingLdapConnectionBroker.FOLLOW_REFERRALS, t);
+    m.put(PoolingLdapConnectionBroker.HOST, "localhoster");
+    m.put(PoolingLdapConnectionBroker.KEYSTORE_LOCATION, "over there");
+    m.put(PoolingLdapConnectionBroker.KEYSTORE_PASSWORD, "open sesame");
+    m.put(PoolingLdapConnectionBroker.OPERATION_TIMEOUT, Integer.toString(Integer.MIN_VALUE));
+    m.put(PoolingLdapConnectionBroker.PASSWORD, "secret");
+    m.put(PoolingLdapConnectionBroker.POOLING, f);
+    m.put(PoolingLdapConnectionBroker.POOLING_MAX_CONNS, Integer.toString(Integer.MAX_VALUE));
+    m.put(PoolingLdapConnectionBroker.PORT, Integer.toString(LDAPConnection.DEFAULT_SSL_PORT));
+    m.put(PoolingLdapConnectionBroker.SECURE_CONNECTION, f);
+    m.put(PoolingLdapConnectionBroker.TLS, t);
+    m.put(PoolingLdapConnectionBroker.USER, "user1");
     broker.update(m);
 
     LdapConnectionManagerConfig defaults = broker.getDefaultConfig();
-    assertEquals(Boolean.parseBoolean(m.getProperty(LdapConstants.AUTO_BIND)), defaults
+    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.AUTO_BIND)),
+        defaults
         .isAutoBind());
-    assertEquals(Boolean.parseBoolean(m.getProperty(LdapConstants.FOLLOW_REFERRALS)),
+    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.FOLLOW_REFERRALS)),
         defaults.isFollowReferrals());
-    assertEquals(m.getProperty(LdapConstants.HOST), defaults.getLdapHost());
-    assertEquals(m.getProperty(LdapConstants.KEYSTORE_LOCATION), defaults
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.HOST), defaults.getLdapHost());
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.KEYSTORE_LOCATION), defaults
         .getKeystoreLocation());
-    assertEquals(m.getProperty(LdapConstants.KEYSTORE_PASSWORD), defaults
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.KEYSTORE_PASSWORD), defaults
         .getKeystorePassword());
-    assertEquals(Integer.parseInt(m.getProperty(LdapConstants.OPERATION_TIMEOUT)), defaults
+    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.OPERATION_TIMEOUT)),
+        defaults
         .getOperationTimeout());
-    assertEquals(m.getProperty(LdapConstants.PASSWORD), defaults.getLdapPassword());
-    assertEquals(Boolean.parseBoolean(m.getProperty(LdapConstants.POOLING)), defaults
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.PASSWORD), defaults.getLdapPassword());
+    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.POOLING)), defaults
         .isPooling());
-    assertEquals(Integer.parseInt(m.getProperty(LdapConstants.POOLING_MAX_CONNS)), defaults
+    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.POOLING_MAX_CONNS)),
+        defaults
         .getPoolMaxConns());
-    assertEquals(Integer.parseInt(m.getProperty(LdapConstants.PORT)), defaults
+    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.PORT)), defaults
         .getLdapPort());
-    assertEquals(Boolean.parseBoolean(m.getProperty(LdapConstants.SECURE_CONNECTION)),
+    assertEquals(
+        Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.SECURE_CONNECTION)),
         defaults.isSecureConnection());
-    assertEquals(Boolean.parseBoolean(m.getProperty(LdapConstants.TLS)), defaults.isTLS());
-    assertEquals(m.getProperty(LdapConstants.USER), defaults.getLdapUser());
+    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.TLS)), defaults
+        .isTLS());
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.USER), defaults.getLdapUser());
   }
 
   @Test

@@ -22,12 +22,12 @@ import com.novell.ldap.LDAPConnection;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.util.Dictionary;
@@ -39,11 +39,38 @@ import java.util.Hashtable;
  * requested by name, the associated factory is used to create a pooled
  * connection.
  */
-@Component
+@Component(metatype = true)
 @Service
 public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   private Hashtable<String, LdapConnectionManager> factories;
   private LdapConnectionManagerConfig defaults;
+
+  @Property(boolValue = false)
+  protected static final String AUTO_BIND = "sakai.ldap.autobind";
+  @Property(boolValue = false)
+  protected static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
+  @Property
+  protected static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+  @Property
+  protected static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
+  @Property
+  protected static final String HOST = "sakai.ldap.host";
+  @Property
+  protected static final String PORT = "sakai.ldap.port";
+  @Property
+  protected static final String USER = "sakai.ldap.user";
+  @Property
+  protected static final String PASSWORD = "sakai.ldap.password";
+  @Property(boolValue = false)
+  protected static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
+  @Property(intValue = 5000)
+  protected static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
+  @Property(boolValue = true)
+  protected static final String POOLING = "sakai.ldap.pooling";
+  @Property(intValue = 10)
+  protected static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
+  @Property(boolValue = false)
+  protected static final String TLS = "sakai.ldap.tls";
 
   /**
    * Default constructor for normal usage.
@@ -196,19 +223,19 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   public void update(Dictionary props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
-      String autoBind = (String) props.get(LdapConstants.AUTO_BIND);
-      String followReferrals = (String) props.get(LdapConstants.FOLLOW_REFERRALS);
-      String keystoreLocation = (String) props.get(LdapConstants.KEYSTORE_LOCATION);
-      String keystorePassword = (String) props.get(LdapConstants.KEYSTORE_PASSWORD);
-      String secureConnection = (String) props.get(LdapConstants.SECURE_CONNECTION);
-      String host = (String) props.get(LdapConstants.HOST);
-      String port = (String) props.get(LdapConstants.PORT);
-      String user = (String) props.get(LdapConstants.USER);
-      String password = (String) props.get(LdapConstants.PASSWORD);
-      String operationTimeout = (String) props.get(LdapConstants.OPERATION_TIMEOUT);
-      String pooling = (String) props.get(LdapConstants.POOLING);
-      String maxConns = (String) props.get(LdapConstants.POOLING_MAX_CONNS);
-      String tls = (String) props.get(LdapConstants.TLS);
+      String autoBind = (String) props.get(AUTO_BIND);
+      String followReferrals = (String) props.get(FOLLOW_REFERRALS);
+      String keystoreLocation = (String) props.get(KEYSTORE_LOCATION);
+      String keystorePassword = (String) props.get(KEYSTORE_PASSWORD);
+      String secureConnection = (String) props.get(SECURE_CONNECTION);
+      String host = (String) props.get(HOST);
+      String port = (String) props.get(PORT);
+      String user = (String) props.get(USER);
+      String password = (String) props.get(PASSWORD);
+      String operationTimeout = (String) props.get(OPERATION_TIMEOUT);
+      String pooling = (String) props.get(POOLING);
+      String maxConns = (String) props.get(POOLING_MAX_CONNS);
+      String tls = (String) props.get(TLS);
 
       if (autoBind != null) {
         config.setAutoBind(Boolean.parseBoolean(autoBind));
