@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServletResponse;
  * This servlet is triggered by accessing a user node a 'profile' selector and
  * 'json' extension.
  */
-@SlingServlet(methods = "GET", selectors = "xprofilex", extensions = "json")
+@SlingServlet(methods = "GET", resourceTypes = "sakai/user", selectors = "profile", extensions = "json")
 @ServiceDocumentation(name = "Person Directory Servlet", description = "Servlet for looking up person information from various federated sources. This servlet is triggered by accessing a user node a 'profile' selector and 'json' extension.", methods = { @ServiceMethod(name = "GET", description = "Returns the person information found by querying all registered person providers.") })
 public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
 

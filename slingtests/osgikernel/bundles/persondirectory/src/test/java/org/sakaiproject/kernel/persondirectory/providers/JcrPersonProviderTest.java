@@ -67,9 +67,48 @@ public class JcrPersonProviderTest {
     Node node = createMock(Node.class);
     expect(node.getNode(PersonalConstants.AUTH_PROFILE)).andReturn(authprofile);
 
+    expect(node.hasProperty(JcrPersonProvider.SLING_RESOURCE_TYPE)).andReturn(Boolean.FALSE);
+
     replay(value, propDef, prop, propIt, authprofile, node);
 
     Person person = provider.getPerson("chall39", node);
+    assertEquals("chall39", person.getName());
+    assertEquals("Carl", person.getAttributeValue("Firstname"));
+  }
+
+  @Test
+  public void testGetPersonStartWithAuthNode() throws Exception {
+    Value value = createMock(Value.class);
+    expect(value.getString()).andReturn("Carl");
+
+    PropertyDefinition propDef = createMock(PropertyDefinition.class);
+    expect(propDef.isMultiple()).andReturn(false);
+
+    Property prop = createMock(Property.class);
+    expect(prop.getName()).andReturn("Firstname");
+    expect(prop.getDefinition()).andReturn(propDef);
+    expect(prop.getValue()).andReturn(value);
+
+    PropertyIterator propIt = createMock(PropertyIterator.class);
+    expect(propIt.hasNext()).andReturn(true);
+    expect(propIt.nextProperty()).andReturn(prop);
+    expect(propIt.hasNext()).andReturn(false);
+
+    Node authprofile = createMock(Node.class);
+    expect(authprofile.getProperties()).andReturn(propIt);
+    expect(authprofile.hasProperty("Firstname")).andReturn(true);
+    expect(authprofile.getProperty("Firstname")).andReturn(prop);
+
+    expect(authprofile.hasProperty(JcrPersonProvider.SLING_RESOURCE_TYPE)).andReturn(Boolean.TRUE);
+
+    Property resourceTypeProp = createMock(Property.class);
+    expect(resourceTypeProp.getString()).andReturn(JcrPersonProvider.SAKAI_USER_PROFILE);
+    expect(authprofile.getProperty(JcrPersonProvider.SLING_RESOURCE_TYPE)).andReturn(
+        resourceTypeProp);
+
+    replay(value, propDef, prop, propIt, authprofile, resourceTypeProp);
+
+    Person person = provider.getPerson("chall39", authprofile);
     assertEquals("chall39", person.getName());
     assertEquals("Carl", person.getAttributeValue("Firstname"));
   }
@@ -79,6 +118,7 @@ public class JcrPersonProviderTest {
     Node node = createMock(Node.class);
     expect(node.getNode(PersonalConstants.AUTH_PROFILE)).andThrow(
         new RepositoryException());
+    expect(node.hasProperty(JcrPersonProvider.SLING_RESOURCE_TYPE)).andReturn(Boolean.FALSE);
 
     replay(node);
 

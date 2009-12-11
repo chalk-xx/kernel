@@ -22,11 +22,22 @@ import javax.jcr.Value;
 public class JcrPersonProvider implements PersonProvider {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JcrPersonProvider.class);
+  protected static final String SLING_RESOURCE_TYPE = "sling:resourceType";
+  protected static final String SAKAI_USER_PROFILE = "sakai/user-profile";
 
   public Person getPerson(String uid, Node personNode) throws PersonProviderException {
     PersonImpl jcrPerson = new PersonImpl(uid);
     try {
-      Node authProfileNode = personNode.getNode(PersonalConstants.AUTH_PROFILE);
+      Node authProfileNode = null;
+      if (personNode.hasProperty(SLING_RESOURCE_TYPE)) {
+        Property resourceTypeProp = personNode.getProperty(SLING_RESOURCE_TYPE);
+        if (SAKAI_USER_PROFILE.equals(resourceTypeProp.getString())) {
+          authProfileNode = personNode;
+        }
+      }
+      if (authProfileNode == null) {
+        authProfileNode = personNode.getNode(PersonalConstants.AUTH_PROFILE);
+      }
       if (authProfileNode != null) {
         PropertyIterator props = authProfileNode.getProperties();
 
