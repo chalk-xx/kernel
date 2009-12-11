@@ -127,6 +127,7 @@ public class PersonDirectoryServlet extends SlingSafeMethodsServlet {
         jsonWriter.endObject();
       } else {
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        response.setIntHeader("Content-Length", 0);
       }
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());

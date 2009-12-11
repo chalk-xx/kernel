@@ -61,7 +61,7 @@ public class LdapPersonProvider implements PersonProvider {
   @Property(value = "uid={}")
   protected static final String PROP_FILTER_PATTERN = "ldap.provider.filter.pattern";
 
-  @Property(value = { "key1=>key1", "key2*=>key2" })
+  @Property(value = { "key1=>key1", "key2=>key2" })
   protected static final String PROP_ATTRIBUTES = "ldap.provider.attributes";
 
   @Reference

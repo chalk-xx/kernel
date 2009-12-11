@@ -47,28 +47,40 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
 
   @Property(boolValue = false)
   protected static final String AUTO_BIND = "sakai.ldap.autobind";
+
   @Property(boolValue = false)
   protected static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
+
   @Property
   protected static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+
   @Property
   protected static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
+
   @Property
   protected static final String HOST = "sakai.ldap.host";
+
   @Property
   protected static final String PORT = "sakai.ldap.port";
+
   @Property
   protected static final String USER = "sakai.ldap.user";
+
   @Property
   protected static final String PASSWORD = "sakai.ldap.password";
+
   @Property(boolValue = false)
   protected static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
+
   @Property(intValue = 5000)
   protected static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
+
   @Property(boolValue = true)
   protected static final String POOLING = "sakai.ldap.pooling";
+
   @Property(intValue = 10)
   protected static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
+
   @Property(boolValue = false)
   protected static final String TLS = "sakai.ldap.tls";
 
@@ -185,9 +197,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     LDAPConnection conn = mgr.getConnection();
     return conn;
     // } else {
-      // throw new LdapException("No factory found for [" + name
-      // +
-      // "].  Be sure to call create(String) before calling getConnection(String).");
+    // throw new LdapException("No factory found for [" + name +
+    // "].  Be sure to call create(String) before calling getConnection(String).");
     // }
   }
 
@@ -209,10 +220,10 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     // get a connection from the manager and return it
     LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
     return conn;
-//    } else {
-//      throw new LdapException("No factory found for [" + name
-//          + "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
-//    }
+    // } else {
+    // throw new LdapException("No factory found for [" + name +
+    // "].  Be sure to call create(String) before calling getBoundConnection(String, char[]).");
+    // }
   }
 
   public LdapConnectionManagerConfig getDefaultConfig() {

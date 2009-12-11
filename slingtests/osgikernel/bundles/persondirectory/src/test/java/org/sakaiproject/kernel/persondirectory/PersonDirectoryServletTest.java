@@ -302,8 +302,11 @@ public class PersonDirectoryServletTest {
     expect(profileNode.getName()).andReturn("user0");
     response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     expectLastCall();
+    response.setIntHeader("Content-Length", 0);
+    expectLastCall();
     replay(request, response, resource, profileNode);
     servlet.doGet(request, response);
+    assertEquals(0, writer.toString().length());
   }
 
   @Test
