@@ -17,7 +17,7 @@ export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
 export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
-export K2_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
 BUILD_DATE=`date "+%D %R"`
 
 # ensure logs directory exists
@@ -87,6 +87,9 @@ REPO_REV=`svn info|grep Revision`
 # SAK-17223 K2AuthenticationFilter
 rm -rf login/
 svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223/ login
+# SAK-17222 K2UserDirectoryProvider
+rm -rf providers
+svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222 providers
 # KERN-360 Servlet and TrustedLoginFilter RESTful services
 cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
 #sed -i 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml 
@@ -115,8 +118,6 @@ echo "top.login=false" >> sakai2-demo/sakai/sakai.properties
 echo "container.login=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication=true" >> sakai2-demo/sakai/sakai.properties
 echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
-# enable SAK-17538 auto provisioning of users in Sakai2 if they do not exist
-echo "login.k2.authentication.autoProvisionUser=true" >> sakai2-demo/sakai/sakai.properties
 # declare shared secret for trusted login from K2
 echo "org.sakaiproject.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
 
