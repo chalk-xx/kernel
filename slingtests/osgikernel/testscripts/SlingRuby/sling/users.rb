@@ -15,6 +15,7 @@ module SlingUsers
     end
 
   end
+  
 
   class Group < Principal
     def to_s
@@ -95,6 +96,12 @@ module SlingUsers
     end
   end
 
+  class Owner < Principal
+	def initialize()
+		super("owner")
+	end
+  end
+  
   class User < Principal
     attr_accessor :password
 

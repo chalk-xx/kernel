@@ -7,7 +7,19 @@ module SlingAuthz
     def initialize(sling)
       @sling = sling
     end
-	
+
+    def delete(path,principal)
+	postParams = {}
+	  postParams[':applyTo'] = [principal]
+	  urlpath = @sling.url_for(path)	  
+	  res = @sling.execute_post(urlpath+".deleteAce.html", postParams)
+	  if ( res.code != "200" )
+	     puts(res.body)
+	     puts(" Unable to update acl at #{path} "+postParams)
+		 return false 
+	  end 
+
+	end
 
     def grant(path,principal,privilege)
 	  
