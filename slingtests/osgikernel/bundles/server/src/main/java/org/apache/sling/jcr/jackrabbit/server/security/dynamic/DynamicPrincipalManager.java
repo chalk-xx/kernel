@@ -32,13 +32,15 @@ public interface DynamicPrincipalManager {
    * @param principalName
    *          the name of the principal
    * @param aclNode
-   *          the ACL node associated with the node under test
+   *          the acl node which has triggered the request.
+   * @param contextNode
+   *          the node which the acl is being applied to, normally a decendent of the parent node of the acl node.
    * @param userId
    *          the user id making the request (note this is *not* the same as the user id
    *          bound to the session), may be null
    * @return true if the user has the principal.
    */
-  boolean hasPrincipalInContext(String principalName, Node aclNode, String userId);
+  boolean hasPrincipalInContext(String principalName, Node aclNode, Node contextNode, String userId);
 
   /**
    * Get the members of the supplied principal, if that is a user, it may have no members,

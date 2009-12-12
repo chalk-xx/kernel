@@ -67,9 +67,9 @@ public class DynamicEntryCollector extends EntryCollectorImpl {
    *      org.apache.jackrabbit.core.NodeImpl, java.util.Map)
    */
   @Override
-  protected boolean hasPrincipal(String principalName, NodeImpl aclNode,
+  protected boolean hasPrincipal(String principalName, NodeImpl aclNode, NodeImpl contextNode,
       Map<String, List<AccessControlEntry>> princToEntries, String userId) {
-    if (super.hasPrincipal(principalName, aclNode, princToEntries, userId)) {
+    if (super.hasPrincipal(principalName, aclNode, contextNode, princToEntries, userId)) {
       return true;
     }
     /*
@@ -112,7 +112,7 @@ public class DynamicEntryCollector extends EntryCollectorImpl {
         LOG.error("Unable to access user manager", e);
       }
     }
-    return dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode, userId);
+    return dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode, contextNode, userId);
   }
 
 }

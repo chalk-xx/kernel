@@ -745,7 +745,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
             for (Iterator it = principalNames.iterator(); it.hasNext();) {
                 principalNamesToEntries.put((String) it.next(), new ArrayList());
             }
-            collectEntries(node, userId, valueFactory);
+            collectEntries(node, node, userId, valueFactory);
             Collections.sort(orderedAccessControlEntries);
             log.debug("ACL Order for {} is {} ", node.getPath(), orderedAccessControlEntries);
         }
@@ -757,19 +757,19 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
          *            the userId which may be null
          * @throws RepositoryException
          */
-        private void collectEntries(NodeImpl node, String userId, ValueFactory valueFactory) throws RepositoryException {
+        private void collectEntries(NodeImpl node, NodeImpl contextNode, String userId, ValueFactory valueFactory) throws RepositoryException {
             // if the given node is access-controlled, construct a new ACL and add
             // it to the list
             if (isAccessControlled(node)) {
                 // build acl for the access controlled node
                 NodeImpl aclNode = node.getNode(N_POLICY);
                 // get the collector and collect entries
-                getEntryCollector().collectEntries(aclNode, principalNamesToEntries, orderedAccessControlEntries, userId, valueFactory);
+                getEntryCollector().collectEntries(aclNode,  contextNode, principalNamesToEntries, orderedAccessControlEntries, userId, valueFactory);
             }
             // then, recursively look for access controlled parents up the hierarchy.
             if (!rootNodeId.equals(node.getId())) {
                 NodeImpl parentNode = (NodeImpl) node.getParent();
-                collectEntries(parentNode, userId, valueFactory);
+                collectEntries(parentNode, contextNode, userId, valueFactory);
             }
         }
 

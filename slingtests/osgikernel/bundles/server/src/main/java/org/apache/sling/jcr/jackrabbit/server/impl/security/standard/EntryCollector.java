@@ -38,12 +38,13 @@ public interface EntryCollector {
    * Collect ACE's for the configured context.
    * 
    * @param aclNode
+   * @param contextNode - the node at which the acl is being built
    * @param principalNamesToEntries
    * @param orderedAccessControlEntries 
    * @param userId the user the entries are being collected for (may be null)
    * @throws RepositoryException
    */
-  void collectEntries(NodeImpl aclNode,
+  void collectEntries(NodeImpl aclNode, NodeImpl contextNode,
       Map<String, List<AccessControlEntry>> principalNamesToEntries, List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId, ValueFactory valueFactory)
       throws RepositoryException;
 
