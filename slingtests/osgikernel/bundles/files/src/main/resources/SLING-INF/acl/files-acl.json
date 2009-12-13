@@ -26,7 +26,8 @@
  		"path":"/_user/files",
  		"principal":"everyone",
  		"privilege@jcr:read":"granted",
- 		"privilege@jcr:addChildNodes":"granted"
+ 		"privilege@jcr:addChildNodes":"granted",
+ 		"privilege@jcr:nodeTypeManagement":"granted"
  		
  	}
  ],

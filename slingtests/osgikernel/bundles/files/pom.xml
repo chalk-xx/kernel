@@ -39,6 +39,7 @@
             <Export-Package> org.sakaiproject.kernel.api.files </Export-Package>
             <Private-Package> org.sakaiproject.kernel.files.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+            <Sakai-Initial-Security>SLING-INF/acl/files-acl.json</Sakai-Initial-Security>
           </instructions>
         </configuration>
       </plugin>
