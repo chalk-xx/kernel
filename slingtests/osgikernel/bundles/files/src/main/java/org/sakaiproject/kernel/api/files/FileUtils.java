@@ -17,10 +17,19 @@
  */
 package org.sakaiproject.kernel.api.files;
 
+import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
+
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.value.ValueFactoryImpl;
 import org.apache.jackrabbit.value.ValueHelper;
 import org.apache.sling.api.request.RequestParameter;
@@ -30,7 +39,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.util.ACLUtils;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.sakaiproject.kernel.util.PathUtils;
@@ -81,58 +89,54 @@ public class FileUtils {
     if (fileName != null && !fileName.equals("")) {
       // Clean the filename.
 
+      String userId = session.getUserID();
       log.info("Trying to save file {} to {} for user {}", new Object[] { fileName, path,
-          session.getUserID() });
+          userId });
 
       // Create or get the file.
-      Node fileNode = JcrUtils.deepGetOrCreateNode(session, path, JcrConstants.NT_FILE);
-
-      Node content = null;
-      // If this is a new node then we have to add certain things.
-      if (fileNode.isNew()) {
-        // Make sure we can reference this node.
-        if (fileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
-          fileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
-        }
-        fileNode.addMixin("sakai:propertiesmix");
-        fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            FilesConstants.RT_SAKAI_FILE);
-        fileNode.setProperty(FilesConstants.SAKAI_ID, id);
-
-        // Create the content node.
-        content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
-        content.setProperty(JcrConstants.JCR_DATA, is);
-        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-
-        log.info(Calendar.getInstance().toString());
-        
-        if (session.hasPendingChanges()) {
-          session.save();
-        }
-
-        // TODO: Check that this isnt a fix for the Owner dynamic principal not working.
-        // Make sure that the user can edit it later on.
+      if ( !session.itemExists(path) ) {
+        // create the node administratively, and set permissions
         Session adminSession = null;
         try {
-
           adminSession = slingRepository.loginAdministrative(null);
-          Authorizable authorizable = AccessControlUtil.getUserManager(adminSession)
-              .getAuthorizable(session.getUserID());
 
-          ACLUtils.addEntry(path, authorizable, adminSession, "g:" + Privilege.JCR_ALL);
+          Node fileNode = JcrUtils.deepGetOrCreateNode(adminSession, path, JcrConstants.NT_FILE);
+          Node content = null;
+          UserManager userManager = AccessControlUtil.getUserManager(adminSession);
+          Authorizable authorizable = userManager.getAuthorizable(userId);
+          // configure the ACL for this node.
+          addEntry(fileNode.getPath(), authorizable, adminSession, READ_GRANTED, WRITE_GRANTED,
+              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
+              REMOVE_NODE_GRANTED);
+          if (fileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
+            fileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+          }
+          fileNode.addMixin("sakai:propertiesmix");
+          fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+              FilesConstants.RT_SAKAI_FILE);
+          fileNode.setProperty(FilesConstants.SAKAI_ID, id);
 
+          // Create the content node.
+          content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
+          content.setProperty(JcrConstants.JCR_DATA, is);
+          content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+          content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+          // Set the person who last modified it.s
+          fileNode.setProperty(FilesConstants.SAKAI_USER, userId);
+
+          fileNode.setProperty("sakai:filename", fileName);
           if (adminSession.hasPendingChanges()) {
             adminSession.save();
           }
         } finally {
-          if (adminSession != null)
-            adminSession.logout();
+          adminSession.logout();
         }
-
+        return (Node) session.getItem(path);
       } else {
+        Node fileNode = (Node) session.getItem(path);
         // This is not a new node, so we should already have a content node.
         // Just in case.. catch it
+        Node content = null;
         try {
           content = fileNode.getNode(JcrConstants.JCR_CONTENT);
         } catch (PathNotFoundException pnfe) {
@@ -142,18 +146,15 @@ public class FileUtils {
         content.setProperty(JcrConstants.JCR_DATA, is);
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        // Set the person who last modified it.s
+        fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
+        fileNode.setProperty("sakai:filename", fileName);
+        if (session.hasPendingChanges()) {
+          session.save();
+        }
+        return fileNode;
       }
-
-      // Set the person who last modified it.s
-      fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
-
-      fileNode.setProperty("sakai:filename", fileName);
-
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-      return fileNode;
     }
     return null;
   }
