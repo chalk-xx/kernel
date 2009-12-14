@@ -64,7 +64,7 @@ public class EntryCollectorImpl implements EntryCollector {
    * {@inheritDoc}
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.EntryCollector#collectEntries(org.apache.jackrabbit.core.NodeImpl, java.util.Map, java.util.List)
    */
-  public void collectEntries(NodeImpl aclNode,
+  public void collectEntries(NodeImpl aclNode, NodeImpl contextNode,
       Map<String, List<AccessControlEntry>> principalNamesToEntries,
       List<ComparableAccessControlEntry> orderedAccessControlEntries, String userId, ValueFactory valueFactory) throws RepositoryException {
     SessionImpl sImpl = (SessionImpl) aclNode.getSession();
@@ -80,7 +80,7 @@ public class EntryCollectorImpl implements EntryCollector {
       // only process aceNode if 'principalName' is contained in the given set
       // or the dynamicPrincialManager says the user has the principal.
 
-      if (hasPrincipal(principalName, aclNode, principalNamesToEntries, userId)) {
+      if (hasPrincipal(principalName, aclNode, contextNode,  principalNamesToEntries, userId)) {
         Principal princ = principalMgr.getPrincipal(principalName);
         boolean isGroup = false;
         if (principalName.startsWith("g-") || princ.equals(principalMgr.getEveryone()) || principalName.equals("administrators") ) {
@@ -129,7 +129,7 @@ public class EntryCollectorImpl implements EntryCollector {
    * @param userId the userID of the request, may be null.
    * @return true if the user has the principal.
    */
-  protected boolean hasPrincipal(String principalName, NodeImpl aclNode,
+  protected boolean hasPrincipal(String principalName, NodeImpl aclNode, NodeImpl contextNode,
       Map<String, List<AccessControlEntry>> princToEntries, String userId) {
     return princToEntries.containsKey(principalName);
   }

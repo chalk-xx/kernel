@@ -48,14 +48,12 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
    */
   private static Logger LOG = LoggerFactory.getLogger(OwnerPrincipalManagerImpl.class);
 
-  public boolean hasPrincipalInContext(String principalName, Node aclNode, String userId) {
+  public boolean hasPrincipalInContext(String principalName, Node aclNode, Node contextNode, String userId) {
     try {
       if ( userId == null ) {
         return false;
       }
       if ("owner".equals(principalName)) {
-        /* Request comes in at node/rep:policy */
-        Node contextNode = aclNode.getParent();
         
         LOG.debug("Granting .owner privs to node owner");
         if (contextNode.hasProperty(JCR_CREATED_BY)) {
@@ -63,9 +61,10 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
           String ownerName = owner.getString();
           LOG.debug("Got node owner: {}, Current User {}", ownerName, userId);
           if (userId.equals(ownerName)) {
+              LOG.info(" Current user [{}] is the owner of {} ",new Object[] {ownerName, contextNode.getPath()});
             return true;
           }
-          LOG.debug(" {} didn't match {}",ownerName, userId);
+          LOG.info(" node owner [{}] didn't match current user [{}] at {} ",new Object[] {ownerName, userId, contextNode.getPath()});
         } else {
           LOG.debug("Node: {}  has no {} property", contextNode.getPath(), JCR_CREATED_BY);
         }

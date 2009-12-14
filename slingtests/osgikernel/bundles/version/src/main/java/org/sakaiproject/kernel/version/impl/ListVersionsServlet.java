@@ -34,6 +34,7 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.user.UserConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.version.VersionService;
 import org.slf4j.Logger;
@@ -163,7 +164,7 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
         write.object();
         Node vnode = versions[j].getNode(JcrConstants.JCR_FROZENNODE);
         if (!writeEditorDetails(vnode, VersionService.SAVED_BY, VersionService.SAVED_BY, write)) {
-          writeEditorDetails(vnode, "jcr:createdBy", VersionService.SAVED_BY, write);
+          writeEditorDetails(vnode, UserConstants.JCR_CREATED_BY, VersionService.SAVED_BY, write);
         }
         ExtendedJSONWriter.writeNodeContentsToWriter(write, versions[j]);
         write.endObject();
