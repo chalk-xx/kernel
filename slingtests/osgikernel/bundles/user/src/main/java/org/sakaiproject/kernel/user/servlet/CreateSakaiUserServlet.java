@@ -42,6 +42,7 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
+import org.sakaiproject.kernel.user.NameSanitizer;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,9 +261,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
       throw new RepositoryException("User name was not submitted");
     }
 
-    if (principalName.startsWith("g-")) {
-      throw new RepositoryException("User name must not begin 'g-'");
-    }
+    NameSanitizer san = new NameSanitizer(principalName, true);
+    san.validate();
 
     String pwd = request.getParameter("pwd");
     if (pwd == null) {
