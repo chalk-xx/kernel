@@ -16,7 +16,6 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.auth.ldap.PasswordGuard;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.kernel.api.ldap.LdapConstants;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.util.Dictionary;
