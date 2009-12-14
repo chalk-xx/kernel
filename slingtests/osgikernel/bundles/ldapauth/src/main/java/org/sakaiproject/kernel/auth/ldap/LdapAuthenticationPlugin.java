@@ -35,19 +35,19 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 
   @Property(value = "localhost")
-  static final String LDAP_HOST = LdapConstants.HOST;
+  static final String LDAP_HOST = "sakai.ldap.host";
 
   @Property(intValue = LDAPConnection.DEFAULT_SSL_PORT)
-  static final String LDAP_PORT = LdapConstants.PORT;
+  static final String LDAP_PORT = "sakai.ldap.port";
 
   @Property(boolValue = true)
-  static final String LDAP_CONNECTION_SECURE = LdapConstants.SECURE_CONNECTION;
+  static final String LDAP_CONNECTION_SECURE = "sakai.ldap.connection.secure";
 
   @Property
-  static final String LDAP_LOGIN_DN = LdapConstants.USER;
+  static final String LDAP_LOGIN_DN = "sakai.ldap.user";
 
   @Property
-  static final String LDAP_LOGIN_PASSWORD = LdapConstants.PASSWORD;
+  static final String LDAP_LOGIN_PASSWORD = "sakai.ldap.password";
 
   @Property
   static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
