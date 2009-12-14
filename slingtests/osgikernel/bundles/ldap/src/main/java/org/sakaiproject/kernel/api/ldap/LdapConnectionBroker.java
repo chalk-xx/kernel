@@ -65,7 +65,7 @@ public interface LdapConnectionBroker {
 
   /**
    * Gets a connection from a named manager. If the manager does not already
-   * exist, an {@link LdapException} is thrown.
+   * exist, {@link create(String)} is called then a connection taken from it.
    *
    * @param name
    *          The name of the connection manager.
@@ -78,8 +78,9 @@ public interface LdapConnectionBroker {
 
   /**
    * Gets a bound connection from a named manager. If the manager does not
-   * already exist, an {@link LdapException} is thrown.
-   *
+   * already exist, {@link create(String)} is called then a connection taken
+   * from it.
+   * 
    * @param name
    *          The name of the connection manager.
    * @param loginDn
