@@ -45,7 +45,7 @@ public class DynamicPrincipalManagerFactoryImpl extends ServiceTracker implement
     super(bundleContext, DynamicPrincipalManager.class.getName(), null);
     dynamicPrincipalManager = new DynamicPrincipalManager() {
 
-      public boolean hasPrincipalInContext(String principalName, Node aclNode,
+      public boolean hasPrincipalInContext(String principalName, Node aclNode, Node contextNode,
           String userId) {
         Object[] services = getServices();
         if (services == null || services.length == 0) {
@@ -54,7 +54,7 @@ public class DynamicPrincipalManagerFactoryImpl extends ServiceTracker implement
         }
         for (Object serviceObject : services) {
           DynamicPrincipalManager principalManager = (DynamicPrincipalManager) serviceObject;
-          if (principalManager.hasPrincipalInContext(principalName, aclNode, userId)) {
+          if (principalManager.hasPrincipalInContext(principalName, aclNode, contextNode, userId)) {
             return true;
           }
         }
