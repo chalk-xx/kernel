@@ -4,8 +4,6 @@ import javax.jcr.RepositoryException;
 
 public class NameSanitizer {
 
-  private final String REGEX = "(.*)([^a-zA-Z0-9_-])(.*)";
-  
   private String name;
   private boolean isUser;
 
@@ -26,7 +24,7 @@ public class NameSanitizer {
     if (!isUser && !name.startsWith("g-")) {
       throw new RepositoryException("Group names must begin with 'g-'");
     }
-    
+
     if (!isUser && name.startsWith("g-")) {
       name = name.substring(2);
     }
@@ -37,11 +35,12 @@ public class NameSanitizer {
     }
 
     // KERN-271
-    // % \ $ # " ! £ ^ & * ( ) { } [ ] = + are not allowed
-    if (name.matches(REGEX)) {
-      throw new RepositoryException("Invalid characters in name.");
+    // Only allowing 0-9a-Z-_
+    char[] chars = name.toCharArray();
+    for (char ch : chars) {
+      if (!Character.isLetterOrDigit(ch) && '_' != ch && '-' != ch) {
+        throw new RepositoryException("Invalid characters in name: " + name);
+      }
     }
-
   }
-
 }
