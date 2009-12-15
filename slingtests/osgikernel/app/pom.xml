@@ -55,7 +55,7 @@
                 <artifactItem>
                   <groupId>org.apache.sling</groupId>
                   <artifactId>org.apache.sling.launchpad.base</artifactId>
-                  <version>2.0.5-SNAPSHOT</version>
+                  <version>2.1.0</version>
                 </artifactItem>
               </artifactItems>
               <stripVersion>true</stripVersion>
@@ -160,7 +160,7 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.launchpad.base</artifactId>
-      <version>2.0.5-SNAPSHOT</version>
+      <version>2.1.0</version>
       <classifier>app</classifier>
       <scope>provided</scope>
     </dependency>

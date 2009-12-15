@@ -48,6 +48,7 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.user.UserPostProcessor;
+import org.sakaiproject.kernel.user.NameSanitizer;
 import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,9 +256,8 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
       throw new RepositoryException("Group name was not submitted");
     }
 
-    if (!principalName.startsWith("g-")) {
-      throw new RepositoryException("Group names must begin with 'g-'");
-    }
+    NameSanitizer san = new NameSanitizer(principalName, false);
+    san.validate();
 
     // check for allow create Group
     boolean allowCreateGroup = false;
