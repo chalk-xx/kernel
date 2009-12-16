@@ -13,7 +13,8 @@ $testfile1 = "<html><head><title>KERN 312</title></head><body><p>Should work</p>
 class TC_Kern455Test < SlingTest
 
   def upload_file(nodename, data)
-    n = create_file_node(nodename, "testfile", "testfile", data, "text/html")
+    res = create_file_node(nodename, "testfile", "testfile", data, "text/html")
+    assert_equal(res.code.to_i, 201, "Expexted the file to be created.")
     filepath = "#{nodename}/testfile"
     res = @s.execute_get(@s.url_for(filepath))
     assert_equal(data, res.body, "Expected content to upload cleanly")
@@ -25,6 +26,7 @@ class TC_Kern455Test < SlingTest
     dummyuser = create_user("dummyuser"+m)
     @s.switch_user(dummyuser)
     
+    # Admin passes fine.
     #@s.switch_user(SlingUsers::User.admin_user())
     
     nodename = "_user/private/upload_test#{m}"
