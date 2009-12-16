@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.batch;
+package org.apache.sling.engine.impl.batch;
 
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;

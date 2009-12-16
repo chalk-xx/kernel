@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.batch;
+package org.apache.sling.engine.impl.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description"
  *               value="Bundles multiple resource requests into a single response."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.paths" value="/system/batch"
+ * @scr.property name="sling.servlet.paths" value="/system/batch/get"
  * @scr.property name="sling.servlet.methods" value="GET"
  */
 @ServiceDocumentation(

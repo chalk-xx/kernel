@@ -1,0 +1,40 @@
+Manifest-Version: 1.0
+Sakai-Modifications-Doc: Added org.apache.sling.engine.impl.batch to
+ list of Exports.
+Service-Component: OSGI-INF/serviceComponents.xml
+Built-By: simon
+Bundle-Activator: org.apache.sling.engine.impl.EngineBundleActivator
+Created-By: Apache Maven Bundle Plugin
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Import-Package: javax.jcr;version="1.0.0",javax.portlet;resolution:=op
+ tional,javax.servlet,javax.servlet.http,org.apache.commons.collection
+ s.iterators;version="3.2.1",org.apache.commons.io,org.apache.commons.
+ io.output,org.apache.sling.api;version="2.0.8",org.apache.sling.api.a
+ dapter;version="2.0.8",org.apache.sling.api.request;version="2.0.8",o
+ rg.apache.sling.api.resource;version="2.0.8",org.apache.sling.api.ser
+ vlets;version="2.0.8",org.apache.sling.api.wrappers;version="2.0.8",o
+ rg.apache.sling.commons.mime;version="2.0.2",org.apache.sling.commons
+ .osgi;version="2.0.2",org.apache.sling.engine;version="2.0.6",org.apa
+ che.sling.engine.auth;version="2.1.0",org.apache.sling.engine.servlet
+ s;version="2.0.6",org.apache.sling.jcr.api;version="2.0.2",org.apache
+ .sling.jcr.resource;version="2.0.6",org.osgi.framework;version="1.4.0
+ ",org.osgi.service.cm;version="1.2.0",org.osgi.service.component;vers
+ ion="1.0.0",org.osgi.service.http;version="1.2.0",org.osgi.service.us
+ eradmin;resolution:=optional;version="1.1.0",org.osgi.util.tracker;ve
+ rsion="1.3.3",org.slf4j;version="1.5.2"
+Bnd-LastModified: 1260532417536
+Export-Package: org.apache.sling.engine.impl.batch
+Bundle-Version: 2.0.7.SNAPSHOT
+Bundle-Name: Apache Sling Engine Implementation
+Bundle-Description: Bundle implementing the core of Sling.
+Bundle-ClassPath: .,commons-fileupload-1.1.1.jar
+Build-Jdk: 1.5.0_19
+Bundle-DocURL: http://sling.apache.org
+Bundle-ManifestVersion: 2
+Bundle-Vendor: The Apache Software Foundation
+Bundle-SymbolicName: org.apache.sling.engine
+Tool: Bnd-0.0.357
+Bundle-Category: sling
+DynamicImport-Package: org.apache.felix.webconsole
+Embed-Dependency: commons-fileupload
+
