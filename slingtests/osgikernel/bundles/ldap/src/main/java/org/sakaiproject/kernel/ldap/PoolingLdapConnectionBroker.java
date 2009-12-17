@@ -23,15 +23,21 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Simple implementation of an {@link LdapConnectionBroker}. Maintains an
@@ -60,7 +66,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   @Property
   protected static final String HOST = "sakai.ldap.host";
 
-  @Property
+  @Property(intValue = LDAPConnection.DEFAULT_PORT)
   protected static final String PORT = "sakai.ldap.port";
 
   @Property
@@ -83,6 +89,17 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
 
   @Property(boolValue = false)
   protected static final String TLS = "sakai.ldap.tls";
+
+  @Reference(referenceInterface = LdapConnectionLivenessValidator.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindLivenessValidator", unbind = "unbindLivenessValidator")
+  private List<LdapConnectionLivenessValidator> livenessValidators = new LinkedList<LdapConnectionLivenessValidator>();
+
+  protected void bindLivenessValidator(LdapConnectionLivenessValidator validator) {
+    livenessValidators.add(validator);
+  }
+
+  protected void unbindLivenessValidator(LdapConnectionLivenessValidator validator) {
+    livenessValidators.remove(validator);
+  }
 
   /**
    * Default constructor for normal usage.
@@ -114,8 +131,11 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
       destroy(mgr);
     }
     factories = null;
-
     defaults = null;
+  }
+
+  public List<LdapConnectionLivenessValidator> getLivenessValidators() {
+    return livenessValidators;
   }
 
   /**
@@ -123,8 +143,9 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    *
    * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#create(java.lang.String)
    */
-  public void create(String name) throws LdapException {
-    create(name, defaults);
+  public LdapConnectionManager create(String name) throws LdapException {
+    LdapConnectionManager mgr = create(name, defaults);
+    return mgr;
   }
 
   /**
@@ -141,9 +162,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     }
 
     // create a new connection manager, set the config and initialize it.
-    PoolingLdapConnectionManager mgr = newPoolingLdapConnectionManager(name);
-    mgr.setConfig(config);
-    mgr.init();
+    PoolingLdapConnectionManager mgr = newPoolingLdapConnectionManager(name, config);
 
     // put the new connection manager in the store and set it to be
     // available outside of this block.
@@ -152,8 +171,12 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     return mgr;
   }
 
-  protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName) {
-    return new PoolingLdapConnectionManager(this, poolName);
+  protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName,
+      LdapConnectionManagerConfig config) throws LdapException {
+    PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager(this, poolName);
+    mgr.setConfig(config);
+    mgr.init();
+    return mgr;
   }
 
   /**
@@ -163,9 +186,8 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    */
   public void destroy(String name) {
     if (factories.containsKey(name)) {
-      LdapConnectionManager mgr = factories.get(name);
+      LdapConnectionManager mgr = factories.remove(name);
       mgr.destroy();
-      factories.remove(name);
     }
   }
 
@@ -187,11 +209,12 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   public LDAPConnection getConnection(String name) throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
+    LdapConnectionManager mgr = null;
     if (!factories.containsKey(name)) {
-      create(name);
+      mgr = create(name);
+    } else {
+      mgr = factories.get(name);
     }
-
-    LdapConnectionManager mgr = factories.get(name);
 
     // get a connection from the manager and return it
     LDAPConnection conn = mgr.getConnection();
@@ -205,20 +228,21 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#getConnection(java.lang.String,
-   *      org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig)
+   * @see org.sakaiproject.kernel.api.ldap.LdapConnectionBroker#getBoundConnection(String)
    */
-  public LDAPConnection getBoundConnection(String name, String loginDn, String password)
+  public LDAPConnection getBoundConnection(String name)
       throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
+    LdapConnectionManager mgr = null;
     if (!factories.containsKey(name)) {
-      create(name);
+      mgr = create(name);
+    } else {
+      mgr = factories.get(name);
     }
-    LdapConnectionManager mgr = factories.get(name);
 
     // get a connection from the manager and return it
-    LDAPConnection conn = mgr.getBoundConnection(loginDn, password);
+    LDAPConnection conn = mgr.getBoundConnection();
     return conn;
     // } else {
     // throw new LdapException("No factory found for [" + name +
@@ -234,48 +258,48 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   public void update(Dictionary props) {
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
-      String autoBind = (String) props.get(AUTO_BIND);
-      String followReferrals = (String) props.get(FOLLOW_REFERRALS);
+      Boolean autoBind = (Boolean) props.get(AUTO_BIND);
+      Boolean followReferrals = (Boolean) props.get(FOLLOW_REFERRALS);
       String keystoreLocation = (String) props.get(KEYSTORE_LOCATION);
       String keystorePassword = (String) props.get(KEYSTORE_PASSWORD);
-      String secureConnection = (String) props.get(SECURE_CONNECTION);
+      Boolean secureConnection = (Boolean) props.get(SECURE_CONNECTION);
       String host = (String) props.get(HOST);
-      String port = (String) props.get(PORT);
+      Integer port = (Integer) props.get(PORT);
       String user = (String) props.get(USER);
       String password = (String) props.get(PASSWORD);
-      String operationTimeout = (String) props.get(OPERATION_TIMEOUT);
-      String pooling = (String) props.get(POOLING);
-      String maxConns = (String) props.get(POOLING_MAX_CONNS);
-      String tls = (String) props.get(TLS);
+      Integer operationTimeout = (Integer) props.get(OPERATION_TIMEOUT);
+      Boolean pooling = (Boolean) props.get(POOLING);
+      Integer maxConns = (Integer) props.get(POOLING_MAX_CONNS);
+      Boolean tls = (Boolean) props.get(TLS);
 
       if (autoBind != null) {
-        config.setAutoBind(Boolean.parseBoolean(autoBind));
+        config.setAutoBind(autoBind);
       }
       if (followReferrals != null) {
-        config.setFollowReferrals(Boolean.parseBoolean(followReferrals));
+        config.setFollowReferrals(followReferrals);
       }
       config.setKeystoreLocation(keystoreLocation);
       config.setKeystorePassword(keystorePassword);
       config.setLdapHost(host);
       config.setLdapPassword(password);
       if (port != null) {
-        config.setLdapPort(Integer.parseInt(port));
+        config.setLdapPort(port);
       }
       config.setLdapUser(user);
       if (operationTimeout != null) {
-        config.setOperationTimeout(Integer.parseInt(operationTimeout));
+        config.setOperationTimeout(operationTimeout);
       }
       if (pooling != null) {
-        config.setPooling(Boolean.parseBoolean(pooling));
+        config.setPooling(pooling);
       }
       if (maxConns != null) {
-        config.setPoolMaxConns(Integer.parseInt(maxConns));
+        config.setPoolMaxConns(maxConns);
       }
       if (secureConnection != null) {
-        config.setSecureConnection(Boolean.parseBoolean(secureConnection));
+        config.setSecureConnection(secureConnection);
       }
       if (tls != null) {
-        config.setTLS(Boolean.parseBoolean(tls));
+        config.setTLS(tls);
       }
     }
 

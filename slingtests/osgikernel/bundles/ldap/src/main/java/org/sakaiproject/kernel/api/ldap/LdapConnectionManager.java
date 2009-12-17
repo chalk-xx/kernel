@@ -34,7 +34,7 @@ public interface LdapConnectionManager {
    * Initializes an instance for use, typically by digesting the contents of the
    * assigned {@link LdapConnectionManagerConfig}.
    */
-  public void init() throws LdapException;
+  // public void init() throws LdapException;
 
   /**
    * Retrieve an <code>LDAPConnection</code> -- the connection may already be
@@ -53,7 +53,7 @@ public interface LdapConnectionManager {
 	 * @return a connected <code>LDAPConnection</code>
 	 * @throws LDAPException if the <code>LDAPConnection</code> allocation fails
 	 */
-  public LDAPConnection getBoundConnection(String dn, String pw) throws LdapException;
+  public LDAPConnection getBoundConnection() throws LdapException;
 
 	/**
 	 * Return an <code>LDAPConnection</code>.  This can allow for
@@ -80,5 +80,4 @@ public interface LdapConnectionManager {
    * Shuts down an instance.
    */
   public void destroy();
-
 }
