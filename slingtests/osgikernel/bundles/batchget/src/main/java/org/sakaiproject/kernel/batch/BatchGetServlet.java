@@ -19,9 +19,8 @@ package org.sakaiproject.kernel.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceWrapper;
+import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.doc.BindingType;
@@ -66,18 +65,25 @@ import javax.servlet.http.HttpServletResponse;
         parameters = @ServiceParameter(
             name = "resources",
             description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
-            		"<pre>curl -d\"resources=/dev.json\" -d\"resources=/devwidgets.json\" -G http://localhost:8080/system/batch</pre>"
+                "<pre>curl -d\"resources=/system/me\" -d\"resources=/devwidgets.json\" -d\"resources=/some/none/existing/resource.json\" -G http://localhost:8080/system/batch</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
             description = "All requests are succesfull. <br />" +
                 "A JSON array is returning which holds an object for each resource. Example:" +
-                "<pre></pre>"
+                "<pre>[\n" +
+                "{\"path\": \"/dev/.json\", \"data\": \"{\"user\"...\"}, \n" +
+                "{\"path\": \"/devwidgets.json\", \"data\": \"{\"jcr:created\":\"Wed Dec 16 2009 10:39:19 GMT+0000\",\"jcr:primaryType\":\"sling:Folder\"}\"},\n" +
+                "{\"path\": \"/some/none/existing/resource.json\", \"data\": 404}\n]</pre>"
           ),
           @ServiceResponse(
-              code = 500,
-              description = "Unable to get and parse all the requests."
-            )
+            code = 400,
+            description = "Either there was no 'resources' parameter found or it contained a non-absolute path."
+          ),
+          @ServiceResponse(
+            code = 500,
+            description = "Unable to get and parse all the requests."
+          )
         }
     )
 )
@@ -87,42 +93,55 @@ public class BatchGetServlet extends SlingAllMethodsServlet {
    * 
    */
   private static final long serialVersionUID = 9159034894038200948L;
-  private static final Logger LOGGER = LoggerFactory.getLogger(BatchGetServlet.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(BatchGetServlet.class);
 
   public static final String RESOURCE_PATH_PARAMETER = "resources";
 
   @Override
-  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    String[] requestedResources = request.getParameterValues(RESOURCE_PATH_PARAMETER);
+  protected void doGet(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    String[] requestedResources = request
+        .getParameterValues(RESOURCE_PATH_PARAMETER);
     if (requestedResources == null || requestedResources.length == 0) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "Must specify resources to fetch using the '" + RESOURCE_PATH_PARAMETER + "' parameter");
+          "Must specify resources to fetch using the '"
+              + RESOURCE_PATH_PARAMETER + "' parameter");
       return;
+    }
+
+    for (String resourcePath : requestedResources) {
+      if (!resourcePath.startsWith("/")) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "Resources must be absolute paths");
+        return;
+      }
+
+      SlingRequestPathInfo pathInfo = new SlingRequestPathInfo(resourcePath,
+          request.getResourceResolver());
+      Resource resource = pathInfo.getResource();
+      if (resource == null) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND,
+            "No such resource: " + resourcePath);
+        return;
+      }
     }
 
     ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
     try {
       write.array();
       for (String resourcePath : requestedResources) {
-        if (!resourcePath.startsWith("/")) {
-          response
-              .sendError(HttpServletResponse.SC_BAD_REQUEST, "Resources must be absolute paths");
-          return;
-        }
-        SlingRequestPathInfo pathInfo = new SlingRequestPathInfo(resourcePath, request.getResourceResolver());
-        Resource resource = pathInfo.getResource();
-        if (resource == null) {
-          response.sendError(HttpServletResponse.SC_NOT_FOUND, "No such resource: " + resourcePath);
-          return;
-        }
         write.object();
         write.key("path");
         write.value(resourcePath);
         write.key("data");
         try {
-          outputResource(resource, pathInfo, request, response, write);
+          outputResource(request, response, write, resourcePath);
+        } catch (ResourceNotFoundException e) {
+          write.value(404);
+          LOGGER.warn("Unable to get data for resource: " + resourcePath, e);
         } catch (Exception e) {
+          write.value(500);
           LOGGER.warn("Unable to get data for resource: " + resourcePath, e);
         }
         write.endObject();
@@ -135,19 +154,20 @@ public class BatchGetServlet extends SlingAllMethodsServlet {
     }
   }
 
-  private void outputResource(final Resource resource, SlingRequestPathInfo pathInfo, SlingHttpServletRequest request,
-      SlingHttpServletResponse response, ExtendedJSONWriter write) throws ServletException, IOException, JSONException {
-    RequestDispatcherOptions options = new RequestDispatcherOptions();
-    ResourceWrapper resourceWrapper = new ResourceWrapper(resource);
-    ResponseWrapper responseWrapper = new ResponseWrapper(response); 
-    options.setReplaceSelectors("");
-    ResourceRequestWrapper requestWrapper = new ResourceRequestWrapper(request, resource, pathInfo);
-    request.getRequestDispatcher(resourceWrapper, options).forward(requestWrapper, responseWrapper);
+  private void outputResource(SlingHttpServletRequest request,
+      SlingHttpServletResponse response, ExtendedJSONWriter write,
+      String resourcePath) throws ServletException, IOException, JSONException {
+    ResponseWrapper responseWrapper = new ResponseWrapper(response);
+
+    request.getRequestDispatcher(resourcePath)
+        .forward(request, responseWrapper);
+
     outputResponseAsJSON(responseWrapper, write);
   }
 
   private void outputResponseAsJSON(ResponseWrapper responseWrapper,
-      ExtendedJSONWriter write) throws UnsupportedEncodingException, JSONException {
+      ExtendedJSONWriter write) throws UnsupportedEncodingException,
+      JSONException {
     write.value(responseWrapper.getDataAsString());
   }
 
