@@ -3,7 +3,8 @@ Sakai-Modifications-Doc: Added org.apache.sling.jcr.jackrabbit.server.
  security.dynamic to the list of Exports. Added Bundle-Activator: org.
  apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivat
  or. Removed: Bundle-Activator: org.apache.sling.jcr.jackrabbit.server
- .impl.Activator
+ .impl.Activator Added:org.apache.sling.jcr.jackrabbit.server.index to
+ list of exports
 Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  "javax.jcr,javax.security.auth.callback,javax.security.auth.login";ve
  rsion="2.0.4.incubator",org.apache.sling.jcr.jackrabbit.server.securi
@@ -13,7 +14,8 @@ Export-Package: org.apache.sling.jcr.jackrabbit.server.security;uses:=
  .collections.map,javax.jcr,org.apache.jackrabbit.api.security.user,or
  g.apache.commons.collections.iterators,javax.jcr.observation,org.apac
  he.commons.collections.set";version="1.6.0",org.apache.sling.jcr.jack
- rabbit.server.security.dynamic
+ rabbit.server.security.dynamic,org.apache.sling.jcr.jackrabbit.server
+ .index
 Service-Component: OSGI-INF/serviceComponents.xml
 Bundle-ClassPath: .,jackrabbit-jcr-rmi-1.4.1.jar,jackrabbit-core-1.6.0
  .jar,jackrabbit-jcr-commons-1.6.0.jar,jackrabbit-spi-commons-1.6.0.ja
@@ -29,7 +31,7 @@ Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.security
  .dynamic.SakaiActivator
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
 Bundle-SymbolicName: org.apache.sling.jcr.jackrabbit.server
-Note: Built by bundle profile
+Note: Built by bundle profile, patched by Sakai manually
 Bundle-Category: sling,jcr,jackrabbit
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository
 Created-By: 1.6.0_13 (Sun Microsystems Inc.)

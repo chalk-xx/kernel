@@ -30,6 +30,19 @@ public interface SearchConstants {
   */
   public static final String JSON_QUERY = "query";
   /**
+   * Holder for the totals of aggregate calculations.
+   */
+  public static final String JSON_TOTALS = "totals";
+  /**
+   * The name of the aggregate term.
+   */
+  public static final String JSON_NAME = "name";
+  /**
+   * The frequency of the aggregate term.
+   */
+  public static final String JSON_COUNT = "count";
+
+  /**
   *
   */
   public static final String PARAMS_ITEMS_PER_PAGE = "items";
@@ -58,7 +71,7 @@ public interface SearchConstants {
 
   public static final String REG_PROCESSOR_NAMES = "sakai.search.processor";
   public static final String REG_BATCH_PROCESSOR_NAMES = "sakai.search.batchprocessor";
-  
+
   public static final String REG_PROVIDER_NAMES = "sakai.search.provider";
   public static final String SAKAI_PROPERTY_PROVIDER = "sakai:propertyprovider";
 
@@ -74,4 +87,15 @@ public interface SearchConstants {
   *
   */
   public static final String SEARCH_PROPERTY_PROVIDER = "SearchPropertyProvider";
+
+  /**
+   * A property of the search template, containing a list of properties to aggregate.
+   */
+  public static final String SAKAI_AGGREGATE = "sakai:aggregate-search-results";
+  /**
+   * A property of the search template where there are properties to aggregate, if true,
+   * child nodes of the result set will be inspected during the aggregation process.
+   */
+  public static final String SAKAI_AGGREGATE_CHILDREN = "sakai:aggregate-search-results-children";
+
 }

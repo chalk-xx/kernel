@@ -40,10 +40,13 @@ done
 
 
 
+
+
 # Upload jar
 curl -Fbundlefile="@$JAR" -Faction=install -Fbundlestart=start -Fbundlestartlevel=20 http://admin:admin@localhost:8080/system/console/bundles/upload
-echo "JAR file uploaded."
+echo "JAR file uploaded - Sleeping for 10 secs to make sure the JAR gets loaded."
 
+sleep 10s
 
 
 
@@ -54,5 +57,5 @@ echo "/dev set."
 
 
 # Set /devwidgets
-curl -d"provider.roots=/dev" -d"provider.file=$DEVWIDGETS" -d"propertylist=provider.roots,provider.file"  -d"apply=true" -d"factoryPid=org.apache.sling.fsprovider.internal.FsResourceProvider" -d"action=ajaxConfigManager" -g http://admin:admin@localhost:8080/system/console/configMgr/[Temporary%20PID%20replaced%20by%20real%20PID%20upon%20save]
+curl -d"provider.roots=/devwidgets" -d"provider.file=$DEVWIDGETS" -d"propertylist=provider.roots,provider.file"  -d"apply=true" -d"factoryPid=org.apache.sling.fsprovider.internal.FsResourceProvider" -d"action=ajaxConfigManager" -g http://admin:admin@localhost:8080/system/console/configMgr/[Temporary%20PID%20replaced%20by%20real%20PID%20upon%20save]
 echo "/devwidgets set."

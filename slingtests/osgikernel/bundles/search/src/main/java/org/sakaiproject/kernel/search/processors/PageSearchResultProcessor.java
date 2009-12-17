@@ -25,6 +25,7 @@ import javax.jcr.query.Row;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
@@ -43,7 +44,7 @@ import org.sakaiproject.kernel.util.RowUtils;
  */
 public class PageSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
@@ -52,5 +53,8 @@ public class PageSearchResultProcessor implements SearchResultProcessor {
     write.key("path");
     write.value(node.getPath());
     write.endObject();
+    if ( aggregator != null ) {
+      aggregator.add(node);
+    }
   }
 }

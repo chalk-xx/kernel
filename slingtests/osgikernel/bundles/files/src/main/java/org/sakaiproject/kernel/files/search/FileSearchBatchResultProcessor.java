@@ -29,6 +29,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
@@ -75,7 +76,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   public FileSearchBatchResultProcessor() {
   }
 
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator,
       RowIterator iterator, long start, long end) throws JSONException,
       RepositoryException {
     processedNodes = new ArrayList<String>();
@@ -85,6 +86,9 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       Row row = iterator.nextRow();
       String path = row.getValue("jcr:path").getString();
       Node node = (Node) session.getItem(path);
+      if ( aggregator != null ) {
+        aggregator.add(node);
+      }
 
       if (!handleNode(node, path, session, write)) {
         i--;

@@ -60,7 +60,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     expect(session.getItem("")).andReturn(resultNode);
     replay();
     try {
-      siteSearchResultProcessor.writeNode(request, null, row);
+      siteSearchResultProcessor.writeNode(request, null, null, row);
       fail();
     } catch (JSONException e) {
       assertEquals("Unable to write non-site node result", e.getMessage());
@@ -97,7 +97,7 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     RowIterator iterator = queryResult.getRows();
     int i=0;
     while (iterator.hasNext() && i < itemCount) {
-      processor.writeNode(request, write, iterator.nextRow());
+      processor.writeNode(request, write, null, iterator.nextRow());
       i++;
     }
     write.endArray();

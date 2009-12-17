@@ -55,7 +55,7 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     RowIterator iterator = queryResult.getRows();
     int i=0;
     while (iterator.hasNext() && i < itemCount) {
-      processor.writeNode(request, write, iterator.nextRow());
+      processor.writeNode(request, write, null, iterator.nextRow());
       i++;
     }
     write.endArray();

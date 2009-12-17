@@ -37,11 +37,14 @@ public interface SearchResultProcessor {
    *          The request that was issued for this search.
    * @param write
    *          The JSONWriter to write the results to.
+   * @param aggregator
+   *          an optional aggregator to which all nodes should be given to produce an
+   *          aggregate set. May be null in which case it can be ignored.
    * @param row
    *          This will hold the path, score, excerpt,.. for the actual result.
    * @throws JSONException
    * @throws RepositoryException
    */
-  void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
-      throws JSONException, RepositoryException;
+  void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException;
 }

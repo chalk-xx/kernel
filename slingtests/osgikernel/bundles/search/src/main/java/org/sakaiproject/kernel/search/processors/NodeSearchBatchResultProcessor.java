@@ -7,6 +7,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 
@@ -23,7 +24,7 @@ import javax.jcr.query.RowIterator;
 @Service(value = SearchBatchResultProcessor.class)
 public class NodeSearchBatchResultProcessor implements SearchBatchResultProcessor {
 
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator,
       RowIterator iterator, long start, long end) throws JSONException,
       RepositoryException {
 
@@ -34,6 +35,9 @@ public class NodeSearchBatchResultProcessor implements SearchBatchResultProcesso
       Row row = iterator.nextRow();
       String path = row.getValue("jcr:path").getString();
       Node node = (Node) session.getItem(path);
+      if ( aggregator != null ) {
+        aggregator.add(node);
+      }
       ExtendedJSONWriter.writeNodeToWriter(write, node);
     }
 

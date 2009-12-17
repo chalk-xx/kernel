@@ -23,6 +23,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
@@ -74,11 +75,13 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node resultNode = RowUtils.getNode(row, session);
-
+    if ( aggregator != null ) {
+      aggregator.add(resultNode);
+    }
     writeNode(request, write, resultNode);
   }
 
