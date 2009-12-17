@@ -37,6 +37,9 @@ public interface SearchBatchResultProcessor {
    * @param write
    *          The JSONWriter where the Search Servlet already has written a partial
    *          response to.
+   * @param aggregator
+   *          an optional aggregator to which all nodes should be given to produce an
+   *          aggregate for the set returned. May be null in which case it can be ignored.
    * @param iterator
    *          The RowIterator containing the results.
    * @param start
@@ -47,6 +50,6 @@ public interface SearchBatchResultProcessor {
    * @throws RepositoryException
    */
   void writeNodes(SlingHttpServletRequest request, JSONWriter write,
-      RowIterator iterator, long start, long end) throws JSONException,
-      RepositoryException;
+      Aggregator aggregator, RowIterator iterator, long start, long end)
+      throws JSONException, RepositoryException;
 }

@@ -4,6 +4,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
@@ -29,10 +30,13 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionSearchResultProcessor.class);
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
+    if ( aggregator != null ) {
+      aggregator.add(node);
+    }
 
     String targetUser = node.getName();
     write.object();

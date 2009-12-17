@@ -23,6 +23,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.Post;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
 
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer, Aggregator aggregator,
       RowIterator iterator, long start, long end) throws JSONException,
       RepositoryException {
 
@@ -61,6 +62,9 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
     for (; iterator.hasNext();) {
       String path = iterator.nextRow().getValue("jcr:path").getString();
       Node node = (Node) session.getItem(path);
+      if ( aggregator != null ) {
+        aggregator.add(node);
+      }
       allNodes.add(node);
     }
 

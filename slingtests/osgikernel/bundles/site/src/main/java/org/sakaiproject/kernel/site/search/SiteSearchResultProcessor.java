@@ -3,6 +3,7 @@ package org.sakaiproject.kernel.site.search;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
@@ -35,13 +36,16 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteSearchResultProcessor.class);
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Row row)
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node resultNode = RowUtils.getNode(row, session);
     if (!siteService.isSite(resultNode)) {
       LOGGER.warn("Search result was not a site node: " + resultNode.getPath());
       throw new JSONException("Unable to write non-site node result");
+    }
+    if ( aggregator != null ) {
+      aggregator.add(resultNode);
     }
     write.object();
     write.key("member-count");

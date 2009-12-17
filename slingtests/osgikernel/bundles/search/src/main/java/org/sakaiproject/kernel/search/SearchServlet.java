@@ -19,11 +19,16 @@ package org.sakaiproject.kernel.search;
 
 import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_QUERY;
 import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_RESULTS;
+import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_TOTALS;
+import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_NAME;
+import static org.sakaiproject.kernel.api.search.SearchConstants.JSON_COUNT;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_BATCH_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROCESSOR_NAMES;
 import static org.sakaiproject.kernel.api.search.SearchConstants.REG_PROVIDER_NAMES;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_AGGREGATE;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_AGGREGATE_CHILDREN;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
@@ -50,12 +55,14 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
+import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchConstants;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.search.processors.NodeSearchBatchResultProcessor;
 import org.sakaiproject.kernel.search.processors.NodeSearchResultProcessor;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +77,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -207,6 +215,21 @@ public class SearchServlet extends SlingAllMethodsServlet {
           propertyProviderName = node.getProperty(SAKAI_PROPERTY_PROVIDER).getString();
         }
 
+        Aggregator aggregator = null;
+        if ( node.hasProperty(SAKAI_AGGREGATE)) {
+          Value[] aggregatePropertyValues = JcrUtils.getValues(node, SAKAI_AGGREGATE);
+          String[] aggregateProperties = new String[aggregatePropertyValues.length];
+          for ( int i = 0; i < aggregatePropertyValues.length; i++  ) {
+            aggregateProperties[i] = aggregatePropertyValues[i].getString();
+          }
+          boolean withChildren = false;
+          if ( node.hasProperty(SAKAI_AGGREGATE_CHILDREN) ) {
+            withChildren = "true".equals(node.getProperty(SAKAI_AGGREGATE_CHILDREN).getString());
+          }
+          aggregator = new AggregateCount(aggregateProperties, withChildren);
+        }
+
+
         int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
         int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
@@ -262,7 +285,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         long end = Math.min(offset + nitems, total + 1);
         if (searchBatchProcessor != defaultSearchBatchProcessor) {
           LOGGER.info("Using batch processor for results");
-          searchBatchProcessor.writeNodes(request, write, rowIterator, start, end);
+          searchBatchProcessor.writeNodes(request, write, aggregator, rowIterator, start, end);
         } else {
           LOGGER.info("Using regular processor for results");
           
@@ -273,10 +296,29 @@ public class SearchServlet extends SlingAllMethodsServlet {
             Row row = rowIterator.nextRow();
             
             // Write the result for this node.
-            searchProcessor.writeNode(request, write, row);
+            searchProcessor.writeNode(request, write, aggregator, row);
           }
         }
         write.endArray();
+        if ( aggregator != null ) {
+          Map<String, Map<String, Integer>> aggregate = aggregator.getAggregate();
+          write.key(JSON_TOTALS);
+          write.object();
+          for ( Entry<String, Map<String,Integer>> t : aggregate.entrySet()) {
+            write.key(t.getKey());
+            write.array();
+            for ( Entry<String, Integer> v : t.getValue().entrySet() ) {
+             write.object();
+             write.key(JSON_NAME);
+             write.value(v.getKey());
+             write.key(JSON_COUNT);
+             write.value(v.getValue());
+             write.endObject();
+            }
+            write.endArray();
+          }
+          write.endObject();
+        }
         write.endObject();
       }
     } catch (RepositoryException e) {
