@@ -208,8 +208,8 @@ public class SiteArchiveContentHandler extends DefaultHandler {
     }
     id = id.replace('/', '_').replace('=', '-');
     // end copied from FilesUploadServlet.java
-    final int lastSlash = destination.lastIndexOf("/");
-    final String fileName = destination.substring(lastSlash + 1);
+    final String fileName = destination
+        .substring(destination.lastIndexOf("/") + 1);
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
