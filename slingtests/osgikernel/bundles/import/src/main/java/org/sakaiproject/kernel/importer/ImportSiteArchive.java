@@ -57,13 +57,12 @@ public class ImportSiteArchive extends SlingAllMethodsServlet {
       .getLogger(ImportSiteArchive.class);
 
   @Reference
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
   @Reference
-  private ClusterTrackingService clusterTrackingService;
+  private transient ClusterTrackingService clusterTrackingService;
 
-  private final SAXParserFactory spf = SAXParserFactory.newInstance();
-  SAXParser parser = null;
+  private transient SAXParser parser = null;
 
   /**
    * {@inheritDoc}
@@ -74,16 +73,12 @@ public class ImportSiteArchive extends SlingAllMethodsServlet {
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     try {
+      final SAXParserFactory spf = SAXParserFactory.newInstance();
+      spf.setValidating(false); // do not validate XML
       parser = spf.newSAXParser();
-      resetSAXParser();
     } catch (Exception e) {
       throw new Error(e);
     }
-  }
-
-  private void resetSAXParser() {
-    parser.reset();
-    spf.setValidating(false); // do not validate XML
   }
 
   /**
@@ -139,14 +134,19 @@ public class ImportSiteArchive extends SlingAllMethodsServlet {
                 parser.parse(zip.getInputStream(entry),
                     new SiteArchiveContentHandler("/lance/import", zip,
                         session, slingRepository, clusterTrackingService));
-                resetSAXParser();
+                parser.reset();
               }
             }
           }
           zip.close();
         }
         // delete temporary file
-        tempZip.delete();
+        if (tempZip.delete()) {
+          return;
+        } else {
+          LOG.warn("Could not delete temporary file: {}", tempZip
+              .getAbsolutePath());
+        }
       } catch (IOException e) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
             .getLocalizedMessage(), e, response);

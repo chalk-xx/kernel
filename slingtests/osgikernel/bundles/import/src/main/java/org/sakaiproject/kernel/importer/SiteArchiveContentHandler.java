@@ -22,11 +22,13 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -37,7 +39,13 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+/**
+ * Not thread safe (i.e. you must create a new {@link SiteArchiveContentHandler}
+ * for each SAX parse).
+ */
 public class SiteArchiveContentHandler extends DefaultHandler {
+  public static final Logger LOG = LoggerFactory
+      .getLogger(SiteArchiveContentHandler.class);
   private final String[] supportedVersions = { "Sakai 1.0" };
   private Base64 base64 = new Base64();
   private String basePath;
@@ -145,18 +153,22 @@ public class SiteArchiveContentHandler extends DefaultHandler {
   }
 
   private void makeResource(Resource resource) {
+    if (resource == null) {
+      throw new IllegalArgumentException("Illegal Resource");
+    }
     final String destination = basePath + "/" + resource.getRelativeId();
     if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resource
         .getType())) {
-      makeDirectory(destination);
+      makeNode(destination);
     } else if ("org.sakaiproject.content.types.fileUpload"
         .equalsIgnoreCase(resource.getType())
         || "org.sakaiproject.content.types.TextDocumentType"
             .equalsIgnoreCase(resource.getType())
         || "org.sakaiproject.content.types.HtmlDocumentType"
             .equalsIgnoreCase(resource.getType())
-        || "org.sakaiproject.content.types.urlResource"
-            .equalsIgnoreCase(resource.getType())) {
+    // || "org.sakaiproject.content.types.urlResource"
+    // .equalsIgnoreCase(resource.getType())
+    ) {
       copyFile(resource.attributes.get("body-location"), destination,
           resource.attributes.get("content-type"));
       // StringBuilder sb = new StringBuilder();
@@ -167,21 +179,28 @@ public class SiteArchiveContentHandler extends DefaultHandler {
       // sb.append("\n");
       // }
     } else {
-      System.err.println("Mising handler for type: " + resource.getType());
+      LOG.error("Mising handler for type: " + resource.getType());
     }
   }
 
-  private boolean makeDirectory(String path) {
-    File file = new File(path);
-    if (file.exists() && file.isDirectory()) {
-      return true; // nothing to do
-    } else {
-      return file.mkdir();
+  private Node makeNode(String path) {
+    if (path.endsWith("/")) { // strip trailing slash
+      path = path.substring(0, path.lastIndexOf("/"));
     }
+    Node node = null;
+    try {
+      node = JcrUtils.deepGetOrCreateNode(session, path);
+    } catch (RepositoryException e) {
+      throw new Error(e);
+    }
+    return node;
   }
 
-  private void copyFile(String zipEntryName, String destination,
+  private Node copyFile(String zipEntryName, String destination,
       String contentType) {
+    if (destination.endsWith("/")) { // strip trailing slash
+      destination = destination.substring(0, destination.lastIndexOf("/"));
+    }
     // copied from FilesUploadServlet.java
     String id = clusterTrackingService.getClusterUniqueId();
     if (id.endsWith("==")) {
@@ -189,18 +208,22 @@ public class SiteArchiveContentHandler extends DefaultHandler {
     }
     id = id.replace('/', '_').replace('=', '-');
     // end copied from FilesUploadServlet.java
+    final int lastSlash = destination.lastIndexOf("/");
+    final String fileName = destination.substring(lastSlash + 1);
+    Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      final Node node = FileUtils.saveFile(session, basePath, id, in,
-          zipEntryName, contentType, slingRepository);
+      node = FileUtils.saveFile(session, destination, id, in, fileName,
+          contentType, slingRepository);
     } catch (RepositoryException e) {
-      e.printStackTrace();
+      throw new Error(e);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new Error(e);
     }
+    return node;
   }
 
-  private class Resource {
+  private static class Resource {
     private Map<String, String> attributes = new HashMap<String, String>();
     private Map<String, String> properties = new HashMap<String, String>();
 
