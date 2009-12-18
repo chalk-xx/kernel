@@ -38,7 +38,6 @@
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package>org.sakaiproject.kernel.api.site.*</Export-Package>
             <Private-Package>org.sakaiproject.kernel.site.*</Private-Package>
-            <Sling-Nodetypes>SLING-INF/nodetypes/site.cnd</Sling-Nodetypes>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
