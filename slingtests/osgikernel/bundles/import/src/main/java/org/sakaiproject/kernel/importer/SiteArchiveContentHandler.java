@@ -19,25 +19,32 @@
 package org.sakaiproject.kernel.importer;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.files.FileUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+
 public class SiteArchiveContentHandler extends DefaultHandler {
-  private final String supportedVersions[] = { "Sakai 1.0" };
+  private final String[] supportedVersions = { "Sakai 1.0" };
   private Base64 base64 = new Base64();
   private String basePath;
   private ZipFile zip;
+  private Session session;
+  private SlingRepository slingRepository;
+  private ClusterTrackingService clusterTrackingService;
   private String date;
   private String server;
   private String source;
@@ -45,12 +52,23 @@ public class SiteArchiveContentHandler extends DefaultHandler {
   private Map<String, Resource> resources = new HashMap<String, Resource>();
   private String currentResourceId;
 
-  public SiteArchiveContentHandler(String basePath, ZipFile zip) {
+  public SiteArchiveContentHandler(String basePath, ZipFile zip,
+      Session session, SlingRepository slingRepository,
+      ClusterTrackingService clusterTrackingService) {
     if (basePath == null || "".equals(basePath)) {
       throw new IllegalArgumentException("Illegal basePath");
     }
     if (zip == null) {
       throw new IllegalArgumentException("Illegal ZipFile");
+    }
+    if (session == null) {
+      throw new IllegalArgumentException("Illegal Session");
+    }
+    if (slingRepository == null) {
+      throw new IllegalArgumentException("Illegal SlingRepository");
+    }
+    if (clusterTrackingService == null) {
+      throw new IllegalArgumentException("Illegal ClusterTrackingService");
     }
     if (basePath.endsWith("/")) { // strip trailing slash
       int lastSlash = basePath.lastIndexOf("/");
@@ -59,6 +77,9 @@ public class SiteArchiveContentHandler extends DefaultHandler {
       this.basePath = basePath;
     }
     this.zip = zip;
+    this.session = session;
+    this.slingRepository = slingRepository;
+    this.clusterTrackingService = clusterTrackingService;
   }
 
   /**
@@ -136,21 +157,15 @@ public class SiteArchiveContentHandler extends DefaultHandler {
             .equalsIgnoreCase(resource.getType())
         || "org.sakaiproject.content.types.urlResource"
             .equalsIgnoreCase(resource.getType())) {
-      copyFile(resource.attributes.get("body-location"), destination);
-      StringBuilder sb = new StringBuilder();
-      for (String key : resource.attributes.keySet()) {
-        sb.append(key);
-        sb.append("=");
-        sb.append(resource.attributes.get(key));
-        sb.append("\n");
-      }
-      for (String key : resource.properties.keySet()) {
-        sb.append(key);
-        sb.append("=");
-        sb.append(resource.properties.get(key));
-        sb.append("\n");
-      }
-      makeFile(destination + ".properties", sb.toString());
+      copyFile(resource.attributes.get("body-location"), destination,
+          resource.attributes.get("content-type"));
+      // StringBuilder sb = new StringBuilder();
+      // for (String key : resource.properties.keySet()) {
+      // sb.append(key);
+      // sb.append("=");
+      // sb.append(resource.properties.get(key));
+      // sb.append("\n");
+      // }
     } else {
       System.err.println("Mising handler for type: " + resource.getType());
     }
@@ -165,31 +180,20 @@ public class SiteArchiveContentHandler extends DefaultHandler {
     }
   }
 
-  private void makeFile(String path, String contents) {
-    File file = new File(path);
-    try {
-      final FileOutputStream out = new FileOutputStream(file);
-      out.write(contents.getBytes("UTF-8"));
-      out.close();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
+  private void copyFile(String zipEntryName, String destination,
+      String contentType) {
+    // copied from FilesUploadServlet.java
+    String id = clusterTrackingService.getClusterUniqueId();
+    if (id.endsWith("==")) {
+      id = id.substring(0, id.length() - 2);
     }
-  }
-
-  private void copyFile(String zipEntryName, String destination) {
+    id = id.replace('/', '_').replace('=', '-');
+    // end copied from FilesUploadServlet.java
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      final FileOutputStream out = new FileOutputStream(destination);
-      final byte[] buf = new byte[4096];
-      int len;
-      while ((len = in.read(buf)) > 0) {
-        out.write(buf, 0, len);
-      }
-      in.close();
-      out.close();
-    } catch (FileNotFoundException e) {
+      final Node node = FileUtils.saveFile(session, basePath, id, in,
+          zipEntryName, contentType, slingRepository);
+    } catch (RepositoryException e) {
       e.printStackTrace();
     } catch (IOException e) {
       e.printStackTrace();

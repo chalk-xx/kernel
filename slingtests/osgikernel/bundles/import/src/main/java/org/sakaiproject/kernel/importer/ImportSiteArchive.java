@@ -19,11 +19,14 @@ package org.sakaiproject.kernel.importer;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -37,7 +40,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import javax.jcr.Node;
 import javax.jcr.Session;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -50,8 +52,16 @@ import javax.xml.parsers.SAXParserFactory;
     @Property(name = "service.description", value = "Imports a zip file from Sakai2 SiteArchive."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class ImportSiteArchive extends SlingAllMethodsServlet {
+  private static final long serialVersionUID = 1678771348231033621L;
   public static final Logger LOG = LoggerFactory
       .getLogger(ImportSiteArchive.class);
+
+  @Reference
+  private SlingRepository slingRepository;
+
+  @Reference
+  private ClusterTrackingService clusterTrackingService;
+
   private final SAXParserFactory spf = SAXParserFactory.newInstance();
   SAXParser parser = null;
 
@@ -87,13 +97,7 @@ public class ImportSiteArchive extends SlingAllMethodsServlet {
       SlingHttpServletResponse response) throws ServletException {
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
-    final Node targetNode = request.getResource().adaptTo(Node.class);
-    // if (targetNode == null) {
-    // response.sendError(HttpServletResponse.SC_NOT_FOUND,
-    // "The path specified could not be found.");
-    // return;
-    // }
-    RequestParameter[] files = request.getRequestParameters("Filedata");
+    final RequestParameter[] files = request.getRequestParameters("Filedata");
     if (files == null) {
       sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Missing Filedata parameter.", null, response);
@@ -132,8 +136,10 @@ public class ImportSiteArchive extends SlingAllMethodsServlet {
             } else {
               if ("content.xml".equals(entry.getName())) {
                 LOG.info("found content.xml!");
-                 parser.parse(zip.getInputStream(entry),
-                 new SiteArchiveContentHandler("/lance/import", zip));
+                parser.parse(zip.getInputStream(entry),
+                    new SiteArchiveContentHandler("/lance/import", zip,
+                        session, slingRepository, clusterTrackingService));
+                resetSAXParser();
               }
             }
           }
