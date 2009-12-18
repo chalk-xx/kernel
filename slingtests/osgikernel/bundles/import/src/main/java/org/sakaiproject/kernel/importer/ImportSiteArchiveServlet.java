@@ -174,8 +174,6 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           LOG.warn("Could not delete temporary file: {}", tempZip
               .getAbsolutePath());
         }
-        response.sendError(HttpServletResponse.SC_OK);
-        return;
       } catch (IOException e) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
             .getLocalizedMessage(), e, response);
@@ -184,6 +182,9 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .getLocalizedMessage(), e, response);
       }
     }
+    sendError(HttpServletResponse.SC_OK, "All files processed without error.",
+        null, response);
+    return;
   }
 
   private void sendError(int errorCode, String message, Throwable exception,
