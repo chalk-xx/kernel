@@ -3,5 +3,7 @@
   "sakai:query-template": "//*[(@sling:resourceType='sakai/file' and (jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}'))){_tags}{_usedin}]{_order}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
-  "sakai:propertyprovider": "Files"
+  "sakai:propertyprovider": "Files",
+  "sakai:aggregate-search-results": [ "sakai:tags" ],
+  "sakai:aggregate-search-results-children": "false"
 }

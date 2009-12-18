@@ -3,5 +3,7 @@
   "sakai:query-template": "/{path}/.[{_resourceTypes}]",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Files",
-  "sakai:propertyprovider": "Files"
+  "sakai:propertyprovider": "Files",
+  "sakai:aggregate-search-results": [ "sakai:tags" ],
+  "sakai:aggregate-search-results-children": "false"
 }
