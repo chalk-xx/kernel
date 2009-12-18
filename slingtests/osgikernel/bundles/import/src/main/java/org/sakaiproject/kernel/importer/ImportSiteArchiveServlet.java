@@ -90,14 +90,25 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException {
-    final Session session = request.getResourceResolver()
-        .adaptTo(Session.class);
+    if (request.getRequestParameter("path") == null) {
+      sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "path parameter must be supplied", null, response);
+      return;
+    }
+    final String path = request.getRequestParameter("path").getString();
+    if (!path.startsWith("/")) {
+      sendError(HttpServletResponse.SC_BAD_REQUEST, "path must be absolute",
+          null, response);
+      return;
+    }
     final RequestParameter[] files = request.getRequestParameters("Filedata");
     if (files == null) {
       sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Missing Filedata parameter.", null, response);
       return;
     }
+    final Session session = request.getResourceResolver()
+        .adaptTo(Session.class);
     for (RequestParameter p : files) {
       LOG.info((p.getFileName() + ": " + p.getContentType() + ": " + p
           .getSize()));
@@ -132,8 +143,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
               if ("content.xml".equals(entry.getName())) {
                 LOG.info("found content.xml!");
                 parser.parse(zip.getInputStream(entry),
-                    new SiteArchiveContentHandler("/lance/import", zip,
-                        session, slingRepository, clusterTrackingService));
+                    new SiteArchiveContentHandler(path, zip, session,
+                        slingRepository, clusterTrackingService));
                 parser.reset();
               }
             }
