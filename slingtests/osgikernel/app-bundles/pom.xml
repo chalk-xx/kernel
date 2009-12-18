@@ -261,6 +261,11 @@
       <artifactId>org.sakaiproject.kernel.auth.ldap</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
 
 <!-- spec bundles -->
     <dependency>
@@ -471,7 +476,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.site,org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld,org.sakaiproject.kernel.batchget,org.sakaiproject.kernel.image,org.sakaiproject.kernel.connections,org.sakaiproject.kernel.version,org.sakaiproject.kernel.email.outgoing</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.site,org.sakaiproject.kernel.meservice,org.sakaiproject.kernel.jpaexample,org.sakaiproject.kernel.jpahelloworld,org.sakaiproject.kernel.batchget,org.sakaiproject.kernel.image,org.sakaiproject.kernel.connections,org.sakaiproject.kernel.version,org.sakaiproject.kernel.email.outgoing,org.sakaiproject.kernel.persondirectory</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/20 
                   </outputDirectory>

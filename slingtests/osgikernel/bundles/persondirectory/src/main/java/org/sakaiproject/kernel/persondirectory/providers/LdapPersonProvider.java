@@ -49,27 +49,28 @@ public class LdapPersonProvider implements PersonProvider {
   /** Default referral following behavior */
   public static final boolean DEFAULT_IS_FOLLOW_REFERRALS = false;
 
-  @Property(value = "usr")
-  protected static final String PROP_USER = "ldap.provider.user";
-
-  @Property(value = "passwd")
-  protected static final String PROP_PASSWORD = "ldap.provider.password";
-
-  @Property(value = "uid={},ou=Local Accounts,dc=sakai")
-  protected static final String PROP_BASE_DN_PATTERN = "ldap.provider.baseDn.pattern";
+  @Property(value = "ou=accounts,dc=sakai")
+  protected static final String PROP_BASE_DN = "ldap.provider.baseDn.pattern";
 
   @Property(value = "uid={}")
   protected static final String PROP_FILTER_PATTERN = "ldap.provider.filter.pattern";
 
-  @Property(value = { "key1=>key1", "key2=>key2" })
+  // @Property(cardinality = Integer.MAX_VALUE)
+  @Property(value = { "attr1", "attr2" })
   protected static final String PROP_ATTRIBUTES = "ldap.provider.attributes";
+
+  // @Property(cardinality = Integer.MAX_VALUE)
+  @Property(value = { "oldkey1 => newkey1", "oldkey2 => newkey2" })
+  protected static final String PROP_ATTRIBUTES_MAP = "ldap.provider.attributes.map";
+
+  @Property(boolValue = false)
+  protected static final String PROP_ALLOW_ADMIN_LOOKUP = "ldap.provider.admin.lookup";
 
   @Reference
   private LdapConnectionBroker ldapBroker;
 
-  private String user;
-  private String password;
-  private String baseDnPattern;
+  private boolean allowAdminLookup;
+  private String baseDn;
   private String filterPattern;
   private HashMap<String, String> attributesMap = new HashMap<String, String>();
   private String[] attributes;
@@ -93,12 +94,17 @@ public class LdapPersonProvider implements PersonProvider {
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
-    user = (String) props.get(PROP_USER);
-    password = (String) props.get(PROP_PASSWORD);
-    baseDnPattern = (String) props.get(PROP_BASE_DN_PATTERN);
+    allowAdminLookup = (Boolean) props.get(PROP_ALLOW_ADMIN_LOOKUP);
+    baseDn = (String) props.get(PROP_BASE_DN);
     filterPattern = (String) props.get(PROP_FILTER_PATTERN);
-    String[] attributeMapping = (String[]) props.get(PROP_ATTRIBUTES);
-    if (attributeMapping != null) {
+    // make sure the area isn't length 1 and empty. Felix admin will send this.
+    attributes = (String[]) props.get(PROP_ATTRIBUTES);
+    if (attributes != null && attributes.length == 1 && "".equals(attributes[0])) {
+      attributes = null;
+    }
+    String[] attributeMapping = (String[]) props.get(PROP_ATTRIBUTES_MAP);
+    if (attributeMapping != null
+        && !(attributeMapping.length == 1 && "".equals(attributeMapping[0]))) {
       for (String mapping : attributeMapping) {
         int splitIndex = mapping.indexOf("=>");
         if (splitIndex < 1) {
@@ -115,6 +121,8 @@ public class LdapPersonProvider implements PersonProvider {
         }
         attributesMap.put(key0, key1);
       }
+    } else {
+      attributesMap = new HashMap<String, String>();
     }
 
     // create an attribute array for looking things up
@@ -130,49 +138,50 @@ public class LdapPersonProvider implements PersonProvider {
   @SuppressWarnings("unchecked")
   public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
     try {
-      // set the constraints
-      LDAPSearchConstraints constraints = new LDAPSearchConstraints();
-      constraints.setDereference(LDAPSearchConstraints.DEREF_ALWAYS);
-      constraints.setTimeLimit(DEFAULT_OPERATION_TIMEOUT_MILLIS);
-      constraints.setReferralFollowing(DEFAULT_IS_FOLLOW_REFERRALS);
-      constraints.setBatchSize(0);
-
-      // set the properties
-      String baseDn = baseDnPattern.replace("{}", uid);
-      String filter = filterPattern.replace("{}", uid);
-
-      LOG.debug("searchDirectory(): [baseDN = {}][filter = {}][return attribs = {}]", new Object[] {
-          baseDn, filter, attributes });
-
       PersonImpl ldapPerson = null;
-      // get a connection
-      LDAPConnection conn = ldapBroker.getBoundConnection(LDAP_BROKER_NAME, user, password);
-      LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
-          attributes, false, constraints);
-      if (searchResults.hasMore()) {
-        // create the person to populate
-        ldapPerson = new PersonImpl(uid);
+      if (allowAdminLookup || (!allowAdminLookup && !"admin".equals(uid))) {
+        // set the constraints
+        LDAPSearchConstraints constraints = new LDAPSearchConstraints();
+        constraints.setDereference(LDAPSearchConstraints.DEREF_ALWAYS);
+        constraints.setTimeLimit(DEFAULT_OPERATION_TIMEOUT_MILLIS);
+        constraints.setReferralFollowing(DEFAULT_IS_FOLLOW_REFERRALS);
+        constraints.setBatchSize(0);
 
-        // pick off the first result returned
-        LDAPEntry entry = searchResults.next();
+        // set the properties
+        String filter = filterPattern.replace("{}", uid);
 
-        // get the attributes from the entry and loop through them
-        LDAPAttributeSet attrs = entry.getAttributeSet();
-        Iterator attrIter = attrs.iterator();
-        while (attrIter.hasNext()) {
-          // get the key and values from the attribute
-          LDAPAttribute attr = (LDAPAttribute) attrIter.next();
-          String name = attr.getName();
-          String[] vals = attr.getStringValueArray();
+        LOG.debug("searchDirectory(): [baseDN = {}][filter = {}][return attribs = {}]",
+            new Object[] { baseDn, filter, attributes });
 
-          // check for an aliased name
-          String mappingName = name;
-          if (attributesMap.containsKey(name)) {
-            mappingName = attributesMap.get(name);
+        // get a connection
+        LDAPConnection conn = ldapBroker.getBoundConnection(LDAP_BROKER_NAME);
+        LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
+            attributes, false, constraints);
+        if (searchResults.hasMore()) {
+          // create the person to populate
+          ldapPerson = new PersonImpl(uid);
+
+          // pick off the first result returned
+          LDAPEntry entry = searchResults.next();
+
+          // get the attributes from the entry and loop through them
+          LDAPAttributeSet attrs = entry.getAttributeSet();
+          Iterator attrIter = attrs.iterator();
+          while (attrIter.hasNext()) {
+            // get the key and values from the attribute
+            LDAPAttribute attr = (LDAPAttribute) attrIter.next();
+            String name = attr.getName();
+            String[] vals = attr.getStringValueArray();
+
+            // check for an aliased name
+            String mappingName = name;
+            if (attributesMap.containsKey(name)) {
+              mappingName = attributesMap.get(name);
+            }
+
+            // add the values under the appropriate key
+            ldapPerson.addAttribute(mappingName, vals);
           }
-
-          // add the values under the appropriate key
-          ldapPerson.addAttribute(mappingName, vals);
         }
       }
 
