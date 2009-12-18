@@ -51,10 +51,10 @@ import javax.xml.parsers.SAXParserFactory;
 @Properties(value = {
     @Property(name = "service.description", value = "Imports a zip file from Sakai2 SiteArchive."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-public class ImportSiteArchive extends SlingAllMethodsServlet {
+public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1678771348231033621L;
   public static final Logger LOG = LoggerFactory
-      .getLogger(ImportSiteArchive.class);
+      .getLogger(ImportSiteArchiveServlet.class);
 
   @Reference
   private transient SlingRepository slingRepository;
