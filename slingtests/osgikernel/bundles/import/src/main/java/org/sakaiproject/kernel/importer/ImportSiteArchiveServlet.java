@@ -27,6 +27,13 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
+import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -49,8 +56,17 @@ import javax.xml.parsers.SAXParserFactory;
 
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
 @Properties(value = {
-    @Property(name = "service.description", value = "Imports a zip file from Sakai2 SiteArchive."),
+    @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@ServiceDocumentation(name = "ImportSiteArchiveServlet", shortDescription = "Imports one or more SiteArchive ZIP files from Sakai 2", description = { "Imports one or more SiteArchive ZIP files from Sakai 2" }, bindings = @ServiceBinding(type = BindingType.TYPE, selectors = @ServiceSelector(name = "sitearchive", description = "Upload one or more ZIP files."), bindings = "sling/servlet/default"), methods = { @ServiceMethod(name = "POST", description = { "Upload one or more SiteArchive ZIP files from Sakai 2" }, parameters = {
+    @ServiceParameter(name = "path", description = "Required: The absolute path to the folder where content should be imported."),
+    @ServiceParameter(name = "Filedata", description = "Required: the parameter that holds the actual data for the file that should be uploaded. This can be multivalued.") }, response = {
+    @ServiceResponse(code = 200, description = "All files were processed without error."),
+    @ServiceResponse(code = 400, description = "path parameter was not provided"),
+    @ServiceResponse(code = 400, description = "path parameter was not absolute"),
+    @ServiceResponse(code = 400, description = "Filedata parameter was not provided."),
+    @ServiceResponse(code = 415, description = "The uploaded file was not a valid ZIP file."),
+    @ServiceResponse(code = 500, description = "Unexpected error.") }) })
 public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1678771348231033621L;
   public static final Logger LOG = LoggerFactory
@@ -158,6 +174,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           LOG.warn("Could not delete temporary file: {}", tempZip
               .getAbsolutePath());
         }
+        response.sendError(HttpServletResponse.SC_OK);
+        return;
       } catch (IOException e) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
             .getLocalizedMessage(), e, response);
