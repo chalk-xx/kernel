@@ -19,6 +19,8 @@ package org.sakaiproject.kernel.api.ldap;
 
 import com.novell.ldap.LDAPConnection;
 
+import java.util.List;
+
 /**
  * Central broker to handle connection managers.
  */
@@ -31,7 +33,7 @@ public interface LdapConnectionBroker {
    * @param name
    *          The name of the connection manager.
    */
-  void create(String name) throws LdapException;
+  LdapConnectionManager create(String name) throws LdapException;
 
   /**
    * Gets a connection from a named manager. If the manager does not already
@@ -80,20 +82,15 @@ public interface LdapConnectionBroker {
    * Gets a bound connection from a named manager. If the manager does not
    * already exist, {@link create(String)} is called then a connection taken
    * from it.
-   * 
+   *
    * @param name
    *          The name of the connection manager.
-   * @param loginDn
-   *          The DN to which to bind.
-   * @param password
-   *          The password with which to bind.
    * @return {@link LDAPConnection} from the named manager.
    * @throws LdapException
    *           If named connection manager is not found. Also wraps underlying
    *           exceptions.
    */
-  LDAPConnection getBoundConnection(String name, String loginDn, String password)
-      throws LdapException;
+  LDAPConnection getBoundConnection(String name) throws LdapException;
 
   /**
    * Gets a copy of the default configuration settings for LDAP connections.
@@ -104,4 +101,12 @@ public interface LdapConnectionBroker {
    *         manager.
    */
   LdapConnectionManagerConfig getDefaultConfig();
+
+  /**
+   * Get the validators to be used to validate the liveness of a connection.
+   * 
+   * @return A list of connection liveness validators, or an empty list if none
+   *         available. Does not return null.
+   */
+  List<LdapConnectionLivenessValidator> getLivenessValidators();
 }

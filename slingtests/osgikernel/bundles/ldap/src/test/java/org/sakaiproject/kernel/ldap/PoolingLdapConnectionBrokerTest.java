@@ -54,6 +54,7 @@ public class PoolingLdapConnectionBrokerTest {
     ConfigurationService configService = createMock(ConfigurationService.class);
     expect(configService.getProperties()).andReturn(new HashMap<String, String>());
 
+    // don't mock this. we just need to inject the connection.
     final PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager() {
       @Override
       public LDAPConnection getConnection() {
@@ -61,17 +62,24 @@ public class PoolingLdapConnectionBrokerTest {
       }
 
       @Override
-      public LDAPConnection getBoundConnection(String user, String pass) {
+      public LDAPConnection getBoundConnection() {
         return new LDAPConnection();
       }
     };
     config = new LdapConnectionManagerConfig();
     config.setLdapHost("localhost");
     config.setLdapPort(LDAPConnection.DEFAULT_PORT + 1000);
+    config.setLdapUser("dude");
+    config.setLdapPassword("sweet");
 
+    mgr.setConfig(config);
+    mgr.init();
+
+    // don't mock this. we just need to inject the manager.
     broker = new PoolingLdapConnectionBroker() {
       @Override
-      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName) {
+      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName,
+          LdapConnectionManagerConfig config) {
         return mgr;
       }
     };
@@ -152,50 +160,46 @@ public class PoolingLdapConnectionBrokerTest {
 
   @Test
   public void testUpdate() throws Exception {
-    String t = Boolean.TRUE.toString();
-    String f = Boolean.FALSE.toString();
+    Boolean t = Boolean.TRUE;
+    Boolean f = Boolean.FALSE;
     Properties m = new Properties();
     m.put(PoolingLdapConnectionBroker.AUTO_BIND, t);
     m.put(PoolingLdapConnectionBroker.FOLLOW_REFERRALS, t);
     m.put(PoolingLdapConnectionBroker.HOST, "localhoster");
     m.put(PoolingLdapConnectionBroker.KEYSTORE_LOCATION, "over there");
     m.put(PoolingLdapConnectionBroker.KEYSTORE_PASSWORD, "open sesame");
-    m.put(PoolingLdapConnectionBroker.OPERATION_TIMEOUT, Integer.toString(Integer.MIN_VALUE));
+    m.put(PoolingLdapConnectionBroker.OPERATION_TIMEOUT, Integer.MIN_VALUE);
     m.put(PoolingLdapConnectionBroker.PASSWORD, "secret");
     m.put(PoolingLdapConnectionBroker.POOLING, f);
-    m.put(PoolingLdapConnectionBroker.POOLING_MAX_CONNS, Integer.toString(Integer.MAX_VALUE));
-    m.put(PoolingLdapConnectionBroker.PORT, Integer.toString(LDAPConnection.DEFAULT_SSL_PORT));
+    m.put(PoolingLdapConnectionBroker.POOLING_MAX_CONNS, Integer.MAX_VALUE);
+    m.put(PoolingLdapConnectionBroker.PORT, LDAPConnection.DEFAULT_SSL_PORT);
     m.put(PoolingLdapConnectionBroker.SECURE_CONNECTION, f);
     m.put(PoolingLdapConnectionBroker.TLS, t);
     m.put(PoolingLdapConnectionBroker.USER, "user1");
     broker.update(m);
 
     LdapConnectionManagerConfig defaults = broker.getDefaultConfig();
-    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.AUTO_BIND)),
-        defaults
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.AUTO_BIND)).booleanValue(), defaults
         .isAutoBind());
-    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.FOLLOW_REFERRALS)),
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.FOLLOW_REFERRALS)).booleanValue(),
         defaults.isFollowReferrals());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.HOST), defaults.getLdapHost());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.KEYSTORE_LOCATION), defaults
         .getKeystoreLocation());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.KEYSTORE_PASSWORD), defaults
         .getKeystorePassword());
-    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.OPERATION_TIMEOUT)),
-        defaults
-        .getOperationTimeout());
+    assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.OPERATION_TIMEOUT))
+        .intValue(), defaults.getOperationTimeout());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.PASSWORD), defaults.getLdapPassword());
-    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.POOLING)), defaults
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.POOLING)).booleanValue(), defaults
         .isPooling());
-    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.POOLING_MAX_CONNS)),
-        defaults
-        .getPoolMaxConns());
-    assertEquals(Integer.parseInt(m.getProperty(PoolingLdapConnectionBroker.PORT)), defaults
+    assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.POOLING_MAX_CONNS)).intValue(),
+        defaults.getPoolMaxConns());
+    assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.PORT)).intValue(), defaults
         .getLdapPort());
-    assertEquals(
-        Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.SECURE_CONNECTION)),
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.SECURE_CONNECTION)).booleanValue(),
         defaults.isSecureConnection());
-    assertEquals(Boolean.parseBoolean(m.getProperty(PoolingLdapConnectionBroker.TLS)), defaults
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.TLS)).booleanValue(), defaults
         .isTLS());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.USER), defaults.getLdapUser());
   }
@@ -210,7 +214,7 @@ public class PoolingLdapConnectionBrokerTest {
 
   @Test
   public void testGetBoundConnectionBeforeCreate() throws Exception {
-    LDAPConnection conn = broker.getBoundConnection("whatever", "dude", "sweet");
+    LDAPConnection conn = broker.getBoundConnection("whatever");
     assertNotNull(conn);
     boolean exists = broker.exists("whatever");
     assertTrue(exists);
@@ -228,7 +232,7 @@ public class PoolingLdapConnectionBrokerTest {
   public void testGetBoundConnection() throws LdapException {
     String name = "whatever";
     broker.create(name);
-    LDAPConnection conn = broker.getBoundConnection(name, "dude", "sweet");
+    LDAPConnection conn = broker.getBoundConnection(name);
     assertNotNull(conn);
   }
 }

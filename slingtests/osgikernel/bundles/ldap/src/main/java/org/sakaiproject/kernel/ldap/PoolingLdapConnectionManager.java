@@ -30,16 +30,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Allocates connected, constrained, bound and optionally secure
- * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of connections
- * instead of creating a new connection for each request. Originally tried implementing
- * this with <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
- * recovering connections that had suffered a network error or connections that were never
- * returned but dropped out of scope.
- * 
+ * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of
+ * connections instead of creating a new connection for each request. Originally
+ * tried implementing this with
+ * <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
+ * recovering connections that had suffered a network error or connections that
+ * were never returned but dropped out of scope.
+ *
  * @see LdapConnectionManagerConfig
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  * @author John Lewis, Unicon Inc
+ * @author Carl Hall, Georgia Tech
  */
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
@@ -60,7 +62,6 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   private String poolName;
 
   public PoolingLdapConnectionManager() {
-
   }
 
   protected PoolingLdapConnectionManager(LdapConnectionBroker broker, String poolName) {
@@ -81,8 +82,11 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
     if (factory == null) {
       factory = new PooledLDAPConnectionFactory();
+      if (broker != null) {
+        factory.setLivenessValidators(broker.getLivenessValidators());
+      }
+      factory.setConnectionManager(this);
     }
-    factory.setConnectionManager(this);
 
     pool = new GenericObjectPool(factory, getConfig().getPoolMaxConns(), // maxActive
         GenericObjectPool.WHEN_EXHAUSTED_BLOCK, // whenExhaustedAction
@@ -111,30 +115,29 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   }
 
   @Override
-  public LDAPConnection getBoundConnection(String dn, String pw) throws LdapException {
-    log
-        .debug(
-            "getBoundConnection():dn=[{}] attempting to borrow connection from pool and bind to dn",
-            dn);
+  public LDAPConnection getBoundConnection() throws LdapException {
+    String user = getConfig().getLdapUser();
+    String pass = getConfig().getLdapPassword();
+    log.debug(
+        "getBoundConnection():dn=[{}] attempting to borrow connection from pool and bind to dn",
+        user);
     LDAPConnection conn = null;
     try {
       conn = (LDAPConnection) pool.borrowObject();
       log.debug(
-          "getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
-      conn.bind(LDAPConnection.LDAP_V3, dn, pw.getBytes("UTF8"));
-      log.debug("getBoundConnection():dn=[{}] successfully bound to dn", dn);
+          "getBoundConnection():dn=[{}] successfully borrowed connection from pool", user);
+      conn.bind(LDAPConnection.LDAP_V3, user, pass.getBytes("UTF8"));
+      log.debug("getBoundConnection():dn=[{}] successfully bound to dn", user);
       return conn;
     } catch (Exception e) {
       if (conn != null) {
         try {
-          log
-              .debug(
-                  "getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
-                  dn);
+          log.debug("getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
+              user);
           returnConnection(conn);
         } catch (Exception ee) {
-          log.debug("getBoundConnection():dn=[" + dn
-              + "] failed to return connection to pool", ee);
+          log.debug("getBoundConnection():dn=[" + user + "] failed to return connection to pool",
+              ee);
         }
       }
       if (e instanceof LDAPException) {
@@ -196,16 +199,15 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    * Assign a pool implementation. If not specified, one will be constructed by
    * {@link #init()}. If specified, {@link #setFactory(PooledLDAPConnectionFactory)} will
    * have no effect.
-   * 
+   *
    * <p>
    * This method exists almost entirely for testing purposes.
    * </p>
-   * 
+   *
    * @param pool
    *          the pool to cache; accepts <code>null</code>
    */
   protected void setPool(ObjectPool pool) {
     this.pool = pool;
   }
-
 }

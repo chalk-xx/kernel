@@ -20,6 +20,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyBoolean;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.kernel.api.ldap.LdapException;
 import org.sakaiproject.kernel.api.persondirectory.Person;
 import org.sakaiproject.kernel.api.persondirectory.PersonProviderException;
@@ -71,8 +73,15 @@ public class LdapPersonProviderTest {
   }
 
   @Test
-  public void testActivateWithAllProperties() {
-    LdapPersonProvider provider = new LdapPersonProvider();
+  public void testActivateWithAllProperties() throws Exception {
+    LdapConnectionBroker broker = createMock(LdapConnectionBroker.class);
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    expect(broker.getDefaultConfig()).andReturn(config);
+    expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
+        .andReturn(null);
+    replay(broker);
+
+    LdapPersonProvider provider = new LdapPersonProvider(broker);
     String[] attrMap = new String[] { "attr0=>wow wee", "attr1 => camera 1" };
     provider.activate(buildContext(attrMap));
     Map<String, String> attributesMap = provider.getAttributesMap();
@@ -143,6 +152,32 @@ public class LdapPersonProviderTest {
   }
 
   /**
+   * Test getting "admin" from an ldap provider.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetAdmin() throws Exception {
+    String[] attrMap = new String[] { "firstname => called" };
+    LdapPersonProvider provider = setUpForPositiveTest(attrMap);
+    Person person = provider.getPerson("admin", null);
+    assertNull("Should not allow lookup of 'admin'", person);
+
+    provider = setUpForPositiveTest(attrMap, true);
+    person = provider.getPerson("admin", null);
+    Set<String> attributeNames = person.getAttributeNames();
+    assertNotNull("Should allow lookup of 'admin'", attributeNames);
+
+    assertEquals(2, attributeNames.size());
+
+    assertTrue(attributeNames.contains("called"));
+    assertEquals("Tester", person.getAttributeValue("called"));
+
+    assertTrue(attributeNames.contains("lastname"));
+    assertEquals("User", person.getAttributeValue("lastname"));
+  }
+
+  /**
    * Test getPerson() when LdapConnectionBroker.getBoundConnection(..) throws an
    * LdapException.
    *
@@ -151,10 +186,13 @@ public class LdapPersonProviderTest {
   @Test
   public void testGetPersonThrowsLdapException() throws Exception {
     LdapConnectionBroker broker = createMock(LdapConnectionBroker.class);
-    expect(
-        broker.getBoundConnection((String) anyObject(), (String) anyObject(), (String) anyObject()))
-        .andThrow(new LdapException("oops"));
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    expect(broker.getDefaultConfig()).andReturn(config);
+    expect(broker.getBoundConnection(isA(String.class))).andThrow(new LdapException("oops"));
+    expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
+        .andReturn(null);
     replay(broker);
+
     LdapPersonProvider provider = new LdapPersonProvider(broker);
     provider.activate(buildContext(null));
     try {
@@ -174,8 +212,11 @@ public class LdapPersonProviderTest {
   public void testGetPersonThrowsLDAPException() throws Exception {
     LdapConnectionBroker broker = createMock(LdapConnectionBroker.class);
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
-    expect(broker.getBoundConnection(isA(String.class), (String) anyObject(), (String) anyObject()))
-        .andReturn(connection);
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    expect(broker.getDefaultConfig()).andReturn(config);
+    expect(broker.getBoundConnection(isA(String.class))).andReturn(connection);
+    expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
+        .andReturn(null);
     replay(broker);
     expect(
         connection.search(isA(String.class), anyInt(), isA(String.class), (String[]) anyObject(),
@@ -192,6 +233,10 @@ public class LdapPersonProviderTest {
     }
   }
 
+  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap) throws Exception {
+    return setUpForPositiveTest(attributeMap, false);
+  }
+
   /**
    * Setup everything needed for a test that follows the most positive path of
    * action.
@@ -199,7 +244,8 @@ public class LdapPersonProviderTest {
    * @return
    * @throws Exception
    */
-  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap) throws Exception {
+  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap, boolean allowAdmin)
+      throws Exception {
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
     LDAPSearchResults results = EasyMock.createMock(LDAPSearchResults.class);
     LDAPAttributeSet attrSet = EasyMock.createMock(LDAPAttributeSet.class);
@@ -207,8 +253,11 @@ public class LdapPersonProviderTest {
     LDAPEntry entry = EasyMock.createMock(LDAPEntry.class);
 
     LdapConnectionBroker broker = createMock(LdapConnectionBroker.class);
-    expect(broker.getBoundConnection(isA(String.class), (String) anyObject(), (String) anyObject()))
-        .andReturn(connection);
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    expect(broker.getDefaultConfig()).andReturn(config);
+    expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
+        .andReturn(null);
+    expect(broker.getBoundConnection(isA(String.class))).andReturn(connection);
     replay(broker);
     expect(
         connection.search(isA(String.class), anyInt(), isA(String.class), (String[]) anyObject(),
@@ -249,19 +298,22 @@ public class LdapPersonProviderTest {
     EasyMock.replay(results);
 
     LdapPersonProvider provider = new LdapPersonProvider(broker);
-    provider.activate(buildContext(attributeMap));
+    provider.activate(buildContext(attributeMap, allowAdmin));
     return provider;
   }
 
   private ComponentContext buildContext(String[] attributeMap) {
+    return buildContext(attributeMap, false);
+  }
+
+  private ComponentContext buildContext(String[] attributeMap, boolean allowAdmin) {
     Properties props = new Properties();
-    props.put(LdapPersonProvider.PROP_BASE_DN_PATTERN, "uid={},ou=Local Accounts,dc=sakai");
+    props.put(LdapPersonProvider.PROP_BASE_DN, "ou=accounts,dc=sakai");
     props.put(LdapPersonProvider.PROP_FILTER_PATTERN, "uid={}");
-    props.put(LdapPersonProvider.PROP_PASSWORD, "passwd");
-    props.put(LdapPersonProvider.PROP_USER, "usr");
     if (attributeMap != null) {
-      props.put(LdapPersonProvider.PROP_ATTRIBUTES, attributeMap);
+      props.put(LdapPersonProvider.PROP_ATTRIBUTES_MAP, attributeMap);
     }
+    props.put(LdapPersonProvider.PROP_ALLOW_ADMIN_LOOKUP, allowAdmin);
 
     ComponentContext ctx = createMock(ComponentContext.class);
     expect(ctx.getProperties()).andReturn(props);
