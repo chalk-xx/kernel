@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
-      <version>5.3.0-0001</version>
+      <version>5.3.0-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>

@@ -29,12 +29,12 @@
     <properties>
         <pkgArtifactId>commons-email</pkgArtifactId>
         <pkgVersion>1.1</pkgVersion>
-        <pomVersion>0001</pomVersion>
+        <pomVersion>0.1-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>
     <artifactId>${pom.groupId}.${pkgArtifactId}</artifactId>
-    <version>${osgiVersion}-${pomVersion}-SNAPSHOT</version>
+    <version>${osgiVersion}-${pomVersion}</version>
     <packaging>bundle</packaging>
     <name>${pkgArtifactId} bundle</name>
     <description>
