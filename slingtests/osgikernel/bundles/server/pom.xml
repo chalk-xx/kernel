@@ -53,7 +53,7 @@
               <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,repository.xml 
+              <excludes>META-INF/MANIFEST.MF,repository.xml,OSGI-INF/serviceComponents.xml 
               </excludes>
             </configuration>
           </execution>
