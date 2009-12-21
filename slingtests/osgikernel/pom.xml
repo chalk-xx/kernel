@@ -15,7 +15,7 @@
   </prerequisites>
   <scm>
     <connection>scm:git:git://github.com/ieb/open-experiments.git</connection>
-    <developerConnection>scm:git:git://git@github.com:ieb/open-experiments.git</developerConnection>
+    <developerConnection>scm:git:git://git@github.com/ieb/open-experiments.git</developerConnection>
     <url>http://github.com/ieb/open-experiments/</url>
   </scm>
   <issueManagement>
