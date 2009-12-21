@@ -205,13 +205,13 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.systemstatus</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0-20091220.224300-29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.httpauth</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20091220.224300-29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -235,25 +235,25 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20091217.000555-20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.post</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20091220.224300-29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.contentloader</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
+            <version>2.0.5-20091220.224300-29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.jcr.resource</artifactId>
-            <version>2.0.7-SNAPSHOT</version>
+            <version>2.0.7-20091220.224300-29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
