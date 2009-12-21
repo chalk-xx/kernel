@@ -5,5 +5,11 @@
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
-  "sakai:aggregate-search-results-children": "false"
+  "sakai:aggregate-search-results-children": "false",
+  "sakai:title": "Get a user\"s files.",
+  "sakai:shortDescription": "Get the files the current logged in user has uploaded.",
+  "sakai:parameters" : [
+      "{\"name\" : \"search\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",
+      "{\"name\" : \"sakai:tags\", \"description\" : \"A comma seperated list of tags that the file(s) should match\"}"
+      ]
 }
