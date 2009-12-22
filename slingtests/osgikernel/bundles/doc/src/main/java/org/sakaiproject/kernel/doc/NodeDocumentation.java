@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc.search;
+package org.sakaiproject.kernel.doc;
 
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.doc.DocumentationConstants;
@@ -27,17 +27,17 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
-public class SearchDocumentation {
+public class NodeDocumentation {
 
   private static final String TITLE = "sakai:title";
   private static final String DESCRIPTION = "sakai:description";
   private static final String PARAMETERS = "sakai:parameters";
   private static final String RESPONSE = "sakai:response";
   private static final String SHORT_DESCRIPTION = "sakai:shortDescription";
-  private boolean searchNode;
+  private boolean documentationNode;
   private String title;
   private String[] description;
-  private SearchDocumentationParameter[] parameters;
+  private NodeDocumentationParameter[] parameters;
   private String[] response;
   private String path;
   private String shortDescription;
@@ -50,11 +50,16 @@ public class SearchDocumentation {
    *          The search node
    * @throws RepositoryException
    */
-  public SearchDocumentation(Node node) throws RepositoryException {
+  public NodeDocumentation(Node node) throws RepositoryException {
     if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
         && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             .getString().equals("sakai/search")) {
-      setSearchNode(true);
+      setDocumentationNode(true);
+    }
+    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+        && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+            .getString().equals("sakai/proxy")) {
+      setDocumentationNode(true);
     }
     setPath(node.getPath());
     if (node.hasProperty(TITLE)) {
@@ -70,9 +75,9 @@ public class SearchDocumentation {
     }
     if (node.hasProperty(PARAMETERS)) {
       Value[] vals = JcrUtils.getValues(node, PARAMETERS);
-      SearchDocumentationParameter[] parameters = new SearchDocumentationParameter[vals.length];
+      NodeDocumentationParameter[] parameters = new NodeDocumentationParameter[vals.length];
       for (int i = 0; i < parameters.length; i++) {
-        parameters[i] = new SearchDocumentationParameter(vals[i]);
+        parameters[i] = new NodeDocumentationParameter(vals[i]);
       }
       setParameters(parameters);
     }
@@ -122,7 +127,7 @@ public class SearchDocumentation {
   /**
    * @return the parameters
    */
-  public SearchDocumentationParameter[] getParameters() {
+  public NodeDocumentationParameter[] getParameters() {
     return parameters;
   }
 
@@ -130,7 +135,7 @@ public class SearchDocumentation {
    * @param parameters
    *          the parameters to set
    */
-  public void setParameters(SearchDocumentationParameter[] parameters) {
+  public void setParameters(NodeDocumentationParameter[] parameters) {
     this.parameters = parameters;
   }
 
@@ -198,15 +203,15 @@ public class SearchDocumentation {
    * @param searchNode
    *          the searchNode to set
    */
-  public void setSearchNode(boolean searchNode) {
-    this.searchNode = searchNode;
+  public void setDocumentationNode(boolean searchNode) {
+    this.documentationNode = searchNode;
   }
 
   /**
    * @return the searchNode
    */
-  public boolean isSearchNode() {
-    return searchNode;
+  public boolean isDocumentationNode() {
+    return documentationNode;
   }
 
   /**
@@ -232,24 +237,28 @@ public class SearchDocumentation {
    * @param writer
    * @param parameters
    */
-  private void sendDoc(PrintWriter writer,
-      SearchDocumentationParameter[] parameters) {
+  private void writeParameters(PrintWriter writer,
+      NodeDocumentationParameter[] parameters) {
 
     writer.append("<ul class=\"").append(
         DocumentationConstants.CSS_CLASS_PARAMETERS).append("\">");
-    for (SearchDocumentationParameter par : parameters) {
-      writer.append("<li>");
-      writer.append("<span class=\"");
-      writer.append(DocumentationConstants.CSS_CLASS_PARAMETER_NAME);
-      writer.append("\">");
-      writer.append(par.getName());
-      writer.append("</span>");
-      writer.append("<span class=\"");
-      writer.append(DocumentationConstants.CSS_CLASS_PARAMETER_DESCRIPTION);
-      writer.append("\">");
-      writer.append(par.getDescription());
-      writer.append("</span>");
-      writer.append("</li>");
+    if (parameters == null || parameters.length == 0) {
+      writer.append("<li>No parameters required</li>");
+    } else {
+      for (NodeDocumentationParameter par : parameters) {
+        writer.append("<li>");
+        writer.append("<span class=\"");
+        writer.append(DocumentationConstants.CSS_CLASS_PARAMETER_NAME);
+        writer.append("\">");
+        writer.append(par.getName());
+        writer.append("</span>");
+        writer.append("<span class=\"");
+        writer.append(DocumentationConstants.CSS_CLASS_PARAMETER_DESCRIPTION);
+        writer.append("\">");
+        writer.append(par.getDescription());
+        writer.append("</span>");
+        writer.append("</li>");
+      }
     }
     writer.append("</ul>");
 
@@ -262,19 +271,20 @@ public class SearchDocumentation {
    */
   public void send(PrintWriter writer) {
 
-    if (!isSearchNode()) {
+    if (!isDocumentationNode()) {
       writer.append("<p>This is not a search node!</p>");
     } else {
       writer.append("<h3>Description</h3><p>");
       sendDescription(writer, getDescription());
 
       writer.append("<h3>Path</h3>");
-      writer.append("<p class=\">").append(DocumentationConstants.CSS_CLASS_PATH).append("\">");
+      writer.append("<p class=\">").append(
+          DocumentationConstants.CSS_CLASS_PATH).append("\">");
       writer.append(getPath());
       writer.append("</p>");
 
       writer.append("<h3>Parameters</h3>");
-      sendDoc(writer, getParameters());
+      writeParameters(writer, getParameters());
 
       writer.append("<h3>Response</h3>");
       sendDescription(writer, getResponse());

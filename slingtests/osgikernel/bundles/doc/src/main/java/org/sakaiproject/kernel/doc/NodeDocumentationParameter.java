@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc.search;
+package org.sakaiproject.kernel.doc;
 
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -24,14 +24,14 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
-public class SearchDocumentationParameter {
+public class NodeDocumentationParameter {
 
   private static final String NAME = "name";
   private static final String DESCRIPTION = "description";
   private String name;
   private String description;
 
-  public SearchDocumentationParameter(Value value) throws ValueFormatException,
+  public NodeDocumentationParameter(Value value) throws ValueFormatException,
       IllegalStateException, RepositoryException {
     try {
       JSONObject o = new JSONObject(value.getString());

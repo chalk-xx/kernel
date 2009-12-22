@@ -14,10 +14,12 @@ public interface DocumentationConstants {
   public static final CharSequence HTML_FOOTER = "</body></html>";
   public static final String PREFIX = "/system/doc";
 
+  public static final CharSequence CSS_CLASS_DOCUMENTATION_LIST = "documentation-list";
   public static final CharSequence CSS_CLASS_NODOC = "nodoc";
   public static final CharSequence CSS_CLASS_PARAMETERS = "parameters";
   public static final CharSequence CSS_CLASS_PARAMETER_NAME = "parameter-name";
   public static final CharSequence CSS_CLASS_PARAMETER_DESCRIPTION = "parameter-description";
   public static final CharSequence CSS_CLASS_PATH = "path";
+  public static final CharSequence CSS_CLASS_SHORT_DESCRIPTION = "short-description";
 
 }

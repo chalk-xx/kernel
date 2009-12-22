@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc;
+package org.sakaiproject.kernel.doc.servlet;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;

@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc;
+package org.sakaiproject.kernel.doc.servlet;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -45,7 +45,7 @@ import javax.servlet.ServletException;
  * Creates documentation by tracking servlets and inspecting some annotations.
  */
 @SlingServlet(methods = "GET", paths = "/system/doc/servlet")
-@ServiceDocumentation(name = "DocumentationServlet", 
+@ServiceDocumentation(name = "Servlet documentation", 
     description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
     + "service registration properties, or annotations if present."
     + " Requests to this servlet take the form /system/doc?p=&lt;classname&gt where <em>classname</em>"

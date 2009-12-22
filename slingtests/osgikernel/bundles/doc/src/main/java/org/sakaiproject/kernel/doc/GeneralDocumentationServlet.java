@@ -9,6 +9,8 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.doc.DocumentationConstants;
+import org.sakaiproject.kernel.doc.servlet.ServletDocumentation;
+import org.sakaiproject.kernel.doc.servlet.ServletDocumentationTracker;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,7 +70,7 @@ public class GeneralDocumentationServlet extends SlingSafeMethodsServlet {
           writer.append("<li><a href=\"");
           writer.append(k.getUrl());
           writer.append("\">");
-          writer.append(k.getName());
+          writer.append(k.getServiceDocumentationName());
           writer.append("</a><p>");
           writer.append(k.getShortDescription());
           writer.append("</p></li>");
