@@ -90,7 +90,6 @@ class TC_Kern455Test < SlingTest
 	res = @s.execute_post(@s.url_for(testnode),{"testprop", "test" })
 	assert_equal(res.code.to_i, 201, "Expected the node to be created "+res.body)
 		
-	puts(res.body)	
 	finalPath = res.body.match("/(_user/private/.*?/#{dummyuser.name}/test/n/o/d/e/#{m})")[0]
 	
 	res = @s.execute_get(@s.url_for(testnode+".json"))
