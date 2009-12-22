@@ -129,15 +129,16 @@ then
 fi
 echo "$testsrun tests completed"
 
-if [ $errors -ne 0 -o  $errors -ne 0 ]
+if [ $errors -ne 0 -o $failures -ne 0 ]
 then
    echo "There were failures or errors in integration, cant perform release"
+   set +o errexit
    grep -v "0 errors" last-release/integration.log  | grep -v osgikernel
    grep -v "0 failures" last-release/integration.log  | grep -v osgikernel
    exit -1
 fi
     
-echo "All Ok Comitting, tagging and moving on"
+echo "All Ok, release is good,  Comitting, tagging and moving on"
 
 
 
