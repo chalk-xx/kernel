@@ -30,6 +30,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.NODE_TYPE_MANAGEMENT_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.JcrConstants;
@@ -269,7 +270,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     
     addEntry(profileNode.getParent().getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
         REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-        REMOVE_NODE_GRANTED);
+        REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED );
     return profileNode;
   }
   
@@ -290,7 +291,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     String privateNodePath = privateNode.getPath();
     addEntry(privateNodePath, authorizable, session, READ_GRANTED, WRITE_GRANTED,
           REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-          REMOVE_NODE_GRANTED);
+          REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
     // explicitly deny anon and everyone, this is private space.
     addEntry(privateNodePath, anon, session,READ_DENIED, WRITE_DENIED );
     addEntry(privateNodePath, everyone, session, READ_DENIED, WRITE_DENIED );

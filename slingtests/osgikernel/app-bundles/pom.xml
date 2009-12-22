@@ -234,22 +234,22 @@
     <dependency>
       <groupId>org.apache.felix.commons</groupId>
       <artifactId>org.apache.felix.commons.commons-email</artifactId>
-      <version>1.1-0001-SNAPSHOT</version>
+      <version>1.1-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix.commons</groupId>
       <artifactId>org.apache.felix.commons.commons-pool</artifactId>
-      <version>1.5.2-0001</version>
+      <version>1.5.2-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix.commons</groupId>
       <artifactId>org.apache.felix.commons.commons-httpclient</artifactId>
-      <version>3.1-0001</version>
+      <version>3.1-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix.commons</groupId>
       <artifactId>org.apache.felix.commons.commons-codec</artifactId>
-      <version>1.4-0001</version>
+      <version>1.4-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
@@ -299,12 +299,12 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.5-sakai-SNAPSHOT</version>
+      <version>2.0.5-0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
-      <version>2.0.3-sakai-SNAPSHOT</version>
+      <version>2.0.3-0.1-SNAPSHOT</version>
     </dependency>
     
     
@@ -318,7 +318,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.0-0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -336,7 +336,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>javax.activation-mail</artifactId>
-      <version>1.1.1-1.4.2</version>
+      <version>1.1.1-1.4.2-0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -368,7 +368,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
-      <version>5.3.0-0001</version>
+      <version>5.3.0-0.1-SNAPSHOT</version>
     </dependency>
 
 <!-- additional sling bundles -->

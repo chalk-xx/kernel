@@ -29,7 +29,7 @@
     <properties>
         <pkgArtifactId>commons-pool</pkgArtifactId>
         <pkgVersion>1.5.2</pkgVersion>
-        <pomVersion>0001</pomVersion>
+        <pomVersion>0.1-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>
@@ -44,11 +44,13 @@
         <name>Apache Felix Project</name>
         <url>http://felix.apache.org/</url>
     </organization>
+    <!--
     <scm>
       <connection>scm:svn:http://svn.apache.org/repos/asf/felix/trunk/commons/commons-pool</connection>
       <developerConnection>scm:svn:https://svn.apache.org/repos/asf/felix/trunk/commons/commons-pool</developerConnection>
       <url>http://svn.apache.org/viewcvs/felix/trunk/commons/commons-pool</url>
     </scm>
+    -->
 
     <dependencies>
         <dependency>
