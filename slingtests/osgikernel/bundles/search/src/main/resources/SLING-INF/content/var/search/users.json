@@ -3,7 +3,7 @@
   "sakai:query-template": "//*[@sling:resourceType=\"sakai/user-profile\" and jcr:contains(.,\"{username}\")]",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Node",
-  "sakai:title": "Search for user profile nodes.",
+  "sakai:title": "Users",
   "sakai:shortDescription": "Get profile nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"username\", \"description\" : \"The term you want to match against. This will match any property on the user profile\"}"

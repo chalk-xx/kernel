@@ -4,7 +4,7 @@
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Page",
   "sakai:propertyprovider": "Page",
-  "sakai:title": "Search for page nodes.",
+  "sakai:title": "Pages.",
   "sakai:shortDescription": "Get page nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"path\", \"description\" : \"The node where you want to look under.<br />Example: /sites/my-course-site/_pages\"}",

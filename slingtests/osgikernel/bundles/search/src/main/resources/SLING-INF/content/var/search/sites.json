@@ -3,7 +3,7 @@
   "sakai:query-template": "//*[@sling:resourceType=\"sakai/site\" and jcr:contains(.,\"{q}\")]",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Site",
-  "sakai:title": "Search for site nodes.",
+  "sakai:title": "Sites",
   "sakai:shortDescription": "Get site nodes out of the repository.",
   "sakai:parameters" : [
       "{\"name\" : \"q\", \"description\" : \"Filters the search. Will match any property on the sakai/site node.\"}"

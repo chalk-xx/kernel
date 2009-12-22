@@ -3,7 +3,7 @@
   "sakai:query-template": "//*[jcr:contains(.,\"{q}\")]",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Node",
-  "sakai:title": "General search.",
+  "sakai:title": "Content - Any content",
   "sakai:shortDescription": "Search for any type node of node that matches the searchterm.",
   "sakai:parameters" : [
       "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the node\"}"
