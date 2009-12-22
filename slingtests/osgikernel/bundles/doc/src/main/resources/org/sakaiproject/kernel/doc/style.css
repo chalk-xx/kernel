@@ -42,3 +42,5 @@ a:hover
 
 a:visited
 { color: #003D5F; }
+
+.parameter-name { display:block; }

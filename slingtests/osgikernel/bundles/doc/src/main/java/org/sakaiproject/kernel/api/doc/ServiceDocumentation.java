@@ -57,6 +57,12 @@ public @interface ServiceDocumentation {
   String shortDescription() default "no description supplied";
 
   /**
+   * @return If this servlet provides a set of documentation, you can place the URL to the
+   *         servlet here.
+   */
+  String url() default "";
+
+  /**
    * @return is this set of description a proxy for a real servlet.
    */
   String proxy() default "";

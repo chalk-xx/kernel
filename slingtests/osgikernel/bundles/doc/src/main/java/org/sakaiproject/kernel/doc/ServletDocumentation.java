@@ -278,6 +278,28 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       return serviceDocumetation.shortDescription();
     }
   }
+  
+  /**
+   * @return The url of the documentation-servlet (if any)
+   */
+  public String getUrl() {
+    if (serviceDocumetation == null) {
+      return "";
+    } else {
+      return serviceDocumetation.url();
+    }
+  }
+  
+  public boolean isDocumentationServlet() {
+    if (serviceDocumetation == null) {
+      return false;
+    } else {
+      if (!serviceDocumetation.url().equals("")) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * {@inheritDoc}
