@@ -6,7 +6,7 @@
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
-  "sakai:title": "Search trough site files.",
+  "sakai:title": "Files - My sites.",
   "sakai:shortDescription": "Performs a search trough all the site files you are a member of.",
   "sakai:parameters" : [
       "{\"name\" : \"search\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",

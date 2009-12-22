@@ -6,7 +6,7 @@
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
-  "sakai:title": "Search trough files of my contacts.",
+  "sakai:title": "Files - My contacts.",
   "sakai:shortDescription": "Performs a search trough all the files of the contacts.",
   "sakai:parameters" : [
       "{\"name\" : \"search\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",

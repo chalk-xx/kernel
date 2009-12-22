@@ -6,7 +6,7 @@
   "sakai:propertyprovider": "Files",
   "sakai:aggregate-search-results": [ "sakai:tags" ],
   "sakai:aggregate-search-results-children": "false",
-  "sakai:title": "Perform a search on the current user's files.",
+  "sakai:title": "Files - My files.",
   "sakai:shortDescription": "Get the files which the current logged in user has uploaded.",
   "sakai:parameters" : [
       "{\"name\" : \"search\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",
