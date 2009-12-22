@@ -1,7 +1,0 @@
-{
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[@sling:resourceType=\"sakai/contactusercontact\"]",
-  "sling:resourceType": "sakai/search",
-  "sakai:resultprocessor": "Connection",
-  "sakai:documentation" : "this is a search template that will return a list of all contacts the current user has read access to anywhere in the system"
-}
