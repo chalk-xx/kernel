@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc;
+package org.sakaiproject.kernel.doc.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -43,7 +43,8 @@ import javax.servlet.Servlet;
 public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
   private static final String PACKAGE = "org.sakaiproject.kernel.doc.proxy.Doc_";
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServletDocumentation.class);
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(ServletDocumentation.class);
   private ServiceDocumentation serviceDocumetation;
   private String serviceName;
   private Servlet service;
@@ -56,17 +57,17 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   public ServletDocumentation(ServiceReference reference, Servlet service) {
     this.service = service;
     this.reference = reference;
-    serviceDocumetation = (ServiceDocumentation) service.getClass().getAnnotation(
-        ServiceDocumentation.class);
-    if ( serviceDocumetation == null ) {
+    serviceDocumetation = (ServiceDocumentation) service.getClass()
+        .getAnnotation(ServiceDocumentation.class);
+    if (serviceDocumetation == null) {
       // try and load an info class.
       String name = service.getClass().getName();
-      name = PACKAGE+name.replace('.', '_');
+      name = PACKAGE + name.replace('.', '_');
       try {
         Class<?> c = this.getClass().getClassLoader().loadClass(name);
-        serviceDocumetation = (ServiceDocumentation) c.getAnnotation(
-          ServiceDocumentation.class);
-      } catch ( ClassNotFoundException ex ) {
+        serviceDocumetation = (ServiceDocumentation) c
+            .getAnnotation(ServiceDocumentation.class);
+      } catch (ClassNotFoundException ex) {
         LOGGER.warn("No documentation proxy {} ", name);
         // no doc class present.
       }
@@ -98,8 +99,8 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
    *          the documentation annotation, if present, null if not.
    * @return the service name.
    */
-  private static String getServiceName(ServiceReference reference, Servlet service,
-      ServiceDocumentation serviceDocumetation) {
+  private static String getServiceName(ServiceReference reference,
+      Servlet service, ServiceDocumentation serviceDocumetation) {
     String name = service.getClass().getName();
     int i = name.lastIndexOf('.');
     name = i > 0 ? name.substring(i + 1) : name;
@@ -122,8 +123,8 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
    * @throws IOException
    *           of there were issues writing to the response.
    */
-  public void send(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws IOException {
+  public void send(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws IOException {
     PrintWriter writer = response.getWriter();
 
     if (serviceDocumetation == null) {
@@ -212,7 +213,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
       if (service instanceof Servlet) {
         ServletDocumentation sd = new ServletDocumentation(k, (Servlet) service);
         String key = sd.getKey();
-        if ( key != null ) {
+        if (key != null) {
           writer.append("<li><a href=\"");
           writer.append("?p=");
           writer.append(sd.getKey());
@@ -269,6 +270,17 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
   }
 
   /**
+   * @return Returns the name of this servlet as specified in the serviceDocumentation
+   */
+  public String getServiceDocumentationName() {
+    if (serviceDocumetation == null) {
+      return "No name available";
+    } else {
+      return serviceDocumetation.name();
+    }
+  }
+
+  /**
    * @return a short description of the Servlet.
    */
   public String getShortDescription() {
@@ -277,6 +289,28 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
     } else {
       return serviceDocumetation.shortDescription();
     }
+  }
+
+  /**
+   * @return The url of the documentation-servlet (if any)
+   */
+  public String getUrl() {
+    if (serviceDocumetation == null) {
+      return "";
+    } else {
+      return serviceDocumetation.url();
+    }
+  }
+
+  public boolean isDocumentationServlet() {
+    if (serviceDocumetation == null) {
+      return false;
+    } else {
+      if (!serviceDocumetation.url().equals("")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -316,7 +350,7 @@ public class ServletDocumentation implements Comparable<ServletDocumentation> {
    *         documentation objects.
    */
   public String getKey() {
-    if ( serviceDocumetation != null && serviceDocumetation.ignore() ) {
+    if (serviceDocumetation != null && serviceDocumetation.ignore()) {
       return null;
     }
     return String.valueOf(service.getClass().getName());

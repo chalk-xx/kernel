@@ -1,7 +1,0 @@
-{
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{path}//*[(jcr:contains(.,\"{search}\") and @sling:resourceType='sakai/file'){_tags}]",
-  "sling:resourceType": "sakai/search",
-  "sakai:batchresultprocessor": "FilesCountTags",
-  "sakai:propertyprovider": "Files"
-}

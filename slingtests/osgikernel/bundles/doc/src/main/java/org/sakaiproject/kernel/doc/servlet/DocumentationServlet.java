@@ -15,9 +15,8 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.doc;
+package org.sakaiproject.kernel.doc.servlet;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -26,6 +25,7 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.DocumentationConstants;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
@@ -33,7 +33,6 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,8 +44,8 @@ import javax.servlet.ServletException;
 /**
  * Creates documentation by tracking servlets and inspecting some annotations.
  */
-@SlingServlet(methods = "GET", paths = "/system/doc")
-@ServiceDocumentation(name = "DocumentationServlet", 
+@SlingServlet(methods = "GET", paths = "/system/doc/servlet")
+@ServiceDocumentation(name = "Servlet documentation", 
     description = "Provides auto documentation of servlets registered with OSGi. Documentation will use the "
     + "service registration properties, or annotations if present."
     + " Requests to this servlet take the form /system/doc?p=&lt;classname&gt where <em>classname</em>"
@@ -54,9 +53,10 @@ import javax.servlet.ServletException;
     + "not present a 404 will be retruned, if the class is present, it will be interogated to extract "
     + "documentation from the class. In addition to extracting annotation based documention the servlet will "
     + "display the OSGi service properties. All documentation is assumed to be HTML encoded. If the browser is "
-    + "directed to <a href=\"/system/doc\" >/system/doc</a> a list of all servlets in the system will be displayed ",
-    shortDescription="Documentation servlet that renders service documentation ",
-    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc"), 
+    + "directed to <a href=\"/system/doc/servlet\" >/system/doc/servlet</a> a list of all servlets in the system will be displayed ",
+    shortDescription="Documentation for all the servlets in the system.",
+    bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/system/doc/servlet"), 
+    url = "/system/doc/servlet",
     methods = { 
          @ServiceMethod(name = "GET", 
              description = "GETs to this servlet will produce documentation for the class, " +
@@ -71,18 +71,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -6622263132868029827L;
-  public static final String PREFIX = "/system/doc";
-  private static final CharSequence HTML_HEADER = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 TRANSITIONAL//EN\">"
-      + "<html><head>"
-      + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">"
-      + "<link rel=\"stylesheet\" type=\"text/css\" href=\"/sling.css\" >"
-      + "<link rel=\"stylesheet\" type=\"text/css\" href=\""
-      + PREFIX
-      + "?p=style\">"
-      + "</head><body>";
-  private static final CharSequence HTML_FOOTER = "</body></html>";
   private ServletDocumentationTracker servletTracker;
-  private byte[] style;
 
   /**
    * {@inheritDoc}
@@ -96,17 +85,6 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
     RequestParameter p = request.getRequestParameter("p");
     if (p == null) {
       sendIndex(response);
-    } else if ("style".equals(p.getString())) {
-      if (style == null) {
-        System.err.println("Loading Style");
-        InputStream in = this.getClass().getResourceAsStream("style.css");
-        style = IOUtils.toByteArray(in);
-        in.close();
-      }
-      System.err.println("Sending " + style.length);
-      response.setContentType("text/css; charset=UTF-8");
-      response.setContentLength(style.length);
-      response.getOutputStream().write(style);
     } else {
 
       ServletDocumentation doc = servletTracker.getServletDocumentation().get(
@@ -139,7 +117,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
    */
   private void sendIndex(SlingHttpServletResponse response) throws IOException {
     PrintWriter writer = response.getWriter();
-    writer.append(HTML_HEADER);
+    writer.append(DocumentationConstants.HTML_HEADER);
     writer.append("<h1>List of Services</h1>");
     writer.append("<ul>");
     Map<String, ServletDocumentation> m = servletTracker.getServletDocumentation();
@@ -149,7 +127,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
       String key = k.getKey();
       if ( key != null ) {
         writer.append("<li><a href=\"");
-        writer.append(PREFIX);
+        writer.append(DocumentationConstants.PREFIX + "/servlet");
         writer.append("?p=");
         writer.append(k.getKey());
         writer.append("\">");
@@ -160,7 +138,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
       }
     }
     writer.append("</ul>");
-    writer.append(HTML_FOOTER);
+    writer.append(DocumentationConstants.HTML_FOOTER);
   }
 
   /**
@@ -172,12 +150,12 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
   private void send(SlingHttpServletRequest request, SlingHttpServletResponse response,
       ServletDocumentation doc) throws IOException {
     PrintWriter writer = response.getWriter();
-    writer.append(HTML_HEADER);
+    writer.append(DocumentationConstants.HTML_HEADER);
     writer.append("<h1>Service: ");
     writer.append(doc.getName());
     writer.append("</h1>");
     doc.send(request, response);
-    writer.append(HTML_FOOTER);
+    writer.append(DocumentationConstants.HTML_FOOTER);
   }
 
 }
