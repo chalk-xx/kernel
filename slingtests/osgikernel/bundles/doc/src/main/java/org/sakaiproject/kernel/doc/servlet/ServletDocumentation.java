@@ -29,6 +29,8 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.sakaiproject.kernel.doc.proxy.ProxyDocumentationServlet;
+import org.sakaiproject.kernel.doc.sling.DocumentationProxyPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +44,7 @@ import javax.servlet.Servlet;
  */
 public class ServletDocumentation implements Comparable<ServletDocumentation> {
 
-  private static final String PACKAGE = "org.sakaiproject.kernel.doc.proxy.Doc_";
+  private static final String PACKAGE = DocumentationProxyPackage.class.getPackage().getName()+".Doc_";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ServletDocumentation.class);
   private ServiceDocumentation serviceDocumetation;
