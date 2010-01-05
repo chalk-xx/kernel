@@ -8,10 +8,8 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.util.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +39,10 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
       SlingHttpServletResponse response) throws ServletException, IOException {
 
     RequestParameter p = request.getRequestParameter("p");
-    if (!p.isFormField()) {
-      InputStream in = p.getInputStream();
-      String json = IOUtils.readFully(in, "UTF-8");
+    if (p != null) {
+      //InputStream in = p.getInputStream();
+      //String json = IOUtils.readFully(in, "UTF-8");
+      String json = p.getString();
       List<PostOperation> operations = new ArrayList<PostOperation>();
       try {
         JSONArray arr = new JSONArray(json);
@@ -74,6 +73,17 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
 
   }
 
+  /**
+   * Performs a POST request with the data contained in operation.
+   * Writes the result of the request back to the jsonwriter.
+   * @param request
+   * @param response
+   * @param operation
+   * @param write
+   * @throws ServletException
+   * @throws IOException
+   * @throws JSONException
+   */
   private void doRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response, PostOperation operation,
       JSONWriter write) throws ServletException, IOException, JSONException {
@@ -92,6 +102,8 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
     write.value(operation.getUrl());
     write.key("body");
     write.value(responseWrapper.getDataAsString());
+    write.key("status");
+    write.value(responseWrapper.getStatus());
 
     write.endObject();
 

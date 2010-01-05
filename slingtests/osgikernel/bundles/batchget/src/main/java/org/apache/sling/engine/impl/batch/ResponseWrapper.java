@@ -12,6 +12,8 @@ import javax.servlet.ServletOutputStream;
 
 public class ResponseWrapper extends SlingHttpServletResponseWrapper {
 
+  private int status;
+
   public ResponseWrapper(SlingHttpServletResponse wrappedResponse) {
     super(wrappedResponse);
   }
@@ -88,5 +90,27 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
   @Override
   public void resetBuffer() {
   }
-  
+
+  @Override
+  public void sendError(int sc) throws IOException {
+    status = sc;
+    super.sendError(sc);
+  }
+
+  @Override
+  public void sendError(int sc, String msg) throws IOException {
+    status = sc;
+    super.sendError(sc, msg);
+  }
+
+  @Override
+  public void setStatus(int sc) {
+    status = sc;
+    super.setStatus(sc);
+  }
+
+  public int getStatus() {
+    return status;
+  }
+
 }

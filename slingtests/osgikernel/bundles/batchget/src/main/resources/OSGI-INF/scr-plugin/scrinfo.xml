@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components xmlns:scr="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.TagOperation">
+        <implementation class="org.apache.sling.engine.impl.batch.TagOperation"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.sling.servlets.post.SlingPostOperation"/>
+        </service>
+        <property name="sling.post.operation" value="tag" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.TagOperation" private="false"/>
+    </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.AddPropertyOperation">
+        <implementation class="org.apache.sling.engine.impl.batch.AddPropertyOperation"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.sling.servlets.post.SlingPostOperation"/>
+        </service>
+        <property name="sling.post.operation" value="addProperty" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.AddPropertyOperation" private="false"/>
+    </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.RemovePropertyOperation">
+        <implementation class="org.apache.sling.engine.impl.batch.RemovePropertyOperation"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.sling.servlets.post.SlingPostOperation"/>
+        </service>
+        <property name="sling.post.operation" value="removeProperty" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.RemovePropertyOperation" private="false"/>
+    </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.BatchDeleteServlet">
+        <implementation class="org.apache.sling.engine.impl.batch.BatchDeleteServlet"/>
+        <service servicefactory="false">
+            <provide interface="javax.servlet.Servlet"/>
+        </service>
+        <property name="service.description" value="Delete multiple resource requests and give a useful response." private="false"/>
+        <property name="service.vendor" value="The Sakai Foundation" private="false"/>
+        <property name="sling.servlet.paths" value="/system/batch/delete" private="false"/>
+        <property name="sling.servlet.methods" value="POST" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.BatchDeleteServlet" private="false"/>
+    </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.BatchGetServlet">
+        <implementation class="org.apache.sling.engine.impl.batch.BatchGetServlet"/>
+        <service servicefactory="false">
+            <provide interface="javax.servlet.Servlet"/>
+        </service>
+        <property name="service.description" value="Bundles multiple resource requests into a single response." private="false"/>
+        <property name="service.vendor" value="The Sakai Foundation" private="false"/>
+        <property name="sling.servlet.paths" value="/system/batch/get" private="false"/>
+        <property name="sling.servlet.methods" value="GET" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.BatchGetServlet" private="false"/>
+    </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.BatchPostServlet">
+        <implementation class="org.apache.sling.engine.impl.batch.BatchPostServlet"/>
+        <service servicefactory="false">
+            <provide interface="javax.servlet.Servlet"/>
+        </service>
+        <property name="service.description" value="Bundles multiple post requests into a single response." private="false"/>
+        <property name="service.vendor" value="The Sakai Foundation" private="false"/>
+        <property name="sling.servlet.paths" value="/system/batch/post" private="false"/>
+        <property name="sling.servlet.methods" value="POST" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.BatchPostServlet" private="false"/>
+    </scr:component>
+</components>

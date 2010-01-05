@@ -14,8 +14,9 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
 
   private PostOperation operation;
 
-  public RequestWrapper(SlingHttpServletRequest wrappedRequest) {
-    super(wrappedRequest);
+  public RequestWrapper(SlingHttpServletRequest originalRequest) {
+    super(originalRequest);
+    originalRequest.removeAttribute(ParameterSupport.class.getName());
   }
 
   public void setPostOperation(PostOperation operation) {
