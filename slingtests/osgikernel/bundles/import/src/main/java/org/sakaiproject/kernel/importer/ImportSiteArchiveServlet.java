@@ -312,19 +312,12 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     if (destination.endsWith("/")) { // strip trailing slash
       destination = destination.substring(0, destination.lastIndexOf("/"));
     }
-    // copied from FilesUploadServlet.java
-    String id = clusterTrackingService.getClusterUniqueId();
-    if (id.endsWith("==")) {
-      id = id.substring(0, id.length() - 2);
-    }
-    id = id.replace('/', '_').replace('=', '-');
-    // end copied from FilesUploadServlet.java
     final String fileName = destination
         .substring(destination.lastIndexOf("/") + 1);
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      node = FileUtils.saveFile(session, destination, id, in, fileName,
+      node = FileUtils.saveFile(session, destination, uniqueId(), in, fileName,
           contentType, slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
@@ -332,6 +325,17 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       throw new Error(e);
     }
     return node;
+  }
+
+  private String uniqueId() {
+    // copied from FilesUploadServlet.java
+    String id = clusterTrackingService.getClusterUniqueId();
+    if (id.endsWith("==")) {
+      id = id.substring(0, id.length() - 2);
+    }
+    id = id.replace('/', '_').replace('=', '-');
+    // end copied from FilesUploadServlet.java
+    return id;
   }
 
   private static class Resource {
