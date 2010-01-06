@@ -63,18 +63,18 @@ import javax.servlet.http.HttpServletResponse;
         bindings = "/system/batch/delete"
     ),
     methods = @ServiceMethod(
-        name = "GET", 
-        description = "Get multiple resource requests into a single response.",
+        name = "POST", 
+        description = "Delete multiple resource requests in a single request.",
         parameters = @ServiceParameter(
             name = "resources",
-            description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
+            description = "Multi valued parameter that contains absolute paths to the resources. <br />Example:" +
                 "<pre>curl -d\"resources=/_user/public/admin/fileA.doc\" -d\"resources=/_user/public/admin/fileA.doc\" -G http://admin:admin@localhost:8080/system/batch/delete</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
             description = "Looped over all the resources and attempted to delete each one.<br />" +
             		"This will return a JSON array with an object for each resource. This object will have a path and succes key.<br />" +
-            		"The success key can be one of the following:" +
+            		"The success value can be one of the following:" +
             		"<ul><li>200: Resource was removed succesfully.</li>" +
             		"<li>401: Current user does not have appropriate accessrights to this resource.</li>" +
             		"<li>404: This resource was not found.</li>" +

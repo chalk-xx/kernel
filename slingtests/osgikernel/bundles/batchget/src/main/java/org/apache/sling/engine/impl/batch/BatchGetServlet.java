@@ -65,7 +65,7 @@ import javax.servlet.http.HttpServletResponse;
         parameters = @ServiceParameter(
             name = "resources",
             description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
-                "<pre>curl -d\"resources=/system/me\" -d\"resources=/devwidgets.json\" -d\"resources=/some/none/existing/resource.json\" -G http://localhost:8080/system/batch</pre>"
+                "<pre>curl -d\"resources=/system/me\" -d\"resources=/devwidgets.json\" -d\"resources=/some/none/existing/resource.json\" -G http://localhost:8080/system/batch/get</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Allows for bundled POST requests.
@@ -40,8 +41,6 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
 
     RequestParameter p = request.getRequestParameter("p");
     if (p != null) {
-      //InputStream in = p.getInputStream();
-      //String json = IOUtils.readFully(in, "UTF-8");
       String json = p.getString();
       List<PostOperation> operations = new ArrayList<PostOperation>();
       try {
@@ -52,8 +51,8 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
           operations.add(operation);
         }
       } catch (JSONException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "Failed to parse the JSON parameter");
       }
 
       try {
@@ -65,8 +64,8 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
         }
         write.endArray();
       } catch (JSONException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Failed to write JSON response");
       }
 
     }
@@ -74,38 +73,56 @@ public class BatchPostServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Performs a POST request with the data contained in operation.
-   * Writes the result of the request back to the jsonwriter.
+   * Performs a POST request with the data contained in operation. Writes the result of
+   * the request back to the jsonwriter.
+   * 
    * @param request
    * @param response
    * @param operation
    * @param write
-   * @throws ServletException
-   * @throws IOException
    * @throws JSONException
    */
   private void doRequest(SlingHttpServletRequest request,
       SlingHttpServletResponse response, PostOperation operation,
-      JSONWriter write) throws ServletException, IOException, JSONException {
+      JSONWriter write) throws JSONException {
     // 
 
     RequestWrapper requestWrapper = new RequestWrapper(request);
     requestWrapper.setPostOperation(operation);
     ResponseWrapper responseWrapper = new ResponseWrapper(response);
 
-    request.getRequestDispatcher(operation.getUrl()).forward(requestWrapper,
-        responseWrapper);
+    try {
+      request.getRequestDispatcher(operation.getUrl()).forward(requestWrapper,
+          responseWrapper);
 
+      writeResponse(write, operation.getUrl(), responseWrapper
+          .getDataAsString(), responseWrapper.getStatus());
+    } catch (ServletException e) {
+      writeResponse(write, operation.getUrl(), "", 500);
+    } catch (IOException e) {
+      writeResponse(write, operation.getUrl(), "", 500);
+    }
+
+  }
+
+  /**
+   * Returns a JSON object with 3 keys: url, body, status
+   * 
+   * @param write
+   * @param url
+   * @param body
+   * @param status
+   * @throws JSONException
+   */
+  private void writeResponse(JSONWriter write, String url, String body,
+      int status) throws JSONException {
     write.object();
-
     write.key("url");
-    write.value(operation.getUrl());
+    write.value(url);
     write.key("body");
-    write.value(responseWrapper.getDataAsString());
+    write.value(body);
     write.key("status");
-    write.value(responseWrapper.getStatus());
-
+    write.value(status);
     write.endObject();
-
   }
 }
