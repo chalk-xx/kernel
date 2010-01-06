@@ -12,6 +12,10 @@
         <AD id="sling.servlet.paths" type="String" default="/system/batch/post" name="%sling.servlet.paths.name" description="%sling.servlet.paths.description"/>
         <AD id="sling.servlet.methods" type="String" default="POST" name="%sling.servlet.methods.name" description="%sling.servlet.methods.description"/>
     </OCD>
+    <OCD id="org.apache.sling.engine.impl.batch.BatchTreeServlet" name="BatchTreeServlet" description="servlet to return multiple batch requests">
+        <AD id="sling.servlet.paths" type="String" default="/system/batch/tree" name="%sling.servlet.paths.name" description="%sling.servlet.paths.description"/>
+        <AD id="sling.servlet.methods" type="String" default="POST" name="%sling.servlet.methods.name" description="%sling.servlet.methods.description"/>
+    </OCD>
     <Designate pid="org.apache.sling.engine.impl.batch.BatchDeleteServlet">
         <Object ocdref="org.apache.sling.engine.impl.batch.BatchDeleteServlet"/>
     </Designate>
@@ -20,5 +24,8 @@
     </Designate>
     <Designate pid="org.apache.sling.engine.impl.batch.BatchPostServlet">
         <Object ocdref="org.apache.sling.engine.impl.batch.BatchPostServlet"/>
+    </Designate>
+    <Designate pid="org.apache.sling.engine.impl.batch.BatchTreeServlet">
+        <Object ocdref="org.apache.sling.engine.impl.batch.BatchTreeServlet"/>
     </Designate>
 </metatype:MetaData>

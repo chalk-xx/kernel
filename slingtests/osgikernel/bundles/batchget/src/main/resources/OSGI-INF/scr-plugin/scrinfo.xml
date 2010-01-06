@@ -57,4 +57,15 @@
         <property name="sling.servlet.methods" value="POST" private="false"/>
         <property name="service.pid" value="org.apache.sling.engine.impl.batch.BatchPostServlet" private="false"/>
     </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.sling.engine.impl.batch.BatchTreeServlet">
+        <implementation class="org.apache.sling.engine.impl.batch.BatchTreeServlet"/>
+        <service servicefactory="false">
+            <provide interface="javax.servlet.Servlet"/>
+        </service>
+        <property name="service.description" value="Create an entire tree of nodes in the repository in 1 request." private="false"/>
+        <property name="service.vendor" value="The Sakai Foundation" private="false"/>
+        <property name="sling.servlet.paths" value="/system/batch/tree" private="false"/>
+        <property name="sling.servlet.methods" value="POST" private="false"/>
+        <property name="service.pid" value="org.apache.sling.engine.impl.batch.BatchTreeServlet" private="false"/>
+    </scr:component>
 </components>
