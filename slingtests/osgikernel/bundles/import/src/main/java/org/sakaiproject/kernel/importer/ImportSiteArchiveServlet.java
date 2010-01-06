@@ -275,15 +275,15 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       throw new IllegalArgumentException("Illegal Resource");
     }
     final String destination = basePath + "/" + resource.getRelativeId();
-    if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resource
-        .getType())) {
+    final String resourceType = resource.getType();
+    if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
       makeNode(destination, session);
     } else if ("org.sakaiproject.content.types.fileUpload"
-        .equalsIgnoreCase(resource.getType())
+        .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.TextDocumentType"
-            .equalsIgnoreCase(resource.getType())
+            .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.HtmlDocumentType"
-            .equalsIgnoreCase(resource.getType())
+            .equalsIgnoreCase(resourceType)
     // || "org.sakaiproject.content.types.urlResource"
     // .equalsIgnoreCase(resource.getType())
     ) {
