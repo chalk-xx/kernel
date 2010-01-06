@@ -39,8 +39,27 @@
             <Export-Package> org.sakaiproject.kernel.api.importer </Export-Package>
             <Private-Package> org.sakaiproject.kernel.importer.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+			<Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*;resolution:=optional,*</Import-Package>
+            <Embed-Transitive>true</Embed-Transitive>
+			<Embed-Dependency>woodstox-core-asl,stax2-api,relaxngDatatype</Embed-Dependency>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>woodstox-core-asl,stax2-api,relaxngDatatype</includeArtifactIds>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -92,5 +111,15 @@
 		<artifactId>stax2-api</artifactId>
 		<version>3.0.1</version>
 	</dependency>
+    <dependency>
+    	<groupId>org.codehaus.woodstox</groupId>
+    	<artifactId>woodstox-core-asl</artifactId>
+    	<version>4.0.7</version>
+    </dependency>
+    <dependency>
+    	<groupId>relaxngDatatype</groupId>
+    	<artifactId>relaxngDatatype</artifactId>
+    	<version>20020414</version>
+    </dependency>
   </dependencies>
 </project>
