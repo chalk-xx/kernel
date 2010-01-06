@@ -57,6 +57,9 @@ public class JcrUtils {
     if (path == null || !path.startsWith("/")) {
       throw new IllegalArgumentException("path must be an absolute path.");
     }
+    if (path.endsWith("/")) { // strip trailing slash
+      path = path.substring(0, path.lastIndexOf("/"));
+    }
     // get the starting node
     String startingNodePath = path;
     Node startingNode = null;
