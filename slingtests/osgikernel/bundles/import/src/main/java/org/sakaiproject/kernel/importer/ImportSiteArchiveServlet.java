@@ -24,11 +24,13 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
@@ -38,6 +40,7 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -187,6 +190,14 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .getLocalizedMessage(), e, response);
       }
     }
+    // try {
+    // if (session.hasPendingChanges()) {
+    // session.save();
+    // }
+    // } catch (Exception e) {
+    // sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+    // .getLocalizedMessage(), e, response);
+    // }
     sendError(HttpServletResponse.SC_OK, "All files processed without error.",
         null, response);
     return;
@@ -283,14 +294,28 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         || "org.sakaiproject.content.types.TextDocumentType"
             .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.HtmlDocumentType"
-            .equalsIgnoreCase(resourceType)
-    // || "org.sakaiproject.content.types.urlResource"
-    // .equalsIgnoreCase(resource.getType())
-    ) {
+            .equalsIgnoreCase(resourceType)) {
       copyFile(resource.attributes.get("body-location"), destination,
           resource.attributes.get("content-type"), session, zip);
+    } else if ("org.sakaiproject.content.types.urlResource"
+        .equalsIgnoreCase(resourceType)) {
+      String nodeName = destination.replace(":", "");
+      Node node = makeNode(nodeName, session);
+      try {
+        node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sling:redirect");
+        node.setProperty("sling:target", resource.properties
+            .get("DAV:displayname"));
+        node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+        node.setProperty(JcrConstants.JCR_MIMETYPE, resource.attributes
+            .get("content-type"));
+        node.setProperty(FilesConstants.SAKAI_USER, resource.properties
+            .get("CHEF:modifiedby"));
+      } catch (Exception e) {
+        throw new Error(e);
+      }
     } else {
-      LOG.error("Missing handler for type: " + resource.getType());
+      LOG.error("Missing handler for type: " + resourceType);
     }
   }
 
