@@ -49,6 +49,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,6 +96,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private transient XMLInputFactory xmlInputFactory = null;
   private transient Base64 base64 = new Base64();
   private final String[] supportedVersions = { "Sakai 1.0" };
+  private transient SimpleDateFormat sdf = new SimpleDateFormat(
+      "yyyyMMddHHmmssSSS");
 
   /**
    * {@inheritDoc}
@@ -190,14 +194,14 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .getLocalizedMessage(), e, response);
       }
     }
-    // try {
-    // if (session.hasPendingChanges()) {
-    // session.save();
-    // }
-    // } catch (Exception e) {
-    // sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-    // .getLocalizedMessage(), e, response);
-    // }
+    try {
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (Exception e) {
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getLocalizedMessage(), e, response);
+    }
     sendError(HttpServletResponse.SC_OK, "All files processed without error.",
         null, response);
     return;
@@ -307,20 +311,29 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         node.setProperty("sling:target", resource.properties
             .get("DAV:displayname"));
         node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+        node.setProperty("sakai:filename", resource.properties
+            .get("DAV:displayname"));
         node.setProperty(JcrConstants.JCR_MIMETYPE, resource.attributes
             .get("content-type"));
         node.setProperty(FilesConstants.SAKAI_USER, resource.properties
             .get("CHEF:modifiedby"));
+        final Calendar calendar = Calendar.getInstance();
+        calendar
+            .setTime(sdf.parse(resource.properties.get("DAV:creationdate")));
+        node.setProperty(JcrConstants.JCR_CREATED, calendar);
+        calendar.setTime(sdf.parse(resource.properties
+            .get("DAV:getlastmodified")));
+        node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
       } catch (Exception e) {
         throw new Error(e);
       }
     } else {
-      LOG.error("Missing handler for type: " + resourceType);
+      LOG.error("Missing handler for type: " + resourceType + ": " + resource);
     }
   }
 
   private Node makeNode(String path, Session session) {
-    if (path.endsWith("/")) { // strip trailing slash
+    if (!"/".equals(path) && path.endsWith("/")) { // strip trailing slash
       path = path.substring(0, path.lastIndexOf("/"));
     }
     Node node = null;
