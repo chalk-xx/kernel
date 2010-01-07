@@ -196,14 +196,6 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .getLocalizedMessage(), e, response);
       }
     }
-    try {
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-    } catch (Exception e) {
-      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getLocalizedMessage(), e, response);
-    }
     sendError(HttpServletResponse.SC_OK, "All files processed without error.",
         null, response);
     return;
@@ -295,7 +287,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final String resourceType = resource.getType();
     if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
       final Node node = makeNode(destination, session);
-      applyMetaData(node, resource);
+      applyMetaData(node, resource, session);
     } else if ("org.sakaiproject.content.types.fileUpload"
         .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.TextDocumentType"
@@ -304,13 +296,13 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .equalsIgnoreCase(resourceType)) {
       final Node node = copyFile(resource.attributes.get("body-location"),
           destination, resource.attributes.get("content-type"), session, zip);
-      applyMetaData(node, resource);
+      applyMetaData(node, resource, session);
     } else if ("org.sakaiproject.content.types.urlResource"
         .equalsIgnoreCase(resourceType)) {
       final String nodeName = destination.replace(":", "");
       final Node node = makeNode(nodeName, session);
       try {
-        applyMetaData(node, resource);
+        applyMetaData(node, resource, session);
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             "sling:redirect");
         node.setProperty("sling:target", resource.properties
@@ -330,6 +322,9 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     Node node = null;
     try {
       node = JcrUtils.deepGetOrCreateNode(session, path);
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
     } catch (RepositoryException e) {
       throw new Error(e);
     }
@@ -356,7 +351,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     return node;
   }
 
-  private void applyMetaData(Node node, Resource resource) {
+  private void applyMetaData(Node node, Resource resource, Session session) {
     try {
       // sakai:id
       node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
@@ -392,6 +387,9 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       if (davLastModified != null && !"".equals(davLastModified)) {
         calendar.setTime(sdf.parse(davLastModified));
         node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
       }
     } catch (Exception e) {
       throw new Error(e);
