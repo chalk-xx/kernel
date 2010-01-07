@@ -54,6 +54,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -111,6 +112,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
     xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
     xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
+    sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
   }
 
   /**
@@ -292,38 +294,27 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final String destination = basePath + "/" + resource.getRelativeId();
     final String resourceType = resource.getType();
     if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
-      makeNode(destination, session);
+      final Node node = makeNode(destination, session);
+      applyMetaData(node, resource);
     } else if ("org.sakaiproject.content.types.fileUpload"
         .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.TextDocumentType"
             .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.HtmlDocumentType"
             .equalsIgnoreCase(resourceType)) {
-      copyFile(resource.attributes.get("body-location"), destination,
-          resource.attributes.get("content-type"), session, zip);
+      final Node node = copyFile(resource.attributes.get("body-location"),
+          destination, resource.attributes.get("content-type"), session, zip);
+      applyMetaData(node, resource);
     } else if ("org.sakaiproject.content.types.urlResource"
         .equalsIgnoreCase(resourceType)) {
-      String nodeName = destination.replace(":", "");
-      Node node = makeNode(nodeName, session);
+      final String nodeName = destination.replace(":", "");
+      final Node node = makeNode(nodeName, session);
       try {
+        applyMetaData(node, resource);
         node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             "sling:redirect");
         node.setProperty("sling:target", resource.properties
             .get("DAV:displayname"));
-        node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
-        node.setProperty("sakai:filename", resource.properties
-            .get("DAV:displayname"));
-        node.setProperty(JcrConstants.JCR_MIMETYPE, resource.attributes
-            .get("content-type"));
-        node.setProperty(FilesConstants.SAKAI_USER, resource.properties
-            .get("CHEF:modifiedby"));
-        final Calendar calendar = Calendar.getInstance();
-        calendar
-            .setTime(sdf.parse(resource.properties.get("DAV:creationdate")));
-        node.setProperty(JcrConstants.JCR_CREATED, calendar);
-        calendar.setTime(sdf.parse(resource.properties
-            .get("DAV:getlastmodified")));
-        node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
       } catch (Exception e) {
         throw new Error(e);
       }
@@ -365,7 +356,55 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     return node;
   }
 
+  private void applyMetaData(Node node, Resource resource) {
+    try {
+      // sakai:id
+      node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+      // sakai:filename
+      final String fileName = resource.properties.get("DAV:displayname");
+      if (fileName != null && !"".equals(fileName)) {
+        node.setProperty("sakai:filename", fileName);
+      }
+      // sakai:user
+      final String sakaiUser = resource.properties.get("CHEF:modifiedby");
+      if (sakaiUser != null && !"".equals(sakaiUser)) {
+        node.setProperty(FilesConstants.SAKAI_USER, sakaiUser);
+      }
+      // jcr:mimeType
+      final String mimeType = resource.attributes.get("content-type");
+      if (mimeType != null && !"".equals(mimeType)) {
+        node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+      }
+      // jcr:created
+      final Calendar calendar = Calendar.getInstance(TimeZone
+          .getTimeZone("GMT+0"));
+      final String davCreationDate = resource.properties
+          .get("DAV:creationdate");
+      if (davCreationDate != null && !"".equals(davCreationDate)
+          && !node.isNodeType(JcrConstants.NT_FILE)) {
+        // cannot set jcr:created on files
+        calendar.setTime(sdf.parse(davCreationDate));
+        node.setProperty(JcrConstants.JCR_CREATED, calendar);
+      }
+      // jcr:lastModified
+      final String davLastModified = resource.properties
+          .get("DAV:getlastmodified");
+      if (davLastModified != null && !"".equals(davLastModified)) {
+        calendar.setTime(sdf.parse(davLastModified));
+        node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
+      }
+    } catch (Exception e) {
+      throw new Error(e);
+    }
+  }
+
+  /**
+   * Generate a cluster unique String id.
+   * 
+   * @return A String which is unique within the cluster.
+   */
   private String uniqueId() {
+    LOG.debug("uniqueId()");
     // copied from FilesUploadServlet.java
     String id = clusterTrackingService.getClusterUniqueId();
     if (id.endsWith("==")) {
@@ -376,6 +415,9 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     return id;
   }
 
+  /**
+   * Simple data object to collect the data being parsed from content.xml
+   */
   private static class Resource {
     private Map<String, String> attributes = new HashMap<String, String>();
     private Map<String, String> properties = new HashMap<String, String>();
