@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="service.description"
  *               value="Bundles multiple resource requests into a single response."
  * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.paths" value="/system/batch"
+ * @scr.property name="sling.servlet.paths" value="/system/batch/get"
  * @scr.property name="sling.servlet.methods" value="GET"
  */
 @ServiceDocumentation(
@@ -65,7 +65,7 @@ import javax.servlet.http.HttpServletResponse;
         parameters = @ServiceParameter(
             name = "resources",
             description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
-                "<pre>curl -d\"resources=/system/me\" -d\"resources=/devwidgets.json\" -d\"resources=/some/none/existing/resource.json\" -G http://localhost:8080/system/batch</pre>"
+                "<pre>curl -d\"resources=/system/me\" -d\"resources=/devwidgets.json\" -d\"resources=/some/none/existing/resource.json\" -G http://localhost:8080/system/batch/get</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
@@ -169,6 +169,8 @@ public class BatchGetServlet extends SlingAllMethodsServlet {
       ExtendedJSONWriter write) throws UnsupportedEncodingException,
       JSONException {
     write.value(responseWrapper.getDataAsString());
+    write.key("status");
+    write.value(responseWrapper.getResponseStatus());
   }
 
 }

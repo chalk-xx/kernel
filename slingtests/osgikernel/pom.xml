@@ -78,7 +78,7 @@
         <module>bundles/user</module>
         <module>bundles/uxloader</module>
         <module>bundles/events</module>
-        <module>bundles/batchget</module>
+        <module>bundles/batch</module>
         <module>bundles/activation-mail</module>
         <module>bundles/email-outgoing</module>
         <module>bundles/commons/commons-email</module>
