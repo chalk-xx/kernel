@@ -41,6 +41,7 @@
 						<Bundle-Category> sakai-kernel </Bundle-Category>
 						<Export-Package> org.sakaiproject.kernel.api.importer </Export-Package>
 						<Private-Package> org.sakaiproject.kernel.importer.* </Private-Package>
+            <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
 						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
 						<Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*;resolution:=optional,*</Import-Package>
 						<Embed-Transitive>true</Embed-Transitive>

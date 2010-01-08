@@ -352,41 +352,63 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   }
 
   private void applyMetaData(Node node, Resource resource, Session session) {
+    final Calendar calendar = Calendar.getInstance(TimeZone
+        .getTimeZone("GMT+0"));
     try {
       // sakai:id
       node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
-      // sakai:filename
-      final String fileName = resource.properties.get("DAV:displayname");
-      if (fileName != null && !"".equals(fileName)) {
-        node.setProperty("sakai:filename", fileName);
-      }
       // sakai:user
-      final String sakaiUser = resource.properties.get("CHEF:modifiedby");
-      if (sakaiUser != null && !"".equals(sakaiUser)) {
-        node.setProperty(FilesConstants.SAKAI_USER, sakaiUser);
-      }
+      node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
       // jcr:mimeType
       final String mimeType = resource.attributes.get("content-type");
       if (mimeType != null && !"".equals(mimeType)) {
         node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
       }
-      // jcr:created
-      final Calendar calendar = Calendar.getInstance(TimeZone
-          .getTimeZone("GMT+0"));
-      final String davCreationDate = resource.properties
-          .get("DAV:creationdate");
-      if (davCreationDate != null && !"".equals(davCreationDate)
-          && !node.isNodeType(JcrConstants.NT_FILE)) {
-        // cannot set jcr:created on files
-        calendar.setTime(sdf.parse(davCreationDate));
-        node.setProperty(JcrConstants.JCR_CREATED, calendar);
-      }
-      // jcr:lastModified
-      final String davLastModified = resource.properties
-          .get("DAV:getlastmodified");
-      if (davLastModified != null && !"".equals(davLastModified)) {
-        calendar.setTime(sdf.parse(davLastModified));
-        node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
+      // loop through all properties
+      for (String key : resource.properties.keySet()) {
+        final String value = resource.properties.get(key);
+        if (value == null || "".equals(value)) {
+          break; // ignore empty values
+        }
+        // sakai:filename
+        else if ("DAV:displayname".equals(key)) {
+          node.setProperty("sakai:filename", value);
+          break;
+        }
+        // jcr:created
+        else if ("DAV:creationdate".equals(key)
+            && !node.isNodeType(JcrConstants.NT_FILE)) {
+          // cannot set jcr:created on files; i.e. nt:file
+          calendar.setTime(sdf.parse(value));
+          node.setProperty(JcrConstants.JCR_CREATED, calendar);
+          break;
+        }
+        // jcr:lastModified
+        else if ("DAV:getlastmodified".equals(key)) {
+          calendar.setTime(sdf.parse(value));
+          node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
+          break;
+        }
+        // map Dublin Core Metadata
+        else if (key.startsWith("http://purl.org/dc/")) {
+          // remap namespace
+          final String purl = key.replace("http://purl.org/dc/", "purl:");
+          node.setProperty(purl, value);
+          break;
+        }
+        // map CHEF properties
+        else if (key.startsWith("CHEF:")) {
+          // one-to-one namespace mapping
+          node.setProperty(key, value);
+          break;
+        }
+        // DAV properties
+        else if (key.startsWith("DAV:")) {
+          // all remaining DAV properties will be ignored to avoid conflicts
+          break;
+        }
+        LOG.error("Unknown metadata not imported: {},{}", new String[] { key,
+            value });
       }
       if (session.hasPendingChanges()) {
         session.save();
