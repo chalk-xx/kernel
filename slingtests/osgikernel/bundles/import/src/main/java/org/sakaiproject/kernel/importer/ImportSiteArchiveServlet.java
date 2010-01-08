@@ -368,12 +368,12 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       for (String key : resource.properties.keySet()) {
         final String value = resource.properties.get(key);
         if (value == null || "".equals(value)) {
-          break; // ignore empty values
+          continue; // ignore empty values
         }
         // sakai:filename
         else if ("DAV:displayname".equals(key)) {
           node.setProperty("sakai:filename", value);
-          break;
+          continue;
         }
         // jcr:created
         else if ("DAV:creationdate".equals(key)
@@ -381,31 +381,31 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           // cannot set jcr:created on files; i.e. nt:file
           calendar.setTime(sdf.parse(value));
           node.setProperty(JcrConstants.JCR_CREATED, calendar);
-          break;
+          continue;
         }
         // jcr:lastModified
         else if ("DAV:getlastmodified".equals(key)) {
           calendar.setTime(sdf.parse(value));
           node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
-          break;
+          continue;
         }
         // map Dublin Core Metadata
         else if (key.startsWith("http://purl.org/dc/")) {
           // remap namespace
           final String purl = key.replace("http://purl.org/dc/", "purl:");
           node.setProperty(purl, value);
-          break;
+          continue;
         }
         // map CHEF properties
         else if (key.startsWith("CHEF:")) {
           // one-to-one namespace mapping
           node.setProperty(key, value);
-          break;
+          continue;
         }
         // DAV properties
         else if (key.startsWith("DAV:")) {
           // all remaining DAV properties will be ignored to avoid conflicts
-          break;
+          continue;
         }
         LOG.error("Unknown metadata not imported: {},{}", new String[] { key,
             value });
