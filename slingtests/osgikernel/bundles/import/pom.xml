@@ -39,31 +39,32 @@
             <Export-Package> org.sakaiproject.kernel.api.importer </Export-Package>
             <Private-Package> org.sakaiproject.kernel.importer.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
+			<Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*;resolution:=optional,*</Import-Package>
+            <Embed-Transitive>true</Embed-Transitive>
+			<Embed-Dependency>woodstox-core-asl,stax2-api,relaxngDatatype</Embed-Dependency>
           </instructions>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>embed-dependencies</id>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>woodstox-core-asl,stax2-api,relaxngDatatype</includeArtifactIds>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
      <!--  sling and JCR -->
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-api</artifactId>
-      <version>1.6.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.jcr.resource</artifactId>
-      <version>2.0.4-incubator</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.resource</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.files</artifactId>
@@ -89,49 +90,36 @@
       <version>2.5</version>
       <scope>provided</scope>
     </dependency>
-    <!-- osgi -->
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.osgi.core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.felix</groupId>
-      <artifactId>org.osgi.compendium</artifactId>
-    </dependency>
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <!-- testing -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.easymock</groupId>
-      <artifactId>easymock</artifactId>
-    </dependency>
+	<!--  -->
 	<dependency>
 	  <groupId>org.sakaiproject.kernel</groupId>
 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
 	  <version>0.1-SNAPSHOT</version>
 	</dependency>
 	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.site</artifactId>
-		<version>0.1-SNAPSHOT</version>
-	</dependency>
-	<dependency>
 		<groupId>commons-codec</groupId>
 		<artifactId>commons-codec</artifactId>
 		<version>1.4</version>
-		<type>jar</type>
-		<scope>compile</scope>
 	</dependency>
+	<dependency>
+		<groupId>org.codehaus.woodstox</groupId>
+		<artifactId>stax2-api</artifactId>
+		<version>3.0.1</version>
+	</dependency>
+    <dependency>
+    	<groupId>org.codehaus.woodstox</groupId>
+    	<artifactId>woodstox-core-asl</artifactId>
+    	<version>4.0.7</version>
+    </dependency>
+    <dependency>
+    	<groupId>relaxngDatatype</groupId>
+    	<artifactId>relaxngDatatype</artifactId>
+    	<version>20020414</version>
+    </dependency>
   </dependencies>
 </project>

@@ -17,15 +17,20 @@
  */
 package org.sakaiproject.kernel.importer;
 
+import com.ctc.wstx.stax.WstxInputFactory;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
@@ -34,26 +39,37 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
+@SuppressWarnings("restriction")
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
 @Properties(value = {
     @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),
@@ -78,7 +94,11 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   @Reference
   private transient ClusterTrackingService clusterTrackingService;
 
-  private transient SAXParser parser = null;
+  private transient XMLInputFactory xmlInputFactory = null;
+  private transient Base64 base64 = new Base64();
+  private final String[] supportedVersions = { "Sakai 1.0" };
+  private transient SimpleDateFormat sdf = new SimpleDateFormat(
+      "yyyyMMddHHmmssSSS");
 
   /**
    * {@inheritDoc}
@@ -88,13 +108,11 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    try {
-      final SAXParserFactory spf = SAXParserFactory.newInstance();
-      spf.setValidating(false); // do not validate XML
-      parser = spf.newSAXParser();
-    } catch (Exception e) {
-      throw new Error(e);
-    }
+    xmlInputFactory = new WstxInputFactory();
+    xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);
+    xmlInputFactory.setProperty(XMLInputFactory.IS_VALIDATING, false);
+    xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
+    sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
   }
 
   /**
@@ -108,12 +126,12 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       SlingHttpServletResponse response) throws ServletException {
     if (request.getRequestParameter("path") == null) {
       sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "path parameter must be supplied", null, response);
+          "Path parameter must be supplied", null, response);
       return;
     }
     final String path = request.getRequestParameter("path").getString();
     if (!path.startsWith("/")) {
-      sendError(HttpServletResponse.SC_BAD_REQUEST, "path must be absolute",
+      sendError(HttpServletResponse.SC_BAD_REQUEST, "Path must be absolute",
           null, response);
       return;
     }
@@ -126,11 +144,11 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
     for (RequestParameter p : files) {
-      LOG.info((p.getFileName() + ": " + p.getContentType() + ": " + p
-          .getSize()));
+      LOG.info("Processing file: " + p.getFileName() + ": "
+          + p.getContentType() + ": " + p.getSize());
       try {
         // create temporary local file of zip contents
-        final File tempZip = File.createTempFile("siteArchive", "zip");
+        final File tempZip = File.createTempFile("siteArchive", ".zip");
         tempZip.deleteOnExit(); // just in case
         final InputStream in = p.getInputStream();
         final FileOutputStream out = new FileOutputStream(tempZip);
@@ -157,11 +175,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
               ; // skip entry
             } else {
               if ("content.xml".equals(entry.getName())) {
-                LOG.info("found content.xml!");
-                parser.parse(zip.getInputStream(entry),
-                    new SiteArchiveContentHandler(path, zip, session,
-                        slingRepository, clusterTrackingService));
-                parser.reset();
+                processContentXml(zip.getInputStream(entry), path, session, zip);
               }
             }
           }
@@ -177,7 +191,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       } catch (IOException e) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
             .getLocalizedMessage(), e, response);
-      } catch (SAXException e) {
+      } catch (XMLStreamException e) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
             .getLocalizedMessage(), e, response);
       }
@@ -185,6 +199,68 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     sendError(HttpServletResponse.SC_OK, "All files processed without error.",
         null, response);
     return;
+  }
+
+  private void processContentXml(InputStream in, String basePath,
+      Session session, ZipFile zip) throws XMLStreamException {
+    Map<String, Resource> resources = new HashMap<String, Resource>();
+    String currentResourceId = null;
+    XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(in);
+    for (int event = reader.next(); event != XMLStreamReader.END_DOCUMENT; event = reader
+        .next()) {
+      String localName = null;
+      switch (event) {
+      case XMLStreamReader.START_ELEMENT:
+        localName = reader.getLocalName();
+        if ("archive".equalsIgnoreCase(localName)) {
+          final String system = reader.getAttributeValue(null, "system");
+          boolean supportedVersion = false;
+          for (String version : supportedVersions) {
+            if (version.equalsIgnoreCase(system)) {
+              supportedVersion = true;
+            }
+          }
+          if (!supportedVersion) {
+            throw new Error("Not a supported version: " + system);
+          }
+          break;
+        }
+        if ("collection".equalsIgnoreCase(localName)
+            || "resource".equalsIgnoreCase(localName)) {
+          // grab the resource's attributes
+          Resource resource = new Resource();
+          for (int i = 0; i < reader.getAttributeCount(); i++) {
+            resource.attributes.put(reader.getAttributeLocalName(i)
+                .toLowerCase(), reader.getAttributeValue(i));
+          }
+          currentResourceId = resource.getId();
+          resources.put(currentResourceId, resource);
+          break;
+        }
+        if ("property".equalsIgnoreCase(localName)) {
+          Resource resource = resources.get(currentResourceId);
+          final String name = reader.getAttributeValue(null, "name");
+          String value = reader.getAttributeValue(null, "value");
+          if (value != null && !"".equals(value)) {
+            if (reader.getAttributeValue(null, "enc")
+                .equalsIgnoreCase("BASE64")) {
+              value = new String(base64.decode(value));
+            }
+            resource.properties.put(name, value);
+          }
+          break;
+        }
+        break;
+      case XMLStreamReader.END_ELEMENT:
+        localName = reader.getLocalName();
+        if ("collection".equalsIgnoreCase(localName)
+            || "resource".equalsIgnoreCase(localName)) {
+          makeResource(resources.get(currentResourceId), basePath, session, zip);
+        }
+        break;
+      } // end switch
+    } // end for
+    reader.close();
   }
 
   private void sendError(int errorCode, String message, Throwable exception,
@@ -199,6 +275,171 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     } else {
       LOG.error(errorCode + ": " + message, exception);
       throw new Error(message);
+    }
+  }
+
+  private void makeResource(Resource resource, String basePath,
+      Session session, ZipFile zip) {
+    if (resource == null) {
+      throw new IllegalArgumentException("Illegal Resource");
+    }
+    final String destination = basePath + "/" + resource.getRelativeId();
+    final String resourceType = resource.getType();
+    if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
+      final Node node = makeNode(destination, session);
+      applyMetaData(node, resource, session);
+    } else if ("org.sakaiproject.content.types.fileUpload"
+        .equalsIgnoreCase(resourceType)
+        || "org.sakaiproject.content.types.TextDocumentType"
+            .equalsIgnoreCase(resourceType)
+        || "org.sakaiproject.content.types.HtmlDocumentType"
+            .equalsIgnoreCase(resourceType)) {
+      final Node node = copyFile(resource.attributes.get("body-location"),
+          destination, resource.attributes.get("content-type"), session, zip);
+      applyMetaData(node, resource, session);
+    } else if ("org.sakaiproject.content.types.urlResource"
+        .equalsIgnoreCase(resourceType)) {
+      final String nodeName = destination.replace(":", "");
+      final Node node = makeNode(nodeName, session);
+      try {
+        applyMetaData(node, resource, session);
+        node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sling:redirect");
+        node.setProperty("sling:target", resource.properties
+            .get("DAV:displayname"));
+      } catch (Exception e) {
+        throw new Error(e);
+      }
+    } else {
+      LOG.error("Missing handler for type: " + resourceType + ": " + resource);
+    }
+  }
+
+  private Node makeNode(String path, Session session) {
+    if (!"/".equals(path) && path.endsWith("/")) { // strip trailing slash
+      path = path.substring(0, path.lastIndexOf("/"));
+    }
+    Node node = null;
+    try {
+      node = JcrUtils.deepGetOrCreateNode(session, path);
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      throw new Error(e);
+    }
+    return node;
+  }
+
+  private Node copyFile(String zipEntryName, String destination,
+      String contentType, Session session, ZipFile zip) {
+    if (destination.endsWith("/")) { // strip trailing slash
+      destination = destination.substring(0, destination.lastIndexOf("/"));
+    }
+    final String fileName = destination
+        .substring(destination.lastIndexOf("/") + 1);
+    Node node = null;
+    try {
+      final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
+      node = FileUtils.saveFile(session, destination, uniqueId(), in, fileName,
+          contentType, slingRepository);
+    } catch (RepositoryException e) {
+      throw new Error(e);
+    } catch (IOException e) {
+      throw new Error(e);
+    }
+    return node;
+  }
+
+  private void applyMetaData(Node node, Resource resource, Session session) {
+    try {
+      // sakai:id
+      node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+      // sakai:filename
+      final String fileName = resource.properties.get("DAV:displayname");
+      if (fileName != null && !"".equals(fileName)) {
+        node.setProperty("sakai:filename", fileName);
+      }
+      // sakai:user
+      final String sakaiUser = resource.properties.get("CHEF:modifiedby");
+      if (sakaiUser != null && !"".equals(sakaiUser)) {
+        node.setProperty(FilesConstants.SAKAI_USER, sakaiUser);
+      }
+      // jcr:mimeType
+      final String mimeType = resource.attributes.get("content-type");
+      if (mimeType != null && !"".equals(mimeType)) {
+        node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+      }
+      // jcr:created
+      final Calendar calendar = Calendar.getInstance(TimeZone
+          .getTimeZone("GMT+0"));
+      final String davCreationDate = resource.properties
+          .get("DAV:creationdate");
+      if (davCreationDate != null && !"".equals(davCreationDate)
+          && !node.isNodeType(JcrConstants.NT_FILE)) {
+        // cannot set jcr:created on files
+        calendar.setTime(sdf.parse(davCreationDate));
+        node.setProperty(JcrConstants.JCR_CREATED, calendar);
+      }
+      // jcr:lastModified
+      final String davLastModified = resource.properties
+          .get("DAV:getlastmodified");
+      if (davLastModified != null && !"".equals(davLastModified)) {
+        calendar.setTime(sdf.parse(davLastModified));
+        node.setProperty(JcrConstants.JCR_LASTMODIFIED, calendar);
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (Exception e) {
+      throw new Error(e);
+    }
+  }
+
+  /**
+   * Generate a cluster unique String id.
+   * 
+   * @return A String which is unique within the cluster.
+   */
+  private String uniqueId() {
+    LOG.debug("uniqueId()");
+    // copied from FilesUploadServlet.java
+    String id = clusterTrackingService.getClusterUniqueId();
+    if (id.endsWith("==")) {
+      id = id.substring(0, id.length() - 2);
+    }
+    id = id.replace('/', '_').replace('=', '-');
+    // end copied from FilesUploadServlet.java
+    return id;
+  }
+
+  /**
+   * Simple data object to collect the data being parsed from content.xml
+   */
+  private static class Resource {
+    private Map<String, String> attributes = new HashMap<String, String>();
+    private Map<String, String> properties = new HashMap<String, String>();
+
+    public String getId() {
+      return attributes.get("id");
+    }
+
+    public String getRelativeId() {
+      return attributes.get("rel-id");
+    }
+
+    public String getType() {
+      return attributes.get("resource-type");
+    }
+
+    @Override
+    public int hashCode() {
+      return this.getId().hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return getRelativeId();
     }
   }
 }

@@ -372,6 +372,8 @@
     </dependency>
 
 <!-- additional sling bundles -->
+<!--
+ Disable Ruby and Python Scripting untill there is a real release.
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.scripting.python</artifactId>
@@ -384,6 +386,7 @@
       <version>2.0.0-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+-->
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.threads</artifactId>
