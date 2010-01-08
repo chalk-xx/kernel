@@ -125,7 +125,7 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
             node.setProperty(key, (String) obj);
           }
           if (obj instanceof Number) {
-            node.setProperty(key, json.getLong(key));
+            node.setProperty(key, json.getDouble(key));
           }
           if (obj instanceof Boolean) {
             node.setProperty(key, json.getBoolean(key));
