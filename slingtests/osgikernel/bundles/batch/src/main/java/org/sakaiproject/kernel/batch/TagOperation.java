@@ -1,4 +1,4 @@
-package org.apache.sling.engine.impl.batch;
+package org.sakaiproject.kernel.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;

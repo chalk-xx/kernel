@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.apache.sling.engine.impl.batch;
+package org.sakaiproject.kernel.batch;
 
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -25,37 +25,46 @@ import org.apache.sling.commons.json.JSONObject;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-public class PostOperation {
+public class RequestData {
 
   private String url;
+  private String method;
   private Hashtable<String, String[]> parameters;
 
-  public PostOperation(String url, Hashtable<String, String[]> parameters) {
+  public RequestData(String url, Hashtable<String, String[]> parameters) {
     setUrl(url);
     setParameters(parameters);
   }
 
-  public PostOperation(JSONObject obj) throws JSONException {
-    setUrl(obj.getString("url"));
+  public RequestData() {
     setParameters(new Hashtable<String, String[]>());
-    
-    JSONObject data = obj.getJSONObject("data");
+  }
 
-    Iterator<String> keys = data.keys();
+  public RequestData(JSONObject obj) throws JSONException {
+    setUrl(obj.getString("url"));
+    setMethod(obj.getString("method"));
+    setParameters(new Hashtable<String, String[]>());
 
-    while (keys.hasNext()) {
-      String k = keys.next();
-      Object val = data.get(k);
-      if (val instanceof JSONArray) {
-        JSONArray arr = (JSONArray) val;
-        String[] par = new String[arr.length()];
-        for (int i = 0; i < arr.length(); i++) {
-          par[i] = arr.getString(i);
+    if (obj.has("parameters")) {
+
+      JSONObject data = obj.getJSONObject("parameters");
+
+      Iterator<String> keys = data.keys();
+
+      while (keys.hasNext()) {
+        String k = keys.next();
+        Object val = data.get(k);
+        if (val instanceof JSONArray) {
+          JSONArray arr = (JSONArray) val;
+          String[] par = new String[arr.length()];
+          for (int i = 0; i < arr.length(); i++) {
+            par[i] = arr.getString(i);
+          }
+          getParameters().put(k, par);
+        } else {
+          String[] par = { val.toString() };
+          getParameters().put(k, par);
         }
-        getParameters().put(k, par);
-      } else {
-        String[] par = { val.toString() };
-        getParameters().put(k, par);
       }
     }
 
@@ -75,6 +84,21 @@ public class PostOperation {
 
   public Hashtable<String, String[]> getParameters() {
     return parameters;
+  }
+
+  /**
+   * @param method
+   *          the method to set
+   */
+  public void setMethod(String method) {
+    this.method = method;
+  }
+
+  /**
+   * @return the method
+   */
+  public String getMethod() {
+    return method;
   }
 
 }

@@ -18,11 +18,11 @@
     <artifactId>base</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>org.apache.sling.engine</artifactId>
-  <packaging>jar</packaging>
-  <version>2.0.7-sakai-SNAPSHOT</version>
-  <name>Sakai Batch Get Bundle</name>
-  <description>Allows multiple resources to be returned as the result of a single GET request.</description>
+  <artifactId>org.sakaiproject.kernel.batch</artifactId>
+  <packaging>bundle</packaging>
+  <name>Sakai Batch Bundle</name>
+  <version>0.1-SNAPSHOT</version>
+  <description>Batch operations such as batch GET, POST, DELETE and tree...</description>
   <build>
     <plugins>
       <plugin>
@@ -30,125 +30,92 @@
         <artifactId>maven-scr-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
-          <archive>
-            <manifestFile> ${project.build.outputDirectory}/META-INF/MANIFEST.MF </manifestFile>
-          </archive>
+          <instructions>
+            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Private-Package>org.sakaiproject.kernel.batch.*</Private-Package>
+            <Embed-Transitive>true</Embed-Transitive>
+          </instructions>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>Expand Server</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>org.apache.sling.engine</includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory}</outputDirectory>
-              <excludes>
-              META-INF/MANIFEST.MF,
-              OSGI-INF/*,
-              OSGI-INF/scr-plugin/*,
-              OSGI-INF/metatype/*,
-              org/apache/sling/engine/auth/*,
-              org/apache/sling/engine/impl/*,
-              org/apache/sling/engine/impl/adapter/*,
-              org/apache/sling/engine/impl/auth/*,
-              org/apache/sling/engine/impl/debug/*,
-              org/apache/sling/engine/impl/filter/*,
-              org/apache/sling/engine/impl/helper/*,
-              org/apache/sling/engine/impl/log/*,
-              org/apache/sling/engine/impl/output/*,
-              org/apache/sling/engine/impl/request/*,
-              org/apache/sling/engine/servlets/*
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
   <dependencies>
   	<dependency>
-  		<groupId>org.apache.sling</groupId>
-  		<artifactId>org.apache.sling.engine</artifactId>
-  		<version>2.0.6</version>
-  		<scope>compile</scope>
-  	</dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.osgi</artifactId>
       <version>2.0.4-incubator</version>
       <scope>compile</scope>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+  	<dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-api</artifactId>
       <version>1.6.0</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+  	<dependency>
     	<groupId>org.apache.sling</groupId>
     	<artifactId>org.apache.sling.servlets.post</artifactId>
     	<version>2.0.4-incubator</version>
     </dependency>
-    <dependency>
+  	<dependency>
     	<groupId>org.sakaiproject.kernel</groupId>
     	<artifactId>org.sakaiproject.kernel.resource</artifactId>
     	<version>0.1-SNAPSHOT</version>
     </dependency>
-    <dependency>
+  	<dependency>
     	<groupId>org.sakaiproject.kernel</groupId>
     	<artifactId>org.sakaiproject.kernel.doc</artifactId>
     	<version>0.1-SNAPSHOT</version>
+    </dependency>
+  	<dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+       <version>0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

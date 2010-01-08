@@ -261,6 +261,11 @@
       <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.batch</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
 
 <!-- spec bundles -->
     <dependency>
@@ -300,11 +305,6 @@
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
       <version>2.0.3-0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.apache.sling.engine</artifactId>
-      <version>2.0.7-sakai-SNAPSHOT</version>
     </dependency>
     
     
@@ -440,7 +440,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.apache.sling.engine,org.sakaiproject.kernel.json-lib,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events,org.apache.sling.commons.threads,org.apache.felix.commons.commons-pool,org.sakaiproject.kernel.ldap,org.apache.felix.commons.commons-httpclient,org.apache.felix.commons.commons-codec</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.resource,org.sakaiproject.kernel.json-lib,org.sakaiproject.kernel.configuration,javax.persistence,org.sakaiproject.kernel.guice,org.sakaiproject.kernel.utils,org.eclipse.persistence.core,org.eclipse.persistence.jpa,org.eclipse.persistence.asm,org.eclipse.persistence.antlr,org.sakaiproject.kernel.events,org.apache.sling.commons.threads,org.apache.felix.commons.commons-pool,org.sakaiproject.kernel.ldap,org.apache.felix.commons.commons-httpclient,org.apache.felix.commons.commons-codec</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/10 
                   </outputDirectory>
@@ -452,7 +452,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.cluster,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider,org.apache.sling.commons.scheduler,org.sakaiproject.kernel.doc</includeArtifactIds>
+                  <includeArtifactIds>org.apache.sling.jcr.jackrabbit.accessmanager,org.sakaiproject.kernel.batch,org.sakaiproject.kernel.securityloader,org.sakaiproject.kernel.user,org.sakaiproject.kernel.registry,org.sakaiproject.kernel.memory,org.sakaiproject.kernel.cluster,org.sakaiproject.kernel.session,org.sakaiproject.kernel.jpaprovider,org.apache.sling.commons.scheduler,org.sakaiproject.kernel.doc</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/12 
                   </outputDirectory>
