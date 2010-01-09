@@ -68,9 +68,15 @@
 
         <!-- Dependencies for Start Level 5 -->
         <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.extensions.webconsolebranding</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.webconsole</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -94,7 +100,7 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.classloader</artifactId>
-            <version>1.1.0</version>
+            <version>1.1.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -108,13 +114,13 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr</artifactId>
-            <version>1.2.0</version>
+            <version>1.4.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.configadmin</artifactId>
-            <version>1.0.10</version>
+            <version>1.2.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -196,10 +202,16 @@
             <version>2.0.8</version>
             <scope>provided</scope>
         </dependency>
+        <dependency> 
+            <groupId>org.apache.sling</groupId> 
+            <artifactId>org.apache.sling.commons.auth</artifactId> 
+            <version>0.9.0-SNAPSHOT</version> 
+            <scope>provided</scope> 
+        </dependency> 
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.engine</artifactId>
-            <version>2.0.6</version>
+            <version>2.0.7-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -208,12 +220,6 @@
             <version>0.9.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <dependency> 
-            <groupId>org.apache.sling</groupId> 
-            <artifactId>org.apache.sling.commons.auth</artifactId> 
-            <version>0.9.0-SNAPSHOT</version> 
-            <scope>provided</scope> 
-        </dependency> 
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.httpauth</artifactId>
@@ -223,7 +229,7 @@
         <dependency>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.openidauth</artifactId>
-            <version>0.9.0-incubator</version>
+            <version>0.9.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -328,7 +334,7 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <version>1.6.0</version>
+            <version>1.7.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -372,7 +378,7 @@
                                 </goals>
                                 <configuration>
                                     <includeArtifactIds>
-                                        org.apache.felix.webconsole,org.apache.felix.bundlerepository,org.apache.sling.extensions.threaddump,org.apache.sling.commons.classloader
+                                        org.apache.sling.extensions.webconsolebranding,org.apache.felix.webconsole,org.apache.felix.bundlerepository,org.apache.sling.extensions.threaddump,org.apache.sling.commons.classloader
                                     </includeArtifactIds>
                                     <excludeTransitive>true</excludeTransitive>
                                     <outputDirectory>
@@ -424,7 +430,7 @@
                                 </goals>
                                 <configuration>
                                     <includeArtifactIds>
-                                        org.apache.sling.api,org.apache.sling.commons.auth,org.apache.sling.engine,org.apache.sling.systemstatus,org.apache.sling.httpauth,org.apache.sling.adapter,org.apache.sling.servlets.resolver,org.apache.sling.servlets.get,org.apache.sling.servlets.post,org.apache.sling.commons.json,org.apache.sling.jcr.contentloader,org.apache.sling.jcr.resource,org.apache.sling.jcr.ocm,org.apache.sling.jcr.classloader,org.apache.sling.bundleresource.impl,org.apache.sling.launchpad.content,org.apache.sling.scripting.api,org.apache.sling.scripting.core,org.apache.sling.scripting.javascript,org.apache.sling.scripting.jsp,org.apache.sling.scripting.jsp.taglib,groovy-all
+                                        org.apache.sling.api,org.apache.sling.commons.auth,org.apache.sling.engine,org.apache.sling.systemstatus,org.apache.sling.httpauth,org.apache.sling.adapter,org.apache.sling.servlets.resolver,org.apache.sling.servlets.get,org.apache.sling.servlets.post,org.apache.sling.commons.json,org.apache.sling.jcr.contentloader,org.apache.sling.jcr.resource,org.apache.sling.jcr.ocm,org.apache.sling.jcr.classloader,org.apache.sling.bundleresource.impl,org.apache.sling.launchpad.content,org.apache.sling.scripting.api,org.apache.sling.scripting.core,org.apache.sling.scripting.javascript,org.apache.sling.scripting.jsp,org.apache.sling.scripting.jsp.taglib,groovy-all,org.apache.sling.openidauth
                                     </includeArtifactIds>
                                     <excludeTransitive>true</excludeTransitive>
                                     <outputDirectory>
