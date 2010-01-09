@@ -402,6 +402,12 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           node.setProperty(key, value);
           continue;
         }
+        // map SAKAI properties
+        else if (key.startsWith("SAKAI:")) {
+          // map to sakai: namespace (i.e. lowercase)
+          node.setProperty(key.replace("SAKAI:", "sakai:"), value);
+          continue;
+        }
         // DAV properties
         else if (key.startsWith("DAV:")) {
           // all remaining DAV properties will be ignored to avoid conflicts
