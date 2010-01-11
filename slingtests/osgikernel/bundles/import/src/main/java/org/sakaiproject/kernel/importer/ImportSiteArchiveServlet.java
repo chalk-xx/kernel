@@ -30,7 +30,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
@@ -286,8 +285,9 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final String destination = basePath + "/" + resource.getRelativeId();
     final String resourceType = resource.getType();
     if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
-      final Node node = makeNode(destination, session);
-      applyMetaData(node, resource, session);
+      // folders are not currently supported in K2 - so ignore them
+      // final Node node = makeNode(destination, session);
+      // applyMetaData(node, resource, session);
     } else if ("org.sakaiproject.content.types.fileUpload"
         .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.TextDocumentType"
@@ -299,17 +299,18 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       applyMetaData(node, resource, session);
     } else if ("org.sakaiproject.content.types.urlResource"
         .equalsIgnoreCase(resourceType)) {
-      final String nodeName = destination.replace(":", "");
-      final Node node = makeNode(nodeName, session);
-      try {
-        applyMetaData(node, resource, session);
-        node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-            "sling:redirect");
-        node.setProperty("sling:target", resource.properties
-            .get("DAV:displayname"));
-      } catch (Exception e) {
-        throw new Error(e);
-      }
+      // ignore urlResources for now - until BigStore refactor is complete
+      // final String nodeName = destination.replace(":", "");
+      // final Node node = makeNode(nodeName, session);
+      // try {
+      // applyMetaData(node, resource, session);
+      // node.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+      // "sling:redirect");
+      // node.setProperty("sling:target", resource.properties
+      // .get("DAV:displayname"));
+      // } catch (Exception e) {
+      // throw new Error(e);
+      // }
     } else {
       LOG.error("Missing handler for type: " + resourceType + ": " + resource);
     }
@@ -338,11 +339,14 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     }
     final String fileName = destination
         .substring(destination.lastIndexOf("/") + 1);
+    final String id = uniqueId();
+    final String path = FileUtils.getHashedPath(FilesConstants.USER_FILESTORE,
+        id);
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      node = FileUtils.saveFile(session, destination, uniqueId(), in, fileName,
-          contentType, slingRepository);
+      node = FileUtils.saveFile(session, path, id, in, fileName, contentType,
+          slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
     } catch (IOException e) {
@@ -355,15 +359,23 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final Calendar calendar = Calendar.getInstance(TimeZone
         .getTimeZone("GMT+0"));
     try {
-      // sakai:id
-      node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
-      // sakai:user
-      node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
-      // jcr:mimeType
-      final String mimeType = resource.attributes.get("content-type");
-      if (mimeType != null && !"".equals(mimeType)) {
-        node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+      final boolean isNtFile = JcrConstants.NT_FILE.equals(node.getProperty(
+          JcrConstants.JCR_PRIMARYTYPE).getString());
+      if (!isNtFile) { // only set these properties if not nt:file; i.e. they
+        // will already be set otherwise.
+        // sakai:id
+        node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+
+        // sakai:user
+        node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
+
+        // jcr:mimeType
+        final String mimeType = resource.attributes.get("content-type");
+        if (mimeType != null && !"".equals(mimeType)) {
+          node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+        }
       }
+
       // loop through all properties
       for (String key : resource.properties.keySet()) {
         final String value = resource.properties.get(key);
@@ -371,7 +383,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           continue; // ignore empty values
         }
         // sakai:filename
-        else if ("DAV:displayname".equals(key)) {
+        else if (!isNtFile && "DAV:displayname".equals(key)) {
           node.setProperty("sakai:filename", value);
           continue;
         }
