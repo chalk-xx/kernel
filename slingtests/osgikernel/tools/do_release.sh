@@ -22,6 +22,7 @@ set -o nounset
 set -o errexit
 cversion=$1
 nversion=$2
+ignoreTests=${3:-"__none__"}
 mkdir -p last-release
 uname -a > last-release/who
 
@@ -118,13 +119,16 @@ else
   date > last-release/stage2
 fi
 
-failures=` grep -v "0 failures" last-release/integration.log  | grep -v osgikernel | wc -l`
-errors=` grep -v "0 errors" last-release/integration.log  | grep -v osgikernel | wc -l `
-testsrun=`grep "failures" last-release/integration.log  | wc -l`
+egrep -v "$ignoreTests" last-release/integration.log > last-release/integration-check.log
+
+
+failures=` grep -v "0 failures" last-release/integration-check.log  | grep -v osgikernel | wc -l`
+errors=` grep -v "0 errors" last-release/integration-check.log  | grep -v osgikernel | wc -l `
+testsrun=`grep "failures" last-release/integration-check.log  | wc -l`
 if [[ $testsrun -eq 0 ]]
 then
    echo "No tests were run, cant perform release"
-   cat last-release/integration.log 
+   cat last-release/integration-check.log 
    exit -1
 fi
 echo "$testsrun tests completed"
@@ -133,8 +137,8 @@ if [ $errors -ne 0 -o $failures -ne 0 ]
 then
    echo "There were failures or errors in integration, cant perform release"
    set +o errexit
-   grep -v "0 errors" last-release/integration.log  | grep -v osgikernel
-   grep -v "0 failures" last-release/integration.log  | grep -v osgikernel
+   grep -v "0 errors" last-release/integration-check.log  | grep -v osgikernel
+   grep -v "0 failures" last-release/integration-check.log  | grep -v osgikernel
    exit -1
 fi
     
