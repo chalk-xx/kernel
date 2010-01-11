@@ -36,17 +36,22 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteSearchResultProcessor.class);
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node resultNode = RowUtils.getNode(row, session);
     if (!siteService.isSite(resultNode)) {
       LOGGER.warn("Search result was not a site node: " + resultNode.getPath());
       throw new JSONException("Unable to write non-site node result");
     }
-    if ( aggregator != null ) {
+    if (aggregator != null) {
       aggregator.add(resultNode);
     }
+    writeNode(write, resultNode);
+  }
+
+  public void writeNode(JSONWriter write, Node resultNode)
+      throws JSONException, RepositoryException {
     write.object();
     write.key("member-count");
     write.value(String.valueOf(siteService.getMemberCount(resultNode)));

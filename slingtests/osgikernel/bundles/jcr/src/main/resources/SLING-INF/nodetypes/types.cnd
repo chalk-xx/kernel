@@ -12,3 +12,6 @@
     copy
 
   + '*' (nt:unstructured)
+  
+// Node type for the Site objects
+[sakai:site] > nt:unstructured

@@ -234,7 +234,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
       try {
 
-        Node siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
+        Node siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath, SiteService.SITE_PRIMARY_TYPE);
         siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             SiteService.SITE_RESOURCE_TYPE);
 

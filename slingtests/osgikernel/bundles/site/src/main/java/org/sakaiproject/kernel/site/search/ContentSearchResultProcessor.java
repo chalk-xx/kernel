@@ -38,7 +38,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Row;
 
-@Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
+@Component(immediate = true, name = "ContentSearchResultProcessor", label = "ContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
