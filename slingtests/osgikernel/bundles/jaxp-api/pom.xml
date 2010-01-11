@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.jaxp-api</artifactId>
   <packaging>bundle</packaging>

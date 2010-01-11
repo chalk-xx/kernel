@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.batch</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Batch Bundle</name>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <description>Batch operations such as batch GET, POST, DELETE and tree...</description>
   <build>
     <plugins>
@@ -61,7 +61,7 @@
   	<dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.1</version>
     </dependency>
   	<dependency>
       <groupId>org.apache.sling</groupId>
@@ -88,7 +88,7 @@
   	<dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.1</version>
       <scope>test</scope>
     </dependency>
   	<dependency>
@@ -105,17 +105,17 @@
   	<dependency>
     	<groupId>org.sakaiproject.kernel</groupId>
     	<artifactId>org.sakaiproject.kernel.resource</artifactId>
-    	<version>0.1-SNAPSHOT</version>
+    	<version>0.1</version>
     </dependency>
   	<dependency>
     	<groupId>org.sakaiproject.kernel</groupId>
     	<artifactId>org.sakaiproject.kernel.doc</artifactId>
-    	<version>0.1-SNAPSHOT</version>
+    	<version>0.1</version>
     </dependency>
   	<dependency>
        <groupId>org.sakaiproject.kernel</groupId>
        <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
-       <version>0.1-SNAPSHOT</version>
+       <version>0.1</version>
     </dependency>
   </dependencies>
 </project>

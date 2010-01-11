@@ -14,18 +14,18 @@
   <parent>
     <artifactId>org.sakaiproject.kernel.samples.fileinstall</artifactId>
     <groupId>org.sakaiproject.kernel</groupId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.kernel</groupId>
   <artifactId>org.sakaiproject.kernel.samples.fileinstall.slingrunner</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>Clean Start for Sling</name>
   <dependencies>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.app</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.1</version>
     </dependency>
   </dependencies>
   <build>
