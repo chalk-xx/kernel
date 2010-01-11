@@ -375,6 +375,11 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
           node.setProperty("sakai:filename", value);
           continue;
         }
+        // sakai:description
+        else if ("CHEF:description".equals(key)) {
+          node.setProperty("sakai:description", value);
+          continue;
+        }
         // jcr:created
         else if ("DAV:creationdate".equals(key)
             && !node.isNodeType(JcrConstants.NT_FILE)) {
@@ -411,6 +416,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         // DAV properties
         else if (key.startsWith("DAV:")) {
           // all remaining DAV properties will be ignored to avoid conflicts
+          // with WebDAV server
           continue;
         }
         LOG.error("Unknown metadata not imported: {},{}", new String[] { key,
