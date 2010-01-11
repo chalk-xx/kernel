@@ -15,11 +15,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.app</artifactId>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai K2 Launchpad Standalone Java Application</name>
   <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
@@ -168,7 +168,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     
@@ -176,7 +176,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
@@ -192,7 +192,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

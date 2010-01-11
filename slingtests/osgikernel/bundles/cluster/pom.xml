@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.cluster</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Cluster Tracking</name>
   <description>Cluster Tracking support for app servers and users.</description>
   <build>
@@ -61,7 +61,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.memory</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -108,7 +108,7 @@
 	<dependency>
 		<groupId>org.sakaiproject.kernel</groupId>
 		<artifactId>org.sakaiproject.kernel.doc</artifactId>
-		<version>0.1</version>
+		<version>0.2-SNAPSHOT</version>
 	</dependency>
   </dependencies>
 </project>

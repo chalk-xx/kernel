@@ -2,14 +2,14 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.kernel</groupId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.kernel</groupId>
   <artifactId>org.sakaiproject.kernel.image</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai image service</name>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <description>This will service crop images.</description>
   <build>
     <plugins>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
      <dependency>
       <groupId>org.apache.sling</groupId>
@@ -78,7 +78,7 @@
 	<dependency>
 	  <groupId>org.sakaiproject.kernel</groupId>
 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
-	  <version>0.1</version>
+	  <version>0.2-SNAPSHOT</version>
 	</dependency>
   </dependencies>
 </project>

@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.filters</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Filters Bundle</name>
   <description>Sakai filtering into the Sling request lifecycle.</description>
   <build>

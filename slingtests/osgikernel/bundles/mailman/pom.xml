@@ -16,11 +16,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.mailman</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Kernel Mailman Support</name>
   <description>Adds Mailman support</description>
   <build>
@@ -64,19 +64,19 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -114,23 +114,23 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.proxy</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.1</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>

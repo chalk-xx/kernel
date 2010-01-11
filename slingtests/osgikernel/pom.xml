@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.kernel</groupId>
   <artifactId>base</artifactId>
-  <version>0.1</version>
+  <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Kernel Project OSGi Experiments</name>
   <description> Kernel Experiments to evaluate approaches and generate Proof of Concept
