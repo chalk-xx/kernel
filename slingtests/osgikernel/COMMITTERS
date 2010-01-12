@@ -7,22 +7,28 @@ If you have a question or comment, it's probably best to mail
 sakai-kernel@googlegroups.com, rather than mailing any of these
 people directly.
 
-Blanket commit access:
+PMC Members:
 
             ian@caret.cam.ac.uk              Ian Boston
-            carl.hall@et.gatech.edu          Carl Hall
             pbristow@csu.edu.au              Paul Bristow
+            ray@media.berkeley.edu           Ray Davis
             stuart.freeman@et.gatech.edu     Stuart Freeman
-            arthur@caret.cam.ac.uk           Arthur Taylor
-            daniel@caret.cam.ac.uk           Daniel Parry
-            pctony@apache.org                Tony Stevenson
-            arwhyte@umich.edu                Anthony Whyte
             gaeremyncks@gmail.com            Simon Gaeremynck
-            aaron@caret.cam.ac.uk            Aaron Zeckoski
+            carl.hall@et.gatech.edu          Carl Hall
+            daniel@caret.cam.ac.uk           Daniel Parry
+            lance@speelmon.com               Lance Speelmon
+            vueringschristian@gmail.com      Christian Vuerings 
+            arwhyte@umich.edu                Anthony Whyte
+
+Committers:
             
+            jmarca@translab.its.uci.edu      James E. Marca
 
 Committers who have contributed in the past.
             tpamsler@ucdavis.edu             Thomas Amsler
             jpgorrono@ucdavis.edu            Jon Gorrono
+            pctony@apache.org                Tony Stevenson
+            arthur@caret.cam.ac.uk           Arthur Taylor
+            aaron@caret.cam.ac.uk            Aaron Zeckoski
 
 
