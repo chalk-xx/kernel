@@ -74,11 +74,11 @@ import javax.xml.stream.XMLStreamReader;
     @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @ServiceDocumentation(name = "ImportSiteArchiveServlet", shortDescription = "Imports one or more SiteArchive ZIP files from Sakai 2", description = { "Imports one or more SiteArchive ZIP files from Sakai 2" }, bindings = @ServiceBinding(type = BindingType.TYPE, selectors = @ServiceSelector(name = "sitearchive", description = "Upload one or more ZIP files."), bindings = "sling/servlet/default"), methods = { @ServiceMethod(name = "POST", description = { "Upload one or more SiteArchive ZIP files from Sakai 2" }, parameters = {
-    @ServiceParameter(name = "path", description = "Required: The absolute path to the folder where content should be imported."),
+    @ServiceParameter(name = "site", description = "Required: A site must be specified, and it must be an absolute path pointing to a site."),
     @ServiceParameter(name = "Filedata", description = "Required: the parameter that holds the actual data for the file that should be uploaded. This can be multivalued.") }, response = {
     @ServiceResponse(code = 200, description = "All files were processed without error."),
-    @ServiceResponse(code = 400, description = "path parameter was not provided"),
-    @ServiceResponse(code = 400, description = "path parameter was not absolute"),
+    @ServiceResponse(code = 400, description = "site parameter was not provided"),
+    @ServiceResponse(code = 400, description = "site parameter was not absolute"),
     @ServiceResponse(code = 400, description = "Filedata parameter was not provided."),
     @ServiceResponse(code = 415, description = "The uploaded file was not a valid ZIP file."),
     @ServiceResponse(code = 500, description = "Unexpected error.") }) })
@@ -123,28 +123,27 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException {
-    if (request.getRequestParameter("path") == null) {
-      sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "Path parameter must be supplied", null, response);
+    final RequestParameter siteParam = request.getRequestParameter("site");
+    if (siteParam == null || !siteParam.getString().startsWith("/")) {
+      final String errorMessage = "A site must be specified, and it must be an absolute path pointing to a site.";
+      sendError(HttpServletResponse.SC_BAD_REQUEST, errorMessage,
+          new IllegalArgumentException(errorMessage), response);
       return;
     }
-    final String path = request.getRequestParameter("path").getString();
-    if (!path.startsWith("/")) {
-      sendError(HttpServletResponse.SC_BAD_REQUEST, "Path must be absolute",
-          null, response);
-      return;
-    }
+    final String sitePath = siteParam.getString();
+
     final RequestParameter[] files = request.getRequestParameters("Filedata");
     if (files == null) {
-      sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "Missing Filedata parameter.", null, response);
+      final String errorMessage = "Missing Filedata parameter.";
+      sendError(HttpServletResponse.SC_BAD_REQUEST, errorMessage,
+          new IllegalArgumentException(errorMessage), response);
       return;
     }
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
     for (RequestParameter p : files) {
       LOG.info("Processing file: " + p.getFileName() + ": "
-          + p.getContentType() + ": " + p.getSize());
+          + p.getContentType() + ": " + p.getSize() + " bytes");
       try {
         // create temporary local file of zip contents
         final File tempZip = File.createTempFile("siteArchive", ".zip");
@@ -174,7 +173,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
               ; // skip entry
             } else {
               if ("content.xml".equals(entry.getName())) {
-                processContentXml(zip.getInputStream(entry), path, session, zip);
+                processContentXml(zip.getInputStream(entry), sitePath, session,
+                    zip);
               }
             }
           }
@@ -200,7 +200,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     return;
   }
 
-  private void processContentXml(InputStream in, String basePath,
+  private void processContentXml(InputStream in, String sitePath,
       Session session, ZipFile zip) throws XMLStreamException {
     Map<String, Resource> resources = new HashMap<String, Resource>();
     String currentResourceId = null;
@@ -254,7 +254,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         localName = reader.getLocalName();
         if ("collection".equalsIgnoreCase(localName)
             || "resource".equalsIgnoreCase(localName)) {
-          makeResource(resources.get(currentResourceId), basePath, session, zip);
+          makeResource(resources.get(currentResourceId), sitePath, session, zip);
         }
         break;
       } // end switch
@@ -273,16 +273,15 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       }
     } else {
       LOG.error(errorCode + ": " + message, exception);
-      throw new Error(message);
+      throw new Error(message, exception);
     }
   }
 
-  private void makeResource(Resource resource, String basePath,
+  private void makeResource(Resource resource, String sitePath,
       Session session, ZipFile zip) {
     if (resource == null) {
       throw new IllegalArgumentException("Illegal Resource");
     }
-    final String destination = basePath + "/" + resource.getRelativeId();
     final String resourceType = resource.getType();
     if ("org.sakaiproject.content.types.folder".equalsIgnoreCase(resourceType)) {
       // folders are not currently supported in K2 - so ignore them
@@ -294,8 +293,17 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
             .equalsIgnoreCase(resourceType)
         || "org.sakaiproject.content.types.HtmlDocumentType"
             .equalsIgnoreCase(resourceType)) {
+      final String relativeId = resource.getRelativeId();
+      String fileName = null;
+      if (relativeId.contains("/")) {
+        // folders are not currently supported in K2 - strip the folders.
+        fileName = relativeId.substring(relativeId.lastIndexOf("/") + 1);
+      } else {
+        fileName = relativeId;
+      }
       final Node node = copyFile(resource.attributes.get("body-location"),
-          destination, resource.attributes.get("content-type"), session, zip);
+          fileName, sitePath, resource.attributes.get("content-type"), session,
+          zip);
       applyMetaData(node, resource, session);
     } else if ("org.sakaiproject.content.types.urlResource"
         .equalsIgnoreCase(resourceType)) {
@@ -332,13 +340,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     return node;
   }
 
-  private Node copyFile(String zipEntryName, String destination,
+  private Node copyFile(String zipEntryName, String fileName, String sitePath,
       String contentType, Session session, ZipFile zip) {
-    if (destination.endsWith("/")) { // strip trailing slash
-      destination = destination.substring(0, destination.lastIndexOf("/"));
-    }
-    final String fileName = destination
-        .substring(destination.lastIndexOf("/") + 1);
     final String id = uniqueId();
     final String path = FileUtils.getHashedPath(FilesConstants.USER_FILESTORE,
         id);
@@ -347,6 +350,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
       node = FileUtils.saveFile(session, path, id, in, fileName, contentType,
           slingRepository);
+      final String linkPath = sitePath + "/_files/" + fileName;
+      FileUtils.createLink(session, node, linkPath, sitePath, slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
     } catch (IOException e) {
