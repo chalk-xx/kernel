@@ -24,6 +24,31 @@
   <description> This projects just collects together the bundles which make up the Sakai K2
     distribution. It is included by the Apache Sling Launchpad App for the Standalone Application. 
   </description>
+  <repositories>
+    <repository>
+      <id>sakai-maven</id>
+      <name>Sakai Maven Repo</name>
+      <layout>default</layout>
+      <url>http://source.sakaiproject.org/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>EclipseLink Repo</id>
+      <url>http://mirror.cc.columbia.edu/pub/software/eclipse/rt/eclipselink/maven.repo/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
   <build>
     <plugins>
       <plugin>

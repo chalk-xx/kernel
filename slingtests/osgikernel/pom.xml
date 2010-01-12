@@ -587,60 +587,17 @@
       </releases>
     </repository>
     <repository>
-      <id>EclipseLink Repo</id>
-      <url>http://mirror.cc.columbia.edu/pub/software/eclipse/rt/eclipselink/maven.repo/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </repository>
-  <repository>
       <id>apache-snapshots</id>
       <name>Apache Snapshot Repository</name>
       <url>http://repository.apache.org/snapshots/</url>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
       <releases>
         <enabled>false</enabled>
       </releases>
     </repository>
-<!--
-    <repository>
-      <id>sakai-maven</id>
-      <name>Sakai Maven Repo</name>
-      <layout>default</layout>
-      <url>http://source.sakaiproject.org/maven2</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>java.net</id>
-      <url>http://download.java.net/maven/1</url>
-      <layout>legacy</layout>
-    </repository>
--->
-<!-- For resteasy -->
-<!--
-    <repository>
-      <id>jboss</id>
-      <name>jboss repo</name>
-      <url>http://repository.jboss.org/maven2</url>
-    </repository>
--->
   </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>Sakai Plugin Repo</id>
-      <url>http://source.sakaiproject.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-  </pluginRepositories>
 <!-- ====================================================================== -->
 <!-- D E P E N D E N C I E S -->
 <!-- ====================================================================== -->
