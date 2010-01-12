@@ -1,4 +1,6 @@
 #!/bin/sh
+TOOLSDIR=`dirname $0`
+. ${TOOLSDIR}/version
 has_32_bit=`java -help | grep -c "\-d32"`
 if [[ $has_32_bit == "1" ]]
 then 
@@ -12,5 +14,5 @@ then
 else
   suspend=n
 fi
-java $d32 -Xmx512m -server -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=$suspend -jar app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f - $*
+java $d32 -Xmx512m -server -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=$suspend -jar app/target/org.sakaiproject.kernel.app-${K2VERSION}.jar -f - $*
 
