@@ -25,6 +25,7 @@ import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.NODE_TYPE_MANAGEMENT_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.VERSION_MANAGEMENT_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
@@ -242,7 +243,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         addEntry(siteNode.getPath(), currentUser, createSession, READ_GRANTED, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
-            MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
+            MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
 
         if (createSession.hasPendingChanges()) {
           LOGGER.info("Saving changes");
