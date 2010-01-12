@@ -68,6 +68,8 @@ public class ACLUtils {
   
   public static final String NODE_TYPE_MANAGEMENT_GRANTED = GRANTED +"jcr:nodeTypeManagement";
   
+  public static final String VERSION_MANAGEMENT_GRANTED = GRANTED + "jcr:versionManagement";
+  
   public static final String ALL_GRANTED = GRANTED +"jcr:all";
 
   public static final String READ_DENIED = DENIED + "jcr:read";
@@ -88,7 +90,10 @@ public class ACLUtils {
   
   public static final String NODE_TYPE_MANAGEMENT_DENIED = DENIED +"jcr:nodeTypeManagement";
   
+  public static final String VERSION_MANAGEMENT_DENIED = DENIED + "jcr:versionManagement";
+  
   public static final String ALL_DENIED = DENIED +"jcr:all";
+  
   
   private static final Logger LOGGER = LoggerFactory.getLogger(ACLUtils.class);
 
