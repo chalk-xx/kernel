@@ -29,6 +29,18 @@
   <version>0.2-SNAPSHOT</version>
   <name>Sakai Database Bundle</name>
   <description>Adds database support, JPA implementation clearance, JTA support and Datasources</description>
+  <repositories>
+    <repository>
+      <id>EclipseLink Repo</id>
+      <url>http://mirror.cc.columbia.edu/pub/software/eclipse/rt/eclipselink/maven.repo/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
   <build>
     <plugins>
       <plugin>
