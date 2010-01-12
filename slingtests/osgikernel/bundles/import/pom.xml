@@ -19,11 +19,11 @@
 	<parent>
 		<groupId>org.sakaiproject.kernel</groupId>
 		<artifactId>base</artifactId>
-		<version>0.1-SNAPSHOT</version>
+		<version>0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>org.sakaiproject.kernel.import</artifactId>
 	<packaging>bundle</packaging>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<name>org.sakaiproject.kernel.import</name>
 	<description>Sakai import bundle</description>
 	<build>
@@ -72,13 +72,13 @@
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.files</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.2-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.cluster</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.2-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -103,7 +103,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.doc</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>

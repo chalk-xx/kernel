@@ -44,9 +44,13 @@ public interface SiteService {
    */
   public static final String SAKAI_SKIN = "sakai:skin";
   /**
-   * The resource type for a site.
+   * The sling resource type for a site.
    */
   public static final String SITE_RESOURCE_TYPE = "sakai/site";
+  /**
+   * The JCR resource type for a site 
+   */
+  public static final String SITE_PRIMARY_TYPE = "sakai:site";
   /**
    * The property name that defines if this is a site template or not.
    */
