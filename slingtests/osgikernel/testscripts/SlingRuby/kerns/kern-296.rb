@@ -17,10 +17,13 @@ class TC_Kern296Test < SlingTest
     g1.add_member(@s, u1.name, "user")
     hasmember = g1.has_member(@s, u1.name)
     assert_equal(true,hasmember,"Expected user #{u1.name} to be a member of group #{g1.name} ") 
+    g1.remove_member(@s,u1.name,"user")
+    hasmember = g1.has_member(@s, u1.name)
+    assert_equal(false,hasmember,"Expected user #{u1.name} not to be a member of group #{g1.name} ") 
     url = SlingUsers::Group.url_for(g1.name)
     res = @s.execute_post(@s.url_for("#{url}.delete.html"),
                                     { "go" => 1 })
-    assert_equal(200,res.code,"Expected delete group to be sucessfull #{res.body}")
+    assert_equal("200",res.code,"Expected delete group to be sucessfull #{res.body}")
   end
 
 end
