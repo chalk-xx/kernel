@@ -137,6 +137,10 @@ module SlingInterface
     end
     
     def execute_post(path, post_params={})
+      # We always post with utf-8
+      if ( post_params["_charset_"] == nil)
+        post_params["_charset_"] = "utf-8"
+      end
       write_log("POST: #{path} (as '#{@user.name}')\n\tparams: #{post_params.dump}")
       uri = URI.parse(path)
       req = Net::HTTP::Post.new(uri.path)
