@@ -1,5 +1,6 @@
 #!/bin/bash
 TOOLSDIR=`dirname $0`
+. ${TOOLSDIR}/version
 pushd ${TOOLSDIR}/..
 if [[ "a$1" == "aall" ]]
 then
@@ -21,5 +22,5 @@ then
 else
   d32=""
 fi
-java  $d32 -Xmx512m -server -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -f -
+java  $d32 -Xmx512m -server -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.kernel.app-${K2VERSION}.jar -f -
 
