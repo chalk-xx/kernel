@@ -22,7 +22,10 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
@@ -31,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 /**
@@ -42,20 +46,32 @@ import javax.jcr.query.Row;
  * @scr.property name="sakai.search.processor" value="DiscussionInitialPost"
  * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
  */
-public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
+public class DiscussionInitialPostSearchResultProcessor implements
+    SearchResultProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionInitialPostSearchResultProcessor.class);
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
-    if ( aggregator != null ) {
+    if (aggregator != null) {
       aggregator.add(node);
     }
     write.object();
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
     write.endObject();
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    return SearchUtil.getSearchResultSet(request, query);
   }
 }

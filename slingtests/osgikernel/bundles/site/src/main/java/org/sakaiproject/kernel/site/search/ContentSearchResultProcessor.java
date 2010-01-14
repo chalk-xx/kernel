@@ -29,13 +29,17 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 @Component(immediate = true, name = "ContentSearchResultProcessor", label = "ContentSearchResultProcessor")
@@ -48,35 +52,16 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
 
   private SearchResultProcessorTracker tracker;
 
-  private SearchResultProcessor defaultProcessor = new SearchResultProcessor() {
-
-    public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-        throws JSONException, RepositoryException {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      Node node = RowUtils.getNode(row, session);
-      if ( aggregator != null ) {
-        aggregator.add(node);
-      }
-      write.object();
-      write.key("path");
-      write.value(node.getPath());
-      write.key("excerpt");
-      write.value(RowUtils.getDefaultExcerpt(row));
-      write.key("data");
-      ExtendedJSONWriter.writeNodeToWriter(write, node);
-      write.endObject();
-    }
-  };
-
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
     if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
       String type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
 
       // From looking at the type we determine how we should represent this node.
-      SearchResultProcessor processor = tracker.getSearchResultProcessorByType(type);
+      SearchResultProcessor processor = tracker
+          .getSearchResultProcessorByType(type);
       if (processor != null) {
         write.object();
         write.key("path");
@@ -90,13 +75,42 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
         write.endObject();
       } else {
         // No processor found, just dump the properties
-        defaultProcessor.writeNode(request, write, aggregator, row);
+        dumpProperties(request, write, aggregator, row);
       }
 
     } else {
       // No type, just dump the properties
-      defaultProcessor.writeNode(request, write, aggregator, row);
+      dumpProperties(request, write, aggregator, row);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    return SearchUtil.getSearchResultSet(request, query);
+  }
+
+  private void dumpProperties(SlingHttpServletRequest request,
+      JSONWriter write, Aggregator aggregator, Row row) throws JSONException,
+      RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    Node node = RowUtils.getNode(row, session);
+    if (aggregator != null) {
+      aggregator.add(node);
+    }
+    write.object();
+    write.key("path");
+    write.value(node.getPath());
+    write.key("excerpt");
+    write.value(RowUtils.getDefaultExcerpt(row));
+    write.key("data");
+    ExtendedJSONWriter.writeNodeToWriter(write, node);
+    write.endObject();
   }
 
   public void activate(ComponentContext context) {
