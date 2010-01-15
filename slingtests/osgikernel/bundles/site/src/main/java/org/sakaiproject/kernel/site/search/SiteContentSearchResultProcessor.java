@@ -29,8 +29,14 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
 import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.MergedRowIterator;
+import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
@@ -38,21 +44,78 @@ import org.sakaiproject.kernel.util.RowUtils;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
+import javax.jcr.query.RowIterator;
 
 @Component(immediate = true, name = "SiteContentSearchResultProcessor", label = "SiteContentSearchResultProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Formats search results for content nodes in sites."),
-    @Property(name = "sakai.search.processor", value = "SiteContent") })
-@Service(value = SearchResultProcessor.class)
+    @Property(name = "sakai.search.batchprocessor", value = "SiteContent") })
+@Service(value = SearchBatchResultProcessor.class)
 @Reference(referenceInterface = SiteService.class, name = "SiteService")
-public class SiteContentSearchResultProcessor implements SearchResultProcessor {
+public class SiteContentSearchResultProcessor implements
+    SearchBatchResultProcessor {
 
   private SiteService siteService;
-
   private SearchResultProcessorTracker tracker;
   private SiteSearchResultProcessor siteSearchResultProcessor;
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.commons.json.io.JSONWriter,
+   *      org.sakaiproject.kernel.api.search.Aggregator, javax.jcr.query.RowIterator)
+   */
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, RowIterator iterator) throws JSONException,
+      RepositoryException {
+
+    while (iterator.hasNext()) {
+      Row row = iterator.nextRow();
+      writeNode(request, write, aggregator, row);
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    try {
+      // Perform the query
+      QueryResult qr = query.execute();
+      RowIterator iterator = qr.getRows();
+
+      // Do another query to get the files.
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      String statement = "//element(*, sakai:site)//*[@sling:resourceType='sakai/link']/jcr:deref(@jcr:reference, '*')[jcr:contains(.,'*u*')]";
+      Query q = qm.createQuery(statement, Query.XPATH);
+      QueryResult filesQueryResult = q.execute();
+      RowIterator filesIterator = filesQueryResult.getRows();
+
+      MergedRowIterator mergedIterator = new MergedRowIterator(iterator,
+          filesIterator);
+
+      int siteHits = SearchUtil.getHits(qr);
+      int filesHits = SearchUtil.getHits(filesQueryResult);
+      int totalHits = siteHits + filesHits;
+
+      return new AbstractSearchResultSet(mergedIterator, totalHits);
+
+    } catch (RepositoryException e) {
+      throw new SearchException(500, "Unable to do files query.");
+    }
+  }
 
   private void writeDefaultNode(JSONWriter write, Aggregator aggregator,
       Row row, Node siteNode, Session session) throws JSONException,
@@ -73,7 +136,7 @@ public class SiteContentSearchResultProcessor implements SearchResultProcessor {
     write.endObject();
   }
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+  private void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
