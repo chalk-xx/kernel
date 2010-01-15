@@ -96,41 +96,42 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
       while (keys.hasNext()) {
 
         String key = keys.next();
-        Object obj = json.get(key);
+        if (!key.startsWith("jcr:")) {
+          Object obj = json.get(key);
 
-        if (obj instanceof JSONObject) {
-          // This represents a child node.
-          Node childNode = addNode(node, key);
-          createTree(session, (JSONObject) obj, childNode);
-        } else if (obj instanceof JSONArray) {
-          // This represents a multivalued property
+          if (obj instanceof JSONObject) {
+            // This represents a child node.
+            Node childNode = addNode(node, key);
+            createTree(session, (JSONObject) obj, childNode);
+          } else if (obj instanceof JSONArray) {
+            // This represents a multivalued property
 
-          JSONArray arr = (JSONArray) obj;
-          String[] values = new String[arr.length()];
-          for (int i = 0; i < arr.length(); i++) {
-            values[i] = (String) arr.get(i);
-          }
-          node.setProperty(key, values);
+            JSONArray arr = (JSONArray) obj;
+            String[] values = new String[arr.length()];
+            for (int i = 0; i < arr.length(); i++) {
+              values[i] = (String) arr.get(i);
+            }
+            node.setProperty(key, values);
 
-        } else {
-          // Single property
-          // Be smart, and check Number etc
-          if (obj instanceof JSONString) {
-            Object o = ((JSONString) obj).toJSONString();
-            if (o instanceof String) {
+          } else {
+            // Single property
+            // Be smart, and check Number etc
+            if (obj instanceof JSONString) {
+              Object o = ((JSONString) obj).toJSONString();
+              if (o instanceof String) {
+                node.setProperty(key, (String) obj);
+              }
+            }
+            if (obj instanceof String) {
               node.setProperty(key, (String) obj);
             }
+            if (obj instanceof Number) {
+              node.setProperty(key, json.getDouble(key));
+            }
+            if (obj instanceof Boolean) {
+              node.setProperty(key, json.getBoolean(key));
+            }
           }
-          if (obj instanceof String) {
-            node.setProperty(key, (String) obj);
-          }
-          if (obj instanceof Number) {
-            node.setProperty(key, json.getDouble(key));
-          }
-          if (obj instanceof Boolean) {
-            node.setProperty(key, json.getBoolean(key));
-          }
-
         }
       }
     } catch (JSONException e) {
