@@ -219,7 +219,8 @@ public class MeResource implements Resource {
             writer);
         writer.append("}");
         writer.close();
-        return (AdapterType) new ByteArrayInputStream(baos.toByteArray());
+
+        return (AdapterType) new ByteArrayInputStream(baos.toString().getBytes("utf-8"));
       } catch (RepositoryException e) {
         LOG.error("Unable to read user details", e);
       } catch (IOException e) {
