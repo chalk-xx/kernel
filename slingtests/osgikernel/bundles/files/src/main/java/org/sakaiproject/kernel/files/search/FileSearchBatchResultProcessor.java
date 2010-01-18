@@ -31,6 +31,9 @@ import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchException;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -44,6 +47,7 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
@@ -76,13 +80,17 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   public FileSearchBatchResultProcessor() {
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.kernel.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.commons.json.io.JSONWriter, org.sakaiproject.kernel.api.search.Aggregator, javax.jcr.query.RowIterator)
+   */
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator,
-      RowIterator iterator, long start, long end) throws JSONException,
+      RowIterator iterator) throws JSONException,
       RepositoryException {
     processedNodes = new ArrayList<String>();
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    iterator.skip(start);
-    for (long i = start; i < end && iterator.hasNext(); i++) {
+    
+    while (iterator.hasNext()) {
       Row row = iterator.nextRow();
       String path = row.getValue("jcr:path").getString();
       Node node = (Node) session.getItem(path);
@@ -91,14 +99,26 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       }
 
       if (!handleNode(node, path, session, write)) {
-        i--;
       }
     }
   }
+  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    return SearchUtil.getSearchResultSet(request, query);
+  }
 
+  
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
-      NodeIterator iterator, int start, long end) throws RepositoryException,
+      NodeIterator iterator, long start, long end) throws RepositoryException,
       JSONException {
+    
     Session session = request.getResourceResolver().adaptTo(Session.class);
     iterator.skip(start);
     for (long i = start; i < end && iterator.hasNext(); i++) {
@@ -131,6 +151,16 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
     write.endObject();
   }
 
+  /**
+   * Handle a node.
+   * @param node The node we should handle
+   * @param path The path were the node comes from.
+   * @param session The session
+   * @param write The jsonwriter.
+   * @return True if we outputted this node, false if not.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
   private boolean handleNode(Node node, String path, Session session, JSONWriter write)
       throws RepositoryException, JSONException {
     // Every other file..
@@ -166,7 +196,8 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       else {
         writeNormalFile(write, node);
       }
+      return true;
     }
-    return true;
+    return false;
   }
 }

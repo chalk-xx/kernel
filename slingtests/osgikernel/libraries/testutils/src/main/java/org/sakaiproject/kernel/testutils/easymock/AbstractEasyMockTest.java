@@ -88,7 +88,7 @@ public class AbstractEasyMockTest {
       String key, String value) {
     RequestParameter param = createMock(RequestParameter.class);
     expect(param.getString()).andReturn(value).anyTimes();
-    expect(request.getRequestParameter(key)).andReturn(param);
+    expect(request.getRequestParameter(key)).andReturn(param).anyTimes();
   }
 
 }
