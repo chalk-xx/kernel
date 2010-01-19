@@ -162,7 +162,7 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
       output.object();
       PresenceUtils.makePresenceJSON(output, user, presenceService, true);
       // add in the list of contacts info
-      Session session = request.getResource().adaptTo(Node.class).getSession();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       List<String> userIds = connectionManager.getConnectedUsers(user,
           ConnectionState.ACCEPTED);
       output.key("contacts");

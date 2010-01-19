@@ -107,6 +107,7 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     if (user == null) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
+      return;
     }
     LOGGER.info("GET to PresenceServlet (" + user + ")");
 

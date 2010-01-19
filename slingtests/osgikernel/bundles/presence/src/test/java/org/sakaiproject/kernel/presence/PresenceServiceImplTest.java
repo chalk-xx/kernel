@@ -22,12 +22,16 @@ import static org.easymock.EasyMock.*;
 
 import com.google.common.collect.Lists;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
+import org.sakaiproject.kernel.api.presence.PresenceService;
+import org.sakaiproject.kernel.api.presence.PresenceStatus;
 import org.sakaiproject.kernel.memory.MapCacheImpl;
 
 import java.util.List;
@@ -72,9 +76,33 @@ public class PresenceServiceImplTest {
    */
   @After
   public void tearDown() throws Exception {
+    presenceService.unbindCacheManagerService(cacheManagerService);
     verify(cacheManagerService);
   }
 
+  @Test
+  public void testClear() {
+    String uuid = "jack";
+    String status = "online";
+    presenceService.setStatus(uuid, status);
+    
+    String result = presenceService.getStatus(uuid);
+    assertEquals(status, result);
+
+    // Clear everything
+    presenceService.clear(uuid);
+    result = presenceService.getStatus(uuid);
+    assertEquals(PresenceStatus.offline.name(), result);
+  }
+  
+  @Test
+  public void testSetStatus() {
+    String uuid = "jack";
+    presenceService.setStatus(uuid, "foo:bar");
+    String status = presenceService.getStatus(uuid);
+    Assert.assertEquals("foo:bar", status);
+  }
+  
   /**
    * Test method for
    * {@link org.sakaiproject.kernel.presence.PresenceServiceImpl#online(java.util.List)}
@@ -135,6 +163,10 @@ public class PresenceServiceImplTest {
     for (int i = 0; i < 100; i++) {
       presenceService.ping("user" + i, null);
     }
+  }
+  
+  public PresenceService getPresenceService() {
+    return this.presenceService;
   }
 
 }
