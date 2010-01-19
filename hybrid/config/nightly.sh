@@ -39,7 +39,7 @@ rm -rf kernel
 rm -rf sakai2-demo
 rm -rf sling
 rm -rf sakai3
-rm -rf ~/.m2/repository/
+rm -rf ~/.m2/repository/org/sakaiproject
 
 # build sling/trunk
 # not needed as long as hudson builds are getting deployed to apache-snapshot repo
@@ -127,4 +127,4 @@ sakai2-demo/bin/startup.sh
 
 # final cleanup
 cd $BUILD_DIR
-rm -rf ~/.m2/repository/
+rm -rf ~/.m2/repository/org/sakaiproject
