@@ -63,7 +63,7 @@ mvn clean install -Dmaven.test.skip=true
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.kernel.app-0.1-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar org.sakaiproject.kernel.app-0.2-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # untar tomcat
 cd $BUILD_DIR
