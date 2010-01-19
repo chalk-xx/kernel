@@ -23,8 +23,13 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.discussion.DiscussionConstants;
 import org.sakaiproject.kernel.api.discussion.Post;
 import org.sakaiproject.kernel.api.message.MessageConstants;
+import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
 import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchException;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +41,8 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryResult;
 import javax.jcr.query.RowIterator;
 
 /**
@@ -53,16 +60,15 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
 
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer, Aggregator aggregator,
-      RowIterator iterator, long start, long end) throws JSONException,
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
+      Aggregator aggregator, RowIterator iterator) throws JSONException,
       RepositoryException {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     List<Node> allNodes = new ArrayList<Node>();
     for (; iterator.hasNext();) {
-      String path = iterator.nextRow().getValue("jcr:path").getString();
-      Node node = (Node) session.getItem(path);
-      if ( aggregator != null ) {
+      Node node = RowUtils.getNode(iterator.nextRow(), session);
+      if (aggregator != null) {
         aggregator.add(node);
       }
       allNodes.add(node);
@@ -73,7 +79,8 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       Node n = allNodes.get(i);
 
       if (n.hasProperty(DiscussionConstants.PROP_REPLY_ON)) {
-        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON).getString();
+        String replyon = n.getProperty(DiscussionConstants.PROP_REPLY_ON)
+            .getString();
         // This post is a reply on another post.
         // Find that post and add it.
         addPost(basePosts, n, replyon);
@@ -88,6 +95,29 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
 
     for (Post p : basePosts) {
       p.outputPostAsJSON(writer);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    try {
+      // Perform the query
+      QueryResult qr = query.execute();
+      RowIterator iterator = qr.getRows();
+
+      // Get the hits
+      int hits = SearchUtil.getHits(qr);
+
+      // Return the result set.
+      return new AbstractSearchResultSet(iterator, hits);
+    } catch (RepositoryException e) {
+      throw new SearchException(500, "Unable to execute query.");
     }
   }
 

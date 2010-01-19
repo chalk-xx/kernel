@@ -26,6 +26,23 @@ class TC_Kern538Test < SlingTest
     default_asserts(jsonRes)
   end
   
+  def test_with_jcr_in_property
+    m = Time.now.to_i.to_s
+    treeuser = create_user("treeuser#{m}")    
+    @s.switch_user(treeuser)
+    
+    # Create foo node in private store
+    @s.execute_post(@s.url_for("_user/private/foo"), {"foo" => "bar"})
+    
+    # Create the default tree
+    tree = default_tree()
+    tree["foo"]["jcr:primaryType"] = "nt:file"
+    jsonRes = create_tree(tree, "_user/private/foo")
+    
+    #Assertions
+    default_asserts(jsonRes)
+  end
+  
   def test_noneExistingResource
     m = Time.now.to_i.to_s
     treeuser = create_user("treeuser#{m}")    

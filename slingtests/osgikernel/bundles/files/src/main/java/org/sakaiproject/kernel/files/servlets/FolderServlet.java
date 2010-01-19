@@ -109,8 +109,10 @@ public class FolderServlet extends SlingAllMethodsServlet {
       FileSearchBatchResultProcessor processor = new FileSearchBatchResultProcessor(siteService);
       write.array();
 
-      long size = it.getSize();
-      processor.writeNodes(request, write, it, 0, size);
+      // FIXME Doing iterator.getSize isn't performant but I don't see any
+      // other way of getting the nr of children. And since we strive not to have
+      // > 255 childNodes this should still be in reasonable limit
+      processor.writeNodes(request, write, it, 0, it.getSize());
 
       write.endArray();
 

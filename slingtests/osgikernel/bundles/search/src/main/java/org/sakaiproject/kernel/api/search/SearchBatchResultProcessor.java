@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.query.Query;
 import javax.jcr.query.RowIterator;
 
 /**
@@ -42,14 +43,22 @@ public interface SearchBatchResultProcessor {
    *          aggregate for the set returned. May be null in which case it can be ignored.
    * @param iterator
    *          The RowIterator containing the results.
-   * @param start
-   *          Based on the request parameters, this is the start point.
-   * @param end
-   *          Based on the request parameters, this is the end point.
    * @throws JSONException
    * @throws RepositoryException
    */
   void writeNodes(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, RowIterator iterator, long start, long end)
-      throws JSONException, RepositoryException;
+      Aggregator aggregator, RowIterator iterator) throws JSONException,
+      RepositoryException;
+
+  /**
+   * Prepare the resultset
+   * 
+   * @param request
+   *          The request that triggered the search.
+   * @param query
+   *          The query that was used
+   * @return A searchresultset containing a paged iterator, total hits
+   */
+  SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException;
 }

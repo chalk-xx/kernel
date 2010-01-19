@@ -17,18 +17,22 @@
  */
 package org.sakaiproject.kernel.search.processors;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.query.Row;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.sakaiproject.kernel.util.RowUtils;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.query.Query;
+import javax.jcr.query.Row;
 
 /**
  * Formats sakai/page nodes. Options are: - path: The path where you want to search under.
@@ -44,8 +48,8 @@ import org.sakaiproject.kernel.util.RowUtils;
  */
 public class PageSearchResultProcessor implements SearchResultProcessor {
 
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
     write.object();
@@ -53,8 +57,19 @@ public class PageSearchResultProcessor implements SearchResultProcessor {
     write.key("path");
     write.value(node.getPath());
     write.endObject();
-    if ( aggregator != null ) {
+    if (aggregator != null) {
       aggregator.add(node);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
+   *      javax.jcr.query.Query)
+   */
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
+    return SearchUtil.getSearchResultSet(request, query);
   }
 }
