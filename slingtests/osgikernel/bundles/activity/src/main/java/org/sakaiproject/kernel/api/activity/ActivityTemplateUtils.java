@@ -17,27 +17,27 @@
  */
 package org.sakaiproject.kernel.api.activity;
 
-//import org.apache.sling.api.SlingHttpServletRequest;
-//import org.apache.sling.api.resource.Resource;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//
-//import java.util.Iterator;
-//import java.util.Locale;
-//import java.util.Set;
-//
-//import javax.jcr.Node;
-//import javax.jcr.PathNotFoundException;
-//import javax.jcr.Property;
-//import javax.jcr.RepositoryException;
-//import javax.jcr.Session;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Set;
+
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  *
  */
 public class ActivityTemplateUtils {
-  // private static final Logger LOG =
-  // LoggerFactory.getLogger(ActivityTemplateUtils.class);
+  private static final Logger LOG = LoggerFactory
+      .getLogger(ActivityTemplateUtils.class);
 
   /**
    * Since no language is specified, the current language will attempt to be determined.
@@ -47,10 +47,10 @@ public class ActivityTemplateUtils {
    * @param templateId
    * @return
    */
-  // String getTemplate(SlingHttpServletRequest request, String applicationId,
-  // String templateId) {
-  // return this.getTemplate(request, applicationId, templateId, null);
-  // }
+  String getTemplate(SlingHttpServletRequest request, String applicationId,
+      String templateId) {
+    return this.getTemplate(request, applicationId, templateId, null);
+  }
 
   /**
    * If for some reason the requested language cannot be found, the default language will
@@ -73,61 +73,61 @@ public class ActivityTemplateUtils {
    * @see Locale
    * @return
    */
-  // String getTemplate(SlingHttpServletRequest request, String applicationId,
-  // String templateId, String locale) {
-  // // TODO finish this method
-  // String templateRoot = ActivityConstants.TEMPLATE_ROOTFOLDER + "/" + applicationId
-  // + "/" + templateId;
-  // String template = null;
-  // Session session = null;
-  // if (locale == null || "".equals(locale)) {
-  // locale = getLocale(request);
-  // }
-  // try {
-  // String path = templateRoot + "_" + locale;
-  // session = request.getResourceResolver().adaptTo(Session.class);
-  // Node node = (Node) session.getItem(path);
-  // } catch (PathNotFoundException e) { // could not find template; fall back to default
-  // // language (i.e. no locale)
-  // String path = templateRoot;
-  // try {
-  // Node node = (Node) session.getItem(path);
-  // } catch (PathNotFoundException e1) {
-  // LOG.error("Could not locate a template for " + applicationId + "/" + templateId
-  // + "*", e1);
-  // } catch (RepositoryException e1) {
-  // LOG.error(e.getMessage(), e1);
-  // }
-  // } catch (RepositoryException e) {
-  // LOG.error(e.getMessage(), e);
-  // }
-  // return template;
-  // }
+  String getTemplate(SlingHttpServletRequest request, String applicationId,
+      String templateId, String locale) {
+    // TODO finish this method
+    String templateRoot = ActivityConstants.TEMPLATE_ROOTFOLDER + "/"
+        + applicationId + "/" + templateId;
+    String template = null;
+    Session session = null;
+    if (locale == null || "".equals(locale)) {
+      locale = getLocale(request);
+    }
+    try {
+      String path = templateRoot + "_" + locale;
+      session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = (Node) session.getItem(path);
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+    }
+    String path = templateRoot;
+    try {
+      Node node = (Node) session.getItem(path);
+    } catch (PathNotFoundException e1) {
+      LOG.error("Could not locate a template for " + applicationId + "/"
+          + templateId + "*", e1);
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+    }
+    return template;
+  }
 
-  // public String getLocale(SlingHttpServletRequest request) {
-  // Locale locale = Locale.getDefault();
-  // try {
-  // Resource me = request.getResourceResolver().getResource("/system/me");
-  // Node meNode = me.adaptTo(Node.class);
-  // for (Iterator<Property> iterator = meNode.getProperties(); iterator.hasNext();) {
-  // Property prop = iterator.next();
-  // LOG.debug(prop.getName() + "=" + prop.getValue().toString());
-  // }
-  // Property p = meNode.getProperty("locale");
-  // if (p != null) {
-  // String[] s = p.getValue().getString().split("_");
-  // locale = new Locale(s[0], s[1]);
-  // }
-  // } catch (RepositoryException e) {
-  // LOG.error(e.getMessage(), e);
-  // }
-  // LOG.debug("locale.toString()=" + locale.toString());
-  // return locale.toString();
-  // }
+  public String getLocale(SlingHttpServletRequest request) {
+    Locale locale = Locale.getDefault();
+    try {
+      Resource me = request.getResourceResolver().getResource("/system/me");
+      Node meNode = me.adaptTo(Node.class);
+      for (Iterator<Property> iterator = meNode.getProperties(); iterator
+          .hasNext();) {
+        Property prop = iterator.next();
+        LOG.debug(prop.getName() + "=" + prop.getValue().toString());
+      }
+      Property p = meNode.getProperty("locale");
+      if (p != null) {
+        String[] s = p.getValue().getString().split("_");
+        locale = new Locale(s[0], s[1]);
+      }
+    } catch (RepositoryException e) {
+      LOG.error(e.getMessage(), e);
+    }
+    LOG.debug("locale.toString()=" + locale.toString());
+    return locale.toString();
+  }
 
-  // public boolean validateTemplate(SlingHttpServletRequest request, String template) {
-  // return false;
-  // }
+  public boolean validateTemplate(SlingHttpServletRequest request,
+      String template) {
+    return false;
+  }
 
   /**
    * Parse a template and extract an Array of Strings which contains the macros (i.e.
@@ -137,9 +137,9 @@ public class ActivityTemplateUtils {
    *          The template itself (i.e. not a reference)
    * @return
    */
-  // private Set<String> getMacros(String template) {
-  // // TODO finish this method
-  // return null;
-  // }
+  private Set<String> getMacros(String template) {
+    // TODO finish this method
+    return null;
+  }
 
 }

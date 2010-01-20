@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.api.activity;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.EVENT_TOPIC;
 
 import org.osgi.service.event.Event;
+import org.sakaiproject.kernel.api.personal.PersonalUtils;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -32,8 +33,13 @@ public class ActivityUtils {
   @SuppressWarnings("unchecked")
   public static Event createEvent(String activityItemPath) {
     final Dictionary<String, String> map = new Hashtable(1);
-    map.put("activityItemPath", activityItemPath);
+    map.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
     return new Event(EVENT_TOPIC, (Dictionary) map);
+  }
+
+  public static String getUserFeed(String user) {
+    return PersonalUtils.getPrivatePath(user,
+        ActivityConstants.ACTIVITY_FEED_NAME);
   }
 
 }

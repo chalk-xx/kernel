@@ -22,8 +22,8 @@ import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.isA;
 import static org.junit.Assert.fail;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_APPLICATION_ID;
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.REQUEST_PARAM_TEMPLATE_ID;
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
+import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_TEMPLATE_ID;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -59,8 +59,8 @@ public class ActivityCreateServletTest extends AbstractEasyMockTest {
     ActivityCreateServlet acs = new ActivityCreateServlet();
 
     SlingHttpServletRequest request = createMock("request", SlingHttpServletRequest.class);
-    this.addStringRequestParameter(request, REQUEST_PARAM_APPLICATION_ID, "sakai.chat");
-    this.addStringRequestParameter(request, REQUEST_PARAM_TEMPLATE_ID, "1234");
+    this.addStringRequestParameter(request, PARAM_APPLICATION_ID, "sakai.chat");
+    this.addStringRequestParameter(request, PARAM_TEMPLATE_ID, "1234");
     expect(request.getRemoteUser()).andReturn("lance");
 
     SlingHttpServletResponse response = createMock("response",

@@ -21,14 +21,18 @@ import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_FE
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_SOURCE;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventHandler;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.kernel.api.activity.ActivityConstants;
+import org.sakaiproject.kernel.api.activity.ActivityUtils;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
 import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.personal.PersonalUtils;
@@ -38,43 +42,124 @@ import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
 import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.Topic;
 
-public class ActivityEventProcessor implements EventHandler {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(ActivityEventProcessor.class);
-  protected ConnectionManager connectionManager = null;
+@Component(label = "ActivityListener", description = "Listens for new activities", immediate = true, metatype = true)
+public class ActivityListener implements MessageListener {
 
+  // References/properties need for JMS
+  @Reference
+  protected ConnectionFactoryService connFactoryService;
+  @Property(value = "vm://localhost:41000")
+  public static final String BROKER_URL = "activity.brokerUrl";
+
+  // References needed to actually deliver the activity.
+  @Reference
   protected SlingRepository slingRepository;
-
+  @Reference
+  protected ConnectionManager connectionManager;
+  @Reference
   protected SiteService siteService;
 
-  public void handleEvent(Event event) {
-    LOG.debug("handleEvent(Event {})", event);
-    final String activityItemPath = (String) event
-        .getProperty("activityItemPath");
-    LOG.info("Processing activity: {}", activityItemPath);
-    Session session = null;
+  public static final Logger LOG = LoggerFactory
+      .getLogger(ActivityListener.class);
+
+  private String brokerUrl = "";
+  private ConnectionFactory connectionFactory;
+  private Connection connection = null;
+
+  /**
+   * Start a JMS connection.
+   */
+  @SuppressWarnings("unchecked")
+  public void activate(ComponentContext componentContext) {
+    Dictionary properties = componentContext.getProperties();
+
+    String _brokerUrl = (String) properties.get(BROKER_URL);
     try {
-      session = slingRepository.loginAdministrative(null);
+      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
+      if (!urlEmpty) {
+        if (!brokerUrl.equals(_brokerUrl)) {
+          LOG.info("Creating a new ActiveMQ Connection Factory for activities");
+          connectionFactory = connFactoryService.createFactory(_brokerUrl);
+        }
+
+        if (connectionFactory != null) {
+          connection = connectionFactory.createConnection();
+          javax.jms.Session session = connection.createSession(false,
+              javax.jms.Session.AUTO_ACKNOWLEDGE);
+          Topic dest = session.createTopic(ActivityConstants.EVENT_TOPIC);
+          MessageConsumer consumer = session.createConsumer(dest);
+          consumer.setMessageListener(this);
+          connection.start();
+        }
+      } else {
+        LOG.error("Cannot create JMS connection factory with an empty URL.");
+      }
+      brokerUrl = _brokerUrl;
+    } catch (JMSException e) {
+      LOG.error(e.getMessage(), e);
+      if (connection != null) {
+        try {
+          connection.close();
+        } catch (JMSException e1) {
+        }
+      }
+    }
+  }
+
+  /**
+   * Close the JMS connection
+   */
+  protected void deactivate(ComponentContext ctx) {
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (JMSException e) {
+        LOG.error("Cannot close the activity JMS connection.", e);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
+   */
+  public void onMessage(Message message) {
+    try {
+      final String activityItemPath = message
+          .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
+      LOG.info("Processing activity: {}", activityItemPath);
+      Session session = slingRepository.loginAdministrative(null);
       Node activity = (Node) session.getItem(activityItemPath);
       if (activity != null) {
-        // process activity
-        // hints will be attached to the activity as to where we need to deliver
-        // for example: connections, siteA, siteB
-        // from Nico: /sites/siteid/activityFeed.json
-        // Let's try the the simpler connections case first
         String actor = activity.getProperty(PARAM_ACTOR_ID).getString();
         if (actor == null || "".equals(actor)) {
           // we must know the actor
           throw new IllegalStateException(
               "Could not determine actor of activity: " + activity);
         }
+
+        // We copy the activity to the creator, his/her connections and the site.
+        // If the activity didn't take place in a site, nothing will happen
+        // If some contacts don't have READ on the activity it won't get copied over.
+        // The creator will always get a copy.
+
+        deliverActivityToCreater(session, activity, actor);
         deliverActivityToConnections(session, activity, actor);
         deliverActivityToSite(session, activity, actor);
       } else {
@@ -82,15 +167,25 @@ public class ActivityEventProcessor implements EventHandler {
         throw new Error("Could not process activity: " + activityItemPath);
       }
 
+    } catch (JMSException e) {
+      LOG.error("Got a JMS exception in the activity listener.", e);
     } catch (RepositoryException e) {
-      LOG.error("Could not process activity: {}", activityItemPath);
-      LOG.error(e.getMessage(), e);
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
+      LOG.error("Got a repository exception in the activity listener.", e);
     }
+  }
 
+  /**
+   * Writes the activity to the creator his own store.
+   * 
+   * @param session
+   * @param activity
+   * @param actor
+   * @throws RepositoryException
+   */
+  private void deliverActivityToCreater(Session session, Node activity,
+      String actor) throws RepositoryException {
+    String path = ActivityUtils.getUserFeed(actor);
+    deliverActivityToFeed(session, activity, path);
   }
 
   /**
@@ -227,27 +322,4 @@ public class ActivityEventProcessor implements EventHandler {
     session.save();
   }
 
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
-  protected void bindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  protected void unbindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = null;
-  }
-
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
 }
