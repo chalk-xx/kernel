@@ -328,15 +328,14 @@ public class SearchServlet extends SlingAllMethodsServlet {
 
         write.array();
 
+        RowIterator iterator = rs.getRowIterator();
         if (searchBatchProcessor != defaultSearchBatchProcessor) {
           LOGGER.info("Using batch processor for results");
-          // searchBatchProcessor.writeNodes(request, write, aggregator,
-          // rowIterator);
+           searchBatchProcessor.writeNodes(request, write, aggregator, iterator);
         } else {
           LOGGER.info("Using regular processor for results");
           // We don't skip any rows ourselves here.
           // We expect a rowIterator coming from a resultset to be at the right place.
-          RowIterator iterator = rs.getRowIterator();
           for (long i = 0; i < nitems && iterator.hasNext(); i++) {
             // Get the next row.
             Row row = iterator.nextRow();
