@@ -59,6 +59,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   public void setUp() throws Exception {
     super.setUp();
     searchServlet = new SearchServlet();
+    searchServlet.init();
   }
 
   @Test

@@ -18,6 +18,8 @@
 
 package org.sakaiproject.kernel.api.search;
 
+import java.util.NoSuchElementException;
+
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
@@ -51,6 +53,9 @@ public class MergedRowIterator implements RowIterator {
       this.rowB = null;
     }
     pos++;
+    if (r == null) {
+      throw new IllegalStateException();
+    }
     return r;
   }
 
@@ -59,13 +64,19 @@ public class MergedRowIterator implements RowIterator {
   }
 
   public long getSize() {
-    return iteratorA.getSize() + iteratorB.getSize();
+    // We could do something like: iteratorA.getSize() + iteratorB.getSize()
+    // But this is terribly slow and should not be attempted.
+    return -1;
   }
 
   public void skip(long skipNum) {
     // TODO Find a better performing mechanism for this.
     while (skipNum > 0) {
-      nextRow();
+      try {
+        nextRow();
+      } catch (IllegalStateException e) {
+        throw new NoSuchElementException();
+      }
       skipNum--;
     }
   }
