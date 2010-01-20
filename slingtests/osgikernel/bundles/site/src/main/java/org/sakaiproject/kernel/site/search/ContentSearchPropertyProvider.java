@@ -36,9 +36,7 @@ public class ContentSearchPropertyProvider implements SearchPropertyProvider {
     String escaped = null;
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
-        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'",
-            "\\\\'").replaceAll("'", "''");
+        escaped = value.replaceAll("\"", "\\\"\"");
       }
     }
     return escaped;

@@ -54,14 +54,27 @@ public class SearchResultProcessorTracker extends ServiceTracker {
       String[] processorNames = OsgiUtil.toStringArray(reference
           .getProperty(SAKAI_SEACH_RESOURCETYPE));
 
-      if (processorNames != null) {
-        for (String processorName : processorNames) {
-          processors.put(processorName, processor);
-        }
-      }
+      putProcessor(processor, processorNames);
 
     }
     return service;
+  }
+
+  protected void putProcessor(SearchResultProcessor processor,
+      String[] processorNames) {
+    if (processorNames != null) {
+      for (String processorName : processorNames) {
+        processors.put(processorName, processor);
+      }
+    }
+  }
+  
+  protected void removeProcessor(String[] processorNames) {
+    if (processorNames != null) {
+      for (String processorName : processorNames) {
+        processors.remove(processorName);
+      }
+    }
   }
 
   /**
@@ -76,11 +89,7 @@ public class SearchResultProcessorTracker extends ServiceTracker {
       String[] processorNames = OsgiUtil.toStringArray(reference
           .getProperty(SAKAI_SEACH_RESOURCETYPE));
 
-      if (processorNames != null) {
-        for (String processorName : processorNames) {
-          processors.remove(processorName);
-        }
-      }
+      removeProcessor(processorNames);
     }
     super.removedService(reference, service);
   }

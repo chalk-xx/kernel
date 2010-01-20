@@ -61,7 +61,7 @@ public class SiteContentSearchResultProcessor implements
     SearchBatchResultProcessor {
 
   private SiteService siteService;
-  private SearchResultProcessorTracker tracker;
+  protected SearchResultProcessorTracker tracker;
   private SiteSearchResultProcessor siteSearchResultProcessor;
 
   /**
