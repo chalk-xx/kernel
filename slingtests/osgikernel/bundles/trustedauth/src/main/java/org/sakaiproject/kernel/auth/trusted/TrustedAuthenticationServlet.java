@@ -131,9 +131,13 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     }
 
     String destination = req.getParameter(PARAM_DESTINATION);
+    
     if (destination == null) {
       destination = defaultDestination;
     }
+    // ensure that the redirect is safe and not susceptible to 
+    destination.replace('\n', ' ');
+    destination.replace('\r', ' ');
     resp.sendRedirect(destination);
   }
 
