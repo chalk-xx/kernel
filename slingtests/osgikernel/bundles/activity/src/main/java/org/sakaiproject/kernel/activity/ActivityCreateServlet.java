@@ -45,6 +45,7 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.util.JcrUtils;
+import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,15 +72,15 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name = "service.description", value = "Records the activity related to a particular node"),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @ServiceDocumentation(name = "ActivityCreateServlet", description = "Record activity related to a specific node.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "*", selectors = @ServiceSelector(name = "activity")), methods = { @ServiceMethod(name = "POST", description = "Perform a post to a particular resource to record activity related to it.", parameters = {
-    @ServiceParameter(name = "applicationId", description = "i.e. used to locate the bundles"),
-    @ServiceParameter(name = "templateId", description = "The id of the template that will be used for text and macro expansion."
+    @ServiceParameter(name = "sakai:activity-appid", description = "i.e. used to locate the bundles"),
+    @ServiceParameter(name = "sakai:activity-templateid", description = "The id of the template that will be used for text and macro expansion."
         + "Locale will be appended to the templateId for resolution"),
-    @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in templateId.") }, response = { @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)") }) })
+    @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in sakai:activity-templateid.") }, response = { @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)") }) })
 public class ActivityCreateServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory
       .getLogger(ActivityCreateServlet.class);
-  
+
   @Reference
   protected EventAdmin eventAdmin;
 
@@ -96,8 +97,8 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       LOG.debug("doPost(SlingHttpServletRequest " + request
           + ", SlingHttpServletResponse " + response + ")");
     }
-    // Let's perform some validation on the request parameters. Do we have the minimum
-    // required?
+    // Let's perform some validation on the request parameters.
+    // Do we have the minimum required?
     RequestParameter applicationId = request
         .getRequestParameter(PARAM_APPLICATION_ID);
     if (applicationId == null || "".equals(applicationId.toString())) {
@@ -121,6 +122,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
 
     // Create or verify that an ActivityStore exists for content node
     // An activity store will be created for each node where a .activity gets executed.
+    // TODO Maybe we shouldn't allow it on sakai/activity and sakai/activityFeed nodes?
     Node location = request.getResource().adaptTo(Node.class);
     Node activityStoreNode = null;
     Session session = null;
@@ -152,30 +154,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     final RequestPathInfo requestPathInfo = request.getRequestPathInfo();
     // Wrapper which needs to remove the .activity selector from RequestPathInfo to avoid
     // an infinite loop.
-    final RequestPathInfo wrappedPathInfo = new RequestPathInfo() {
-      public String getSuffix() {
-        return requestPathInfo.getSuffix();
-      }
-
-      public String[] getSelectors() {
-        // TODO Probably should just *remove* the ".activity" selector from array
-        return new String[0];
-      }
-
-      public String getSelectorString() {
-        // TODO Probably should just *remove* the ".activity" selector from string
-        return null;
-      }
-
-      public String getResourcePath() {
-        // LOG.debug("requestPathInfo.getResourcePath()=" + resourcePath);
-        return activityItemPath;
-      }
-
-      public String getExtension() {
-        return requestPathInfo.getExtension();
-      }
-    };
+    final RequestPathInfo wrappedPathInfo = createRequestPathInfo(requestPathInfo, activityItemPath);
 
     // Next insert the new RequestPathInfo into a wrapped Request
     SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(
@@ -211,6 +190,38 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     }
     // post the asynchronous OSGi event
     eventAdmin.postEvent(ActivityUtils.createEvent(activityItemPath));
+  }
+
+  /**
+   * @param requestPathInfo
+   * @param activityItemPath
+   * @return
+   */
+  protected RequestPathInfo createRequestPathInfo(
+      final RequestPathInfo requestPathInfo, final String activityItemPath) {
+    return new RequestPathInfo() {
+      public String getSuffix() {
+        return requestPathInfo.getSuffix();
+      }
+
+      public String[] getSelectors() {
+        return StringUtils.removeString(requestPathInfo.getSelectors(),
+            "activity");
+      }
+
+      public String getSelectorString() {
+        return requestPathInfo.getSelectorString()
+            .replaceAll("\\.activity", "");
+      }
+
+      public String getResourcePath() {
+        return activityItemPath;
+      }
+
+      public String getExtension() {
+        return requestPathInfo.getExtension();
+      }
+    };
   }
 
   /**
