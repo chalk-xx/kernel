@@ -1,9 +1,12 @@
 package org.sakaiproject.kernel.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import java.io.InputStream;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public class IOUtilsTest {
 
@@ -19,4 +22,14 @@ public class IOUtilsTest {
     verify.close();
   }
 
+  @Test
+  public void testStream() throws Exception {
+    InputStream from = this.getClass().getResourceAsStream("lipsum.txt");
+
+    ByteArrayOutputStream to = new ByteArrayOutputStream();
+    IOUtils.stream(from, to);
+    String lipsum = to.toString("UTF-8");
+    assertEquals("Lorem", lipsum.substring(0, 5));
+
+  }
 }

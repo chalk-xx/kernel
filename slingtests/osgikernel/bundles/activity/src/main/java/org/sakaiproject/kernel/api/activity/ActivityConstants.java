@@ -18,26 +18,74 @@
 package org.sakaiproject.kernel.api.activity;
 
 /**
- * HTTP Stuff
+ * Constants that are used throughout the activity bundle.
  */
 public interface ActivityConstants {
-  public static final String REQUEST_PARAM_APPLICATION_ID = "applicationId";
-  public static final String REQUEST_PARAM_TEMPLATE_ID = "templateId";
+  
+  // Request parameters, node property names
+  
+  /**
+   * The property/parameter name for the application id.
+   */
+  public static final String PARAM_APPLICATION_ID = "sakai:activity-appid";
+  /**
+   * The property/parameter name for the template id.
+   */
+  public static final String PARAM_TEMPLATE_ID = "sakai:activity-templateid";
+  /**
+   * The property name for the authorizable who generated the event.
+   */
+  public static final String PARAM_ACTOR_ID = "sakai:activity-actor";
+  /**
+   * The property name for the source of the activity.
+   */
+  public static final String PARAM_SOURCE = "sakai:activity-source";
+  
+  
+  // Node names
+  
+  /**
+   * The name for the big store where the original activities will be stored.
+   */
   public static final String ACTIVITY_STORE_NAME = "activity";
+  /**
+   * The name for the big store where the original activities will be copied to.
+   */
+  public static final String ACTIVITY_FEED_NAME = "activityFeed";
 
   /**
    * JCR folder name for templates.
    */
   public static final String TEMPLATE_ROOTFOLDER = "/var/activity/templates";
-  public static final String ACTIVITY_STORE_RESOURCE_TYPE = "sakai/activityStore";
-  public static final String ACTIVITY_FEED_RESOURCE_TYPE = "sakai/activityFeed";
-  public static final String PROPERTY_ROOT = "sakaiActivityFeed";
-  public static final String ACTOR_PROPERTY = PROPERTY_ROOT + "Actor";
-  public static final String SOURCE_PROPERTY = PROPERTY_ROOT + "Source";
-
+  
+  // Sling:resourceTypes
+  
   /**
-   * Events
+   * The sling:resourceType for an activity store. 
+   * The node with this resourceType will
+   * hold the original activity items.
+   */
+  public static final String ACTIVITY_STORE_RESOURCE_TYPE = "sakai/activityStore";
+  /**
+   * The sling:resourceType for an activity feed.
+   * The node with this resourceType will be the store 
+   * where the activities are copied to.
+   */
+  public static final String ACTIVITY_FEED_RESOURCE_TYPE = "sakai/activityFeed";
+  /**
+   * The sling:resourceType for an activity item.
+   */
+  public static final String ACTIVITY_ITEM_RESOURCE_TYPE = "sakai/activity";
+  
+  // Events
+  
+  /**
+   * OSGi event that gets triggered when an activity occurs.
    */
   public static final String EVENT_TOPIC = "org/sakaiproject/kernel/activity";
+  /**
+   * The property in the event which will hold the location to the original activity.
+   */
+  public static final String EVENT_PROP_PATH = "sakai:activity-item-path";
 
 }

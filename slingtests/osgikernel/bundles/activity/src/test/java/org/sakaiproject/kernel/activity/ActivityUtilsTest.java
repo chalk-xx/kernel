@@ -15,31 +15,25 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.activity;
+package org.sakaiproject.kernel.activity;
 
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.EVENT_TOPIC;
-
-import org.osgi.service.event.Event;
-import org.sakaiproject.kernel.api.personal.PersonalUtils;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
+import org.junit.Assert;
+import org.junit.Test;
+import org.sakaiproject.kernel.api.activity.ActivityConstants;
+import org.sakaiproject.kernel.api.activity.ActivityUtils;
 
 /**
  *
  */
-public class ActivityUtils {
+public class ActivityUtilsTest {
 
-  @SuppressWarnings("unchecked")
-  public static Event createEvent(String activityItemPath) {
-    final Dictionary<String, String> map = new Hashtable(1);
-    map.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
-    return new Event(EVENT_TOPIC, (Dictionary) map);
+  
+  @Test
+  public void testUserFeed() {
+    String user = "admin";
+    String expected = "/_user/private/d0/33/e2/2a/admin/" + ActivityConstants.ACTIVITY_FEED_NAME;
+    String result = ActivityUtils.getUserFeed(user);
+    Assert.assertEquals(expected, result);
   }
-
-  public static String getUserFeed(String user) {
-    return PersonalUtils.getPrivatePath(user,
-        ActivityConstants.ACTIVITY_FEED_NAME);
-  }
-
+  
 }

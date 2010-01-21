@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.presence.servlets;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -32,6 +33,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
+import org.sakaiproject.kernel.api.connections.ConnectionState;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
@@ -149,18 +151,27 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
     if (user == null) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
+      return;
     }
     LOGGER.info("GET to PresenceUserServlet (" + user + ")");
 	String requestedUser = request.getParameter("userid");
 	if (requestedUser == null){
 		response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Userid must be specified to request a user's presence");
+		return;
+	}
+	
+	List<String> contacts = connectionManager.getConnectedUsers(user, ConnectionState.ACCEPTED);
+	if (!contacts.contains(requestedUser)) {
+	  response.sendError(HttpServletResponse.SC_FORBIDDEN,
+        "Userid must be a contact.");
+	  return;
 	}
 
     try {
       Writer writer = response.getWriter();
       ExtendedJSONWriter output = new ExtendedJSONWriter(writer);
-	  Session session = request.getResource().adaptTo(Node.class).getSession();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       // start JSON object
       output.object();
       // put in the basics
