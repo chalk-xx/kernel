@@ -48,7 +48,7 @@ public interface AuthorizableEvent {
    * Operations
    */
   public static enum Operation {
-    delete(), update(), create(), join(), part();
+    delete(), update(), create(), join(), part(), unknown();
     
     public String getTopic() {
       return TOPIC+toString();

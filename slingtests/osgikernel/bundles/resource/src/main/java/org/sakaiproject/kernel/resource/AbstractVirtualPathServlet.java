@@ -139,6 +139,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
       LOGGER.warn(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Unable to get the path the first node " + e.getMessage());
+      return;
     }
     String pathInfo = uriPath.substring(realPath.length());
 

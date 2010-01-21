@@ -288,8 +288,11 @@ public class KernelConstants implements ConfigurationService, ManagedService {
     if (in == null)
       return;
     Properties p = new Properties();
-    p.load(in);
-    in.close();
+    try {
+      p.load(in);
+    } finally {
+      in.close();
+    }
     for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
       String k = (String) e.nextElement();
       if (!map.containsKey(k))

@@ -19,8 +19,11 @@ import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
 
-  private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-  
+  private static ThreadLocal<DateFormat> formatHolder = new ThreadLocal<DateFormat>() {
+    protected DateFormat initialValue() {
+      return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    };
+  };
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
@@ -95,7 +98,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.DOUBLE:
       return value.getDouble();     
     case PropertyType.DATE:
-      return format.format(value.getDate().getTime());
+      return formatHolder.get().format(value.getDate().getTime());
     default:
       return value.toString();
     }

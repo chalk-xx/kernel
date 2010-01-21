@@ -47,6 +47,8 @@ public class AuthorizableEventUtil {
     Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
     if (operation != null) {
       eventDictionary.put(AuthorizableEvent.OPERATION, operation);
+    } else {
+      operation = Operation.unknown;
     }
     if (principalName != null) {
       eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, principalName);

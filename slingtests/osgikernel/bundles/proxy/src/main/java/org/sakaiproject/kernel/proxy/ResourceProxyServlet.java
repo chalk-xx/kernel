@@ -273,10 +273,12 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
             .hasMoreElements();) {
           String name = (String) enames.nextElement();
           String[] pv  = request.getParameterValues(name);
-          if ( pv != null && pv.length > 1 ) {
-            templateParams.put(name, pv);
-          } else {
-            templateParams.put(name, pv[0]);
+          if ( pv != null ) {
+            if ( pv.length > 1 ) {
+              templateParams.put(name, pv);
+            } else {
+              templateParams.put(name, pv[0]);
+            }
           }
         }
 
