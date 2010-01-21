@@ -74,7 +74,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       props.setProperty("resource_link_id", "uuid");
       props.setProperty("user_id", session.getUserID()); // maybe needs to be
       // more opaque?
-      props.setProperty("roles", "Learner,Mentor");
+      props.setProperty("roles", "Instructor");
       props.setProperty("lis_person_name_given", "Jane");
       props.setProperty("lis_person_name_family", "Smith");
       props.setProperty("lis_person_name_full", "Jane Q. Smith");
@@ -91,15 +91,17 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           "http://sakaiproject.org");
       final ExtendedJSONWriter writer = new ExtendedJSONWriter(response
           .getWriter());
+      writer.object(); // root object
+      writer.key("launchURL");
+      writer.value(launch);
+      writer.key("postData");
       writer.object();
       for (final Object propkey : signedProperties.keySet()) {
         writer.key((String) propkey);
         writer.value(signedProperties.getProperty((String) propkey));
-        // LOG
-        // .info(propkey + "="
-        // + signedProperties.getProperty((String) propkey));
       }
-      writer.endObject();
+      writer.endObject(); // postData
+      writer.endObject(); // root object
     } catch (Exception e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getLocalizedMessage(), e, response);
