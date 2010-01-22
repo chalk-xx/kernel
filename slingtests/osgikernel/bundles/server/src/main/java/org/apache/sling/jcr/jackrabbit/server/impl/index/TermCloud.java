@@ -85,7 +85,7 @@ public class TermCloud {
      * @param limit
      * @return
      */
-    public Iterator<CloudTerm> iterator(final int limit) {
+    public synchronized Iterator<CloudTerm> iterator(final int limit) {
         if (!sorted) {
             Collections.sort(termList);
             sorted = true;

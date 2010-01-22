@@ -27,20 +27,24 @@ import org.junit.Test;
  */
 public class TermCloudExtractorTest {
 
-  class L1 {
+  static class L1 {
     @SuppressWarnings("unused")
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"URF_UNREAD_FIELD"})
     private L2 a = new L2();
   }
-  class L2 {
+  static class L2 {
     @SuppressWarnings("unused")
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"URF_UNREAD_FIELD"})
     private L3 b = new L3();
   }
-  class L3 {
+  static class L3 {
     @SuppressWarnings("unused")
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"URF_UNREAD_FIELD"})
     private L4 c = new L4();
   }
-  class L4 {
+  static class L4 {
     @SuppressWarnings("unused")
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"URF_UNREAD_FIELD"})
     private String d = "hello";
   }
   
