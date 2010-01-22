@@ -165,8 +165,8 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
             }
 
             boolean all = true;
-            for (String s : checkedElements.keySet()) {
-              if (!checkedElements.get(s)) {
+            for (Entry<String, Boolean> es : checkedElements.entrySet()) {
+              if (!checkedElements.get(es.getKey())) {
                 all = false;
                 break;
               }
