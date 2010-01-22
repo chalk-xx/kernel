@@ -107,10 +107,10 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
   private static final String TARGET_USERID = "connections:targetUserId";
 
   @Reference
-  protected ConnectionManager connectionManager;
+  protected transient ConnectionManager connectionManager;
 
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
