@@ -24,7 +24,6 @@ import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchResultSet;
-import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.IOException;
@@ -32,10 +31,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.jcr.Node;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
@@ -83,6 +80,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   }
 
   @Test
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"DLS_DEAD_LOCAL_STORE"})
   public void testGoodQuery() throws ValueFormatException, RepositoryException,
       IOException, ServletException {
 
@@ -108,6 +106,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
     
+    @SuppressWarnings("unused")
     Session session = createMock(Session.class);
     executeQuery(queryNode);
   }
@@ -183,6 +182,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     executeQuery(queryNode);
   }
 
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"DLS_DEAD_LOCAL_STORE"})
   private Node prepareNodeSessionWithQueryManagerAndResultNode(Row resultRow,
       String expectedQuery) throws RepositoryException {
     Node queryNode = createMock(Node.class);
@@ -195,6 +195,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
       expect(iterator.nextRow()).andReturn(resultRow);
       expect(iterator.hasNext()).andReturn(false);
     }
+    @SuppressWarnings("unused")
     QueryResult queryResult = createMock(QueryResult.class);
     //expect(queryResult.getRows()).andReturn(iterator);
 

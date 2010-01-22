@@ -28,6 +28,7 @@ import static org.easymock.EasyMock.expect;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -82,9 +83,11 @@ public class AggregateCountTest extends AbstractEasyMockTest {
       boolean children) throws RepositoryException {
     Node node = EasyMock.createMock(Node.class);
     expect(node.getPath()).andReturn(path).anyTimes();
-    for (String key : properties.keySet()) {
+    for (Entry<String, String> e : properties.entrySet()) {
+      String key = e.getKey();
+      String pvalue = e.getValue();
       Value val = EasyMock.createMock(Value.class);
-      expect(val.getString()).andReturn(properties.get(key)).anyTimes();
+      expect(val.getString()).andReturn(pvalue).anyTimes();
       expect(val.getType()).andReturn(PropertyType.STRING).anyTimes();
       EasyMock.replay(val);
 
@@ -95,7 +98,7 @@ public class AggregateCountTest extends AbstractEasyMockTest {
       Property prop = createMock(Property.class);
       expect(prop.getType()).andReturn(PropertyType.STRING).anyTimes();
       expect(prop.getValue()).andReturn(val).anyTimes();
-      expect(prop.getString()).andReturn(properties.get(key)).anyTimes();
+      expect(prop.getString()).andReturn(pvalue).anyTimes();
       expect(prop.getDefinition()).andReturn(propDef).anyTimes();
       EasyMock.replay(prop);
 
