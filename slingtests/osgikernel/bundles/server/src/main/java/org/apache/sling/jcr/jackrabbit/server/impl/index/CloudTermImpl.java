@@ -52,6 +52,47 @@ public class CloudTermImpl implements Comparable<CloudTerm>, CloudTerm {
         }
         return d;
     }
+    
+    /**
+     * {@inheritDoc}
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if ( obj == null ) {
+            return false;
+        }
+        if ( obj instanceof CloudTerm ) {
+            CloudTerm ct = (CloudTerm) obj;
+            if ( ct.getCount() == count ) {
+                String ctName = ct.getName();
+                if ( name == null ) {
+                    if ( ctName == null ) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return name.equals(ctName);
+                }
+            }
+        }
+        return super.equals(obj);
+    }
+    
+    /**
+     * {@inheritDoc}
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        if ( name == null ) {
+            return count;
+        } else {
+            return count + name.hashCode();
+        }
+    }
+    
 
     /**
      * @return

@@ -288,7 +288,8 @@ public class CropItProcessor {
 
       // If it's a gif try to write it as a jpg
       if (sType.equalsIgnoreCase("image/gif")) {
-        sImg = sImg.replaceAll("\\.gif", ".png");
+        // TODO: This does not do anything. commenting out, what was the intention ? (Findbugs found it)
+        // sImg = sImg.replaceAll("\\.gif", ".png");
         sIOtype = "png";
       }
 

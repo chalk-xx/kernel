@@ -26,7 +26,7 @@ import javax.servlet.ServletException;
 public class GeneralDocumentationServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 6866189047081436865L;
-  private ServletDocumentationTracker servletTracker;
+  private transient ServletDocumentationTracker servletTracker;
   private byte[] style;
 
   @Override

@@ -28,7 +28,7 @@ public class MessageSentListenerTest {
   private MessageSentListener msl;
   private MessageRouterManager messageRouterManager;
   private SlingRepository slingRepository;
-  private final String PATH = "/foo/bar";
+  private static final String PATH = "/foo/bar";
   private Session session;
   private Node msgNode;
 

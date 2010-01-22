@@ -100,6 +100,7 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
   @SuppressWarnings("unchecked")
   @Override
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="Exceptions are caught to ensure that the correct status code gets sent.", value={"REC_CATCH_EXCEPTION"})
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     LOGGER.info("Got get to SiteServiceGetServlet");
@@ -233,7 +234,6 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       }
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);
-      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;

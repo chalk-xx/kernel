@@ -123,7 +123,7 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
-  protected PresenceService presenceService;
+  protected transient PresenceService presenceService;
 
   protected void bindPresenceService(PresenceService presenceService) {
     this.presenceService = presenceService;
@@ -133,7 +133,7 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
     this.presenceService = null;
   }
 
-  protected ConnectionManager connectionManager;
+  protected transient ConnectionManager connectionManager;
 
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;

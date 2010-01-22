@@ -71,7 +71,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -6622263132868029827L;
-  private ServletDocumentationTracker servletTracker;
+  private transient ServletDocumentationTracker servletTracker;
 
   /**
    * {@inheritDoc}

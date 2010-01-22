@@ -81,7 +81,7 @@ public class LinkServlet extends SlingAllMethodsServlet {
   //
   // Needed to bind all the file handlers out there to this servlet.
   //
-  private LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
+  private transient LinkHandlerTracker fileHandlerTracker = new LinkHandlerTracker();
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

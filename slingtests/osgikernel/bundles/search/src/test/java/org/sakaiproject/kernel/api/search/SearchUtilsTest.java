@@ -26,6 +26,7 @@ public class SearchUtilsTest {
 
   @Test
   public void testEscaping() {
+    @SuppressWarnings("unused")
     String foo = "@bla";
   }
   

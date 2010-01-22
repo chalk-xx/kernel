@@ -16,7 +16,6 @@ public class AuthorizableKey {
     this.authorizable = authorizable;
   }
   
-  @Override
   public boolean equals(Object obj) {
     if (obj == null || !(obj instanceof AuthorizableKey)) 
       return false;

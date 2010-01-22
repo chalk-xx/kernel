@@ -543,11 +543,13 @@ public class SiteServiceImpl implements SiteService {
           String groupId = v.getString();
           Authorizable a = userManager.getAuthorizable(groupId);
           if (a instanceof Group) {
+            // FIXME: a is never a Group Key (bug?)
             if (!groups.containsKey(a)) {
               groups.put(new GroupKey((Group) a), new Membership(null, a));
               populateMembers((Group) a, groups, users, session);
             }
           } else if (a instanceof User) {
+            // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
               String profilePath = PersonalUtils.getProfilePath(a.getID());
               Node profileNode = (Node) session.getItem(profilePath);
@@ -558,8 +560,8 @@ public class SiteServiceImpl implements SiteService {
             LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
           } else {
             // if a is not one of the known types
-            LOGGER.warn("Cannot handle Authorizable {} of type {}", a, (a == null ? "null" : a
-                .getClass()));
+            LOGGER.warn("Cannot handle Authorizable {} of type {}", a,  a
+                .getClass());
           }
         }
 
@@ -600,8 +602,8 @@ public class SiteServiceImpl implements SiteService {
          */
         public int compare(T o1, T o2) {
           try {
-            Object c1 = o1.getAuthorizable().getID();
-            Object c2 = o2.getAuthorizable().getID();
+            String c1 = o1.getAuthorizable().getID();
+            String c2 = o2.getAuthorizable().getID();
             switch (s.getField()) {
             case firstName:
               c1 = o1.getFirstName();
@@ -618,25 +620,17 @@ public class SiteServiceImpl implements SiteService {
             }
             switch (s.getOrder()) {
             case asc:
-              if (c1 instanceof Comparable) {
-                Comparable cc1 = (Comparable<?>) c1;
-                int i = cc1.compareTo(c2);
-                if (i == 0) {
-                  i = compareNext(o1, o2);
-                }
-                return i;
+              int i = c1.compareTo(c2);
+              if (i == 0) {
+                i = compareNext(o1, o2);
               }
-              return 0;
+              return i;
             case desc:
-              if (c2 instanceof Comparable) {
-                Comparable cc2 = (Comparable<?>) c2;
-                int i = cc2.compareTo(c1);
-                if (i == 0) {
-                  i = compareNext(o1, o2);
-                }
-                return i;
+              i = c2.compareTo(c1);
+              if (i == 0) {
+                i = compareNext(o1, o2);
               }
-              return 0;
+              return i;
             }
           } catch (RepositoryException e) {
           }
@@ -683,6 +677,7 @@ public class SiteServiceImpl implements SiteService {
       Map<UserKey, Membership> users, Session session) throws RepositoryException {
     for (Iterator<Authorizable> igm = group.getDeclaredMembers(); igm.hasNext();) {
       Authorizable a = igm.next();
+      // FIXME: a is not a GroupKey, so this can never be true (Bug?)
       if (!groups.containsKey(a)) {
         if (a instanceof Group) {
           groups.put(new GroupKey((Group) a), new Membership(group, a));

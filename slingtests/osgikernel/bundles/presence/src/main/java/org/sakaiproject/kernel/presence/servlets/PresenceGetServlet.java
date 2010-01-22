@@ -89,7 +89,7 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
-  protected PresenceService presenceService;
+  protected transient PresenceService presenceService;
 
   protected void bindPresenceService(PresenceService presenceService) {
     this.presenceService = presenceService;

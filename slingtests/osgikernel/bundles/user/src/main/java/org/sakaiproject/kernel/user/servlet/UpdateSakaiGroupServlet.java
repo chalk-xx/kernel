@@ -143,14 +143,14 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UpdateGroupServlet.class);
 
-  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * The JCR Repository we access to resolve resources
    * 
    * @scr.reference
    */
-  private SlingRepository repository;
+  private transient SlingRepository repository;
 
   /** Returns the JCR repository used by this service. */
   protected SlingRepository getRepository() {

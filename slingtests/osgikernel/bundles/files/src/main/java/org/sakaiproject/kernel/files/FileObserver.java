@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,6 @@ import javax.jcr.Session;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.nodetype.NoSuchNodeTypeException;
-import javax.jcr.observation.ObservationManager;
 import javax.jcr.version.VersionException;
 
 /**
@@ -53,8 +51,8 @@ public class FileObserver {
   @Reference
   private SlingRepository slingRepository;
 
-  private Session session = null;
 
+      /*
   protected void activate(ComponentContext ctxt) {
     try {
       log.info("Activating service.");
@@ -62,7 +60,6 @@ public class FileObserver {
       ObservationManager observationManager = session.getWorkspace()
           .getObservationManager();
       String[] types = { "nt:file" };
-      /*
       observationManager.addEventListener(new EventListener() {
         public void onEvent(EventIterator eventIterator) {
           while (eventIterator.hasNext()) {
@@ -95,7 +92,7 @@ public class FileObserver {
                     log.info("Node doesn't have a sling resourceType");
 
                     // Thread.sleep(1000);
-                    addProps(node, path, adminSession);
+                    adminSession = addProps(node, path, adminSession);
 
                   }
                 }
@@ -115,14 +112,13 @@ public class FileObserver {
         }
       }, Event.NODE_ADDED, "/", true, null, types, true);
       log.info("Started observing changes to the repository.");
-      */
     } catch (RepositoryException e1) {
       e1.printStackTrace();
     }
-
   }
+      */
 
-  protected void addProps(Node node, String path, Session adminSession)
+  protected Session addProps(Node node, String path, Session adminSession)
       throws NoSuchNodeTypeException, VersionException, ConstraintViolationException,
       LockException, RepositoryException {
 
@@ -145,39 +141,43 @@ public class FileObserver {
 
     log.info("Set properties.");
 
-    saveSession(node, path, adminSession);
+    adminSession = saveSession(node, path, adminSession);
 
     log.info("Saved session.");
+    return adminSession;
   }
 
-  private void saveSession(Node node, String path, Session adminSession)
+  private Session saveSession(Node node, String path, Session adminSession)
       throws AccessDeniedException, ItemExistsException, ConstraintViolationException,
       VersionException, NoSuchNodeTypeException, RepositoryException {
     try {
       if (adminSession.hasPendingChanges())
         adminSession.save();
     } catch (InvalidItemStateException e) {
-      retry(node, path, adminSession);
+      adminSession = retry(node, path, adminSession);
     } catch (LockException e) {
-      retry(node, path, adminSession);
+      adminSession = retry(node, path, adminSession);
     }
+    return adminSession;
   }
 
-  private void retry(Node node, String path, Session adminSession) throws RepositoryException {
+  private Session retry(Node node, String path, Session adminSession) throws RepositoryException {
     // kep retrying...
     log.info("Failed to save session, retrying...");
     Thread.yield();
     adminSession.logout();
     adminSession = slingRepository.loginAdministrative(null);
     node = (Node) adminSession.getItem(path);
-    addProps(node, path, adminSession);
+    adminSession = addProps(node, path, adminSession);
+    return adminSession;
   }
 
+  /*    if (session != null) {
   protected void deactivate(ComponentContext componentContext) {
-    if (session != null) {
       session.logout();
       session = null;
     }
   }
+*/
 
 }

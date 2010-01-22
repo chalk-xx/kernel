@@ -206,7 +206,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private Map<String, SearchPropertyProvider> propertyProvider = new ConcurrentHashMap<String, SearchPropertyProvider>();
   private Map<Long, SearchPropertyProvider> propertyProviderById = new ConcurrentHashMap<Long, SearchPropertyProvider>();
 
-  private ComponentContext osgiComponentContext;
+  private transient ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
@@ -215,8 +215,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private long maximumResults;
 
   // Default processors
-  protected SearchBatchResultProcessor defaultSearchBatchProcessor;
-  protected SearchResultProcessor defaultSearchProcessor;
+  protected transient SearchBatchResultProcessor defaultSearchBatchProcessor;
+  protected transient SearchResultProcessor defaultSearchProcessor;
 
   @Override
   public void init() throws ServletException {

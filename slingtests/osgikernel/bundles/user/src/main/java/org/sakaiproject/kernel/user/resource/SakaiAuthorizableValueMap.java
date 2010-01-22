@@ -295,13 +295,13 @@ public class SakaiAuthorizableValueMap implements ValueMap {
         if (String.class == type) {
             return (T) jcrValue.getString();
         } else if (Byte.class == type) {
-            return (T) new Byte((byte) jcrValue.getLong());
+            return (T) Byte.valueOf((byte) jcrValue.getLong());
         } else if (Short.class == type) {
-            return (T) new Short((short) jcrValue.getLong());
+            return (T) Short.valueOf((short) jcrValue.getLong());
         } else if (Integer.class == type) {
-            return (T) new Integer((int) jcrValue.getLong());
+            return (T) Integer.valueOf((int) jcrValue.getLong());
         } else if (Long.class == type) {
-            return (T) new Long(jcrValue.getLong());
+            return (T) Long.valueOf(jcrValue.getLong());
         } else if (Float.class == type) {
             return (T) new Float(jcrValue.getDouble());
         } else if (Double.class == type) {

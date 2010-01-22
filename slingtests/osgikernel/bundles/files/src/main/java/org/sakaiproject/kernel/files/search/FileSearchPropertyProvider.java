@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -278,6 +280,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param user
    * @return
    */
+  @SuppressWarnings(justification="siteService is OSGi managed", value={"NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD"})
   private String getMySites(Session session, String user) {
     try {
       StringBuilder sb = new StringBuilder();
@@ -326,6 +329,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    *          The user to get the contacts for.
    * @return and (@sakai:user=\"simon\" or @sakai:user=\"ieb\")
    */
+  @SuppressWarnings(justification="connectionManager is OSGi managed", value={"NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD"})
   private String getMyContacts(String user) {
     List<String> connectedUsers = connectionManager.getConnectedUsers(user,
         ConnectionState.ACCEPTED);

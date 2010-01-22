@@ -57,7 +57,7 @@ public class ConnectionStoreServlet extends AbstractVirtualPathServlet {
    */
   private static final long serialVersionUID = 1L;
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   @Override
   protected String getTargetPath(Resource baseResource,

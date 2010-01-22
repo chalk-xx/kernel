@@ -88,7 +88,7 @@ public class FolderServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(FolderServlet.class);
 
   @Reference
-  private SiteService siteService;
+  private transient SiteService siteService;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

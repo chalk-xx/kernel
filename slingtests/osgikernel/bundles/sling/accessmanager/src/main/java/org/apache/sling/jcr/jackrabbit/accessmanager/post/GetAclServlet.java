@@ -122,9 +122,9 @@ public class GetAclServlet extends SlingAllMethodsServlet {
 	private static final long serialVersionUID = 3391376559396223184L;
 
 	/**
-     * default log
-     */
-    private final Logger log = LoggerFactory.getLogger(getClass());
+   * default log
+   */
+  private static final Logger log = LoggerFactory.getLogger(GetAclServlet.class);
 
 	/* (non-Javadoc)
 	 * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.SlingHttpServletResponse)

@@ -66,7 +66,9 @@ public class AggregateCount implements Aggregator {
       agregateMap.put(f, new HashMap<String, Integer>());
     }
     this.checked = new HashSet<String>();
-    this.fields = fields;
+    
+    this.fields = new String[fields.length];
+    System.arraycopy(fields, 0, this.fields, 0, fields.length);
     this.children = children;
   }
 

@@ -116,12 +116,12 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
       throws ServletException, IOException {
     try {
       Node site = request.getResource().adaptTo(Node.class);
-      Session session = site.getSession();
-      UserManager userManager = AccessControlUtil.getUserManager(session);
       if (site == null) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Couldn't find site node");
         return;
       }
+      Session session = site.getSession();
+      UserManager userManager = AccessControlUtil.getUserManager(session);
       if (!getSiteService().isSite(site)) {
         response.sendError(HttpServletResponse.SC_BAD_REQUEST,
             "Location does not represent site ");

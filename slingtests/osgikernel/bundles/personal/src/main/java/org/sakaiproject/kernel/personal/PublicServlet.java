@@ -74,7 +74,7 @@ public class PublicServlet extends AbstractVirtualPathServlet {
   private static final long serialVersionUID = -2663916166760531044L;
 
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   /**
    * {@inheritDoc}

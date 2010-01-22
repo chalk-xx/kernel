@@ -115,9 +115,9 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       .getLogger(ResourceProxyServlet.class);
 
   @Reference
-  private ProxyClientService proxyClientService;
+  private transient ProxyClientService proxyClientService;
 
-  private ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
+  private transient ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPreProcessor.class, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
   private Map<String, ProxyPreProcessor> preProcessors = new ConcurrentHashMap<String, ProxyPreProcessor>();

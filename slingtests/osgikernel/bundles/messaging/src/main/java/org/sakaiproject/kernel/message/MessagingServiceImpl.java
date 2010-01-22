@@ -90,7 +90,7 @@ public class MessagingServiceImpl implements MessagingService {
     String messageId = String.valueOf(Thread.currentThread().getId())
         + String.valueOf(System.currentTimeMillis());
     try {
-      return messageId = org.sakaiproject.kernel.util.StringUtils.sha1Hash(messageId);
+      return org.sakaiproject.kernel.util.StringUtils.sha1Hash(messageId);
     } catch (Exception ex) {
       throw new MessagingException("Unable to create hash.");
     }

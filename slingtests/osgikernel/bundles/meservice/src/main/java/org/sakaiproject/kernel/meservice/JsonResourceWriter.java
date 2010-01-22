@@ -32,6 +32,8 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Dumps JCR Items as JSON data. The dump methods are threadsafe.
@@ -47,6 +49,8 @@ public class JsonResourceWriter {
 
     /** Used to format date values */
     public static final Locale DATE_FORMAT_LOCALE = Locale.US;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonResourceWriter.class);
 
 
     /**
@@ -211,7 +215,9 @@ public class JsonResourceWriter {
     throws JSONException {
         try {
             stream.close();
-        } catch (IOException ignore) {}
+        } catch (IOException ignore) {
+          LOGGER.debug(ignore.getMessage(), ignore);
+        }
         long length = -1;
         if ( valueMap != null ) {
             if ( index == -1 ) {

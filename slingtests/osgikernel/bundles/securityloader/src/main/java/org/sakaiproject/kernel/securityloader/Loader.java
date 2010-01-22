@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.securityloader;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
@@ -64,6 +66,7 @@ import javax.jcr.Value;
 /**
  * 
  */
+@SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class Loader implements SecurityLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
@@ -443,19 +446,16 @@ public class Loader implements SecurityLoader {
     List<String> deniedPrivilegeNames = new ArrayList<String>();
     Iterator<String> parameterNames = acl.keys();
     while (parameterNames.hasNext()) {
-      String nextElement = parameterNames.next();
-      if (nextElement instanceof String) {
-        String paramName = (String) nextElement;
-        if (paramName.startsWith("privilege@")) {
-          String parameterValue = acl.getString(paramName);
-          if (parameterValue != null && parameterValue.length() > 0) {
-            if ("granted".equals(parameterValue)) {
-              String privilegeName = paramName.substring(10);
-              grantedPrivilegeNames.add(privilegeName);
-            } else if ("denied".equals(parameterValue)) {
-              String privilegeName = paramName.substring(10);
-              deniedPrivilegeNames.add(privilegeName);
-            }
+      String paramName = parameterNames.next();
+      if (paramName.startsWith("privilege@")) {
+        String parameterValue = acl.getString(paramName);
+        if (parameterValue != null && parameterValue.length() > 0) {
+          if ("granted".equals(parameterValue)) {
+            String privilegeName = paramName.substring(10);
+            grantedPrivilegeNames.add(privilegeName);
+          } else if ("denied".equals(parameterValue)) {
+            String privilegeName = paramName.substring(10);
+            deniedPrivilegeNames.add(privilegeName);
           }
         }
       }
@@ -490,10 +490,10 @@ public class Loader implements SecurityLoader {
     }
 
     StringBuilder oldPrivileges = null;
-    StringBuilder newPrivileges = null;
+    StringBuilder newPrivileges = new StringBuilder();
+    
     if (LOGGER.isInfoEnabled()) {
       oldPrivileges = new StringBuilder();
-      newPrivileges = new StringBuilder();
     }
 
     // keep track of the existing Aces for the target principal
@@ -505,7 +505,7 @@ public class Loader implements SecurityLoader {
               new Object[] {principalId, resourcePath});
         oldAces.add(ace);
 
-        if (LOGGER.isDebugEnabled()) {
+        if (oldPrivileges != null) {
           // collect the information for debug logging
           boolean isAllow = AccessControlUtil.isAllow(ace);
           Privilege[] privileges = ace.getPrivileges();
@@ -540,13 +540,11 @@ public class Loader implements SecurityLoader {
       Privilege privilege = accessControlManager.privilegeFromName(name);
       grantedPrivilegeList.add(privilege);
 
-      if (LOGGER.isDebugEnabled()) {
-        if (newPrivileges.length() > 0) {
-          newPrivileges.append(", "); // separate entries by commas
-        }
-        newPrivileges.append("granted=");
-        newPrivileges.append(privilege.getName());
+      if (newPrivileges.length() > 0) {
+        newPrivileges.append(", "); // separate entries by commas
       }
+      newPrivileges.append("granted=");
+      newPrivileges.append(privilege.getName());
     }
     if (grantedPrivilegeList.size() > 0) {
       Principal principal = authorizable.getPrincipal();
@@ -565,13 +563,11 @@ public class Loader implements SecurityLoader {
         Privilege privilege = accessControlManager.privilegeFromName(name);
         deniedPrivilegeList.add(privilege);
 
-        if (LOGGER.isDebugEnabled()) {
-          if (newPrivileges.length() > 0) {
-            newPrivileges.append(", "); // separate entries by commas
-          }
-          newPrivileges.append("denied=");
-          newPrivileges.append(privilege.getName());
+        if (newPrivileges.length() > 0) {
+          newPrivileges.append(", "); // separate entries by commas
         }
+        newPrivileges.append("denied=");
+        newPrivileges.append(privilege.getName());
       }
       if (deniedPrivilegeList.size() > 0) {
         Principal principal = authorizable.getPrincipal();

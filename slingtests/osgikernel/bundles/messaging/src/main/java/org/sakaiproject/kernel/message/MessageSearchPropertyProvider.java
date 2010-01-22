@@ -24,7 +24,6 @@ import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.kernel.api.message.MessageConstants;
 import org.sakaiproject.kernel.api.message.MessagingService;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
-import org.sakaiproject.kernel.util.PathUtils;
 
 import java.util.Map;
 
@@ -63,8 +62,6 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     String user = request.getRemoteUser();
-    String path = request.getResource().getPath();
-    path = PathUtils.removeLastElement(path);
     Session session = request.getResourceResolver().adaptTo(Session.class);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
         .encodePath(messagingService.getFullPathToStore(user, session)));

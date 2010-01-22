@@ -18,14 +18,14 @@
 
 package org.sakaiproject.kernel.cluster;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -49,11 +49,10 @@ import javax.servlet.http.HttpServletResponse;
     @Property(name="filter.scope",value="request", propertyPrivate=true),
     @Property(name="filter.order",intValue={10}, propertyPrivate=true)})
 public class ClusterTrackingFilter implements Filter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ClusterTrackingFilter.class);
 
 
   @Reference
-  private ClusterTrackingService clusterTrackingService;
+  private transient ClusterTrackingService clusterTrackingService;
 
   /**
    * {@inheritDoc}
@@ -79,6 +78,7 @@ public class ClusterTrackingFilter implements Filter {
    * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
    *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
    */
+  @SuppressWarnings(justification="clusterTrackingService is OSGi managed", value={"NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD"})
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     HttpServletRequest hrequest = (HttpServletRequest) request;

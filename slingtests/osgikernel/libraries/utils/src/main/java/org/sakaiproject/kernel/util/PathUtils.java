@@ -282,10 +282,6 @@ public class PathUtils {
    */
   public static String toInternalHashedPath(String servletPath, String pathInfo,
       String selector) {
-    String hashedPath = PathUtils.getHashedPath(pathInfo, 4);
-    if (hashedPath.endsWith("/")) {
-      hashedPath = hashedPath.substring(0, hashedPath.length() - 2);
-    }
     return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
         + selector);
   }

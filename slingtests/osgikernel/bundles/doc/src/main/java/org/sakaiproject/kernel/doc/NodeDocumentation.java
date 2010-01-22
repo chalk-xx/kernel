@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.doc;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.doc.DocumentationConstants;
 import org.sakaiproject.kernel.util.JcrUtils;
@@ -113,13 +115,17 @@ public class NodeDocumentation {
    * @return the description
    */
   public String[] getDescription() {
-    return description;
+    String[] r = new String[description.length];
+    System.arraycopy(description, 0, r, 0, description.length);
+    return r;
   }
+  
 
   /**
    * @param description
    *          the description to set
    */
+  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
   public void setDescription(String[] description) {
     this.description = description;
   }
@@ -128,13 +134,16 @@ public class NodeDocumentation {
    * @return the parameters
    */
   public NodeDocumentationParameter[] getParameters() {
-    return parameters;
+    NodeDocumentationParameter[] r = new NodeDocumentationParameter[parameters.length];
+    System.arraycopy(parameters, 0, r, 0, parameters.length);
+    return r;
   }
 
   /**
    * @param parameters
    *          the parameters to set
    */
+  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
   public void setParameters(NodeDocumentationParameter[] parameters) {
     this.parameters = parameters;
   }
@@ -143,13 +152,16 @@ public class NodeDocumentation {
    * @return the response
    */
   public String[] getResponse() {
-    return response;
+    String[] r = new String[response.length];
+    System.arraycopy(response, 0, r, 0, response.length);
+    return r;
   }
 
   /**
    * @param response
    *          the response to set
    */
+  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
   public void setResponse(String[] response) {
     this.response = response;
   }
