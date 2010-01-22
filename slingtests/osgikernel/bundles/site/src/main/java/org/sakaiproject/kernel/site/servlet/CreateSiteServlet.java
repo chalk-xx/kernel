@@ -132,10 +132,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
   /** @scr.reference */
-  private VersionService versionService;
+  private transient VersionService versionService;
 
   /**
    * {@inheritDoc}
