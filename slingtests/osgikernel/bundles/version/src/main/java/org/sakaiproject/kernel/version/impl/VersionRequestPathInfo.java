@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.version.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.sakaiproject.kernel.util.StringUtils;
@@ -122,6 +124,7 @@ public class VersionRequestPathInfo implements RequestPathInfo {
     return extension;
   }
 
+  @SuppressWarnings(justification="Although its possible to modify this array, its internal to this bundle and we dont ", value={"EI_EXPOSE_REP"})
   public String[] getSelectors() {
     return selectors;
   }

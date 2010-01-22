@@ -178,7 +178,8 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
               InputStream is = stream.getInputStream();
               // Convert stream to string
               StringBuilder sb = new StringBuilder();
-              BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+              InputStreamReader inr = new InputStreamReader(is);
+              BufferedReader reader = new BufferedReader(inr);
               try {
                 String line = reader.readLine();
                 while (line != null) {
@@ -190,9 +191,19 @@ public class GetVersionServlet extends SlingAllMethodsServlet {
               }
               finally {
                 try {
+                  reader.close();
+                } catch (IOException e) {
+                  LOG.debug(e.getMessage(),e);
+                }
+                try {
+                  inr.close();
+                } catch (IOException e) {
+                  LOG.debug(e.getMessage(),e);
+                }
+                try {
                   is.close();
                 } catch (IOException e) {
-                  e.printStackTrace();
+                  LOG.debug(e.getMessage(),e);
                 }
               }
               JcrModifiablePropertyMap map = new JcrModifiablePropertyMap(finalNode);
