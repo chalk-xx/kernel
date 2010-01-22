@@ -188,7 +188,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
           String username = req.getParameter(PARAM_USERNAME);
           String password = req.getParameter(PARAM_PASSWORD);
           if (username != null && password != null) {
-            char[] passChars = (password != null) ? password.toCharArray() : null;
+            char[] passChars = password.toCharArray();
             _cred = new SimpleCredentials(username, passChars);
           }
         }
