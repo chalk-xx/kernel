@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.user.servlet;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.kernel.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -158,12 +159,12 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    */
   private static final long serialVersionUID = -5060795742204221361L;
 
-  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * default log
    */
-  private final Logger log = LoggerFactory.getLogger(getClass());
+  private static final Logger log = LoggerFactory.getLogger(CreateSakaiUserServlet.class);
 
   private static final String PROP_SELF_REGISTRATION_ENABLED = "self.registration.enabled";
   private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
@@ -175,9 +176,10 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    * 
    * @scr.reference
    */
-  private SlingRepository repository;
+  private transient SlingRepository repository;
 
   /** Returns the JCR repository used by this service. */
+  @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
   protected SlingRepository getRepository() {
     return repository;
   }

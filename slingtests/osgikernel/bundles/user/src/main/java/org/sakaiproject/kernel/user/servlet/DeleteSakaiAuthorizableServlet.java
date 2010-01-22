@@ -122,7 +122,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteAuthorizableServlet.class);
 
   
-  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * {@inheritDoc}

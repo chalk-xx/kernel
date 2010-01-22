@@ -159,14 +159,14 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
       .getLogger(CreateSakaiGroupServlet.class);
   
 
-  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * The JCR Repository we access to resolve resources
    * 
    * @scr.reference
    */
-  protected SlingRepository repository;
+  protected transient SlingRepository repository;
 
   /**
    * 
@@ -242,6 +242,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="If there is an exception, the user is certainly not admin", value={"REC_CATCH_EXCEPTION"})
   protected void handleOperation(SlingHttpServletRequest request, 
       HtmlResponse response, List<Modification> changes) 
       throws RepositoryException {
