@@ -99,7 +99,7 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
   private static final String SITE_PARAM = "site";
 
   @Reference
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

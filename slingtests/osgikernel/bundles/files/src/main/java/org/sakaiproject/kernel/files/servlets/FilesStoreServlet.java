@@ -60,7 +60,7 @@ public class FilesStoreServlet extends AbstractVirtualPathServlet {
   private static final long serialVersionUID = -1960932906632564021L;
 
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,

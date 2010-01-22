@@ -103,7 +103,7 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -625686874623971605L;
 
   @Reference
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
 
   @Override

@@ -73,7 +73,7 @@ public class LinkInfoServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -527034533334782419L;
 
   @Reference
-  private SiteService siteService;
+  private transient SiteService siteService;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
