@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
 import java.text.MessageFormat;
 
 /**
@@ -79,11 +80,13 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
   /** Class-specific logger */
   private static Logger log = LoggerFactory
       .getLogger(SearchExecutingLdapConnectionLivenessValidator.class);
+  
+  
 
   /**
    * An ID for this instance
    */
-  private String searchStamp = System.currentTimeMillis() + "-" + (int) (1e6 * Math.random());
+  private String searchStamp;
 
   /**
    * The attribute against which the search unique ID will be tested.
@@ -113,6 +116,13 @@ public class SearchExecutingLdapConnectionLivenessValidator implements
 
   @Reference
   private ConfigurationService configService;
+  
+  
+  public SearchExecutingLdapConnectionLivenessValidator() {
+    // Math.random is seedded with thh System.currentTimeMillis so we have to use SecureRandom.
+    SecureRandom secureRandom = new SecureRandom();
+    searchStamp = System.currentTimeMillis() + "-" + secureRandom.nextInt();
+  }
 
   /**
    * Invoke prior to testing any connections. Caches a host name to include in

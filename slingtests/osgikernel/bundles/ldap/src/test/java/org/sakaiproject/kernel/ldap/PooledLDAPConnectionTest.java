@@ -26,6 +26,8 @@ import static org.easymock.classextension.EasyMock.replay;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
@@ -58,6 +60,7 @@ public class PooledLDAPConnectionTest {
    *           test error
    */
   @Test
+  @SuppressWarnings(justification="Why are we calling finalize ? Is it for testing purposes ?", value={"FI_EXPLICIT_INVOCATION"})
   public void testFinalizeReturnsActiveConnectionToTheConnectionManager() throws LDAPException {
     conn.setActive(true);
     connMgr.returnConnection(conn);
@@ -74,6 +77,7 @@ public class PooledLDAPConnectionTest {
    *           test error
    */
   @Test
+  @SuppressWarnings(justification="Why are we calling finalize ? Is it for testing purposes ?", value={"FI_EXPLICIT_INVOCATION"})
   public void testFinalizeDoesNotReturnInactiveConnectionToTheConnectionManager()
       throws LDAPException {
     conn.setActive(false); // just to be sure
@@ -82,6 +86,7 @@ public class PooledLDAPConnectionTest {
   }
 
   @Test
+  @SuppressWarnings(justification="Why are we calling finalize ? Is it for testing purposes ?", value={"FI_EXPLICIT_INVOCATION"})
   public void testFinalizeNullConnectionManager() throws LDAPException {
     conn.setActive(true);
     conn.setConnectionManager(null);
