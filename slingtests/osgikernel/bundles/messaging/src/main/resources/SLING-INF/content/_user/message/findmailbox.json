@@ -1,7 +1,0 @@
-{
-  "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_messageStoreRoot}//element(*)MetaData[@sling:resourceType='sakai/messagestore' and @sakai:email='{address}'] order by @{sortOn|jcr:created} {sortOrder|descending}",
-  "sling:resourceType": "sakai/search",
-  "sakai:propertyprovider" : "Message",
-  "sakai:resultprocessor": "Message"
-}

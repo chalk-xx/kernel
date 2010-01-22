@@ -124,7 +124,7 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
-  protected PresenceService presenceService;
+  protected transient PresenceService presenceService;
 
   protected void bindPresenceService(PresenceService presenceService) {
     this.presenceService = presenceService;
@@ -134,7 +134,7 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
     this.presenceService = null;
   }
 
-  protected ConnectionManager connectionManager;
+  protected transient ConnectionManager connectionManager;
 
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
@@ -162,7 +162,7 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
       output.object();
       PresenceUtils.makePresenceJSON(output, user, presenceService, true);
       // add in the list of contacts info
-      Session session = request.getResource().adaptTo(Node.class).getSession();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
       List<String> userIds = connectionManager.getConnectedUsers(user,
           ConnectionState.ACCEPTED);
       output.key("contacts");

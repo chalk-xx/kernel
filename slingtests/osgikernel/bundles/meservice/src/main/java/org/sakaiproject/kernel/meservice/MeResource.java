@@ -168,8 +168,10 @@ public class MeResource implements Resource {
       
       Locale l = Locale.getDefault();
       if (getProperties().containsKey(LOCALE_FIELD)){
-    	  String locale = getProperties().get(LOCALE_FIELD).toString();
-    	  l = new Locale(locale.split("_")[0],locale.split("_")[1]);
+    	  String locale[] = getProperties().get(LOCALE_FIELD).toString().split("_");
+    	  if (locale.length == 2) {
+    	    l = new Locale(locale[0],locale[1]);
+    	  }
       }
       
       /* Get the correct time zone */
@@ -219,7 +221,8 @@ public class MeResource implements Resource {
             writer);
         writer.append("}");
         writer.close();
-        return (AdapterType) new ByteArrayInputStream(baos.toByteArray());
+
+        return (AdapterType) new ByteArrayInputStream(baos.toString().getBytes("utf-8"));
       } catch (RepositoryException e) {
         LOG.error("Unable to read user details", e);
       } catch (IOException e) {

@@ -128,14 +128,14 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   /**
    * {@inheritDoc}
    */
-  public LDAPConnection getBoundConnection(String dn, String pw) throws LdapException {
-    log.debug("getBoundConnection(): [dn = {}]", dn);
+  public LDAPConnection getBoundConnection() throws LdapException {
+    log.debug("getBoundConnection(): [dn = {}]", config.getLdapUser());
 
     try {
       LDAPConnection conn = newLDAPConnection();
       applyConstraints(conn);
       connect(conn);
-      bind(conn, dn, pw);
+      bind(conn, config.getLdapUser(), config.getLdapPassword());
 
       return conn;
     } catch (LDAPException e) {

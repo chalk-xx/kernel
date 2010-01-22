@@ -22,6 +22,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
 /**
@@ -47,4 +48,17 @@ public interface SearchResultProcessor {
    */
   void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException;
+
+  /**
+   * Prepare the resultset
+   * 
+   * @param request
+   *          The request that triggered the search.
+   * @param query
+   *          The query that was used.
+   * @return A searchresultset containing a paged iterator, total hits
+   */
+  SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException;
+
 }

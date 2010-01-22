@@ -68,8 +68,16 @@ public class Membership {
   public boolean equals(Object obj) {
     if (obj instanceof Membership) {
       Membership m = (Membership) obj;
-      return ((parent == null && m.getParent() == null) || parent.equals(m.getParent()))
-          && member.equals(m.getMember());
+      if ( parent == null ) {
+        if ( m.getParent() == null ) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return ( parent.equals(m.getParent()))
+            && member.equals(m.getMember());
+      }
     }
     return super.equals(obj);
   }

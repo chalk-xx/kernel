@@ -162,7 +162,12 @@ public class AmalgamatingClassloader extends ClassLoader {
       LOG.debug("Created " + file);
     }
 
-    xstream.toXML(writable, new FileOutputStream(file));
+    FileOutputStream out = new FileOutputStream(file);
+    try {
+      xstream.toXML(writable, out);
+    } finally {
+      out.close();
+    }
     URL url = null;
     try {
       url = file.toURI().toURL();

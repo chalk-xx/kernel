@@ -9,13 +9,21 @@ import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_PROPERTY_
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
+import static org.sakaiproject.kernel.api.search.SearchConstants.SAKAI_LIMIT_RESULTS;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
+import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.SearchException;
+import org.sakaiproject.kernel.api.search.SearchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchResultSet;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.IOException;
@@ -23,10 +31,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.jcr.Node;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
@@ -42,6 +48,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   private SlingHttpServletResponse response;
   private SearchServlet searchServlet;
   private StringWriter stringWriter;
+  private SearchResultProcessor proc;
 
   private static final String SQL_QUERY = "select * from \\y where x = '{q}'";
 
@@ -49,6 +56,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
   public void setUp() throws Exception {
     super.setUp();
     searchServlet = new SearchServlet();
+    searchServlet.init();
   }
 
   @Test
@@ -72,14 +80,11 @@ public class SearchServletTest extends AbstractEasyMockTest {
   }
 
   @Test
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"DLS_DEAD_LOCAL_STORE"})
   public void testGoodQuery() throws ValueFormatException, RepositoryException,
       IOException, ServletException {
 
     Row row = createMock(Row.class);
-    Value val = createMock(Value.class);
-    expect(val.getString()).andReturn("/foo/bar");
-    expect(row.getValue("jcr:path")).andReturn(val);
-    
     
     Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
         row, "select * from y where x = 'foo'");
@@ -89,6 +94,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)).andReturn(false).anyTimes();
     expect(queryNode.hasProperty(SAKAI_BATCHRESULTPROCESSOR)).andReturn(false).anyTimes();
     expect(queryNode.hasProperty(SAKAI_AGGREGATE)).andReturn(false).anyTimes();
+    expect(queryNode.hasProperty(SAKAI_LIMIT_RESULTS)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
@@ -96,21 +102,12 @@ public class SearchServletTest extends AbstractEasyMockTest {
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getRemoteUser()).andReturn("bob");
     expect(request.getResource()).andReturn(resource);
-    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
+    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null).anyTimes();
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
     
+    @SuppressWarnings("unused")
     Session session = createMock(Session.class);
-    Node resultNode = createMock(Node.class);
-    PropertyIterator propIterator = createMock(PropertyIterator.class);
-    expect(propIterator.hasNext()).andReturn(false);
-    expect(resultNode.getProperties()).andReturn(propIterator);
-    
-    expect(session.getItem("/foo/bar")).andReturn(resultNode);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resourceResolver);
-
     executeQuery(queryNode);
   }
 
@@ -166,25 +163,31 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)).andReturn(false).anyTimes();
     expect(queryNode.hasProperty(SAKAI_BATCHRESULTPROCESSOR)).andReturn(false).anyTimes();
     expect(queryNode.hasProperty(SAKAI_AGGREGATE)).andReturn(false).anyTimes();
+    expect(queryNode.hasProperty(SAKAI_LIMIT_RESULTS)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
     request = createMock(SlingHttpServletRequest.class);
     expect(request.getResource()).andReturn(resource);
     expect(request.getRemoteUser()).andReturn("bob").anyTimes();
-    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null);
+    expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null).anyTimes();
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
+    expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
     addStringRequestParameter(request, "items", itemCount);
     addStringRequestParameter(request, "q", queryParameter);
 
     executeQuery(queryNode);
   }
 
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"DLS_DEAD_LOCAL_STORE"})
   private Node prepareNodeSessionWithQueryManagerAndResultNode(Row resultRow,
       String expectedQuery) throws RepositoryException {
     Node queryNode = createMock(Node.class);
 
-    RowIterator iterator = createMock(RowIterator.class);
+    final RowIterator iterator = createMock(RowIterator.class);
     if (resultRow == null) {
       expect(iterator.hasNext()).andReturn(false);
     } else {
@@ -192,14 +195,24 @@ public class SearchServletTest extends AbstractEasyMockTest {
       expect(iterator.nextRow()).andReturn(resultRow);
       expect(iterator.hasNext()).andReturn(false);
     }
-    iterator.skip(0);
-    expect(iterator.getSize()).andReturn(500L).anyTimes();
-
+    @SuppressWarnings("unused")
     QueryResult queryResult = createMock(QueryResult.class);
-    expect(queryResult.getRows()).andReturn(iterator);
+    //expect(queryResult.getRows()).andReturn(iterator);
+
+    proc = new SearchResultProcessor() {
+      public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+          Aggregator aggregator, Row row) throws JSONException, RepositoryException {
+        // TODO Auto-generated method stub
+      }
+
+      public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+          Query query) throws SearchException {
+        return new AbstractSearchResultSet(iterator, 0);
+      }
+    };
 
     Query query = createMock(Query.class);
-    expect(query.execute()).andReturn(queryResult);
+    // expect(query.execute()).andReturn(queryResult);
 
     QueryManager queryManager = createMock(QueryManager.class);
     expect(queryManager.createQuery(expectedQuery, Query.SQL)).andReturn(query);
@@ -219,8 +232,10 @@ public class SearchServletTest extends AbstractEasyMockTest {
       ServletException, RepositoryException {
     stringWriter = new StringWriter();
     response = createMock(SlingHttpServletResponse.class);
+    response.setHeader("Content-Type", "application/json");
     expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
+    searchServlet.defaultSearchProcessor = proc;
     expect(queryNode.hasProperty(SAKAI_RESULTPROCESSOR)).andReturn(false)
         .anyTimes();
 
@@ -231,5 +246,4 @@ public class SearchServletTest extends AbstractEasyMockTest {
 
     verify();
   }
-
 }

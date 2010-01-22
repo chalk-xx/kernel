@@ -17,6 +17,7 @@ public class UnorderedArrayMatcher<T> implements IArgumentMatcher {
   private T[] expected;
   private static final Logger LOG = LoggerFactory.getLogger(UnorderedArrayMatcher.class);
 
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value={"EI_EXPOSE_REP2"})
   public UnorderedArrayMatcher(T[] expected) {
     this.expected = expected;
   }

@@ -115,9 +115,9 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       .getLogger(ResourceProxyServlet.class);
 
   @Reference
-  private ProxyClientService proxyClientService;
+  private transient ProxyClientService proxyClientService;
 
-  private ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
+  private transient ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPreProcessor.class, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
   private Map<String, ProxyPreProcessor> preProcessors = new ConcurrentHashMap<String, ProxyPreProcessor>();
@@ -273,10 +273,12 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
             .hasMoreElements();) {
           String name = (String) enames.nextElement();
           String[] pv  = request.getParameterValues(name);
-          if ( pv != null && pv.length > 1 ) {
-            templateParams.put(name, pv);
-          } else {
-            templateParams.put(name, pv[0]);
+          if ( pv != null ) {
+            if ( pv.length > 1 ) {
+              templateParams.put(name, pv);
+            } else {
+              templateParams.put(name, pv[0]);
+            }
           }
         }
 

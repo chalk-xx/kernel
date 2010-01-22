@@ -22,12 +22,12 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.jcr</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1-SNAPSHOT</version>
-  <name>Sakai JCR Service  Bundle</name>
+  <version>0.2-SNAPSHOT</version>
+  <name>Sakai JCR Bundle</name>
   <description>Adds JCR Node support functionality to Sling </description>
   <build>
     <plugins>
@@ -43,22 +43,13 @@
           <instructions>
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> org.sakaiproject.kernel.api.jcr.* </Export-Package>
-            <Private-Package>org.sakaiproject.kernel.jcr.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
+            <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency></Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
-      <!--
-        <plugin> <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId> <executions> <execution>
-        <id>embed-dependencies</id> <goals> <goal>copy-dependencies</goal> </goals> <configuration>
-        <includeArtifactIds>ehcache,backport-util-concurrent,jsr107cache</includeArtifactIds>
-        <excludeTransitive>false</excludeTransitive> <outputDirectory>
-        ${project.build.outputDirectory} </outputDirectory> </configuration> </execution>
-        </executions> </plugin>
-      -->
     </plugins>
   </build>
   <dependencies>
@@ -72,21 +63,6 @@
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.session</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.locking</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.engine</artifactId>
-      <version>2.0.4-incubator</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

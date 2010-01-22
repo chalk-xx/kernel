@@ -60,10 +60,10 @@ public class MessageServlet extends AbstractMessageServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageServlet.class);
 
   @Reference
-  private MessagingService messagingService;
+  private transient MessagingService messagingService;
 
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   /**
    * {@inheritDoc}

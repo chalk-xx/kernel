@@ -22,16 +22,12 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 
 import org.apache.commons.pool.PoolableObjectFactory;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -50,7 +46,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   private static Logger log = LoggerFactory.getLogger(PooledLDAPConnectionFactory.class);
 
   /** the controlling connection manager */
-  private LdapConnectionManager connectionManager;
+  private LdapConnectionManager connMgr;
 
   /** connection information */
   private String host;
@@ -65,15 +61,13 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   /** standard set of LDAP constraints */
   private LDAPConstraints standardConstraints;
 
-  @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindLivenessValidator", unbind = "unbindLivenessValidator")
-  private List<LdapConnectionLivenessValidator> livenessValidators = new LinkedList<LdapConnectionLivenessValidator>();
+  private List<LdapConnectionLivenessValidator> validators;
 
-  protected void bindLivenessValidator(LdapConnectionLivenessValidator validator) {
-    livenessValidators.add(validator);
+  public PooledLDAPConnectionFactory() {
   }
 
-  protected void unbindLivenessValidator(LdapConnectionLivenessValidator validator) {
-    livenessValidators.remove(validator);
+  public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
+    this.validators = validators;
   }
 
   /**
@@ -89,7 +83,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
     PooledLDAPConnection conn = newConnection();
 
     log.debug("makeObject(): instantiated connection");
-    conn.setConnectionManager(connectionManager);
+    conn.setConnectionManager(connMgr);
 
     log.debug("makeObject(): assigned connection ConnectionManager");
     conn.setConstraints(standardConstraints);
@@ -233,8 +227,8 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
 
   private boolean isConnectionAlive(LDAPConnection conn) {
     boolean live = false;
-    if (!livenessValidators.isEmpty()) {
-      for (LdapConnectionLivenessValidator validator : livenessValidators) {
+    if (validators != null && !validators.isEmpty()) {
+      for (LdapConnectionLivenessValidator validator : validators) {
         live = validator.isConnectionAlive(conn);
         if (!live) {
           break;
@@ -254,16 +248,6 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   }
 
   /**
-   * Gives the LdapConnectionMananger that the Factory is using to configure its
-   * PooledLDAPConnections.
-   *
-   * @return
-   */
-  public LdapConnectionManager getConnectionManager() {
-    return connectionManager;
-  }
-
-  /**
    * Sets the LdapConnectionManager that the Factory will use to configure and
    * manage its PooledLDAPConnections. This includes gathering all the
    * connection information (host, port, user, passord), setting the
@@ -275,7 +259,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
    */
   public void setConnectionManager(LdapConnectionManager connectionManager) {
 
-    this.connectionManager = connectionManager;
+    this.connMgr = connectionManager;
 
     // collect connection information
     this.host = connectionManager.getConfig().getLdapHost();

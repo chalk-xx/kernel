@@ -21,9 +21,11 @@ import static org.sakaiproject.kernel.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_ACL_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.READ_ACL_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.NODE_TYPE_MANAGEMENT_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.kernel.util.ACLUtils.VERSION_MANAGEMENT_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.kernel.util.ACLUtils.addEntry;
 
@@ -130,10 +132,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
   /** @scr.reference */
-  private VersionService versionService;
+  private transient VersionService versionService;
 
   /**
    * {@inheritDoc}
@@ -233,15 +235,15 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
       try {
 
-        Node siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
+        Node siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath, SiteService.SITE_PRIMARY_TYPE);
         siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             SiteService.SITE_RESOURCE_TYPE);
 
         // setup the ACL's on the node.
-        addEntry(siteNode.getPath(), currentUser, createSession, WRITE_GRANTED,
+        addEntry(siteNode.getPath(), currentUser, createSession, READ_GRANTED, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
-            MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
+            MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
 
         if (createSession.hasPendingChanges()) {
           LOGGER.info("Saving changes");

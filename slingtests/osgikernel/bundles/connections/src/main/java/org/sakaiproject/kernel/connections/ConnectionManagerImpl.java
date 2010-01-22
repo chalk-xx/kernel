@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.kernel.connections;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.kernel.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.kernel.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.kernel.api.connections.ConnectionOperation.cancel;
@@ -358,8 +359,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
     Map<String, String[]> sharedProperties = new HashMap<String, String[]>();
-    for (String key : requestProperties.keySet()) {
-      String[] values = requestProperties.get(key);
+    for (Entry<String, String[]> rp : requestProperties.entrySet()) {
+      String key = rp.getKey();
+      String[] values = rp.getValue();
       if (ConnectionConstants.PARAM_FROM_RELATIONSHIPS.equals(key)) {
         fromRelationships.addAll(Arrays.asList(values));
       } else if (ConnectionConstants.PARAM_TO_RELATIONSHIPS.equals(key)) {

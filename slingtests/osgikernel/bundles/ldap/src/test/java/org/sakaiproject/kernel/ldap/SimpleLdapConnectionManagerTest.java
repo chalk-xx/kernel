@@ -214,7 +214,7 @@ public class SimpleLdapConnectionManagerTest {
     expectLastCall();
     replay(conn);
 
-    mgr.getBoundConnection("someDN", "somePassword");
+    mgr.getBoundConnection();
   }
 
   @Test
@@ -230,7 +230,7 @@ public class SimpleLdapConnectionManagerTest {
     replay(conn);
 
     try {
-      mgr.getBoundConnection("someDN", "somePassword");
+      mgr.getBoundConnection();
       fail("Should throw an exception when bind throws an exception.");
     } catch (LdapException e) {
       // expected

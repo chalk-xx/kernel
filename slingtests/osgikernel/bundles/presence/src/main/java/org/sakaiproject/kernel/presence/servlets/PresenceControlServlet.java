@@ -131,7 +131,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
-  protected PresenceService presenceService;
+  protected transient PresenceService presenceService;
 
   protected void bindPresenceService(PresenceService presenceService) {
     this.presenceService = presenceService;
@@ -149,6 +149,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
     if (user == null) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to ping their status and set location");
+      return;
     }
     LOGGER.info("POST to PresenceControlServlet (" + user + ")");
 
@@ -159,14 +160,14 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       // update the status to something from the request parameter
       location = locationParam.getString("UTF-8");
     }
-    String status = null; // @clear status will clear the status
+    String status = null;
     RequestParameter statusParam = request
         .getRequestParameter(PresenceService.PRESENCE_STATUS_PROP);
     if (statusParam != null) {
       // update the status to something from the request parameter
       status = statusParam.getString("UTF-8");
     }
-    String clear = null; // @clear status will clear the status
+    String clear = null;
     RequestParameter clearParam = request
         .getRequestParameter(PresenceService.PRESENCE_CLEAR);
     if (clearParam != null) {
@@ -185,11 +186,7 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
         jsonWriter.key("location");
         jsonWriter.value(location);
         if ( status != null ) {
-          if ( "@clear".equals(status) ) {
-            presenceService.setStatus(user, null);
-          } else {
-            presenceService.setStatus(user, status);
-          }
+          presenceService.setStatus(user, status);
           jsonWriter.key("status");
           jsonWriter.value(status);
         }

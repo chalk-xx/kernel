@@ -353,6 +353,9 @@ public interface JCRConstants {
   String NS_CHEF_PREFIX = "CHEF";
   String NS_CHEF_URI = "http://www.sakaiproject.org/CHS/jcr/chef/1.0";
 
+  String NS_PURL_PREFIX = "purl";
+  String NS_PURL_URI = "http://purl.org/dc";
+
   String NS_DAV_PREFIX = "DAV";
   String NS_DAV_URI = "http://www.sakaiproject.org/CHS/jcr/dav/1.0";
 

@@ -97,5 +97,13 @@ public interface SearchConstants {
    * child nodes of the result set will be inspected during the aggregation process.
    */
   public static final String SAKAI_AGGREGATE_CHILDREN = "sakai:aggregate-search-results-children";
+  /**
+   * The default amount of items in a page.
+   */
+  public static final int DEFAULT_PAGED_ITEMS = 25;
+  /**
+   * Property that defines whether the results should have a limit on it.
+   */
+  public static final String SAKAI_LIMIT_RESULTS = "sakai:limit-results";
 
 }

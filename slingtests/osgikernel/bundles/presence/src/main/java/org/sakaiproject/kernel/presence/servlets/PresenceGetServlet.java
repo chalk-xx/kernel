@@ -89,7 +89,7 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
-  protected PresenceService presenceService;
+  protected transient PresenceService presenceService;
 
   protected void bindPresenceService(PresenceService presenceService) {
     this.presenceService = presenceService;
@@ -107,6 +107,7 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     if (user == null) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
+      return;
     }
     LOGGER.info("GET to PresenceServlet (" + user + ")");
 

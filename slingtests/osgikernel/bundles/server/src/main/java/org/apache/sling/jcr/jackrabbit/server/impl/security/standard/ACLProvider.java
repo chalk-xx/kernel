@@ -16,6 +16,8 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.impl.security.standard;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
@@ -628,6 +630,7 @@ public class ACLProvider extends AbstractAccessControlProvider implements Access
          * @throws RepositoryException
          * @see CompiledPermissions#grants(Path, int)
          */
+        @SuppressWarnings(justification="read Allowed is atomic ",value={"IS2_INCONSISTENT_SYNC"})
         public boolean grants(Path absPath, int permissions) throws RepositoryException {
             if (permissions == Permission.READ && readAllowed && !isAcItem(absPath)) {
                 return true;

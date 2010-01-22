@@ -29,12 +29,12 @@
     <properties>
         <pkgArtifactId>commons-email</pkgArtifactId>
         <pkgVersion>1.1</pkgVersion>
-        <pomVersion>0001</pomVersion>
+        <pomVersion>0.2-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>
     <artifactId>${pom.groupId}.${pkgArtifactId}</artifactId>
-    <version>${osgiVersion}-${pomVersion}-SNAPSHOT</version>
+    <version>${osgiVersion}-${pomVersion}</version>
     <packaging>bundle</packaging>
     <name>${pkgArtifactId} bundle</name>
     <description>
@@ -44,11 +44,13 @@
         <name>Apache Felix Project</name>
         <url>http://felix.apache.org/</url>
     </organization>
+    <!--
     <scm>
       <connection>scm:svn:http://svn.apache.org/repos/asf/felix/trunk/commons/commons-email</connection>
       <developerConnection>scm:svn:https://svn.apache.org/repos/asf/felix/trunk/commons/commons-email</developerConnection>
       <url>http://svn.apache.org/viewcvs/felix/trunk/commons/commons-email</url>
     </scm>
+    -->
 
     <dependencies>
         <dependency>

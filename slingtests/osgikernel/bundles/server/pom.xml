@@ -16,14 +16,29 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
   <packaging>jar</packaging>
-  <version>2.0.5-sakai-SNAPSHOT</version>
+  <version>2.0.5-0.2-SNAPSHOT</version>
   <name>Sakai Kernel Server Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the repository
     area as required by Sakai.</description>
+    <repositories>
+      <repository>
+        <id>sakai-maven</id>
+        <name>Sakai Maven Repo</name>
+        <layout>default</layout>
+        <url>http://source.sakaiproject.org/maven2</url>
+        <snapshots>
+          <enabled>false</enabled>
+        </snapshots>
+        <releases>
+          <enabled>true</enabled>
+        </releases>
+      </repository>
+    </repositories>
+
   <build>
     <plugins>
       <plugin>
@@ -53,7 +68,7 @@
               <includeArtifactIds>org.apache.sling.jcr.jackrabbit.server</includeArtifactIds>
               <excludeTransitive>true</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,repository.xml 
+              <excludes>META-INF/MANIFEST.MF,repository.xml,OSGI-INF/serviceComponents.xml 
               </excludes>
             </configuration>
           </execution>
@@ -65,13 +80,13 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

@@ -71,7 +71,8 @@ public class FileUtils {
    * @param session
    * @param path
    * @param id
-   * @param file
+   * @param is
+   * @param fileName
    * @param contentType
    * @param slingRepository
    * @return
@@ -79,13 +80,8 @@ public class FileUtils {
    * @throws IOException
    */
   public static Node saveFile(Session session, String path, String id,
-      RequestParameter file, String contentType, SlingRepository slingRepository)
+      InputStream is, String fileName, String contentType, SlingRepository slingRepository)
       throws RepositoryException, IOException {
-
-    // Get the nescecary parameters
-    InputStream is = file.getInputStream();
-    String fileName = file.getFileName();
-
     if (fileName != null && !fileName.equals("")) {
       // Clean the filename.
 
@@ -146,7 +142,7 @@ public class FileUtils {
         content.setProperty(JcrConstants.JCR_DATA, is);
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-        // Set the person who last modified it.s
+        // Set the person who last modified it.
         fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
         fileNode.setProperty("sakai:filename", fileName);
@@ -157,6 +153,26 @@ public class FileUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * Save a file.
+   * 
+   * @param session
+   * @param path
+   * @param id
+   * @param file
+   * @param contentType
+   * @param slingRepository
+   * @return
+   * @throws RepositoryException
+   * @throws IOException
+   */
+  public static Node saveFile(Session session, String path, String id,
+      RequestParameter file, String contentType, SlingRepository slingRepository)
+      throws RepositoryException, IOException {
+    return saveFile(session, path, id, file.getInputStream(), file
+        .getFileName(), contentType, slingRepository);
   }
 
   /**

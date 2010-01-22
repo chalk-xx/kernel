@@ -17,30 +17,12 @@
  */
 package org.sakaiproject.kernel.scriptrunner;
 
-import net.sf.json.JSONArray;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.jcr.JCRService;
-import org.sakaiproject.kernel.api.jcr.support.JCRNodeFactoryService;
-import org.sakaiproject.kernel.util.PathUtils;
 
 import java.io.IOException;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;

@@ -16,14 +16,22 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Kernel UX Loader</name>
   <description>Loads the Sakai 3 UI into the JCR</description>
   <build>
+     <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+           <exclude>**/.git/**</exclude>
+        </excludes>
+      </resource>
+    </resources>  
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>

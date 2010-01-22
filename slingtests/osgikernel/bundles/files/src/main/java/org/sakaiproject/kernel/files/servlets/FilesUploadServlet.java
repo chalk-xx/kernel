@@ -109,10 +109,10 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -2582970789079249113L;
 
   @Reference
-  private ClusterTrackingService clusterTrackingService;
+  private transient ClusterTrackingService clusterTrackingService;
 
   @Reference
-  private SlingRepository slingRepository;
+  private transient SlingRepository slingRepository;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

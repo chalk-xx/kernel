@@ -18,12 +18,9 @@
 package org.sakaiproject.kernel.user.resource;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceMetadata;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResource;
-import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableValueMap;
 
 import java.util.Map;
 

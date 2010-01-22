@@ -86,7 +86,7 @@ public class ProxyServlet extends SlingAllMethodsServlet {
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings(value={"deprecation"})
   protected void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp)
       throws IOException {
     
@@ -95,8 +95,8 @@ public class ProxyServlet extends SlingAllMethodsServlet {
       return;
     }
     
-
-    URL url = null;
+    URL url;
+    url = null;
     String user = null, password = null, method = "GET", post = null;
     int timeout = 0;
 

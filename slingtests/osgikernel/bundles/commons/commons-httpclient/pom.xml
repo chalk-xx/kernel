@@ -29,7 +29,7 @@
     <properties>
         <pkgArtifactId>commons-httpclient</pkgArtifactId>
         <pkgVersion>3.1</pkgVersion>
-        <pomVersion>0001</pomVersion>
+        <pomVersion>0.2-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>
@@ -44,11 +44,13 @@
         <name>Apache Felix Project</name>
         <url>http://felix.apache.org/</url>
     </organization>
+   <!--
     <scm>
       <connection>scm:svn:http://svn.apache.org/repos/asf/felix/trunk/commons/commons-httpclient</connection>
       <developerConnection>scm:svn:https://svn.apache.org/repos/asf/felix/trunk/commons/commons-httpclient</developerConnection>
       <url>http://svn.apache.org/viewcvs/felix/trunk/commons/commons-httpclient</url>
     </scm>
+    -->
 
     <dependencies>
         <dependency>

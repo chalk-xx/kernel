@@ -18,6 +18,8 @@
 package org.sakaiproject.kernel.locking;
 
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.sakaiproject.kernel.api.locking.Lock;
 import org.sakaiproject.kernel.api.locking.LockManager;
 import org.sakaiproject.kernel.api.locking.LockTimeoutException;
@@ -41,6 +43,7 @@ import java.security.SecureRandom;
  *                interface="org.sakaiproject.kernel.api.memory.CacheManagerService"
  *                bind="bindCacheManagerService" unbind="unbindCacheManagerService"
  */
+@SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class LockManagerImpl implements LockManager {
 
   /**

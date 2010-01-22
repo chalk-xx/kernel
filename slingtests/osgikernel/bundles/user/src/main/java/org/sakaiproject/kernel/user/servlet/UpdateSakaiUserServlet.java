@@ -126,7 +126,7 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UpdateSakaiUserServlet.class);
 
-  private UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
   /**
    * {@inheritDoc}

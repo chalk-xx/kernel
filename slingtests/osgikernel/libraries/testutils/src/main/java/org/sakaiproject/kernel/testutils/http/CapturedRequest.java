@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.testutils.http;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -87,6 +89,7 @@ public class CapturedRequest {
   /**
    * @return
    */
+  @SuppressWarnings(justification="In Test code", value={"EI_EXPOSE_REP"})
   public byte[] getRequestBodyAsByteArray() {
     return byteBody;
   }

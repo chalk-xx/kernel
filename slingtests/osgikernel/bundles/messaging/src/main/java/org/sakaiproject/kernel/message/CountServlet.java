@@ -97,7 +97,7 @@ public class CountServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -5714446506015596037L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CountServlet.class);
 
-  private MessagingService messagingService;
+  private transient MessagingService messagingService;
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
   }

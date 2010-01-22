@@ -91,9 +91,9 @@ public class ModifyAceServlet extends AbstractAccessPostServlet {
 	private static final long serialVersionUID = -9182485466670280437L;
 
 	/**
-     * default log
-     */
-    private final Logger log = LoggerFactory.getLogger(getClass());
+   * default log
+   */
+  private static final Logger log = LoggerFactory.getLogger(ModifyAceServlet.class);
 
 	/* (non-Javadoc)
 	 * @see org.apache.sling.jackrabbit.accessmanager.post.AbstractAccessPostServlet#handleOperation(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.api.servlets.HtmlResponse, java.util.List)

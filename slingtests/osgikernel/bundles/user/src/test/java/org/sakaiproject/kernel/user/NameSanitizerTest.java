@@ -48,7 +48,7 @@ public class NameSanitizerTest {
   
   @Test
   public void testInvalidCharactersGroup() {
-    String name = "g-foo%$£bar";
+    String name = "g-foo%$*bar";
     boolean result = testName(name, true);
     assertEquals(name + " is an incorrect name. This should fail.", false, result);
   }

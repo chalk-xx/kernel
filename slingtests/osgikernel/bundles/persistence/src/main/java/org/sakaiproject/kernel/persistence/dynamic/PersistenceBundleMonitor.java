@@ -21,6 +21,8 @@ package org.sakaiproject.kernel.persistence.dynamic;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.eclipse.persistence.internal.jpa.deployment.osgi.BundleProxyClassLoader;
 import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLog;
@@ -46,6 +48,7 @@ import java.util.Set;
  * Monitors the bundles, but must be a singleton 
  */
 @Singleton
+@SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class PersistenceBundleMonitor implements BundleActivator, SynchronousBundleListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(PersistenceBundleMonitor.class);
@@ -65,6 +68,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * 
    */
   @Inject
+  @SuppressWarnings(justification="OSGi Environment", value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"})
   public PersistenceBundleMonitor(BundleContext bundleContext) {
     LOG.info("Starting to monitor for persistence bundles");
     contextClassLoader = new BundleProxyClassLoader(bundleContext.getBundle());
@@ -187,6 +191,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     return new BundleGatheringResourceFinder(allPuBundles);
   }
 
+  @SuppressWarnings(justification="OSGi Environment", value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"})
   public ClassLoader getAmalgamatedClassloader() throws IOException {
     BundleGatheringResourceFinder currentLoader = getBundleResourceFinder();
     if (currentLoader == null) {

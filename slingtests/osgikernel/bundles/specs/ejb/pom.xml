@@ -21,13 +21,13 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.kernel</groupId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.kernel.specs.ejb</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Enterprise Java Bean (EJB) Bundle</name>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <build>
     <plugins>
       <plugin>

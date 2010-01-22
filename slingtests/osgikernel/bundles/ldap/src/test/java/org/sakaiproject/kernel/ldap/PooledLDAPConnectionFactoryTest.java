@@ -37,6 +37,8 @@ import org.sakaiproject.kernel.api.ldap.LdapConnectionManager;
 import org.sakaiproject.kernel.api.ldap.LdapConnectionManagerConfig;
 
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Currently verifies a subset of {@link PooledLDAPConnectionFactory} features.
@@ -60,15 +62,18 @@ public class PooledLDAPConnectionFactoryTest {
 
     conn = createMock(PooledLDAPConnection.class);
 
+    livenessValidator = createMock(LdapConnectionLivenessValidator.class);
+    List<LdapConnectionLivenessValidator> validators = new LinkedList<LdapConnectionLivenessValidator>();
+    validators.add(livenessValidator);
+
     factory = new PooledLDAPConnectionFactory() {
       @Override
       protected PooledLDAPConnection newConnection() {
         return conn;
       }
     };
+    factory.setLivenessValidators(validators);
 
-    livenessValidator = createMock(LdapConnectionLivenessValidator.class);
-    factory.bindLivenessValidator(livenessValidator);
     connMgr = createMock(LdapConnectionManager.class);
     connMgrConfig = createMock(LdapConnectionManagerConfig.class);
   }

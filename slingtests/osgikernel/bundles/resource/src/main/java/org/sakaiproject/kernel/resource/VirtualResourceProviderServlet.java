@@ -29,8 +29,6 @@ import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
 import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -85,11 +83,9 @@ public class VirtualResourceProviderServlet extends SlingSafeMethodsServlet {
    */
   private static final long serialVersionUID = 3426715052386292398L;
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(VirtualResourceProviderServlet.class);
 
   @Reference
-  public VirtualResourceProvider virtualResourceProvider;
+  public transient VirtualResourceProvider virtualResourceProvider;
 
   public List<VirtualResourceType> virtualResourceType = new ArrayList<VirtualResourceType>();
 
