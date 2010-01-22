@@ -206,9 +206,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
         }
       } else {
         String retval = "null";
-        if (objRcpt != null) {
-          retval = objRcpt.getClass().toString();
-        }
         setError(messageNode, "Expected recipients to be String or List<String>.  Found " + retval);
       }
     } catch (JMSException e) {
