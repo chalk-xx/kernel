@@ -96,7 +96,7 @@ public class DiscussionManagerImpl implements DiscussionManager {
    * @see org.sakaiproject.kernel.api.discussion.DiscussionManager#findSettings(java.lang.String, javax.jcr.Session, java.lang.String)
    */
   public Node findSettings(String marker, Session session, String type) {
-    if (type == null || type == "") {
+    if (type == null || "".equals(type)) {
       type = "discussion";
     }
     String queryString = "//*[@sling:resourceType=\"sakai/settings\" and @sakai:type='"

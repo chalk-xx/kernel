@@ -34,7 +34,7 @@ public class DiscussionUtilsTest {
   }
   
   @Test
-  public void TestPathWithSelector() {
+  public void testPathWithSelector() {
     String sel = ".reply.html";
     assertEquals(FULL + sel, DiscussionUtils.getFullPostPath(STORE, POST) + sel);
   }
