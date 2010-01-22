@@ -23,6 +23,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.imsglobal.basiclti.BasicLTIUtil;
+import org.sakaiproject.kernel.api.basiclti.BasicLtiConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-@SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/basiclti" })
+@SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/basiclti" }, selectors = { "launch" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
 
@@ -66,14 +67,46 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
     try {
-      final String launch = node.getProperty("ltiurl").getValue().getString();
-      final String secret = node.getProperty("ltisecret").getValue()
+      final String launch = node.getProperty(BasicLtiConstants.LTI_URL)
+          .getValue().getString();
+      if (launch == null || "".equals(launch)) {
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            BasicLtiConstants.LTI_URL + " cannot be null",
+            new IllegalArgumentException(BasicLtiConstants.LTI_URL
+                + " cannot be null"), response);
+        return;
+      }
+
+      final String secret = node.getProperty(BasicLtiConstants.LTI_SECRET)
+          .getValue().getString();
+      if (secret == null || "".equals(secret)) {
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            BasicLtiConstants.LTI_SECRET + " cannot be null",
+            new IllegalArgumentException(BasicLtiConstants.LTI_URL
+                + " cannot be null"), response);
+        return;
+      }
+
+      final String key = node.getProperty(BasicLtiConstants.LTI_KEY).getValue()
           .getString();
-      final String key = node.getProperty("ltikey").getValue().getString();
+      if (key == null || "".equals(key)) {
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            BasicLtiConstants.LTI_KEY + " cannot be null",
+            new IllegalArgumentException(BasicLtiConstants.LTI_URL
+                + " cannot be null"), response);
+        return;
+      }
+
       final Properties props = new Properties();
-      props.setProperty("resource_link_id", "uuid");
-      props.setProperty("user_id", session.getUserID()); // maybe needs to be
-      // more opaque?
+      props.setProperty("resource_link_id", "someuuid");
+
+      boolean releasePrincipal = node.getProperty(
+          BasicLtiConstants.RELEASE_PRINCIPAL_NAME).getBoolean(); // what if
+      // null?
+      if (releasePrincipal) {
+        props.setProperty("user_id", session.getUserID()); // maybe needs to be
+        // more opaque?
+      }
       props.setProperty("roles", "Instructor");
       props.setProperty("lis_person_name_given", "Jane");
       props.setProperty("lis_person_name_family", "Smith");
@@ -86,27 +119,34 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       props.setProperty("context_title", "Design of Personal Enviornments");
       props.setProperty("context_label", "SI182");
       props.setProperty("launch_presentation_locale", "en_US_variant");
-      final Properties signedProperties = BasicLTIUtil.signProperties(props,
-          launch, "POST", key, secret, "sakaiproject.org", "Sakai",
+      final Properties cleanProps = BasicLTIUtil.cleanupProperties(props);
+      final Properties signedProperties = BasicLTIUtil.signProperties(
+          cleanProps, launch, "POST", key, secret, "sakaiproject.org", "Sakai",
           "http://sakaiproject.org");
-      final ExtendedJSONWriter writer = new ExtendedJSONWriter(response
-          .getWriter());
-      writer.object(); // root object
-      writer.key("launchURL");
-      writer.value(launch);
-      writer.key("postData");
-      writer.object();
-      for (final Object propkey : signedProperties.keySet()) {
-        writer.key((String) propkey);
-        writer.value(signedProperties.getProperty((String) propkey));
+      final String extension = request.getRequestPathInfo().getExtension();
+      if ("html".equalsIgnoreCase(extension)) { // return html
+        final String html = BasicLTIUtil.postLaunchHTML(signedProperties,
+            launch, true);
+        response.getWriter().write(html);
+      } else { // return json
+        final ExtendedJSONWriter writer = new ExtendedJSONWriter(response
+            .getWriter());
+        writer.object(); // root object
+        writer.key("launchURL");
+        writer.value(launch);
+        writer.key("postData");
+        writer.object();
+        for (final Object propkey : signedProperties.keySet()) {
+          writer.key((String) propkey);
+          writer.value(signedProperties.getProperty((String) propkey));
+        }
+        writer.endObject(); // postData
+        writer.endObject(); // root object
       }
-      writer.endObject(); // postData
-      writer.endObject(); // root object
     } catch (Exception e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getLocalizedMessage(), e, response);
     }
-
   }
 
   private void sendError(int errorCode, String message, Throwable exception,

@@ -38,6 +38,7 @@
 				<configuration>
 					<instructions>
 						<Bundle-Category>sakai-kernel</Bundle-Category>
+						<Export-Package>org.sakaiproject.kernel.api.basiclti</Export-Package>
 						<Private-Package>org.sakaiproject.kernel.basiclti.*,org.imsglobal.basiclti.*,net.oauth.*</Private-Package>
 						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
 					</instructions>
@@ -47,12 +48,6 @@
 	</build>
 	<dependencies>
 		<!--  sling and JCR -->
-		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.cluster</artifactId>
-			<version>0.2-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.sling</groupId>
 			<artifactId>org.apache.sling.api</artifactId>
