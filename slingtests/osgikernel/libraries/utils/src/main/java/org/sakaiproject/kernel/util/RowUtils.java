@@ -52,7 +52,7 @@ public class RowUtils {
    */
   public static long getScore(Row row) throws RepositoryException {
     Value val = row.getValue(JCR_SCORE);
-    return (val != null) ? val.getLong() : null;
+    return (val != null) ? val.getLong() : 0;
   }
 
   /**
