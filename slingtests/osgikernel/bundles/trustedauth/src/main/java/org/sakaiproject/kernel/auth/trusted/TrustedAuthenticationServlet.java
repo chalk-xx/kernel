@@ -77,7 +77,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
 
   /** Reference to web container to register this servlet. */
   @Reference
-  private WebContainer webContainer;
+  private transient WebContainer webContainer;
 
   /** The registration path for this servlet. */
   private String registrationPath;
@@ -136,9 +136,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
       destination = defaultDestination;
     }
     // ensure that the redirect is safe and not susceptible to 
-    destination.replace('\n', ' ');
-    destination.replace('\r', ' ');
-    resp.sendRedirect(destination);
+    resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
   }
 
   /**
