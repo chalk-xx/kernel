@@ -55,7 +55,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
-  private ChatManagerService chatManagerService;
+  private transient ChatManagerService chatManagerService;
   private final static FastDateFormat dateFormat;
 
   static {
