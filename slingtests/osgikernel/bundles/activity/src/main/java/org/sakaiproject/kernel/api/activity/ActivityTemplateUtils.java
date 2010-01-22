@@ -83,6 +83,7 @@ public class ActivityTemplateUtils {
     if (locale == null || "".equals(locale)) {
       locale = getLocale(request);
     }
+    // FIXME, logic looks wrong here the next block only gets the session which might be null at the end of the block
     try {
       String path = templateRoot + "_" + locale;
       session = request.getResourceResolver().adaptTo(Session.class);

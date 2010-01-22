@@ -50,7 +50,7 @@ public class ActivityStoreServlet extends AbstractVirtualPathServlet {
   private static final Logger LOG = LoggerFactory.getLogger(ActivityStoreServlet.class);
 
   @Reference
-  protected VirtualResourceProvider virtualResourceProvider;
+  protected transient VirtualResourceProvider virtualResourceProvider;
 
   @Override
   protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,

@@ -82,7 +82,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       .getLogger(ActivityCreateServlet.class);
 
   @Reference
-  protected EventAdmin eventAdmin;
+  protected transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
