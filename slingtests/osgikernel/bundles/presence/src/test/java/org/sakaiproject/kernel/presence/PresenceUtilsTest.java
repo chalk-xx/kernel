@@ -51,8 +51,7 @@ public class PresenceUtilsTest extends AbstractEasyMockTest {
 
     replay();
 
-    PresenceUtils utils = new PresenceUtils();
-    utils.makePresenceJSON(writer, userId, presenceService);
+    PresenceUtils.makePresenceJSON(writer, userId, presenceService);
 
     JSONObject o = new JSONObject(writer.toString());
     assertEquals(userId, o.get("user"));
