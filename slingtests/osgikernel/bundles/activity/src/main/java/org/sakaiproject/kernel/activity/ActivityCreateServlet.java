@@ -50,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -93,10 +92,6 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("doPost(SlingHttpServletRequest " + request
-          + ", SlingHttpServletResponse " + response + ")");
-    }
     // Let's perform some validation on the request parameters.
     // Do we have the minimum required?
     RequestParameter applicationId = request
@@ -124,24 +119,20 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     // An activity store will be created for each node where a .activity gets executed.
     // TODO Maybe we shouldn't allow it on sakai/activity and sakai/activityFeed nodes?
     Node location = request.getResource().adaptTo(Node.class);
-    Node activityStoreNode = null;
     Session session = null;
     String path = null;
     try {
       session = location.getSession();
-      if (location.hasNode(ACTIVITY_STORE_NAME)) {
-        // activityStore exists already
-        activityStoreNode = location.getNode(ACTIVITY_STORE_NAME);
-      } else {
+      if (!location.hasNode(ACTIVITY_STORE_NAME)) {
         // need to create an activityStore
         path = location.getPath() + "/" + ACTIVITY_STORE_NAME;
-        activityStoreNode = JcrUtils.deepGetOrCreateNode(session, path);
+        Node activityStoreNode = JcrUtils.deepGetOrCreateNode(session, path);
         activityStoreNode.setProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             ActivityConstants.ACTIVITY_STORE_RESOURCE_TYPE);
       }
-      path = ActivityStoreServlet.getHashedPath(activityStoreNode.getPath(),
-          UUID.randomUUID().toString());
+      String id = ActivityUtils.createId();
+      path = ActivityUtils.getPathFromId(id, path);
       // for some odd reason I must manually create the Node before dispatching to
       // Sling...
       JcrUtils.deepGetOrCreateNode(session, path);
@@ -154,7 +145,8 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     final RequestPathInfo requestPathInfo = request.getRequestPathInfo();
     // Wrapper which needs to remove the .activity selector from RequestPathInfo to avoid
     // an infinite loop.
-    final RequestPathInfo wrappedPathInfo = createRequestPathInfo(requestPathInfo, activityItemPath);
+    final RequestPathInfo wrappedPathInfo = createRequestPathInfo(
+        requestPathInfo, activityItemPath);
 
     // Next insert the new RequestPathInfo into a wrapped Request
     SlingHttpServletRequest wrappedRequest = new SlingHttpServletRequestWrapper(
