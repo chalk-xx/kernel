@@ -153,8 +153,8 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterUserServlet.class);
 
   @Reference
-  private ClusterTrackingService clusterTrackingService;
-  private UserManager testingUserManager;
+  private transient ClusterTrackingService clusterTrackingService;
+  private transient UserManager testingUserManager;
   private Set<String> blacklist = new HashSet<String>();
 
   public ClusterUserServlet() {
