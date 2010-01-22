@@ -120,14 +120,14 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateMessageServlet.class);
 
-  private ComponentContext osgiComponentContext;
+  private transient ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
   private Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
 
   /*
    * Bind the messaging service.
    */
-  private MessagingService messagingService;
+  private transient MessagingService messagingService;
 
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
