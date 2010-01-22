@@ -18,6 +18,8 @@
 
 package org.sakaiproject.kernel.jpaprovider;
 
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.eclipse.persistence.internal.jpa.deployment.osgi.BundleProxyClassLoader;
 import org.eclipse.persistence.logging.AbstractSessionLog;
 import org.eclipse.persistence.logging.SessionLog;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class PersistenceBundleMonitor implements BundleActivator, SynchronousBundleListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(PersistenceBundleMonitor.class);
@@ -118,6 +121,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * On start, we do two things We register a listener for bundles and we start
    * our JPA server
    */
+  @SuppressWarnings(justification="OSGi Environment ", value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"})
   public void start(BundleContext context) throws Exception {
     LOG.info("Starting to monitor for persistence bundles");
     PersistenceBundleMonitor.contextClassLoader = new BundleProxyClassLoader(context.getBundle());
@@ -173,6 +177,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
     return new BundleGatheringResourceFinder(allPuBundles);
   }
 
+  @SuppressWarnings(justification="OSGi Environment ", value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"})
   public static ClassLoader getAmalgamatedClassloader() throws IOException {
     BundleGatheringResourceFinder currentLoader = PersistenceBundleMonitor
         .getBundleResourceFinder();
