@@ -17,28 +17,21 @@
  */
 package org.sakaiproject.kernel.activity;
 
-import static org.sakaiproject.kernel.api.activity.ActivityConstants.ACTIVITY_FEED_NAME;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_SOURCE;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.kernel.api.activity.ActivityConstants;
+import org.sakaiproject.kernel.api.activity.ActivityRoute;
+import org.sakaiproject.kernel.api.activity.ActivityRouterManager;
 import org.sakaiproject.kernel.api.activity.ActivityUtils;
-import org.sakaiproject.kernel.api.connections.ConnectionManager;
-import org.sakaiproject.kernel.api.connections.ConnectionState;
-import org.sakaiproject.kernel.api.personal.PersonalUtils;
-import org.sakaiproject.kernel.api.site.SiteService;
 import org.sakaiproject.kernel.util.JcrUtils;
-import org.sakaiproject.kernel.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +41,6 @@ import java.util.List;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -70,9 +62,7 @@ public class ActivityListener implements MessageListener {
   @Reference
   protected SlingRepository slingRepository;
   @Reference
-  protected ConnectionManager connectionManager;
-  @Reference
-  protected SiteService siteService;
+  protected ActivityRouterManager activityRouterManager;
 
   public static final Logger LOG = LoggerFactory
       .getLogger(ActivityListener.class);
@@ -146,25 +136,19 @@ public class ActivityListener implements MessageListener {
       LOG.info("Processing activity: {}", activityItemPath);
       Session session = slingRepository.loginAdministrative(null);
       Node activity = (Node) session.getItem(activityItemPath);
-      if (activity != null) {
-        String actor = activity.getProperty(PARAM_ACTOR_ID).getString();
-        if (actor == null || "".equals(actor)) {
-          // we must know the actor
-          throw new IllegalStateException(
-              "Could not determine actor of activity: " + activity);
-        }
+      if (!activity.hasProperty(PARAM_ACTOR_ID)) {
+        // we must know the actor
+        throw new IllegalStateException(
+            "Could not determine actor of activity: " + activity);
+      }
 
-        // We copy the activity to the creator, his/her connections and the site.
-        // If the activity didn't take place in a site, nothing will happen
-        // If some contacts don't have READ on the activity it won't get copied over.
-        // The creator will always get a copy.
+      // Get all the routes for this activity.
+      List<ActivityRoute> routes = activityRouterManager
+          .getActivityRoutes(activity);
 
-        deliverActivityToCreater(session, activity, actor);
-        deliverActivityToConnections(session, activity, actor);
-        deliverActivityToSite(session, activity, actor);
-      } else {
-        LOG.error("Could not process activity: {}", activityItemPath);
-        throw new Error("Could not process activity: " + activityItemPath);
+      // Copy the activity items to each endpoint.
+      for (ActivityRoute route : routes) {
+        deliverActivityToFeed(session, activity, route.getDestination());
       }
 
     } catch (JMSException e) {
@@ -175,94 +159,7 @@ public class ActivityListener implements MessageListener {
   }
 
   /**
-   * Writes the activity to the creator his own store.
-   * 
-   * @param session
-   * @param activity
-   * @param actor
-   * @throws RepositoryException
-   */
-  private void deliverActivityToCreater(Session session, Node activity,
-      String actor) throws RepositoryException {
-    String path = ActivityUtils.getUserFeed(actor);
-    deliverActivityToFeed(session, activity, path);
-  }
-
-  /**
-   * Deliver an activity to a site.
-   * 
-   * @param session
-   * @param activity
-   * @param actor
-   * @throws RepositoryException
-   */
-  protected void deliverActivityToSite(Session session, Node activity,
-      String actor) throws RepositoryException {
-
-    Node siteNode = activity;
-    boolean isSiteActivity = false;
-    while (siteNode.getPath() != "/") {
-      if (siteService.isSite(siteNode)) {
-        isSiteActivity = true;
-        break;
-      }
-      siteNode = siteNode.getParent();
-    }
-    if (isSiteActivity) {
-      String path = siteNode.getPath() + "/" + ACTIVITY_FEED_NAME;
-      deliverActivityToFeed(session, activity, path);
-    }
-
-  }
-
-  /**
-   * Send an activity to all the contacts who have READ access on the original activity
-   * 
-   * @param session
-   * @param activity
-   * @param actor
-   * @throws RepositoryException
-   */
-  private void deliverActivityToConnections(Session session, Node activity,
-      String actor) throws RepositoryException {
-    // get the users connected to the actor and distribute to them
-    String activityFeedPath = null;
-    List<String> connections = connectionManager.getConnectedUsers(actor,
-        ConnectionState.ACCEPTED);
-    if (connections != null && connections.size() > 0) {
-
-      String activityPath = activity.getPath();
-      AccessControlManager adminACM = AccessControlUtil
-          .getAccessControlManager(session);
-      Privilege readPriv = adminACM.privilegeFromName("jcr:read");
-      Privilege[] privs = new Privilege[] { readPriv };
-      for (String connection : connections) {
-        // Check if this connection has READ access on the path.
-        boolean allowCopy = true;
-        Session userSession = null;
-        try {
-          final SimpleCredentials credentials = new SimpleCredentials(
-              connection, "foo".toCharArray());
-          userSession = session.impersonate(credentials);
-          AccessControlManager userACM = AccessControlUtil
-              .getAccessControlManager(userSession);
-          allowCopy = userACM.hasPrivileges(activityPath, privs);
-        } finally {
-          // We no longer need this session anymore, release it.
-          userSession.logout();
-        }
-
-        if (allowCopy) {
-          // Get the activity feed for this contact and deliver it.
-          activityFeedPath = PersonalUtils.getPrivatePath(connection, "/"
-              + ACTIVITY_FEED_NAME);
-          deliverActivityToFeed(session, activity, activityFeedPath);
-        }
-      }
-    }
-  }
-
-  /**
+   * Delivers an activity to a feed.
    * 
    * @param session
    *          The session that should be used to do the delivering.
@@ -272,7 +169,7 @@ public class ActivityListener implements MessageListener {
    *          The path that holds the feed where the activity should be delivered.
    * @throws RepositoryException
    */
-  private void deliverActivityToFeed(Session session, Node activity,
+  protected void deliverActivityToFeed(Session session, Node activity,
       String activityFeedPath) throws RepositoryException {
     // ensure the activityFeed node with the proper type
     Node activityFeedNode = JcrUtils.deepGetOrCreateNode(session,
@@ -285,8 +182,8 @@ public class ActivityListener implements MessageListener {
     }
     // activityFeed exists, let's continue with delivery
     // activityFeed is a BigStore, get the hashed (real) path
-    final String deliveryPath = PathUtils.toInternalHashedPath(
-        activityFeedPath, activity.getName(), "");
+    final String deliveryPath = ActivityUtils.getPathFromId(activity.getName(),
+        activityFeedPath);
     // ensure the parent path exists before we copy source activity
     final String parentPath = deliveryPath.substring(0, deliveryPath
         .lastIndexOf("/"));
@@ -309,7 +206,7 @@ public class ActivityListener implements MessageListener {
    *          The path where the activity should be copied to.
    * @throws RepositoryException
    */
-  private void copyActivityItem(Session session, String source,
+  protected void copyActivityItem(Session session, String source,
       String destination) throws RepositoryException {
     LOG.debug("copyActivityItem(Session {}, String {}, String {})",
         new Object[] { session, source, destination });
@@ -319,7 +216,9 @@ public class ActivityListener implements MessageListener {
     // in the ActivityStore
     Node feedItem = (Node) session.getItem(destination);
     feedItem.setProperty(PARAM_SOURCE, source);
-    session.save();
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
   }
 
 }
