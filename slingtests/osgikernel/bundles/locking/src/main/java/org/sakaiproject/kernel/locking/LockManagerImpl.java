@@ -129,7 +129,9 @@ public class LockManagerImpl implements LockManager {
         }
       }
     }
-    lock.bind(this);
+    if (lock != null) {
+      lock.bind(this);
+    }
     return lock;
   }
 
