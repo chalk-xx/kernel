@@ -1,5 +1,21 @@
 #!/bin/sh
 
+#
+# This script will perform a release and convert all the snapshot versions
+# to the specified version.
+#
+# Command line options
+#
+# ./do_release [from version] [to version] [test files to ignore seperated by |] [Release Candidate]
+# Example: ./do_release.sh 0.2 0.3 kern-483.rb|kern-330.rb
+# This will create a release for version 0.2 and then move to 0.3-SNAPSHOT
+# It will ignore kern-485 and kern-330 2
+#
+# Example: ./do_release.sh 0.2 0.2 kern-483.rb|kern-330.rb 2
+# This will create a release for version 0.2-RC2 and then move back to 0.2-SNAPSHOT for developers
+# It will ignore kern-485 and kern-330
+#
+
 curl -f http://localhost:8080/index.html 2> /dev/null
 if [[ $? -ne 7 ]]
 then
@@ -23,6 +39,19 @@ set -o errexit
 cversion=$1
 nversion=$2
 ignoreTests=${3:-"__none__"}
+rc=${4:-""}
+
+tagversion=$cversion
+if [[ $rc == "" ]]
+then
+  # No RC tag provided
+  tagversion=$version
+else
+  tagversion="$cversion-RC$rc-SNAPSHOT"
+fi
+
+echo "Creating tagged version: $tagversion."
+
 mkdir -p last-release
 uname -a > last-release/who
 
@@ -46,7 +75,7 @@ else
   echo "Creating Release"
   for i in $listofpomswithversion
   do
-    sed "s/$cversion-SNAPSHOT/$cversion/" $i > $i.new
+    sed "s/$cversion-SNAPSHOT/$tagversion/" $i > $i.new
     mv $i.new $i
   done
   git diff > last-release/changeversion.diff
@@ -57,6 +86,9 @@ else
   echo "=================================================="
   
   rm -rf ~/.m2/repository/org/sakaiproject/kernel
+  rm -rf ~/.m2/repository/org/apache/sling
+  # Blast entire maven repository.
+  #rm -rf ~/.m2/repository
   mvn clean install  | tee last-release/build.log 
   date > last-release/stage1
 
@@ -78,8 +110,8 @@ else
   
   
   echo "Starting server, log in last-release/run.log"
-  java  $d32 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.kernel.app-$cversion.jar -f - 1> last-release/run.log 2>&1 & 
-  pid=`ps auxwww | grep java | grep  app/target/org.sakaiproject.kernel.app-0.1.jar | cut -c7-15`
+  java  $d32 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.kernel.app-$tagversion.jar -f - 1> last-release/run.log 2>&1 & 
+  pid=`ps auxwww | grep java | grep  app/target/org.sakaiproject.kernel.app | cut -c7-15`
   tsleep=30
   retries=0
   while [[ $tsleep -ne 0 ]]
@@ -144,23 +176,37 @@ fi
     
 echo "All Ok, release is good,  Comitting, tagging and moving on"
 
-
-
 git add last-release
 git commit -a -m "[release-script] preparing for release tag"
-git tag -s -m "[release-script] tagging release $cversion " $cversion HEAD
+
+# Check if our new commit still works, we do all the above tests again.
+
+
+
+git tag -s -m "[release-script] tagging release $cversion " $tagversion HEAD
+echo "Reverting pom changes."
 patch -p3 -R < last-release/changeversion.diff
 
-listofpoms=`find . -name pom.xml | grep -v target`
-listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
-for i in $listofpomswithversion
-do
-  sed "s/$cversion-SNAPSHOT/$nversion-SNAPSHOT/" $i > $i.new
-  mv $i.new $i
-done
-date > last-release/stage3
-git add last-release
-git commit -a -m "[release-script] new development version"
+if [ $rc == "" ]
+then
+  # There was no RC provided, this means we go from 0.2-SNAPSHOT -> 0.2 (tag) -> 0.3-SNAPSHOT
+  listofpoms=`find . -name pom.xml | grep -v target`
+  listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
+  for i in $listofpomswithversion
+  do
+    sed "s/$cversion-SNAPSHOT/$nversion-SNAPSHOT/" $i > $i.new
+    mv $i.new $i
+  done
+  date > last-release/stage3
+  git add last-release
+  git commit -a -m "[release-script] new development version"
+else
+  # There was an RC provided, this means we go from 0.2-SNAPSHOT -> 0.2-RCx (tag) -> 0.2-SNAPSHOT
+  # We revert the previous git commit.
+  git add last-release/
+  git commit -m "[release-script adding last-release stuff"
+  git revert HEAD^ 
+fi
 
 
 
