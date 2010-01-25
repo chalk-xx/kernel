@@ -392,7 +392,7 @@ public class CropItProcessor {
    * @param targetHeight
    * @return
    */
-  private static BufferedImage getScaledInstance(BufferedImage img, int targetWidth,
+  protected static BufferedImage getScaledInstance(BufferedImage img, int targetWidth,
       int targetHeight, int type) {
     BufferedImage ret = (BufferedImage) img;
 
