@@ -24,6 +24,14 @@
   <name>Sakai Kernel UX Loader</name>
   <description>Loads the Sakai 3 UI into the JCR</description>
   <build>
+     <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+           <exclude>**/.git/**</exclude>
+        </excludes>
+      </resource>
+    </resources>  
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
