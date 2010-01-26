@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import javax.servlet.ServletException;
 
@@ -59,7 +60,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
   private final static FastDateFormat dateFormat;
 
   static {
-    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
   }
 
   protected void bindChatManagerService(ChatManagerService chatManagerService) {
@@ -79,8 +80,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
     RequestParameter timestampParam = request.getRequestParameter("t");
 
     long time = System.currentTimeMillis();
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(time);
+    long requestTime = time;
 
     Long lastUpdate = chatManagerService.get(userID);
 
@@ -91,10 +91,14 @@ public class ChatServlet extends SlingAllMethodsServlet {
       hasUpdate = true;
     } else {
       if (timestampParam != null) {
-        time = Long.parseLong(timestampParam.getString());
-
-        if (time < lastUpdate) {
+        try {
+          time = Long.parseLong(timestampParam.getString());
+          if (time < lastUpdate) {
+            hasUpdate = true;
+          }
+        } catch (NumberFormatException e) {
           hasUpdate = true;
+          LOGGER.info("User requested non-Long timestamp: {}", timestampParam.getString());
         }
       } else {
         hasUpdate = true;
@@ -103,13 +107,16 @@ public class ChatServlet extends SlingAllMethodsServlet {
 
     LOGGER.info("Returned time = {}, update = {}", time, hasUpdate);
 
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
+
     JSONWriter write = new JSONWriter(response.getWriter());
     try {
       write.object();
       write.key("update");
       write.value(hasUpdate);
       write.key("time");
-      write.value(System.currentTimeMillis());
+      write.value(requestTime);
       write.key("pulltime");
       write.value(dateFormat.format(cal));
       write.endObject();
