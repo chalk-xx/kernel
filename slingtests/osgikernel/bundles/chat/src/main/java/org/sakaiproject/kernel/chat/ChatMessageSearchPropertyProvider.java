@@ -70,20 +70,20 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
 
     RequestParameter usersParam = request.getRequestParameter("_from");
     if (usersParam != null && !usersParam.getString().equals("")) {
-      StringBuilder sql = new StringBuilder(" and ((");
+      String sql = " and ((";
       String[] users = StringUtils.split(usersParam.getString(), ',');
 
       for (String u : users) {
-        sql.append("@sakai:from=\"").append(u).append("\" or ");
+        sql += "@sakai:from=\"" + u + "\" or ";
       }
-      sql.append("@sakai:from=\"").append(user).append("\") or (");
+      sql += "@sakai:from=\"" + user + "\") or (";
 
       for (String u : users) {
-        sql.append("@sakai:to=\"").append(u).append("\" or ");
+        sql += "@sakai:to=\"" + u + "\" or ";
       }
-      sql.append("@sakai:to=\"").append(user).append("\"))");
+      sql += "@sakai:to=\"" + user + "\"))";
 
-      propertiesMap.put("_from", sql.toString());
+      propertiesMap.put("_from", sql);
     }
   }
 }
