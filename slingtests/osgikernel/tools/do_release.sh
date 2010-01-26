@@ -40,13 +40,12 @@ nversion=$2
 rc=${3:-""}
 ignoreTests=${4:-"__none__"}
 
-tagversion=$cversion
 if [[ $rc == "" ]]
 then
   # No RC tag provided
-  tagversion=$nversion
+  tagversion=$cversion
 else
-  tagversion="$nversion-$rc"
+  tagversion="$cversion-$rc"
 fi
 
 echo "Creating tagged version: $nversion at tag $tagversion "
@@ -75,7 +74,7 @@ else
   echo "Creating Release"
   for i in $listofpomswithversion
   do
-    sed "s/$cversion-SNAPSHOT/$nversion/" $i > $i.new
+    sed "s/$cversion-SNAPSHOT/$cversion/" $i > $i.new
     mv $i.new $i
   done
   git diff > last-release/changeversion.diff
@@ -110,7 +109,7 @@ else
   
   
   echo "Starting server, log in last-release/run.log"
-  java  $d32 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.kernel.app-$nversion.jar -f - 1> last-release/run.log 2>&1 & 
+  java  $d32 -XX:MaxPermSize=128m -Xmx512m -server -Dcom.sun.management.jmxremote -jar app/target/org.sakaiproject.kernel.app-$cversion.jar -f - 1> last-release/run.log 2>&1 & 
   pid=`ps auxwww | grep java | grep  app/target/org.sakaiproject.kernel.app | cut -c7-15`
   tsleep=30
   retries=0
@@ -182,15 +181,15 @@ git commit -a -m "[release-script] preparing for release tag"
 # Check if our new commit still works, we do all the above tests again.
 
 
-
-git tag -s -m "[release-script] tagging release $nversion " $tagversion HEAD
+git tag -d $tagversion
+git tag -s -m "[release-script] tagging release $cversion " $tagversion HEAD
 echo "Reverting pom changes."
 patch -p3 -R < last-release/changeversion.diff
 
 if [ $rc == "" ]
 then
   # There was no RC provided, this means we go from 0.2-SNAPSHOT -> 0.2 (tag) -> 0.3-SNAPSHOT
-  listofpoms=`find . -name pom.xml | grep -v target`
+  listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v "do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
   listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
   for i in $listofpomswithversion
   do
