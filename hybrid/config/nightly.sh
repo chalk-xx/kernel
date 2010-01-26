@@ -44,26 +44,27 @@ rm -rf ~/.m2/repository/org/sakaiproject
 # build sling/trunk
 # not needed as long as hudson builds are getting deployed to apache-snapshot repo
 # org.apache.sling.launchpad.base-2.0.5-SNAPSHOT-app.jar cannot be found - build sling
-echo "Building sling/trunk..."
-cd $BUILD_DIR
-svn export -q http://svn.apache.org/repos/asf/sling/trunk sling
-cd sling
-mvn clean install -Dmaven.test.skip=true
-rm -rf sling
+#echo "Building sling/trunk..."
+#cd $BUILD_DIR
+#svn export -q http://svn.apache.org/repos/asf/sling/trunk sling
+#cd sling
+#mvn clean install -Dmaven.test.skip=true
+#rm -rf sling
 
 # build sakai 3
-echo "Building sakai3/trunk..."
+echo "Building sakai3/0.2-RC1..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
 cd open-experiments/slingtests/osgikernel/
+git checkout 0.2-RC1
 mvn clean install -Dmaven.test.skip=true
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.kernel.app-0.2-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar org.sakaiproject.kernel.app-0.2.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # untar tomcat
 cd $BUILD_DIR
