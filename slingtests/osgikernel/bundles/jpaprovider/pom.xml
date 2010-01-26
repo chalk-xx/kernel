@@ -21,11 +21,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.jpaprovider</artifactId>
   <packaging>bundle</packaging>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2</version>
   <name>Sakai JPA Provider</name>
   <description>Default JPA provider for Sakai with Embedded Derby DB.</description>
   <repositories>
