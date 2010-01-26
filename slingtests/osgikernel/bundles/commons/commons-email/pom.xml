@@ -29,7 +29,7 @@
     <properties>
         <pkgArtifactId>commons-email</pkgArtifactId>
         <pkgVersion>1.1</pkgVersion>
-        <pomVersion>0.2-SNAPSHOT</pomVersion>
+        <pomVersion>0.3</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>

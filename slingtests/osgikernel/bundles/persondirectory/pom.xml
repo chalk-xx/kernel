@@ -2,14 +2,14 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.kernel</groupId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.kernel</groupId>
   <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Kernel Person Directory Bundle</name>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.3</version>
   <build>
     <plugins>
       <plugin>
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.doc</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.3</version>
     </dependency>
 
 <!-- osgi -->
@@ -52,7 +52,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.ldap</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.3</version>
     </dependency>
 
 <!-- sling -->
@@ -102,7 +102,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.3</version>
     </dependency>
   </dependencies>
 </project>

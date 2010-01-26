@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
   <artifactId>javax.xml.bind.jsr173</artifactId>
   <packaging>bundle</packaging>
