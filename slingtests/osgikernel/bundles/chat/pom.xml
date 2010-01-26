@@ -18,14 +18,14 @@
 	<parent>
 		<artifactId>base</artifactId>
 		<groupId>org.sakaiproject.kernel</groupId>
-		<version>0.3</version>
+		<version>0.2-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.sakaiproject.kernel</groupId>
 	<artifactId>org.sakaiproject.kernel.chat</artifactId>
 	<packaging>bundle</packaging>
 	<name>Sakai chat services</name>
-	<version>0.3</version>
+	<version>0.2-SNAPSHOT</version>
 	<description>Takes care of the sakai chat services.</description>
 	<build>
 		<plugins>
@@ -51,27 +51,27 @@
 		<dependency>
 			 <groupId>org.sakaiproject.kernel</groupId>
 			 <artifactId>org.sakaiproject.kernel.doc</artifactId>
-			 <version>0.3</version>
+			 <version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.memory</artifactId>
-			<version>0.3</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.messaging</artifactId>
-			<version>0.3</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.search</artifactId>
-			<version>0.3</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.jcr</artifactId>
-			<version>0.3</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -119,7 +119,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.kernel</groupId>
 			<artifactId>org.sakaiproject.kernel.personal</artifactId>
-			<version>0.3</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>

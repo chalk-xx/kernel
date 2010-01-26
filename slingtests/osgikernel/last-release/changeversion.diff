@@ -1,4 +1,2996 @@
 diff --git a/slingtests/osgikernel/app-bundles/pom.xml b/slingtests/osgikernel/app-bundles/pom.xml
+index 0afaa66..08bdb2a 100644
+--- a/slingtests/osgikernel/app-bundles/pom.xml
++++ b/slingtests/osgikernel/app-bundles/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
+   <packaging>jar</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai K2 Bundles Collection</name>
+   <description> This projects just collects together the bundles which make up the Sakai K2
+     distribution. It is included by the Apache Sling Launchpad App for the Standalone Application. 
+@@ -43,245 +43,245 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.guice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jpaexample</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.memory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.chat</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.files</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.proxy</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.discussion</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.json-lib</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.connections</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.version</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.presence</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.registry</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.lifecycle</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.persistence</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.meservice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.site</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.cluster</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.locking</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.auth.trusted</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.casauth</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.formauth</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.image</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.events</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.smtp</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix.commons</groupId>
+       <artifactId>org.apache.felix.commons.commons-email</artifactId>
+-      <version>1.1-0.1-SNAPSHOT</version>
++      <version>1.1-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix.commons</groupId>
+       <artifactId>org.apache.felix.commons.commons-pool</artifactId>
+-      <version>1.5.2-0.1-SNAPSHOT</version>
++      <version>1.5.2-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix.commons</groupId>
+       <artifactId>org.apache.felix.commons.commons-httpclient</artifactId>
+-      <version>3.1-0.1-SNAPSHOT</version>
++      <version>3.1-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix.commons</groupId>
+       <artifactId>org.apache.felix.commons.commons-codec</artifactId>
+-      <version>1.4-0.1-SNAPSHOT</version>
++      <version>1.4-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.auth.ldap</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.batch</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+ <!-- spec bundles -->
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.specs.jms</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.specs.jmx</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.specs.ejb</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+     <dependency>
+@@ -299,12 +299,12 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+-      <version>2.0.5-0.1-SNAPSHOT</version>
++      <version>2.0.5-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
+-      <version>2.0.3-0.1-SNAPSHOT</version>
++      <version>2.0.3-0.1</version>
+     </dependency>
+     
+     
+@@ -318,7 +318,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.eclipse.persistence.jpa</artifactId>
+-      <version>1.1.0-0.1-SNAPSHOT</version>
++      <version>1.1.0-0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -336,7 +336,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>javax.activation-mail</artifactId>
+-      <version>1.1.1-1.4.2-0.1-SNAPSHOT</version>
++      <version>1.1.1-1.4.2-0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -368,7 +368,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+-      <version>5.3.0-0.1-SNAPSHOT</version>
++      <version>5.3.0-0.1</version>
+     </dependency>
+ 
+ <!-- additional sling bundles -->
+diff --git a/slingtests/osgikernel/app/pom.xml b/slingtests/osgikernel/app/pom.xml
+index 8285243..c28a09f 100644
+--- a/slingtests/osgikernel/app/pom.xml
++++ b/slingtests/osgikernel/app/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.app</artifactId>
+   <packaging>jar</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai K2 Launchpad Standalone Java Application</name>
+   <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
+     included in a single JAR file. </description>
+@@ -168,7 +168,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     
+@@ -176,7 +176,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+ 
+@@ -192,7 +192,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+   </dependencies>
+diff --git a/slingtests/osgikernel/bundles/activation-mail/pom.xml b/slingtests/osgikernel/bundles/activation-mail/pom.xml
+index f56cdc3..1418b89 100644
+--- a/slingtests/osgikernel/bundles/activation-mail/pom.xml
++++ b/slingtests/osgikernel/bundles/activation-mail/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>javax.activation-mail</artifactId>
+   <packaging>bundle</packaging>
+-  <version>${javax.activation.version}-${javax.mail.version}-0.1-SNAPSHOT</version>
++  <version>${javax.activation.version}-${javax.mail.version}-0.1</version>
+   <name>Javax Activation and Mail Bundle</name>
+   <description>Provides javax.activation, javax.mail and implementation libraries </description>
+   <properties>
+diff --git a/slingtests/osgikernel/bundles/activemq/pom.xml b/slingtests/osgikernel/bundles/activemq/pom.xml
+index d09ce81..4f4d3f5 100644
+--- a/slingtests/osgikernel/bundles/activemq/pom.xml
++++ b/slingtests/osgikernel/bundles/activemq/pom.xml
+@@ -2,13 +2,13 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Kernel ActiveMQ Bundle</name>
+-  <version>5.3.0-0.1-SNAPSHOT</version>
++  <version>5.3.0-0.1</version>
+ 
+   <build>
+     <plugins>
+diff --git a/slingtests/osgikernel/bundles/activity/pom.xml b/slingtests/osgikernel/bundles/activity/pom.xml
+index 7f544d9..3aba6c0 100644
+--- a/slingtests/osgikernel/bundles/activity/pom.xml
++++ b/slingtests/osgikernel/bundles/activity/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.activity</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Activity Bundle</name>
+   <description>Provides activity creation, and aggregation capabilities.</description>
+   <build>
+@@ -48,7 +48,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+@@ -58,22 +58,22 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.connections</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>    
+     <dependency>
+       <groupId>org.apache.felix</groupId>
+@@ -114,13 +114,13 @@
+ 	<dependency>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 		<scope>test</scope>
+ 	</dependency>
+ 	<dependency>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>org.sakaiproject.kernel.doc</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/batch/pom.xml b/slingtests/osgikernel/bundles/batch/pom.xml
+index 92ac1d4..5705215 100644
+--- a/slingtests/osgikernel/bundles/batch/pom.xml
++++ b/slingtests/osgikernel/bundles/batch/pom.xml
+@@ -16,12 +16,12 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.batch</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Batch Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <description>Batch operations such as batch GET, POST, DELETE and tree...</description>
+   <build>
+     <plugins>
+@@ -61,7 +61,7 @@
+   	<dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   	<dependency>
+       <groupId>org.apache.sling</groupId>
+@@ -88,7 +88,7 @@
+   	<dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+   	<dependency>
+@@ -105,17 +105,17 @@
+   	<dependency>
+     	<groupId>org.sakaiproject.kernel</groupId>
+     	<artifactId>org.sakaiproject.kernel.resource</artifactId>
+-    	<version>0.1-SNAPSHOT</version>
++    	<version>0.1</version>
+     </dependency>
+   	<dependency>
+     	<groupId>org.sakaiproject.kernel</groupId>
+     	<artifactId>org.sakaiproject.kernel.doc</artifactId>
+-    	<version>0.1-SNAPSHOT</version>
++    	<version>0.1</version>
+     </dependency>
+   	<dependency>
+        <groupId>org.sakaiproject.kernel</groupId>
+        <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+-       <version>0.1-SNAPSHOT</version>
++       <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/casauth/pom.xml b/slingtests/osgikernel/bundles/casauth/pom.xml
+index 0b283d6..2793f03 100644
+--- a/slingtests/osgikernel/bundles/casauth/pom.xml
++++ b/slingtests/osgikernel/bundles/casauth/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.casauth</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel CAS Auth Bundle</name>
+   <description>Provides CAS based authentication support to the request cycle.</description>
+   <build>
+@@ -102,12 +102,12 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+diff --git a/slingtests/osgikernel/bundles/chat/pom.xml b/slingtests/osgikernel/bundles/chat/pom.xml
+index f6fde93..2a202ea 100644
+--- a/slingtests/osgikernel/bundles/chat/pom.xml
++++ b/slingtests/osgikernel/bundles/chat/pom.xml
+@@ -18,14 +18,14 @@
+ 	<parent>
+ 		<artifactId>base</artifactId>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</parent>
+ 	<modelVersion>4.0.0</modelVersion>
+ 	<groupId>org.sakaiproject.kernel</groupId>
+ 	<artifactId>org.sakaiproject.kernel.chat</artifactId>
+ 	<packaging>bundle</packaging>
+ 	<name>Sakai chat services</name>
+-	<version>0.1-SNAPSHOT</version>
++	<version>0.1</version>
+ 	<description>Takes care of the sakai chat services.</description>
+ 	<build>
+ 		<plugins>
+@@ -51,27 +51,27 @@
+ 		<dependency>
+ 			 <groupId>org.sakaiproject.kernel</groupId>
+ 			 <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-			 <version>0.1-SNAPSHOT</version>
++			 <version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.memory</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.search</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.apache.felix</groupId>
+@@ -119,7 +119,7 @@
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.personal</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 
+ 	</dependencies>
+diff --git a/slingtests/osgikernel/bundles/cluster/pom.xml b/slingtests/osgikernel/bundles/cluster/pom.xml
+index 7d1ea4f..a6e36eb 100644
+--- a/slingtests/osgikernel/bundles/cluster/pom.xml
++++ b/slingtests/osgikernel/bundles/cluster/pom.xml
+@@ -19,11 +19,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.cluster</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Cluster Tracking</name>
+   <description>Cluster Tracking support for app servers and users.</description>
+   <build>
+@@ -61,7 +61,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.memory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -97,7 +97,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     
+     <dependency>
+@@ -108,7 +108,7 @@
+ 	<dependency>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>org.sakaiproject.kernel.doc</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/commons/commons-codec/pom.xml b/slingtests/osgikernel/bundles/commons/commons-codec/pom.xml
+index 5b3e10e..5d5e002 100644
+--- a/slingtests/osgikernel/bundles/commons/commons-codec/pom.xml
++++ b/slingtests/osgikernel/bundles/commons/commons-codec/pom.xml
+@@ -29,7 +29,7 @@
+     <properties>
+         <pkgArtifactId>commons-codec</pkgArtifactId>
+         <pkgVersion>1.4</pkgVersion>
+-        <pomVersion>0.1-SNAPSHOT</pomVersion>
++        <pomVersion>0.1</pomVersion>
+         <osgiVersion>${pkgVersion}</osgiVersion>
+     </properties>
+     <groupId>org.apache.felix.commons</groupId>
+diff --git a/slingtests/osgikernel/bundles/commons/commons-email/pom.xml b/slingtests/osgikernel/bundles/commons/commons-email/pom.xml
+index 19f4995..1378971 100644
+--- a/slingtests/osgikernel/bundles/commons/commons-email/pom.xml
++++ b/slingtests/osgikernel/bundles/commons/commons-email/pom.xml
+@@ -29,7 +29,7 @@
+     <properties>
+         <pkgArtifactId>commons-email</pkgArtifactId>
+         <pkgVersion>1.1</pkgVersion>
+-        <pomVersion>0.1-SNAPSHOT</pomVersion>
++        <pomVersion>0.1</pomVersion>
+         <osgiVersion>${pkgVersion}</osgiVersion>
+     </properties>
+     <groupId>org.apache.felix.commons</groupId>
+diff --git a/slingtests/osgikernel/bundles/commons/commons-httpclient/pom.xml b/slingtests/osgikernel/bundles/commons/commons-httpclient/pom.xml
+index d1298b5..45d2a98 100644
+--- a/slingtests/osgikernel/bundles/commons/commons-httpclient/pom.xml
++++ b/slingtests/osgikernel/bundles/commons/commons-httpclient/pom.xml
+@@ -29,7 +29,7 @@
+     <properties>
+         <pkgArtifactId>commons-httpclient</pkgArtifactId>
+         <pkgVersion>3.1</pkgVersion>
+-        <pomVersion>0.1-SNAPSHOT</pomVersion>
++        <pomVersion>0.1</pomVersion>
+         <osgiVersion>${pkgVersion}</osgiVersion>
+     </properties>
+     <groupId>org.apache.felix.commons</groupId>
+diff --git a/slingtests/osgikernel/bundles/commons/commons-pool/pom.xml b/slingtests/osgikernel/bundles/commons/commons-pool/pom.xml
+index ef1f0b9..491dd3b 100644
+--- a/slingtests/osgikernel/bundles/commons/commons-pool/pom.xml
++++ b/slingtests/osgikernel/bundles/commons/commons-pool/pom.xml
+@@ -29,7 +29,7 @@
+     <properties>
+         <pkgArtifactId>commons-pool</pkgArtifactId>
+         <pkgVersion>1.5.2</pkgVersion>
+-        <pomVersion>0.1-SNAPSHOT</pomVersion>
++        <pomVersion>0.1</pomVersion>
+         <osgiVersion>${pkgVersion}</osgiVersion>
+     </properties>
+     <groupId>org.apache.felix.commons</groupId>
+diff --git a/slingtests/osgikernel/bundles/configuration/pom.xml b/slingtests/osgikernel/bundles/configuration/pom.xml
+index 8042ba8..4810cfe 100644
+--- a/slingtests/osgikernel/bundles/configuration/pom.xml
++++ b/slingtests/osgikernel/bundles/configuration/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Configuration Bundle</name>
+   <description>Provides configuration support for the Kernel bound to OSIGi configuration services.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/connections/pom.xml b/slingtests/osgikernel/bundles/connections/pom.xml
+index 160fcc2..cd14723 100644
+--- a/slingtests/osgikernel/bundles/connections/pom.xml
++++ b/slingtests/osgikernel/bundles/connections/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.connections</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Connections Management Bundle</name>
+   <description>Connections Management support bundle that allows the management of
+     connections between users for social and academic networking.</description>
+@@ -51,31 +51,31 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -100,7 +100,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -150,19 +150,19 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.locking</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+      <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+  </dependencies>
+diff --git a/slingtests/osgikernel/bundles/contrib/filters/pom.xml b/slingtests/osgikernel/bundles/contrib/filters/pom.xml
+index 326d443..e5e9ec7 100644
+--- a/slingtests/osgikernel/bundles/contrib/filters/pom.xml
++++ b/slingtests/osgikernel/bundles/contrib/filters/pom.xml
+@@ -19,11 +19,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.filters</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Filters Bundle</name>
+   <description>Sakai filtering into the Sling request lifecycle.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/contrib/jaxrs/pom.xml b/slingtests/osgikernel/bundles/contrib/jaxrs/pom.xml
+index a8d8333..6079a1a 100644
+--- a/slingtests/osgikernel/bundles/contrib/jaxrs/pom.xml
++++ b/slingtests/osgikernel/bundles/contrib/jaxrs/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jaxrs</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>JAX-RS 311 Bundle</name>
+   <description>Adds JAX-RS JSR-311 support into OSGi with a servlet bound into the Sling lifecycle.</description>
+   <repositories>
+diff --git a/slingtests/osgikernel/bundles/contrib/scriptrunner/pom.xml b/slingtests/osgikernel/bundles/contrib/scriptrunner/pom.xml
+index aafd709..a9d327d 100644
+--- a/slingtests/osgikernel/bundles/contrib/scriptrunner/pom.xml
++++ b/slingtests/osgikernel/bundles/contrib/scriptrunner/pom.xml
+@@ -2,14 +2,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.scriptrunner</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai scriptrunner service</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <description>This will run scripts</description>
+   <build>
+     <plugins>
+@@ -63,17 +63,17 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+diff --git a/slingtests/osgikernel/bundles/contrib/sessiontest/pom.xml b/slingtests/osgikernel/bundles/contrib/sessiontest/pom.xml
+index a5baf17..3a6cf7d 100644
+--- a/slingtests/osgikernel/bundles/contrib/sessiontest/pom.xml
++++ b/slingtests/osgikernel/bundles/contrib/sessiontest/pom.xml
+@@ -14,11 +14,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.sessiontest</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Session Test Bundle</name>
+   <build>
+     <plugins>
+diff --git a/slingtests/osgikernel/bundles/discussion/pom.xml b/slingtests/osgikernel/bundles/discussion/pom.xml
+old mode 100755
+new mode 100644
+index cbdf861..c12135f
+--- a/slingtests/osgikernel/bundles/discussion/pom.xml
++++ b/slingtests/osgikernel/bundles/discussion/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.discussion</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Discussion Management Bundle</name>
+   <description>Discussion services to retrieve and create discussion or comment posts.</description>
+   <build>
+@@ -55,43 +55,43 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.site</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -116,7 +116,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -166,13 +166,13 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.locking</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+   </dependencies>
+diff --git a/slingtests/osgikernel/bundles/doc/pom.xml b/slingtests/osgikernel/bundles/doc/pom.xml
+index 28be98f..5fac233 100644
+--- a/slingtests/osgikernel/bundles/doc/pom.xml
++++ b/slingtests/osgikernel/bundles/doc/pom.xml
+@@ -19,11 +19,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.doc</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>org.sakaiproject.kernel.doc</name>
+   <description>Sakai Documentation Support bundle</description>
+   <build>
+@@ -52,7 +52,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+diff --git a/slingtests/osgikernel/bundles/email-outgoing/pom.xml b/slingtests/osgikernel/bundles/email-outgoing/pom.xml
+index 6b002b1..3a27983 100644
+--- a/slingtests/osgikernel/bundles/email-outgoing/pom.xml
++++ b/slingtests/osgikernel/bundles/email-outgoing/pom.xml
+@@ -4,11 +4,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Outgoing Email Sender</name>
+   <description>Delivers messages from JCR outboxes to SMTP</description>
+   <build>
+@@ -44,24 +44,24 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+-      <version>5.3.0-0.1-SNAPSHOT</version>
++      <version>5.3.0-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <type>bundle</type>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <type>bundle</type>
+       <scope>provided</scope>
+     </dependency>
+diff --git a/slingtests/osgikernel/bundles/events/pom.xml b/slingtests/osgikernel/bundles/events/pom.xml
+index 86904f6..2821699 100644
+--- a/slingtests/osgikernel/bundles/events/pom.xml
++++ b/slingtests/osgikernel/bundles/events/pom.xml
+@@ -21,13 +21,13 @@
+ 	<parent>
+ 		<artifactId>base</artifactId>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</parent>
+ 	<modelVersion>4.0.0</modelVersion>
+ 	<artifactId>org.sakaiproject.kernel.events</artifactId>
+ 	<packaging>bundle</packaging>
+ 	<name>Sakai OSGi-to-JMS Events Bridge Bundle</name>
+-	<version>0.1-SNAPSHOT</version>
++	<version>0.1</version>
+ 	<build>
+     <plugins>
+       <plugin>
+@@ -84,7 +84,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
+-      <version>5.3.0-0.1-SNAPSHOT</version>
++      <version>5.3.0-0.1</version>
+     </dependency>
+ 
+ <!-- testing -->
+diff --git a/slingtests/osgikernel/bundles/files/pom.xml b/slingtests/osgikernel/bundles/files/pom.xml
+index 76c8e79..a473bd4 100644
+--- a/slingtests/osgikernel/bundles/files/pom.xml
++++ b/slingtests/osgikernel/bundles/files/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.files</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>org.sakaiproject.kernel.files</name>
+   <description>Sakai files bundle</description>
+   <build>
+@@ -61,7 +61,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -111,42 +111,42 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.locking</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+     	<groupId>org.sakaiproject.kernel</groupId>
+     	<artifactId>org.sakaiproject.kernel.cluster</artifactId>
+-    	<version>0.1-SNAPSHOT</version>
++    	<version>0.1</version>
+     	<scope>provided</scope>
+     </dependency>
+     <dependency>
+     	<groupId>org.sakaiproject.kernel</groupId>
+     	<artifactId>org.sakaiproject.kernel.connections</artifactId>
+-    	<version>0.1-SNAPSHOT</version>
++    	<version>0.1</version>
+     	<scope>provided</scope>
+     </dependency>
+ 	<dependency>
+ 	  <groupId>org.sakaiproject.kernel</groupId>
+ 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-	  <version>0.1-SNAPSHOT</version>
++	  <version>0.1</version>
+ 	</dependency>
+ 	<dependency>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>org.sakaiproject.kernel.site</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/formauth/pom.xml b/slingtests/osgikernel/bundles/formauth/pom.xml
+index 1c03d75..298dca4 100644
+--- a/slingtests/osgikernel/bundles/formauth/pom.xml
++++ b/slingtests/osgikernel/bundles/formauth/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.formauth</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Form Auth Bundle</name>
+   <description>Provides Form based authentication support to the request cycle and adds a URL against which form based authentication can be performed.</description>
+   <build>
+@@ -86,7 +86,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/guice/pom.xml b/slingtests/osgikernel/bundles/guice/pom.xml
+index 9ffb13c..9e7309e 100644
+--- a/slingtests/osgikernel/bundles/guice/pom.xml
++++ b/slingtests/osgikernel/bundles/guice/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.guice</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Guice Bundle</name>
+   <description>Support libraries for simple Guice1 usage within a bundle. Does not work for Guice based bundles that contain non listed concrete classes in the bundle (requires Guice2).</description>
+   <build>
+@@ -84,7 +84,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -107,7 +107,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+diff --git a/slingtests/osgikernel/bundles/image/pom.xml b/slingtests/osgikernel/bundles/image/pom.xml
+index 90e07a1..0542c51 100644
+--- a/slingtests/osgikernel/bundles/image/pom.xml
++++ b/slingtests/osgikernel/bundles/image/pom.xml
+@@ -2,14 +2,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.image</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai image service</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <description>This will service crop images.</description>
+   <build>
+     <plugins>
+@@ -63,7 +63,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+      <dependency>
+       <groupId>org.apache.sling</groupId>
+@@ -78,7 +78,7 @@
+ 	<dependency>
+ 	  <groupId>org.sakaiproject.kernel</groupId>
+ 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-	  <version>0.1-SNAPSHOT</version>
++	  <version>0.1</version>
+ 	</dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/import/pom.xml b/slingtests/osgikernel/bundles/import/pom.xml
+index b123e85..8e402ea 100644
+--- a/slingtests/osgikernel/bundles/import/pom.xml
++++ b/slingtests/osgikernel/bundles/import/pom.xml
+@@ -19,11 +19,11 @@
+ 	<parent>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>base</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</parent>
+ 	<artifactId>org.sakaiproject.kernel.import</artifactId>
+ 	<packaging>bundle</packaging>
+-	<version>0.1-SNAPSHOT</version>
++	<version>0.1</version>
+ 	<name>org.sakaiproject.kernel.import</name>
+ 	<description>Sakai import bundle</description>
+ 	<build>
+@@ -72,13 +72,13 @@
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.files</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.cluster</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 			<scope>provided</scope>
+ 		</dependency>
+ 		<dependency>
+@@ -103,7 +103,7 @@
+ 		<dependency>
+ 			<groupId>org.sakaiproject.kernel</groupId>
+ 			<artifactId>org.sakaiproject.kernel.doc</artifactId>
+-			<version>0.1-SNAPSHOT</version>
++			<version>0.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>commons-codec</groupId>
+diff --git a/slingtests/osgikernel/bundles/jaxb/pom.xml b/slingtests/osgikernel/bundles/jaxb/pom.xml
+index 8a925b2..1988d79 100644
+--- a/slingtests/osgikernel/bundles/jaxb/pom.xml
++++ b/slingtests/osgikernel/bundles/jaxb/pom.xml
+@@ -15,7 +15,7 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>javax.xml.bind.jaxb</artifactId>
+    <description>Provides javax.xml.bind JAXB </description>
+diff --git a/slingtests/osgikernel/bundles/jaxp-api/pom.xml b/slingtests/osgikernel/bundles/jaxp-api/pom.xml
+index c233f30..c23aab3 100644
+--- a/slingtests/osgikernel/bundles/jaxp-api/pom.xml
++++ b/slingtests/osgikernel/bundles/jaxp-api/pom.xml
+@@ -22,7 +22,7 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jaxp-api</artifactId>
+   <packaging>bundle</packaging>
+diff --git a/slingtests/osgikernel/bundles/jcr/pom.xml b/slingtests/osgikernel/bundles/jcr/pom.xml
+index 9fb4478..3b5007f 100644
+--- a/slingtests/osgikernel/bundles/jcr/pom.xml
++++ b/slingtests/osgikernel/bundles/jcr/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai JCR Bundle</name>
+   <description>Adds JCR Node support functionality to Sling </description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/jetty-config/pom.xml b/slingtests/osgikernel/bundles/jetty-config/pom.xml
+index 1b825d3..1782895 100644
+--- a/slingtests/osgikernel/bundles/jetty-config/pom.xml
++++ b/slingtests/osgikernel/bundles/jetty-config/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+   <packaging>jar</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Jetty Configuration</name>
+   <description>Adds configuration for Jetty.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/jpa/pom.xml b/slingtests/osgikernel/bundles/jpa/pom.xml
+index 55712a2..94f1413 100644
+--- a/slingtests/osgikernel/bundles/jpa/pom.xml
++++ b/slingtests/osgikernel/bundles/jpa/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.eclipse.persistence.jpa</artifactId>
+   <packaging>bundle</packaging>
+-  <version>1.1.0-0.1-SNAPSHOT</version>
++  <version>1.1.0-0.1</version>
+   <name>EclipseLink JPA Bundle</name>
+   <description>Provides JPA Support for eclipse link.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/jpacore/pom.xml b/slingtests/osgikernel/bundles/jpacore/pom.xml
+index 0967008..79c8a72 100644
+--- a/slingtests/osgikernel/bundles/jpacore/pom.xml
++++ b/slingtests/osgikernel/bundles/jpacore/pom.xml
+@@ -15,7 +15,7 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.eclipse.persistence.core</artifactId>
+   <packaging>bundle</packaging>
+diff --git a/slingtests/osgikernel/bundles/jpaexample/pom.xml b/slingtests/osgikernel/bundles/jpaexample/pom.xml
+index 91c7197..f562acb 100644
+--- a/slingtests/osgikernel/bundles/jpaexample/pom.xml
++++ b/slingtests/osgikernel/bundles/jpaexample/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jpaexample</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai JPA User Bundle</name>
+   <description>Example of a JPA user bundle.</description>
+   <build>
+@@ -66,26 +66,26 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.persistence</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.registry</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.guice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-api</artifactId>
+     </dependency>
+   </dependencies>
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/slingtests/osgikernel/bundles/jpahelloworld/pom.xml b/slingtests/osgikernel/bundles/jpahelloworld/pom.xml
+index 52524a8..64ce548 100644
+--- a/slingtests/osgikernel/bundles/jpahelloworld/pom.xml
++++ b/slingtests/osgikernel/bundles/jpahelloworld/pom.xml
+@@ -14,11 +14,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jpahelloworld</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai JPA Mysql Hello World</name>
+   <description>Example JPA Bundle usage.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/jpaprovider/pom.xml b/slingtests/osgikernel/bundles/jpaprovider/pom.xml
+index 093ea60..e69aadd 100644
+--- a/slingtests/osgikernel/bundles/jpaprovider/pom.xml
++++ b/slingtests/osgikernel/bundles/jpaprovider/pom.xml
+@@ -21,11 +21,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.jpaprovider</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai JPA Provider</name>
+   <description>Default JPA provider for Sakai with Embedded Derby DB.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/json-lib/pom.xml b/slingtests/osgikernel/bundles/json-lib/pom.xml
+index 46daeca..b2c31a9 100644
+--- a/slingtests/osgikernel/bundles/json-lib/pom.xml
++++ b/slingtests/osgikernel/bundles/json-lib/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.json-lib</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>JSON Lib Bundle</name>
+   <description>Provides net.sf.json classes.</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/jsr173/pom.xml b/slingtests/osgikernel/bundles/jsr173/pom.xml
+index 2d21c8e..d465ffe 100644
+--- a/slingtests/osgikernel/bundles/jsr173/pom.xml
++++ b/slingtests/osgikernel/bundles/jsr173/pom.xml
+@@ -15,7 +15,7 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>javax.xml.bind.jsr173</artifactId>
+   <packaging>bundle</packaging>
+diff --git a/slingtests/osgikernel/bundles/ldap/pom.xml b/slingtests/osgikernel/bundles/ldap/pom.xml
+index 66471d6..b9f5937 100644
+--- a/slingtests/osgikernel/bundles/ldap/pom.xml
++++ b/slingtests/osgikernel/bundles/ldap/pom.xml
+@@ -20,14 +20,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Kernel LDAP Connection Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <build>
+     <plugins>
+       <plugin>
+@@ -56,7 +56,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+ <!-- scr annotations -->
+diff --git a/slingtests/osgikernel/bundles/ldapauth/pom.xml b/slingtests/osgikernel/bundles/ldapauth/pom.xml
+index ce896fe..8601fb6 100644
+--- a/slingtests/osgikernel/bundles/ldapauth/pom.xml
++++ b/slingtests/osgikernel/bundles/ldapauth/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.auth.ldap</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai LDAP Authentication Bundle</name>
+   <build>
+     <plugins>
+@@ -74,7 +74,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+ <!-- Sling -->
+diff --git a/slingtests/osgikernel/bundles/lifecycle/pom.xml b/slingtests/osgikernel/bundles/lifecycle/pom.xml
+index ae6e362..290b49a 100644
+--- a/slingtests/osgikernel/bundles/lifecycle/pom.xml
++++ b/slingtests/osgikernel/bundles/lifecycle/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.lifecycle</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Initialization Bundle</name>
+   <description>Provides lifecycle support to Sakai Kernel bundles outside OSGi.</description>
+   <build>
+@@ -70,19 +70,19 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.registry</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.guice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -90,4 +90,4 @@
+       <artifactId>slf4j-api</artifactId>
+     </dependency>
+   </dependencies>
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/slingtests/osgikernel/bundles/locking/pom.xml b/slingtests/osgikernel/bundles/locking/pom.xml
+index 0c95afd..8af1f7e 100644
+--- a/slingtests/osgikernel/bundles/locking/pom.xml
++++ b/slingtests/osgikernel/bundles/locking/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.locking</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Locking Bundle</name>
+   <description>In JVM concurrent Locking services. (not clustered)</description>
+   <build>
+@@ -76,7 +76,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+diff --git a/slingtests/osgikernel/bundles/mailman/pom.xml b/slingtests/osgikernel/bundles/mailman/pom.xml
+index 06b9498..f5f7364 100644
+--- a/slingtests/osgikernel/bundles/mailman/pom.xml
++++ b/slingtests/osgikernel/bundles/mailman/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.mailman</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Mailman Support</name>
+   <description>Adds Mailman support</description>
+   <build>
+@@ -64,19 +64,19 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -114,23 +114,23 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.proxy</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>commons-httpclient</groupId>
+diff --git a/slingtests/osgikernel/bundles/memory/pom.xml b/slingtests/osgikernel/bundles/memory/pom.xml
+index 0f722ad..22fc564 100644
+--- a/slingtests/osgikernel/bundles/memory/pom.xml
++++ b/slingtests/osgikernel/bundles/memory/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.memory</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Memory Bundle</name>
+   <description>Caching Support for Sakai Kernel (uses Ehcache for underlying cache).</description>
+   <build>
+@@ -101,7 +101,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+diff --git a/slingtests/osgikernel/bundles/meservice/pom.xml b/slingtests/osgikernel/bundles/meservice/pom.xml
+index b30f195..1dada63 100644
+--- a/slingtests/osgikernel/bundles/meservice/pom.xml
++++ b/slingtests/osgikernel/bundles/meservice/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.meservice</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Me Service Bundle</name>
+   <description>Me service to provide information on the current user.</description>
+   <build>
+@@ -86,22 +86,22 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+diff --git a/slingtests/osgikernel/bundles/messaging/pom.xml b/slingtests/osgikernel/bundles/messaging/pom.xml
+index b0101ca..bba14a1 100644
+--- a/slingtests/osgikernel/bundles/messaging/pom.xml
++++ b/slingtests/osgikernel/bundles/messaging/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Messaging Bundle</name>
+   <description>Messaging services for email, internal and other messages.</description>
+   <build>
+@@ -56,66 +56,66 @@
+ 	<dependency>
+ 	  <groupId>org.sakaiproject.kernel</groupId>
+ 	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-	  <version>0.1-SNAPSHOT</version>
++	  <version>0.1</version>
+ 	</dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.meservice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.site</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.locking</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+ 
+diff --git a/slingtests/osgikernel/bundles/persistence/pom.xml b/slingtests/osgikernel/bundles/persistence/pom.xml
+index a95688e..9ddddfb 100644
+--- a/slingtests/osgikernel/bundles/persistence/pom.xml
++++ b/slingtests/osgikernel/bundles/persistence/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.persistence</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Database Bundle</name>
+   <description>Adds database support, JPA implementation clearance, JTA support and Datasources</description>
+   <build>
+@@ -122,31 +122,31 @@ xstream
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.memory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.guice</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.registry</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>    
+     <dependency>
+diff --git a/slingtests/osgikernel/bundles/personal/pom.xml b/slingtests/osgikernel/bundles/personal/pom.xml
+index b10dc6b..8e38a62 100644
+--- a/slingtests/osgikernel/bundles/personal/pom.xml
++++ b/slingtests/osgikernel/bundles/personal/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.personal</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Personal Space Bundle</name>
+   <description>Provides support for the personal storage area bound to the current user, and
+     support for public user spaces addressable via a url containing the user id.</description>
+@@ -51,13 +51,13 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -68,12 +68,12 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix</groupId>
+@@ -104,7 +104,7 @@
+     <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-     <version>0.1-SNAPSHOT</version>
++     <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/persondirectory/pom.xml b/slingtests/osgikernel/bundles/persondirectory/pom.xml
+index cd87c93..10e0098 100644
+--- a/slingtests/osgikernel/bundles/persondirectory/pom.xml
++++ b/slingtests/osgikernel/bundles/persondirectory/pom.xml
+@@ -2,14 +2,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.persondirectory</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Kernel Person Directory Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <build>
+     <plugins>
+       <plugin>
+@@ -39,7 +39,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+ <!-- osgi -->
+@@ -52,7 +52,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ 
+ <!-- sling -->
+@@ -102,7 +102,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/presence/pom.xml b/slingtests/osgikernel/bundles/presence/pom.xml
+index 500a8c2..8c872f3 100644
+--- a/slingtests/osgikernel/bundles/presence/pom.xml
++++ b/slingtests/osgikernel/bundles/presence/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.presence</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Presence Bundle</name>
+   <description>Presence end point.</description>
+   <build>
+@@ -55,25 +55,25 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.memory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.connections</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <!-- servlet -->
+@@ -100,7 +100,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix</groupId>
+@@ -129,7 +129,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/proxy/pom.xml b/slingtests/osgikernel/bundles/proxy/pom.xml
+index 8c455c4..8a5f19c 100644
+--- a/slingtests/osgikernel/bundles/proxy/pom.xml
++++ b/slingtests/osgikernel/bundles/proxy/pom.xml
+@@ -2,14 +2,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.proxy</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai proxy service</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <description>This will proxy through to other websites and fetch data</description>
+   <build>
+     <plugins>
+@@ -56,7 +56,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.felix</groupId>
+@@ -138,7 +138,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+@@ -161,7 +161,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+ -->
+     <!--  needed for http, now available as a bundle-->
+@@ -200,7 +200,7 @@
+ 	<dependency>
+ 		<groupId>org.sakaiproject.kernel</groupId>
+ 		<artifactId>org.sakaiproject.kernel.doc</artifactId>
+-		<version>0.1-SNAPSHOT</version>
++		<version>0.1</version>
+ 	</dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/registry/pom.xml b/slingtests/osgikernel/bundles/registry/pom.xml
+index a4e5a2b..5fbfbd2 100644
+--- a/slingtests/osgikernel/bundles/registry/pom.xml
++++ b/slingtests/osgikernel/bundles/registry/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.registry</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Registry Bundle</name>
+   <description>Registry Service.</description>
+   <build>
+@@ -68,7 +68,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+diff --git a/slingtests/osgikernel/bundles/resource/pom.xml b/slingtests/osgikernel/bundles/resource/pom.xml
+index f59cd22..99b19ff 100644
+--- a/slingtests/osgikernel/bundles/resource/pom.xml
++++ b/slingtests/osgikernel/bundles/resource/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.resource</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Sling Resource Extensione Bundle</name>
+   <description>Sling Resource Extension budle containing adaptations of existing extension points</description>
+   <build>
+@@ -63,7 +63,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -99,7 +99,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/search/pom.xml b/slingtests/osgikernel/bundles/search/pom.xml
+index bc97e70..be44ce4 100644
+--- a/slingtests/osgikernel/bundles/search/pom.xml
++++ b/slingtests/osgikernel/bundles/search/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.search</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Search Support Bundle</name>
+   <description>Search Support bundle that allows searches to be defined in JCR.</description>
+   <build>
+@@ -63,25 +63,25 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.session</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.jackrabbit</groupId>
+@@ -117,7 +117,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+diff --git a/slingtests/osgikernel/bundles/securityloader/pom.xml b/slingtests/osgikernel/bundles/securityloader/pom.xml
+index 31c67ac..b34b8fe 100644
+--- a/slingtests/osgikernel/bundles/securityloader/pom.xml
++++ b/slingtests/osgikernel/bundles/securityloader/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Security Loader Bundle</name>
+   <description>Security Loader Bundle, watches for bundles with security configuration and
+     loads them into the JCR on startup, recording the details in /var in the JCR .</description>
+@@ -48,13 +48,13 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -88,7 +88,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.user</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+diff --git a/slingtests/osgikernel/bundles/server/pom.xml b/slingtests/osgikernel/bundles/server/pom.xml
+index 9140a6b..5163712 100644
+--- a/slingtests/osgikernel/bundles/server/pom.xml
++++ b/slingtests/osgikernel/bundles/server/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+   <packaging>jar</packaging>
+-  <version>2.0.5-0.1-SNAPSHOT</version>
++  <version>2.0.5-0.1</version>
+   <name>Sakai Kernel Server Extension Bundle</name>
+   <description>Extension bundle that provides additional functionality in the repository
+     area as required by Sakai.</description>
+@@ -65,13 +65,13 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+diff --git a/slingtests/osgikernel/bundles/session/pom.xml b/slingtests/osgikernel/bundles/session/pom.xml
+index e7c8dc5..51f8ab0 100644
+--- a/slingtests/osgikernel/bundles/session/pom.xml
++++ b/slingtests/osgikernel/bundles/session/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.session</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Session Manager Bundle</name>
+   <description>Session Manager support, for those bundles that dont have access to the request objects.</description>
+   <build>
+@@ -62,7 +62,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.memory</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.slf4j</groupId>
+diff --git a/slingtests/osgikernel/bundles/shindig/pom.xml b/slingtests/osgikernel/bundles/shindig/pom.xml
+index a21aa84..2bce440 100644
+--- a/slingtests/osgikernel/bundles/shindig/pom.xml
++++ b/slingtests/osgikernel/bundles/shindig/pom.xml
+@@ -3,14 +3,14 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>org.sakaiproject.kernel.shindig</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Shindig Bundle</name>
+   <description>Apache Shindig Social API and Gadget Server bundle.</description>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <properties>
+     <shindig.version>1.0-incubating</shindig.version>
+   </properties>
+diff --git a/slingtests/osgikernel/bundles/site/pom.xml b/slingtests/osgikernel/bundles/site/pom.xml
+index c265e79..6bc23fb 100644
+--- a/slingtests/osgikernel/bundles/site/pom.xml
++++ b/slingtests/osgikernel/bundles/site/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.site</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Site Service Bundle</name>
+   <description>Site Resource Type support.</description>
+   <build>
+@@ -58,22 +58,22 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.resource</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+@@ -118,13 +118,13 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.version</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.sling</groupId>
+@@ -134,7 +134,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.search</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+ </project>
+diff --git a/slingtests/osgikernel/bundles/sling/accessmanager/pom.xml b/slingtests/osgikernel/bundles/sling/accessmanager/pom.xml
+index 41e71d2..b8730df 100644
+--- a/slingtests/osgikernel/bundles/sling/accessmanager/pom.xml
++++ b/slingtests/osgikernel/bundles/sling/accessmanager/pom.xml
+@@ -15,11 +15,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
+   <packaging>bundle</packaging>
+-  <version>2.0.3-0.1-SNAPSHOT</version>
++  <version>2.0.3-0.1</version>
+   <name>Apache Sling Jackrabbit JSR-283 Access Control Manager Support</name>
+   <description> Provides SlingPostOperations for the Jackrabbit JSR-283 Access Control Manager. 
+   </description>
+diff --git a/slingtests/osgikernel/bundles/smtp/pom.xml b/slingtests/osgikernel/bundles/smtp/pom.xml
+index 759b30f..433b461 100644
+--- a/slingtests/osgikernel/bundles/smtp/pom.xml
++++ b/slingtests/osgikernel/bundles/smtp/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.smtp</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel SMTP Server</name>
+   <description>Adds SMTP support for incoming e-mail</description>
+   <build>
+@@ -77,7 +77,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.subethamail</groupId>
+diff --git a/slingtests/osgikernel/bundles/specs/ejb/pom.xml b/slingtests/osgikernel/bundles/specs/ejb/pom.xml
+index c27df9b..f6a4b3a 100644
+--- a/slingtests/osgikernel/bundles/specs/ejb/pom.xml
++++ b/slingtests/osgikernel/bundles/specs/ejb/pom.xml
+@@ -21,13 +21,13 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>org.sakaiproject.kernel.specs.ejb</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Enterprise Java Bean (EJB) Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <build>
+     <plugins>
+       <plugin>
+diff --git a/slingtests/osgikernel/bundles/specs/jms/pom.xml b/slingtests/osgikernel/bundles/specs/jms/pom.xml
+index da7593d..c494300 100644
+--- a/slingtests/osgikernel/bundles/specs/jms/pom.xml
++++ b/slingtests/osgikernel/bundles/specs/jms/pom.xml
+@@ -21,13 +21,13 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>org.sakaiproject.kernel.specs.jms</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Java Messaging Service (JMS) Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <build>
+     <plugins>
+       <plugin>
+diff --git a/slingtests/osgikernel/bundles/specs/jmx/pom.xml b/slingtests/osgikernel/bundles/specs/jmx/pom.xml
+index e7b7ca6..8f37412 100644
+--- a/slingtests/osgikernel/bundles/specs/jmx/pom.xml
++++ b/slingtests/osgikernel/bundles/specs/jmx/pom.xml
+@@ -21,13 +21,13 @@
+   <parent>
+     <artifactId>base</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>org.sakaiproject.kernel.specs.jmx</artifactId>
+   <packaging>bundle</packaging>
+   <name>Sakai Java Management Extension (JMX) Bundle</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <build>
+     <plugins>
+       <plugin>
+diff --git a/slingtests/osgikernel/bundles/trustedauth/pom.xml b/slingtests/osgikernel/bundles/trustedauth/pom.xml
+index cf54600..64f87b0 100644
+--- a/slingtests/osgikernel/bundles/trustedauth/pom.xml
++++ b/slingtests/osgikernel/bundles/trustedauth/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.auth.trusted</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Trusted Authentication Bundle</name>
+   <build>
+     <plugins>
+diff --git a/slingtests/osgikernel/bundles/user/pom.xml b/slingtests/osgikernel/bundles/user/pom.xml
+index d13b6fa..f46c690 100644
+--- a/slingtests/osgikernel/bundles/user/pom.xml
++++ b/slingtests/osgikernel/bundles/user/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.user</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel User Extension Bundle</name>
+   <description>Extension bundle that provides additional functionality in the user area as
+     required by Sakai.</description>
+@@ -49,19 +49,19 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+@@ -85,7 +85,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+-      <version>2.0.5-0.1-SNAPSHOT</version>
++      <version>2.0.5-0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>org.apache.jackrabbit</groupId>
+@@ -127,7 +127,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>test</scope>
+     </dependency>
+   </dependencies>
+diff --git a/slingtests/osgikernel/bundles/uxloader/pom.xml b/slingtests/osgikernel/bundles/uxloader/pom.xml
+index 5177158..60695dc 100644
+--- a/slingtests/osgikernel/bundles/uxloader/pom.xml
++++ b/slingtests/osgikernel/bundles/uxloader/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel UX Loader</name>
+   <description>Loads the Sakai 3 UI into the JCR</description>
+   <build>
+diff --git a/slingtests/osgikernel/bundles/version/pom.xml b/slingtests/osgikernel/bundles/version/pom.xml
+index 39f5b72..eafbd66 100644
+--- a/slingtests/osgikernel/bundles/version/pom.xml
++++ b/slingtests/osgikernel/bundles/version/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.version</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Sling Version Extension Bundle</name>
+   <description>Provides version management servlets</description>
+   <build>
+@@ -63,19 +63,19 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.personal</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.doc</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+       <scope>provided</scope>
+     </dependency>
+     <dependency>
+diff --git a/slingtests/osgikernel/libraries/testutils/pom.xml b/slingtests/osgikernel/libraries/testutils/pom.xml
+index 223b264..c2c5839 100644
+--- a/slingtests/osgikernel/libraries/testutils/pom.xml
++++ b/slingtests/osgikernel/libraries/testutils/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+   <packaging>jar</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Test Utilities</name>
+   <description>Testing Support Utilities.</description>
+   <dependencies>
+@@ -57,7 +57,7 @@
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.utils</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+     <dependency>
+       <groupId>junit</groupId>
+diff --git a/slingtests/osgikernel/libraries/utils/pom.xml b/slingtests/osgikernel/libraries/utils/pom.xml
+index 935233f..f473243 100644
+--- a/slingtests/osgikernel/libraries/utils/pom.xml
++++ b/slingtests/osgikernel/libraries/utils/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.utils</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Utilities</name>
+   <description>Utility Library providing path, string, array, IO, date and other utilities, generally not available elsewhere.</description>
+   <build>
+diff --git a/slingtests/osgikernel/pom.xml b/slingtests/osgikernel/pom.xml
+index 7bd43f3..1568df9 100644
+--- a/slingtests/osgikernel/pom.xml
++++ b/slingtests/osgikernel/pom.xml
+@@ -3,7 +3,7 @@
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>base</artifactId>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <packaging>pom</packaging>
+   <name>Sakai Kernel Project OSGi Experiments</name>
+   <description> Kernel Experiments to evaluate approaches and generate Proof of Concept
+diff --git a/slingtests/osgikernel/samples/fileinstall/hellofromfileinstall/pom.xml b/slingtests/osgikernel/samples/fileinstall/hellofromfileinstall/pom.xml
+index f97fa19..2fa4556 100644
+--- a/slingtests/osgikernel/samples/fileinstall/hellofromfileinstall/pom.xml
++++ b/slingtests/osgikernel/samples/fileinstall/hellofromfileinstall/pom.xml
+@@ -20,12 +20,12 @@
+   <parent>
+     <artifactId>org.sakaiproject.kernel.samples.fileinstall</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.samples.fileinstall.hellofromfileinstall</artifactId>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sample Installation to FileInstall Directory</name>
+   <packaging>bundle</packaging>
+   <build>
+diff --git a/slingtests/osgikernel/samples/fileinstall/pom.xml b/slingtests/osgikernel/samples/fileinstall/pom.xml
+index a4745c9..3a86fac 100644
+--- a/slingtests/osgikernel/samples/fileinstall/pom.xml
++++ b/slingtests/osgikernel/samples/fileinstall/pom.xml
+@@ -15,13 +15,13 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.samples.fileinstall</artifactId>
+   <packaging>pom</packaging>
+   <name>Felix FileInstall on Sling Sample</name>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <modules>
+ 	<module>slingrunner</module>
+ 	<module>hellofromfileinstall</module>
+@@ -29,4 +29,4 @@
+   <properties>
+     <sling.port>8080</sling.port>
+   </properties>
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/slingtests/osgikernel/samples/fileinstall/slingrunner/pom.xml b/slingtests/osgikernel/samples/fileinstall/slingrunner/pom.xml
+index 23bcca4..c3c647f 100644
+--- a/slingtests/osgikernel/samples/fileinstall/slingrunner/pom.xml
++++ b/slingtests/osgikernel/samples/fileinstall/slingrunner/pom.xml
+@@ -14,18 +14,18 @@
+   <parent>
+     <artifactId>org.sakaiproject.kernel.samples.fileinstall</artifactId>
+     <groupId>org.sakaiproject.kernel</groupId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.sakaiproject.kernel</groupId>
+   <artifactId>org.sakaiproject.kernel.samples.fileinstall.slingrunner</artifactId>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Clean Start for Sling</name>
+   <dependencies>
+     <dependency>
+       <groupId>org.sakaiproject.kernel</groupId>
+       <artifactId>org.sakaiproject.kernel.app</artifactId>
+-      <version>0.1-SNAPSHOT</version>
++      <version>0.1</version>
+     </dependency>
+   </dependencies>
+   <build>
+@@ -94,4 +94,4 @@
+       </plugin>
+     </plugins>
+   </build>
+-</project>
+\ No newline at end of file
++</project>
+diff --git a/slingtests/osgikernel/samples/guiceuser/pom.xml b/slingtests/osgikernel/samples/guiceuser/pom.xml
+index ba6ae82..d5dc4c5 100644
+--- a/slingtests/osgikernel/samples/guiceuser/pom.xml
++++ b/slingtests/osgikernel/samples/guiceuser/pom.xml
+@@ -22,11 +22,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.samples.guiceuser</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Guice User Bundle</name>
+   <build>
+     <plugins>
+diff --git a/slingtests/osgikernel/samples/helloworld/pom.xml b/slingtests/osgikernel/samples/helloworld/pom.xml
+index 0e3e98a..ee46b63 100644
+--- a/slingtests/osgikernel/samples/helloworld/pom.xml
++++ b/slingtests/osgikernel/samples/helloworld/pom.xml
+@@ -16,11 +16,11 @@
+   <parent>
+     <groupId>org.sakaiproject.kernel</groupId>
+     <artifactId>base</artifactId>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+   </parent>
+   <artifactId>org.sakaiproject.kernel.samples.helloworld</artifactId>
+   <packaging>bundle</packaging>
+-  <version>0.1-SNAPSHOT</version>
++  <version>0.1</version>
+   <name>Sakai Kernel Samples: Hello World</name>
+   <description>Sample Bundle: Hello World.</description>
+   <build>
+diff --git a/slingtests/osgikernel/sling-bundles/pom.xml b/slingtests/osgikernel/sling-bundles/pom.xml
+index 669afe2..86df45d 100644
+--- a/slingtests/osgikernel/sling-bundles/pom.xml
++++ b/slingtests/osgikernel/sling-bundles/pom.xml
+@@ -23,12 +23,12 @@
+     <parent>
+         <groupId>org.sakaiproject.kernel</groupId>
+         <artifactId>base</artifactId>
+-        <version>0.1-SNAPSHOT</version>
++        <version>0.1</version>
+     </parent>
+ 
+     <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
+     <packaging>jar</packaging>
+-    <version>0.1-SNAPSHOT</version>
++    <version>0.1</version>
+ 
+     <name>Apache Sling Launchpad Bundles Collection customised for Sakai</name>
+     <description>
+diff --git a/slingtests/osgikernel/app-bundles/pom.xml b/slingtests/osgikernel/app-bundles/pom.xml
 index 065f1f8..56d4c13 100644
 --- a/slingtests/osgikernel/app-bundles/pom.xml
 +++ b/slingtests/osgikernel/app-bundles/pom.xml

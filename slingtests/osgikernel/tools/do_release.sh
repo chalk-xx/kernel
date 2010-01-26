@@ -11,7 +11,7 @@
 # This will create a release for version 0.2 and then move to 0.3-SNAPSHOT
 #
 # Example: ./do_release.sh 0.2 0.3 RC2 kern-483.rb|kern-330.rb 
-# This will create a release for version 0.3 tag it as 0.3-RC2 and then move back to 0.3 for developers
+# This will create a release for version 0.3 tag it as 0.3-RC2 and then move back to 0.2-SNAPSHOT for developers
 # It will ignore kern-485 and kern-330
 #
 
@@ -189,7 +189,7 @@ patch -p3 -R < last-release/changeversion.diff
 
 if [ $rc == "" ]
 then
-  # There was no RC provided, this means we go from 0.3 -> 0.2 (tag) -> 0.3-SNAPSHOT
+  # There was no RC provided, this means we go from 0.2-SNAPSHOT -> 0.2 (tag) -> 0.3-SNAPSHOT
   listofpoms=`find . -name pom.xml | grep -v target`
   listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
   for i in $listofpomswithversion
@@ -201,7 +201,7 @@ then
   git add last-release
   git commit -a -m "[release-script] new development version"
 else
-  # There was an RC provided, this means we go from 0.3 -> 0.2-RCx (tag) -> 0.2-SNAPSHOT
+  # There was an RC provided, this means we go from 0.2-SNAPSHOT -> 0.2-RCx (tag) -> 0.2-SNAPSHOT
   # We revert the previous git commit.
   git add last-release/
   git commit -a -m "[release-script] adding last-release audit logs and reverting to SNAPSHOT version "

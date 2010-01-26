@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.3</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.testutils</artifactId>
   <packaging>jar</packaging>
-  <version>0.3</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Kernel Test Utilities</name>
   <description>Testing Support Utilities.</description>
   <dependencies>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.3</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
