@@ -86,8 +86,15 @@ else
   
   rm -rf ~/.m2/repository/org/sakaiproject/kernel
   rm -rf ~/.m2/repository/org/apache/sling
-  # Blast entire maven repository.
-  #rm -rf ~/.m2/repository
+  if [ -f repo.tgz ]
+  then
+     echo "Unpacking Repo Image ...."
+     cat repo.tgz | ( cd ~/.m2/repository; tar xzf - )
+  else
+     echo "No Repo Image found, have you removed all SNAPSHOTS ? Create a dummy repo.tgz if you have  "
+     exit
+  fi
+     
   mvn clean install  | tee last-release/build.log 
   date > last-release/stage1
 
