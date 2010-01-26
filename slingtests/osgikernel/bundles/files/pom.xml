@@ -38,6 +38,8 @@
             <Bundle-Category> sakai-kernel </Bundle-Category>
             <Export-Package> org.sakaiproject.kernel.api.files </Export-Package>
             <Private-Package> org.sakaiproject.kernel.files.* </Private-Package>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Dependency>hessian,xythos-service</Embed-Dependency>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
@@ -107,6 +109,16 @@
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.testing</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.caucho</groupId>
+      <artifactId>hessian</artifactId>
+      <version>3.1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.nyu</groupId>
+      <artifactId>xythos-service</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>

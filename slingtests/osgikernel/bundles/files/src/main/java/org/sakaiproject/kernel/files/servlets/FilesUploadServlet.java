@@ -29,6 +29,7 @@ import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
+import edu.nyu.XythosRemote;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
@@ -38,13 +39,17 @@ import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
 import org.sakaiproject.kernel.api.files.FileUtils;
+import org.sakaiproject.kernel.api.files.XythosUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -144,7 +149,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       }
     }
 
-    List<Node> fileNodes = Lists.newArrayList();
+    List<Map<String,String>> fileNodes = Lists.newArrayList();
     List<String> links = Lists.newArrayList();
 
     // Create the files and links.
@@ -158,7 +163,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
       // Loop over each file parameter request and create a file.
       for (RequestParameter file : files) {
-        Node fileNode = createFile(session, store, file);
+        Map<String,String> fileNode = createFile(session, store, file);
         fileNodes.add(fileNode);
       }
 
@@ -166,13 +171,12 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       if (linkParam != null && siteParam != null) {
         Node linkFolder = (Node) session.getItem(linkParam.getString());
         // For each file .. create a link
-        for (Node fileNode : fileNodes) {
-          String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME)
-              .getString();
+        for (Map<String, String> fileNode : fileNodes) {
+          String fileName = fileNode.get(FilesConstants.SAKAI_FILENAME);
 
           String linkPath = linkFolder.getPath() + "/" + fileName;
           String sitePath = siteParam.getString();
-          FileUtils.createLink(session, fileNode, linkPath, sitePath, slingRepository);
+          //FileUtils.createLink(session, fileNode, linkPath, sitePath, slingRepository);
           links.add(linkPath);
         }
       }
@@ -183,14 +187,14 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       writer.object();
       writer.key("files");
       writer.array();
-      for (Node fileNode : fileNodes) {
+      for (Map<String, String> fileNode : fileNodes) {
         writer.object();
         writer.key("filename");
-        writer.value(fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString());
+        writer.value(fileNode.get(FilesConstants.SAKAI_FILENAME));
         writer.key("path");
-        writer.value(FileUtils.getDownloadPath(fileNode));
+        writer.value(fileNode.get("path"));
         writer.key("id");
-        writer.value(fileNode.getProperty(FilesConstants.SAKAI_ID).getString());
+        writer.value(fileNode.get(FilesConstants.SAKAI_ID));
         writer.endObject();
       }
       writer.endArray();
@@ -226,12 +230,10 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
    * @param session
    * @param file
    * @param writer
-   * @throws RepositoryException
-   * @throws IOException
    * @throws JSONException
    */
-  private Node createFile(Session session, String store, RequestParameter file)
-      throws RepositoryException, IOException, JSONException {
+  private Map<String, String> createFile(Session session, String store, RequestParameter file)
+      throws IOException, JSONException {
     String contentType = file.getContentType();
     // Try to determine the real content type.
     // get content type
@@ -254,11 +256,14 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
     id = id.replace('/', '_').replace('=', '-');
 
-    String path = FileUtils.getHashedPath(store, id);
-
-    Node fileNode = FileUtils.saveFile(session, path, id, file, contentType,
-        slingRepository);
-    return fileNode;
+    String path = "/" + session.getUserID() + "/" + file.getFileName();
+    
+    String downloadPath = XythosUtils.saveFile(path, id, file.get() , file.getFileName(), contentType, session.getUserID());
+    Map<String, String> rv = new HashMap<String, String>();
+    rv.put(FilesConstants.SAKAI_FILENAME, file.getFileName());
+    rv.put(FilesConstants.SAKAI_ID, id);
+    rv.put("path", downloadPath);
+    return rv;
   }
 
 }
