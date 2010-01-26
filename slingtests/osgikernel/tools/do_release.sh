@@ -52,7 +52,6 @@ fi
 echo "Creating tagged version: $nversion at tag $tagversion "
 
 mkdir -p last-release
-uname -a > last-release/who
 
 if [[ -f last-release/stage1 ]]
 then
@@ -71,6 +70,8 @@ else
   set -o errexit
   
   
+  uname -a > last-release/who
+
   echo "Creating Release"
   for i in $listofpomswithversion
   do
