@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.TimeZone;
 
 import javax.servlet.ServletException;
 
@@ -60,7 +59,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
   private final static FastDateFormat dateFormat;
 
   static {
-    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
+    dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
   }
 
   protected void bindChatManagerService(ChatManagerService chatManagerService) {
@@ -77,34 +76,32 @@ public class ChatServlet extends SlingAllMethodsServlet {
 
     String userID = request.getRemoteUser();
     boolean hasUpdate = false;
-    long now = System.currentTimeMillis();
-    long time;
+    RequestParameter timestampParam = request.getRequestParameter("t");
+
+    long time = System.currentTimeMillis();
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(time);
+
     Long lastUpdate = chatManagerService.get(userID);
 
     if (lastUpdate == null) {
       // This the first time (ever) the user poll's the chat update.
       // Insert it.
-      time = now;
       chatManagerService.put(userID, time);
       hasUpdate = true;
     } else {
-      // If we have either missing or bad input, assume "now" is requested
-      try {
-        RequestParameter timestampParam = request.getRequestParameter("t");
+      if (timestampParam != null) {
         time = Long.parseLong(timestampParam.getString());
-      } catch (Exception e) {
-        time = now;
-      }
 
-      if (time < lastUpdate) {
+        if (time < lastUpdate) {
+          hasUpdate = true;
+        }
+      } else {
         hasUpdate = true;
       }
     }
 
     LOGGER.info("Returned time = {}, update = {}", time, hasUpdate);
-
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(time);
 
     JSONWriter write = new JSONWriter(response.getWriter());
     try {
@@ -112,7 +109,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
       write.key("update");
       write.value(hasUpdate);
       write.key("time");
-      write.value(now);
+      write.value(System.currentTimeMillis());
       write.key("pulltime");
       write.value(dateFormat.format(cal));
       write.endObject();
