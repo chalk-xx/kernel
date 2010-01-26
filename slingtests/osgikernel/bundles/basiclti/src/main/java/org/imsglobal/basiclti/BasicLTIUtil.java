@@ -19,45 +19,17 @@
 
 package org.imsglobal.basiclti;
 
-import java.util.Locale;
-import java.util.UUID;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.Properties;
 import java.util.logging.Logger;
-import java.util.logging.Level;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.security.MessageDigest;
-
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.net.HttpURLConnection;
 
 import java.util.Map;
 import java.util.List;
 
 import org.imsglobal.basiclti.XMLMap;
-import org.imsglobal.basiclti.Base64;
 
-import java.io.PrintWriter;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.OutputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-import net.oauth.OAuth;
 import net.oauth.OAuthMessage;
 import net.oauth.OAuthConsumer;
 import net.oauth.OAuthAccessor;
-import net.oauth.signature.OAuthSignatureMethod;
 
 /* Leave out until we have JTidy 0.8 in the repository 
 import org.w3c.tidy.Tidy;
@@ -83,12 +55,6 @@ public class BasicLTIUtil {
     {
         if ( verbosePrint ) System.out.println(str);
         M_log.fine(str);
-    }
-
-    private static void setErrorMessage(Properties retProp, String message)
-    {
-        retProp.setProperty("message",message);
-        retProp.setProperty("status","fail");
     }
 
     public static String validateDescriptor(String descriptor)
@@ -262,8 +228,6 @@ public class BasicLTIUtil {
             M_log.warning("Unable to parse XML in parseDescriptor");
             return false;
         }
-
-        boolean retVal = false;
 
         String launch_url = toNull(XMLMap.getString(tm,"/basic_lti_link/launch_url"));
         String secure_launch_url = toNull(XMLMap.getString(tm,"/basic_lti_link/secure_launch_url"));
