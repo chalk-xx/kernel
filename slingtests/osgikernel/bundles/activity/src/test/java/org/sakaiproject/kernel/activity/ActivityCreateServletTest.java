@@ -24,12 +24,14 @@ import static org.sakaiproject.kernel.api.activity.ActivityConstants.PARAM_TEMPL
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.resource.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -124,8 +126,27 @@ public class ActivityCreateServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, PARAM_TEMPLATE_ID, "foo");
     expect(request.getRemoteUser()).andReturn(null);
 
-    response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
         "CurrentUser could not be determined, user must be identifiable");
+
+    replay();
+    ActivityCreateServlet servlet = new ActivityCreateServlet();
+    servlet.doPost(request, response);
+  }
+
+  @Test
+  public void testNullResource() throws ServletException, IOException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    addStringRequestParameter(request, PARAM_APPLICATION_ID, "foo");
+    addStringRequestParameter(request, PARAM_TEMPLATE_ID, "bar");
+    Resource resource = createMock(Resource.class);
+    expect(resource.adaptTo(Node.class)).andReturn(null);
+    expect(request.getResource()).andReturn(resource);
+    expect(request.getRemoteUser()).andReturn("jack");
+
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
     replay();
     ActivityCreateServlet servlet = new ActivityCreateServlet();

@@ -74,7 +74,9 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "sakai:activity-appid", description = "i.e. used to locate the bundles"),
     @ServiceParameter(name = "sakai:activity-templateid", description = "The id of the template that will be used for text and macro expansion."
         + "Locale will be appended to the templateId for resolution"),
-    @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in sakai:activity-templateid.") }, response = { @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)") }) })
+    @ServiceParameter(name = "*", description = "You should also include any parameters necessary to fill the template specified in sakai:activity-templateid.") }, response = {
+    @ServiceResponse(code = 400, description = "if(applicationId == null || templateId == null || request.getRemoteUser() == null)"),
+    @ServiceResponse(code = 404, description = "The node was not found.") }) })
 public class ActivityCreateServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 1375206766455341437L;
   private static final Logger LOG = LoggerFactory
@@ -110,7 +112,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     }
     final String currentUser = request.getRemoteUser();
     if (currentUser == null || "".equals(currentUser)) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "CurrentUser could not be determined, user must be identifiable");
       return;
     }
@@ -119,13 +121,17 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
     // An activity store will be created for each node where a .activity gets executed.
     // TODO Maybe we shouldn't allow it on sakai/activity and sakai/activityFeed nodes?
     Node location = request.getResource().adaptTo(Node.class);
+    if (location == null) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
     Session session = null;
     String path = null;
     try {
       session = location.getSession();
+      path = location.getPath() + "/" + ACTIVITY_STORE_NAME;
       if (!location.hasNode(ACTIVITY_STORE_NAME)) {
         // need to create an activityStore
-        path = location.getPath() + "/" + ACTIVITY_STORE_NAME;
         Node activityStoreNode = JcrUtils.deepGetOrCreateNode(session, path);
         activityStoreNode.setProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
