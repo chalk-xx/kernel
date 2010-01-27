@@ -13,6 +13,7 @@ include SlingAuthz
 
 class TC_Kern568Test < SlingTest
   
+  # Just check that we get a response to a bad t parameter
   def test_malformed_time
     m = Time.now.to_f.to_s.gsub('.', '')
     userid = "testuser-#{m}"
@@ -26,6 +27,7 @@ class TC_Kern568Test < SlingTest
     assert_equal(200, res.code.to_i)
   end
 
+  # Test that the pulltime comes through right, ignoring the update flag
   def test_correct_pulltime
     m = Time.now.to_f.to_s.gsub('.', '')
     userid = "testuser-#{m}"
@@ -36,7 +38,7 @@ class TC_Kern568Test < SlingTest
 
     sleep(1)
 
-    # Note that ruby and the the server JVM  have to be in the same timezone for this to pass.
+    # Note that ruby and the the server JVM have to be in the same timezone for this to pass.
     # This should not pose a problem because testing is generally against localhost but is worth noting.
     msec = (Time.now.to_f * 1000).to_i
     now = Time.at(msec / 1000.0)
@@ -50,7 +52,8 @@ class TC_Kern568Test < SlingTest
 
   # We want to make sure that, no matter what time is specified,
   # If this is the first request on record for the user, we update
-  # and that the pulltime is recorded as the system's "now"
+  # and that the pulltime is not what we specify for the first
+  # request and is the specified timestamp for the second
   def test_preserve_first_check
     m = Time.now.to_f.to_s.gsub('.', '')
     userid = "testuser-#{m}"
@@ -66,32 +69,14 @@ class TC_Kern568Test < SlingTest
 
     firstres = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
     json = JSON.parse(firstres.body)
-    assert_not_equal(schematime, json["pulltime"])
-    assert_equal(true, json["update"])
+    assert_equal(true, json["update"], "First check should always force update")
+    assert_not_equal(schematime, json["pulltime"], "First check should not return an arbitrary timestamp")
 
     # On second request for the same time, we should see false
     res = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
     json = JSON.parse(res.body)
-    assert_equal(schematime, json["pulltime"])
-    assert_equal(false, json["update"])
-  end
-
-  # Make sure that omitting the t parameter results in a matching time/pulltime
-  # A better check might be to verify the system time on the server, but this is close
-  def test_default_time
-    m = Time.now.to_f.to_s.gsub('.', '')
-    userid = "testuser-#{m}"
-    user = create_user(userid)
-    @s.switch_user(user)
-
-    firstres = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"))
-    assert_equal(200, firstres.code.to_i)
-    json = JSON.parse(firstres.body)
-
-    msec = json["time"].to_i
-    t = Time.at(msec / 1000.0)
-    expected = t.xmlschema(3)
-    assert_equal(expected, json["pulltime"])
+    assert_equal(false, json["update"], "Second check should not force update")
+    assert_equal(schematime, json["pulltime"], "Second check should return specified pulltime")
   end
 
 end

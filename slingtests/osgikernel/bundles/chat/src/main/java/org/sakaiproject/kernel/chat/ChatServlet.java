@@ -77,8 +77,11 @@ public class ChatServlet extends SlingAllMethodsServlet {
 
     String userID = request.getRemoteUser();
     boolean hasUpdate = false;
-    long now = System.currentTimeMillis();
-    long time;
+    RequestParameter timestampParam = request.getRequestParameter("t");
+
+    long time = System.currentTimeMillis();
+    long requestTime = time;
+
     Long lastUpdate = chatManagerService.get(userID);
 
     if (lastUpdate == null) {
@@ -88,15 +91,17 @@ public class ChatServlet extends SlingAllMethodsServlet {
       chatManagerService.put(userID, time);
       hasUpdate = true;
     } else {
-      // If we have either missing or bad input, assume "now" is requested
-      try {
-        RequestParameter timestampParam = request.getRequestParameter("t");
-        time = Long.parseLong(timestampParam.getString());
-      } catch (Exception e) {
-        time = now;
-      }
-
-      if (time < lastUpdate) {
+      if (timestampParam != null) {
+        try {
+          time = Long.parseLong(timestampParam.getString());
+          if (time < lastUpdate) {
+            hasUpdate = true;
+          }
+        } catch (NumberFormatException e) {
+          hasUpdate = true;
+          LOGGER.info("User requested non-Long timestamp: {}", timestampParam.getString());
+        }
+      } else {
         hasUpdate = true;
       }
     }
@@ -112,7 +117,7 @@ public class ChatServlet extends SlingAllMethodsServlet {
       write.key("update");
       write.value(hasUpdate);
       write.key("time");
-      write.value(now);
+      write.value(requestTime);
       write.key("pulltime");
       write.value(dateFormat.format(cal));
       write.endObject();
