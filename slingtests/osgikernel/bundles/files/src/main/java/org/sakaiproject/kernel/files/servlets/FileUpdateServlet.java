@@ -149,8 +149,8 @@ public class FileUpdateServlet extends SlingAllMethodsServlet {
           contentType = "application/octet-stream";
         }
       }
-
-      Node fileNode = FileUtils.saveFile(session, path, id, file, contentType,
+      String remotePath = node.getProperty(FilesConstants.SAKAI_REMOTEURL).toString();
+      Node fileNode = FileUtils.saveFile(session, path, remotePath, id, file, contentType,
           slingRepository);
       String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
 
