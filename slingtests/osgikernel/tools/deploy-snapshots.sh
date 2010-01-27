@@ -4,7 +4,12 @@
 version=$1
 repo=/Users/ieb/.m2/repository
 function install {
-   mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
+   if [ -f $repo/org/apache/sling/${1}/${2}-${3}/${1}-${2}-${3}.jar ]
+   then
+     echo Version ${1}-${2}-${3} exists.
+   else
+     mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
+   fi
 }
 install "org.apache.sling.extensions.webconsolebranding" "0.0.1" $version
 install "org.apache.sling.jcr.webconsole" "1.0.0" $version
@@ -26,7 +31,7 @@ vsearch="*${version}*"
 files=`find . -type f -name $vsearch | grep -v .asc `
 for i in $files
 do 
-openssl sha1 $i > $i.asc
+cat $i | openssl sha1 > $i.asc
 done
 files=`find . -type d -name $vsearch | grep -v .asc `
 tar cvzf /tmp/repo.tgz $files
