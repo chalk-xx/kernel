@@ -11,6 +11,7 @@ kern-289.rb 1 tests, 9 assertions, 0 failures, 0 errors
 kern-292.rb 3 tests, 37 assertions, 0 failures, 0 errors
 kern-293.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-294.rb 2 tests, 6 assertions, 0 failures, 0 errors
+kern-296.rb 1 tests, 9 assertions, 0 failures, 0 errors
 kern-307.rb 2 tests, 32 assertions, 0 failures, 0 errors
 kern-308.rb 2 tests, 26 assertions, 0 failures, 0 errors
 kern-309.rb 1 tests, 15 assertions, 0 failures, 0 errors
@@ -19,10 +20,14 @@ kern-312.rb 3 tests, 14 assertions, 0 failures, 0 errors
 kern-325.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-335.rb 1 tests, 8 assertions, 0 failures, 0 errors
 kern-345.rb 3 tests, 47 assertions, 0 failures, 0 errors
-kern-356.rb 2 tests, 22 assertions, 0 failures, 0 errors
+kern-356.rb 2 tests, 16 assertions, 0 failures, 0 errors
 kern-455.rb 1 tests, 28 assertions, 0 failures, 0 errors
+kern-456.rb 1 tests, 6 assertions, 0 failures, 0 errors
 kern-485.rb 1 tests, 3 assertions, 0 failures, 0 errors
-kern-538.rb 3 tests, 17 assertions, 0 failures, 0 errors
+kern-538.rb 4 tests, 24 assertions, 0 failures, 0 errors
+kern-543.rb 1 tests, 11 assertions, 0 failures, 0 errors
+kern-552.rb 1 tests, 4 assertions, 0 failures, 0 errors
+kern-563.rb 2 tests, 8 assertions, 0 failures, 0 errors
 ~/timefields/open-experiments/slingtests/osgikernel
 ~/timefields/open-experiments/slingtests/osgikernel/testscripts/SlingRuby/tests ~/timefields/open-experiments/slingtests/osgikernel
 authz-test.rb 4 tests, 252 assertions, 0 failures, 0 errors
@@ -35,5 +40,6 @@ sling-site-test.rb 7 tests, 60 assertions, 0 failures, 0 errors
 user-manager-test.rb 5 tests, 14 assertions, 0 failures, 0 errors
 file-test.rb 1 tests, 20 assertions, 0 failures, 0 errors
 private-store-test.rb 1 tests, 12 assertions, 0 failures, 0 errors
+rss-test.rb 4 tests, 4 assertions, 0 failures, 0 errors
 owner-authz-test.rb 1 tests, 25 assertions, 0 failures, 0 errors
 ~/timefields/open-experiments/slingtests/osgikernel
