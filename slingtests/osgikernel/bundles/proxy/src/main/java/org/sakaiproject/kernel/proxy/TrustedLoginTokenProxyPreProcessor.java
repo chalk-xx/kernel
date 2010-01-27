@@ -43,7 +43,7 @@ import java.util.Map;
  * 
  */
 @Service(value = ProxyPreProcessor.class)
-@Component(description = "Pre processor for proxy requests to a Sakai 2 Instance with a Trusted Token filter", immediate = true, label = "TrustedTokenProxyPreProcessor")
+@Component(description = "Pre processor for proxy requests to a Sakai 2 Instance with a Trusted Token filter", metatype = true, immediate = true, label = "TrustedTokenProxyPreProcessor")
 @Properties(value = {
     @Property(name = "service.description", value = { "Pre processor for proxy requests to Sakai 2 instance with a trusted token filter." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
@@ -54,6 +54,9 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
 
   @Property(name = "sharedSecret", description = "This is the secret shared between the target http endpoint")
   private String sharedSecret = "e2KS54H35j6vS5Z38nK40";
+  
+  @Property(name = "port", description = "This is the port where sakai2 runs on (default = 80).")
+  private int port = 80;
 
   public String getName() {
     return "trusted-token";
@@ -77,6 +80,8 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
     }
     String full = hash + ";" + user + ";" + other;
     headers.put("X-SAKAI-TOKEN", full);
+    
+    templateParams.put("port", port);
   }
 
   protected String byteArrayToHexStr(byte[] data) {
