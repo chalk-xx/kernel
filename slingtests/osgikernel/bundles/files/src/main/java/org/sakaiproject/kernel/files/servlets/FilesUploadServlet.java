@@ -257,11 +257,11 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
     String path = FileUtils.getHashedPath(store, id);
     String xythosPath = "/" + session.getUserID() + "/" + file.getFileName();
-
-    Node fileNode = FileUtils.saveFile(session, path, xythosPath, id, file, contentType,
+    XythosUtils.saveFile(xythosPath, id, file.get() , file.getFileName(), contentType, session.getUserID());
+    String downloadPath = "http://localhost:9090" + xythosPath;
+    Node fileNode = FileUtils.saveFile(session, path, downloadPath, id, file, contentType,
         slingRepository);
-    String downloadPath = XythosUtils.saveFile(xythosPath, id, file.get() , file.getFileName(), contentType, session.getUserID());
-    fileNode.setProperty("path",downloadPath);
+    
     return fileNode;
   }
 
