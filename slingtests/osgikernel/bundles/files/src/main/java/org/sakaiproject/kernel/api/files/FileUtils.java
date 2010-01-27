@@ -79,7 +79,7 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws IOException
    */
-  public static Node saveFile(Session session, String path, String id,
+  public static Node saveFile(Session session, String path, String remotePath, String id,
       InputStream is, String fileName, String contentType, SlingRepository slingRepository)
       throws RepositoryException, IOException {
     if (fileName != null && !fileName.equals("")) {
@@ -119,6 +119,7 @@ public class FileUtils {
           content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
           // Set the person who last modified it.s
           fileNode.setProperty(FilesConstants.SAKAI_USER, userId);
+          fileNode.setProperty(FilesConstants.SAKAI_REMOTEURL, remotePath);
 
           fileNode.setProperty("sakai:filename", fileName);
           if (adminSession.hasPendingChanges()) {
@@ -168,10 +169,10 @@ public class FileUtils {
    * @throws RepositoryException
    * @throws IOException
    */
-  public static Node saveFile(Session session, String path, String id,
+  public static Node saveFile(Session session, String path, String remotePath, String id,
       RequestParameter file, String contentType, SlingRepository slingRepository)
       throws RepositoryException, IOException {
-    return saveFile(session, path, id, file.getInputStream(), file
+    return saveFile(session, path, remotePath, id, file.getInputStream(), file
         .getFileName(), contentType, slingRepository);
   }
 

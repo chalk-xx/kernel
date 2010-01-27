@@ -72,6 +72,8 @@ public interface FilesConstants {
    * sakai:link
    */
   public static final String SAKAI_LINK = "sakai:link";
+  
+  public static final String SAKAI_REMOTEURL = "sakai:remoteurl";
 
   /**
    * FileHandlerProcessor
