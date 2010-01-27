@@ -34,10 +34,13 @@ public interface FilesConstants {
    */
   public static final String RT_SAKAI_FOLDER = "sakai/folder";
   /**
-   * The resource type for a sakai folder. sakai/link
+   * The resource type for a sakai link. sakai/link
    */
   public static final String RT_SAKAI_LINK = "sakai/link";
-
+  /**
+   * The resource type for a sakai tag. sakai/tag
+   */
+  public static final String RT_SAKAI_TAG = "sakai/tag";
   /**
    * The path to the filestore for users.
    */
