@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.TimeZone;
 
 import javax.servlet.ServletException;
 
@@ -87,7 +86,6 @@ public class ChatServlet extends SlingAllMethodsServlet {
     if (lastUpdate == null) {
       // This the first time (ever) the user poll's the chat update.
       // Insert it.
-      time = now;
       chatManagerService.put(userID, time);
       hasUpdate = true;
     } else {
