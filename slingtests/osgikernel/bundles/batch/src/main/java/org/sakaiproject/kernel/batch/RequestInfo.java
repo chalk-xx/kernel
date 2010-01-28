@@ -25,22 +25,22 @@ import org.apache.sling.commons.json.JSONObject;
 import java.util.Hashtable;
 import java.util.Iterator;
 
-public class RequestData {
+public class RequestInfo {
 
   private String url;
   private String method;
   private Hashtable<String, String[]> parameters;
 
-  public RequestData(String url, Hashtable<String, String[]> parameters) {
+  public RequestInfo(String url, Hashtable<String, String[]> parameters) {
     setUrl(url);
     setParameters(parameters);
   }
 
-  public RequestData() {
+  public RequestInfo() {
     setParameters(new Hashtable<String, String[]>());
   }
 
-  public RequestData(JSONObject obj) throws JSONException {
+  public RequestInfo(JSONObject obj) throws JSONException {
     setUrl(obj.getString("url"));
     setMethod(obj.getString("method"));
     setParameters(new Hashtable<String, String[]>());

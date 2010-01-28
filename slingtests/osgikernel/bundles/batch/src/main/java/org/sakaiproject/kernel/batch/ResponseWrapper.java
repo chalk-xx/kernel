@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
 public class ResponseWrapper extends SlingHttpServletResponseWrapper {
 
@@ -47,8 +46,8 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
   // set on the response.
   private Dictionary<String, String> headers;
 
-  public ResponseWrapper(HttpServletResponse wrappedResponse) {
-    super((SlingHttpServletResponse)wrappedResponse);
+  public ResponseWrapper(SlingHttpServletResponse wrappedResponse) {
+    super(wrappedResponse);
     headers = new Hashtable<String, String>();
   }
 
