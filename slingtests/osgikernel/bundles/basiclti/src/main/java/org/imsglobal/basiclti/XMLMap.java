@@ -190,7 +190,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
-import org.w3c.dom.Attr;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.NamedNodeMap;
 
@@ -292,7 +291,7 @@ public class XMLMap {
 		// Insert the text node if we find one
 		if ( nl != null ) for (int i = 0; i< nl.getLength(); i++ ) {
 			Node node = nl.item(i);
-			if (node.getNodeType() == node.TEXT_NODE) {
+			if (node.getNodeType() == Node.TEXT_NODE) {
 				value = node.getNodeValue();
 				if ( value == null ) break;
 				if ( value.trim().length() < 1 ) break;
@@ -305,7 +304,7 @@ public class XMLMap {
 		// Now loop through and add the attribute values 
 		if ( nm != null ) for (int i = 0; i< nm.getLength(); i++ ) {
 			Node node = nm.item(i);
-			if (node.getNodeType() == node.ATTRIBUTE_NODE) {
+			if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
 				String name = node.getNodeName();
 				value = node.getNodeValue();
 				// doDebug(d,"ATTR "+path+"("+name+") = "+node.getNodeValue());
@@ -325,7 +324,7 @@ public class XMLMap {
 			Set <String> done = new HashSet<String>();
 			if ( nl != null ) for (int i = 0; i< nl.getLength(); i++ ) {
 				Node node = nl.item(i);
-				if (node.getNodeType() == node.ELEMENT_NODE && ( ! done.contains(node.getNodeName())) ) {
+				if (node.getNodeType() == Node.ELEMENT_NODE && ( ! done.contains(node.getNodeName())) ) {
 					doDebug(d,"Going down the rabbit hole path="+path+" node="+node.getNodeName());
 					recurse(tm, addSlash(path)+node.getNodeName(),node,doFull,d);
 					doDebug(d,"Back from the rabbit hole path="+path+" node="+node.getNodeName());
@@ -344,7 +343,7 @@ public class XMLMap {
 		Map<String,Integer> childMap = new TreeMap<String,Integer>();
 		if ( nl != null ) for (int i = 0; i< nl.getLength(); i++ ) {
 			Node node = nl.item(i);
-			if (node.getNodeType() == node.ELEMENT_NODE ) {
+			if (node.getNodeType() == Node.ELEMENT_NODE ) {
 				Integer count = childMap.get(node.getNodeName());
 				if ( count == null ) count = new Integer(0);
 				count = count + 1;
@@ -372,7 +371,7 @@ public class XMLMap {
 		// Now descend the tree to the next level deeper !!
 		if ( nl != null ) for (int i = 0; i< nl.getLength(); i++ ) {
 			Node node = nl.item(i);
-			if (node.getNodeType() == node.ELEMENT_NODE ) {
+			if (node.getNodeType() == Node.ELEMENT_NODE ) {
 				String childName = node.getNodeName();
 				if ( childName == null ) continue;
 				List<Map<String,Object>> mapList = nodeMap.get(childName);
@@ -669,7 +668,7 @@ public class XMLMap {
 			Node node = nl.item(i);
 			// doDebug(d,"length= " +nl.getLength()+ " i="+i+" NT="+node.getNodeType());
 			// doDebug(d,"searching nn="+nodeName+" nc="+node.getNodeName());
-			if (node.getNodeType() == node.ELEMENT_NODE) {
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
 				if ( nodeName.equals(node.getNodeName()) ) {
 					foundNodes++;
 					d--;
