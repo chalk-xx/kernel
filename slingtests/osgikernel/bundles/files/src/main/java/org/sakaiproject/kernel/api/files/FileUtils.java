@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -86,6 +87,10 @@ public class FileUtils {
       // Clean the filename.
 
       String userId = session.getUserID();
+      if ( "anonymous".equals(userId)  ) {
+        throw new AccessDeniedException();
+      }
+
       log.info("Trying to save file {} to {} for user {}", new Object[] { fileName, path,
           userId });
 
@@ -189,6 +194,12 @@ public class FileUtils {
    */
   public static String createLink(Session session, Node fileNode, String linkPath,
       String sitePath, SlingRepository slingRepository) throws RepositoryException {
+    String userId = session.getUserID();
+    if ( "anonymous".equals(userId)  ) {
+      throw new AccessDeniedException();
+    }
+    
+    
     String fileUUID = fileNode.getUUID();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
     // linkNode.addMixin("sakai:propertiesmix");
