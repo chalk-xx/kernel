@@ -26,6 +26,13 @@ install "org.apache.sling.jcr.contentloader" "2.0.5" $version
 install "org.apache.sling.jcr.resource" "2.0.7" $version
 install "org.apache.sling.jcr.jackrabbit.server" "2.0.5" $version
 install "org.apache.sling.jcr.jackrabbit.usermanager" "2.0.3" $version
+install "org.apache.sling.commons.classloader" 1.1.3 $version
+install "org.apache.sling.commons.osgi" 2.0.5 $version
+install "org.apache.sling.scripting.api" 2.1.0 $version
+install "org.apache.sling.scripting.core" 2.0.9 $version
+install "org.apache.sling.scripting.jsp" 2.0.9 $version
+install "org.apache.sling.scripting.jsp.taglib" 2.0.7 $version
+
 pushd $repo
 vsearch="*${version}*"
 files=`find . -type f -name $vsearch | grep -v .sha1 `
