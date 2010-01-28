@@ -254,10 +254,10 @@ public class MessagingServiceImpl implements MessagingService {
       }
     } catch (SiteException e) {
       LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(e);
+      throw new MessagingException(e.getStatusCode(), e.getMessage());
     } catch (RepositoryException e) {
       LOGGER.warn("Caught RepositoryException when trying to get the full path to {} store.", rcpt,e);
-      throw new MessagingException(e);
+      throw new MessagingException(500, e.getMessage());
     }
 
     return path;
@@ -286,7 +286,7 @@ public class MessagingServiceImpl implements MessagingService {
     try {
       if (rcpt.startsWith("s-")) {
         // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt);
+        Node n = siteService.findSiteByName(session, rcpt.substring(2));
         path = n.getPath() + "/store";
       } else if (rcpt.startsWith("g-")) {
         // This is a group.
@@ -297,10 +297,10 @@ public class MessagingServiceImpl implements MessagingService {
       }
     } catch (SiteException e) {
       e.printStackTrace();
-      throw new MessagingException(e);
+      throw new MessagingException(e.getStatusCode(), e.getMessage());
     } catch (RepositoryException e) {
       e.printStackTrace();
-      throw new MessagingException(e);
+      throw new MessagingException(500, e.getMessage());
     }
 
     return path;
