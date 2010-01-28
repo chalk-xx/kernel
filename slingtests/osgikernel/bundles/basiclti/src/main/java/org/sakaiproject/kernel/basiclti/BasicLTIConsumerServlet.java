@@ -234,7 +234,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           sb.append(lastName);
         }
         final String fullName = sb.toString();
-        launchProps.setProperty(LIS_PERSON_NAME_FULL, fullName);
+        if (firstName != null || lastName != null) {
+          // only if at least one name is not null
+          launchProps.setProperty(LIS_PERSON_NAME_FULL, fullName);
+        }
       }
 
       final boolean releaseEmail = Boolean.parseBoolean(effectiveSettings
@@ -256,7 +259,13 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       launchProps.setProperty("context_label", "SI182");
       // TODO how to determine user's locale?
       launchProps.setProperty("launch_presentation_locale", "en_US");
+      for (final Object key : launchProps.keySet()) {
+        LOG.info("launchProps: " + key + "=" + launchProps.get(key));
+      }
       final Properties cleanProps = BasicLTIUtil.cleanupProperties(launchProps);
+      for (final Object key : cleanProps.keySet()) {
+        LOG.info("cleanProps: " + key + "=" + cleanProps.get(key));
+      }
       // TODO externalize these parameters
       final Properties signedProperties = BasicLTIUtil.signProperties(
           cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, "sakaiproject.org",
