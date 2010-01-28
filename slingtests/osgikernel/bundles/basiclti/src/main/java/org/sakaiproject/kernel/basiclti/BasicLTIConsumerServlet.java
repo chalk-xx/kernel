@@ -18,10 +18,15 @@
 package org.sakaiproject.kernel.basiclti;
 
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.ADMIN_CONFIG_PATH;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_ID;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_LABEL;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_TITLE;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.DEBUG;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.DEBUG_LOCK;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.FRAME_HEIGHT;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LAUNCH_PRESENTATION_DOCUMENT_TARGET;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LAUNCH_PRESENTATION_LOCALE;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_CONTACT_EMAIL_PRIMARY;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_NAME_FAMILY;
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_NAME_FULL;
@@ -51,6 +56,7 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,8 +203,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         return;
       }
       // FIXME should be using TUID
-      // e.g. /sites/blargh/_widgets/id123456/basiclti.launch.html
-      launchProps.setProperty(RESOURCE_LINK_ID, "tuid");
+      // e.g. /sites/foo/_widgets/id944280073/basiclti
+      launchProps.setProperty(RESOURCE_LINK_ID, StringUtils.sha1Hash(node
+          .getPath()));
 
       final UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable az = userManager.getAuthorizable(session.getUserID());
@@ -243,22 +250,37 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final boolean releaseEmail = Boolean.parseBoolean(effectiveSettings
           .get(RELEASE_EMAIL));
       if (releaseEmail) {
-        final String email = az.getProperty("email")[0].getString();
-        launchProps.setProperty(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
+        if (az.hasProperty("email")) {
+          final String email = az.getProperty("email")[0].getString();
+          launchProps.setProperty(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
+        }
       }
 
-      // FIXME maybe should be parent or site?
-      launchProps.setProperty("context_id", "context_id");
+      Node traversalNode = node;
+      while (traversalNode.getDepth() != 0) {
+        if (traversalNode.hasProperty("sling:resourceType")) {
+          if ("sakai/site".equals(traversalNode.getProperty(
+              "sling:resourceType").getString())) {
+            // found the parent site node
+            launchProps.setProperty(CONTEXT_ID, traversalNode.getPath());
+            launchProps.setProperty(CONTEXT_TITLE, traversalNode.getProperty(
+                "name").getString());
+            launchProps.setProperty(CONTEXT_LABEL, traversalNode.getProperty(
+                "id").getString());
+            break;
+          }
+        }
+        traversalNode = traversalNode.getParent();
+      }
 
       // TODO how to determine site type?
-      launchProps.setProperty("context_type", "CourseSection");
-      // TODO how to resolve context title?
-      launchProps.setProperty("context_title",
-          "Design of Personal Environments");
-      // TODO how to resolve context label?
-      launchProps.setProperty("context_label", "SI182");
+      // launchProps.setProperty("context_type", "CourseSection");
+
       // TODO how to determine user's locale?
-      launchProps.setProperty("launch_presentation_locale", "en_US");
+      launchProps.setProperty(LAUNCH_PRESENTATION_LOCALE, "en_US");
+
+      launchProps.setProperty(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
+
       for (final Object key : launchProps.keySet()) {
         LOG.info("launchProps: " + key + "=" + launchProps.get(key));
       }
