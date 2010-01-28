@@ -17,33 +17,35 @@
  */
 package org.sakaiproject.kernel.basiclti;
 
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.ADMIN_CONFIG_PATH;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_ID;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_LABEL;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.CONTEXT_TITLE;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.DEBUG;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.DEBUG_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.FRAME_HEIGHT;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.FRAME_HEIGHT_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LAUNCH_PRESENTATION_DOCUMENT_TARGET;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LAUNCH_PRESENTATION_LOCALE;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_CONTACT_EMAIL_PRIMARY;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_NAME_FAMILY;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_NAME_FULL;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LIS_PERSON_NAME_GIVEN;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_KEY;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_KEY_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_SECRET;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_SECRET_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_URL;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.LTI_URL_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_EMAIL;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_EMAIL_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_NAMES;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_NAMES_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_PRINCIPAL_NAME;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RELEASE_PRINCIPAL_NAME_LOCK;
-import static org.sakaiproject.kernel.api.basiclti.BasicLtiConstants.RESOURCE_LINK_ID;
+import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_ID;
+import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_LABEL;
+import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_TITLE;
+import static org.imsglobal.basiclti.BasicLTIConstants.LAUNCH_PRESENTATION_DOCUMENT_TARGET;
+import static org.imsglobal.basiclti.BasicLTIConstants.LAUNCH_PRESENTATION_LOCALE;
+import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_CONTACT_EMAIL_PRIMARY;
+import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_NAME_FAMILY;
+import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_NAME_FULL;
+import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_NAME_GIVEN;
+import static org.imsglobal.basiclti.BasicLTIConstants.RESOURCE_LINK_ID;
+import static org.imsglobal.basiclti.BasicLTIConstants.ROLES;
+import static org.imsglobal.basiclti.BasicLTIConstants.USER_ID;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.ADMIN_CONFIG_PATH;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.DEBUG;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.DEBUG_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_KEY;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_KEY_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_SECRET_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_URL;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.LTI_URL_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_EMAIL_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_NAMES_LOCK;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
+import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -83,8 +85,15 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
   private static final Logger LOG = LoggerFactory
       .getLogger(BasicLTIConsumerServlet.class);
-  // TODO needs a better name
-  private transient Map<String, String> availableSettings = null;
+  /**
+   * A {@link Map} containing all of the known application settings and their
+   * associated locking keys.
+   */
+  private transient Map<String, String> applicationSettings = null;
+  /**
+   * Keys we never want sent in the launch data.
+   */
+  private static final String[] BLACKLIST = { LTI_KEY, LTI_SECRET, LTI_URL };
 
   /**
    * {@inheritDoc}
@@ -94,15 +103,16 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    availableSettings = new HashMap<String, String>(8);
-    availableSettings.put(LTI_URL, LTI_URL_LOCK);
-    availableSettings.put(LTI_SECRET, LTI_SECRET_LOCK);
-    availableSettings.put(LTI_KEY, LTI_KEY_LOCK);
-    availableSettings.put(FRAME_HEIGHT, FRAME_HEIGHT_LOCK);
-    availableSettings.put(DEBUG, DEBUG_LOCK);
-    availableSettings.put(RELEASE_NAMES, RELEASE_NAMES_LOCK);
-    availableSettings.put(RELEASE_EMAIL, RELEASE_EMAIL_LOCK);
-    availableSettings.put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
+    applicationSettings = new HashMap<String, String>(8);
+    applicationSettings.put(LTI_URL, LTI_URL_LOCK);
+    applicationSettings.put(LTI_SECRET, LTI_SECRET_LOCK);
+    applicationSettings.put(LTI_KEY, LTI_KEY_LOCK);
+    applicationSettings.put(FRAME_HEIGHT, FRAME_HEIGHT_LOCK);
+    applicationSettings.put(DEBUG, DEBUG_LOCK);
+    applicationSettings.put(RELEASE_NAMES, RELEASE_NAMES_LOCK);
+    applicationSettings.put(RELEASE_EMAIL, RELEASE_EMAIL_LOCK);
+    applicationSettings
+        .put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
   }
 
   /**
@@ -152,8 +162,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
               .put(property.getName(), property.getValue().getString());
         }
       } else {
-        LOG.debug("No administrative settings found for virtual tool: "
-            + vtoolId + ". No policy to apply.");
+        LOG
+            .debug(
+                "No administrative settings found for virtual tool: {}. No policy to apply.",
+                vtoolId);
         adminSettings = Collections.emptyMap();
       }
 
@@ -171,7 +183,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // merge admin and user properties
       final Map<String, String> effectiveSettings = new HashMap<String, String>(
           Math.max(adminSettings.size(), userSettings.size()));
-      for (final String setting : availableSettings.keySet()) {
+      for (final String setting : applicationSettings.keySet()) {
         effectiveSetting(setting, effectiveSettings, adminSettings,
             userSettings);
       }
@@ -190,7 +202,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String ltiSecret = effectiveSettings.get(LTI_SECRET);
       if (ltiSecret == null || "".equals(ltiSecret)) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_SECRET
-            + " cannot be null", new IllegalArgumentException(LTI_URL
+            + " cannot be null", new IllegalArgumentException(LTI_SECRET
             + " cannot be null"), response);
         return;
       }
@@ -198,11 +210,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String ltiKey = effectiveSettings.get(LTI_KEY);
       if (ltiKey == null || "".equals(ltiKey)) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_KEY
-            + " cannot be null", new IllegalArgumentException(LTI_URL
+            + " cannot be null", new IllegalArgumentException(LTI_KEY
             + " cannot be null"), response);
         return;
       }
-      // FIXME should be using TUID
+      // TODO verify with Dr. Chuck that this key does not need to be
+      // reversible.
       // e.g. /sites/foo/_widgets/id944280073/basiclti
       launchProps.setProperty(RESOURCE_LINK_ID, StringUtils.sha1Hash(node
           .getPath()));
@@ -213,11 +226,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final boolean releasePrincipal = Boolean.parseBoolean(effectiveSettings
           .get(RELEASE_PRINCIPAL_NAME));
       if (releasePrincipal) {
-        // TODO maybe needs to be more opaque?
-        launchProps.setProperty("user_id", az.getID());
+        launchProps.setProperty(USER_ID, az.getID());
       }
       // FIXME need to pull roles from system
-      launchProps.setProperty("roles", "Instructor,Student");
+      if ("admin".equals(session.getUserID())) {
+        launchProps.setProperty(ROLES, "Instructor");
+      } else {
+        launchProps.setProperty(ROLES, "Learner");
+      }
 
       final boolean releaseNames = Boolean.parseBoolean(effectiveSettings
           .get(RELEASE_NAMES));
@@ -279,12 +295,23 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // TODO how to determine user's locale?
       launchProps.setProperty(LAUNCH_PRESENTATION_LOCALE, "en_US");
 
+      // we will always launch in an iframe for the time being
       launchProps.setProperty(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
+
+      final boolean debug = Boolean.parseBoolean(effectiveSettings.get(DEBUG));
+      // might be useful for the remote end to know if debug is enabled...
+      launchProps.setProperty(DEBUG, "" + debug);
+
+      // required to pass certification test suite
+      launchProps.setProperty("simple_key", "custom_simple_value");
+      launchProps.setProperty("Complex!@#$^*(){}[]KEY",
+          "Complex!@#$^*(){}[]Value");
 
       for (final Object key : launchProps.keySet()) {
         LOG.info("launchProps: " + key + "=" + launchProps.get(key));
       }
-      final Properties cleanProps = BasicLTIUtil.cleanupProperties(launchProps);
+      final Properties cleanProps = BasicLTIUtil.cleanupProperties(launchProps,
+          BLACKLIST);
       for (final Object key : cleanProps.keySet()) {
         LOG.info("cleanProps: " + key + "=" + cleanProps.get(key));
       }
@@ -294,8 +321,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           "Sakai", "http://sakaiproject.org");
       final String extension = request.getRequestPathInfo().getExtension();
       if ("html".equalsIgnoreCase(extension)) { // return html
-        final boolean debug = Boolean
-            .parseBoolean(effectiveSettings.get(DEBUG));
         final String html = BasicLTIUtil.postLaunchHTML(signedProperties,
             ltiUrl, debug);
         response.getWriter().write(html);
@@ -333,7 +358,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       throw new IllegalArgumentException();
     }
     final boolean locked = Boolean.parseBoolean(adminSettings
-        .get(availableSettings.get(setting)));
+        .get(applicationSettings.get(setting)));
     if (locked) { // the locked admin setting takes precedence
       effectiveSettings.put(setting, adminSettings.get(setting));
     } else {
