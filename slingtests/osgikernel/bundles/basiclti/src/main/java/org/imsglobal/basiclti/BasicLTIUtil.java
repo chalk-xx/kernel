@@ -108,7 +108,7 @@ public class BasicLTIUtil {
         }
         if ( org_id != null ) postProp.setProperty("tool_consumer_instance_guid", org_id);
         if ( org_desc != null ) postProp.setProperty("tool_consumer_instance_description", org_desc);
-        if ( org_url != null ) postProp.setProperty("tool_consumer_instance_url", org_desc);
+        if ( org_url != null ) postProp.setProperty("tool_consumer_instance_url", org_url);
 
         if ( postProp.getProperty("oauth_callback") == null ) postProp.setProperty("oauth_callback","about:blank");
 
