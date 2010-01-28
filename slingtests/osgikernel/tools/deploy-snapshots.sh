@@ -28,12 +28,12 @@ install "org.apache.sling.jcr.jackrabbit.server" "2.0.5" $version
 install "org.apache.sling.jcr.jackrabbit.usermanager" "2.0.3" $version
 pushd $repo
 vsearch="*${version}*"
-files=`find . -type f -name $vsearch | grep -v .asc `
+files=`find . -type f -name $vsearch | grep -v .sha1 `
 for i in $files
 do 
-cat $i | openssl sha1 > $i.asc
+cat $i | openssl sha1 > $i.sha1
 done
-files=`find . -type d -name $vsearch | grep -v .asc `
+files=`find . -type d -name $vsearch`
 tar cvzf /tmp/repo.tgz $files
 popd
 mv /tmp/repo.tgz .
