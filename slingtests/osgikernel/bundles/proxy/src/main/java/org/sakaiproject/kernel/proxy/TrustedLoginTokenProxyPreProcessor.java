@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.proxy.ProxyPreProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Dictionary;
 import java.util.Map;
 
 /**
@@ -54,9 +56,9 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
 
   @Property(name = "sharedSecret", description = "This is the secret shared between the target http endpoint")
   private String sharedSecret = "e2KS54H35j6vS5Z38nK40";
-  
-  @Property(name = "port", description = "This is the port where sakai2 runs on (default = 80).")
-  private int port = 80;
+
+  @Property(name = "port", description = "This is the port where sakai2 runs on (default = 80).", intValue = 80)
+  private int port;
 
   public String getName() {
     return "trusted-token";
@@ -80,7 +82,7 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
     }
     String full = hash + ";" + user + ";" + other;
     headers.put("X-SAKAI-TOKEN", full);
-    
+
     templateParams.put("port", port);
   }
 
@@ -94,6 +96,28 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
       chars[2 * i + 1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
     }
     return new String(chars);
+  }
+
+  /**
+   * When the bundle gets activated we retrieve the OSGi properties.
+   *
+   * @param context
+   */
+  @SuppressWarnings("unchecked")
+  protected void activate(ComponentContext context) {
+    // Get the properties from the console.
+    Dictionary props = context.getProperties();
+    if (props.get("sharedSecret") != null) {
+      sharedSecret = props.get("sharedSecret").toString();
+    }
+    if (props.get("port") != null) {
+      try {
+        port = Integer.parseInt(props.get("port").toString());
+        LOGGER.info("Sakai 2 port: " + port);
+      } catch (NumberFormatException e) {
+        LOGGER.warn("Failed to cast the sakai 2 port from the properties.", e);
+      }
+    }
   }
 
 }
