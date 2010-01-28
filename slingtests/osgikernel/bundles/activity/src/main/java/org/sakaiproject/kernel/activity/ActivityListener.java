@@ -134,7 +134,7 @@ public class ActivityListener implements MessageListener {
       final String activityItemPath = message
           .getStringProperty(ActivityConstants.EVENT_PROP_PATH);
       LOG.info("Processing activity: {}", activityItemPath);
-      Session session = slingRepository.loginAdministrative(null);
+      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok KERN-577
       Node activity = (Node) session.getItem(activityItemPath);
       if (!activity.hasProperty(PARAM_ACTOR_ID)) {
         // we must know the actor

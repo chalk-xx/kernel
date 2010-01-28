@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
+import org.sakaiproject.kernel.api.activity.ActivityConstants;
 import org.sakaiproject.kernel.api.activity.ActivityUtils;
 import org.sakaiproject.kernel.api.search.SearchPropertyProvider;
 
@@ -32,9 +34,8 @@ import java.util.Map;
 @Properties(value = {
     @Property(name = "sakai.search.provider", value = "Activity"),
     @Property(name = "sakai.search.resourceType", value = "sakai/page"),
-    @Property(name = "service.vendor", value="The Sakai Foundation"),
-    @Property(name = "service.description", value="Provides properties to the activity search templates.")
-})
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Provides properties to the activity search templates.") })
 @Service(value = SearchPropertyProvider.class)
 public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
 
@@ -47,6 +48,7 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
 
+    // The current user his feed.
     String user = request.getRemoteUser();
     if (user.equals("anon")) {
       throw new IllegalStateException("Anonymous users can't see the feed.");
@@ -55,6 +57,15 @@ public class ActivitySearchPropertyProvider implements SearchPropertyProvider {
     // Encode the path
     path = ISO9075.encodePath(path);
     propertiesMap.put("_myFeed", path);
+
+    // Encode the site path.
+    RequestParameter siteParam = request.getRequestParameter("site");
+    if (siteParam != null && !siteParam.getString().equals("")) {
+      String sitePath = siteParam.getString();
+      sitePath += "/" + ActivityConstants.ACTIVITY_FEED_NAME;
+      sitePath = ISO9075.encodePath(sitePath);
+      propertiesMap.put("_siteFeed", sitePath);
+    }
 
   }
 

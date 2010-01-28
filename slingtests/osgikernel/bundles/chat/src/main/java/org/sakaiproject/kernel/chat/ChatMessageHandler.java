@@ -115,7 +115,7 @@ public class ChatMessageHandler implements MessageTransport {
   public void send(MessageRoutes routes, Event event, Node originalMessage) {
     try {
 
-      Session session = slingRepository.loginAdministrative(null);
+      Session session = slingRepository.loginAdministrative(null); // usage checked and Ok KERN-577
 
       for (MessageRoute route : routes) {
         if (CHAT_TRANSPORT.equals(route.getTransport())) {

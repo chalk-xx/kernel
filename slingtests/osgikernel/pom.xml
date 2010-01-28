@@ -97,6 +97,7 @@
         <module>bundles/chat</module>
         <module>bundles/doc</module>
         <module>bundles/persondirectory</module>
+        <module>bundles/content</module>
       </modules>
     </profile>
     <profile>

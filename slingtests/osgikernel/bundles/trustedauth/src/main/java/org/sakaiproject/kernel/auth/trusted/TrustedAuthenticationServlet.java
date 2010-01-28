@@ -51,7 +51,7 @@ import javax.servlet.http.HttpSession;
  * session for use by the authentication handler on subsequent calls.
  * </p>
  */
-@Component(enabled = false, immediate = true, metatype = true)
+@Component(immediate = true, metatype = true)
 @Service
 public class TrustedAuthenticationServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory
@@ -115,10 +115,10 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     HttpSession session = req.getSession(true);
 
     TrustedAuthentication auth = (TrustedAuthentication) req
-        .getAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS);
+        .getAttribute(TrustedAuthenticationHandler.RA_AUTHENTICATION_TRUST);
     // check for authentication on request. if found, store on request
     if (auth != null && auth.isValid()) {
-      session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, auth
+      session.setAttribute(TrustedAuthenticationHandler.SA_AUTHENTICATION_CREDENTIALS, auth
           .getCredentials());
     }
     // if authentication missing or invalid in session, get the information from
@@ -126,7 +126,7 @@ public class TrustedAuthenticationServlet extends HttpServlet {
     else {
       Credentials cred = getCredentials(req);
       if (cred != null) {
-        session.setAttribute(TrustedAuthenticationHandler.USER_CREDENTIALS, cred);
+        session.setAttribute(TrustedAuthenticationHandler.SA_AUTHENTICATION_CREDENTIALS, cred);
       }
     }
 

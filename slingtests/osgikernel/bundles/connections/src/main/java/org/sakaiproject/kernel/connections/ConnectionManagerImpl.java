@@ -156,6 +156,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throws ConnectionException {
     Authorizable authorizable;
     try {
+      if ( "anonymous".equals(session.getUserID()) || "anonymous".equals(userId)  ) {
+        throw new ConnectionException(403, "Cant make a connection with anonymous.");       
+      }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
       if (authorizable != null && authorizable.getID().equals(userId)) {

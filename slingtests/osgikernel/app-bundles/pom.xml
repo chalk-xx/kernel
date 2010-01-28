@@ -291,6 +291,16 @@
       <artifactId>org.sakaiproject.kernel.batch</artifactId>
       <version>0.2-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.activity</artifactId>
+      <version>0.2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.content</artifactId>
+      <version>0.2-SNAPSHOT</version>
+    </dependency>
 
 <!-- spec bundles -->
     <dependency>
@@ -516,7 +526,7 @@
                   <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.files,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp,org.apache.felix.fileinstall</includeArtifactIds>
+                  <includeArtifactIds>org.sakaiproject.kernel.personal,org.sakaiproject.kernel.activity,org.sakaiproject.kernel.files,org.sakaiproject.kernel.uxloader,org.sakaiproject.kernel.lifecycle,org.sakaiproject.kernel.search,org.apache.sling.scripting.python,org.apache.sling.scripting.ruby,org.apache.sling.fsresource,org.sakaiproject.kernel.smtp,org.apache.felix.fileinstall,org.sakaiproject.kernel.content</includeArtifactIds>
                   <excludeTransitive>true</excludeTransitive>
                   <outputDirectory> ${project.build.outputDirectory}/resources/bundles/30
                   </outputDirectory>

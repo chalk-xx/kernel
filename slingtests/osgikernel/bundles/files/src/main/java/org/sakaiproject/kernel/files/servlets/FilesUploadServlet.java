@@ -120,7 +120,14 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String store = request.getResource().getPath();
+    if ( "anonymous".equals(session.getUserID()) ||"anonymous".equals(request.getRemoteUser()) ) {
+      response
+      .sendError(403,
+          "You must login to upload files");
+      return; 
+    }
     LOG.info("Attempted upload for " + session.getUserID() + " - " + request.getRemoteUser());
+    
 
     // If there is a link parameter provided than we will create a
     // link for each file under this path.

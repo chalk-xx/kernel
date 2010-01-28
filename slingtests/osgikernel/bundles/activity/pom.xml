@@ -106,31 +106,30 @@
     	<groupId>org.apache.sling</groupId>
     	<artifactId>org.apache.sling.api</artifactId>
     	<version>2.0.4-incubator</version>
-    	<type>bundle</type>
     </dependency>
-	<dependency>
-		<groupId>org.apache.felix</groupId>
-		<artifactId>org.apache.felix.scr.annotations</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.testutils</artifactId>
-		<version>0.2-SNAPSHOT</version>
-		<scope>test</scope>
-	</dependency>
-	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.doc</artifactId>
-		<version>0.2-SNAPSHOT</version>
-	</dependency>
-	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.site</artifactId>
-		<version>0.2-SNAPSHOT</version>
-	</dependency>
+    <dependency>
+       <groupId>org.apache.felix</groupId>
+       <artifactId>org.apache.felix.scr.annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <version>0.2-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <version>0.2-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.site</artifactId>
+      <version>0.2-SNAPSHOT</version>
+    </dependency>
 	
-	<!--  JMS/ActiveMQ -->
-	 <dependency>
+    <!--  JMS/ActiveMQ -->
+    <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
       <version>5.3.0-0.2-SNAPSHOT</version>

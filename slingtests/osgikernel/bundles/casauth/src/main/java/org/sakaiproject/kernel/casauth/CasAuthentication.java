@@ -36,7 +36,7 @@ public class CasAuthentication implements AuthenticationPlugin {
 
       Session session = null;
       try {
-        session = repository.loginAdministrative(null);
+        session = repository.loginAdministrative(null); // usage checked and ok KERN-577
 
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = userManager.getAuthorizable(principalName);
