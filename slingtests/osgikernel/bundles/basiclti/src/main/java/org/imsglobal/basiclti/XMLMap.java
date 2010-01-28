@@ -285,7 +285,6 @@ public class XMLMap {
 		NamedNodeMap nm = parentNode.getAttributes();
 
 		// Count the TextNodes
-		int nodeCount = 0;
 		String value = null;
 		
 		// Insert the text node if we find one
@@ -404,14 +403,16 @@ public class XMLMap {
         doDebug(d,"< recurse path="+path+" parentNode="+ nodeToString(parentNode));
 	}
 
-	public static String getXML(Map tm)
+	@SuppressWarnings("unchecked")
+  public static String getXML(Map tm)
 	{
 		Document document = getXMLDom(tm);
 		if ( document == null ) return null;
 		return documentToString(document, false);
 	}
 
-	public static String getXML(Map tm, boolean pretty)
+	@SuppressWarnings("unchecked")
+  public static String getXML(Map tm, boolean pretty)
 	{
 		Document document = getXMLDom(tm);
 		if ( document == null ) return null;
@@ -471,7 +472,7 @@ public class XMLMap {
 		return sb.toString();
 	}
 
-	public static Document getXMLDom(Map tm)
+	public static Document getXMLDom(Map<String, ?> tm)
 	{
 		if ( tm == null ) return null;
 		Document document = null;
@@ -505,13 +506,14 @@ public class XMLMap {
       <d>D1</d>
     </a>
 	 */
-	private static void iterateMap(Document document, Node parentNode, Map tm, int d)
+	@SuppressWarnings("unchecked")
+  private static void iterateMap(Document document, Node parentNode, Map<String, ?> tm, int d)
 	{
 		doDebug(d,"> IterateMap parentNode= "+ nodeToString(parentNode));
 		d++;
-		Iterator iter = tm.keySet().iterator();
+		Iterator<String> iter = tm.keySet().iterator();
 		while( iter.hasNext() ) {
-			String key = (String) iter.next();
+			String key = iter.next();
 			if ( key == null ) continue;
 			if ( ! key.startsWith("/") ) continue;  // Skip
 			Object obj = tm.get(key);
@@ -819,7 +821,8 @@ public class XMLMap {
 	 * /x/y    All of the children are removed and the node itself and
 	 *           any attributes are removed as well (typical case)
 	 */
-	public static void removeSubMap(Map tm, String selection)
+	@SuppressWarnings("unchecked")
+  public static void removeSubMap(Map tm, String selection)
 	{
 		if ( tm == null ) return;
 		selection = selection.trim();
@@ -895,14 +898,15 @@ public class XMLMap {
      *          	System.out.println("Site="+siteMap);
      *          }
      */
-	public static List<Map<String,Object>> getList(Map<String,Object> theMap,String key)
+	@SuppressWarnings("unchecked")
+  public static List<Map<String,Object>> getList(Map<String,Object> theMap,String key)
 	{
 		ArrayList<Map<String, Object>> al = new ArrayList<Map<String, Object>>();
 		if ( theMap == null || key == null ) return al;
 		
 		// If this is a nice little list of maps - we are golden - send the list back
 		Object obj = theMap.get(key);
-		if ( obj instanceof List ) return (List<Map<String,Object>>) obj;
+		if ( obj instanceof List<?> ) return (List<Map<String,Object>>) obj;
 		
 		// We may have a single String value - we may have a single terminal value
 		// perhaps with some attributes
@@ -1009,8 +1013,11 @@ public class XMLMap {
 	
 	public static void main(String[] args) {
 		System.out.println("Running XMLMap (www.mdom.org) unit tests..");
-		if ( !allUnitTests() ) return;
-		System.out.println("Unit tests passed...");
+    if (allUnitTests()) {
+      System.out.println("Unit tests passed...");
+    } else {
+      throw new Error("Unit tests failed!");
+    }
 		runSamples();
 	}
 	
