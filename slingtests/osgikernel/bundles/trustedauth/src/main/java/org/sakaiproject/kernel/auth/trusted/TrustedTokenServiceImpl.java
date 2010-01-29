@@ -162,16 +162,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       }
     } else {
       Cookie[] cookies = req.getCookies();
-      for (Cookie c : cookies) {
-        if (trustedAuthCookieName.equals(c.getName())) {
-          if (secureCookie && !c.getSecure()) {
-            continue;
-          }
-          String userId = decodeCookie(c.getValue());
-          if (userId != null) {
-            cred = createCredentials(userId);
-            refreshToken(response, c.getValue(), userId);
-            break;
+      if (cookies != null) {
+        for (Cookie c : cookies) {
+          if (trustedAuthCookieName.equals(c.getName())) {
+            if (secureCookie && !c.getSecure()) {
+              continue;
+            }
+            String userId = decodeCookie(c.getValue());
+            if (userId != null) {
+              cred = createCredentials(userId);
+              refreshToken(response, c.getValue(), userId);
+              break;
+            }
           }
         }
       }
@@ -273,8 +275,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     } else {
       long expires = System.currentTimeMillis() + ttl;
       String[] currentToken = getActiveToken();
-      
-      String cookePayload = currentToken[1]+expires + "@" + userId;
+
+      String cookePayload = currentToken[1] + expires + "@" + userId;
       String cookieValue = expires + ":" + currentToken[0] + ":" + userId;
       try {
         String cookie = sha1Hash(cookieValue) + "@" + cookePayload;
@@ -306,25 +308,25 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         int tokenNumber = Integer.parseInt(parts[1].substring(0, 1));
         long cookieTime = Long.parseLong(parts[1].substring(1));
         if (System.currentTimeMillis() < cookieTime) {
-            try {
-              String pastToken = getCurrentTokens()[tokenNumber];
-              String cookieValue = cookieTime + ":" + pastToken + ":" + parts[2];
-              if (parts[0].equals(sha1Hash(cookieValue))) {
-                return parts[2];
-              }
-            } catch (NoSuchAlgorithmException e) {
-              LOG.error(e.getMessage());
-            } catch (UnsupportedEncodingException e) {
-              LOG.error(e.getMessage());
-            } catch ( ArrayIndexOutOfBoundsException e ) {
-              LOG.error(e.getMessage());
+          try {
+            String pastToken = getCurrentTokens()[tokenNumber];
+            String cookieValue = cookieTime + ":" + pastToken + ":" + parts[2];
+            if (parts[0].equals(sha1Hash(cookieValue))) {
+              return parts[2];
             }
-          LOG.info("AuthNCookie is invalid {} ",value);
+          } catch (NoSuchAlgorithmException e) {
+            LOG.error(e.getMessage());
+          } catch (UnsupportedEncodingException e) {
+            LOG.error(e.getMessage());
+          } catch (ArrayIndexOutOfBoundsException e) {
+            LOG.error(e.getMessage());
+          }
+          LOG.info("AuthNCookie is invalid {} ", value);
         } else {
-          LOG.info("AuthNCookie has expired {} ",value);
+          LOG.info("AuthNCookie has expired {} ", value);
         }
       } else {
-        LOG.info("AuthNCookie is invalid format {} ",value);
+        LOG.info("AuthNCookie is invalid format {} ", value);
       }
     }
     return null;
@@ -357,7 +359,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       currentTokens[nextToken] = newToken;
       currentToken = nextToken;
     }
-    return new String[] { currentTokens[currentToken], String.valueOf(currentToken)};
+    return new String[] { currentTokens[currentToken], String.valueOf(currentToken) };
   }
 
   /**
