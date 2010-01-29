@@ -81,7 +81,7 @@ public class TrustedTokenServiceTest  {
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
     dict.put(TrustedTokenServiceImpl.USE_SESSION, false);
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
-    dict.put(TrustedTokenServiceImpl.TTL, 10L);
+    dict.put(TrustedTokenServiceImpl.TTL, 100L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
@@ -92,10 +92,23 @@ public class TrustedTokenServiceTest  {
     ComponentContext context = configureForCookie();
     replay();
     trustedTokenService.activate(context);        
+    
     String cookie = trustedTokenService.encodeCookie("ieb");
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNotNull(user);
     Assert.assertEquals("ieb", user);
+    
+    long start = System.currentTimeMillis();
+    for ( int i = 0; i < 1000;i++ ) {
+      cookie = trustedTokenService.encodeCookie("ieb");
+    }
+    System.err.println("Encode Time "+(System.currentTimeMillis()-start));
+    start = System.currentTimeMillis();
+    for ( int i = 0; i < 1000;i++ ) {
+      user = trustedTokenService.decodeCookie(cookie);
+    }
+    System.err.println("Decode Time "+(System.currentTimeMillis()-start));
+    
     verify();
   }
   
@@ -139,9 +152,10 @@ public class TrustedTokenServiceTest  {
     replay();
     trustedTokenService.activate(context);        
     String cookie = trustedTokenService.encodeCookie("ieb");
-    String[] parts = StringUtils.split(cookie,";");
+    System.err.println("Cookie is "+cookie);
+    String[] parts = StringUtils.split(cookie,"@");
     parts[1] = String.valueOf(System.currentTimeMillis()-3600000L);
-    cookie = parts[0]+";"+parts[1]+";"+parts[2];
+    cookie = parts[0]+"@"+parts[1]+"@"+parts[2];
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNull(user);
     verify();
@@ -154,7 +168,7 @@ public class TrustedTokenServiceTest  {
     replay();
     trustedTokenService.activate(context);        
     String cookie = trustedTokenService.encodeCookie("ieb");
-    Thread.sleep(5L);
+    Thread.sleep(30L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNotNull(user);
@@ -163,7 +177,7 @@ public class TrustedTokenServiceTest  {
     Assert.assertNotNull(user);
     Assert.assertEquals("ieb2", user);
     for ( int i = 0; i < 20; i++) {
-      Thread.sleep(5L);
+      Thread.sleep(50L);
       trustedTokenService.encodeCookie("ieb2");
     }
     verify();
@@ -180,7 +194,7 @@ public class TrustedTokenServiceTest  {
     replay();
     trustedTokenService.activate(context);        
     String cookie = trustedTokenService.encodeCookie("ieb");
-    Thread.sleep(10L);
+    Thread.sleep(100L);
     trustedTokenService.refreshToken(response, cookie, "ieb");
     Assert.assertTrue(cookieCapture.hasCaptured());
     Cookie cookie2 = cookieCapture.getValue();
