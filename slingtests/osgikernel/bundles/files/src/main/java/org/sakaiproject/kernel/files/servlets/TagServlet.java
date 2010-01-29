@@ -66,8 +66,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
 
     String selector = request.getRequestPathInfo().getSelectorString();
     JSONWriter write = new JSONWriter(response.getWriter());
@@ -97,9 +97,8 @@ public class TagServlet extends SlingSafeMethodsServlet {
    * @throws JSONException
    * @throws SearchException
    */
-  protected void sendFiles(Node tag, SlingHttpServletRequest request,
-      JSONWriter write) throws RepositoryException, JSONException,
-      SearchException {
+  protected void sendFiles(Node tag, SlingHttpServletRequest request, JSONWriter write)
+      throws RepositoryException, JSONException, SearchException {
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
     String uuid = tag.getUUID();

@@ -17,16 +17,21 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import static org.sakaiproject.kernel.api.files.FilesConstants.REQUIRED_MIXIN;
+import static org.sakaiproject.kernel.api.files.FilesConstants.RT_SAKAI_LINK;
+import static org.sakaiproject.kernel.api.files.FilesConstants.SAKAI_LINK;
+
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.NonExistingResource;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
@@ -34,14 +39,15 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
-import org.sakaiproject.kernel.api.files.FileUtils;
-import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.api.site.SiteService;
+import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 import javax.jcr.Node;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
@@ -50,47 +56,19 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Create an interal jcr link to a file.
  */
-@SlingServlet(methods = { "POST" }, selectors = { "link" }, resourceTypes = { "sakai/file" })
+@SlingServlet(methods = { "POST" }, selectors = { "link" }, resourceTypes = { "sling/servlet/default" })
 @Properties(value = {
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(
-    name = "FileCreateLinkServlet", 
-    shortDescription = "Create an interal jcr link to a file.",
-    bindings = @ServiceBinding(
-        type = BindingType.TYPE,
-        selectors = @ServiceSelector(name="link", description = "Create an interal jcr link to a file."),
-        bindings = "sakai/file"
-    ),
-    methods = {@ServiceMethod(
-        name = "POST", 
-        description = "Create one or more links for a file.",
-        parameters = {
-            @ServiceParameter(
-                name="link", 
-                description="Required: absolute path where you want to create a link for the file. " +
-                		"This can be multivalued. It has to be the same size as the site parameter though."),
-            @ServiceParameter(
-                name="site", 
-                description="Required: absolute path to a site that should be associated with this file. " +
-                		"This can be multivalued. It has to be the same size as the link parameter though.")
-        },
-        response = {
-            @ServiceResponse(
-                code = 200, 
-                description = "Everything went OK.<br />" +
-                    "The body will also contain a JSON response that lists all the links and if they were sucesfully created or not."),
-            @ServiceResponse(
-                code = 400,
-                description = "Filedata parameter was not provided."
-            ),
-            @ServiceResponse(
-                code = 500,
-                description = "Failure with HTML explanation."
-            )
-        }
-    )}
-)
+@ServiceDocumentation(name = "FileCreateLinkServlet", shortDescription = "Create an interal jcr link to a file.", bindings = @ServiceBinding(type = BindingType.TYPE, selectors = @ServiceSelector(name = "link", description = "Create an interal jcr link to a file."), bindings = "sakai/file"), methods = { @ServiceMethod(name = "POST", description = "Create one or more links for a file.", parameters = {
+    @ServiceParameter(name = "link", description = "Required: absolute path where you want to create a link for the file. "
+        + "This can be multivalued. It has to be the same size as the site parameter though."),
+    @ServiceParameter(name = "site", description = "Required: absolute path to a site that should be associated with this file. "
+        + "This can be multivalued. It has to be the same size as the link parameter though.") }, response = {
+    @ServiceResponse(code = 200, description = "Everything went OK.<br />"
+        + "The body will also contain a JSON response that lists all the links and if they were sucesfully created or not."),
+    @ServiceResponse(code = 400, description = "Filedata parameter was not provided."),
+    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }) })
 public class FileCreateLinkServlet extends SlingAllMethodsServlet {
 
   public static final Logger log = LoggerFactory.getLogger(FileCreateLinkServlet.class);
@@ -99,61 +77,101 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
   private static final String SITE_PARAM = "site";
 
   @Reference
-  private transient SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
+  @Reference
+  protected transient SiteService siteService;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
 
-    String[] sites = request.getParameterValues(SITE_PARAM);
-    String[] links = request.getParameterValues(LINK_PARAM);
-    if (sites == null || links == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "A site and link parameter have to be provided.");
+    String link = request.getParameter(LINK_PARAM);
+    String site = request.getParameter(SITE_PARAM);
+    Resource resource = request.getResource();
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+
+    if ("anon".equals(request.getRemoteUser())) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+          "Anonymous users can't link things.");
       return;
     }
-    if (sites.length != links.length) {
+    if (link == null) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-          "The site parameter's length doesn't match with the link's parameter length.");
+          "A link parameter has to be provided.");
       return;
+    }
+    if (resource == null || resource instanceof NonExistingResource) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "The link operation can't be done on NonExisting Resources.");
+      return;
+    }
+
+    if (site != null) {
+      try {
+        Node siteNode = (Node) session.getItem(site);
+        if (siteNode == null || !siteService.isSite(siteNode)) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+              "The site parameter doesn't point to a valid site.");
+          return;
+        }
+      } catch (RepositoryException e) {
+        // We assume it went wrong because of a bad parameter.
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "The site parameter doesn't point to a valid site.");
+        return;
+      }
+
     }
 
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      Node fileNode = request.getResource().adaptTo(Node.class);
-      String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
-      JSONWriter write = new JSONWriter(response.getWriter());
-      write.array();
-      for (int i = 0; i < links.length; i++) {
-        String link = links[i];
-        if (!link.endsWith("/")) {
-          link += "/";
-        }
-        link += fileName;
-
-        String site = sites[i];
-        write.object();
-        write.key("link");
-        write.value(link);
+      Node node = resource.adaptTo(Node.class);
+      boolean hasMixin = JcrUtils.hasMixin(node, REQUIRED_MIXIN);
+      if (!hasMixin || site != null) {
+        // The required mixin is not on the node.
+        // Set it.
+        Session adminSession = null;
         try {
-          String linkPath = FileUtils.createLink(session, fileNode, link, site,
-              slingRepository);
-          write.key("path");
-          write.value(linkPath);
-          write.key("succes");
-          write.value(true);
-        } catch (RepositoryException e) {
-          e.printStackTrace();
-          write.key("succes");
-          write.value(false);
+          adminSession = slingRepository.loginAdministrative(null);
+
+          // Grab the node via the adminSession
+          String path = resource.getPath();
+          Node adminNode = (Node) adminSession.getItem(path);
+          if (!hasMixin) {
+            adminNode.addMixin(REQUIRED_MIXIN);
+          }
+
+          // Used in a site.
+          if (site != null) {
+            JcrUtils.addUniqueValue(adminSession, adminNode, "sakai:sites", site,
+                PropertyType.STRING);
+          }
+
+          if (adminSession.hasPendingChanges()) {
+            adminSession.save();
+          }
+        } finally {
+          adminSession.logout();
         }
-        write.endObject();
       }
-      write.endArray();
-    } catch (JSONException ex) {
-      response.sendError(500, "Could not write JSON response.");
+
+      // Now that the file is referenceable, it has a uuid.
+      // Use it for the link.
+      // Grab the (updated) node via the user's session id.
+      node = (Node) session.getItem(node.getPath());
+
+      // Create the link
+      Node linkNode = JcrUtils.deepGetOrCreateNode(session, link);
+      linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          RT_SAKAI_LINK);
+      linkNode.setProperty(SAKAI_LINK, node.getUUID());
+
+      // Save link.
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+
     } catch (RepositoryException e) {
-      response.sendError(500, "Unable to get filename");
+      log.warn("Failed to create a link.", e);
     }
   }
 }

@@ -85,6 +85,10 @@ public interface FilesConstants {
   public static final String SAKAI_LINK = "sakai:link";
 
   /**
+   * The mixin required on the node to do a tag.
+   */
+  public static final String REQUIRED_MIXIN = "sakai:propertiesmix";
+  /**
    * FileHandlerProcessor
    */
   public static final String LINK_HANDLER = "LinkHandler";
