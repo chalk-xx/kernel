@@ -20,6 +20,7 @@ package org.sakaiproject.kernel.basiclti;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_ID;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_LABEL;
 import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_TITLE;
+import static org.imsglobal.basiclti.BasicLTIConstants.CONTEXT_TYPE;
 import static org.imsglobal.basiclti.BasicLTIConstants.LAUNCH_PRESENTATION_DOCUMENT_TARGET;
 import static org.imsglobal.basiclti.BasicLTIConstants.LAUNCH_PRESENTATION_LOCALE;
 import static org.imsglobal.basiclti.BasicLTIConstants.LIS_PERSON_CONTACT_EMAIL_PRIMARY;
@@ -48,6 +49,8 @@ import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_
 import static org.sakaiproject.kernel.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
+import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -67,13 +70,17 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
 
+import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFormatException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -138,6 +145,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .adaptTo(Session.class);
     try {
       // TODO this is commented out just for quick testing workaround
+      final String vtoolId = "basiclti";
       // if (!node.hasProperty(LTI_VTOOL_ID)) {
       // sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_VTOOL_ID
       // + " cannot be null", new IllegalArgumentException(LTI_VTOOL_ID
@@ -145,7 +153,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // return;
       // }
       // final String vtoolId = node.getProperty(LTI_VTOOL_ID).getString();
-      final String vtoolId = "basiclti";
 
       final String adminNodePath = ADMIN_CONFIG_PATH + "/" + vtoolId;
       Map<String, String> adminSettings = null;
@@ -157,7 +164,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         adminSettings = new HashMap<String, String>((int) api.getSize());
         while (api.hasNext()) {
           final Property property = api.nextProperty();
-          LOG.info("admin: " + property.getName() + "="
+          LOG.info("adminSettings: " + property.getName() + "="
               + property.getValue().getString());
           adminSettings
               .put(property.getName(), property.getValue().getString());
@@ -176,9 +183,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           (int) upi.getSize());
       while (upi.hasNext()) {
         final Property property = upi.nextProperty();
-        LOG.info("user: " + property.getName() + "="
+        LOG.info("userSettings: " + property.getName() + "="
             + property.getValue().getString());
-        userSettings.put(property.getName(), property.getValue().getString());
+        userSettings.put(property.getName(), property.getString());
       }
 
       // merge admin and user properties
@@ -189,7 +196,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
             userSettings);
       }
 
-      final Properties launchProps = new Properties();
+      final Map<String, String> launchProps = new HashMap<String, String>();
 
       // LTI_URL
       final String ltiUrl = effectiveSettings.get(LTI_URL);
@@ -215,11 +222,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
             + " cannot be null"), response);
         return;
       }
-      // TODO verify with Dr. Chuck that this key does not need to be
-      // reversible.
+
       // e.g. /sites/foo/_widgets/id944280073/basiclti
-      launchProps.setProperty(RESOURCE_LINK_ID, StringUtils.sha1Hash(node
-          .getPath()));
+      launchProps.put(RESOURCE_LINK_ID, node.getPath());
 
       final UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable az = userManager.getAuthorizable(session.getUserID());
@@ -227,13 +232,35 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final boolean releasePrincipal = Boolean.parseBoolean(effectiveSettings
           .get(RELEASE_PRINCIPAL_NAME));
       if (releasePrincipal) {
-        launchProps.setProperty(USER_ID, az.getID());
+        launchProps.put(USER_ID, az.getID());
       }
+
+      final Node siteNode = findSiteNode(node);
+      // FIXME remove sha1 hashing (work around for suspect s2 producer bug)
+      launchProps.put(CONTEXT_ID, StringUtils.sha1Hash(siteNode.getPath()));
+      launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
+      launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
+
+      // TODO how to determine site type?
+      // CourseSection probably satisfies 90% of our use cases.
+      // Maybe Group should be used for project sites?
+      launchProps.put(CONTEXT_TYPE, "CourseSection");
+
       // FIXME need to pull roles from system
-      if ("admin".equals(session.getUserID())) {
-        launchProps.setProperty(ROLES, "Instructor");
+      final AccessControlManager accessControlManager = AccessControlUtil
+          .getAccessControlManager(session);
+      final Privilege[] modifyACLs = { accessControlManager
+          .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL) };
+      // TODO replace with real site path
+      boolean canManageSite = accessControlManager.hasPrivileges("/sites/foo",
+          modifyACLs);
+      LOG.info("hasPrivileges(modifyAccessControl)=" + canManageSite);
+      if ("anonymous".equals(session.getUserID())) {
+        launchProps.put(ROLES, "None");
+      } else if (canManageSite) {
+        launchProps.put(ROLES, "Instructor");
       } else {
-        launchProps.setProperty(ROLES, "Learner");
+        launchProps.put(ROLES, "Learner");
       }
 
       final boolean releaseNames = Boolean.parseBoolean(effectiveSettings
@@ -242,12 +269,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         String firstName = null;
         if (az.hasProperty("firstName")) {
           firstName = az.getProperty("firstName")[0].getString();
-          launchProps.setProperty(LIS_PERSON_NAME_GIVEN, firstName);
+          launchProps.put(LIS_PERSON_NAME_GIVEN, firstName);
         }
         String lastName = null;
         if (az.hasProperty("lastName")) {
           lastName = az.getProperty("lastName")[0].getString();
-          launchProps.setProperty(LIS_PERSON_NAME_FAMILY, lastName);
+          launchProps.put(LIS_PERSON_NAME_FAMILY, lastName);
         }
         StringBuilder sb = new StringBuilder();
         if (firstName != null) {
@@ -260,7 +287,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         final String fullName = sb.toString();
         if (firstName != null || lastName != null) {
           // only if at least one name is not null
-          launchProps.setProperty(LIS_PERSON_NAME_FULL, fullName);
+          launchProps.put(LIS_PERSON_NAME_FULL, fullName);
         }
       }
 
@@ -269,57 +296,36 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (releaseEmail) {
         if (az.hasProperty("email")) {
           final String email = az.getProperty("email")[0].getString();
-          launchProps.setProperty(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
+          launchProps.put(LIS_PERSON_CONTACT_EMAIL_PRIMARY, email);
         }
       }
 
-      Node traversalNode = node;
-      while (traversalNode.getDepth() != 0) {
-        if (traversalNode.hasProperty("sling:resourceType")) {
-          if ("sakai/site".equals(traversalNode.getProperty(
-              "sling:resourceType").getString())) {
-            // found the parent site node
-            launchProps.setProperty(CONTEXT_ID, traversalNode.getPath());
-            launchProps.setProperty(CONTEXT_TITLE, traversalNode.getProperty(
-                "name").getString());
-            launchProps.setProperty(CONTEXT_LABEL, traversalNode.getProperty(
-                "id").getString());
-            break;
-          }
-        }
-        traversalNode = traversalNode.getParent();
-      }
-
-      // TODO how to determine site type?
-      // launchProps.setProperty("context_type", "CourseSection");
-
-      launchProps.setProperty(LAUNCH_PRESENTATION_LOCALE, request.getLocale()
+      launchProps.put(LAUNCH_PRESENTATION_LOCALE, request.getLocale()
           .toString());
 
       // we will always launch in an iframe for the time being
-      launchProps.setProperty(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
+      launchProps.put(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
 
       final boolean debug = Boolean.parseBoolean(effectiveSettings.get(DEBUG));
       // might be useful for the remote end to know if debug is enabled...
-      launchProps.setProperty(DEBUG, "" + debug);
+      launchProps.put(DEBUG, "" + debug);
 
       // TODO required to pass certification test suite
-      launchProps.setProperty("simple_key", "custom_simple_value");
-      launchProps.setProperty("Complex!@#$^*(){}[]KEY",
-          "Complex!@#$^*(){}[]Value");
+      launchProps.put("simple_key", "custom_simple_value");
+      launchProps.put("Complex!@#$^*(){}[]KEY", "Complex!@#$^*(){}[]Value");
 
       // TODO remove debug output
-      for (final Entry<Object, Object> entry : launchProps.entrySet()) {
+      for (final Entry<String, String> entry : launchProps.entrySet()) {
         LOG.info("launchProps: " + entry.getKey() + "=" + entry.getValue());
       }
-      final Properties cleanProps = BasicLTIUtil.cleanupProperties(launchProps,
-          BLACKLIST);
+      final Map<String, String> cleanProps = BasicLTIUtil.cleanupProperties(
+          launchProps, BLACKLIST);
       // TODO remove debug output
-      for (final Entry<Object, Object> entry : cleanProps.entrySet()) {
+      for (final Entry<String, String> entry : cleanProps.entrySet()) {
         LOG.info("cleanProps: " + entry.getKey() + "=" + entry.getValue());
       }
       // TODO externalize these parameters
-      final Properties signedProperties = BasicLTIUtil.signProperties(
+      final Map<String, String> signedProperties = BasicLTIUtil.signProperties(
           cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, "sakaiproject.org",
           "Sakai", "http://sakaiproject.org");
       final String extension = request.getRequestPathInfo().getExtension();
@@ -337,7 +343,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   private void renderJson(final Writer pwriter, final String ltiUrl,
-      final Properties properties) throws JSONException {
+      final Map<String, String> properties) throws JSONException {
     final ExtendedJSONWriter writer = new ExtendedJSONWriter(pwriter);
     writer.object(); // root object
     writer.key("launchURL");
@@ -346,7 +352,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     writer.object();
     for (final Object propkey : properties.keySet()) {
       writer.key((String) propkey);
-      writer.value(properties.getProperty((String) propkey));
+      writer.value(properties.get((String) propkey));
     }
     writer.endObject(); // postData
     writer.endObject(); // root object
@@ -377,6 +383,37 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
     }
     return;
+  }
+
+  /**
+   * Utility method to start walking back up the hierarchy looking for the
+   * containing Site node. If the Site node cannot be found, null is returned.
+   * 
+   * @param startingNode
+   * @return The containing Site node if found else return null.
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws ItemNotFoundException
+   * @throws AccessDeniedException
+   * @throws RepositoryException
+   */
+  private Node findSiteNode(final Node startingNode)
+      throws ValueFormatException, PathNotFoundException,
+      ItemNotFoundException, AccessDeniedException, RepositoryException {
+    Node returnNode = null;
+    Node traversalNode = startingNode;
+    while (traversalNode.getDepth() != 0) {
+      if (traversalNode.hasProperty("sling:resourceType")) {
+        if ("sakai/site".equals(traversalNode.getProperty("sling:resourceType")
+            .getString())) {
+          // found the parent site node
+          returnNode = traversalNode;
+          break;
+        }
+      }
+      traversalNode = traversalNode.getParent();
+    }
+    return returnNode;
   }
 
   private void sendError(int errorCode, String message, Throwable exception,
