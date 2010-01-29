@@ -69,9 +69,9 @@ public class HttpMessageDecoder extends HttpResponseMessage {
         removeHeaders(CONTENT_LENGTH); // unpredictable
         InputStream body = in.getBody();
         if (body != null) {
-            if (encoding == GZIP) {
+            if (GZIP.equals(encoding)) {
                 body = new GZIPInputStream(body);
-            } else if (encoding == DEFLATE) {
+            } else if (DEFLATE.equals(encoding)) {
                 body = new InflaterInputStream(body);
             } else {
                 assert false;

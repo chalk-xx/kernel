@@ -68,6 +68,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -307,13 +308,15 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       launchProps.setProperty("Complex!@#$^*(){}[]KEY",
           "Complex!@#$^*(){}[]Value");
 
-      for (final Object key : launchProps.keySet()) {
-        LOG.info("launchProps: " + key + "=" + launchProps.get(key));
+      // TODO remove debug output
+      for (final Entry<Object, Object> entry : launchProps.entrySet()) {
+        LOG.info("launchProps: " + entry.getKey() + "=" + entry.getValue());
       }
       final Properties cleanProps = BasicLTIUtil.cleanupProperties(launchProps,
           BLACKLIST);
-      for (final Object key : cleanProps.keySet()) {
-        LOG.info("cleanProps: " + key + "=" + cleanProps.get(key));
+      // TODO remove debug output
+      for (final Entry<Object, Object> entry : cleanProps.entrySet()) {
+        LOG.info("cleanProps: " + entry.getKey() + "=" + entry.getValue());
       }
       // TODO externalize these parameters
       final Properties signedProperties = BasicLTIUtil.signProperties(
@@ -327,7 +330,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       } else { // return json
         renderJson(response.getWriter(), ltiUrl, signedProperties);
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getLocalizedMessage(), e, response);
     }

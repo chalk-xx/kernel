@@ -182,6 +182,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -216,25 +217,25 @@ public class XMLMap {
 		return flattenMap(tm);
 	}
 	
-	public static Map<String,String> flattenMap(Map<String,Object> theMap)
-	{
-		if ( theMap == null ) return null;
-		// Reduce to the first column of elements for the simple return value
-		TreeMap<String,String> retval = new TreeMap<String, String> ();
-		Iterator<String> iter = theMap.keySet().iterator();
-		while( iter.hasNext() ) {
-			String key = iter.next();
-			Object value = theMap.get(key);
-			// No need to handle String[] - because they will not
-			// be stored when doFull == false
-			if ( value instanceof String ) {
-				String svalue = (String) value;
-				// doDebug(d,key+" = " + value);
-				if ( value != null ) retval.put(key,svalue);
-			}
-		}
-		return retval;
-	}
+  public static Map<String, String> flattenMap(Map<String, Object> theMap) {
+    if (theMap == null)
+      return null;
+    // Reduce to the first column of elements for the simple return value
+    TreeMap<String, String> retval = new TreeMap<String, String>();
+    for (final Entry<String, Object> entry : theMap.entrySet()) {
+      String key = entry.getKey();
+      Object value = entry.getValue();
+      // No need to handle String[] - because they will not
+      // be stored when doFull == false
+      if (value instanceof String) {
+        String svalue = (String) value;
+        // doDebug(d,key+" = " + value);
+        if (value != null)
+          retval.put(key, svalue);
+      }
+    }
+    return retval;
+  }
 
 	public static Map<String,Object> getFullMap(Document doc)
 	{
@@ -344,7 +345,7 @@ public class XMLMap {
 			Node node = nl.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE ) {
 				Integer count = childMap.get(node.getNodeName());
-				if ( count == null ) count = new Integer(0);
+				if ( count == null ) count = Integer.valueOf(0);
 				count = count + 1;
 				// Insert or Replace
 				childMap.put(node.getNodeName(), count);
@@ -542,7 +543,7 @@ public class XMLMap {
 					Object listObj = listIter.next();
 					doDebug(d,"Processing List element@"+newPos+" "+listObj.getClass().getName());
 					if ( listObj instanceof String ) {
-						storeInDom(document, parentNode, key, (String) obj, newPos, d);
+						storeInDom(document, parentNode, key, (String) listObj, newPos, d);
 						newPos++;
 					} if ( listObj instanceof Map ) {
 						Map subMap = (Map) listObj;
