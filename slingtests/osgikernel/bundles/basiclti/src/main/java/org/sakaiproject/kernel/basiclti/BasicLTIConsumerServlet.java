@@ -293,8 +293,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // TODO how to determine site type?
       // launchProps.setProperty("context_type", "CourseSection");
 
-      // TODO how to determine user's locale?
-      launchProps.setProperty(LAUNCH_PRESENTATION_LOCALE, "en_US");
+      launchProps.setProperty(LAUNCH_PRESENTATION_LOCALE, request.getLocale()
+          .toString());
 
       // we will always launch in an iframe for the time being
       launchProps.setProperty(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
@@ -303,7 +303,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       // might be useful for the remote end to know if debug is enabled...
       launchProps.setProperty(DEBUG, "" + debug);
 
-      // required to pass certification test suite
+      // TODO required to pass certification test suite
       launchProps.setProperty("simple_key", "custom_simple_value");
       launchProps.setProperty("Complex!@#$^*(){}[]KEY",
           "Complex!@#$^*(){}[]Value");
