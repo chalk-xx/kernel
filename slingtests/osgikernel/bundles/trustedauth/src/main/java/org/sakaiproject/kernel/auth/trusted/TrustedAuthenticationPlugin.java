@@ -8,7 +8,7 @@ import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
 
-public class TrustedAuthenticationPlugin implements AuthenticationPlugin {
+public final class TrustedAuthenticationPlugin implements AuthenticationPlugin {
   private final Principal principal;
 
   public TrustedAuthenticationPlugin(Principal principal) {
