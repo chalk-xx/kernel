@@ -58,6 +58,14 @@ public interface FilesConstants {
    * sakai:tags
    */
   public static final String SAKAI_TAGS = "sakai:tags";
+  /**
+   * sakai:tag-uuid
+   */
+  public static final String SAKAI_TAG_UUIDS = "sakai:tag-uuid";
+  /**
+   * sakai:tag-name - Intended to identify the name of a tag
+   */
+  public static final String SAKAI_TAG_NAME = "sakai:tag-name";
 
   /**
    * sakai:file

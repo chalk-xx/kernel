@@ -26,8 +26,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultSet;
 import org.sakaiproject.kernel.api.site.SiteService;
@@ -146,7 +145,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
     write.key("parent");
     try {
       Node parent = tag.getParent();
-      if (isTag(parent)) {
+      if (FileUtils.isTag(parent)) {
         sendParents(parent, write);
       } else {
         write.value(false);
@@ -182,27 +181,12 @@ public class TagServlet extends SlingSafeMethodsServlet {
     NodeIterator iterator = tag.getNodes();
     while (iterator.hasNext()) {
       Node node = iterator.nextNode();
-      if (isTag(node)) {
+      if (FileUtils.isTag(node)) {
         sendChildren(node, write);
       }
     }
     write.endArray();
     write.endObject();
 
-  }
-
-  /**
-   * @param node
-   *          The node to check if it is a tag.
-   * @return true if the node is a tag, false if it is not.
-   * @throws RepositoryException
-   */
-  protected boolean isTag(Node node) throws RepositoryException {
-    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
-            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
-      return true;
-    }
-    return false;
   }
 }
