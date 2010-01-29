@@ -21,7 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.sakaiproject.kernel.auth.trusted.TrustedTokenService.TrustedUser;
+import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
 import java.security.Principal;
 import java.util.Map;
@@ -60,6 +60,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
    * {@inheritDoc}
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#addPrincipals(java.util.Set)
    */
+  @SuppressWarnings("unchecked")
   public void addPrincipals(Set principals) {
     // Since this plugin is a service, how can principals be added. Login modules are not normally services, perhapse this shoud not be one.
     // TODO Auto-generated method stub

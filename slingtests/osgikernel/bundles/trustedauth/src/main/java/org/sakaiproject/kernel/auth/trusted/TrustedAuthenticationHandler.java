@@ -121,7 +121,9 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    trustedTokenService.dropCredentials(request,response);
+    if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
+      ((TrustedTokenServiceImpl) trustedTokenService).dropCredentials(request,response);
+    }
     request.setAttribute(RA_AUTHENTICATION_INFO, null);
     request.setAttribute(RA_AUTHENTICATION_TRUST, null);
 
@@ -152,7 +154,11 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
     private TrustedAuthentication(HttpServletRequest req, HttpServletResponse response) {
       // This is placed here by the TrustedAuthenticationServlet, that will be in the same
       // web container as Sling and so sharing a session.
-      cred = trustedTokenService.getCredentials(req, response);
+      if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
+        cred = ((TrustedTokenServiceImpl) trustedTokenService).getCredentials(req, response);
+      } else {
+        cred = null;
+      }
 
     }
 

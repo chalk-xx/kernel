@@ -24,7 +24,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.kernel.auth.trusted.TrustedTokenService.TrustedUser;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -45,22 +44,22 @@ import javax.servlet.http.HttpSession;
  *
  */
 public class TrustedLoginModulePluginTest {
-  private TrustedTokenService trustedTokenService;
+  private TrustedTokenServiceImpl trustedTokenService;
   private List<Object> mocks = new ArrayList<Object>();
 
   @Before
   public void before() throws NoSuchAlgorithmException {
     mocks.clear();
-    trustedTokenService = new TrustedTokenService();
+    trustedTokenService = new TrustedTokenServiceImpl();
   }
   
   public ComponentContext configureForSession() {
     ComponentContext context = createMock(ComponentContext.class);
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
-    dict.put(TrustedTokenService.USE_SESSION, true);
-    dict.put(TrustedTokenService.COOKIE_NAME, "secure-cookie");
-    dict.put(TrustedTokenService.TTL, 1200000L);
-    dict.put(TrustedTokenService.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.USE_SESSION, true);
+    dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
+    dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
+    dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }

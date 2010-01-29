@@ -76,7 +76,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   private transient WebContainer webContainer;
 
   @Reference
-  protected TrustedTokenService trustedTokenService;
+  protected transient TrustedTokenService trustedTokenService;
 
   /** The registration path for this servlet. */
   private String registrationPath;
@@ -112,7 +112,8 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
-    trustedTokenService.injectToken(req,resp);
+    if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
+      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req,resp);
 
     String destination = req.getParameter(PARAM_DESTINATION);
     
@@ -121,6 +122,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
     }
     // ensure that the redirect is safe and not susceptible to 
     resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+    }
   }
 
 

@@ -1,6 +1,6 @@
 package org.sakaiproject.kernel.auth.trusted;
 
-import org.sakaiproject.kernel.auth.trusted.TrustedTokenService.TrustedUser;
+import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
 import java.security.Principal;
 
