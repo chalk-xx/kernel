@@ -23,12 +23,12 @@
     <parent>
         <groupId>org.sakaiproject.kernel</groupId>
         <artifactId>base</artifactId>
-        <version>0.2-SNAPSHOT</version>
+        <version>0.2</version>
     </parent>
 
     <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
     <packaging>jar</packaging>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
 
     <name>Apache Sling Launchpad Bundles Collection customised for Sakai</name>
     <description>

@@ -4,11 +4,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.email.outgoing</artifactId>
   <packaging>bundle</packaging>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2</version>
   <name>Sakai Kernel Outgoing Email Sender</name>
   <description>Delivers messages from JCR outboxes to SMTP</description>
   <build>
@@ -44,24 +44,24 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
-      <version>5.3.0-0.2-SNAPSHOT</version>
+      <version>5.3.0-0.2</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.messaging</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.2</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.2</version>
       <type>bundle</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
-      <version>0.2-SNAPSHOT</version>
+      <version>0.2</version>
       <type>bundle</type>
       <scope>provided</scope>
     </dependency>
