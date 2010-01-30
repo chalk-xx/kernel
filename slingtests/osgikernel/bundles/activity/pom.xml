@@ -16,11 +16,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2</version>
+    <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.activity</artifactId>
   <packaging>bundle</packaging>
-  <version>0.2</version>
+  <version>0.2-SNAPSHOT</version>
   <name>Sakai Kernel Activity Bundle</name>
   <description>Provides activity creation, and aggregation capabilities.</description>
   <build>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.session</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -59,22 +59,22 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.resource</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.connections</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>    
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -114,25 +114,25 @@
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.testutils</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.doc</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.site</artifactId>
-      <version>0.2</version>
+      <version>0.2-SNAPSHOT</version>
     </dependency>
 	
     <!--  JMS/ActiveMQ -->
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.activemq</artifactId>
-      <version>5.3.0-0.2</version>
+      <version>5.3.0-0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
