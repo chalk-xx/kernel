@@ -7615,3 +7615,1545 @@ javax.xml.stream.XMLStreamException: Trying to write END_DOCUMENT when document 
 	at org.mortbay.thread.QueuedThreadPool$PoolThread.run(QueuedThreadPool.java:520)
 30.01.2010 09:07:17.556 *INFO* [0:0:0:0:0:0:0:1%0 [1264842437494] POST /test/authztest/node1264842436/childnode.html HTTP/1.1] logs/request.log 30/Jan/2010:09:07:17 +0000 [977] <- 500 text/html 62ms
 30.01.2010 09:07:17.556 *INFO* [0:0:0:0:0:0:0:1%0 [1264842437494] POST /test/authztest/node1264842436/childnode.html HTTP/1.1] logs/access.log 0:0:0:0:0:0:0:1%0 - user2-1264842436 30/Jan/2010:09:07:17 +0000 "POST /test/authztest/node1264842436/childnode.html HTTP/1.1" 500 2524 "-" "-"
+30.01.2010 09:14:10.900 *INFO* [0:0:0:0:0:0:0:1%0 [1264842850900] GET /index.html HTTP/1.1] logs/request.log 30/Jan/2010:09:14:10 +0000 [978] -> GET /index.html HTTP/1.1
+30.01.2010 09:14:10.946 *INFO* [0:0:0:0:0:0:0:1%0 [1264842850900] GET /index.html HTTP/1.1] logs/request.log 30/Jan/2010:09:14:10 +0000 [978] <- 200 text/html 46ms
+30.01.2010 09:14:10.946 *INFO* [0:0:0:0:0:0:0:1%0 [1264842850900] GET /index.html HTTP/1.1] logs/access.log 0:0:0:0:0:0:0:1%0 - anonymous 30/Jan/2010:09:14:10 +0000 "GET /index.html HTTP/1.1" 200 3122 "-" "curl/7.19.4 (universal-apple-darwin10.0) libcurl/7.19.4 OpenSSL/0.9.8l zlib/1.2.3"
+30.01.2010 09:14:19.246 *INFO* [ActiveMQ ShutdownHook] org.apache.activemq.broker.BrokerService ActiveMQ Message Broker (localhost, ID:x43543-2.local-53245-1264842197069-0:0) is shutting down
+30.01.2010 09:14:19.249 *INFO* [Sling Terminator] Java VM is shutting down
+30.01.2010 09:14:19.249 *INFO* [Sling Terminator] Stopping Sling
+30.01.2010 09:14:19.253 *INFO* [FelixDispatchQueue] org.apache.felix.framework BundleEvent STOPPED
+30.01.2010 09:14:19.264 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.uxloader BundleEvent STOPPED
+30.01.2010 09:14:19.265 *INFO* [FelixStartLevel] org.sakaiproject.kernel.smtp.SakaiSmtpServer Stopping SMTP server
+30.01.2010 09:14:19.265 *INFO* [FelixStartLevel] org.subethamail.smtp.server.SMTPServer SMTP server stopping
+30.01.2010 09:14:19.265 *INFO* [org.subethamail.smtp.server.SMTPServer] org.subethamail.smtp.server.SMTPServer SMTP server stopped
+30.01.2010 09:14:19.266 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.smtp BundleEvent STOPPED
+30.01.2010 09:14:19.267 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.processors.NodeSearchBatchResultProcessor,258] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.267 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.processors.NodeSearchResultProcessor,259] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.268 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.processors.PageSearchPropertyProvider,260] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.269 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.processors.PageSearchResultProcessor,261] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.269 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.processors.PagecontentSearchResultProcessor,262] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.271 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/servlet/default/query.json.servlet, /libs/sling/servlet/default/query.GET.servlet],264] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.271 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_search_JsonQueryServletBlocker 
+30.01.2010 09:14:19.271 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_search_JsonQueryServletBlocker 
+30.01.2010 09:14:19.272 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.JsonQueryServletBlocker,263] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.273 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/search/GET.servlet, /apps/sakai/search/json.servlet],266] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.273 *INFO* [FelixStartLevel] org.sakaiproject.kernel.search Service [org.sakaiproject.kernel.search.SearchServlet,265] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.275 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.UserPostProcessorImpl,248] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.276 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.resource.GroupPublicResourceTypeProvider,249] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.290 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.resource.PersonalResourceTypeProvider,250] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.300 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.resource.PublicResourceTypeProvider,251] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.304 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.search BundleEvent STOPPED
+30.01.2010 09:14:19.305 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/groupPublic/GET.servlet, /apps/sakai/groupPublic/DELETE.servlet, /apps/sakai/groupPublic/PUT.servlet, /apps/sakai/groupPublic/POST.servlet],253] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.319 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.GroupPublicServlet,252] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.321 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/personalPrivate/POST.servlet, /apps/sakai/personalPrivate/PUT.servlet, /apps/sakai/personalPrivate/DELETE.servlet, /apps/sakai/personalPrivate/GET.servlet],255] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.322 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.PersonalServlet,254] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.324 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/personalPublic/POST.servlet, /apps/sakai/personalPublic/PUT.servlet, /apps/sakai/personalPublic/DELETE.servlet, /apps/sakai/personalPublic/GET.servlet],257] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.325 *INFO* [FelixStartLevel] org.sakaiproject.kernel.personal Service [org.sakaiproject.kernel.personal.PublicServlet,256] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.326 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.personal BundleEvent STOPPED
+30.01.2010 09:14:19.326 *INFO* [FelixStartLevel] org.sakaiproject.kernel.lifecycle.Activator Destroy for org.sakaiproject.kernel.jpaexample.Activator@1f2b0dd
+30.01.2010 09:14:19.326 *INFO* [FelixStartLevel] org.sakaiproject.kernel.lifecycle.Activator Destroy for org.sakaiproject.kernel.persistence.eclipselink.EntityManagerFactoryProvider@16535bf
+30.01.2010 09:14:19.353 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.lifecycle BundleEvent STOPPED
+30.01.2010 09:14:19.354 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.FilesUserPostProcessor,227] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.354 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.JcrInternalFileHandler,228] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.355 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.search.FileSearchBatchResultProcessor,229] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.355 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.search.FileSearchPropertyProvider,230] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.356 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.resource.MessageResourceTypeProvider,231] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.357 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/file/link.POST.servlet],233] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.357 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FileCreateLinkServlet,232] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.358 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/file/GET.servlet],235] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.359 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FileServlet,234] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.360 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/file/update.POST.servlet],237] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.360 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FileUpdateServlet,236] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.361 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/files/upload.POST.servlet],239] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.361 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FilesUploadServlet,238] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.363 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/folder/files.GET.servlet],241] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.363 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FolderServlet,240] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.364 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/link/info.GET.servlet],243] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.365 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.LinkInfoServlet,242] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.365 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/link/GET.servlet],245] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.366 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.LinkServlet,244] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.367 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/files/GET.servlet, /apps/sakai/files/POST.servlet, /apps/sakai/files/PUT.servlet, /apps/sakai/files/DELETE.servlet],247] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.368 *INFO* [FelixStartLevel] org.sakaiproject.kernel.files Service [org.sakaiproject.kernel.files.servlets.FilesStoreServlet,246] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.369 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.files BundleEvent STOPPED
+30.01.2010 09:14:19.370 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.content BundleEvent STOPPED
+30.01.2010 09:14:19.391 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [org.sakaiproject.kernel.activity.routing.ActivityRouterManagerImpl,219] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.391 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [org.sakaiproject.kernel.activity.routing.ContactsActivityRouter,220] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.392 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [org.sakaiproject.kernel.activity.routing.PersonalActivityRouter,221] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.392 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [org.sakaiproject.kernel.activity.routing.SiteActivityRouter,222] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.393 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [ActivitySearchPropertyProvider,223] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.393 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [ActivitySearchResultProcessor,224] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.394 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/activity.POST.servlet],226] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.406 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activity Service [org.sakaiproject.kernel.activity.ActivityCreateServlet,225] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.407 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.activity BundleEvent STOPPED
+30.01.2010 09:14:19.413 *INFO* [FelixStartLevel] org.apache.felix.fileinstall Service [org.apache.felix.fileinstall,76] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.414 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/save.POST.servlet, /apps/sling/servlet/default/save.json.servlet],218] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.415 *INFO* [FelixStartLevel] org.sakaiproject.kernel.version Service [org.sakaiproject.kernel.version.impl.SaveVersionServlet,217] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.416 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/createsite.POST.servlet, /apps/sakai/sites/createsite.POST.servlet],268] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.417 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.CreateSiteServlet,267] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.424 *INFO* [FelixDispatchQueue] org.apache.felix.fileinstall BundleEvent STOPPED
+30.01.2010 09:14:19.425 *INFO* [FelixStartLevel] org.sakaiproject.kernel.version Service [org.sakaiproject.kernel.version.VersionService,212] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.426 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/version.GET.servlet],214] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.426 *INFO* [FelixStartLevel] org.sakaiproject.kernel.version Service [org.sakaiproject.kernel.version.impl.GetVersionServlet,213] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.427 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/versions.json.servlet, /apps/sling/servlet/default/versions.GET.servlet],216] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.427 *INFO* [FelixStartLevel] org.sakaiproject.kernel.version Service [org.sakaiproject.kernel.version.impl.ListVersionsServlet,215] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.429 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/site/unjoin.POST.servlet],211] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.429 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteUnJoinServlet,210] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.430 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/sling/membership.servlet, /system/sling/membership],209] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.430 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteMembershipServlet,208] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.431 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/site/members.GET.servlet],207] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.432 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteMembersServlet,206] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.433 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/site/join.POST.servlet],205] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.433 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteJoinServlet,204] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.434 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/site/html.servlet, /apps/sakai/site/GET.servlet],203] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.435 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteGetServlet,202] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.436 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/site/authorize.POST.servlet],201] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.436 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SiteAuthorizeServlet,200] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.437 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.search.SiteSearchResultProcessor,198] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.437 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [SiteContentSearchResultProcessor,197] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.449 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/messagestore/GET.servlet, /apps/sakai/messagestore/POST.servlet, /apps/sakai/messagestore/DELETE.servlet, /apps/sakai/messagestore/PUT.servlet],288] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.450 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.MessageServlet,287] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.451 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/messagestore/create.POST.servlet],281] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.451 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.CreateMessageServlet,280] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.453 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.version BundleEvent STOPPED
+30.01.2010 09:14:19.454 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/messagestore/count.GET.servlet],290] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.455 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.CountServlet,289] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.456 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.internal.InternalMessageSearchResultProcessor,291] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.457 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.internal.InternalMessageHandler,292] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.458 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.MessageSearchResultProcessor,293] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.459 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.MessageSearchPropertyProvider,294] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.459 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.DiscussionMessageTransport,295] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.460 *INFO* [FelixStartLevel] org.sakaiproject.kernel.chat Service [org.sakaiproject.kernel.chat.ChatMessageSearchPropertyProvider,296] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.461 *INFO* [FelixStartLevel] org.sakaiproject.kernel.chat Service [org.sakaiproject.kernel.chat.ChatMessageHandler,297] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.461 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.api.message.MessagingService,279] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.462 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.SiteServiceImpl,194] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.462 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [ContentSearchPropertyProvider,195] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.463 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [ContentSearchResultProcessor,196] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.463 *INFO* [FelixStartLevel] org.sakaiproject.kernel.site Service [org.sakaiproject.kernel.site.servlet.SitePostProcessor,199] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.464 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persondirectory Service [org.sakaiproject.kernel.persondirectory.providers.JcrPersonProvider,191] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.465 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.site BundleEvent STOPPED
+30.01.2010 09:14:19.533 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/user/profile.GET.servlet, /apps/sakai/user/profile.json.servlet],193] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.534 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persondirectory Service [org.sakaiproject.kernel.persondirectory.PersonDirectoryServlet,192] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.535 *INFO* [FelixStartLevel] org.sakaiproject.kernel.meservice Service [org.sakaiproject.kernel.meservice.MeServiceResourceProvider,190] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.537 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/var/image/cropit, /var/image/cropit.servlet],189] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.537 *INFO* [FelixStartLevel] org.sakaiproject.kernel.image Service [org.sakaiproject.kernel.image.CropItServlet,188] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.538 *INFO* [FelixStartLevel] org.sakaiproject.kernel.email.outgoing Service [org.sakaiproject.kernel.email.outgoing.EmailMessageHandler,186] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.persondirectory BundleEvent STOPPED
+30.01.2010 09:14:19.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.meservice BundleEvent STOPPED
+30.01.2010 09:14:19.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.jpaexample BundleEvent STOPPED
+30.01.2010 09:14:19.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.image BundleEvent STOPPED
+30.01.2010 09:14:19.547 *INFO* [FelixStartLevel] org.sakaiproject.kernel.email.outgoing Service [org.sakaiproject.kernel.email.outgoing.SmtpRouter,187] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.548 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.ConnectionFinderSearchResultProcessor,176] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.550 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/contactstore/reject.POST.servlet, /apps/sakai/contactstore/cancel.POST.servlet, /apps/sakai/contactstore/invite.POST.servlet, /apps/sakai/contactstore/remove.POST.servlet, /apps/sakai/contactstore/block.POST.servlet, /apps/sakai/contactstore/accept.POST.servlet, /apps/sakai/contactstore/ignore.POST.servlet],183] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.550 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.servlets.ConnectionServlet,182] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.551 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.ConnectionSearchPropertyProvider,178] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.552 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/presence/user.GET.servlet, /apps/sakai/presence/user.json.servlet],283] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.553 *INFO* [FelixStartLevel] org.sakaiproject.kernel.presence Service [org.sakaiproject.kernel.presence.servlets.PresenceUserServlet,282] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.554 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/presence/contacts.json.servlet, /apps/sakai/presence/contacts.GET.servlet],285] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.554 *INFO* [FelixStartLevel] org.sakaiproject.kernel.presence Service [org.sakaiproject.kernel.presence.servlets.PresenceContactsServlet,284] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.555 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.api.connections.ConnectionManager,177] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.555 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.ConnectionSearchResultProcessor,179] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.556 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.ConnectionsUserPostProcessor,180] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.556 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.resource.ConnectionResourceTypeProvider,181] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.557 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.email.outgoing BundleEvent STOPPED
+30.01.2010 09:14:19.557 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/contactstore/POST.servlet, /apps/sakai/contactstore/GET.servlet],185] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.558 *INFO* [FelixStartLevel] org.sakaiproject.kernel.connections Service [org.sakaiproject.kernel.connections.servlets.ConnectionStoreServlet,184] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.559 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.connections BundleEvent STOPPED
+30.01.2010 09:14:19.559 *INFO* [FelixStartLevel] org.apache.sling.systemstatus Service [org.apache.sling.systemstatus.impl.SystemStatusService,175] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.559 *INFO* [FelixDispatchQueue] org.apache.sling.systemstatus BundleEvent STOPPED
+30.01.2010 09:14:19.560 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [org.apache.sling.servlets.resolver.SlingServletResolver,143] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.560 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [org.apache.sling.servlets.resolver.SlingServletResolver,174] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.561 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/user/changePassword.POST.servlet],167] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.561 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/redirect/GET.servlet],162] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.562 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/cluster-users/cookie.json.servlet],148] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.562 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/proxy/OPTIONS.servlet, /apps/sakai/proxy/HEAD.servlet, /apps/sakai/proxy/POST.servlet, /apps/sakai/proxy/PUT.servlet, /apps/sakai/proxy/GET.servlet],164] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.563 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/userManager/delete.POST.servlet, /apps/sling/group/delete.POST.servlet, /apps/sling/user/delete.POST.servlet],166] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.563 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/servlet/default/POST.servlet, /libs/sling/servlet/default/POST],149] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.564 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/servlet/default/HEAD.servlet],160] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.564 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/sling/logout, /system/sling/logout.servlet],155] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.565 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/doc.servlet, /system/doc],169] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.565 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/test/foo.servlet, /test/foo],156] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.566 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/sling/info.servlet, /system/sling/info],163] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.566 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/user/update.POST.servlet],168] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.567 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/presence/json.servlet, /apps/sakai/presence/GET.servlet],146] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.569 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/doc/servlet.servlet, /system/doc/servlet],172] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.570 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/deleteAce.POST.servlet],152] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.570 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/batch/delete.servlet, /system/batch/delete],157] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.571 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/modifyAce.POST.servlet],153] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.571 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/group/update.POST.servlet],272] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.572 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/rp.servlet, /system/rp],173] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.572 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/messagestore/chatupdate.GET.servlet],147] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.573 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default/acl.GET.servlet],151] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.573 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/doc/search, /system/doc/search.servlet],171] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.574 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sakai/presence/POST.servlet, /apps/sakai/presence/json.servlet],145] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.574 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/sling/formlogin.servlet, /system/sling/formlogin],144] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.575 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/group/json.servlet, /apps/sling/group/GET.servlet],165] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.575 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/groups/create.POST.servlet],276] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.576 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/batch/get, /system/batch/get.servlet],158] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.576 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/servlet/default.servlet],150] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.577 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/servlet/default/query.json.servlet],161] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.577 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/sling/login.servlet, /system/sling/login],154] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.578 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/libs/sling/servlet/default/GET.servlet],159] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.578 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/system/doc/proxy.servlet, /system/doc/proxy],170] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.579 *INFO* [FelixStartLevel] org.apache.sling.servlets.resolver Service [ServletResourceProvider for Servlets at [/apps/sling/users/create.POST.servlet],274] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.581 *INFO* [FelixStartLevel] org.apache.sling.servlets.post Service [org.apache.sling.servlets.post.impl.SlingPostServlet,142] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.581 *INFO* [FelixStartLevel] org.apache.sling.servlets.get Service [org.apache.sling.servlets.get.DefaultGetServlet,137] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.582 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_servlets_get_impl_DefaultHeadServlet 
+30.01.2010 09:14:19.582 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_servlets_get_impl_DefaultHeadServlet 
+30.01.2010 09:14:19.583 *INFO* [FelixStartLevel] org.apache.sling.servlets.get Service [org.apache.sling.servlets.get.impl.DefaultHeadServlet,138] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.583 *INFO* [FelixStartLevel] org.apache.sling.servlets.get Service [org.apache.sling.servlets.get.impl.JsonQueryServlet,139] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.584 *INFO* [FelixStartLevel] org.apache.sling.servlets.get Service [org.apache.sling.servlets.get.impl.RedirectServlet,140] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.585 *INFO* [FelixStartLevel] org.apache.sling.servlets.get Service [org.apache.sling.servlets.get.impl.impl.info.SlingInfoServlet,141] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.586 *INFO* [FelixStartLevel] org.apache.sling.scripting.jsp Service [org.apache.sling.scripting.jsp.JspScriptEngineFactory,136] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.587 *INFO* [FelixStartLevel] org.apache.sling.scripting.javascript Service [org.apache.sling.scripting.javascript.internal.RhinoJavaScriptEngineFactory,135] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.587 *INFO* [FelixDispatchQueue] org.apache.sling.servlets.resolver BundleEvent STOPPED
+30.01.2010 09:14:19.596 *INFO* [FelixDispatchQueue] org.apache.sling.bundleresource.impl Service [Provider of bundle based resources,75] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.596 *INFO* [FelixDispatchQueue] org.apache.sling.servlets.post BundleEvent STOPPED
+30.01.2010 09:14:19.596 *INFO* [FelixDispatchQueue] org.apache.sling.servlets.get BundleEvent STOPPED
+30.01.2010 09:14:19.596 *INFO* [FelixDispatchQueue] org.apache.sling.scripting.jsp.taglib BundleEvent STOPPED
+30.01.2010 09:14:19.596 *INFO* [FelixDispatchQueue] org.apache.sling.scripting.jsp BundleEvent STOPPED
+30.01.2010 09:14:19.620 *INFO* [FelixDispatchQueue] org.apache.sling.scripting.javascript BundleEvent STOPPED
+30.01.2010 09:14:19.621 *INFO* [FelixStartLevel] org.apache.sling.scripting.core Service [org.apache.sling.scripting.core.impl.SlingScriptAdapterFactory,134] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.621 *INFO* [FelixStartLevel] org.apache.sling.scripting.core Service [org.apache.sling.scripting.core.impl.ScriptEngineConsolePlugin,133] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.621 *INFO* [FelixDispatchQueue] org.apache.sling.scripting.core BundleEvent STOPPED
+30.01.2010 09:14:19.622 *INFO* [FelixDispatchQueue] org.apache.sling.scripting.api BundleEvent STOPPED
+30.01.2010 09:14:19.622 *INFO* [FelixStartLevel] org.apache.sling.openidauth Service [org.apache.sling.openidauth.impl.OpenIDAuthenticationHandler,132] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.622 *INFO* [FelixDispatchQueue] org.apache.sling.openidauth BundleEvent STOPPED
+30.01.2010 09:14:19.622 *INFO* [FelixDispatchQueue] org.apache.sling.launchpad.content BundleEvent STOPPED
+30.01.2010 09:14:19.623 *INFO* [FelixStartLevel] org.apache.sling.commons.auth Service [org.apache.sling.commons.auth.impl.engine.EngineSlingAuthenticator,286] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.624 *INFO* [FelixStartLevel] org.apache.sling.commons.auth Service [org.apache.sling.engine.impl.auth.SlingAuthenticator,270] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.624 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_AuthenticatorWebConsolePlugin 
+30.01.2010 09:14:19.624 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_AuthenticatorWebConsolePlugin 
+30.01.2010 09:14:19.625 *INFO* [FelixStartLevel] org.apache.sling.commons.auth Service [Sling Request Authenticator WebConsole Plugin,269] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.625 *INFO* [FelixStartLevel] org.apache.sling.jcr.resource Service [org.apache.sling.jcr.resource.internal.JcrResourceResolverFactoryImpl,130] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.626 *INFO* [FelixStartLevel] org.apache.sling.jcr.resource Service [org.apache.sling.jcr.resource.internal.JcrResourceResolverWebConsolePlugin,129] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.631 *INFO* [FelixStartLevel] org.apache.sling.jcr.resource Service [org.apache.sling.jcr.resource.internal.scripting.CurrentNodeBindingsValuesProvider,131] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.632 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.resource BundleEvent STOPPED
+30.01.2010 09:14:19.632 *INFO* [FelixStartLevel] org.apache.sling.jcr.ocm Service [org.apache.sling.jcr.ocm.impl.ObjectContentManagerFactoryImpl,128] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.637 *INFO* [FelixStartLevel] org.apache.sling.jcr.ocm Service [Sling OCM Adapter Factory,126] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.637 *INFO* [FelixStartLevel] org.apache.sling.jcr.ocm Service [Sling OCM Adapter Factory,127] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.638 *INFO* [FelixStartLevel] org.apache.sling.jcr.classloader Service [org.apache.sling.jcr.classloader.internal.DynamicClassLoaderProviderImpl,125] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.639 *INFO* [FelixStartLevel] org.apache.sling.httpauth Service [org.apache.sling.httpauth.impl.AuthorizationHeaderAuthenticationHandler,124] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.639 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.debug.RequestProgressTrackerLogFilter,119] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.640 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.log.RequestLogger,120] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.640 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.log.RequestLoggerService,121] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.641 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.SlingMainServlet,123] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.641 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.helper.SlingServletContext,122] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.641 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Unregistering [/]
+30.01.2010 09:14:19.641 *INFO* [FelixStartLevel] org.apache.sling.engine.impl.SlingMainServlet ApacheSling/2.0 (Java HotSpot(TM) Server VM 1.6.0_17; Mac OS X 10.6.2 i386) shut down
+30.01.2010 09:14:19.642 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceFactoryImpl unbinding bundle: [org.apache.sling.engine [7]]
+30.01.2010 09:14:19.642 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Stopping http service: [org.ops4j.pax.web.service.internal.HttpServiceProxy@222fe]
+30.01.2010 09:14:19.643 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStopped Changing HttpService state to org.ops4j.pax.web.service.internal.HttpServiceStopped@6c899e
+30.01.2010 09:14:19.644 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.SlingSettingsServiceImpl,73] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.644 *INFO* [FelixStartLevel] org.apache.sling.engine Service [org.apache.sling.engine.impl.request.RequestHistoryConsolePlugin,74] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.645 *INFO* [FelixStartLevel] org.apache.sling.commons.json Service [org.apache.sling.commons.json.groovy.internal.JSONGroovyBuilderBindingsValuesProvider,118] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.645 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_LoginServlet 
+30.01.2010 09:14:19.645 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_LoginServlet 
+30.01.2010 09:14:19.645 *INFO* [FelixStartLevel] org.apache.sling.commons.auth Service [org.apache.sling.commons.auth.impl.LoginServlet,116] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.646 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_LogoutServlet 
+30.01.2010 09:14:19.646 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_apache_sling_commons_auth_impl_LogoutServlet 
+30.01.2010 09:14:19.646 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.ocm BundleEvent STOPPED
+30.01.2010 09:14:19.646 *INFO* [FelixStartLevel] org.apache.sling.commons.auth Service [org.apache.sling.commons.auth.impl.LogoutServlet,117] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.646 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.contentloader BundleEvent STOPPED
+30.01.2010 09:14:19.647 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.classloader BundleEvent STOPPED
+30.01.2010 09:14:19.647 *INFO* [FelixDispatchQueue] org.apache.sling.httpauth BundleEvent STOPPED
+30.01.2010 09:14:19.647 *INFO* [FelixDispatchQueue] org.apache.sling.engine BundleEvent STOPPED
+30.01.2010 09:14:19.647 *INFO* [FelixDispatchQueue] org.apache.sling.commons.json BundleEvent STOPPED
+30.01.2010 09:14:19.647 *INFO* [FelixDispatchQueue] org.apache.sling.commons.auth BundleEvent STOPPED
+30.01.2010 09:14:19.648 *INFO* [FelixStartLevel] org.apache.sling.bundleresource.impl Service [org.apache.sling.bundleresource.impl.BundleResourceWebConsolePlugin,72] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.648 *INFO* [FelixDispatchQueue] org.apache.sling.bundleresource.impl BundleEvent STOPPED
+30.01.2010 09:14:19.648 *INFO* [FelixDispatchQueue] org.apache.sling.api BundleEvent STOPPED
+30.01.2010 09:14:19.648 *INFO* [FelixStartLevel] org.apache.sling.adapter Service [org.apache.sling.adapter.internal.AdapterManagerImpl,115] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.649 *INFO* [FelixDispatchQueue] org.apache.sling.adapter BundleEvent STOPPED
+30.01.2010 09:14:19.649 *INFO* [FelixDispatchQueue] groovy-all BundleEvent STOPPED
+30.01.2010 09:14:19.649 *INFO* [FelixStartLevel] org.sakaiproject.kernel.proxy Service [org.sakaiproject.kernel.proxy.ResourceProxyServlet,114] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.650 *INFO* [FelixStartLevel] org.sakaiproject.kernel.proxy Service [org.sakaiproject.kernel.proxy.ProxyClientServiceImpl,110] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.724 *INFO* [FelixStartLevel] org.sakaiproject.kernel.proxy Service [RSSProxyPostProcessor,111] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.724 *INFO* [FelixStartLevel] org.sakaiproject.kernel.proxy Service [RSSProxyPreProcessor,112] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.724 *INFO* [FelixStartLevel] org.sakaiproject.kernel.proxy Service [org.sakaiproject.kernel.proxy.TrustedLoginTokenProxyPreProcessor,113] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.725 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.proxy BundleEvent STOPPED
+30.01.2010 09:14:19.725 *INFO* [FelixStartLevel] org.sakaiproject.kernel.presence Service [org.sakaiproject.kernel.presence.servlets.PresenceGetServlet,109] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.726 *INFO* [FelixStartLevel] org.sakaiproject.kernel.presence Service [org.sakaiproject.kernel.presence.servlets.PresenceControlServlet,108] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.726 *INFO* [FelixStartLevel] org.sakaiproject.kernel.presence Service [org.sakaiproject.kernel.api.presence.PresenceService,107] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.726 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.presence BundleEvent STOPPED
+30.01.2010 09:14:19.727 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persistence Service [org.sakaiproject.kernel.persistence.TransactionManagerFilter,106] ServiceEvent UNREGISTERING
+[EL Info]: 2010-01-30 09:14:19.75--ServerSession(22074838)--Thread(Thread[FelixStartLevel,5,main])--file:/var/folders/5e/5ewJ37kf2RijnU+BYn6kVU+++TM/-Tmp-/sakai.ieb/1264842203803/-default logout successful
+30.01.2010 09:14:19.750 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persistence Service [javax.sql.DataSource,69] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.751 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persistence Service [javax.persistence.EntityManager,70] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.751 *INFO* [FelixStartLevel] org.sakaiproject.kernel.persistence Service [javax.transaction.TransactionManager,71] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.751 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.persistence BundleEvent STOPPED
+30.01.2010 09:14:19.751 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.MessagePostProcessor,98] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.752 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.MessageUserPostProcessor,99] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.752 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.internal.InternalCreateMessagePreProcessor,100] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.753 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.listener.MessageSentListener,102] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.753 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.listener.MessageRouterManagerImpl,101] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.754 *INFO* [FelixStartLevel] org.sakaiproject.kernel.messaging Service [org.sakaiproject.kernel.message.resource.MessageResourceTypeProvider,103] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.754 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.messaging BundleEvent STOPPED
+30.01.2010 09:14:19.754 *INFO* [FelixStartLevel] org.sakaiproject.kernel.locking Service [org.sakaiproject.kernel.locking.LockManagerImpl,97] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.755 *INFO* [FelixStartLevel] org.sakaiproject.kernel.formauth Service [org.sakaiproject.kernel.formauth.FormAuthenticationHandler,95] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.756 *INFO* [FelixStartLevel] org.sakaiproject.kernel.formauth Service [org.sakaiproject.kernel.formauth.FormLoginServlet,96] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.757 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.DiscussionCreateMessagePreProcessor,278] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.757 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.DiscussionInitialPostPropertyProvider,87] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.758 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.DiscussionInitialPostSearchResultProcessor,88] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.758 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.DiscussionRouter,90] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.758 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.api.discussion.DiscussionManager,89] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.759 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.searchresults.CommentSearchResultProcessor,91] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.759 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.searchresults.DiscussionInitialPostPropertyProvider,92] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.759 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.searchresults.DiscussionInitialPostSearchResultProcessor,93] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.760 *INFO* [FelixStartLevel] org.sakaiproject.kernel.discussion Service [org.sakaiproject.kernel.discussion.searchresults.DiscussionThreadedSearchBatchResultProcessor,94] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.760 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.locking BundleEvent STOPPED
+30.01.2010 09:14:19.760 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.jcr BundleEvent STOPPED
+30.01.2010 09:14:19.760 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.formauth BundleEvent STOPPED
+30.01.2010 09:14:19.761 *INFO* [FelixStartLevel] org.sakaiproject.kernel.chat Service [org.sakaiproject.kernel.chat.ChatServlet,86] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.761 *INFO* [FelixStartLevel] org.sakaiproject.kernel.chat Service [org.sakaiproject.kernel.chat.ChatManagerServiceImpl,84] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.761 *INFO* [FelixStartLevel] org.sakaiproject.kernel.chat Service [org.sakaiproject.kernel.chat.ChatMessageSearchResultProcessor,85] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.762 *INFO* [FelixStartLevel] org.sakaiproject.kernel.auth.trusted Service [org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler,277] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.762 *INFO* [FelixStartLevel] org.sakaiproject.kernel.auth.trusted Service [org.sakaiproject.kernel.auth.trusted.TrustedLoginModulePlugin,81] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.763 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_auth_trusted_TrustedAuthenticationServlet 
+30.01.2010 09:14:19.763 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_auth_trusted_TrustedAuthenticationServlet 
+30.01.2010 09:14:19.763 *INFO* [FelixStartLevel] org.sakaiproject.kernel.auth.trusted Service [org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationServlet,83] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.764 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceFactoryImpl unbinding bundle: [org.sakaiproject.kernel.auth.trusted [78]]
+30.01.2010 09:14:19.764 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Stopping http service: [org.ops4j.pax.web.service.internal.HttpServiceProxy@1b44a62]
+30.01.2010 09:14:19.764 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStopped Changing HttpService state to org.ops4j.pax.web.service.internal.HttpServiceStopped@17f868d
+30.01.2010 09:14:19.770 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.discussion BundleEvent STOPPED
+30.01.2010 09:14:19.770 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.chat BundleEvent STOPPED
+30.01.2010 09:14:19.770 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.casauth BundleEvent STOPPED
+30.01.2010 09:14:19.771 *INFO* [FelixStartLevel] org.sakaiproject.kernel.auth.trusted Service [org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl,82] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.772 *INFO* [FelixStartLevel] org.sakaiproject.kernel.auth.ldap Service [org.sakaiproject.kernel.auth.ldap.guards.PlainTextPasswordGuard,80] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.791 *INFO* [FelixStartLevel] org.apache.sling.jcr.webdav Service [org.apache.sling.jcr.webdav.impl.servlets.SimpleWebDavServlet,79] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.791 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Unregistering [/dav]
+30.01.2010 09:14:19.792 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceFactoryImpl unbinding bundle: [org.apache.sling.jcr.webdav [76]]
+30.01.2010 09:14:19.792 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Stopping http service: [org.ops4j.pax.web.service.internal.HttpServiceProxy@14acbe5]
+30.01.2010 09:14:19.792 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStopped Changing HttpService state to org.ops4j.pax.web.service.internal.HttpServiceStopped@1903355
+30.01.2010 09:14:19.793 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.auth.trusted BundleEvent STOPPED
+30.01.2010 09:14:19.793 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.auth.ldap BundleEvent STOPPED
+30.01.2010 09:14:19.794 *INFO* [FelixStartLevel] org.apache.sling.commons.mime Service [78] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.794 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.webdav BundleEvent STOPPED
+30.01.2010 09:14:19.794 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.server Repository jackrabbit unbound from JNDI
+30.01.2010 09:14:19.796 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.server Repository unbound from //192.168.1.65:1098/jackrabbit
+30.01.2010 09:14:19.797 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.server Unexported private RMI Registry at 1098
+30.01.2010 09:14:19.797 *INFO* [Repository Pinger] org.apache.sling.jcr.jackrabbit.server Repository Pinger stopping on request
+30.01.2010 09:14:19.797 *INFO* [Repository Pinger] org.apache.sling.jcr.jackrabbit.server Stopping repository on shutdown
+30.01.2010 09:14:19.798 *INFO* [Repository Pinger] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.user.servlet.UpdateSakaiGroupServlet,271] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.799 *INFO* [Repository Pinger] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.user.servlet.CreateSakaiUserServlet,273] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.800 *INFO* [Repository Pinger] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.user.servlet.CreateSakaiGroupServlet,275] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.800 *INFO* [Repository Pinger] org.apache.sling.jcr.jackrabbit.server Service [org.apache.sling.jcr.jackrabbit.server.SlingServerRepository.d1805b00-c090-4398-b3d0-4a62dc06e312,77] ServiceEvent UNREGISTERING
+30.01.2010 09:14:19.802 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl Shutting down repository...
+30.01.2010 09:14:19.830 *INFO* [ActiveMQ ShutdownHook] org.apache.activemq.broker.TransportConnector Connector tcp://localhost:61616 Stopped
+30.01.2010 09:14:19.939 *INFO* [IndexMerger] org.apache.jackrabbit.core.query.lucene.IndexMerger IndexMerger terminated
+30.01.2010 09:14:20.004 *INFO* [Repository Pinger] org.apache.jackrabbit.core.query.lucene.SearchIndex Index closed: /Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/repository/index
+30.01.2010 09:14:20.004 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl shutting down workspace 'default'...
+30.01.2010 09:14:20.005 *INFO* [Repository Pinger] org.apache.jackrabbit.core.observation.ObservationDispatcher Notification of EventListeners stopped.
+30.01.2010 09:14:20.005 *INFO* [IndexMerger] org.apache.jackrabbit.core.query.lucene.IndexMerger IndexMerger terminated
+30.01.2010 09:14:20.018 *INFO* [ActiveMQ ShutdownHook] org.apache.activemq.broker.TransportConnector Connector vm://localhost Stopped
+30.01.2010 09:14:20.242 *INFO* [Repository Pinger] org.apache.jackrabbit.core.query.lucene.SearchIndex Index closed: /Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/workspaces/default/index
+30.01.2010 09:14:20.638 *INFO* [ActiveMQ ShutdownHook] org.apache.activemq.broker.BrokerService ActiveMQ JMS Message Broker (localhost, ID:x43543-2.local-53245-1264842197069-0:0) stopped
+30.01.2010 09:14:20.941 *INFO* [Repository Pinger] org.apache.jackrabbit.core.persistence.db.DerbyPersistenceManager Database '/Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/workspaces/default/db' shutdown.
+30.01.2010 09:14:20.967 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl workspace 'default' has been shutdown
+30.01.2010 09:14:20.967 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl shutting down workspace 'security'...
+30.01.2010 09:14:20.967 *INFO* [Repository Pinger] org.apache.jackrabbit.core.observation.ObservationDispatcher Notification of EventListeners stopped.
+30.01.2010 09:14:20.967 *INFO* [IndexMerger] org.apache.jackrabbit.core.query.lucene.IndexMerger IndexMerger terminated
+30.01.2010 09:14:21.016 *INFO* [Repository Pinger] org.apache.jackrabbit.core.query.lucene.SearchIndex Index closed: /Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/workspaces/security/index
+30.01.2010 09:14:21.087 *INFO* [Repository Pinger] org.apache.jackrabbit.core.persistence.db.DerbyPersistenceManager Database '/Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/workspaces/security/db' shutdown.
+30.01.2010 09:14:21.087 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl workspace 'security' has been shutdown
+30.01.2010 09:14:21.512 *INFO* [Repository Pinger] org.apache.jackrabbit.core.persistence.db.DerbyPersistenceManager Database '/Users/ieb/timefields/open-experiments/slingtests/osgikernel/sling/jackrabbit/version/db' shutdown.
+30.01.2010 09:14:21.513 *INFO* [Repository Pinger] org.apache.jackrabbit.core.RepositoryImpl Repository has been shutdown
+30.01.2010 09:14:21.519 *INFO* [FelixStartLevel] org.apache.sling.commons.mime Service [org.apache.sling.commons.mime.internal.MimeTypeServiceImpl,66] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.519 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.ownerprincipalmanager.OwnerPrincipalManagerImpl,60] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.520 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.user.resource.SakaiAuthorizableResourceProvider,61] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.520 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.520 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.520 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.sakaiproject.kernel.user.servlet.GroupGetServlet,62] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.520 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.520 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.521 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet,63] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.522 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.apache.sling.jackrabbit.usermanager.impl.post.ChangeUserPasswordServlet,64] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.522 *INFO* [FelixStartLevel] org.sakaiproject.kernel.user Service [org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet,65] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.522 *INFO* [FelixStartLevel] org.sakaiproject.kernel.session Service [org.sakaiproject.kernel.session.SessionManagerFilter,68] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.523 *INFO* [FelixStartLevel] org.sakaiproject.kernel.session Service [org.sakaiproject.kernel.api.session.SessionManagerService,59] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.524 *INFO* [FelixStartLevel] org.sakaiproject.kernel.registry Service [org.sakaiproject.kernel.api.registry.RegistryService,58] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.524 *INFO* [FelixStartLevel] org.sakaiproject.kernel.cluster Service [org.sakaiproject.kernel.cluster.ClusterUserServlet,104] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.525 *INFO* [FelixStartLevel] org.sakaiproject.kernel.cluster Service [org.sakaiproject.kernel.cluster.ClusterTrackingFilter,105] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.526 *INFO* [FelixStartLevel] org.sakaiproject.kernel.cluster Service [ClusterTrackingService,67] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.526 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.526 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.527 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.527 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.527 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.527 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.528 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.528 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.528 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.528 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.jackrabbit.server BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.base BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.api BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.sling.commons.osgi BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.sling.commons.mime BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.felix.commons.commons-email BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.jackrabbit.jackrabbit-jcr-commons BundleEvent STOPPED
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.jackrabbit.jackrabbit-api BundleEvent STOPPED
+30.01.2010 09:14:21.526 *ERROR* [FelixStartLevel] org.sakaiproject.kernel.cluster [ClusterTrackingService] The deactivate method has thrown an exception (java.lang.IllegalStateException: The server-tracking-cache Cache is not alive.) java.lang.IllegalStateException: The server-tracking-cache Cache is not alive.
+	at net.sf.ehcache.Cache.checkStatus(Cache.java:1613)
+	at net.sf.ehcache.Cache.remove(Cache.java:1365)
+	at net.sf.ehcache.Cache.remove(Cache.java:1303)
+	at net.sf.ehcache.Cache.remove(Cache.java:1261)
+	at net.sf.ehcache.Cache.remove(Cache.java:1239)
+	at org.sakaiproject.kernel.memory.CacheImpl.remove(CacheImpl.java:114)
+	at org.sakaiproject.kernel.cluster.ClusterTrackingServiceImpl.removeInstance(ClusterTrackingServiceImpl.java:312)
+	at org.sakaiproject.kernel.cluster.ClusterTrackingServiceImpl.deactivate(ClusterTrackingServiceImpl.java:151)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invokeMethod(BaseMethod.java:213)
+	at org.apache.felix.scr.impl.helper.BaseMethod.access$500(BaseMethod.java:38)
+	at org.apache.felix.scr.impl.helper.BaseMethod$Resolved.invoke(BaseMethod.java:542)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invoke(BaseMethod.java:434)
+	at org.apache.felix.scr.impl.helper.ActivateMethod.invoke(ActivateMethod.java:138)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.disposeImplementationObject(ImmediateComponentManager.java:260)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.deleteComponent(ImmediateComponentManager.java:135)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager$Satisfied.deactivate(AbstractComponentManager.java:1066)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.deactivateInternal(AbstractComponentManager.java:303)
+	at org.apache.felix.scr.impl.manager.DependencyManager.serviceRemoved(DependencyManager.java:343)
+	at org.apache.felix.scr.impl.manager.DependencyManager.serviceChanged(DependencyManager.java:251)
+	at org.apache.felix.framework.util.EventDispatcher.invokeServiceListenerCallback(EventDispatcher.java:878)
+	at org.apache.felix.framework.util.EventDispatcher.fireEventImmediately(EventDispatcher.java:732)
+	at org.apache.felix.framework.util.EventDispatcher.fireServiceEvent(EventDispatcher.java:662)
+	at org.apache.felix.framework.Felix.fireServiceEvent(Felix.java:3587)
+	at org.apache.felix.framework.Felix.access$000(Felix.java:40)
+	at org.apache.felix.framework.Felix$1.serviceChanged(Felix.java:625)
+	at org.apache.felix.framework.ServiceRegistry.unregisterService(ServiceRegistry.java:124)
+	at org.apache.felix.framework.ServiceRegistrationImpl.unregister(ServiceRegistrationImpl.java:129)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.unregisterComponentService(AbstractComponentManager.java:429)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager$Satisfied.deactivate(AbstractComponentManager.java:1065)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.disposeInternal(AbstractComponentManager.java:322)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.dispose(AbstractComponentManager.java:185)
+	at org.apache.felix.scr.impl.config.ConfiguredComponentHolder.disposeComponents(ConfiguredComponentHolder.java:275)
+	at org.apache.felix.scr.impl.BundleComponentActivator.dispose(BundleComponentActivator.java:319)
+	at org.apache.felix.scr.impl.Activator.disposeComponents(Activator.java:277)
+	at org.apache.felix.scr.impl.Activator.bundleChanged(Activator.java:178)
+	at org.apache.felix.framework.util.EventDispatcher.invokeBundleListenerCallback(EventDispatcher.java:800)
+	at org.apache.felix.framework.util.EventDispatcher.fireEventImmediately(EventDispatcher.java:728)
+	at org.apache.felix.framework.util.EventDispatcher.fireBundleEvent(EventDispatcher.java:610)
+	at org.apache.felix.framework.Felix.fireBundleEvent(Felix.java:3576)
+	at org.apache.felix.framework.Felix.stopBundle(Felix.java:2061)
+	at org.apache.felix.framework.Felix.setActiveStartLevel(Felix.java:1095)
+	at org.apache.felix.framework.StartLevelImpl.run(StartLevelImpl.java:264)
+	at java.lang.Thread.run(Thread.java:637)
+30.01.2010 09:14:21.530 *INFO* [FelixStartLevel] org.sakaiproject.kernel.memory Service [org.sakaiproject.kernel.api.memory.CacheManagerService,57] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.530 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_doc_GeneralDocumentationServlet 
+30.01.2010 09:14:21.530 *WARN* [FelixStartLevel] org.sakaiproject.kernel.doc.servlet.ServletDocumentation No documentation proxy org.sakaiproject.kernel.doc.sling.Doc_org_sakaiproject_kernel_doc_GeneralDocumentationServlet 
+30.01.2010 09:14:21.530 *INFO* [FelixStartLevel] org.sakaiproject.kernel.doc Service [org.sakaiproject.kernel.doc.GeneralDocumentationServlet,53] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.531 *INFO* [FelixStartLevel] org.sakaiproject.kernel.doc Service [org.sakaiproject.kernel.doc.proxy.ProxyDocumentationServlet,54] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.531 *INFO* [FelixStartLevel] org.sakaiproject.kernel.doc Service [org.sakaiproject.kernel.doc.search.SearchDocumentationServlet,55] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.532 *INFO* [FelixStartLevel] org.sakaiproject.kernel.doc Service [org.sakaiproject.kernel.doc.servlet.DocumentationServlet,56] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.529 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.532 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.BatchFilter,45] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.532 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.532 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.533 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.CreateTreeOperation,46] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.533 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.533 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.TagOperation,47] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.533 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.533 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.AddPropertyOperation,48] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.533 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.533 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.529 *INFO* [FelixDispatchQueue] org.apache.commons.lang BundleEvent STOPPED
+30.01.2010 09:14:21.534 *INFO* [FelixDispatchQueue] org.apache.commons.io BundleEvent STOPPED
+30.01.2010 09:14:21.534 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.534 *INFO* [FelixDispatchQueue] org.apache.commons.collections BundleEvent STOPPED
+30.01.2010 09:14:21.534 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.user BundleEvent STOPPED
+30.01.2010 09:14:21.534 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.534 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.DummyServlet,49] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.534 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.534 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.535 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.RemovePropertyOperation,50] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.535 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.535 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.BatchDeleteServlet,51] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.535 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.535 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.535 *INFO* [FelixStartLevel] org.sakaiproject.kernel.batch Service [org.sakaiproject.kernel.batch.BatchGetServlet,52] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.535 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.536 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.536 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.accessmanager Service [org.apache.sling.jcr.jackrabbit.accessmanager.post.GetAclServlet,42] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.536 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.536 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.accessmanager Service [org.apache.sling.jcr.jackrabbit.accessmanager.post.DeleteAcesServlet,43] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.536 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.536 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.537 *INFO* [FelixStartLevel] org.apache.sling.jcr.jackrabbit.accessmanager Service [org.apache.sling.jcr.jackrabbit.accessmanager.post.ModifyAceServlet,44] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.537 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.537 *INFO* [FelixStartLevel] org.apache.sling.commons.scheduler Service [org.apache.sling.commons.scheduler.impl.QuartzScheduler,41] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.534 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.session BundleEvent STOPPED
+30.01.2010 09:14:21.537 *INFO* [FelixStartLevel] org.quartz.core.QuartzScheduler Scheduler SimpleQuartzScheduler_$_SIMPLE_NON_CLUSTERED shutting down.
+30.01.2010 09:14:21.537 *INFO* [FelixStartLevel] org.quartz.core.QuartzScheduler Scheduler SimpleQuartzScheduler_$_SIMPLE_NON_CLUSTERED paused.
+30.01.2010 09:14:21.537 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.securityloader BundleEvent STOPPED
+30.01.2010 09:14:21.537 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.537 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.registry BundleEvent STOPPED
+30.01.2010 09:14:21.537 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.memory BundleEvent STOPPED
+30.01.2010 09:14:21.537 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.doc BundleEvent STOPPED
+30.01.2010 09:14:21.537 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.cluster BundleEvent STOPPED
+30.01.2010 09:14:21.538 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.batch BundleEvent STOPPED
+30.01.2010 09:14:21.538 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.538 *INFO* [FelixDispatchQueue] org.apache.sling.jcr.jackrabbit.accessmanager BundleEvent STOPPED
+30.01.2010 09:14:21.538 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.538 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.538 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.539 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.539 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.539 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.539 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.540 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.540 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.540 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.541 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.541 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.541 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.541 *INFO* [FelixStartLevel] org.quartz.core.QuartzScheduler Scheduler SimpleQuartzScheduler_$_SIMPLE_NON_CLUSTERED shutdown complete.
+30.01.2010 09:14:21.541 *INFO* [FelixStartLevel] org.apache.sling.commons.threads.impl.DefaultThreadPoolManager Stopping thread pool manager.
+30.01.2010 09:14:21.541 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.542 *INFO* [FelixStartLevel] org.apache.sling.commons.threads.impl.DefaultThreadPoolManager Thread pool manager stopped.
+30.01.2010 09:14:21.542 *INFO* [FelixDispatchQueue] org.apache.sling.commons.scheduler BundleEvent STOPPED
+30.01.2010 09:14:21.542 *INFO* [FelixStartLevel] org.sakaiproject.kernel.resource Service [org.sakaiproject.kernel.resource.VirtualResourceProviderServlet,40] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.542 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.utils BundleEvent STOPPED
+30.01.2010 09:14:21.542 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.543 *INFO* [FelixStartLevel] org.sakaiproject.kernel.resource Service [org.sakaiproject.kernel.resource.VirtualResourceProviderImpl,39] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.543 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.543 *INFO* [FelixStartLevel] org.sakaiproject.kernel.ldap Service [org.sakaiproject.kernel.ldap.PoolingLdapConnectionBroker,37] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.543 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.543 *INFO* [FelixStartLevel] org.sakaiproject.kernel.ldap Service [org.sakaiproject.kernel.ldap.liveness.NativeLdapConnectionLivenessValidator,38] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.543 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.544 *INFO* [FelixStartLevel] org.sakaiproject.kernel.events Service [org.sakaiproject.kernel.events.OsgiJmsBridge,36] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.543 *ERROR* [Thread-13] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.asyncSendPacket(ActiveMQSession.java:1799)
+	at org.apache.activemq.ActiveMQMessageProducer.<init>(ActiveMQMessageProducer.java:107)
+	at org.apache.activemq.ActiveMQSession.createProducer(ActiveMQSession.java:864)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.handleEvent(OsgiJmsBridge.java:215)
+	at org.apache.felix.eventadmin.impl.tasks.HandlerTaskImpl.execute(HandlerTaskImpl.java:72)
+	at org.apache.felix.eventadmin.impl.tasks.DispatchTask.run(DispatchTask.java:159)
+	at org.apache.felix.eventadmin.impl.dispatch.CacheThreadPool$PooledThread.run(CacheThreadPool.java:265)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 8 more
+30.01.2010 09:14:21.544 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.resource BundleEvent STOPPED
+30.01.2010 09:14:21.544 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.ldap BundleEvent STOPPED
+30.01.2010 09:14:21.544 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.json-lib BundleEvent STOPPED
+30.01.2010 09:14:21.544 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.guice BundleEvent STOPPED
+30.01.2010 09:14:21.891 *WARN* [FelixStartLevel] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1227)
+	at org.apache.activemq.ActiveMQConnection.asyncSendPacket(ActiveMQConnection.java:1219)
+	at org.apache.activemq.ActiveMQSession.doClose(ActiveMQSession.java:590)
+	at org.apache.activemq.ActiveMQSession.close(ActiveMQSession.java:581)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.deactivate(OsgiJmsBridge.java:188)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invokeMethod(BaseMethod.java:213)
+	at org.apache.felix.scr.impl.helper.BaseMethod.access$500(BaseMethod.java:38)
+	at org.apache.felix.scr.impl.helper.BaseMethod$Resolved.invoke(BaseMethod.java:542)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invoke(BaseMethod.java:434)
+	at org.apache.felix.scr.impl.helper.ActivateMethod.invoke(ActivateMethod.java:138)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.disposeImplementationObject(ImmediateComponentManager.java:260)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.deleteComponent(ImmediateComponentManager.java:135)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager$Satisfied.deactivate(AbstractComponentManager.java:1066)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.disposeInternal(AbstractComponentManager.java:322)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.dispose(AbstractComponentManager.java:185)
+	at org.apache.felix.scr.impl.config.ConfiguredComponentHolder.disposeComponents(ConfiguredComponentHolder.java:275)
+	at org.apache.felix.scr.impl.BundleComponentActivator.dispose(BundleComponentActivator.java:319)
+	at org.apache.felix.scr.impl.Activator.disposeComponents(Activator.java:277)
+	at org.apache.felix.scr.impl.Activator.bundleChanged(Activator.java:178)
+	at org.apache.felix.framework.util.EventDispatcher.invokeBundleListenerCallback(EventDispatcher.java:800)
+	at org.apache.felix.framework.util.EventDispatcher.fireEventImmediately(EventDispatcher.java:728)
+	at org.apache.felix.framework.util.EventDispatcher.fireBundleEvent(EventDispatcher.java:610)
+	at org.apache.felix.framework.Felix.fireBundleEvent(Felix.java:3576)
+	at org.apache.felix.framework.Felix.stopBundle(Felix.java:2061)
+	at org.apache.felix.framework.Felix.setActiveStartLevel(Felix.java:1095)
+	at org.apache.felix.framework.StartLevelImpl.run(StartLevelImpl.java:264)
+	at java.lang.Thread.run(Thread.java:637)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.oneway(ResponseCorrelator.java:60)
+	at org.apache.activemq.ActiveMQConnection.doAsyncSendPacket(ActiveMQConnection.java:1225)
+	... 30 more
+30.01.2010 09:14:21.892 *WARN* [FelixStartLevel] org.sakaiproject.kernel.events.OsgiJmsBridge Peer (vm://localhost#1) disposed. javax.jms.JMSException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:62)
+	at org.apache.activemq.ActiveMQConnection.doSyncSendPacket(ActiveMQConnection.java:1300)
+	at org.apache.activemq.ActiveMQConnection.close(ActiveMQConnection.java:635)
+	at org.sakaiproject.kernel.events.OsgiJmsBridge.deactivate(OsgiJmsBridge.java:195)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invokeMethod(BaseMethod.java:213)
+	at org.apache.felix.scr.impl.helper.BaseMethod.access$500(BaseMethod.java:38)
+	at org.apache.felix.scr.impl.helper.BaseMethod$Resolved.invoke(BaseMethod.java:542)
+	at org.apache.felix.scr.impl.helper.BaseMethod.invoke(BaseMethod.java:434)
+	at org.apache.felix.scr.impl.helper.ActivateMethod.invoke(ActivateMethod.java:138)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.disposeImplementationObject(ImmediateComponentManager.java:260)
+	at org.apache.felix.scr.impl.manager.ImmediateComponentManager.deleteComponent(ImmediateComponentManager.java:135)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager$Satisfied.deactivate(AbstractComponentManager.java:1066)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.disposeInternal(AbstractComponentManager.java:322)
+	at org.apache.felix.scr.impl.manager.AbstractComponentManager.dispose(AbstractComponentManager.java:185)
+	at org.apache.felix.scr.impl.config.ConfiguredComponentHolder.disposeComponents(ConfiguredComponentHolder.java:275)
+	at org.apache.felix.scr.impl.BundleComponentActivator.dispose(BundleComponentActivator.java:319)
+	at org.apache.felix.scr.impl.Activator.disposeComponents(Activator.java:277)
+	at org.apache.felix.scr.impl.Activator.bundleChanged(Activator.java:178)
+	at org.apache.felix.framework.util.EventDispatcher.invokeBundleListenerCallback(EventDispatcher.java:800)
+	at org.apache.felix.framework.util.EventDispatcher.fireEventImmediately(EventDispatcher.java:728)
+	at org.apache.felix.framework.util.EventDispatcher.fireBundleEvent(EventDispatcher.java:610)
+	at org.apache.felix.framework.Felix.fireBundleEvent(Felix.java:3576)
+	at org.apache.felix.framework.Felix.stopBundle(Felix.java:2061)
+	at org.apache.felix.framework.Felix.setActiveStartLevel(Felix.java:1095)
+	at org.apache.felix.framework.StartLevelImpl.run(StartLevelImpl.java:264)
+	at java.lang.Thread.run(Thread.java:637)
+Caused by: org.apache.activemq.transport.TransportDisposedIOException: Peer (vm://localhost#1) disposed.
+	at org.apache.activemq.transport.vm.VMTransport.oneway(VMTransport.java:89)
+	at org.apache.activemq.transport.MutexTransport.oneway(MutexTransport.java:40)
+	at org.apache.activemq.transport.ResponseCorrelator.asyncRequest(ResponseCorrelator.java:74)
+	at org.apache.activemq.transport.ResponseCorrelator.request(ResponseCorrelator.java:84)
+	at org.apache.activemq.ActiveMQConnection.doSyncSendPacket(ActiveMQConnection.java:1289)
+	... 28 more
+30.01.2010 09:14:21.900 *INFO* [FelixStartLevel] org.sakaiproject.kernel.configuration Service [org.sakaiproject.kernel.api.configuration.KernelConstants,35] ServiceEvent UNREGISTERING
+ProviderTracker: Removing service...
+ProviderTracker: Removed service org.eclipse.persistence.jpa.osgi.PersistenceProviderOSGi service object: org.eclipse.persistence.jpa.osgi.PersistenceProvider@8d0b0f
+30.01.2010 09:14:21.900 *INFO* [FelixStartLevel] org.eclipse.persistence.jpa Service [34] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.901 *INFO* [FelixStartLevel] org.apache.sling.commons.threads Service [org.apache.sling.commons.threads.impl.DefaultThreadPoolManager,33] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.events BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.configuration BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.eclipse.persistence.jpa BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.eclipse.persistence.core BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.eclipse.persistence.asm BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.eclipse.persistence.antlr BundleEvent STOPPED
+30.01.2010 09:14:21.903 *INFO* [FelixDispatchQueue] org.apache.sling.commons.threads BundleEvent STOPPED
+30.01.2010 09:14:21.904 *INFO* [FelixStartLevel] org.sakaiproject.kernel.activemq Service [org.sakaiproject.kernel.activemq.ActiveMQConnectionFactoryService,32] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.904 *INFO* [FelixStartLevel] org.apache.felix.scr Service [Declarative Services Configuration Support Listener,30] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.904 *INFO* [FelixStartLevel] org.apache.felix.scr Service [Declarative Services Management Agent,29] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.905 *INFO* [FelixStartLevel] org.apache.felix.scr Service [org.apache.felix.scr.ScrService,31] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.905 *INFO* [FelixDispatchQueue] org.apache.felix.scr BundleEvent STOPPED
+30.01.2010 09:14:21.939 *INFO* [FelixStartLevel] org.apache.felix.metatype Service [org.apache.felix.metatype.MetaTypeService,28] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.939 *INFO* [FelixDispatchQueue] org.apache.felix.metatype BundleEvent STOPPED
+30.01.2010 09:14:21.940 *INFO* [FelixStartLevel] org.apache.felix.eventadmin Service [27] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.940 *INFO* [FelixStartLevel] org.apache.felix.configadmin Service [org.apache.felix.cm.ConfigurationAdmin,20] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.940 *INFO* [FelixDispatchQueue] org.apache.felix.eventadmin BundleEvent STOPPED
+30.01.2010 09:14:21.941 *INFO* [FelixStartLevel] org.apache.felix.configadmin Service [org.apache.felix.cm.file.FilePersistenceManager,19] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.941 *INFO* [FelixDispatchQueue] org.apache.felix.configadmin BundleEvent STOPPED
+Persistence bundle stopping...
+30.01.2010 09:14:21.941 *INFO* [FelixDispatchQueue] org.apache.felix.commons.commons-pool BundleEvent STOPPED
+Persistence bundle stopped.
+30.01.2010 09:14:21.941 *INFO* [FelixDispatchQueue] org.apache.felix.commons.commons-httpclient BundleEvent STOPPED
+30.01.2010 09:14:21.941 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.Activator Stopping pax http service
+30.01.2010 09:14:21.941 *INFO* [FelixDispatchQueue] org.apache.felix.commons.commons-codec BundleEvent STOPPED
+30.01.2010 09:14:21.941 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.ServerControllerImpl stopping server: ServerControllerImpl{state=STARTED}
+30.01.2010 09:14:21.941 *INFO* [FelixDispatchQueue] javax.persistence BundleEvent STOPPED
+30.01.2010 09:14:21.941 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.JettyServerImpl stopping JettyServerImpl{}
+30.01.2010 09:14:21.969 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [26] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStarted Handling event: [STOPPED]
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStarted Handling event: [STOPPED]
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStarted Handling event: [STOPPED]
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStarted Handling event: [STOPPED]
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStarted Handling event: [STOPPED]
+30.01.2010 09:14:21.977 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.Activator Stopped pax http service
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.pax-web-service Service [org.ops4j.pax.web,14] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Unregistering [/system/console/res]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Unregistering [/system/console]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceFactoryImpl unbinding bundle: [org.apache.felix.webconsole [108]]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Stopping http service: [org.ops4j.pax.web.service.internal.HttpServiceProxy@a1117]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStopped Changing HttpService state to org.ops4j.pax.web.service.internal.HttpServiceStopped@e80641
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceFactoryImpl unbinding bundle: [org.apache.felix.http.whiteboard [107]]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceProxy Stopping http service: [org.ops4j.pax.web.service.internal.HttpServiceProxy@f2bfec]
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.service.internal.HttpServiceStopped Changing HttpService state to org.ops4j.pax.web.service.internal.HttpServiceStopped@1166010
+30.01.2010 09:14:21.978 *INFO* [FelixStartLevel] org.ops4j.pax.web.pax-web-service Service [15] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.978 *INFO* [FelixDispatchQueue] org.ops4j.pax.web.pax-web-service BundleEvent STOPPED
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.sling.extensions.threaddump Service [Thread Dumper (javax.servlet.Servlet),13] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixDispatchQueue] org.apache.sling.extensions.threaddump BundleEvent STOPPED
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.sling.commons.classloader Service [Apache Sling Dynamic Class Loader Service,12] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixDispatchQueue] org.apache.sling.commons.classloader BundleEvent STOPPED
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [org.apache.felix.webconsole.internal.servlet.OsgiManager,11] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [16] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [17] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [21] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.979 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [22] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [24] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.felix.webconsole Service [25] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixDispatchQueue] org.apache.felix.webconsole BundleEvent STOPPED
+30.01.2010 09:14:21.980 *INFO* [FelixDispatchQueue] org.apache.felix.http.whiteboard BundleEvent STOPPED
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.felix.bundlerepository Service [10] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixDispatchQueue] org.apache.felix.bundlerepository BundleEvent STOPPED
+30.01.2010 09:14:21.980 *INFO* [FelixDispatchQueue] org.sakaiproject.kernel.specs.jmx BundleEvent STOPPED
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.sling.commons.log Service [7] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.sling.commons.log Service [org.apache.sling.commons.log.LogManager,4] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.sling.commons.log Service [org.apache.sling.commons.log.LogManager.factory.writer,5] ServiceEvent UNREGISTERING
+30.01.2010 09:14:21.980 *INFO* [FelixStartLevel] org.apache.sling.commons.log Service [org.apache.sling.commons.log.LogManager.factory.config,6] ServiceEvent UNREGISTERING
+30.01.2010 09:14:22.022 *INFO* [Sling Notifier] Sling has been stopped
