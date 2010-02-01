@@ -28,6 +28,8 @@ kern-538.rb 4 tests, 24 assertions, 0 failures, 0 errors
 kern-543.rb 1 tests, 11 assertions, 0 failures, 0 errors
 kern-552.rb 1 tests, 4 assertions, 0 failures, 0 errors
 kern-563.rb 2 tests, 8 assertions, 0 failures, 0 errors
+kern-568.rb 3 tests, 14 assertions, 0 failures, 0 errors
+kern-577.rb 1 tests, 11 assertions, 0 failures, 0 errors
 ~/timefields/open-experiments/slingtests/osgikernel
 ~/timefields/open-experiments/slingtests/osgikernel/testscripts/SlingRuby/tests ~/timefields/open-experiments/slingtests/osgikernel
 authz-test.rb 4 tests, 252 assertions, 0 failures, 0 errors
