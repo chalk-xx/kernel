@@ -63,6 +63,7 @@ public class TrustedAuthenticationHandlerTest {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }

@@ -25,8 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -51,7 +49,6 @@ public class TrustedTokenServiceTest  {
 
   private TrustedTokenServiceImpl trustedTokenService;
   private List<Object> mocks = new ArrayList<Object>();
-  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceTest.class);
 
   @Before
   public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
@@ -66,6 +63,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -77,6 +75,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -88,6 +87,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 100L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/fast-cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
