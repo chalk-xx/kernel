@@ -28,12 +28,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.Dictionary;
 
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 import javax.servlet.http.Cookie;
@@ -47,6 +51,134 @@ import javax.servlet.http.HttpSession;
 @Component(immediate = true)
 @Service
 public final class TrustedTokenServiceImpl implements TrustedTokenService {
+
+  /**
+   * 
+   */
+  private static final String SHA1PRNG = "SHA1PRNG";
+
+  /**
+   * 
+   */
+  private static final String HMAC_SHA1 = "HmacSHA1";
+  /**
+   * 
+   */
+  private static final String UTF_8 = "UTF-8";
+
+  /**
+   *
+   */
+  public static final class SecureCookieException extends Exception {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3461255120101001664L;
+
+    /**
+     * @param string
+     */
+    public SecureCookieException(String string) {
+      super(string);
+    }
+
+  }
+
+  /**
+   *
+   */
+  public final class SecureCookie {
+
+    private SecretKey secretKey;
+    private int tokenNumber;
+
+    /**
+     * @param currentToken
+     * @param secretKey
+     */
+    public SecureCookie(int tokenNumber) {
+      this.tokenNumber = tokenNumber;
+      this.secretKey = currentTokens[tokenNumber];
+    }
+
+    /**
+     * @param value
+     */
+    public SecureCookie() {
+    }
+
+    /**
+     * @return the secretKey
+     */
+    public SecretKey getSecretKey() {
+      return secretKey;
+    }
+
+    /**
+     * @return the tokenNumber
+     */
+    public int getTokenNumber() {
+      return tokenNumber;
+    }
+
+    /**
+     * @param expires
+     * @param userId
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws IllegalStateException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     */
+    public String encode(long expires, String userId) throws IllegalStateException,
+        UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+      String cookiePayload = String.valueOf(tokenNumber) + String.valueOf(expires) + "@"
+          + userId;
+      Mac m = Mac.getInstance(HMAC_SHA1);
+      m.init(secretKey);
+      m.update(cookiePayload.getBytes(UTF_8));
+      String cookieValue = byteToHex(m.doFinal());
+      return cookieValue + "@" + cookiePayload;
+    }
+
+    /**
+     * @return
+     * @throws SecureCookieException
+     */
+    public String decode(String value) throws SecureCookieException {
+      String[] parts = StringUtils.split(value, "@");
+      if (parts != null && parts.length == 3) {
+        this.tokenNumber = Integer.parseInt(parts[1].substring(0, 1));
+        long cookieTime = Long.parseLong(parts[1].substring(1));
+        if (System.currentTimeMillis() < cookieTime) {
+          try {
+            this.secretKey = currentTokens[tokenNumber];
+            String hmac = encode(cookieTime, parts[2]);
+            if (value.equals(hmac)) {
+              return parts[2];
+            }
+          } catch (ArrayIndexOutOfBoundsException e) {
+            LOG.error(e.getMessage(), e);
+          } catch (InvalidKeyException e) {
+            LOG.error(e.getMessage(), e);
+          } catch (IllegalStateException e) {
+            LOG.error(e.getMessage(), e);
+          } catch (UnsupportedEncodingException e) {
+            LOG.error(e.getMessage(), e);
+          } catch (NoSuchAlgorithmException e) {
+            LOG.error(e.getMessage(), e);
+          }
+          throw new SecureCookieException("AuthNCookie is invalid " + value);
+        } else {
+          throw new SecureCookieException("AuthNCookie has expired " + value + " "
+              + (System.currentTimeMillis() - cookieTime) + " ms ago");
+        }
+      } else {
+        throw new SecureCookieException("AuthNCookie is invalid format " + value);
+      }
+    }
+  }
 
   /**
    * 
@@ -101,7 +233,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   /**
    * A ring of tokens used to encypt.
    */
-  private String[] currentTokens = new String[5];
+  private SecretKey[] currentTokens = new SecretKey[5];
   /**
    * A secure random used for generating new tokens.
    */
@@ -119,10 +251,23 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * @throws NoSuchAlgorithmException
+   * @throws InvalidKeyException
+   * @throws UnsupportedEncodingException
+   * @throws IllegalStateException
    * 
    */
-  public TrustedTokenServiceImpl() throws NoSuchAlgorithmException {
-    random = SecureRandom.getInstance("SHA1PRNG");
+  public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
+      IllegalStateException, UnsupportedEncodingException {
+    random = SecureRandom.getInstance(SHA1PRNG);
+    // warm up the crypto API
+    Mac m = Mac.getInstance(HMAC_SHA1);
+    byte[] b = new byte[20];
+    random.nextBytes(b);
+    SecretKey secretKey = new SecretKeySpec(b, HMAC_SHA1);
+    m.init(secretKey);
+    m.update(UTF_8.getBytes("UTF-8"));
+    m.doFinal();
+
   }
 
   @SuppressWarnings("unchecked")
@@ -274,17 +419,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       return clusterCookieServer.encodeCookie(userId);
     } else {
       long expires = System.currentTimeMillis() + ttl;
-      String[] currentToken = getActiveToken();
+      SecureCookie secretKeyHolder = getActiveToken();
 
-      String cookePayload = currentToken[1] + expires + "@" + userId;
-      String cookieValue = expires + ":" + currentToken[0] + ":" + userId;
       try {
-        String cookie = sha1Hash(cookieValue) + "@" + cookePayload;
-        return cookie;
-      } catch (UnsupportedEncodingException e) {
-        LOG.error(e.getMessage());
+        return secretKeyHolder.encode(expires, userId);
       } catch (NoSuchAlgorithmException e) {
-        LOG.error(e.getMessage());
+        LOG.error(e.getMessage(), e);
+      } catch (InvalidKeyException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (IllegalStateException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (UnsupportedEncodingException e) {
+        LOG.error(e.getMessage(), e);
       }
       return null;
     }
@@ -303,30 +449,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (clusterCookieServer != null) {
       return clusterCookieServer.decodeCookie(value);
     } else {
-      String[] parts = StringUtils.split(value, "@");
-      if (parts != null && parts.length == 3) {
-        int tokenNumber = Integer.parseInt(parts[1].substring(0, 1));
-        long cookieTime = Long.parseLong(parts[1].substring(1));
-        if (System.currentTimeMillis() < cookieTime) {
-          try {
-            String pastToken = getCurrentTokens()[tokenNumber];
-            String cookieValue = cookieTime + ":" + pastToken + ":" + parts[2];
-            if (parts[0].equals(sha1Hash(cookieValue))) {
-              return parts[2];
-            }
-          } catch (NoSuchAlgorithmException e) {
-            LOG.error(e.getMessage());
-          } catch (UnsupportedEncodingException e) {
-            LOG.error(e.getMessage());
-          } catch (ArrayIndexOutOfBoundsException e) {
-            LOG.error(e.getMessage());
-          }
-          LOG.info("AuthNCookie is invalid {} ", value);
-        } else {
-          LOG.info("AuthNCookie has expired {} ", value);
-        }
-      } else {
-        LOG.info("AuthNCookie is invalid format {} ", value);
+      try {
+        SecureCookie secureCookie = new SecureCookie();
+        return secureCookie.decode(value);
+      } catch (SecureCookieException e) {
+        LOG.error(e.getMessage());
       }
     }
     return null;
@@ -334,24 +461,20 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
 
   /**
-   * @return the current list of tokens.
-   */
-  private String[] getCurrentTokens() {
-    return currentTokens;
-  }
-
-  /**
    * Maintain a circular buffer to tokens, and return the current one.
    * 
    * @return the current token.
    */
-  private synchronized String[] getActiveToken() {
-    if (System.currentTimeMillis() > nextUpdate) {
+  private synchronized SecureCookie getActiveToken() {
+    if (System.currentTimeMillis() > nextUpdate || currentTokens[currentToken] == null) {
+
       // cycle so that during a typical ttl the tokens get completely refreshed.
+      long tnow = System.currentTimeMillis();
       nextUpdate = System.currentTimeMillis() + ttl / (currentTokens.length - 1);
       byte[] b = new byte[20];
       random.nextBytes(b);
-      String newToken = byteToHex(b);
+
+      SecretKey newToken = new SecretKeySpec(b, HMAC_SHA1);
       int nextToken = currentToken + 1;
       if (nextToken == currentTokens.length) {
         nextToken = 0;
@@ -359,23 +482,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       currentTokens[nextToken] = newToken;
       currentToken = nextToken;
     }
-    return new String[] { currentTokens[currentToken], String.valueOf(currentToken) };
-  }
-
-  /**
-   * Perform a hash, here to eliminate dependencies.
-   * 
-   * @param tohash
-   * @return
-   * @throws UnsupportedEncodingException
-   * @throws NoSuchAlgorithmException
-   */
-  private String sha1Hash(String tohash) throws UnsupportedEncodingException,
-      NoSuchAlgorithmException {
-    byte[] b = tohash.getBytes("UTF-8");
-    MessageDigest sha1 = MessageDigest.getInstance("SHA");
-    b = sha1.digest(b);
-    return byteToHex(b);
+    return new SecureCookie(currentToken);
   }
 
   /**

@@ -28,6 +28,8 @@ import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler.Trusted
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -49,7 +51,7 @@ public class TrustedAuthenticationHandlerTest {
   private List<Object> mocks = new ArrayList<Object>();
 
   @Before
-  public void before() throws NoSuchAlgorithmException {
+  public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
   }

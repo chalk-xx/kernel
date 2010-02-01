@@ -25,7 +25,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -47,9 +51,10 @@ public class TrustedTokenServiceTest  {
 
   private TrustedTokenServiceImpl trustedTokenService;
   private List<Object> mocks = new ArrayList<Object>();
+  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceTest.class);
 
   @Before
-  public void before() throws NoSuchAlgorithmException {
+  public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
   }
@@ -154,6 +159,7 @@ public class TrustedTokenServiceTest  {
     String cookie = trustedTokenService.encodeCookie("ieb");
     System.err.println("Cookie is "+cookie);
     String[] parts = StringUtils.split(cookie,"@");
+    Assert.assertNotNull(parts);
     parts[1] = String.valueOf(System.currentTimeMillis()-3600000L);
     cookie = parts[0]+"@"+parts[1]+"@"+parts[2];
     String user = trustedTokenService.decodeCookie(cookie);
@@ -168,7 +174,7 @@ public class TrustedTokenServiceTest  {
     replay();
     trustedTokenService.activate(context);        
     String cookie = trustedTokenService.encodeCookie("ieb");
-    Thread.sleep(30L);
+    Thread.sleep(20L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNotNull(user);

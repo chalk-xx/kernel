@@ -25,6 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -48,7 +50,7 @@ public class TrustedLoginModulePluginTest {
   private List<Object> mocks = new ArrayList<Object>();
 
   @Before
-  public void before() throws NoSuchAlgorithmException {
+  public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
   }
