@@ -24,8 +24,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.uuid.UUID;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestPathInfo;
-import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.sakaiproject.kernel.api.files.LinkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
