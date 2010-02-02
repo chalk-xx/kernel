@@ -58,7 +58,7 @@ import javax.servlet.http.HttpServletResponse;
     description = "Allows you to fetch multiple resources in one single request.",
     bindings = @ServiceBinding(
         type = BindingType.PATH,
-        bindings = "/system/batch"
+        bindings = "/system/batch/get"
     ),
     methods = @ServiceMethod(
         name = "GET",

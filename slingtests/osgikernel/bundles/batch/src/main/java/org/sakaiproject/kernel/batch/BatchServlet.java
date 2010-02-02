@@ -25,6 +25,12 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.api.doc.BindingType;
+import org.sakaiproject.kernel.api.doc.ServiceBinding;
+import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
+import org.sakaiproject.kernel.api.doc.ServiceMethod;
+import org.sakaiproject.kernel.api.doc.ServiceParameter;
+import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.util.RequestInfo;
 import org.sakaiproject.kernel.util.RequestWrapper;
 import org.sakaiproject.kernel.util.ResponseWrapper;
@@ -42,7 +48,41 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, generateService = true, paths = { "/system/batch" })
+@SlingServlet(methods = { "POST" }, generateService = true, paths = { "/system/batch" })
+@ServiceDocumentation(
+    name = "BatchServlet",
+    shortDescription = "Bundles multiple requests into a single response.",
+    description = "Allows you to execute multiple requests in one single request.",
+    bindings = @ServiceBinding(
+        type = BindingType.PATH,
+        bindings = "/system/batch"
+    ),
+    methods = @ServiceMethod(
+        name = "POST",
+        description = "Get multiple request responses into a single response.",
+        parameters = @ServiceParameter(
+            name = "requests",
+            description = "JSON string that represents a request. <br />Example:" +
+                "<pre>{\n\"url\" : \"/foo/bar.json\",\n\"method\" : \"GET\",\n\"parameters : {\n\"val\" : 123,\n\"val@TypeHint\" : \"Long\"\n}\n}</pre>"
+        ),
+        response = {@ServiceResponse(
+            code = 200,
+            description = "All requests are succesfull. <br />" +
+                "A JSON array is returning which holds an object for each resource. Example:" +
+                "<pre>[\n" +
+                "{\"url\": \"/_user/public/admin/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
+          ),
+          @ServiceResponse(
+            code = 400,
+            description = "The JSON object for the 'requests' parameter was malformed."
+          ),
+          @ServiceResponse(
+            code = 500,
+            description = "Unable to get and parse all the requests."
+          )
+        }
+    )
+)
 public class BatchServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 419598445499567027L;
