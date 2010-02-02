@@ -15,21 +15,20 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.batch;
+package org.sakaiproject.kernel.util;
 
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
 public class ResponseWrapper extends SlingHttpServletResponseWrapper {
 
@@ -47,8 +46,8 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
   // set on the response.
   private Dictionary<String, String> headers;
 
-  public ResponseWrapper(HttpServletResponse wrappedResponse) {
-    super((SlingHttpServletResponse)wrappedResponse);
+  public ResponseWrapper(SlingHttpServletResponse wrappedResponse) {
+    super(wrappedResponse);
     headers = new Hashtable<String, String>();
   }
 
@@ -102,11 +101,6 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
     headers.put("Content-Type", type);
   }
 
-  public String getDataAsString() throws UnsupportedEncodingException {
-    pw.close();
-    return boas.toString("utf-8");
-  }
-
   @Override
   public void reset() {
     System.err.println("reset()");
@@ -141,10 +135,6 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
     this.status = sc;
   }
 
-  public int getResponseStatus() {
-    return this.status;
-  }
-
   //
   // Headers
   //
@@ -169,22 +159,42 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
     headers.put(name, "" + date);
   }
 
-  public void setHeaders(Dictionary<String, String> headers) {
-    Enumeration<String> keys = headers.keys();
-    while (keys.hasMoreElements()) {
-      String k = keys.nextElement();
-      this.headers.put(k, headers.get(k));
-    }
-  }
-
   @Override
   public void setDateHeader(String name, long date) {
     headers.put(name, "" + date);
   }
 
+  /**
+   * @return The headers returned by the underlying response.
+   */
   public Dictionary<String, String> getResponseHeaders() {
     return headers;
   }
-  
+
+  /**
+   * @return The data written to the underlying response stream. This stream is encoded as
+   *         UTF-8.
+   * @throws UnsupportedEncodingException
+   *           Failed to encode.
+   */
+  public String getDataAsString() throws UnsupportedEncodingException {
+    pw.close();
+    return boas.toString("utf-8");
+  }
+
+  /**
+   * @return The data written to the underlying response stream.
+   */
+  public OutputStream getDataAsOutputSream() {
+    pw.flush();
+    return boas;
+  }
+
+  /**
+   * @return The status code returned by the underlying response
+   */
+  public int getResponseStatus() {
+    return this.status;
+  }
 
 }
