@@ -26,6 +26,8 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -49,7 +51,7 @@ public class TrustedTokenServiceTest  {
   private List<Object> mocks = new ArrayList<Object>();
 
   @Before
-  public void before() throws NoSuchAlgorithmException {
+  public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
   }
@@ -61,6 +63,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -72,6 +75,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -83,6 +87,7 @@ public class TrustedTokenServiceTest  {
     dict.put(TrustedTokenServiceImpl.COOKIE_NAME, "secure-cookie");
     dict.put(TrustedTokenServiceImpl.TTL, 100L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
+    dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/fast-cookie-token.bin");
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -154,6 +159,7 @@ public class TrustedTokenServiceTest  {
     String cookie = trustedTokenService.encodeCookie("ieb");
     System.err.println("Cookie is "+cookie);
     String[] parts = StringUtils.split(cookie,"@");
+    Assert.assertNotNull(parts);
     parts[1] = String.valueOf(System.currentTimeMillis()-3600000L);
     cookie = parts[0]+"@"+parts[1]+"@"+parts[2];
     String user = trustedTokenService.decodeCookie(cookie);
@@ -168,7 +174,7 @@ public class TrustedTokenServiceTest  {
     replay();
     trustedTokenService.activate(context);        
     String cookie = trustedTokenService.encodeCookie("ieb");
-    Thread.sleep(30L);
+    Thread.sleep(20L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNotNull(user);

@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
   </parent>
   <artifactId>javax.xml.bind.jaxb</artifactId>
    <description>Provides javax.xml.bind JAXB </description>

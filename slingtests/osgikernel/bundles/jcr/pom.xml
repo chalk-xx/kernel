@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.kernel</groupId>
     <artifactId>base</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.3-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.kernel.jcr</artifactId>
   <packaging>bundle</packaging>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.3-SNAPSHOT</version>
   <name>Sakai JCR Bundle</name>
   <description>Adds JCR Node support functionality to Sling </description>
   <build>

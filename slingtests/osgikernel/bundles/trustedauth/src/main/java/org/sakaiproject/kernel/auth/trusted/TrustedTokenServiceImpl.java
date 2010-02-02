@@ -24,14 +24,15 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.auth.trusted.TokenStore.SecureCookie;
+import org.sakaiproject.kernel.auth.trusted.TokenStore.SecureCookieException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
-import java.security.SecureRandom;
 import java.util.Dictionary;
 
 import javax.jcr.Credentials;
@@ -48,10 +49,8 @@ import javax.servlet.http.HttpSession;
 @Service
 public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
-  /**
-   * 
-   */
-  private static final char[] TOHEX = "0123456789abcdef".toCharArray();
+
+
 
   private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenService.class);
 
@@ -71,6 +70,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value = "sakai-trusted-authn", description = "The name of the token")
   static final String COOKIE_NAME = "sakai.auth.trusted.token.name";
 
+  /** Property to point to keystore file */
+  @Property(value = "sling/cookie-keystore.bin", description = "The name of the token store")
+  static final String TOKEN_FILE_NAME = "sakai.auth.trusted.token.storefile";
+
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -80,32 +83,12 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * Shoudl the cookies go over ssl.
    */
   private boolean secureCookie = false;
-  /**
-   * The ttl of the cookie before it becomes invalid (in ms)
-   */
-  private long ttl = 20L * 60000L; // 20 minutes
 
   /**
    * The name of the authN token.
    */
   private String trustedAuthCookieName;
 
-  /**
-   * The time when a new token should be created.
-   */
-  private long nextUpdate = System.currentTimeMillis();
-  /**
-   * The location of the current token.
-   */
-  private int currentToken = 0;
-  /**
-   * A ring of tokens used to encypt.
-   */
-  private String[] currentTokens = new String[5];
-  /**
-   * A secure random used for generating new tokens.
-   */
-  private SecureRandom random;
 
   /**
    * An optional cookie server can be used in a cluster to centralize the management of
@@ -117,12 +100,21 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
   private ClusterCookieServer clusterCookieServer;
 
+  private TokenStore tokenStore;
+
+  private Long ttl;
+
   /**
    * @throws NoSuchAlgorithmException
+   * @throws InvalidKeyException
+   * @throws UnsupportedEncodingException
+   * @throws IllegalStateException
    * 
    */
-  public TrustedTokenServiceImpl() throws NoSuchAlgorithmException {
-    random = SecureRandom.getInstance("SHA1PRNG");
+  public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
+      IllegalStateException, UnsupportedEncodingException {
+    tokenStore = new TokenStore();
+    
   }
 
   @SuppressWarnings("unchecked")
@@ -132,6 +124,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     secureCookie = (Boolean) props.get(SECURE_COOKIE);
     ttl = (Long) props.get(TTL);
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
+    
+    tokenStore.setTtl(ttl);
+    tokenStore.setTokenFile((String) props.get(TOKEN_FILE_NAME));
   }
 
   /**
@@ -274,17 +269,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       return clusterCookieServer.encodeCookie(userId);
     } else {
       long expires = System.currentTimeMillis() + ttl;
-      String[] currentToken = getActiveToken();
+      SecureCookie secretKeyHolder = tokenStore.getActiveToken();
 
-      String cookePayload = currentToken[1] + expires + "@" + userId;
-      String cookieValue = expires + ":" + currentToken[0] + ":" + userId;
       try {
-        String cookie = sha1Hash(cookieValue) + "@" + cookePayload;
-        return cookie;
-      } catch (UnsupportedEncodingException e) {
-        LOG.error(e.getMessage());
+        return secretKeyHolder.encode(expires, userId);
       } catch (NoSuchAlgorithmException e) {
-        LOG.error(e.getMessage());
+        LOG.error(e.getMessage(), e);
+      } catch (InvalidKeyException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (IllegalStateException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (UnsupportedEncodingException e) {
+        LOG.error(e.getMessage(), e);
       }
       return null;
     }
@@ -303,99 +299,17 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     if (clusterCookieServer != null) {
       return clusterCookieServer.decodeCookie(value);
     } else {
-      String[] parts = StringUtils.split(value, "@");
-      if (parts != null && parts.length == 3) {
-        int tokenNumber = Integer.parseInt(parts[1].substring(0, 1));
-        long cookieTime = Long.parseLong(parts[1].substring(1));
-        if (System.currentTimeMillis() < cookieTime) {
-          try {
-            String pastToken = getCurrentTokens()[tokenNumber];
-            String cookieValue = cookieTime + ":" + pastToken + ":" + parts[2];
-            if (parts[0].equals(sha1Hash(cookieValue))) {
-              return parts[2];
-            }
-          } catch (NoSuchAlgorithmException e) {
-            LOG.error(e.getMessage());
-          } catch (UnsupportedEncodingException e) {
-            LOG.error(e.getMessage());
-          } catch (ArrayIndexOutOfBoundsException e) {
-            LOG.error(e.getMessage());
-          }
-          LOG.info("AuthNCookie is invalid {} ", value);
-        } else {
-          LOG.info("AuthNCookie has expired {} ", value);
-        }
-      } else {
-        LOG.info("AuthNCookie is invalid format {} ", value);
+      try {
+        SecureCookie secureCookie = tokenStore.getSecureCookie();
+        return secureCookie.decode(value);
+      } catch (SecureCookieException e) {
+        LOG.error(e.getMessage());
       }
     }
     return null;
 
   }
 
-  /**
-   * @return the current list of tokens.
-   */
-  private String[] getCurrentTokens() {
-    return currentTokens;
-  }
-
-  /**
-   * Maintain a circular buffer to tokens, and return the current one.
-   * 
-   * @return the current token.
-   */
-  private synchronized String[] getActiveToken() {
-    if (System.currentTimeMillis() > nextUpdate) {
-      // cycle so that during a typical ttl the tokens get completely refreshed.
-      nextUpdate = System.currentTimeMillis() + ttl / (currentTokens.length - 1);
-      byte[] b = new byte[20];
-      random.nextBytes(b);
-      String newToken = byteToHex(b);
-      int nextToken = currentToken + 1;
-      if (nextToken == currentTokens.length) {
-        nextToken = 0;
-      }
-      currentTokens[nextToken] = newToken;
-      currentToken = nextToken;
-    }
-    return new String[] { currentTokens[currentToken], String.valueOf(currentToken) };
-  }
-
-  /**
-   * Perform a hash, here to eliminate dependencies.
-   * 
-   * @param tohash
-   * @return
-   * @throws UnsupportedEncodingException
-   * @throws NoSuchAlgorithmException
-   */
-  private String sha1Hash(String tohash) throws UnsupportedEncodingException,
-      NoSuchAlgorithmException {
-    byte[] b = tohash.getBytes("UTF-8");
-    MessageDigest sha1 = MessageDigest.getInstance("SHA");
-    b = sha1.digest(b);
-    return byteToHex(b);
-  }
-
-  /**
-   * Encode a byte array.
-   * 
-   * @param base
-   * @return
-   */
-  private String byteToHex(byte[] base) {
-    char[] c = new char[base.length * 2];
-    int i = 0;
-
-    for (byte b : base) {
-      int j = b;
-      j = j + 128;
-      c[i++] = TOHEX[j / 0x10];
-      c[i++] = TOHEX[j % 0x10];
-    }
-    return new String(c);
-  }
 
   /**
    * Create credentials from a validated userId.
