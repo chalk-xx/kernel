@@ -61,7 +61,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
-import org.sakaiproject.kernel.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,8 +235,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
 
       final Node siteNode = findSiteNode(node);
-      // FIXME remove sha1 hashing (work around for suspect s2 producer bug)
-      launchProps.put(CONTEXT_ID, StringUtils.sha1Hash(siteNode.getPath()));
+      launchProps.put(CONTEXT_ID, siteNode.getPath());
       launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
       launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
 
