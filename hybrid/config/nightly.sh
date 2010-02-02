@@ -58,7 +58,7 @@ mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
 cd open-experiments/slingtests/osgikernel/
-git checkout 0.2-RC1
+git checkout 0.2
 # work around instance not listening on port 80
 perl -pwi -e 's/localhost/localhost:8080/g' bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/*.json
 mvn clean install -Dmaven.test.skip=true
