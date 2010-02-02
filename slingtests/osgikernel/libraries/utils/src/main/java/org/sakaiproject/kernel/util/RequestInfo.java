@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.sakaiproject.kernel.batch;
+package org.sakaiproject.kernel.util;
 
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -25,6 +25,9 @@ import org.apache.sling.commons.json.JSONObject;
 import java.util.Hashtable;
 import java.util.Iterator;
 
+/**
+ * Class used to hold information about a request. eg: type, parameters, url..
+ */
 public class RequestInfo {
 
   private String url;
@@ -36,10 +39,33 @@ public class RequestInfo {
     setParameters(parameters);
   }
 
+  /**
+   * Set a default requestinfo object.
+   */
   public RequestInfo() {
     setParameters(new Hashtable<String, String[]>());
   }
 
+  /**
+   * Get a RequestInfo object created from a JSON block. This json object has to be in the
+   * form of
+   * 
+   * <pre>
+   * {
+   *   "url" : "/foo/bar.json",
+   *   "method" : "GET",
+   *   "parameters : {
+   *     "val" : 123,
+   *     "val@TypeHint" : "Long"
+   *   }
+   * }
+   * </pre>
+   * 
+   * @param obj
+   *          The JSON object containing the information to base this RequestInfo on.
+   * @throws JSONException
+   *           The JSON object could not be interpreted correctly.
+   */
   public RequestInfo(JSONObject obj) throws JSONException {
     setUrl(obj.getString("url"));
     setMethod(obj.getString("method"));
@@ -70,14 +96,25 @@ public class RequestInfo {
 
   }
 
+  /**
+   * @param url
+   *          The url where to fire a request on.
+   */
   public void setUrl(String url) {
     this.url = url;
   }
 
+  /**
+   * @return The to fire a request to.
+   */
   public String getUrl() {
     return url;
   }
 
+  /**
+   * @param parameters
+   *          The table that contains the key-values for the parameters.
+   */
   public void setParameters(Hashtable<String, String[]> parameters) {
     this.parameters = parameters;
   }

@@ -16,7 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.sakaiproject.kernel.batch.parameters;
+package org.sakaiproject.kernel.util.parameters;
+
+import org.sakaiproject.kernel.util.parameters.AbstractRequestParameter;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

@@ -22,42 +22,62 @@ class TC_Kern330Test < SlingTest
     # Batch post to private store
     str = [{
           "url" => "/_user/private/test/a",
-          "data" => {
+          "method" => "POST",
+          "parameters" => {
               "title" => "alfa",
               "foo" => "bar",
-              "unit" => 10
-      }
-    },
-    {
-          "url" => "/_user/private/test/b",
-          "data" => {
-              "title" => "beta",
-              "unit" => 20
+              "unit" => 10,
+              "unit@TypeHint" => "Long"
       }
     },
     {
           "url" => "/_user/private/test/c",
-          "data" => {
+          "method" => "POST",
+          "parameters" => {
               "title" => "charlie",
-              "unit" => 30
+              "unit" => 30,
+              "unit@TypeHint" => "Long"
       }
+    },
+    {
+          "url" => "/_user/private/test/c",
+          "method" => "POST",
+          "parameters" => {
+              "title" => "charlieRedux",
+              "unit" => 40,
+              "unit@TypeHint" => "Long"
+      }
+    },
+    {
+          "url" => "/_user/private/test/a.json",
+          "method" => "GET",
+          "parameters" => {}
+    },
+    {
+          "url" => "/_user/private/test/c.json",
+          "method" => "GET",
+          "parameters" => {}
     }
     ]
     
     parameters = {
-      "p" => JSON.generate(str)
+      "requests" => JSON.generate(str)
     }
     
-    res = @s.execute_post(@s.url_for("system/batch/post"), parameters)
+    res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     jsonRes = JSON.parse(res.body)
     
     assert_equal(jsonRes[0]["url"], "/_user/private/test/a")
     assert_equal(jsonRes[0]["status"], 201, "Expexted to get a created statuscode.")
-    assert_equal(jsonRes[1]["url"], "/_user/private/test/b")
-    assert_equal(jsonRes[1]["status"], 200, "Expected to be get a modified statuscode.")
+    assert_equal(jsonRes[1]["url"], "/_user/private/test/c")
+    assert_equal(jsonRes[1]["status"], 201, "Expexted to get a created statuscode.")
     assert_equal(jsonRes[2]["url"], "/_user/private/test/c")
-    assert_equal(jsonRes[2]["status"], 201, "Expexted to get a created statuscode.")
+    assert_equal(jsonRes[2]["status"], 200, "Expected to be get a modified statuscode.")
+    assert_equal(jsonRes[3]["url"], "/_user/private/test/a.json")
+    assert_equal(jsonRes[3]["status"], 200, "Expexted to get a proper statuscode.")
+    aBody = JSON.parse(jsonRes[3]["body"])
+    assert_equal(aBody["unit"], 10);
   end
   
   def test_accessdenied
@@ -67,32 +87,36 @@ class TC_Kern330Test < SlingTest
     
     @s.switch_user(user2)
     str = [{
-          "url" => "/foo/bar",
+          "url" => "/_user/public/admin/foo/bar",
+          "method" => "POST",
           "data" => {
               "title" => "alfa",
               "foo" => "bar",
-              "unit" => 10
+              "unit" => 10,
+              "unit@TypeHint" => "Long"
       }
     },
     {
           "url" => "/_user/private/foo/bar",
+          "method" => "POST",
           "data" => {
               "title" => "beta",
-              "unit" => 20
+              "unit" => 20,
+              "unit@TypeHint" => "Long"
       }
     }
     ]
     
     parameters = {
-      "p" => JSON.generate(str)
+      "requests" => JSON.generate(str)
     }
     
     
-    res = @s.execute_post(@s.url_for("system/batch/post"), parameters)
+    res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     jsonRes = JSON.parse(res.body)
     
-    assert_equal(jsonRes[0]["url"], "/foo/bar")
+    assert_equal(jsonRes[0]["url"], "/_user/public/admin/foo/bar")
     assert_equal(jsonRes[0]["status"], 500, "Expexted access denied.")
     assert_equal(jsonRes[1]["url"], "/_user/private/foo/bar")
     assert_equal(jsonRes[1]["status"], 201, "Expected to get a created statuscode.")
@@ -107,14 +131,16 @@ class TC_Kern330Test < SlingTest
     str = [
     {
           "url" => "/_user/private/foo/bar/a",
-          "data" => {
+          "method" => "POST",
+          "parameters" => {
               "title" => "alfa",
               "unit" => 20,
               "unit@TypeHint" => "Long"
       }
     },{
           "url" => "/_user/private/foo/bar/b",
-          "data" => {
+          "method" => "POST",
+          "parameters" => {
               "title" => "beta",
               "sakai:tags" => ["a", "b"],
       }
@@ -122,11 +148,11 @@ class TC_Kern330Test < SlingTest
     ]
     
     parameters = {
-      "p" => JSON.generate(str)
+      "requests" => JSON.generate(str)
     }
     
     
-    res = @s.execute_post(@s.url_for("system/batch/post"), parameters)
+    res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     # Check batch post response
     jsonRes = JSON.parse(res.body)
@@ -145,6 +171,39 @@ class TC_Kern330Test < SlingTest
     assert_equal(result["title"], "beta", "Expected string value 'beta'")
     assert_equal(result["sakai:tags"].length, 2, "Expected multivalued property")
     
+  end
+  
+  def test_doGet404
+    #
+    # This test checks some sling syntax.
+    # If one of the requests is a GET to a none existing resource,
+    # Sling sends a 404 on the initial requests, instead of the wrapped one.
+    #
+    
+    m = Time.now.to_i.to_s
+    user3 = create_user("user3-"+m)
+    
+    @s.switch_user(user3)
+    str = [
+    {
+          "url" => "/_user/private/random/bla",
+          "method" => "POST",
+          "parameters" => {"foo" => "bar"}
+    },
+    {
+          "url" => "/this/is/a/none/existing/node",
+          "method" => "GET",
+          "parameters" => {}
+    }
+    ]
+    parameters = {
+      "requests" => JSON.generate(str)
+    }
+    res = @s.execute_post(@s.url_for("system/batch"), parameters)
+    assert_equal(200, res.code.to_i, "Batch servlet should always return a 200 (with good parameters)")
+    result = JSON.parse(res.body)
+    assert_equal(201, result[0]["status"], "Expected a created status code.")
+    assert_equal(404, result[1]["status"], "Expected a not found status code.")
   end
   
 end

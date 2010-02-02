@@ -25,6 +25,9 @@ import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.kernel.util.RequestInfo;
+import org.sakaiproject.kernel.util.RequestWrapper;
+import org.sakaiproject.kernel.util.ResponseWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,6 +123,7 @@ public class BatchServlet extends SlingAllMethodsServlet {
           "Failed to parse the " + REQUESTS_PARAMETER + " parameter");
       LOGGER.warn("Failed to parse the " + REQUESTS_PARAMETER + " parameter");
       e.printStackTrace();
+      return;
     }
 
     // Loop over the requests and handle each one.

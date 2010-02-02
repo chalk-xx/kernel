@@ -1,11 +1,11 @@
-package org.sakaiproject.kernel.batch;
+package org.sakaiproject.kernel.util;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.request.RequestParameterMap;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
-import org.sakaiproject.kernel.batch.parameters.ContainerRequestParameter;
-import org.sakaiproject.kernel.batch.parameters.ParameterMap;
+import org.sakaiproject.kernel.util.RequestInfo;
+import org.sakaiproject.kernel.util.parameters.ParameterMap;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
@@ -16,11 +16,9 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
 
   private RequestInfo requestInfo;
   private ParameterMap postParameterMap;
-  private SlingHttpServletRequest request;
 
   public RequestWrapper(SlingHttpServletRequest request) {
     super(request);
-    this.request = request;
   }
 
   public void setRequestInfo(RequestInfo requestInfo) {
@@ -68,44 +66,24 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
   private ParameterMap getRequestParameterMapInternal() {
     if (this.postParameterMap == null) {
 
+      String encoding = getCharacterEncoding();
+      // SLING-508 Try to force servlet container to decode parameters
+      // as ISO-8859-1 such that we can recode later
+      if (encoding == null) {
+        encoding = "ISO-8859-1";
+        try {
+          this.setCharacterEncoding(encoding);
+        } catch (UnsupportedEncodingException uee) {
+          throw new RuntimeException(uee);
+        }
+      }
       // SLING-152 Get parameters from the servlet Container
-      ParameterMap parameters = new ParameterMap();
-      getContainerParameters(parameters);
-
-      // apply any form encoding (from '_charset_') in the parameter map
-      // Util.fixEncoding(parameters);
+      ParameterMap parameters = ParameterUtils.getContainerParameters(encoding,
+          getParameterMap());
 
       this.postParameterMap = parameters;
     }
     return this.postParameterMap;
-  }
-
-  private void getContainerParameters(ParameterMap parameters) {
-
-    // SLING-508 Try to force servlet container to decode parameters
-    // as ISO-8859-1 such that we can recode later
-    String encoding = request.getCharacterEncoding();
-    if (encoding == null) {
-      encoding = "ISO-8859-1";
-      try {
-        this.setCharacterEncoding(encoding);
-      } catch (UnsupportedEncodingException uee) {
-        throw new RuntimeException(uee);
-      }
-    }
-
-    final Map<?, ?> pMap = getParameterMap();
-    for (Map.Entry<?, ?> entry : pMap.entrySet()) {
-
-      final String name = (String) entry.getKey();
-      final String[] values = (String[]) entry.getValue();
-
-      for (int i = 0; i < values.length; i++) {
-        parameters.addParameter(name, new ContainerRequestParameter(values[i],
-            encoding));
-      }
-
-    }
   }
 
   //
