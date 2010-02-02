@@ -188,7 +188,9 @@ git commit -a -m "[release-script] preparing for release tag"
 # Check if our new commit still works, we do all the above tests again.
 
 
+set +o errexit
 git tag -d $tagversion
+set -o errexit
 git tag -s -m "[release-script] tagging release $cversion " $tagversion HEAD
 echo "Reverting pom changes."
 patch -p3 -R < last-release/changeversion.diff

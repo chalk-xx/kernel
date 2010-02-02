@@ -19,55 +19,45 @@ package org.sakaiproject.kernel.auth.trusted;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationServlet.TrustedUser;
 
 import java.io.IOException;
-import java.security.Principal;
-import java.util.Map;
-import java.util.Set;
 
 import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.login.FailedLoginException;
-import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Authentication handler for trusted authentication sources. These sources will
- * authenticate users externally and eventually pass through this handler to
- * establish a trusted relationship continuing into the container.
+ * authenticate users externally and eventually pass through this handler to establish a
+ * trusted relationship continuing into the container.
  */
 @Component(immediate = true)
 @Service
-public class TrustedAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
+public final class TrustedAuthenticationHandler implements AuthenticationHandler {
   /**
    * Authentication type name
    */
   public static final String TRUSTED_AUTH = TrustedAuthenticationHandler.class.getName();
 
   /**
-   * Attribute name for storage of authentication
+   * Attribute name for storage of the TrustedAuthentication object in the requests
    */
   static final String RA_AUTHENTICATION_TRUST = "sakai-trusted-authentication-trust";
-
-  static final String SA_AUTHENTICATION_CREDENTIALS = "sakai-trusted-authentication-credentials";
-
-  static final String CA_AUTHENTICATION_USER = "sakai-trusted-authentication-user";
-
+  /**
+   * The attribute name for the AuthenticationInformation in the request
+   */
   static final String RA_AUTHENTICATION_INFO = "sakai-trusted-authentication-authinfo";
 
   /**
-   * Path on which this authentication should be activated.
+   * Path on which this authentication should be activated. Its active on all paths, as
+   * the authentication itself is performed by the TrustedAuthenticationServlet that
+   * places credentials in the session. Those credentials are then used to authenticate
+   * all subsequent requests.
    */
   @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
@@ -77,166 +67,110 @@ public class TrustedAuthenticationHandler implements AuthenticationHandler, Logi
 
   @Property(value = "The Sakai Foundation")
   static final String VENDOR_PROPERTY = "service.vendor";
+  
+  @Reference
+  protected TrustedTokenService trustedTokenService;
+
 
   // -------------------- AuthenticationHandler methods --------------------
+
   /**
    * {@inheritDoc}
-   *
-   * @see org.apache.sling.engine.auth.AuthenticationHandler#authenticate(javax.servlet.http.HttpServletRequest,
+   * 
+   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest,
    *      javax.servlet.http.HttpServletResponse)
    */
-  public AuthenticationInfo authenticate(HttpServletRequest req, HttpServletResponse resp) {
-    // check for existing authentication information in session
-    TrustedAuthentication auth = new TrustedAuthentication(req);
-    req.setAttribute(RA_AUTHENTICATION_TRUST, auth);
-
-    // construct the authentication info and store credentials on the request
-    AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
-    req.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
-    return authInfo;
-  }
-
-
-  // -------------------- LoginModulePlugin methods --------------------
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
-   */
-  public boolean canHandle(Credentials cred) {
-    boolean hasAttribute = false;
-
-    if (cred != null && cred instanceof SimpleCredentials) {
-      Object attr = ((SimpleCredentials) cred).getAttribute(CA_AUTHENTICATION_USER);
-      hasAttribute = (attr != null);
-    }
-
-    return hasAttribute;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
-   *      javax.jcr.Session, java.util.Map)
-   */
-  @SuppressWarnings("unchecked")
-  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
-      throws LoginException {
-    return;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getAuthentication(java.security.Principal,
-   *      javax.jcr.Credentials)
-   */
-  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
-      throws RepositoryException {
-    return new TrustedAuthenticationPlugin(principal);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getPrincipal(javax.jcr.Credentials)
-   */
-  public Principal getPrincipal(Credentials credentials) {
-    Principal principal = null;
-    if (credentials != null && credentials instanceof SimpleCredentials) {
-      SimpleCredentials sc = (SimpleCredentials) credentials;
-      TrustedUser user = (TrustedUser) sc.getAttribute(CA_AUTHENTICATION_USER);
-      if (user != null) {
-        principal = new TrustedPrincipal(user);
+  public AuthenticationInfo extractCredentials(HttpServletRequest request,
+      HttpServletResponse response) {
+    // check for existing authentication information in the request
+    Object auth = request.getAttribute(RA_AUTHENTICATION_TRUST);
+    if ( auth instanceof TrustedAuthentication ) {
+      TrustedAuthentication trustedAuthentication = (TrustedAuthentication) auth;
+      if ( trustedAuthentication.isValid() ) {
+        Object authInfo = request.getAttribute(RA_AUTHENTICATION_INFO);
+        if ( authInfo instanceof AuthenticationInfo ) {
+          AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
+          Credentials credentials = authenticationInfo.getCredentials();
+          if ( credentials instanceof SimpleCredentials ) {
+            return authenticationInfo;
+          }
+        }
       }
+    } 
+    // create a new authentication in the request.
+    TrustedAuthentication trustedAuthentication = new TrustedAuthentication(request, response);
+    if (trustedAuthentication.isValid()) {
+      request.setAttribute(RA_AUTHENTICATION_TRUST, trustedAuthentication);
+
+      // construct the authentication info and store credentials on the request
+      AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
+      authInfo.setCredentials(trustedAuthentication.getCredentials());
+      request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
+      return authInfo;
+    } else {
+      // no valid credentials found in the request.
+      return null;
     }
-    return principal;
   }
 
   /**
    * {@inheritDoc}
-   *
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#impersonate(java.security.Principal,
-   *      javax.jcr.Credentials)
+   * 
+   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
    */
-  public int impersonate(Principal principal, Credentials credentials) throws RepositoryException,
-      FailedLoginException {
-    return LoginModulePlugin.IMPERSONATION_DEFAULT;
+  public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
+      ((TrustedTokenServiceImpl) trustedTokenService).dropCredentials(request,response);
+    }
+    request.setAttribute(RA_AUTHENTICATION_INFO, null);
+    request.setAttribute(RA_AUTHENTICATION_TRUST, null);
+
   }
 
   /**
    * {@inheritDoc}
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#addPrincipals(java.util.Set)
+   * 
+   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest,
+   *      javax.servlet.http.HttpServletResponse)
    */
-  public void addPrincipals(Set principals) {
-    // Since this plugin is a service, how can principals be added. Login modules are not normally services, perhapse this shoud not be one.
-    // TODO Auto-generated method stub
-    
+  public boolean requestCredentials(HttpServletRequest arg0, HttpServletResponse arg1)
+      throws IOException {
+    // forces credentials to be requested from the client, in the trusted senario this
+    // would redirect to the login landing page.
+    return false;
   }
 
   /**
    * Authentication information for storage in session and/or request.<br/>
    * <br/>
-   * By being an inner, static class with a private constructor, it is harder
-   * for an external source to inject into the authentication chain.
+   * By being an inner, static class with a private constructor, it is harder for an
+   * external source to inject into the authentication chain.
    */
-  static final class TrustedAuthentication {
+  final class TrustedAuthentication {
     private final Credentials cred;
 
-    private TrustedAuthentication(HttpServletRequest req) {
-      // we may not want to put this in a session.
-      HttpSession session = req.getSession(false);
-      if (session != null) {
-        cred = (Credentials) session.getAttribute(SA_AUTHENTICATION_CREDENTIALS);
+    private TrustedAuthentication(HttpServletRequest req, HttpServletResponse response) {
+      // This is placed here by the TrustedAuthenticationServlet, that will be in the same
+      // web container as Sling and so sharing a session.
+      if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
+        cred = ((TrustedTokenServiceImpl) trustedTokenService).getCredentials(req, response);
       } else {
         cred = null;
       }
+
     }
 
     Credentials getCredentials() {
       return cred;
     }
+    
+    
 
     boolean isValid() {
       return cred != null;
     }
   }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#dropCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-   */
-  public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
-    HttpSession session = request.getSession(false);
-    if (session != null) {
-      session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, null);
-    }
-    request.setAttribute(RA_AUTHENTICATION_INFO, null);
-    request.setAttribute(RA_AUTHENTICATION_TRUST, null);
-    
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-   */
-  public AuthenticationInfo extractCredentials(HttpServletRequest request,
-      HttpServletResponse response) {
-    return (AuthenticationInfo) request.getAttribute(RA_AUTHENTICATION_INFO);
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#requestCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-   */
-  public boolean requestCredentials(HttpServletRequest arg0, HttpServletResponse arg1)
-      throws IOException {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
 
 }
