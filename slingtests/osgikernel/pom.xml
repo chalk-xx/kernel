@@ -98,6 +98,7 @@
         <module>bundles/doc</module>
         <module>bundles/persondirectory</module>
         <module>bundles/content</module>
+        <module>bundles/docproxy</module>
       </modules>
     </profile>
     <profile>
