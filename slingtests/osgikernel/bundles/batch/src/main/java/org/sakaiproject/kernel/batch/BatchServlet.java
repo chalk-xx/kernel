@@ -18,8 +18,10 @@
 package org.sakaiproject.kernel.batch;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -197,9 +199,14 @@ public class BatchServlet extends SlingAllMethodsServlet {
 
     try {
       // Get the response
-      request.getRequestDispatcher(requestInfo.getUrl()).forward(
-          requestWrapper, responseWrapper);
-
+      try {
+        request.getRequestDispatcher(requestInfo.getUrl()).forward(requestWrapper,
+            responseWrapper);
+      } catch (ResourceNotFoundException e) {
+        responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      } catch (SlingException e) {
+        responseWrapper.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
       // Write the response (status, headers, body) back to the client.
       writeResponse(write, responseWrapper, requestInfo);
     } catch (ServletException e) {
