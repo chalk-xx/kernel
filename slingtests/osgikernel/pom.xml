@@ -30,7 +30,6 @@
       </activation>
       <modules>
      <!--   <module>bundles/shindig</module> -->
-        <module>app</module>
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
         <module>bundles/casauth</module>
@@ -100,8 +99,11 @@
       </modules>
     </profile>
     <profile>
-       <!-- rebundle the standalone server -->
+       <!-- rebundle the standalone server, this must run after the build -->
        <id>bundle</id>
+       <activation>
+        <activeByDefault>true</activeByDefault>
+       </activation>
        <modules>
         <module>app</module>
        </modules>
