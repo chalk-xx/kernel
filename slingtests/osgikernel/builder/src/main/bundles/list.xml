@@ -319,13 +319,6 @@
       <version>2.0.0</version>
     </bundle>
    </startLevel>
-   <startLevel level="5" >
-    <bundle>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-   </startLevel>
    <startLevel level="11" >
     <bundle>
       <groupId>org.sakaiproject.kernel</groupId>

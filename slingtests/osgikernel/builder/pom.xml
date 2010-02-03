@@ -44,6 +44,13 @@
                         </goals>
                         <configuration>
                             <packaging>jar</packaging>
+                            <!-- add in our jetty config -->
+                            <jarWebSupport>
+                                 <groupId>org.sakaiproject.kernel</groupId>
+                                 <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+                                 <version>0.3-SNAPSHOT</version>
+                                 <startLevel>5</startLevel>
+                           </jarWebSupport>
                         </configuration>
                     </execution>
 
@@ -81,7 +88,6 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <classifier>app</classifier>
                             <archive>
                                 <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                                 <manifest>
