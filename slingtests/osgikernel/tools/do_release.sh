@@ -1,14 +1,18 @@
 #!/bin/sh
 
 #
-# This script will perform a release and convert all the snapshot versions
-# to the specified version.
+# This script will create a release candidate and tag it after a sucessfull build,  and leave the head version on the original version.
+# all git commits will be to the local checked out branch, nothing will be pushed to the central repo. 
+# once the RC tag has been created dont forget to push it up to the repo with a
+# git push origin master
+# git push origin tag 0.2-RC2
+#
+# Once a vote has taken place yo can retag the RC tag with a release tag
+# git tag -s 0.2 <the SHa1 of the 0.2-RC2 tag>
 #
 # Command line options
 #
 # ./do_release [from version] [to version] [Release Candidate] [test files to ignore seperated by |] 
-# Example: ./do_release.sh 0.2 0.3
-# This will create a release for version 0.2 and then move to 0.3-SNAPSHOT
 #
 # Example: ./do_release.sh 0.2 0.3 RC2 kern-483.rb|kern-330.rb 
 # This will create a release for version 0.3 tag it as 0.3-RC2 and then move back to 0.2-SNAPSHOT for developers
@@ -42,8 +46,8 @@ ignoreTests=${4:-"__none__"}
 
 if [[ $rc == "" ]]
 then
-  # No RC tag provided
-  tagversion=$cversion
+  echo "Please only create RC versions, and versions. You can tag an RC once its accepted"
+  exit -1
 else
   tagversion="$cversion-$rc"
 fi

@@ -52,7 +52,7 @@ setlocal
 
 ::* 'Exectuable'
 ::
-    set JVM_START=-jar bin/${project.build.finalName}.jar
+    set JVM_START=-jar bin/${project.build.finalName}-standalone.jar
 
 ::* Additional JVM Options
 ::
