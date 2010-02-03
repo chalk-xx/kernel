@@ -175,7 +175,7 @@ public class TokenStore {
    */
   private static final String UTF_8 = "UTF-8";
 
-  private static final String DEFAULT_TOKEN_FILE = "cookie-tokens.bin";
+  private static final String DEFAULT_TOKEN_FILE = "sling/cookie-tokens.bin";
   /**
    * The ttl of the cookie before it becomes invalid (in ms)
    */
@@ -222,7 +222,6 @@ public class TokenStore {
     m.doFinal();
     this.tokenFile = new File(DEFAULT_TOKEN_FILE);
     tmpTokenFile = new File(DEFAULT_TOKEN_FILE+".tmp");    
-    getActiveToken();
   }
   
   public void setTokenFile(String tokenFile) {
