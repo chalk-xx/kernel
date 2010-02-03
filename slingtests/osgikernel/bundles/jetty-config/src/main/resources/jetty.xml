@@ -22,5 +22,17 @@
          </New>
       </Arg>
     </Call>
+    
+    <!-- =========================================================== -->
+    <!-- Add an Http listener on port 8081 Reserved for secure cluster communications  -->
+    <!-- =========================================================== -->
+    <Call name="addConnector">
+      <Arg>
+         <New class="org.mortbay.jetty.nio.SelectChannelConnector">
+           <Set name="host"><SystemProperty name="org.sakaiproject.kernel.cluster.secure.host" default="localhost" /></Set>
+           <Set name="port"><SystemProperty name="org.sakaiproject.kernel.cluster.secure.port" default="8081"/></Set>
+         </New>
+      </Arg>
+    </Call>
 
 </Configure>
