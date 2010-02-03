@@ -1,266 +1,213 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-  <!--
-    Licensed to the Apache Software Foundation (ASF) under one or more contributor license
-    agreements. See the NOTICE file distributed with this work for additional information regarding
-    copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0
-    (the "License"); you may not use this file except in compliance with the License. You may obtain
-    a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
-    applicable law or agreed to in writing, software distributed under the License is distributed on
-    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
-    the License for the specific language governing permissions and limitations under the License.
-  -->
+    <!--
+        Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+        agreements. See the NOTICE file distributed with this work for additional information
+        regarding copyright ownership. The ASF licenses this file to you under the Apache License,
+        Version 2.0 (the "License"); you may not use this file except in compliance with the
+        License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+        Unless required by applicable law or agreed to in writing, software distributed under the
+        License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+        either express or implied. See the License for the specific language governing permissions
+        and limitations under the License.
+    -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
-    <artifactId>base</artifactId>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+      <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>base</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>org.sakaiproject.kernel.app</artifactId>
+    <packaging>pom</packaging>
     <version>0.3-SNAPSHOT</version>
-  </parent>
-  <artifactId>org.sakaiproject.kernel.app</artifactId>
-  <packaging>jar</packaging>
-  <version>0.3-SNAPSHOT</version>
-  <name>Sakai K2 Launchpad Standalone Java Application</name>
-  <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
+
+    <name>Sakai Kernel Launchpad Standalone Java Application</name>
+    <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
-  <build>
-    <plugins>
-            <!-- Bundles to list in the installer properties file -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-
-                    <!-- Fixed Launcher Classes -->
-          <execution>
-            <id>inline-launchpad-base</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds> org.apache.sling.launchpad.base </includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
-
-                    <!-- Launcher Jar -->
-          <execution>
-            <id>copy-launcher-jar</id>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.sling</groupId>
-                  <artifactId>org.apache.sling.launchpad.base</artifactId>
-                  <version>2.1.0</version>
-                </artifactItem>
-              </artifactItems>
-              <stripVersion>true</stripVersion>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory}/resources </outputDirectory>
-            </configuration>
-          </execution>
-
-                    <!-- Launchpad Bundles -->
-          <execution>
-            <id>inline-launchpad-bundles</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds> org.sakaiproject.kernel.sling-bundles </includeArtifactIds>
-              <includes> resources/** </includes>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
 
 
-                    <!-- Sakai Bundles -->
-          <execution>
-            <id>inline-sakai-bundles</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds> org.sakaiproject.kernel.app-bundles </includeArtifactIds>
-              <includes> resources/** </includes>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-            </configuration>
-          </execution>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.sling</groupId>
+                <artifactId>maven-launchpad-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-package-jar</id>
+                        <goals>
+                            <goal>prepare-package</goal>
+                        </goals>
+                        <configuration>
+                            <packaging>jar</packaging>
+                            <!-- add in our jetty config -->
+                            <jarWebSupport>
+                                 <groupId>org.sakaiproject.kernel</groupId>
+                                 <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+                                 <version>0.3-SNAPSHOT</version>
+                                 <startLevel>5</startLevel>
+                           </jarWebSupport>
+                        </configuration>
+                    </execution>
 
-                    <!-- HttpService: Embedded Jetty, started at level 5 -->
-          <!-- 
-           <execution>
-            <id>copy-jetty-bundle</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds> pax-web-service </includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory}/resources/bundles/5 
-              </outputDirectory>
-            </configuration>
-          </execution>
-           -->
-          <execution>
-            <id>copy-jetty-config</id>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds> org.sakaiproject.kernel.jetty-config </includeArtifactIds>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory> ${project.build.outputDirectory}/resources/bundles/5
-              </outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-            <manifest>
-              <addDefaultImplementationEntries> true </addDefaultImplementationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-	        <descriptors>
-	            <descriptor>src/main/assembly/bin-assembly.xml</descriptor>
-	          </descriptors>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
+                    <execution>
+                        <id>attach-bundle-list</id>
+                        <goals>
+                            <goal>attach-bundle-list</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>create-karaf-descriptor</id>
+                        <goals>
+                            <goal>create-karaf-descriptor</goal>
+                        </goals>
+                        <configuration>
+                            <additionalBundles>
+                                <bundle>mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/1.1.1</bundle>
+                            </additionalBundles>
+                            <exclusions>
+                                <exclusion>org.apache.felix:org.apache.felix.configadmin</exclusion>
+                                <exclusion>org.apache.felix:org.apache.felix.webconsole</exclusion>
+                            </exclusions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-standalone-jar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                                <manifest>
+                                    <addDefaultImplementationEntries>
+                                        true
+                            	    </addDefaultImplementationEntries>
+                                </manifest>
+                            </archive>
+                        </configuration>
+
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/bin.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
                     <!-- No javadocs -->
-          <excludePackageNames> org.apache.sling </excludePackageNames>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.launchpad.base</artifactId>
-      <version>2.1.0</version>
-      <classifier>app</classifier>
-      <scope>provided</scope>
-    </dependency>
-    <!--  this may be problematic since the bundles will have moved on, we may have to generate our own sling bundles -->
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.sling-bundles</artifactId>
-      <version>0.3-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    
-    
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.app-bundles</artifactId>
-      <version>0.3-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
+                    <excludePackageNames>
+                        org.apache.sling
+                    </excludePackageNames>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
-        <!-- HttpService: Embedded Jetty -->
- <!-- 
-    <dependency>
-      <groupId>org.ops4j.pax.web</groupId>
-      <artifactId>pax-web-service</artifactId>
-      <version>0.6.0</version>
-      <scope>provided</scope>
-    </dependency>
-  -->
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
-      <version>0.3-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
-  <profiles>
-    <profile>
-      <id>dist</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>assemble-distribution</id>
-                <configuration>
-                  <descriptors>
-                  	<descriptor>src/main/assembly/assembly.xml</descriptor> -->
-                  </descriptors>
-				  <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-                <phase>package</phase>
-                <goals>
-                  <goal>attached</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-	<profile>
-      <id>bin</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>assemble-binary</id>
-                <configuration>
-                  <filters>
-            		<filter>src/main/assembly/filter.properties</filter>
-		          </filters>
-		          <descriptors>
-		          	<descriptor>src/main/assembly/bin-assembly.xml</descriptor>
-		          </descriptors>
-                </configuration>
-                <phase>package</phase>
-                <goals>
-                  <goal>attached</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-  <repositories>
-    <repository>
-      <id>OPS4J</id>
-      <name>OPS4J Repository</name>
-      <url>http://repository.ops4j.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.launchpad.base</artifactId>
+            <version>2.1.1-SNAPSHOT</version>
+            <classifier>webapp</classifier>
+            <type>war</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.launchpad.base</artifactId>
+            <version>2.1.1-SNAPSHOT</version>
+            <classifier>app</classifier>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>dist</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>assemble-distribution</id>
+                                <configuration>
+                                    <descriptors>
+                                        <descriptor>
+                                            assembly.xml
+                                        </descriptor>
+                                    </descriptors>
+                                    <appendAssemblyId>
+                                        false
+                                    </appendAssemblyId>
+                                </configuration>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>attached</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>sakai-maven</id>
+            <name>Sakai Maven Repo</name>
+            <layout>default</layout>
+            <url>http://source.sakaiproject.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>EclipseLink Repo</id>
+            <url>http://mirror.cc.columbia.edu/pub/software/eclipse/rt/eclipselink/maven.repo/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>OPS4J</id>
+            <name>OPS4J Repository</name>
+            <url>http://repository.ops4j.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
+
