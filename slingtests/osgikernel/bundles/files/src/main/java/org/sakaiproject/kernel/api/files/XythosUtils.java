@@ -69,7 +69,6 @@ public class XythosUtils {
       String queryString = composeQueryForXythos(query);
       HessianProxyFactory factory = new HessianProxyFactory();
       XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, url, XythosUtils.class.getClassLoader());
-      Map<String,String> foo = xythos.getProperties();
       Collection<Map<String,String>> result = xythos.findFilesWithXPath(queryString, userId);	
       for (Map<String,String> rowMap : result) {
     	  addLocalIfNotExists(rowMap);
@@ -83,6 +82,7 @@ public class XythosUtils {
 
 private static void addLocalIfNotExists(Map<String, String> rowMap) {
 	if (! rowMap.containsKey("sakai:id")) {
+		// create a local node here with what information we have
 	}
 }
 
