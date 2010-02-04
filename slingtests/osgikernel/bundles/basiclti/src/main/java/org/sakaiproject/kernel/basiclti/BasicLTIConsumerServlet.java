@@ -59,6 +59,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.sakaiproject.kernel.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
@@ -102,6 +103,28 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    */
   private static final String[] BLACKLIST = { LTI_KEY, LTI_SECRET, LTI_URL };
 
+  // global properties used for every tool launch
+  /**
+   * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL}
+   */
+  private transient String instanceContactEmail;
+  /**
+   * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_DESCRIPTION}
+   */
+  private transient String instanceDescription;
+  /**
+   * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_GUID}
+   */
+  private transient String instanceGuid;
+  /**
+   * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_NAME}
+   */
+  private transient String instanceName;
+  /**
+   * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_URL}
+   */
+  private transient String instanceUrl;
+
   /**
    * {@inheritDoc}
    * 
@@ -120,6 +143,13 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     applicationSettings.put(RELEASE_EMAIL, RELEASE_EMAIL_LOCK);
     applicationSettings
         .put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
+
+    // FIXME read from global settings location TBD
+    instanceContactEmail = "admin@sakaiproject.org";
+    instanceDescription = "The Sakai Project";
+    instanceGuid = "sakaiproject.org";
+    instanceName = "Sakai";
+    instanceUrl = "http://sakaiproject.org";
   }
 
   /**
@@ -322,10 +352,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       for (final Entry<String, String> entry : cleanProps.entrySet()) {
         LOG.info("cleanProps: " + entry.getKey() + "=" + entry.getValue());
       }
-      // TODO externalize these parameters
       final Map<String, String> signedProperties = BasicLTIUtil.signProperties(
-          cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, "sakaiproject.org",
-          "Sakai", "http://sakaiproject.org");
+          cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, instanceGuid,
+          instanceDescription, instanceUrl, instanceName, instanceContactEmail);
       final String extension = request.getRequestPathInfo().getExtension();
       if ("html".equalsIgnoreCase(extension)) { // return html
         final String html = BasicLTIUtil.postLaunchHTML(signedProperties,
