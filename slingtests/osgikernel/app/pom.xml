@@ -42,6 +42,7 @@
                         </goals>
                         <configuration>
                             <packaging>jar</packaging>
+                            <includeDefaultBundles>false</includeDefaultBundles>
                             <!-- add in our jetty config -->
                             <jarWebSupport>
                                  <groupId>org.sakaiproject.kernel</groupId>
