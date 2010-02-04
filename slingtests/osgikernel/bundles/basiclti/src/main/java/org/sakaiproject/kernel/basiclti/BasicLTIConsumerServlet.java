@@ -369,6 +369,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
   }
 
+  /**
+   * Simple helper to render a JSON response.
+   * 
+   * @param pwriter
+   * @param ltiUrl
+   * @param properties
+   * @throws JSONException
+   */
   private void renderJson(final Writer pwriter, final String ltiUrl,
       final Map<String, String> properties) throws JSONException {
     final ExtendedJSONWriter writer = new ExtendedJSONWriter(pwriter);
@@ -385,6 +393,22 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     writer.endObject(); // root object
   }
 
+  /**
+   * Simple helper to apply business logic to settings. For each setting, the
+   * adminSetting becomes the default value unless the adminSetting is locked.
+   * If it is locked, then the userSetting cannot override the adminSetting
+   * (i.e. it essentially is a system policy instead of a default value). Once
+   * these rules have been applied, the result is stored in effectiveSettings.
+   * 
+   * @param setting
+   *          The key.
+   * @param effectiveSettings
+   *          Mutated during normal operation.
+   * @param adminSettings
+   *          The admin policies and default values. Locks are applied.
+   * @param userSettings
+   *          Tool placement settings. Locks are ignored.
+   */
   private void effectiveSetting(final String setting,
       final Map<String, String> effectiveSettings,
       final Map<String, String> adminSettings,
@@ -443,6 +467,18 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     return returnNode;
   }
 
+  /**
+   * 
+   * @param errorCode
+   *          See: {@link HttpServletResponse}
+   * @param message
+   *          Message to be emitted in error response.
+   * @param exception
+   *          Optional exception that will be thrown only if
+   *          {@link HttpServletResponse#isCommitted()}. It will be logged in
+   *          either case. Allows null value.
+   * @param response
+   */
   private void sendError(int errorCode, String message, Throwable exception,
       HttpServletResponse response) {
     if (!response.isCommitted()) {
