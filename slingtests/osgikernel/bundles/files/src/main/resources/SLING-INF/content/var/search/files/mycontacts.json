@@ -1,6 +1,7 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[(@sling:resourceType='sakai/file' and (jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}'))) and @sakai:user!='{_me}'{_mycontacts}{_usedin}{_tags}]{_order}",
+  "todo" : "Figure out a better way to do this",
+  "sakai:query-template": "//element(*, nt:file)[((jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}'))) and @sakai:user!='{_me}'{_mycontacts}{_usedin}{_tags}]{_order}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
