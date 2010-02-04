@@ -119,7 +119,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    String store = request.getResource().getPath();
+    String requestedResourcePath = request.getResource().getPath();
     if ( "anonymous".equals(session.getUserID()) ||"anonymous".equals(request.getRemoteUser()) ) {
       response
       .sendError(403,
@@ -166,7 +166,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
 
       // Loop over each file parameter request and create a file.
       for (RequestParameter file : files) {
-        Node fileNode = createFile(session, store, file);
+        Node fileNode = createFile(session, requestedResourcePath, file);
         fileNodes.add(fileNode);
       }
 
@@ -256,11 +256,7 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
         contentType = "application/octet-stream";
       }
     }
-    String id = clusterTrackingService.getClusterUniqueId();
-    if (id.endsWith("=="))
-      id = id.substring(0, id.length() - 2);
-
-    id = id.replace('/', '_').replace('=', '-');
+    String id = makeId();
 
     String path = FileUtils.getHashedPath(store, id);
     String xythosPath = "/" + session.getUserID() + "/" + file.getFileName();
@@ -271,5 +267,15 @@ public class FilesUploadServlet extends SlingAllMethodsServlet {
     
     return fileNode;
   }
+  
+  
+  private String makeId() {
+		String id = clusterTrackingService.getClusterUniqueId();
+	    if (id.endsWith("=="))
+	      id = id.substring(0, id.length() - 2);
+
+	    id = id.replace('/', '_').replace('=', '-');
+		return id;
+	}
 
 }

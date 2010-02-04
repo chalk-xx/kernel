@@ -3,18 +3,13 @@ package org.sakaiproject.kernel.files;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.XythosUtils;
 import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
 import org.sakaiproject.kernel.api.search.Aggregator;
 import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultProcessor;
 import org.sakaiproject.kernel.api.search.SearchResultSet;
-import org.sakaiproject.kernel.util.ExtendedJSONWriter;
-import org.sakaiproject.kernel.util.RowUtils;
 
-import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -34,16 +29,39 @@ public class XythosFilesSearchResultProcessor implements SearchResultProcessor {
 
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    RowIterator xythosResults = XythosUtils.searchFiles(query);
+	  Session session = request.getResourceResolver().adaptTo(Session.class);
+    RowIterator xythosResults = XythosUtils.searchFiles(query, session.getUserID());
     return new AbstractSearchResultSet(xythosResults, (int) xythosResults.getSize());
   }
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
-      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
+		  Aggregator aggregator, Row row) throws JSONException, RepositoryException {
 	  Session session = request.getResourceResolver().adaptTo(Session.class);
-
-	    write.array();
-	    write.endArray();
+	  
+	  String remotePath = row.getValue("jcr:path").getString();
+	  String fileName = remotePath.substring(remotePath.lastIndexOf("/")+1);
+	  
+	  String mimeType = request.getSession().getServletContext().getMimeType(fileName);
+	  
+	  
+	  write.object();
+	  
+	  write.key("sakai:filename");
+	  write.value(fileName);
+	  
+	  write.key("sakai:remoteurl");
+	  write.value("http://localhost:9090" + remotePath);
+	  
+	  write.key("sling:resourceType");
+	  write.value("sakai/file");
+	  
+	  write.key("sakai:mimeType");
+	  write.value(mimeType);
+	  
+	  write.key("sakai:user");
+	  write.value(session.getUserID());
+	  
+	  write.endObject();
   }
 
 }

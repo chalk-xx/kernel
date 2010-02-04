@@ -63,15 +63,16 @@ public class XythosUtils {
     }
   }
 
-  public static RowIterator searchFiles(Query query) {
+  public static RowIterator searchFiles(Query query, String userId) {
     try {
       Collection<Row> rowCollection = new ArrayList<Row>();
       String queryString = composeQueryForXythos(query);
       HessianProxyFactory factory = new HessianProxyFactory();
       XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, url, XythosUtils.class.getClassLoader());
       Map<String,String> foo = xythos.getProperties();
-      Collection<Map<String,String>> result = xythos.findFilesWithXPath(queryString, "zach");	
+      Collection<Map<String,String>> result = xythos.findFilesWithXPath(queryString, userId);	
       for (Map<String,String> rowMap : result) {
+    	  addLocalIfNotExists(rowMap);
     	  rowCollection.add(rowFromMap(rowMap));
       }
       return new RowIteratorAdapter(rowCollection);
@@ -79,6 +80,11 @@ public class XythosUtils {
       throw new RuntimeException("MalformedURLException: " + e.getMessage());
     }
   }
+
+private static void addLocalIfNotExists(Map<String, String> rowMap) {
+	if (! rowMap.containsKey("sakai:id")) {
+	}
+}
 
 private static Row rowFromMap(final Map<String, String> map) {
 	return new Row() {
