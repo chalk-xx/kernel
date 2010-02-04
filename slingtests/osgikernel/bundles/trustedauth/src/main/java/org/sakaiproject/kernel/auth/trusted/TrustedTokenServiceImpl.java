@@ -113,9 +113,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
       IllegalStateException, UnsupportedEncodingException {
-    tokenStore = new TokenStore();
-    
+    tokenStore = new TokenStore(); 
   }
+  
 
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext context) {
@@ -137,6 +137,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   public Credentials getCredentials(HttpServletRequest req, HttpServletResponse response) {
     Credentials cred = null;
+    String userId = null;
     if (usingSession) {
       HttpSession session = req.getSession(false);
       if (session != null) {
@@ -148,6 +149,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
           if (o instanceof TrustedUser) {
             TrustedUser tu = (TrustedUser) o;
             if (tu.getUser() != null) {
+              userId = tu.getUser();
               cred = testCredentials;
             }
           }
@@ -163,15 +165,21 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
             if (secureCookie && !c.getSecure()) {
               continue;
             }
-            String userId = decodeCookie(c.getValue());
+            String cookieValue = c.getValue();
+            userId = decodeCookie(c.getValue());
             if (userId != null) {
               cred = createCredentials(userId);
               refreshToken(response, c.getValue(), userId);
               break;
+            } else {
+              LOG.debug("Invalid Cookie {} ",cookieValue);
             }
           }
         }
       }
+    }
+    if ( userId != null ) {
+      LOG.debug("Trusted Authentication for {} with credentials {}  ",userId, cred);
     }
     return cred;
   }

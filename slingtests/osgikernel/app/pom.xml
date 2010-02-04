@@ -42,6 +42,7 @@
                         </goals>
                         <configuration>
                             <packaging>jar</packaging>
+                            <includeDefaultBundles>false</includeDefaultBundles>
                             <!-- add in our jetty config -->
                             <jarWebSupport>
                                  <groupId>org.sakaiproject.kernel</groupId>
@@ -57,6 +58,9 @@
                         <goals>
                             <goal>attach-bundle-list</goal>
                         </goals>
+                        <configuration>
+                            <includeDefaultBundles>false</includeDefaultBundles>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>create-karaf-descriptor</id>
@@ -64,9 +68,7 @@
                             <goal>create-karaf-descriptor</goal>
                         </goals>
                         <configuration>
-                            <additionalBundles>
-                                <bundle>mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/1.1.1</bundle>
-                            </additionalBundles>
+                            <includeDefaultBundles>false</includeDefaultBundles>
                             <exclusions>
                                 <exclusion>org.apache.felix:org.apache.felix.configadmin</exclusion>
                                 <exclusion>org.apache.felix:org.apache.felix.webconsole</exclusion>

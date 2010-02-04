@@ -481,6 +481,11 @@
           <artifactId>cobertura-maven-plugin</artifactId>
           <version>2.2</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.sling</groupId>
+          <artifactId>maven-launchpad-plugin</artifactId>
+          <version>2.0.5-SNAPSHOT</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -599,6 +604,19 @@
       </releases>
     </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache-plugin-snapshot</id>
+      <name>Apache Snapshots Plugins</name>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>http://repository.apache.org/snapshots/</url>
+    </pluginRepository>
+  </pluginRepositories>
 <!-- ====================================================================== -->
 <!-- D E P E N D E N C I E S -->
 <!-- ====================================================================== -->
