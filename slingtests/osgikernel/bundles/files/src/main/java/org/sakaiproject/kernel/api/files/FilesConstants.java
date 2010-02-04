@@ -83,7 +83,10 @@ public interface FilesConstants {
    * sakai:link
    */
   public static final String SAKAI_LINK = "sakai:link";
-
+  /**
+   * sakai:sites
+   */
+  public static final String SAKAI_SITES = "sakai:sites";
   /**
    * The mixin required on the node to do a tag.
    */
@@ -95,6 +98,6 @@ public interface FilesConstants {
 
   public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
   public static final FastDateFormat DATEFORMAT = FastDateFormat
-  .getInstance("yyyy-MM-dd'T'hh:mm:ss");
+      .getInstance("yyyy-MM-dd'T'HH:mm:ss");
 
 }

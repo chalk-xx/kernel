@@ -52,33 +52,10 @@ import javax.servlet.ServletException;
 @Properties(value = {
     @Property(name = "service.description", value = "Links nodes to files."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(
-    name = "FolderServlet",
-    shortDescription = "Pretty print child items of a sakai/folder",
-    description = "Dumps all the sakai/link, sakai/file and any other file under a sakai/folder node." +
-    		"This is the same output as a search result.",
-    bindings = @ServiceBinding(
-        type = BindingType.TYPE,
-        bindings = "sakai/folder",
-        selectors = @ServiceSelector(
-            name = "files", 
-            description = "Get all files underneath this folder."
-        )
-    ), 
-    methods = @ServiceMethod(
-        name = "GET", 
-        response = {
-            @ServiceResponse(
-                code = 200,
-                description = "Success, a body is returned."
-            ),
-            @ServiceResponse(
-              code = 500,
-              description = "Failure, explanation is in the HTML."
-            )
-        }
-    )
-) 
+@ServiceDocumentation(name = "FolderServlet", shortDescription = "Pretty print child items of a sakai/folder", description = "Dumps all the sakai/link, sakai/file and any other file under a sakai/folder node."
+    + "This is the same output as a search result.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/folder", selectors = @ServiceSelector(name = "files", description = "Get all files underneath this folder.")), methods = @ServiceMethod(name = "GET", response = {
+    @ServiceResponse(code = 200, description = "Success, a body is returned."),
+    @ServiceResponse(code = 500, description = "Failure, explanation is in the HTML.") }))
 public class FolderServlet extends SlingAllMethodsServlet {
 
   /**
@@ -106,13 +83,15 @@ public class FolderServlet extends SlingAllMethodsServlet {
       JSONWriter write = new JSONWriter(response.getWriter());
       NodeIterator it = node.getNodes();
 
-      FileSearchBatchResultProcessor processor = new FileSearchBatchResultProcessor(siteService);
+      FileSearchBatchResultProcessor processor = new FileSearchBatchResultProcessor(
+          siteService);
       write.array();
 
-      // FIXME Doing iterator.getSize isn't performant but I don't see any
-      // other way of getting the nr of children. And since we strive not to have
-      // > 255 childNodes this should still be in reasonable limit
-      processor.writeNodes(request, write, it, 0, it.getSize());
+      // DOC:
+      // We dump all the files underneath this folder.
+      // If there are a lot it will be slow.
+      // It is up to the UI to have a reasonable structure.
+      processor.writeNodes(request, write, it, 0, Long.MAX_VALUE);
 
       write.endArray();
 

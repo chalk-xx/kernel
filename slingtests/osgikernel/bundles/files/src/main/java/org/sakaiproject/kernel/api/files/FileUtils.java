@@ -472,21 +472,22 @@ public class FileUtils {
     write.key("sites");
     write.array();
 
+    // sakai:sites contains uuid's of sites where the file is being referenced.
     Value[] sites = JcrUtils.getValues(node, "sakai:sites");
     Session session = node.getSession();
 
     int total = 0;
     try {
       List<String> handledSites = new ArrayList<String>();
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+      Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
+      Privilege[] privs = new Privilege[] { read };
       for (Value v : sites) {
         String path = v.getString();
         if (!handledSites.contains(path)) {
           handledSites.add(path);
-          Node siteNode = (Node) session.getItem(v.getString());
+          Node siteNode = (Node) session.getNodeByUUID(v.getString());
 
-          AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
-          Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
-          Privilege[] privs = new Privilege[] { read };
           boolean hasAccess = acm.hasPrivileges(path, privs);
           if (siteService.isSite(siteNode) && hasAccess) {
             writeSiteInfo(siteNode, write, siteService);

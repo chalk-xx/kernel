@@ -21,17 +21,22 @@ import static org.sakaiproject.kernel.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.kernel.api.files.FilesConstants.RT_SAKAI_LINK;
 import static org.sakaiproject.kernel.api.files.FilesConstants.SAKAI_LINK;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.resource.ResourceUtil;
+import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.apache.sling.servlets.post.AbstractSlingPostOperation;
+import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.SlingPostOperation;
 import org.sakaiproject.kernel.api.doc.BindingType;
 import org.sakaiproject.kernel.api.doc.ServiceBinding;
 import org.sakaiproject.kernel.api.doc.ServiceDocumentation;
@@ -44,20 +49,21 @@ import org.sakaiproject.kernel.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * Create an interal jcr link to a file.
  */
-@SlingServlet(methods = { "POST" }, selectors = { "link" }, resourceTypes = { "sling/servlet/default" })
+@Component(immediate = true)
+@Service(value = SlingPostOperation.class)
 @Properties(value = {
+    @Property(name = "sling.post.operation", value = "link"),
     @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 @ServiceDocumentation(name = "FileCreateLinkServlet", shortDescription = "Create an interal jcr link to a file.", bindings = @ServiceBinding(type = BindingType.TYPE, selectors = @ServiceSelector(name = "link", description = "Create an interal jcr link to a file."), bindings = "sakai/file"), methods = { @ServiceMethod(name = "POST", description = "Create one or more links for a file.", parameters = {
@@ -69,9 +75,9 @@ import javax.servlet.http.HttpServletResponse;
         + "The body will also contain a JSON response that lists all the links and if they were sucesfully created or not."),
     @ServiceResponse(code = 400, description = "Filedata parameter was not provided."),
     @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }) })
-public class FileCreateLinkServlet extends SlingAllMethodsServlet {
+public class LinkOperation extends AbstractSlingPostOperation {
 
-  public static final Logger log = LoggerFactory.getLogger(FileCreateLinkServlet.class);
+  public static final Logger log = LoggerFactory.getLogger(LinkOperation.class);
   private static final long serialVersionUID = -6206802633585722105L;
   private static final String LINK_PARAM = "link";
   private static final String SITE_PARAM = "site";
@@ -81,42 +87,53 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
   @Reference
   protected transient SiteService siteService;
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+   */
   @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
+  protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
+      List<Modification> changes) throws RepositoryException {
 
     String link = request.getParameter(LINK_PARAM);
     String site = request.getParameter(SITE_PARAM);
     Resource resource = request.getResource();
     Session session = request.getResourceResolver().adaptTo(Session.class);
-
+    Node node = (Node) session.getItem(resource.getPath());
     if ("anon".equals(request.getRemoteUser())) {
-      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN,
           "Anonymous users can't link things.");
       return;
     }
+    if (resource == null || ResourceUtil.isNonExistingResource(resource)) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "A tag operation must be performed on an actual resource");
+      return;
+    }
     if (link == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "A link parameter has to be provided.");
       return;
     }
-    if (resource == null || resource instanceof NonExistingResource) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+    if (node == null || resource == null || resource instanceof NonExistingResource) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
           "The link operation can't be done on NonExisting Resources.");
       return;
     }
 
     if (site != null) {
       try {
-        Node siteNode = (Node) session.getItem(site);
+        Node siteNode = (Node) session.getNodeByUUID(site);
         if (siteNode == null || !siteService.isSite(siteNode)) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "The site parameter doesn't point to a valid site.");
           return;
         }
       } catch (RepositoryException e) {
         // We assume it went wrong because of a bad parameter.
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "The site parameter doesn't point to a valid site.");
         return;
       }
@@ -124,7 +141,6 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
     }
 
     try {
-      Node node = resource.adaptTo(Node.class);
       boolean hasMixin = JcrUtils.hasMixin(node, REQUIRED_MIXIN);
       if (!hasMixin || site != null) {
         // The required mixin is not on the node.
@@ -159,10 +175,18 @@ public class FileCreateLinkServlet extends SlingAllMethodsServlet {
       // Grab the (updated) node via the user's session id.
       node = (Node) session.getItem(node.getPath());
 
+      // Grab the content of node.
+      Node contentNode = node;
+      if (node.hasNode(JcrConstants.JCR_CONTENT)) {
+        contentNode = node.getNode(JcrConstants.JCR_CONTENT);
+      }
+
       // Create the link
-      Node linkNode = JcrUtils.deepGetOrCreateNode(session, link);
+      Node linkNode = JcrUtils.deepGetOrCreateNode(session, link, "nt:linkedFile");
+      linkNode.setProperty(JcrConstants.JCR_CONTENT, contentNode);
+      linkNode.addMixin(REQUIRED_MIXIN);
       linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          RT_SAKAI_LINK);
+         RT_SAKAI_LINK);
       linkNode.setProperty(SAKAI_LINK, node.getUUID());
 
       // Save link.

@@ -17,24 +17,27 @@
  */
 package org.sakaiproject.kernel.files.servlets;
 
+import static org.sakaiproject.kernel.api.files.FilesConstants.REQUIRED_MIXIN;
 import static org.sakaiproject.kernel.api.files.FilesConstants.SAKAI_TAGS;
 import static org.sakaiproject.kernel.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.kernel.api.files.FilesConstants.SAKAI_TAG_UUIDS;
-import static org.sakaiproject.kernel.api.files.FilesConstants.REQUIRED_MIXIN;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.servlets.post.AbstractSlingPostOperation;
+import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.SlingPostOperation;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.util.JcrUtils;
 
-import java.io.IOException;
+import java.util.List;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
@@ -44,11 +47,13 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.servlet.http.HttpServletResponse;
 
-@SlingServlet(generateService = true, generateComponent = true, resourceTypes = { "sling/servlet/default" }, methods = { "POST" }, selectors = { "tag" }, extensions = { "json" })
+@Component(immediate = true)
+@Service(value = SlingPostOperation.class)
 @Properties(value = {
-    @Property(name = "service.description", value = "Set a tag on a node"),
+    @Property(name = "sling.post.operation", value = "tag"),
+    @Property(name = "service.description", value = "Creates an internal link to a file."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-public class FileSetTagServlet extends SlingAllMethodsServlet {
+public class TagOperation extends AbstractSlingPostOperation {
 
   @Reference
   protected SlingRepository slingRepository;
@@ -61,20 +66,27 @@ public class FileSetTagServlet extends SlingAllMethodsServlet {
   /**
    * {@inheritDoc}
    * 
-   * @see org.apache.sling.servlets.post.impl.SlingPostServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.api.SlingHttpServletResponse)
+   * @see org.apache.sling.servlets.post.AbstractSlingPostOperation#doRun(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.servlets.HtmlResponse, java.util.List)
    */
   @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws IOException {
+  protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
+      List<Modification> changes) throws RepositoryException {
+
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node tagNode = null;
     Node node = request.getResource().adaptTo(Node.class);
 
+    if (node == null) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
+          "A tag operation must be performed on an actual resource");
+      return;
+    }
+
     // Check if the uuid is in the request.
     RequestParameter uuidParam = request.getRequestParameter("uuid");
     if (uuidParam == null) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
     }
 
     // Grab the tagNode.
@@ -82,20 +94,21 @@ public class FileSetTagServlet extends SlingAllMethodsServlet {
     try {
       tagNode = session.getNodeByUUID(uuid);
       if (!FileUtils.isTag(tagNode)) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "Provided UUID doesn't point to a tag.");
       }
     } catch (ItemNotFoundException e1) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
     } catch (RepositoryException e1) {
-      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Could not locate the tag.");
     }
 
     try {
       // Check if the user has the required minimum privilege.
       String user = request.getRemoteUser();
       if ("anon".equals(user)) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN,
+            "Anonymous users can't tag things.");
         return;
       }
 
@@ -136,7 +149,7 @@ public class FileSetTagServlet extends SlingAllMethodsServlet {
       }
 
     } catch (RepositoryException e) {
-      response.sendError(500, e.getMessage());
+      response.setStatus(500, e.getMessage());
     }
 
   }

@@ -30,9 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Handles files that are linked to a jcrinternal resource.
@@ -58,6 +60,9 @@ public class JcrInternalFileHandler implements LinkHandler {
       UUID uuid = UUID.fromString(to);
       Node node = session.getNodeByUUID(uuid.toString());
       path = node.getPath();
+    } catch (ItemNotFoundException e) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND, "This file has been removed.");
+      return;
     } catch (Exception e) {
       // We assume a path was specified.
       path = to;

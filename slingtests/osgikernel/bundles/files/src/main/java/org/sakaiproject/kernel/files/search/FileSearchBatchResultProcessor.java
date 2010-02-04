@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.kernel.files.search;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.kernel.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -26,21 +29,22 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.kernel.api.files.FileUtils;
 import org.sakaiproject.kernel.api.files.FilesConstants;
+import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
 import org.sakaiproject.kernel.api.search.Aggregator;
+import org.sakaiproject.kernel.api.search.RowIteratorImpl;
 import org.sakaiproject.kernel.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.kernel.api.search.SearchConstants;
 import org.sakaiproject.kernel.api.search.SearchException;
 import org.sakaiproject.kernel.api.search.SearchResultSet;
 import org.sakaiproject.kernel.api.search.SearchUtil;
 import org.sakaiproject.kernel.api.site.SiteService;
-import org.sakaiproject.kernel.util.ExtendedJSONWriter;
+import org.sakaiproject.kernel.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -48,6 +52,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
+import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
@@ -68,8 +73,6 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
   @Reference
   private SiteService siteService;
 
-  private List<String> processedNodes = new ArrayList<String>();
-
   /**
    * @param siteService
    */
@@ -82,122 +85,146 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.kernel.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest, org.apache.sling.commons.json.io.JSONWriter, org.sakaiproject.kernel.api.search.Aggregator, javax.jcr.query.RowIterator)
-   */
-  public void writeNodes(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator,
-      RowIterator iterator) throws JSONException,
-      RepositoryException {
-    processedNodes = new ArrayList<String>();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    
-    while (iterator.hasNext()) {
-      Row row = iterator.nextRow();
-      String path = row.getValue("jcr:path").getString();
-      Node node = (Node) session.getItem(path);
-      if ( aggregator != null ) {
-        aggregator.add(node);
-      }
-
-      if (!handleNode(node, path, session, write)) {
-      }
-    }
-  }
-  
-  /**
-   * {@inheritDoc}
    * 
    * @see org.sakaiproject.kernel.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
-    return SearchUtil.getSearchResultSet(request, query);
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
+
+    try {
+      // Get the query result.
+      QueryResult rs = query.execute();
+
+      // Extract the total hits from lucene
+      int hits = SearchUtil.getHits(rs);
+      int nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+          SearchConstants.DEFAULT_PAGED_ITEMS);
+
+      // Do the paging on the iterator.
+      RowIterator iterator = rs.getRows();
+      long start = SearchUtil.getPaging(request, hits);
+      iterator.skip(start);
+
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+
+      long i = start;
+      List<Row> savedRows = new ArrayList<Row>();
+      List<String> processedResults = new ArrayList<String>();
+      // Loop over the rows
+      while (i < (start + nitems)) {
+        // Grab the next row and node.
+        Row row = iterator.nextRow();
+        Node node = RowUtils.getNode(row, session);
+        String path = node.getPath();
+
+        // We only check nt:file's no nt:resource (those are just children anyway)
+        if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
+            JcrConstants.NT_RESOURCE)) {
+          node = node.getParent();
+        }
+
+        // We're not interested in OS X's dummy/hidden files.
+        String name = node.getName();
+        if (name.startsWith(".")) {
+          continue;
+        }
+
+        // If by some magic we already processed this path, we ignore it.
+        if (processedResults.contains(path)) {
+          continue;
+        }
+
+        // Remember this node.
+        processedResults.add(path);
+        savedRows.add(row);
+        i++;
+      }
+
+      RowIterator newIterator = new RowIteratorImpl(savedRows);
+
+      // Return the result set.
+      SearchResultSet srs = new AbstractSearchResultSet(newIterator, hits);
+      return srs;
+    } catch (RepositoryException e) {
+      throw new SearchException(500, "Unable to perform query.");
+    }
   }
 
-  
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.kernel.api.search.SearchBatchResultProcessor#writeNodes(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.commons.json.io.JSONWriter,
+   *      org.sakaiproject.kernel.api.search.Aggregator, javax.jcr.query.RowIterator)
+   */
+  public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, RowIterator iterator) throws JSONException,
+      RepositoryException {
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+
+    while (iterator.hasNext()) {
+      Row row = iterator.nextRow();
+      Node node = RowUtils.getNode(row, session);
+      if (aggregator != null) {
+        aggregator.add(node);
+      }
+
+      handleNode(node, session, write);
+    }
+  }
+
+  /**
+   * Write the nodes in the node iterator confirming this batchprocessor default output.
+   * 
+   * @param request
+   *          The request.
+   * @param write
+   *          The {@link JSONWriter} to output to.
+   * @param iterator
+   *          The {@link NodeIterator} to use.
+   * @param start
+   *          Where we have to start (this will skip the specified amount on the iterator)
+   * @param end
+   *          The point where we should end.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
   public void writeNodes(SlingHttpServletRequest request, JSONWriter write,
       NodeIterator iterator, long start, long end) throws RepositoryException,
       JSONException {
-    
+
     Session session = request.getResourceResolver().adaptTo(Session.class);
     iterator.skip(start);
     for (long i = start; i < end && iterator.hasNext(); i++) {
       Node node = iterator.nextNode();
-
-      if (!handleNode(node, node.getPath(), session, write)) {
-        i--;
-      }
+      handleNode(node, session, write);
     }
-  }
-
-  private void writeNormalFile(JSONWriter write, Node node) throws JSONException,
-      RepositoryException {
-    write.object();
-
-    // dump all the properties.
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    write.key("path");
-    write.value(node.getPath());
-    write.key("name");
-    write.value(node.getName());
-    if (node.hasNode("jcr:content")) {
-      Node contentNode = node.getNode("jcr:content");
-      write.key(FilesConstants.SAKAI_MIMETYPE);
-      write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
-      write.key(JcrConstants.JCR_LASTMODIFIED);
-      Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-      write.value(FilesConstants.DATEFORMAT.format(cal));
-    }
-    write.endObject();
   }
 
   /**
-   * Handle a node.
-   * @param node The node we should handle
-   * @param path The path were the node comes from.
-   * @param session The session
-   * @param write The jsonwriter.
-   * @return True if we outputted this node, false if not.
-   * @throws RepositoryException
+   * Give a JSON representation of the file node.
+   * 
+   * @param node
+   *          The node
+   * @param session
+   *          The {@link Session} to use to grab more information.
+   * @param write
+   *          The {@link JSONWriter} to use.
    * @throws JSONException
+   * @throws RepositoryException
    */
-  private boolean handleNode(Node node, String path, Session session, JSONWriter write)
-      throws RepositoryException, JSONException {
-    // Every other file..
-    if (node.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
-        JcrConstants.NT_RESOURCE)) {
-      node = node.getParent();
+  protected void handleNode(Node node, Session session, JSONWriter write)
+      throws JSONException, RepositoryException {
+    String type = "";
+    if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+      type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
     }
 
-    // We hide the .files
-    String name = node.getName();
-    if (name.startsWith(".")) {
-      return false;
+    if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
+      FileUtils.writeLinkNode(node, session, write, siteService);
+    } else {
+      FileUtils.writeFileNode(node, session, write, siteService);
     }
-
-    // Check that we didn't handle this file already.
-    if (!processedNodes.contains(path)) {
-      processedNodes.add(path);
-
-      String type = "";
-      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
-        type = node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            .getString();
-      }
-
-      // If it is a file node we provide some extra properties.
-      if (FilesConstants.RT_SAKAI_FILE.equals(type)) {
-        FileUtils.writeFileNode(node, session, write, siteService);
-      } else if (FilesConstants.RT_SAKAI_LINK.equals(type)) {
-        // This is a linked file.
-        FileUtils.writeLinkNode(node, session, write, siteService);
-      }
-      // Every other file..
-      else {
-        writeNormalFile(write, node);
-      }
-      return true;
-    }
-    return false;
   }
 }
