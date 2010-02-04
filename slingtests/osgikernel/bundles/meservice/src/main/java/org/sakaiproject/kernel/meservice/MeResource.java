@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,16 +137,21 @@ public class MeResource implements Resource {
   private Set<String> getSubjects() throws RepositoryException {
     if (subjects == null) {
       subjects = new HashSet<String>();
-      PrincipalIterator it = principalManager.getGroupMembership(authorizable.getPrincipal());
-      while (it.hasNext()) {
-        subjects.add(it.nextPrincipal().getName());
+      if (authorizable != null) {
+        Principal principal = authorizable.getPrincipal();
+        if (principal != null) {
+          PrincipalIterator it = principalManager.getGroupMembership(principal);
+          while (it.hasNext()) {
+            subjects.add(it.nextPrincipal().getName());
+          }
+        }
       }
     }
     return subjects;
   }
 
   private boolean isAnonymous() {
-    return "anonymous".equals(session.getUserID());
+    return "anonymous".equals(session.getUserID()) || authorizable == null;
   }
 
   private String getUserJSON() throws RepositoryException {
