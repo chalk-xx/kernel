@@ -151,7 +151,7 @@ public class MeResource implements Resource {
   }
 
   private boolean isAnonymous() {
-    return "anonymous".equals(session.getUserID()) || authorizable == null;
+    return "anonymous".equals(session.getUserID());
   }
 
   private String getUserJSON() throws RepositoryException {
