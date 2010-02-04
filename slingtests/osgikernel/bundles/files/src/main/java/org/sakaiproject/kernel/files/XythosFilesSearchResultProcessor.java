@@ -39,6 +39,11 @@ public class XythosFilesSearchResultProcessor implements SearchResultProcessor {
 	  Session session = request.getResourceResolver().adaptTo(Session.class);
 	  
 	  String remotePath = row.getValue("jcr:path").getString();
+	  String[] pathStems = remotePath.split("/");
+	  if (pathStems.length > 2 && pathStems[2].equals("trash")) {
+		  // we simply ignore files that are in the Xythos trash
+		  return;
+	  }
 	  String fileName = remotePath.substring(remotePath.lastIndexOf("/")+1);
 	  
 	  String mimeType = request.getSession().getServletContext().getMimeType(fileName);
