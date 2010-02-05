@@ -38,7 +38,6 @@
         <module>bundles/ldap</module>
         <module>bundles/ldapauth</module>
         <module>bundles/securityloader</module>
-        <module>bundles/guice</module>
         <module>bundles/jpaexample</module>
         <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
@@ -51,8 +50,6 @@
         <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>
-        <module>bundles/registry</module>
-        <module>bundles/lifecycle</module>
         <module>bundles/jpa</module>
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
@@ -96,6 +93,7 @@
         <module>bundles/persondirectory</module>
         <module>bundles/content</module>
         <module>bundles/docproxy</module>
+        <module>bundles/google-collections</module>
       </modules>
     </profile>
     <profile>
@@ -711,12 +709,6 @@
             <artifactId>javax.servlet</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.google.code.guice</groupId>
-        <artifactId>guice</artifactId>
-        <version>1.0</version>
-        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.google.collections</groupId>

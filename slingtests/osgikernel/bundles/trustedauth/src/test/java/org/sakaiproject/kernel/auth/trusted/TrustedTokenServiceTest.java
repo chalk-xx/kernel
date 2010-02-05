@@ -24,6 +24,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.memory.Cache;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
+import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
 import java.io.UnsupportedEncodingException;
@@ -41,21 +45,30 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-
 /**
  *
  */
-public class TrustedTokenServiceTest  {
+public class TrustedTokenServiceTest {
 
   private TrustedTokenServiceImpl trustedTokenService;
   private List<Object> mocks = new ArrayList<Object>();
 
   @Before
-  public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
+  public void before() throws NoSuchAlgorithmException, InvalidKeyException,
+      IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
+
+    ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
+    CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
+
+    Cache<Object> cache = new LocalCache<Object>();
+    EasyMock.expect(cacheManagerService.getCache(TokenStore.class.getName(), CacheScope.CLUSTERREPLICATED)).andReturn(cache).anyTimes();
+    EasyMock.expect(clusterTrackingService.getCurrentServerId()).andReturn("serverID").anyTimes();
+    trustedTokenService.clusterTrackingService = clusterTrackingService;
+    trustedTokenService.cacheManager = cacheManagerService;
   }
-  
+
   public ComponentContext configureForSession() {
     ComponentContext context = createMock(ComponentContext.class);
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
@@ -67,7 +80,7 @@ public class TrustedTokenServiceTest  {
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
-  
+
   public ComponentContext configureForCookie() {
     ComponentContext context = createMock(ComponentContext.class);
     Hashtable<String, Object> dict = new Hashtable<String, Object>();
@@ -96,56 +109,56 @@ public class TrustedTokenServiceTest  {
   public void testCookieEncoding() {
     ComponentContext context = configureForCookie();
     replay();
-    trustedTokenService.activate(context);        
-    
+    trustedTokenService.activate(context);
+
     String cookie = trustedTokenService.encodeCookie("ieb");
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNotNull(user);
     Assert.assertEquals("ieb", user);
-    
+
     long start = System.currentTimeMillis();
-    for ( int i = 0; i < 1000;i++ ) {
+    for (int i = 0; i < 1000; i++) {
       cookie = trustedTokenService.encodeCookie("ieb");
     }
-    System.err.println("Encode Time "+(System.currentTimeMillis()-start));
+    System.err.println("Encode Time " + (System.currentTimeMillis() - start));
     start = System.currentTimeMillis();
-    for ( int i = 0; i < 1000;i++ ) {
+    for (int i = 0; i < 1000; i++) {
       user = trustedTokenService.decodeCookie(cookie);
     }
-    System.err.println("Decode Time "+(System.currentTimeMillis()-start));
-    
+    System.err.println("Decode Time " + (System.currentTimeMillis() - start));
+
     verify();
   }
-  
+
   @Test
   public void testCookieEncodingSafety() {
     ComponentContext context = configureForCookie();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     Assert.assertNull(trustedTokenService.encodeCookie(null));
     Assert.assertNull(trustedTokenService.decodeCookie(null));
     verify();
   }
-  
+
   @Test
   public void testCookieEncodingSafety2() {
     ComponentContext context = configureForCookie();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
-    cookie = cookie+"invalid";
+    cookie = cookie + "invalid";
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNull(user);
     verify();
   }
-  
+
   @Test
   public void testCookieEncodingSafety3() {
     ComponentContext context = configureForCookie();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
-    cookie = "a;"+cookie;
+    cookie = "a;" + cookie;
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNull(user);
     verify();
@@ -155,24 +168,23 @@ public class TrustedTokenServiceTest  {
   public void testCookieEncodingSafety4() {
     ComponentContext context = configureForCookie();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
-    System.err.println("Cookie is "+cookie);
-    String[] parts = StringUtils.split(cookie,"@");
+    System.err.println("Cookie is " + cookie);
+    String[] parts = StringUtils.split(cookie, "@");
     Assert.assertNotNull(parts);
-    parts[1] = String.valueOf(System.currentTimeMillis()-3600000L);
-    cookie = parts[0]+"@"+parts[1]+"@"+parts[2];
+    parts[1] = String.valueOf(System.currentTimeMillis() - 3600000L);
+    cookie = parts[0] + "@" + parts[1] + "@" + parts[2];
     String user = trustedTokenService.decodeCookie(cookie);
     Assert.assertNull(user);
     verify();
   }
 
-  
   @Test
   public void testCookieEncodingTokens() throws InterruptedException {
     ComponentContext context = configureForCookieFast();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
     Thread.sleep(20L);
     String cookie2 = trustedTokenService.encodeCookie("ieb2");
@@ -182,13 +194,12 @@ public class TrustedTokenServiceTest  {
     user = trustedTokenService.decodeCookie(cookie2);
     Assert.assertNotNull(user);
     Assert.assertEquals("ieb2", user);
-    for ( int i = 0; i < 20; i++) {
+    for (int i = 0; i < 20; i++) {
       Thread.sleep(50L);
       trustedTokenService.encodeCookie("ieb2");
     }
     verify();
   }
-  
 
   @Test
   public void testCookieRefresh() throws InterruptedException {
@@ -198,7 +209,7 @@ public class TrustedTokenServiceTest  {
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
     Thread.sleep(100L);
     trustedTokenService.refreshToken(response, cookie, "ieb");
@@ -217,7 +228,7 @@ public class TrustedTokenServiceTest  {
     ComponentContext context = configureForCookie();
     HttpServletResponse response = createMock(HttpServletResponse.class);
     replay();
-    trustedTokenService.activate(context);        
+    trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
     Thread.sleep(10L);
     trustedTokenService.refreshToken(response, cookie, "ieb");
@@ -231,9 +242,9 @@ public class TrustedTokenServiceTest  {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.addCookie(response, "ieb");
     Assert.assertTrue(cookieCapture.hasCaptured());
     Cookie cookie = cookieCapture.getValue();
@@ -255,9 +266,9 @@ public class TrustedTokenServiceTest  {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
     Assert.assertTrue(cookieCapture.hasCaptured());
     Cookie cookie = cookieCapture.getValue();
@@ -280,9 +291,9 @@ public class TrustedTokenServiceTest  {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
     Assert.assertTrue(cookieCapture.hasCaptured());
     Cookie cookie = cookieCapture.getValue();
@@ -293,8 +304,6 @@ public class TrustedTokenServiceTest  {
     verify();
   }
 
-  
-  
   @Test
   public void testDropCredentials() {
     ComponentContext context = configureForCookie();
@@ -303,9 +312,9 @@ public class TrustedTokenServiceTest  {
     Capture<Cookie> cookieCapture = new Capture<Cookie>();
     response.addCookie(EasyMock.capture(cookieCapture));
     EasyMock.expectLastCall();
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.dropCredentials(request, response);
     Assert.assertTrue(cookieCapture.hasCaptured());
     Cookie cookie = cookieCapture.getValue();
@@ -315,7 +324,6 @@ public class TrustedTokenServiceTest  {
     Assert.assertNull(user);
     verify();
   }
-  
 
   @Test
   public void testDropCredentialsSession() {
@@ -327,63 +335,54 @@ public class TrustedTokenServiceTest  {
     EasyMock.expectLastCall();
 
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.dropCredentials(request, response);
     verify();
   }
 
-  
   @Test
   public void testGetCredentialsNone() {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
-    Cookie[] cookies = new Cookie[] {
-      new Cookie("sdfsd", "fsdfs"),  
-      new Cookie("sdfsd1", "fsdfs"),  
-      new Cookie("sdfsd2", "fsdfs"),  
-      new Cookie("sdfsd3", "fsdfs"),  
-      new Cookie("sdfsd4", "fsdfs"),  
-    };
+    Cookie[] cookies = new Cookie[] { new Cookie("sdfsd", "fsdfs"),
+        new Cookie("sdfsd1", "fsdfs"), new Cookie("sdfsd2", "fsdfs"),
+        new Cookie("sdfsd3", "fsdfs"), new Cookie("sdfsd4", "fsdfs"), };
     EasyMock.expect(request.getCookies()).andReturn(cookies);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     Credentials none = trustedTokenService.getCredentials(request, response);
     Assert.assertNull(none);
     verify();
   }
 
-
   @Test
   public void testGetCredentialsValid() {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
-    Cookie[] cookies = new Cookie[] {
-      new Cookie("sdfsd", "fsdfs"),  
-      new Cookie("sdfsd1", "fsdfs"),  
-      null,  
-      new Cookie("sdfsd3", "fsdfs"),  
-      new Cookie("sdfsd4", "fsdfs"),  
-    };
+    Cookie[] cookies = new Cookie[] { new Cookie("sdfsd", "fsdfs"),
+        new Cookie("sdfsd1", "fsdfs"), null, new Cookie("sdfsd3", "fsdfs"),
+        new Cookie("sdfsd4", "fsdfs"), };
     EasyMock.expect(request.getCookies()).andReturn(cookies);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     replay();
-    trustedTokenService.activate(context); 
-    Cookie secureCookie = new Cookie("secure-cookie", trustedTokenService.encodeCookie("ieb"));
+    trustedTokenService.activate(context);
+    Cookie secureCookie = new Cookie("secure-cookie", trustedTokenService
+        .encodeCookie("ieb"));
     cookies[2] = secureCookie;
     Credentials ieb = trustedTokenService.getCredentials(request, response);
-    Assert.assertTrue( ieb instanceof SimpleCredentials );
+    Assert.assertTrue(ieb instanceof SimpleCredentials);
     SimpleCredentials sc = (SimpleCredentials) ieb;
-    TrustedUser tu = (TrustedUser) sc.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
+    TrustedUser tu = (TrustedUser) sc
+        .getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
     Assert.assertNotNull(tu);
-    Assert.assertEquals("ieb",tu.getUser());
+    Assert.assertEquals("ieb", tu.getUser());
     verify();
   }
-
 
   @Test
   public void testGetCredentialsValidSession() {
@@ -391,58 +390,60 @@ public class TrustedTokenServiceTest  {
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpSession session = createMock(HttpSession.class);
     EasyMock.expect(request.getSession(true)).andReturn(session);
-    
+
     Principal principal = createMock(Principal.class);
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
     EasyMock.expect(principal.getName()).andReturn(null);
     EasyMock.expect(request.getRemoteUser()).andReturn("ieb");
     Capture<SimpleCredentials> attributeValue = new Capture<SimpleCredentials>();
     Capture<String> attributeName = new Capture<String>();
-    session.setAttribute(EasyMock.capture(attributeName), EasyMock.capture(attributeValue));
-    
-    
+    session.setAttribute(EasyMock.capture(attributeName), EasyMock
+        .capture(attributeValue));
+
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     replay();
-    trustedTokenService.activate(context); 
+    trustedTokenService.activate(context);
     trustedTokenService.injectToken(request, response);
     Assert.assertTrue(attributeName.hasCaptured());
     Assert.assertTrue(attributeValue.hasCaptured());
     Credentials credentials = attributeValue.getValue();
-    
+
     verify();
     reset();
 
     EasyMock.expect(request.getSession(false)).andReturn(session);
-    EasyMock.expect(session.getAttribute(TrustedTokenService.SA_AUTHENTICATION_CREDENTIALS)).andReturn(credentials);
-    
+    EasyMock.expect(
+        session.getAttribute(TrustedTokenService.SA_AUTHENTICATION_CREDENTIALS))
+        .andReturn(credentials);
+
     replay();
     Credentials ieb = trustedTokenService.getCredentials(request, response);
-    Assert.assertTrue( ieb instanceof SimpleCredentials );
+    Assert.assertTrue(ieb instanceof SimpleCredentials);
     SimpleCredentials sc = (SimpleCredentials) ieb;
-    TrustedUser tu = (TrustedUser) sc.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
+    TrustedUser tu = (TrustedUser) sc
+        .getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
     Assert.assertNotNull(tu);
-    Assert.assertEquals("ieb",tu.getUser());
+    Assert.assertEquals("ieb", tu.getUser());
     verify();
   }
-
 
   public <T> T createMock(Class<T> mockClass) {
     T m = EasyMock.createMock(mockClass);
     mocks.add(m);
     return m;
   }
-  
+
   public void replay() {
     EasyMock.replay(mocks.toArray());
   }
-  
+
   public void verify() {
     EasyMock.verify(mocks.toArray());
   }
-  
+
   public void reset() {
     EasyMock.reset(mocks.toArray());
   }
-  
+
 }

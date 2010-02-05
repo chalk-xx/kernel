@@ -15,21 +15,18 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.kernel.persistence;
 
-package org.sakaiproject.kernel.auth.trusted;
+import javax.persistence.EntityManagerFactory;
 
-import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
+/**
+ *
+ */
+public interface EntityManagerFactoryProvider {
 
-import java.security.Principal;
+  /**
+   * @return
+   */
+  EntityManagerFactory get();
 
-public final class TrustedPrincipal implements Principal {
-  private final TrustedUser user;
-
-  public TrustedPrincipal(TrustedUser user) {
-    this.user = user;
-  }
-
-  public String getName() {
-    return user.getUser();
-  }
 }
