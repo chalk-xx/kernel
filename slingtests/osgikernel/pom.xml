@@ -85,6 +85,7 @@
         <module>libraries/utils</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
+        <module>bundles/import</module>
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/accessmanager</module>
         <module>bundles/cluster</module>

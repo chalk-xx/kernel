@@ -36,5 +36,9 @@ public class BasicLtiAppConstants {
   public static final String RELEASE_EMAIL_LOCK = "release_email_lock";
   public static final String RELEASE_PRINCIPAL_NAME = "release_principal_name";
   public static final String RELEASE_PRINCIPAL_NAME_LOCK = "release_principal_name_lock";
+  /**
+   * The location used to store admin level settings which cannot be overridden
+   * by user placements.
+   */
   public static final String ADMIN_CONFIG_PATH = "/var/basiclti";
 }
