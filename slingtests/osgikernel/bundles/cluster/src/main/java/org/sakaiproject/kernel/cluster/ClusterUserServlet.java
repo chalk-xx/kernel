@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.kernel.cluster;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
@@ -29,6 +31,8 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.cluster.ClusterServer;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
 import org.sakaiproject.kernel.api.doc.BindingType;
@@ -39,10 +43,14 @@ import org.sakaiproject.kernel.api.doc.ServiceMethod;
 import org.sakaiproject.kernel.api.doc.ServiceParameter;
 import org.sakaiproject.kernel.api.doc.ServiceResponse;
 import org.sakaiproject.kernel.api.doc.ServiceSelector;
+import org.sakaiproject.kernel.api.proxy.ProxyClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -72,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
  * <p>
  * The response is of the form
  * </p>
- * 
+ *
  * <pre>
  * {
  *   &quot;server&quot;: &quot;16935@x43543-2.local&quot;,  // the server generating the response
@@ -109,42 +117,44 @@ import javax.servlet.http.HttpServletResponse;
  */
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
 @ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This rest end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and if this is present requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "<p>Sample JSON response</p><pre>"
-		+ "curl http://localhost:8080/var/cluster/user.cookie.json?c=8070-10-87-32-111.localhost.indiana.edu-c8029d4b68a88a0e3aa3d0f60ff7de5530295cf1"
-		+ "{\n"
-		+ "  \"server\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
-		+ "  \"user\": {\n"
-		+ "    \"lastUpdate\": 1259875554162,\n"
-		+ "    \"homeServer\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
-		+ "    \"id\": \"admin\",\n"
-		+ "    \"principal\": \"admin\",\n"
-		+ "    \"properties\": {\n"
-		+ "      \"firstName\": \"Lance\",\n"
-		+ "      \"rep:userId\": \"admin\",\n"
-		+ "      \"email\": \"lance@foo.bar\",\n"
-		+ "      \"lastName\": \"Speelmon\",\n"
-		+ "      \"rep:groups\": \"1a94507c-232a-4ae5-a042-50b5608a0460\",\n"
-		+ "      \"rep:principalName\": \"admin\",\n"
-		+ "      \"jcr:primaryType\": \"rep:User\"\n"
-		+ "    },\n"
-		+ "    \"principals\": [\n"
-		+ "      \"admin\"\n"
-		+ "    ],\n"
-		+ "    \"declaredMembership\": [\n"
-		+ "      \"administrators\"\n"
-		+ "    ],\n"
-		+ "    \"membership\": [\n"
-		+ "      \"administrators\"\n"
-		+ "    ]\n" + "}" + "</pre>", parameters = { @ServiceParameter(name = "c", description = { "The value of cookie SAKAI-TRACKING." }) }, response = {
-		@ServiceResponse(code = 200, description = "On sucess a json tree of the User object."),
-		@ServiceResponse(code = 404, description = "Cookie is not registered."),
-		@ServiceResponse(code = 0, description = "Any other status codes emmitted have the meaning prescribed in the RFC") }) })
+    + "curl http://localhost:8080/var/cluster/user.cookie.json?c=8070-10-87-32-111.localhost.indiana.edu-c8029d4b68a88a0e3aa3d0f60ff7de5530295cf1"
+    + "{\n"
+    + "  \"server\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
+    + "  \"user\": {\n"
+    + "    \"lastUpdate\": 1259875554162,\n"
+    + "    \"homeServer\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
+    + "    \"id\": \"admin\",\n"
+    + "    \"principal\": \"admin\",\n"
+    + "    \"properties\": {\n"
+    + "      \"firstName\": \"Lance\",\n"
+    + "      \"rep:userId\": \"admin\",\n"
+    + "      \"email\": \"lance@foo.bar\",\n"
+    + "      \"lastName\": \"Speelmon\",\n"
+    + "      \"rep:groups\": \"1a94507c-232a-4ae5-a042-50b5608a0460\",\n"
+    + "      \"rep:principalName\": \"admin\",\n"
+    + "      \"jcr:primaryType\": \"rep:User\"\n"
+    + "    },\n"
+    + "    \"principals\": [\n"
+    + "      \"admin\"\n"
+    + "    ],\n"
+    + "    \"declaredMembership\": [\n"
+    + "      \"administrators\"\n"
+    + "    ],\n"
+    + "    \"membership\": [\n"
+    + "      \"administrators\"\n"
+    + "    ]\n"
+    + "}"
+    + "</pre>", parameters = { @ServiceParameter(name = "c", description = { "The value of cookie SAKAI-TRACKING." }) }, response = {
+    @ServiceResponse(code = 200, description = "On sucess a json tree of the User object."),
+    @ServiceResponse(code = 404, description = "Cookie is not registered."),
+    @ServiceResponse(code = 0, description = "Any other status codes emmitted have the meaning prescribed in the RFC") }) })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl
   // etc.
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 5013072672247175850L;
   /**
@@ -154,8 +164,14 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   @Reference
   private transient ClusterTrackingService clusterTrackingService;
+
+  @Reference
+  private transient ProxyClientService proxyClientService;
+
   private transient UserManager testingUserManager;
   private Set<String> blacklist = new HashSet<String>();
+  private HttpClient httpClient;
+  protected boolean testing = false;
 
   public ClusterUserServlet() {
     initBlacklist();
@@ -163,7 +179,7 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   /**
    * Constructor for testing purposes only.
-   * 
+   *
    * @param clusterTrackingService
    */
   protected ClusterUserServlet(ClusterTrackingService clusterTrackingService,
@@ -173,20 +189,25 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
     initBlacklist();
   }
 
+  public void activate(ComponentContext componentContext) {
+    httpClient = new HttpClient(proxyClientService.getHttpConnectionManager());
+  }
+
   /**
-   * 
+   *
    */
   private void initBlacklist() {
-   blacklist.add("jcr:uuid");
-   blacklist.add("rep:password");
+    blacklist.add("jcr:uuid");
+    blacklist.add("rep:password");
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -194,8 +215,37 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       Node node = request.getResource().adaptTo(Node.class);
 
       String trackingCookie = request.getParameter("c");
+
       ClusterUser clusterUser = clusterTrackingService.getUser(trackingCookie);
       if (clusterUser == null) {
+
+        if (!testing) {
+          // work out the remote server and try there.
+          ClusterServer clusterServer = clusterTrackingService.getServer(trackingCookie);
+          GetMethod method = new GetMethod(clusterServer.getSecureUrl() + node.getPath()
+              + ".cookie.json?c=" + URLEncoder.encode(trackingCookie, "UTF-8"));
+          method.setFollowRedirects(true);
+          method.setDoAuthentication(false);
+          for (Enumeration<String> headerNames = request.getHeaderNames(); headerNames
+              .hasMoreElements();) {
+            String headerName = headerNames.nextElement();
+            for (Enumeration<String> headerValue = request.getHeaders(headerName); headerValue
+                .hasMoreElements();) {
+              method.addRequestHeader(headerName, headerValue.nextElement());
+            }
+          }
+          try {
+            int status = httpClient.executeMethod(method);
+
+            if (status == 200) {
+              OutputStream out = response.getOutputStream();
+              out.write(method.getResponseBody());
+              return;
+            }
+          } catch (Exception ex) {
+            LOGGER.error(ex.getMessage());
+          }
+        }
         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cookie is not registered");
         return;
       }

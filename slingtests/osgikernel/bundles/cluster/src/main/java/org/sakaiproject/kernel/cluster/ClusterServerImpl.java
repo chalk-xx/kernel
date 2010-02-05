@@ -41,13 +41,19 @@ public class ClusterServerImpl implements ClusterServer, Serializable {
   private int serverNum;
 
   /**
-   * @param serverId
-   * @param serverNumber 
+   * A URL where servers can make rest request to other servers
    */
-  public ClusterServerImpl(String serverId, int serverNumber) {
+  private String secureUrl;
+
+  /**
+   * @param serverId
+   * @param serverNumber
+   */
+  public ClusterServerImpl(String serverId, int serverNumber, String secureUrl) {
     this.serverId = serverId;
     this.lastModified = System.currentTimeMillis();
     this.serverNum = serverNumber;
+    this.secureUrl = secureUrl;
   }
 
   /**
@@ -68,8 +74,12 @@ public class ClusterServerImpl implements ClusterServer, Serializable {
    * {@inheritDoc}
    * @see org.sakaiproject.kernel.api.cluster.ClusterServer#getServerNumber()
    */
-  public int getServerNumber() { 
+  public int getServerNumber() {
     return serverNum;
   }
-  
+
+  public String getSecureUrl() {
+    return secureUrl;
+  }
+
 }

@@ -15,30 +15,23 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.cluster;
-
+package org.sakaiproject.kernel.cluster;
 
 /**
- * Servers are registered accross the cluster using the ServerCluster object.
+ *
  */
-public interface ClusterServer {
+public class PingRemoteTrackingFailedException extends Exception {
 
   /**
-   * @return the ID of the server.
+   * @param string
    */
-  String getServerId();
+  public PingRemoteTrackingFailedException(String string) {
+    // TODO Auto-generated constructor stub
+  }
 
   /**
-   * @return the time the server object was last updated.
+   * 
    */
-  long getLastModified();
-  
-  int getServerNumber();
-
-  /**
-   * @return
-   */
-  String getSecureUrl();
-  
+  private static final long serialVersionUID = -1361777453861606349L;
 
 }

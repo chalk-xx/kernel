@@ -72,14 +72,14 @@ public class ClusterUserImpl implements ClusterUser {
   public String getUser() {
     return remoteUser;
   }
-  
+
   /**
    * @return the serverId
    */
   public String getServerId() {
     return serverId;
   }
-  
+
   /**
    * @return the lastModified
    */
