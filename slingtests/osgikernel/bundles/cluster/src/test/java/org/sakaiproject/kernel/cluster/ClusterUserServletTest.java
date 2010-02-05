@@ -36,6 +36,7 @@ import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
@@ -46,6 +47,7 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -73,6 +75,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
   private Capture<ClusterServerImpl> clusterServerCapture;
   private ClusterUserServlet clusterUserServlet;
   private UserManager userManager;
+  private ComponentContext componentContext;
 
   @SuppressWarnings("unchecked")
   @Before
@@ -81,15 +84,20 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     userTrackingCache = createMock(Cache.class);
     serverTrackingCache = createMock(Cache.class);
     expect(
-        cacheManagerService.getCache("user-tracking-cache", CacheScope.CLUSTERREPLICATED))
+        cacheManagerService.getCache("user-tracking-cache", CacheScope.INSTANCE))
         .andReturn(userTrackingCache).anyTimes();
     expect(
         cacheManagerService.getCache("server-tracking-cache",
             CacheScope.CLUSTERREPLICATED)).andReturn(serverTrackingCache).anyTimes();
     clusterTrackingServiceImpl = new ClusterTrackingServiceImpl(cacheManagerService);
-    
+
     userManager = createMock(UserManager.class);
     clusterUserServlet = new ClusterUserServlet(clusterTrackingServiceImpl,userManager);
+
+    componentContext = createMock(ComponentContext.class);
+    Hashtable<String, Object> dict = new Hashtable<String, Object>();
+    dict.put(ClusterTrackingServiceImpl.PROP_SECURE_HOST_URL, "http://localhost:8081");
+    expect(componentContext.getProperties()).andReturn(dict).anyTimes();
 
   }
 
@@ -100,19 +108,19 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
   @Test
   public void testActivateDeactivate() throws Exception {
     activate();
-    
 
-    
-    
-    
+
+
+
+
     deactivate();
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
-    
-    
-    clusterTrackingServiceImpl.deactivate(null);
-    
+    clusterTrackingServiceImpl.activate(componentContext);
+
+
+    clusterTrackingServiceImpl.deactivate(componentContext);
+
     checkActivation();
     verify();
   }
@@ -126,7 +134,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     Resource resource = createMock(Resource.class);
     Node node = createMock(Node.class);
 
-    
+
     Value valueA = createMock(Value.class);
     Value valueB = createMock(Value.class);
     Value valueC = createMock(Value.class);
@@ -136,7 +144,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
         valueB,
         valueC
     };
-    
+
     ClusterUserImpl clusterUser = new ClusterUserImpl("ieb", "otherServerId");
 
     User user = createMock(User.class);
@@ -146,7 +154,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     propertyNames.add("prop1");
     propertyNames.add("prop2");
     propertyNames.add("prop3");
-    
+
     PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
     Iterator<Object> iterator = createMock(Iterator.class);
 
@@ -155,15 +163,15 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
 
     expect(request.getResource()).andReturn(resource);
     expect(resource.adaptTo(Node.class)).andReturn(node);
-        
+
     // request validated, processing request.
     expect(request.getParameter("c")).andReturn("some-tracking-cookie");
     expect(userTrackingCache.get("some-tracking-cookie")).andReturn(clusterUser);
-    
+
     expect(userManager.getAuthorizable("ieb")).andReturn(user);
     StringWriter writer = new StringWriter();
     expect(response.getWriter()).andReturn(new PrintWriter(writer));
-    
+
     expect(user.getID()).andReturn("ieb");
     expect(user.getPrincipal()).andReturn(principal);
     expect(principal.getName()).andReturn("principal:ieb");
@@ -175,7 +183,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     expect(user.getProperty("prop2")).andReturn(new Value[]{valueA});
     expect(valueA.getString()).andReturn("tokenA");
     expect(user.getProperty("prop3")).andReturn(new Value[]{});
-    
+
     expect(user.getPrincipals()).andReturn(principalIterator);
     expect(principalIterator.hasNext()).andReturn(true);
     expect(principalIterator.nextPrincipal()).andReturn(principal);
@@ -184,38 +192,38 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     expect(principalIterator.nextPrincipal()).andReturn(principal);
     expect(principal.getName()).andReturn("principal:B");
     expect(principalIterator.hasNext()).andReturn(false);
-    
+
     expect(user.declaredMemberOf()).andReturn(iterator);
     expect(iterator.hasNext()).andReturn(true);
     expect(iterator.next()).andReturn(group);
     expect(group.getID()).andReturn("group:A");
-    
+
     expect(iterator.hasNext()).andReturn(true);
     expect(iterator.next()).andReturn(group);
     expect(group.getID()).andReturn("group:B");
-    
+
     expect(iterator.hasNext()).andReturn(false);
-    
+
 
     expect(user.memberOf()).andReturn(iterator);
     expect(iterator.hasNext()).andReturn(true);
     expect(iterator.next()).andReturn(group);
     expect(group.getID()).andReturn("indirectgroup:A");
-    
+
     expect(iterator.hasNext()).andReturn(true);
     expect(iterator.next()).andReturn(group);
     expect(group.getID()).andReturn("indirectgroup:B");
     expect(iterator.hasNext()).andReturn(false);
 
     deactivate();
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
-    
+    clusterTrackingServiceImpl.activate(componentContext);
+
     clusterUserServlet.doGet(request, response);
-    
-    clusterTrackingServiceImpl.deactivate(null);
-    
+
+    clusterTrackingServiceImpl.deactivate(componentContext);
+
     JSONObject jsonObject = new JSONObject(writer.toString());
     assertEquals(serverId, jsonObject.get("server"));
     JSONObject userObject = jsonObject.getJSONObject("user");
@@ -257,41 +265,40 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     Resource resource = createMock(Resource.class);
     Node node = createMock(Node.class);
 
-    
+
     expect(request.getResource()).andReturn(resource);
     expect(resource.adaptTo(Node.class)).andReturn(node);
-    
-    
+
     // request validated, processing request.
-    expect(request.getParameter("c")).andReturn("some-tracking-cookie");
-    expect(userTrackingCache.get("some-tracking-cookie")).andReturn(null);
-    
+    expect(request.getParameter("c")).andReturn(serverId+"-sometrackingcookie");
+    expect(userTrackingCache.get(serverId+"-sometrackingcookie")).andReturn(null);
+
     Capture<Integer> codeCapture = new Capture<Integer>();
     Capture<String> messageCapture = new Capture<String>();
     response.sendError(capture(codeCapture ),capture(messageCapture));
     expectLastCall();
 
-    
+    clusterUserServlet.testing = true;
 
     deactivate();
-    
-    replay();
-    clusterTrackingServiceImpl.activate(null);
-    
-    clusterUserServlet.doGet(request, response);
-    
-    clusterTrackingServiceImpl.deactivate(null);
 
-    
+    replay();
+    clusterTrackingServiceImpl.activate(componentContext);
+
+    clusterUserServlet.doGet(request, response);
+
+    clusterTrackingServiceImpl.deactivate(componentContext);
+
+
     checkActivation();
-    
+
     assertEquals(404, codeCapture.getValue().intValue());
 
     verify();
   }
 
   /**
-   * 
+   *
    */
   private void checkActivation() {
     assertTrue(serverIdCapture.hasCaptured());
@@ -303,13 +310,13 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
   }
 
   /**
-   * @throws ReflectionException 
-   * @throws MBeanException 
-   * @throws NullPointerException 
-   * @throws InstanceNotFoundException 
-   * @throws AttributeNotFoundException 
-   * @throws MalformedObjectNameException 
-   * 
+   * @throws ReflectionException
+   * @throws MBeanException
+   * @throws NullPointerException
+   * @throws InstanceNotFoundException
+   * @throws AttributeNotFoundException
+   * @throws MalformedObjectNameException
+   *
    */
   private void activate() throws Exception {
     serverId = getServerId();
@@ -322,13 +329,13 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
   }
 
   /**
-   * 
+   *
    */
   private void deactivate() {
-    serverTrackingCache.remove(serverId);    
+    serverTrackingCache.remove(serverId);
   }
 
-  
+
   /**
    * @return
    * @throws NullPointerException

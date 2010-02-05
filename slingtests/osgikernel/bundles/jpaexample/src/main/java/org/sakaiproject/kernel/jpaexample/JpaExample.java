@@ -18,23 +18,29 @@
 
 package org.sakaiproject.kernel.jpaexample;
 
-import com.google.inject.Inject;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.jpaexample.jpa.model.ExampleModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 
+@Component
 public class JpaExample {
 
   private static final Logger LOG = LoggerFactory.getLogger(JpaExample.class);
 
+  @Reference
   private EntityManager entityManager;
 
-  @Inject
-  public JpaExample(EntityManager entityManager) {
-    this.entityManager = entityManager;
+  public JpaExample() {
+  }
+  
+  public void activate(ComponentContext componentContext) {
+    exercise();
   }
 
   public void exercise() {

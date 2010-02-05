@@ -22,8 +22,10 @@ package org.imsglobal.basiclti;
 import static org.imsglobal.basiclti.BasicLTIConstants.CUSTOM_PREFIX;
 import static org.imsglobal.basiclti.BasicLTIConstants.LTI_MESSAGE_TYPE;
 import static org.imsglobal.basiclti.BasicLTIConstants.LTI_VERSION;
+import static org.imsglobal.basiclti.BasicLTIConstants.TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL;
 import static org.imsglobal.basiclti.BasicLTIConstants.TOOL_CONSUMER_INSTANCE_DESCRIPTION;
 import static org.imsglobal.basiclti.BasicLTIConstants.TOOL_CONSUMER_INSTANCE_GUID;
+import static org.imsglobal.basiclti.BasicLTIConstants.TOOL_CONSUMER_INSTANCE_NAME;
 import static org.imsglobal.basiclti.BasicLTIConstants.TOOL_CONSUMER_INSTANCE_URL;
 
 import net.oauth.OAuthAccessor;
@@ -250,16 +252,20 @@ public class BasicLTIUtil {
   /**
    * Add the necessary fields and sign.
    * 
-   * @deprecated See
-   *             {@link #signProperties(Map, String, String, String, String, String, String, String)}
+   * @deprecated See:
+   *             {@link BasicLTIUtil#signProperties(Map, String, String, String, String, String, String, String, String, String)}
+   * 
    * @param postProp
    * @param url
    * @param method
    * @param oauth_consumer_key
    * @param oauth_consumer_secret
    * @param org_id
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_GUID}
    * @param org_desc
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_DESCRIPTION}
    * @param org_url
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_URL}
    * @return
    */
   public static Properties signProperties(Properties postProp, String url,
@@ -267,7 +273,7 @@ public class BasicLTIUtil {
       String org_id, String org_desc, String org_url) {
     final Map<String, String> signedMap = signProperties(
         convertToMap(postProp), url, method, oauth_consumer_key,
-        oauth_consumer_secret, org_id, org_desc, org_url);
+        oauth_consumer_secret, org_id, org_desc, org_url, null, null);
     return convertToProperties(signedMap);
   }
 
@@ -279,15 +285,26 @@ public class BasicLTIUtil {
    * @param method
    * @param oauth_consumer_key
    * @param oauth_consumer_secret
-   * @param org_id
-   * @param org_desc
-   * @param org_url
+   * @param tool_consumer_instance_guid
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_GUID}
+   * @param tool_consumer_instance_description
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_DESCRIPTION}
+   * @param tool_consumer_instance_url
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_URL}
+   * @param tool_consumer_instance_name
+   *          See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_NAME}
+   * @param tool_consumer_instance_contact_email
+   *          See:
+   *          {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL}
    * @return
    */
   public static Map<String, String> signProperties(
       Map<String, String> postProp, String url, String method,
-      String oauth_consumer_key, String oauth_consumer_secret, String org_id,
-      String org_desc, String org_url) {
+      String oauth_consumer_key, String oauth_consumer_secret,
+      String tool_consumer_instance_guid,
+      String tool_consumer_instance_description,
+      String tool_consumer_instance_url, String tool_consumer_instance_name,
+      String tool_consumer_instance_contact_email) {
     postProp = BasicLTIUtil.cleanupProperties(postProp);
     postProp.put(LTI_VERSION, "LTI-1p0");
     postProp.put(LTI_MESSAGE_TYPE, "basic-lti-launch-request");
@@ -295,12 +312,18 @@ public class BasicLTIUtil {
     if (postProp.get(BASICLTI_SUBMIT) == null) {
       postProp.put(BASICLTI_SUBMIT, "Launch Endpoint with BasicLTI Data");
     }
-    if (org_id != null)
-      postProp.put(TOOL_CONSUMER_INSTANCE_GUID, org_id);
-    if (org_desc != null)
-      postProp.put(TOOL_CONSUMER_INSTANCE_DESCRIPTION, org_desc);
-    if (org_url != null)
-      postProp.put(TOOL_CONSUMER_INSTANCE_URL, org_url);
+    if (tool_consumer_instance_guid != null)
+      postProp.put(TOOL_CONSUMER_INSTANCE_GUID, tool_consumer_instance_guid);
+    if (tool_consumer_instance_description != null)
+      postProp.put(TOOL_CONSUMER_INSTANCE_DESCRIPTION,
+          tool_consumer_instance_description);
+    if (tool_consumer_instance_url != null)
+      postProp.put(TOOL_CONSUMER_INSTANCE_URL, tool_consumer_instance_url);
+    if (tool_consumer_instance_name != null)
+      postProp.put(TOOL_CONSUMER_INSTANCE_NAME, tool_consumer_instance_name);
+    if (tool_consumer_instance_contact_email != null)
+      postProp.put(TOOL_CONSUMER_INSTANCE_CONTACT_EMAIL,
+          tool_consumer_instance_contact_email);
 
     if (postProp.get("oauth_callback") == null)
       postProp.put("oauth_callback", "about:blank");

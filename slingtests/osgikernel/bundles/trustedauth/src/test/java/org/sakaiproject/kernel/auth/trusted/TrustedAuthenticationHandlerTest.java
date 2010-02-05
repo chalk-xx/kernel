@@ -24,6 +24,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.memory.Cache;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
+import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.sakaiproject.kernel.auth.trusted.TrustedAuthenticationHandler.TrustedAuthentication;
 import org.sakaiproject.kernel.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
@@ -54,6 +58,16 @@ public class TrustedAuthenticationHandlerTest {
   public void before() throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException {
     mocks.clear();
     trustedTokenService = new TrustedTokenServiceImpl();
+    
+    ClusterTrackingService clusterTrackingService = createMock(ClusterTrackingService.class);
+    CacheManagerService cacheManagerService = createMock(CacheManagerService.class);
+
+    Cache<Object> cache = new LocalCache<Object>();
+    EasyMock.expect(cacheManagerService.getCache(TokenStore.class.getName(), CacheScope.CLUSTERREPLICATED)).andReturn(cache).anyTimes();
+    EasyMock.expect(clusterTrackingService.getCurrentServerId()).andReturn("serverID").anyTimes();
+    trustedTokenService.clusterTrackingService = clusterTrackingService;
+    trustedTokenService.cacheManager = cacheManagerService;
+
   }
   
   public ComponentContext configureForSession() {

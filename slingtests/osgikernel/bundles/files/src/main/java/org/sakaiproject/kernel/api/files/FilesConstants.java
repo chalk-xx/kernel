@@ -34,10 +34,13 @@ public interface FilesConstants {
    */
   public static final String RT_SAKAI_FOLDER = "sakai/folder";
   /**
-   * The resource type for a sakai folder. sakai/link
+   * The resource type for a sakai link. sakai/link
    */
   public static final String RT_SAKAI_LINK = "sakai/link";
-
+  /**
+   * The resource type for a sakai tag. sakai/tag
+   */
+  public static final String RT_SAKAI_TAG = "sakai/tag";
   /**
    * The path to the filestore for users.
    */
@@ -55,6 +58,14 @@ public interface FilesConstants {
    * sakai:tags
    */
   public static final String SAKAI_TAGS = "sakai:tags";
+  /**
+   * sakai:tag-uuid
+   */
+  public static final String SAKAI_TAG_UUIDS = "sakai:tag-uuid";
+  /**
+   * sakai:tag-name - Intended to identify the name of a tag
+   */
+  public static final String SAKAI_TAG_NAME = "sakai:tag-name";
 
   /**
    * sakai:file
@@ -76,12 +87,20 @@ public interface FilesConstants {
   public static final String SAKAI_REMOTEURL = "sakai:remoteurl";
 
   /**
+   * sakai:sites
+   */
+  public static final String SAKAI_SITES = "sakai:sites";
+  /**
+   * The mixin required on the node to do a tag.
+   */
+  public static final String REQUIRED_MIXIN = "sakai:propertiesmix";
+  /**
    * FileHandlerProcessor
    */
   public static final String LINK_HANDLER = "LinkHandler";
 
   public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
   public static final FastDateFormat DATEFORMAT = FastDateFormat
-  .getInstance("yyyy-MM-dd'T'hh:mm:ss");
+      .getInstance("yyyy-MM-dd'T'HH:mm:ss");
 
 }

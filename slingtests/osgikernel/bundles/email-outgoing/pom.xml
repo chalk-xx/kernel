@@ -55,14 +55,12 @@
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
-      <type>bundle</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
-      <type>bundle</type>
       <scope>provided</scope>
     </dependency>
 

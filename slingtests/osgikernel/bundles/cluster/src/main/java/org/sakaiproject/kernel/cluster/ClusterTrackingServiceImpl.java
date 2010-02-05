@@ -26,6 +26,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.commons.scheduler.Scheduler;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.kernel.api.cluster.ClusterServer;
 import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
 import org.sakaiproject.kernel.api.cluster.ClusterUser;
@@ -38,7 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
+import java.util.Dictionary;
 import java.util.GregorianCalendar;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.management.MBeanServer;
@@ -79,11 +83,17 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    */
   private static final String SAKAI_TRACKING = "SAKAI-TRACKING";
 
+  @Property(name="secure-host-url", value = "http://localhost:8081",description = "The URL where other nodes in the cluster can contact this App server, will be different for each app server. Normal urls appended to the end of the url.")
+  protected static final String PROP_SECURE_HOST_URL = "secure-host-url";
+
   /**
    * The Cache Manager service, injected.
    */
   @Reference
   private CacheManagerService cacheManagerService;
+
+  @Reference
+  private EventAdmin eventAdmin;
 
   /**
    * A String representing the time when the service started.
@@ -108,16 +118,18 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   private long next;
   private long epoch;
   private long prev;
+  private String thisSecureUrl;
 
   /**
    * Constructor for testing purposes only.
-   * 
+   *
    * @param cacheManagerService2
    */
   protected ClusterTrackingServiceImpl(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;
     GregorianCalendar calendar = new GregorianCalendar(2009, 8, 22);
     epoch = calendar.getTimeInMillis();
+
   }
 
   public ClusterTrackingServiceImpl() {
@@ -127,11 +139,16 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * Activate the service, getting the id of the jvm instance and register the instance.
-   * 
+   *
    * @param ctx
    * @throws Exception
    */
+  @SuppressWarnings("unchecked")
   public void activate(ComponentContext ctx) throws Exception {
+
+    Dictionary<String, Object> properties = ctx.getProperties();
+    thisSecureUrl = (String) properties.get(PROP_SECURE_HOST_URL);
+
     componentStartTime = String.valueOf(System.currentTimeMillis());
     MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
     ObjectName name = new ObjectName("java.lang:type=Runtime");
@@ -143,7 +160,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * Remove the registration for the instance.
-   * 
+   *
    * @param ctx
    * @throws Exception
    */
@@ -154,7 +171,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   /**
    * Track a user, called from a filter, this will update the central cache for the cookie
    * and set the cookie if not present.
-   * 
+   *
    * @param request
    *          the http request oject.
    * @param response
@@ -171,8 +188,14 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
           String cookieName = cookie.getName();
           if (cookieName.equals(SAKAI_TRACKING)) {
             String trackingCookie = cookie.getValue();
-            pingTracking(trackingCookie, remoteUser);
-            tracking = true;
+            if (isServerAlive(trackingCookie)) {
+              try {
+                pingTracking(trackingCookie, remoteUser);
+                tracking = true;
+              } catch (PingRemoteTrackingFailedException e) {
+                LOGGER.warn(e.getMessage());
+              }
+            }
           }
         }
       }
@@ -203,13 +226,46 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
   }
 
   /**
+   * @param trackingCookie
+   * @return
+   */
+  private boolean isServerAlive(String trackingCookie) {
+    return getServer(trackingCookie) != null;
+  }
+
+  /**
+   * @param trackingCookie
+   * @return
+   */
+  private boolean isRemote(String trackingCookie) {
+    ClusterServer server = getServer(trackingCookie);
+    if (server != null) {
+      return !serverId.equals(server.getServerId());
+    }
+    return true;
+  }
+
+  /**
+   * @param trackingCookie
+   * @return
+   */
+  public ClusterServer getServer(String trackingCookie) {
+    int i = trackingCookie.lastIndexOf('-');
+    if (i > 0) {
+      String serverId = trackingCookie.substring(0, i);
+      return getServerCache().get(serverId);
+    }
+    return null;
+  }
+
+  /**
    * Get the user based on a tracking id.
-   * 
+   *
    * @param trackingCookie
    * @return
    */
   public ClusterUser getUser(String trackingCookie) {
-    if ( trackingCookie == null ) {
+    if (trackingCookie == null) {
       return null;
     }
     Cache<ClusterUser> cache = getTrackingCache();
@@ -225,18 +281,57 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * update the tracking for a user, if expired or the user name has changed.
-   * 
+   *
    * @param trackingCookie
    *          the cookie tracking.
    * @param remoteUser
    *          the user id.
+   * @throws PingRemoteTrackingFailedException
    */
-  private void pingTracking(String trackingCookie, String remoteUser) {
+  private void pingTracking(String trackingCookie, String remoteUser)
+      throws PingRemoteTrackingFailedException {
+    pingTracking(trackingCookie, remoteUser, true);
+  }
+
+  /**
+   * @param trackingCookie
+   * @param remoteUser
+   * @throws PingRemoteTrackingFailedException
+   */
+  protected void pingTracking(String trackingCookie, String remoteUser, boolean andRemote)
+      throws PingRemoteTrackingFailedException {
     Cache<ClusterUser> cache = getTrackingCache();
     ClusterUser cuser = cache.get(trackingCookie);
     if (cuser == null || ((ClusterUserImpl) cuser).expired(remoteUser)) {
+      if (andRemote && isRemote(trackingCookie)) {
+        pingRemoteTracking(trackingCookie, remoteUser);
+      }
       cache.put(trackingCookie, new ClusterUserImpl(remoteUser, serverId));
     }
+  }
+
+  /**
+   * @param trackingCookie
+   * @param remoteUser
+   * @throws PingRemoteTrackingFailedException
+   */
+  private void pingRemoteTracking(String trackingCookie, String remoteUser)
+      throws PingRemoteTrackingFailedException {
+    ClusterServer clusterServer = getServer(trackingCookie);
+    if (clusterServer == null) {
+      throw new PingRemoteTrackingFailedException("Server at " + trackingCookie
+          + " not alive ");
+    }
+    // send over OSGi and then JMS over the OSGi2JMS Bridge
+    Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+    messageDict.put(EVENT_FROM_SERVER, serverId);
+    messageDict.put(EVENT_TO_SERVER, clusterServer.getServerId());
+    messageDict.put(EVENT_TRACKING_COOKIE, trackingCookie);
+    messageDict.put(EVENT_USER, remoteUser);
+    Event pingUserEvent = new Event(EVENT_PING_CLUSTER_USER + "/"
+        + clusterServer.getServerId(), messageDict);
+    eventAdmin.postEvent(pingUserEvent);
+
   }
 
   /**
@@ -247,7 +342,8 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
       if (!isReady) {
         do {
           updateServerNumber();
-          getServerCache().put(serverId, new ClusterServerImpl(serverId, serverNumber));
+          getServerCache().put(serverId,
+              new ClusterServerImpl(serverId, serverNumber, thisSecureUrl));
           try {
             Thread.sleep(1000);
           } catch (InterruptedException e) {
@@ -257,7 +353,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
       } else {
         Object cs = getServerCache().put(serverId,
-            new ClusterServerImpl(serverId, serverNumber));
+            new ClusterServerImpl(serverId, serverNumber, thisSecureUrl));
 
         if (cs == null) {
           LOGGER.warn("This servers registration dissapeared, replaced as {} ", serverId);
@@ -323,15 +419,16 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @return the Cache used to track users
    */
   private Cache<ClusterUser> getTrackingCache() {
-    return cacheManagerService.getCache(TRACKING_CACHE, CacheScope.CLUSTERREPLICATED);
+    // this is a local cache. if we add things here we ping the home server
+    return cacheManagerService.getCache(TRACKING_CACHE, CacheScope.INSTANCE);
   }
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * Invoked as a task by the Sling Scheduler, once every 5 minutes to update the last
    * time the server was registered in the cluster cache.
-   * 
+   *
    * @see java.lang.Runnable#run()
    */
   public void run() {
@@ -340,7 +437,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getAllServers()
    */
   public List<ClusterServer> getAllServers() {
@@ -349,7 +446,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getCurrentServerId()
    */
   public String getCurrentServerId() {
@@ -358,7 +455,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.kernel.api.cluster.ClusterTrackingService#getClusterUniqueId()
    */
   public String getClusterUniqueId() {

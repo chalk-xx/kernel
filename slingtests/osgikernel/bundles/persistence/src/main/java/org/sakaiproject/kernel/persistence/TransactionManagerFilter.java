@@ -59,9 +59,8 @@ public class TransactionManagerFilter implements Filter {
   private static final boolean debug = LOGGER.isDebugEnabled();
 
 
-  @Reference(name="transactionManager")
+  @Reference
   private TransactionManager transactionManager;
-
 
 
   /**

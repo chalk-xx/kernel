@@ -28,6 +28,25 @@ import javax.servlet.http.HttpServletResponse;
 public interface ClusterTrackingService {
 
   /**
+   *
+   */
+  public static final String EVENT_USER = "user";
+  /**
+   *
+   */
+  public static final String EVENT_TRACKING_COOKIE = "tracking-cookie";
+  /**
+   *
+   */
+  public static final String EVENT_TO_SERVER = "to-server";
+  /**
+   *
+   */
+  public static final String EVENT_FROM_SERVER = "from-server";
+
+  public static final String EVENT_PING_CLUSTER_USER = "org/sakaiproject/kernel/cluster/user/ping";
+
+  /**
    * @param request
    * @param response
    */
@@ -38,22 +57,28 @@ public interface ClusterTrackingService {
    * @return
    */
   ClusterUser getUser(String trackingCookie);
-  
+
   /**
    * @return a list of all servers in the cluster.
    */
   List<ClusterServer> getAllServers();
 
-  
+
   /**
    * @return get the ID of the current server.
    */
   String getCurrentServerId();
-  
-  
+
+
   /**
    * @return generate an ID that will be unique in the cluster.
    */
   String getClusterUniqueId();
+
+  /**
+   * @param trackingCookie
+   * @return
+   */
+  ClusterServer getServer(String trackingCookie);
 
 }

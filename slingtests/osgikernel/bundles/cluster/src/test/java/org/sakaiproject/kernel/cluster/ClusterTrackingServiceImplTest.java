@@ -28,13 +28,16 @@ import org.easymock.Capture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.kernel.api.memory.Cache;
 import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.api.memory.CacheScope;
+import org.sakaiproject.kernel.memory.CacheManagerServiceImpl;
 import org.sakaiproject.kernel.testutils.easymock.AbstractEasyMockTest;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -56,6 +59,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
   private CacheManagerService cacheManagerService;
   private Cache<Object> userTrackingCache;
   private Cache<Object> serverTrackingCache;
+  private ComponentContext componentContext;
 
   @SuppressWarnings("unchecked")
   @Before
@@ -64,12 +68,16 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     userTrackingCache = createMock(Cache.class);
     serverTrackingCache = createMock(Cache.class);
     expect(
-        cacheManagerService.getCache("user-tracking-cache", CacheScope.CLUSTERREPLICATED))
+        cacheManagerService.getCache("user-tracking-cache", CacheScope.INSTANCE))
         .andReturn(userTrackingCache).anyTimes();
     expect(
         cacheManagerService.getCache("server-tracking-cache",
             CacheScope.CLUSTERREPLICATED)).andReturn(serverTrackingCache).anyTimes();
     clusterTrackingServiceImpl = new ClusterTrackingServiceImpl(cacheManagerService);
+    componentContext = createMock(ComponentContext.class);
+    Hashtable<String, Object> dict = new Hashtable<String, Object>();
+    dict.put(ClusterTrackingServiceImpl.PROP_SECURE_HOST_URL, "http://localhost:8081");
+    expect(componentContext.getProperties()).andReturn(dict).anyTimes();
   }
 
   @After
@@ -101,20 +109,20 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
 
   @Test
   public void testActivate() throws Exception {
-    
+
     // activate
     String serverId = getServerId();
     Capture<String> serverIdCapture = new Capture<String>();
     Capture<ClusterServerImpl> clusterServerCapture = new Capture<ClusterServerImpl>();
-    
+
     expect(serverTrackingCache.list()).andReturn(new ArrayList<Object>()).times(2);
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
-    
+
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
+    clusterTrackingServiceImpl.activate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
@@ -134,13 +142,13 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
-    // deactivate 
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
-    clusterTrackingServiceImpl.deactivate(null);
+    clusterTrackingServiceImpl.activate(componentContext);
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
@@ -149,7 +157,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
     verify();
   }
-  
+
 
   @Test
   public void testTrackClusterUser() throws Exception {
@@ -161,58 +169,64 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
-    
-    
+
+
+
     // trackClusterUser
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     Cookie cookieA = new Cookie("something","someValue");
-    Cookie cookieMatching = new Cookie("SAKAI-TRACKING","trackingValue");
+    Cookie cookieMatching = new Cookie("SAKAI-TRACKING",serverId+"-trackingValue");
     Cookie cookieB = new Cookie("somethingElse","someOtherValue");
-    
+
     Cookie[] cookies = new Cookie[] {
         cookieA,
         cookieMatching,
         cookieB
     };
-    
-    
+
+
     expect(request.getCookies()).andReturn(cookies);
     expect(request.getRemoteUser()).andReturn("userid");
+
+    ClusterServerImpl csImple = new ClusterServerImpl(serverId, 4, "http://sdfsdfs");
+
+    expect(serverTrackingCache.get(serverId)).andReturn(csImple).times(2);
     // nothing in the cache.
-    expect(userTrackingCache.get("trackingValue")).andReturn(null);
+    expect(userTrackingCache.get(serverId+"-trackingValue")).andReturn(null);
     Capture<String> trackingValueCapture = new Capture<String>();
     Capture<ClusterUserImpl> clusterUserCapture = new Capture<ClusterUserImpl>();
     expect(userTrackingCache.put(capture(trackingValueCapture), capture(clusterUserCapture))).andReturn(new Object());
-    // deactivate 
+
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
-    
+    clusterTrackingServiceImpl.activate(componentContext);
+
     clusterTrackingServiceImpl.trackClusterUser(request, response);
-    
-    clusterTrackingServiceImpl.deactivate(null);
+
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
     ClusterServerImpl clusterServerImpl = clusterServerCapture.getValue();
     assertEquals(serverId, clusterServerImpl.getServerId());
     assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
-    
+
     // check the user capture
     assertTrue(trackingValueCapture.hasCaptured());
     assertTrue(clusterUserCapture.hasCaptured());
-    assertEquals("trackingValue",trackingValueCapture.getValue());
+    assertEquals(serverId+"-trackingValue",trackingValueCapture.getValue());
     ClusterUserImpl clusterUserImpl = clusterUserCapture.getValue();
     assertEquals("userid",clusterUserImpl.getUser() );
     assertEquals(serverId, clusterUserImpl.getServerId());
     assertTrue(System.currentTimeMillis() >=clusterUserImpl.getLastModified());
     verify();
   }
-  
+
 
   @Test
   public void testTrackClusterNewUser() throws Exception {
@@ -224,48 +238,48 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
-    
-    
+
+
+
     // trackClusterUser
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    
+
     Cookie cookieA = new Cookie("something","someValue");
     Cookie cookieB = new Cookie("somethingElse","someOtherValue");
-    
+
     Cookie[] cookies = new Cookie[] {
         cookieA,
         cookieB
     };
-    
-    
+
+
     expect(request.getCookies()).andReturn(cookies);
     expect(request.getRemoteUser()).andReturn("userid");
-    
+
     expect(response.isCommitted()).andReturn(false);
     Capture<Cookie> captureCookie = new Capture<Cookie>();
     response.addCookie(capture(captureCookie));
     expectLastCall();
-    
-    
-    
-    // deactivate 
+
+
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
-    
+    clusterTrackingServiceImpl.activate(componentContext);
+
     clusterTrackingServiceImpl.trackClusterUser(request, response);
-    
-    clusterTrackingServiceImpl.deactivate(null);
+
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
     ClusterServerImpl clusterServerImpl = clusterServerCapture.getValue();
     assertEquals(serverId, clusterServerImpl.getServerId());
     assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
-    
+
     // check the cookie
     assertTrue(captureCookie.hasCaptured());
     Cookie cookie = captureCookie.getValue();
@@ -276,8 +290,8 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     assertTrue(cookie.getValue().startsWith(serverId));
     verify();
   }
-  
-  
+
+
 
   @Test
   public void testGetUser() throws Exception {
@@ -289,17 +303,17 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
+
     ClusterUserImpl clusterUserImpl = new ClusterUserImpl("remoteUser", "serverId");
     expect(userTrackingCache.get("testCookieValue")).andReturn(clusterUserImpl);
-    
-    // deactivate 
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
+    clusterTrackingServiceImpl.activate(componentContext);
     clusterTrackingServiceImpl.getUser("testCookieValue");
-    clusterTrackingServiceImpl.deactivate(null);
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
@@ -319,16 +333,16 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
+
     expect(userTrackingCache.get("testCookieValue")).andReturn(null);
-    
-    // deactivate 
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
+    clusterTrackingServiceImpl.activate(componentContext);
     clusterTrackingServiceImpl.getUser("testCookieValue");
-    clusterTrackingServiceImpl.deactivate(null);
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
@@ -337,7 +351,7 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     assertTrue(System.currentTimeMillis() >= clusterServerImpl.getLastModified());
     verify();
   }
-  
+
   @Test
   public void testUniqueId() throws Exception {
     // activate
@@ -348,14 +362,14 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
     expect(
         serverTrackingCache.put(capture(serverIdCapture), capture(clusterServerCapture)))
         .andReturn(new Object());
-    
-    // deactivate 
+
+    // deactivate
     serverTrackingCache.remove(serverId);
-    
+
     replay();
-    clusterTrackingServiceImpl.activate(null);
+    clusterTrackingServiceImpl.activate(componentContext);
     assertNotNull(clusterTrackingServiceImpl.getClusterUniqueId());
-    clusterTrackingServiceImpl.deactivate(null);
+    clusterTrackingServiceImpl.deactivate(componentContext);
     assertTrue(serverIdCapture.hasCaptured());
     assertEquals(serverId, serverIdCapture.getValue());
     assertTrue(clusterServerCapture.hasCaptured());
@@ -366,5 +380,5 @@ public class ClusterTrackingServiceImplTest extends AbstractEasyMockTest {
 
   }
 
-  
+
 }

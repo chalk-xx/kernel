@@ -18,10 +18,6 @@
 
 package org.sakaiproject.kernel.persistence.dbcp;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.name.Named;
-
 import org.apache.commons.dbcp.ConnectionFactory;
 import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnectionFactory;
@@ -29,9 +25,13 @@ import org.apache.commons.dbcp.PoolingDataSource;
 import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.apache.commons.pool.impl.GenericKeyedObjectPoolFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.configuration.ConfigurationService;
 import org.sakaiproject.kernel.api.configuration.KernelConstants;
 import org.sakaiproject.kernel.api.persistence.DataSourceService;
-import org.sakaiproject.kernel.guice.ServiceExportDescription;
 
 import java.sql.SQLException;
 
@@ -41,46 +41,44 @@ import javax.sql.DataSource;
  * <p>
  * Service to provide a data source for database connections.
  * </p>
- * The implementation is based on the javadoc from DBCP which reads like the
- * following:<br/> The {@link org.apache.commons.dbcp.PoolingDataSource} uses an
- * underlying {@link org.apache.commons.pool.ObjectPool} to create and store its
- * java.sql.Connection.<br/> To create a
- * {@link org.apache.commons.pool.ObjectPool}, you'll need a
+ * The implementation is based on the javadoc from DBCP which reads like the following:<br/>
+ * The {@link org.apache.commons.dbcp.PoolingDataSource} uses an underlying
+ * {@link org.apache.commons.pool.ObjectPool} to create and store its java.sql.Connection.<br/>
+ * To create a {@link org.apache.commons.pool.ObjectPool}, you'll need a
  * {@link org.apache.commons.pool.PoolableObjectFactory} that creates the actual
  * {@link java.sql.Connection}s. That's what
- * {@link org.apache.commons.dbcp.PoolableConnectionFactory} is for.<br/> To
- * create the {@link org.apache.commons.dbcp.PoolableConnectionFactory} , you'll
- * need at least two things:
+ * {@link org.apache.commons.dbcp.PoolableConnectionFactory} is for.<br/>
+ * To create the {@link org.apache.commons.dbcp.PoolableConnectionFactory} , you'll need
+ * at least two things:
  * <ol>
- * <li>A {@link org.apache.commons.dbcp.ConnectionFactory} from which the actual
- * database {@link java.sql.Connection}s will be obtained.</li>
- * <li>An empty and factory-less {@link org.apache.commons.pool.ObjectPool} in
- * which the {@link java.sql.Connection}s will be stored.</li>
+ * <li>A {@link org.apache.commons.dbcp.ConnectionFactory} from which the actual database
+ * {@link java.sql.Connection}s will be obtained.</li>
+ * <li>An empty and factory-less {@link org.apache.commons.pool.ObjectPool} in which the
+ * {@link java.sql.Connection}s will be stored.</li>
  * </ol>
  * When you pass an {@link org.apache.commons.pool.ObjectPool} into the
- * {@link org.apache.commons.dbcp.PoolableConnectionFactory} , it will
- * automatically register itself as the
- * {@link org.apache.commons.pool.PoolableObjectFactory} for that pool.<br/> You
- * can optionally provide a
- * {@link org.apache.commons.pool.KeyedObjectPoolFactory} that will be used to
- * create {@link org.apache.commons.pool.KeyedObjectPool}s for pooling
- * {@link java.sql.PreparedStatement}s for each {@link java.sql.Connection}.
- * 
- * 
- * 
- * 
- * 
+ * {@link org.apache.commons.dbcp.PoolableConnectionFactory} , it will automatically
+ * register itself as the {@link org.apache.commons.pool.PoolableObjectFactory} for that
+ * pool.<br/>
+ * You can optionally provide a {@link org.apache.commons.pool.KeyedObjectPoolFactory}
+ * that will be used to create {@link org.apache.commons.pool.KeyedObjectPool}s for
+ * pooling {@link java.sql.PreparedStatement}s for each {@link java.sql.Connection}.
+ *
+ *
+ *
+ *
+ *
  */
-@ServiceExportDescription(serviceClasses={DataSourceService.class},
-    serviceDescription="Service for the providing Data Sources",
-    seviceVendor="Sakai Foundation")
-public class DataSourceServiceImpl implements DataSourceService,
-    Provider<DataSource> {
+@Component(immediate = true)
+@Service
+public class DataSourceServiceImpl implements DataSourceService {
 
-  
-  private DataSource dataSource;
+  private PoolingDataSource dataSource;
   @SuppressWarnings("unused")
   private PoolableConnectionFactory poolableConnectionFactory;
+
+  @Reference
+  private ConfigurationService confurationService;
 
   /**
    * Construct a DBCP data source service.
@@ -96,21 +94,31 @@ public class DataSourceServiceImpl implements DataSourceService,
    * @throws ClassNotFoundException
    * @throws SQLException
    */
-  @Inject
-  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value = { "URF_UNREAD_FIELD" }, justification = "The conection factory must be initialized before use")
-  public DataSourceServiceImpl(@Named(KernelConstants.JDBC_DRIVER_NAME) String driverClassName,
-      @Named(KernelConstants.JDBC_URL) String url, @Named(KernelConstants.JDBC_USERNAME) String username,
-      @Named(KernelConstants.JDBC_PASSWORD) String password,
-      @Named(KernelConstants.JDBC_VALIDATION_QUERY) String validationQuery,
-      @Named(KernelConstants.JDBC_DEFAULT_READ_ONLY) boolean defaultReadOnly,
-      @Named(KernelConstants.JDBC_DEFAULT_AUTO_COMMIT) boolean defaultAutoCommit,
-      @Named(KernelConstants.JDBC_DEFAULT_PREPARED_STATEMENTS) boolean poolPreparedStatements)
-      throws ClassNotFoundException, SQLException {
+  public DataSourceServiceImpl() {
+  }
+
+  @edu.umd.cs.findbugs.annotations.SuppressWarnings(value = { "URF_UNREAD_FIELD", "UWF_UNWRITTEN_FIELD" }, justification = "PoolableConnectionFactory injects itself into connectionPool, but we need a reference to it, ConfigurationService is OSgi managed.")
+  protected void activate(ComponentContext componentContext)
+      throws ClassNotFoundException {
+    String driverClassName = confurationService
+        .getProperty(KernelConstants.JDBC_DRIVER_NAME);
+
+    String url = confurationService.getProperty(KernelConstants.JDBC_URL);
+    String username = confurationService.getProperty(KernelConstants.JDBC_USERNAME);
+    String password = confurationService.getProperty(KernelConstants.JDBC_PASSWORD);
+    String validationQuery = confurationService
+        .getProperty(KernelConstants.JDBC_VALIDATION_QUERY);
+    boolean defaultReadOnly = Boolean.valueOf(confurationService
+        .getProperty(KernelConstants.JDBC_DEFAULT_READ_ONLY));
+    boolean defaultAutoCommit = Boolean.valueOf(confurationService
+        .getProperty(KernelConstants.JDBC_DEFAULT_AUTO_COMMIT));
+    boolean poolPreparedStatements = Boolean.valueOf(confurationService
+        .getProperty(KernelConstants.JDBC_DEFAULT_PREPARED_STATEMENTS));
 
     Class.forName(driverClassName);
     GenericObjectPool connectionPool = new GenericObjectPool(null);
-    ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(
-        url, username, password);
+    ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(url,
+        username, password);
 
     // Set up statement pool, if desired
     GenericKeyedObjectPoolFactory statementPoolFactory = null;
@@ -121,14 +129,16 @@ public class DataSourceServiceImpl implements DataSourceService,
       int maxIdlePerKey = 1;
       int maxOpenPreparedStatements = 0;
       statementPoolFactory = new GenericKeyedObjectPoolFactory(null, maxActive,
-          whenExhaustedAction, maxWait, maxIdlePerKey,
-          maxOpenPreparedStatements);
+          whenExhaustedAction, maxWait, maxIdlePerKey, maxOpenPreparedStatements);
     }
 
-    poolableConnectionFactory = new PoolableConnectionFactory(
-        connectionFactory, connectionPool, statementPoolFactory,
-        validationQuery, defaultReadOnly, defaultAutoCommit);
+    poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory,
+        connectionPool, statementPoolFactory, validationQuery, defaultReadOnly,
+        defaultAutoCommit);
     dataSource = new PoolingDataSource(connectionPool);
+  }
+
+  protected void deactivate(ComponentContext componentContext) {
   }
 
   /**
@@ -147,15 +157,6 @@ public class DataSourceServiceImpl implements DataSourceService,
    */
   public String getType() {
     return DataSourceService.NON_JTA_DATASOURCE;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see com.google.inject.Provider#get()
-   */
-  public DataSource get() {
-    return dataSource;
   }
 
 }

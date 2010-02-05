@@ -31,9 +31,11 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.PropertyDefinition;
 
 /**
@@ -223,6 +225,77 @@ public class JcrUtils {
       LOGGER.error("getInputStream: Cannot get InputStream for " + node, re);
     }
     return null;
+  }
+
+  /**
+   * Add a value to a property. This property will always be multi-valued.
+   * 
+   * @param session
+   *          The session to use.
+   * @param node
+   *          The node to perform the operation on.
+   * @param propertyName
+   *          The name of the property to add a value to.
+   * @param value
+   *          Add a value to the property
+   * @param type
+   *          The type defined in {@link PropertyType}.
+   * @throws RepositoryException
+   */
+  public static void addValue(Session session, Node node, String propertyName,
+      String value, int type) throws RepositoryException {
+    Value[] oldVals = getValues(node, propertyName);
+    Value[] newVals = new Value[oldVals.length + 1];
+    for (int i = 0; i < oldVals.length; i++) {
+      Value v = oldVals[i];
+      newVals[i] = v;
+    }
+
+    // Create a value that points to the tag node.
+    // We create a soft reference (aka set uuid of tag node on file)
+    newVals[oldVals.length] = session.getValueFactory().createValue(value, type);
+    node.setProperty(propertyName, newVals);
+  }
+
+  public static void addUniqueValue(Session session, Node node, String propertyName,
+      String value, int type) throws RepositoryException {
+    boolean containsValue = false;
+    Value[] oldVals = getValues(node, propertyName);
+    Value[] newVals = new Value[oldVals.length + 1];
+    for (int i = 0; i < oldVals.length; i++) {
+      Value v = oldVals[i];
+      containsValue = v.getString().equals(value);
+      if (containsValue) {
+        // This value is already on the property, no need to loop over the rest.
+        return;
+      }
+      newVals[i] = v;
+    }
+
+    // Create a value that points to the tag node.
+    // We create a soft reference (aka set uuid of tag node on file)
+    newVals[oldVals.length] = session.getValueFactory().createValue(value, type);
+    node.setProperty(propertyName, newVals);
+  }
+
+  /**
+   * Checks if a node has a specified mixin.
+   * 
+   * @param node
+   *          The node in question
+   * @param mixin
+   *          The name of the mixin to look for.
+   */
+  public static boolean hasMixin(Node node, String mixin) throws RepositoryException {
+    NodeType[] nodetypes = node.getMixinNodeTypes();
+    boolean hasRequiredMixin = false;
+    for (NodeType type : nodetypes) {
+      if (type.getName().equals(mixin)) {
+        hasRequiredMixin = true;
+        break;
+      }
+    }
+    return hasRequiredMixin;
   }
 
 }

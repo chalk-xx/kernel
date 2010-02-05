@@ -20,8 +20,9 @@
   </parent>
   <artifactId>org.sakaiproject.kernel.files</artifactId>
   <packaging>bundle</packaging>
+  
   <version>0.3-SNAPSHOT</version>
-  <name>org.sakaiproject.kernel.files</name>
+  <name>Sakai Kernel Files Bundle</name>
   <description>Sakai files bundle</description>
   <build>
     <plugins>

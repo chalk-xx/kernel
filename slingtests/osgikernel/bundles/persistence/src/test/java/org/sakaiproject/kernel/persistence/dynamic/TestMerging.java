@@ -53,7 +53,8 @@ public class TestMerging {
 
   @Test
   public void testMergePersistences() throws Exception {
-    PersistenceBundleMonitor monitor = new PersistenceBundleMonitor(new DummyBundleContext(new DummyBundle()));
+    PersistenceBundleMonitor monitor = new PersistenceBundleMonitor();
+    monitor.start(new DummyBundleContext(new DummyBundle()));
     Bundle fakeBundle = createDummyBundle("default", "persistence1.xml", "orm1.xml");
     monitor.bundleChanged(new BundleEvent(BundleEvent.STARTING, fakeBundle));
     fakeBundle = createDummyBundle("default", "persistence2.xml", "orm2.xml");

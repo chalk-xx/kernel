@@ -56,7 +56,7 @@ public class ClusterTrackingFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
    */
   public void init(FilterConfig config) throws ServletException {
@@ -65,7 +65,7 @@ public class ClusterTrackingFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#destroy()
    */
   public void destroy() {
@@ -74,7 +74,7 @@ public class ClusterTrackingFilter implements Filter {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
    *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
    */

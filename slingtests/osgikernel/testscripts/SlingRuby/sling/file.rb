@@ -10,16 +10,31 @@ module SlingFile
       @sling = sling
     end
     
-    def upload(link, site, props = {})
-      return @sling.execute_file_post("http://localhost:8080/_user/files.upload.html", "Filedata", "myFile.html", $testfile1, "text/html")
+    def createlink(url, linkUid, siteUuid)
+      props = {
+        ":operation" => "link",
+        "link" => linkUid
+      }
+      if (siteUuid != nil)
+        props.update("site" => siteUuid)
+      end
+      return @sling.execute_post(@sling.url_for(url), props)
     end
     
-    def download(fileId)
-      return @sling.execute_get(@sling.url_for("/_user/files/#{fileId}"))
+    def createTag(tagName, url, props = {})
+      props.update("./jcr:primaryType" => "nt:folder")
+      props.update("./jcr:mixinTypes" => "sakai:propertiesmix")
+      props.update("./sling:resourceType" => "sakai/tag")
+      props.update("./sakai:tag-name" => tagName)
+      return @sling.execute_post(@sling.url_for(url), props)
     end
     
-    def createlink(fileId, link, site, props = {})
-      return @sling.execute_post(@sling.url_for("/_user/files/#{fileId}.link.json"), props.update("link" => link, "site" => site))
+    def tag(url, tagUuid)
+      props = {
+        ":operation" => "tag",
+        "uuid" => tagUuid
+      }
+      return @sling.execute_post(@sling.url_for(url), props)
     end
     
     def myfiles(search)
