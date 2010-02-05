@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.kernel.api.connections.ConnectionManager;
@@ -69,6 +70,10 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     // Set the userid.
     propertiesMap.put("_me", user);
+
+    // Set the public space.
+    propertiesMap.put("_mySpace", ISO9075.encodePath(PersonalUtils
+        .getPublicPath(user, "")));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
@@ -280,7 +285,8 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param user
    * @return
    */
-  @SuppressWarnings(justification="siteService is OSGi managed", value={"NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD"})
+  @SuppressWarnings(justification = "siteService is OSGi managed", value = {
+      "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
   private String getMySites(Session session, String user) {
     try {
       StringBuilder sb = new StringBuilder();
@@ -329,7 +335,8 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    *          The user to get the contacts for.
    * @return and (@sakai:user=\"simon\" or @sakai:user=\"ieb\")
    */
-  @SuppressWarnings(justification="connectionManager is OSGi managed", value={"NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD"})
+  @SuppressWarnings(justification = "connectionManager is OSGi managed", value = {
+      "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
   private String getMyContacts(String user) {
     List<String> connectedUsers = connectionManager.getConnectedUsers(user,
         ConnectionState.ACCEPTED);

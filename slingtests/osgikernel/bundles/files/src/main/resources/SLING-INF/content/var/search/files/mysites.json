@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[(@sling:resourceType='sakai/file' and (jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}'))){_mysites}{_usedin}{_tags}]{_order}",
+  "sakai:query-template": "//element(*, nt:file)[((jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}'))){_mysites}{_usedin}{_tags}]{_order}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",

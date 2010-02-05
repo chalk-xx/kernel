@@ -472,21 +472,22 @@ public class FileUtils {
     write.key("sites");
     write.array();
 
+    // sakai:sites contains uuid's of sites where the file is being referenced.
     Value[] sites = JcrUtils.getValues(node, "sakai:sites");
     Session session = node.getSession();
 
     int total = 0;
     try {
       List<String> handledSites = new ArrayList<String>();
+      AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+      Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
+      Privilege[] privs = new Privilege[] { read };
       for (Value v : sites) {
         String path = v.getString();
         if (!handledSites.contains(path)) {
           handledSites.add(path);
-          Node siteNode = (Node) session.getItem(v.getString());
+          Node siteNode = (Node) session.getNodeByUUID(v.getString());
 
-          AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
-          Privilege read = acm.privilegeFromName(Privilege.JCR_READ);
-          Privilege[] privs = new Privilege[] { read };
           boolean hasAccess = acm.hasPrivileges(path, privs);
           if (siteService.isSite(siteNode) && hasAccess) {
             writeSiteInfo(siteNode, write, siteService);
@@ -523,5 +524,22 @@ public class FileUtils {
     write.value(siteNode.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
     write.endObject();
+  }
+
+  /**
+   * Check if a node is a proper sakai tag.
+   * 
+   * @param node
+   *          The node to check if it is a tag.
+   * @return true if the node is a tag, false if it is not.
+   * @throws RepositoryException
+   */
+  public static boolean isTag(Node node) throws RepositoryException {
+    if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
+        && FilesConstants.RT_SAKAI_TAG.equals(node.getProperty(
+            JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString())) {
+      return true;
+    }
+    return false;
   }
 }
