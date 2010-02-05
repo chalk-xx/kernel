@@ -19,7 +19,7 @@ package org.sakaiproject.kernel.auth.trusted;
 
 
 /**
- *
+ * Marker interface for the private service.
  */
 interface TrustedTokenService {
 

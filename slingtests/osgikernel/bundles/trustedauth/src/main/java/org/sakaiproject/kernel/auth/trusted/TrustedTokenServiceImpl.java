@@ -24,6 +24,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.kernel.api.cluster.ClusterServer;
+import org.sakaiproject.kernel.api.cluster.ClusterTrackingService;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
 import org.sakaiproject.kernel.auth.trusted.TokenStore.SecureCookie;
 import org.sakaiproject.kernel.auth.trusted.TokenStore.SecureCookieException;
 import org.slf4j.Logger;
@@ -66,7 +69,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(longValue = 1200000, description = "The TTL of a cookie based token, in ms")
   static final String TTL = "sakai.auth.trusted.token.ttl";
 
-  /** Property to indicate the TTL on cookies */
+  /** Property to indicate the name of the cookie. */
   @Property(value = "sakai-trusted-authn", description = "The name of the token")
   static final String COOKIE_NAME = "sakai.auth.trusted.token.name";
 
@@ -104,6 +107,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private Long ttl;
 
+
+  @Reference
+  protected ClusterTrackingService clusterTrackingService;
+
+  @Reference
+  protected CacheManagerService cacheManager;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -113,7 +123,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   public TrustedTokenServiceImpl() throws NoSuchAlgorithmException, InvalidKeyException,
       IllegalStateException, UnsupportedEncodingException {
-    tokenStore = new TokenStore(); 
+      tokenStore = new TokenStore(); 
   }
   
 
@@ -125,8 +135,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     ttl = (Long) props.get(TTL);
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
     
-    tokenStore.setTtl(ttl);
-    tokenStore.setTokenFile((String) props.get(TOKEN_FILE_NAME));
+    String tokenFile = (String) props.get(TOKEN_FILE_NAME);
+    String serverId = clusterTrackingService.getCurrentServerId();
+    tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
   }
 
   /**
@@ -254,7 +265,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   void refreshToken(HttpServletResponse response, String value, String userId) {
     String[] parts = StringUtils.split(value, "@");
-    if (parts != null && parts.length == 3) {
+    if (parts != null && parts.length == 4) {
       long cookieTime = Long.parseLong(parts[1].substring(1));
       if (System.currentTimeMillis() + (ttl / 2) > cookieTime) {
         addCookie(response, userId);
@@ -288,6 +299,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
       } catch (IllegalStateException e) {
         LOG.error(e.getMessage(), e);
       } catch (UnsupportedEncodingException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (SecureCookieException e) {
         LOG.error(e.getMessage(), e);
       }
       return null;

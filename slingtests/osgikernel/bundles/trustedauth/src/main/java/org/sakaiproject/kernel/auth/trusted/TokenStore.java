@@ -18,6 +18,9 @@
 package org.sakaiproject.kernel.auth.trusted;
 
 import org.apache.commons.lang.StringUtils;
+import org.sakaiproject.kernel.api.memory.Cache;
+import org.sakaiproject.kernel.api.memory.CacheManagerService;
+import org.sakaiproject.kernel.api.memory.CacheScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,18 +34,21 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- *
+ * A Token Storage class that maintains a local ring buffer of keys for encoding and uses
+ * a cluster replecated cache for keys to be shared with other servers in the cluster.
  */
 public class TokenStore {
+
   /**
-  *
-  */
+   * Thrown when there is a problem with a Cookie.
+   */
   public static final class SecureCookieException extends Exception {
 
     /**
@@ -60,20 +66,29 @@ public class TokenStore {
   }
 
   /**
-  *
-  */
+   * A secure cookie, with encoding and decoding methods.
+   */
   public final class SecureCookie {
 
+    /**
+     * The secret key used to encode this cookie
+     */
     private SecretKey secretKey;
-    private int tokenNumber;
+    /**
+     * The ID of the secret key.
+     */
+    private int secretKeyId;
+    private String serverId;
 
     /**
-     * @param currentToken
+     * Create the token, using the secure key number specified.
+     * 
+     * @param secretKeyId
      * @param secretKey
      */
-    public SecureCookie(int tokenNumber) {
-      this.tokenNumber = tokenNumber;
-      this.secretKey = currentTokens[tokenNumber];
+    public SecureCookie(String serverId, int secretKeyId) {
+      this.secretKeyId = secretKeyId;
+      this.serverId = serverId;
     }
 
     /**
@@ -90,27 +105,34 @@ public class TokenStore {
     }
 
     /**
-     * @return the tokenNumber
-     */
-    public int getTokenNumber() {
-      return tokenNumber;
-    }
-
-    /**
+     * Encode the cookie for a user, a serverId and an expiry
+     * 
      * @param expires
+     *          the time of expiry
      * @param userId
+     *          the user id
+     * @param serverId
+     *          the id of the server where the
      * @return
      * @throws UnsupportedEncodingException
      * @throws IllegalStateException
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeyException
+     * @throws SecureCookieException
      */
     public String encode(long expires, String userId) throws IllegalStateException,
-        UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-      String cookiePayload = String.valueOf(tokenNumber) + String.valueOf(expires) + "@"
-          + userId;
+        UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException,
+        SecureCookieException {
+      String cookiePayload = String.valueOf(secretKeyId) + String.valueOf(expires) + "@"
+          + userId + "@" + serverId;
       Mac m = Mac.getInstance(HMAC_SHA1);
-      m.init(secretKey);
+      ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
+          secretKeyId);
+      if (expiringSecretKey == null) {
+        throw new SecureCookieException("Key "
+            + TokenStore.this.getSecretKey(serverId, secretKeyId) + " not found ");
+      }
+      m.init(TokenStore.this.getSecretKey(serverId, secretKeyId).getSecretKey());
       m.update(cookiePayload.getBytes(UTF_8));
       String cookieValue = byteToHex(m.doFinal());
       return cookieValue + "@" + cookiePayload;
@@ -122,12 +144,19 @@ public class TokenStore {
      */
     public String decode(String value) throws SecureCookieException {
       String[] parts = StringUtils.split(value, "@");
-      if (parts != null && parts.length == 3) {
-        this.tokenNumber = Integer.parseInt(parts[1].substring(0, 1));
+      if (parts != null && parts.length == 4) {
+        this.secretKeyId = Integer.parseInt(parts[1].substring(0, 1));
+        this.serverId = parts[3];
         long cookieTime = Long.parseLong(parts[1].substring(1));
         if (System.currentTimeMillis() < cookieTime) {
           try {
-            this.secretKey = currentTokens[tokenNumber];
+            ExpiringSecretKey expiringSecretKey = TokenStore.this.getSecretKey(serverId,
+                secretKeyId);
+            if (expiringSecretKey == null) {
+              throw new SecureCookieException("No Secure Key found "
+                  + getCacheKey(serverId, secretKeyId));
+            }
+            this.secretKey = expiringSecretKey.getSecretKey();
             String hmac = encode(cookieTime, parts[2]);
             if (value.equals(hmac)) {
               return parts[2];
@@ -152,6 +181,7 @@ public class TokenStore {
         throw new SecureCookieException("AuthNCookie is invalid format " + value);
       }
     }
+
   }
 
   public static final Logger LOG = LoggerFactory.getLogger(TokenStore.class);
@@ -188,19 +218,35 @@ public class TokenStore {
   /**
    * The location of the current token.
    */
-  private int currentToken = 0;
+  private int secretKeyId = 0;
   /**
    * A ring of tokens used to encypt.
    */
-  private SecretKey[] currentTokens;
+  private ExpiringSecretKey[] secretKeyRingBuffer;
   /**
    * A secure random used for generating new tokens.
    */
   private SecureRandom random;
 
+  /**
+   * File where the secure keys are written to.
+   */
   private File tmpTokenFile;
 
+  /**
+   * File where the secure keys are read from.
+   */
   private File tokenFile;
+
+  /**
+   * The Id of this server
+   */
+  private String serverId;
+
+  /**
+   * The cache manager.
+   */
+  private CacheManagerService cacheManager;
 
   /**
    * @throws NoSuchAlgorithmException
@@ -221,12 +267,28 @@ public class TokenStore {
     m.update(UTF_8.getBytes(UTF_8));
     m.doFinal();
     this.tokenFile = new File(DEFAULT_TOKEN_FILE);
-    tmpTokenFile = new File(DEFAULT_TOKEN_FILE+".tmp");    
+    tmpTokenFile = new File(DEFAULT_TOKEN_FILE + ".tmp");
   }
-  
-  public void setTokenFile(String tokenFile) {
+
+  /**
+   * Initialise the token store.
+   * 
+   * @param cacheManager
+   *          the cache manager
+   * @param tokenFile
+   *          file where the local secret keys are stored.
+   * @param serverId
+   *          id of this server.
+   * @param ttl
+   *          the ttl of cookies.
+   */
+  public void doInit(CacheManagerService cacheManager, String tokenFile, String serverId,
+      long ttl) {
     this.tokenFile = new File(tokenFile);
-    tmpTokenFile = new File(tokenFile+".tmp");    
+    tmpTokenFile = new File(tokenFile + ".tmp");
+    this.serverId = serverId;
+    this.ttl = ttl;
+    this.cacheManager = cacheManager;
     getActiveToken();
   }
 
@@ -236,49 +298,73 @@ public class TokenStore {
    * @return the current token.
    */
   synchronized SecureCookie getActiveToken() {
-    if (currentTokens == null) {
-      loadTokens();
+    if (secretKeyRingBuffer == null) {
+      loadLocalSecretKeys();
     }
-    if (System.currentTimeMillis() > nextUpdate || currentTokens[currentToken] == null) {
+    if (System.currentTimeMillis() > nextUpdate
+        || hasExpired(secretKeyRingBuffer[secretKeyId]) ) {
       // cycle so that during a typical ttl the tokens get completely refreshed.
-      nextUpdate = System.currentTimeMillis() + ttl / (currentTokens.length - 1);
+      nextUpdate = System.currentTimeMillis() + ttl / 2;
       byte[] b = new byte[20];
       random.nextBytes(b);
 
-      SecretKey newToken = new SecretKeySpec(b, HMAC_SHA1);
-      int nextToken = currentToken + 1;
-      if (nextToken == currentTokens.length) {
+      // the key will last 2x ttl so far longer than the cookie. There are 5 tokens, to
+      // the key expires before
+      // being replaced, this is important in a clustered environment.
+      ExpiringSecretKey expiringSecretKey = new ExpiringSecretKey(b, HMAC_SHA1, System
+          .currentTimeMillis()
+          + (ttl * 2));
+      int nextToken = secretKeyId + 1;
+      if (nextToken == secretKeyRingBuffer.length) {
         nextToken = 0;
       }
-      currentTokens[nextToken] = newToken;
-      currentToken = nextToken;
-      saveTokens();
+      secretKeyRingBuffer[nextToken] = expiringSecretKey;
+      getServerKeyCache().put(getCacheKey(serverId, nextToken),
+          expiringSecretKey.getSecretKeyData());
+      secretKeyId = nextToken;
+      saveLocalSecretKeys();
     }
-    return new SecureCookie(currentToken);
+    return new SecureCookie(serverId, secretKeyId);
   }
 
   /**
-   * 
+   * @param expiringSecretKey
+   * @return
    */
-  private void saveTokens() {
+  private boolean hasExpired(ExpiringSecretKey expiringSecretKey) {
+    return expiringSecretKey == null || (System.currentTimeMillis() > expiringSecretKey.getExpires());
+  }
+
+  /**
+   * @return
+   */
+  private Cache<ExpiringSecretKeyData> getServerKeyCache() {
+    return cacheManager.getCache(this.getClass().getName(), CacheScope.CLUSTERREPLICATED);
+  }
+
+  /**
+   * Save all the secureKeys to file
+   */
+  private void saveLocalSecretKeys() {
     FileOutputStream fout = null;
     DataOutputStream keyOutputStream = null;
     try {
       File parent = tokenFile.getAbsoluteFile().getParentFile();
-      LOG.info("Token File {} parent {} ", tokenFile, parent);
-      if ( !parent.exists() ) {
+      LOG.info("Saving Local Secret Keys to {} ", tokenFile.getAbsoluteFile());
+      if (!parent.exists()) {
         parent.mkdirs();
       }
       fout = new FileOutputStream(tmpTokenFile);
       keyOutputStream = new DataOutputStream(fout);
-      keyOutputStream.writeInt(currentToken);
+      keyOutputStream.writeInt(secretKeyId);
       keyOutputStream.writeLong(nextUpdate);
-      for (int i = 0; i < currentTokens.length; i++) {
-        if (currentTokens[i] == null) {
+      for (int i = 0; i < secretKeyRingBuffer.length; i++) {
+        if (secretKeyRingBuffer[i] == null) {
           keyOutputStream.writeInt(0);
         } else {
           keyOutputStream.writeInt(1);
-          byte[] b = currentTokens[i].getEncoded();
+          keyOutputStream.writeLong(secretKeyRingBuffer[i].getExpires());
+          byte[] b = secretKeyRingBuffer[i].getSecretKey().getEncoded();
           keyOutputStream.writeInt(b.length);
           keyOutputStream.write(b);
         }
@@ -303,7 +389,7 @@ public class TokenStore {
   /**
    * 
    */
-  private void loadTokens() {
+  private void loadLocalSecretKeys() {
     FileInputStream fin = null;
     DataInputStream keyInputStream = null;
     try {
@@ -311,22 +397,25 @@ public class TokenStore {
       keyInputStream = new DataInputStream(fin);
       int newCurrentToken = keyInputStream.readInt();
       long newNextUpdate = keyInputStream.readLong();
-      SecretKey[] newKeys = new SecretKey[5];
+      ExpiringSecretKey[] newKeys = new ExpiringSecretKey[5];
       for (int i = 0; i < newKeys.length; i++) {
         int isNull = keyInputStream.readInt();
         if (isNull == 1) {
+          long expires = keyInputStream.readLong();
           int l = keyInputStream.readInt();
           byte[] b = new byte[l];
           keyInputStream.read(b);
-          newKeys[i] = new SecretKeySpec(b, HMAC_SHA1);
+          newKeys[i] = new ExpiringSecretKey(b, HMAC_SHA1, expires);
+          getServerKeyCache()
+              .put(getCacheKey(serverId, i), newKeys[i].getSecretKeyData());
         } else {
           newKeys[i] = null;
         }
       }
       keyInputStream.close();
       nextUpdate = newNextUpdate;
-      currentToken = newCurrentToken;
-      currentTokens = newKeys;
+      secretKeyId = newCurrentToken;
+      secretKeyRingBuffer = newKeys;
     } catch (IOException e) {
       LOG.error("Failed to load cookie keys " + e.getMessage());
     } finally {
@@ -339,12 +428,56 @@ public class TokenStore {
       } catch (Exception e) {
       }
     }
-    if ( currentTokens == null ) {
-      currentTokens = new SecretKey[5];
+    if (secretKeyRingBuffer == null) {
+      secretKeyRingBuffer = new ExpiringSecretKey[5];
       nextUpdate = System.currentTimeMillis();
-      currentToken = 0;
+      secretKeyId = 0;
     }
 
+  }
+
+  /**
+   * Get a cache key for the secret key.
+   * 
+   * @param serverId2
+   * @param i
+   * @return
+   */
+  private String getCacheKey(String serverId, int i) {
+    return serverId + ":" + i;
+  }
+
+  /**
+   * Get the secret key keyNumber from server serverId
+   * 
+   * @param serverId
+   *          the server that owns the secret Key
+   * @param keyNumber
+   *          the key number
+   * @return
+   */
+  private ExpiringSecretKey getSecretKey(String serverId, int keyNumber) {
+    if (this.serverId.equals(serverId)) {
+      return secretKeyRingBuffer[keyNumber];
+    }
+    String cacheKey = getCacheKey(serverId, keyNumber);
+    Cache<ExpiringSecretKeyData> keyCache = getServerKeyCache();
+    if (keyCache.containsKey(cacheKey)) {
+      ExpiringSecretKeyData cachedServerKeyData = keyCache.get(cacheKey);
+      if (cachedServerKeyData.getExpires() < System.currentTimeMillis()) {
+        return new ExpiringSecretKey(cachedServerKeyData);
+      }
+    }
+
+    // load tokens for the server up
+    if (keyCache.containsKey(cacheKey)) {
+      ExpiringSecretKeyData cachedServerKeyData = keyCache.get(cacheKey);
+      if (cachedServerKeyData.getExpires() < System.currentTimeMillis()) {
+        return new ExpiringSecretKey(cachedServerKeyData);
+      }
+    }
+    // none found.
+    return null;
   }
 
   /**
@@ -371,13 +504,6 @@ public class TokenStore {
    */
   public SecureCookie getSecureCookie() {
     return new SecureCookie();
-  }
-
-  /**
-   * @param ttl
-   */
-  public void setTtl(long ttl) {
-    this.ttl = ttl;
   }
 
 }
