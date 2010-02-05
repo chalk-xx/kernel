@@ -53,7 +53,6 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.FlushModeType;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 
 /**
@@ -80,7 +79,7 @@ public class ScopedEntityManager implements EntityManager {
   private ConfigurationService configurationService;
 
   @Reference
-  private PersistenceProvider persistenceProvider;
+  private SakaiPersistenceProvider persistenceProvider;
 
   @Reference
   private DataSourceService dataSourceService;
