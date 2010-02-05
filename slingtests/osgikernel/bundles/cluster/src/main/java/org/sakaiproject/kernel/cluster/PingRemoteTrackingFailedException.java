@@ -30,7 +30,7 @@ public class PingRemoteTrackingFailedException extends Exception {
   }
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -1361777453861606349L;
 

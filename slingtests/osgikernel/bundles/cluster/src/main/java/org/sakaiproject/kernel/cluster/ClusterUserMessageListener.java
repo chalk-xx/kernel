@@ -111,7 +111,7 @@ public class ClusterUserMessageListener implements MessageListener {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
    */
   public void onMessage(Message message) {
@@ -135,7 +135,7 @@ public class ClusterUserMessageListener implements MessageListener {
 
   /**
    * Determine if there is a difference between two objects.
-   * 
+   *
    * @param obj1
    * @param obj2
    * @return true if the objects are different (only one is null or !obj1.equals(obj2)).
