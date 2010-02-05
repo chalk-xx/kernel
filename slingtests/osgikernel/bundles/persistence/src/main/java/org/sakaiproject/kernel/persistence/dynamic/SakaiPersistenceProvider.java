@@ -19,6 +19,7 @@
 package org.sakaiproject.kernel.persistence.dynamic;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.jpa.PersistenceProvider;
@@ -31,10 +32,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.osgi.ProviderTrackerCustomizer;
 
 
 @Component(immediate=true)
 @Service(value=javax.persistence.spi.PersistenceProvider.class)
+@Property(name=ProviderTrackerCustomizer.PERSISTENCE_PROVIDER, value="org.sakaiproject.kernel.persistence.dynamic.SakaiPersistenceProvider")
 public class SakaiPersistenceProvider extends PersistenceProvider {
 
   private static Logger LOG = LoggerFactory.getLogger(SakaiPersistenceProvider.class);

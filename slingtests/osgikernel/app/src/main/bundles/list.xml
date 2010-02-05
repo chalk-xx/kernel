@@ -270,6 +270,11 @@
    <startLevel level="1">
     <bundle>
       <groupId>org.sakaiproject.kernel</groupId>
+      <artifactId>org.sakaiproject.kernel.google-collections</artifactId>
+      <version>0.8-0.3-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>javax.activation-mail</artifactId>
       <version>1.1.1-1.4.2-0.3-SNAPSHOT</version>
     </bundle>
@@ -339,11 +344,6 @@
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>javax.persistence</artifactId>
       <version>1.1.0</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.guice</artifactId>
-      <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.kernel</groupId>
@@ -420,11 +420,6 @@
     <bundle>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.user</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.registry</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
@@ -589,11 +584,6 @@ org.sakaiproject.kernel.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.lifecycle</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
