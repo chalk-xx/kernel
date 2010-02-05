@@ -65,6 +65,12 @@ import javax.jcr.Value;
 public class FileUtils {
 
   public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
+  
+  public static Node saveFile(Session session, String path, String id,
+	      InputStream is, String fileName, String contentType, SlingRepository slingRepository)
+	      throws RepositoryException, IOException {
+	  return saveFile(session, path, null, id, is, fileName, contentType, slingRepository);
+  }
 
   /**
    * Save a file.
@@ -159,6 +165,12 @@ public class FileUtils {
       }
     }
     return null;
+  }
+  
+  public static Node saveFile(Session session, String path, String id,
+	      RequestParameter file, String contentType, SlingRepository slingRepository)
+	      throws RepositoryException, IOException {
+	  return saveFile(session, path, null, id, file, contentType, slingRepository);
   }
 
   /**
