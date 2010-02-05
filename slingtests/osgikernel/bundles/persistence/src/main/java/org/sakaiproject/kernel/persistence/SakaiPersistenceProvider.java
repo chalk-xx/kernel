@@ -20,8 +20,9 @@ package org.sakaiproject.kernel.persistence;
 import javax.persistence.spi.PersistenceProvider;
 
 /**
- * A marker interface to allow us to bind to the correct persistence provider, rather than the OSGi one.
+ * A marker interface to allow us to bind to the correct persistence provider, rather than
+ * the Eclipse Link OSGi one that can't merge PU's from multiple bundles.
  */
-public interface SakaiPersistenceProvider  extends PersistenceProvider {
+public interface SakaiPersistenceProvider extends PersistenceProvider {
 
 }
