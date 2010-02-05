@@ -18,9 +18,6 @@
 
 package org.sakaiproject.kernel.persistence.dynamic;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.eclipse.persistence.internal.jpa.deployment.osgi.BundleProxyClassLoader;
@@ -47,8 +44,8 @@ import java.util.Set;
 /**
  * Monitors the bundles, but must be a singleton 
  */
-@Singleton
-@SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
+
+@SuppressWarnings(value={"CD_CIRCULAR_DEPENDENCY"},justification="Unable to avoid and get classloading to work")
 public class PersistenceBundleMonitor implements BundleActivator, SynchronousBundleListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(PersistenceBundleMonitor.class);
@@ -67,17 +64,7 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
   /**
    * 
    */
-  @Inject
-  @SuppressWarnings(justification="OSGi Environment", value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"})
-  public PersistenceBundleMonitor(BundleContext bundleContext) {
-    LOG.info("Starting to monitor for persistence bundles");
-    contextClassLoader = new BundleProxyClassLoader(bundleContext.getBundle());
-    bundleContext.addBundleListener(this);
-    Bundle bundles[] = bundleContext.getBundles();
-    for (int i = 0; i < bundles.length; i++) {
-      Bundle bundle = bundles[i];
-      registerBundle(bundle);
-    }
+  public PersistenceBundleMonitor() {
   }
 
   /**
@@ -144,8 +131,16 @@ public class PersistenceBundleMonitor implements BundleActivator, SynchronousBun
    * On start, we do two things We register a listener for bundles and we start
    * our JPA server
    */
-  public void start(BundleContext context) throws Exception {
-  }
+  @SuppressWarnings(value={"DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"},justification="In OSGi Environment")
+  public void start(BundleContext bundleContext) throws Exception {
+    LOG.info("Starting to monitor for persistence bundles");
+    contextClassLoader = new BundleProxyClassLoader(bundleContext.getBundle());
+    bundleContext.addBundleListener(this);
+    Bundle bundles[] = bundleContext.getBundles();
+    for (int i = 0; i < bundles.length; i++) {
+      Bundle bundle = bundles[i];
+      registerBundle(bundle);
+    }  }
 
   /**
    * Store a reference to a bundle as it is started so the bundle can be

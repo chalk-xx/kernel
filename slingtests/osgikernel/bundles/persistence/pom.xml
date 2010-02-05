@@ -55,7 +55,6 @@
           <instructions>
             <Sakai-JPA-PersistenceUnits>default</Sakai-JPA-PersistenceUnits>
             <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Bundle-Activator>org.sakaiproject.kernel.persistence.Activator</Bundle-Activator>
             <Export-Package> org.sakaiproject.kernel.api.persistence</Export-Package>
             <Import-Package>
 !org.apache.commons.pool.impl,
@@ -139,12 +138,6 @@ xstream
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.guice</artifactId>
-      <version>0.3-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>org.sakaiproject.kernel.configuration</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
@@ -182,11 +175,6 @@ xstream
     <dependency>
       <groupId>com.google.collections</groupId>
       <artifactId>google-collections</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.guice</groupId>
-      <artifactId>guice</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>

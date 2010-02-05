@@ -18,8 +18,11 @@
 
 package org.sakaiproject.kernel.persistence.dynamic;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.jpa.PersistenceProvider;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +32,22 @@ import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
 
+
+@Component(immediate=true)
+@Service(value=javax.persistence.spi.PersistenceProvider.class)
 public class SakaiPersistenceProvider extends PersistenceProvider {
 
   private static Logger LOG = LoggerFactory.getLogger(SakaiPersistenceProvider.class);
 
   private ClassLoader amalgamatedClassloader;
 
-  public SakaiPersistenceProvider(PersistenceBundleMonitor persistenceBundleMonitor) {
+  private PersistenceBundleMonitor persistenceBundleMonitor = new PersistenceBundleMonitor();
+
+  public SakaiPersistenceProvider() {
+  }
+
+  protected void activate(ComponentContext componentContext) throws Exception {
+    persistenceBundleMonitor.start(componentContext.getBundleContext());
     try {
       amalgamatedClassloader = persistenceBundleMonitor.getAmalgamatedClassloader();
     } catch (IOException e) {
@@ -43,6 +55,10 @@ public class SakaiPersistenceProvider extends PersistenceProvider {
     }
     initializationHelper = new SakaiPersistenceInitializationHelper(
         amalgamatedClassloader);
+  }
+
+  protected void deactivate(ComponentContext componentContext) throws Exception {
+    persistenceBundleMonitor.stop(componentContext.getBundleContext());
   }
 
   @SuppressWarnings("unchecked")
