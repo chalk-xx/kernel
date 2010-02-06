@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
@@ -52,9 +51,6 @@ public class OsgiJmsBridge implements EventHandler {
   @Property(value = "*", propertyPrivate = true)
   static final String TOPICS = EventConstants.EVENT_TOPIC;
 
-  @Property(value = "vm://localhost:61616")
-  static final String BROKER_URL = "bridge.brokerUrl";
-
   @Property(value = "sakai.event.bridge")
   static final String CONNECTION_CLIENT_ID = "bridge.connectionClientId";
 
@@ -67,42 +63,16 @@ public class OsgiJmsBridge implements EventHandler {
   @Reference
   private ConnectionFactoryService connFactoryService;
 
-  private ConnectionFactory connFactory;
   private Connection conn;
   private Session clientSession;
-  private String brokerUrl;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
-  private String cliBrokerUrl;
 
   /**
    * Default constructor.
    */
   public OsgiJmsBridge() {
-    cliBrokerUrl = System.getProperty("activemq.broker.url");
-    if (cliBrokerUrl == null) {
-      String brokerProtocol = System.getProperty("activemq.broker.protocol");
-      String brokerHost = System.getProperty("activemq.broker.host");
-      String brokerPort = System.getProperty("activemq.broker.port");
-
-      // check for any non-null entries. Do this check separately without
-      // specifying defaults so that we can determine if command line parameters
-      // were specified and if not, use the parameters from the config
-      // properties.
-      if (brokerProtocol != null || brokerHost != null || brokerPort != null) {
-        if (brokerProtocol == null) {
-          brokerProtocol = "vm";
-        }
-        if (brokerHost == null) {
-          brokerHost = "localhost";
-        }
-        if (brokerPort == null) {
-          brokerPort = "61616";
-        }
-        cliBrokerUrl = brokerProtocol + "://" + brokerHost + ":" + brokerPort;
-      }
-    }
   }
 
   /**
@@ -131,41 +101,18 @@ public class OsgiJmsBridge implements EventHandler {
     transacted = (Boolean) props.get(SESSION_TRANSACTED);
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
-    String _brokerUrl = (String) props.get(BROKER_URL);
 
-    if (brokerUrl == null && cliBrokerUrl != null) {
-      LOGGER.info("Creating a new ActiveMQ Connection Factory from CLI params [" + cliBrokerUrl
-          + "]");
-      connFactory = connFactoryService.createFactory(cliBrokerUrl);
-      brokerUrl = cliBrokerUrl;
-      props.put(BROKER_URL, brokerUrl);
-    } else {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (diff(brokerUrl, _brokerUrl)) {
-          LOGGER.info("Creating a new ActiveMQ Connection Factory from config params ["
-              + _brokerUrl + "]");
-          connFactory = connFactoryService.createFactory(_brokerUrl);
-          brokerUrl = _brokerUrl;
-        }
-      }
-    }
 
     LOGGER.debug(
-        "Broker URL: {}, Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
-        new Object[] { brokerUrl, transacted, acknowledgeMode, connectionClientId });
+        "Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
+        new Object[] { transacted, acknowledgeMode, connectionClientId });
 
-    if (connFactory == null) {
-      String msg = "Couldn't create connection factory with empty broker url.";
-      LOGGER.error(msg);
-      throw new RuntimeException(msg);
-    }
 
     // may want to consider getting this connection from a pool but activity
     // is expected to be high enough that the connection will be used almost
     // constantly or at least with very little delay between messages.
     try {
-      conn = connFactory.createConnection();
+      conn = connFactoryService.getDefaultConnectionFactory().createConnection();
       conn.setClientID(connectionClientId);
 
       clientSession = conn.createSession(transacted, acknowledgeMode);
@@ -234,24 +181,4 @@ public class OsgiJmsBridge implements EventHandler {
     }
   }
 
-  /**
-   * Determine if there is a difference between two objects.
-   *
-   * @param obj1
-   * @param obj2
-   * @return true if the objects are different (only one is null or
-   *         !obj1.equals(obj2)). false otherwise.
-   */
-  private boolean diff(Object obj1, Object obj2) {
-    boolean diff = true;
-
-    boolean bothNull = obj1 == null && obj2 == null;
-    boolean neitherNull = obj1 != null && obj2 != null;
-
-    if (bothNull || (neitherNull && obj1.equals(obj2))) {
-      diff = false;
-    }
-
-    return diff;
-  }
 }

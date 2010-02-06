@@ -26,7 +26,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import org.apache.activemq.command.ActiveMQMessage;
 import org.junit.Before;
@@ -53,7 +52,6 @@ import javax.jms.Topic;
  * Unit test for bridging events from OSGi to JMS.
  */
 public class OsgiJmsBridgeTest {
-  private String brokerUrl = "vm://localhost:61616";
   private Hashtable<Object, Object> compProps;
   private ComponentContext ctx;
   private ConnectionFactoryService connFactoryService;
@@ -80,7 +78,7 @@ public class OsgiJmsBridgeTest {
 
     // mock a connection factory service
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.createFactory((String) anyObject())).andReturn(connFactory);
+    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
   }
 
   /**
@@ -92,36 +90,6 @@ public class OsgiJmsBridgeTest {
     new OsgiJmsBridge();
   }
 
-  /**
-   * Test handling an event with event processing turned off.
-   *
-   * @throws JMSException
-   */
-  @Test
-  public void testCreateBridgeWithEmptyUrl() throws JMSException {
-    // set the broker url to an empty string
-    brokerUrl = "";
-
-    // set the broker url in the component properties
-    compProps.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
-
-    // start the mocks
-    replay(ctx, connFactory, connFactoryService);
-
-    // create the bridge and activate it
-    OsgiJmsBridge bridge = new OsgiJmsBridge(connFactoryService);
-    try {
-      bridge.activate(ctx);
-      fail("Should fail with empty url.");
-    } catch (RuntimeException e) {
-      // verify that all expected calls were made.
-      verify(ctx, connFactory);
-
-      // when no processing, the map message should never be instantiated and
-      // should finish without exception
-      assertNull(message);
-    }
-  }
 
   /**
    * Test handling an event with full processing.
@@ -203,7 +171,7 @@ public class OsgiJmsBridgeTest {
     connFactory = createMock(ConnectionFactory.class);
 
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.createFactory((String) anyObject())).andReturn(connFactory);
+    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
 
     expect(connFactory.createConnection()).andThrow(new JMSException("can't create connection"));
 
@@ -320,7 +288,6 @@ public class OsgiJmsBridgeTest {
   private Hashtable<Object, Object> buildComponentProperties() {
     Hashtable<Object, Object> dict = new Hashtable<Object, Object>();
     dict.put(OsgiJmsBridge.ACKNOWLEDGE_MODE, Session.AUTO_ACKNOWLEDGE);
-    dict.put(OsgiJmsBridge.BROKER_URL, brokerUrl);
     dict.put(OsgiJmsBridge.CONNECTION_CLIENT_ID, "sakai.event.bridge");
     dict.put(OsgiJmsBridge.SESSION_TRANSACTED, false);
     dict.put(OsgiJmsBridge.TOPICS, "*");

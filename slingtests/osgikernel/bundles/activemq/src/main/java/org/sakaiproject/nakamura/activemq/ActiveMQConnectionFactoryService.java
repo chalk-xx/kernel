@@ -18,19 +18,40 @@ package org.sakaiproject.nakamura.activemq;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 
 import java.net.URI;
+import java.util.Dictionary;
 
 import javax.jms.ConnectionFactory;
 
 @Component
 @Service
 public class ActiveMQConnectionFactoryService implements ConnectionFactoryService {
-  public ConnectionFactory createFactory() {
-    return new ActiveMQConnectionFactory();
+
+  private ActiveMQConnectionFactory defaultConnectionFactory;
+
+  @Property(value = "vm://localhost:61616")
+  public static final String BROKER_URL = "cluster.jms.brokerUrl";
+
+  public void activateForTest(ComponentContext componentContext) {
+    activate(componentContext);
   }
+
+  @SuppressWarnings("unchecked")
+  protected void activate(ComponentContext componentContext) {
+    Dictionary props = componentContext.getProperties();
+    String brokerURL = (String) props.get(BROKER_URL);
+    defaultConnectionFactory = new ActiveMQConnectionFactory(brokerURL);
+  }
+
+  protected void deactivate(ComponentContext ctx) {
+  }
+
+
 
   public ConnectionFactory createFactory(String brokerURL) {
     return new ActiveMQConnectionFactory(brokerURL);
@@ -38,5 +59,13 @@ public class ActiveMQConnectionFactoryService implements ConnectionFactoryServic
 
   public ConnectionFactory createFactory(URI brokerURL) {
     return new ActiveMQConnectionFactory(brokerURL);
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService#getDefaultFactory()
+   */
+  public ConnectionFactory getDefaultConnectionFactory() {
+    return defaultConnectionFactory;
   }
 }

@@ -25,9 +25,27 @@ import javax.jms.ConnectionFactory;
  *
  */
 public interface ConnectionFactoryService {
-  ConnectionFactory createFactory();
 
+  /**
+   * Use this method to create a connection to another JMS network, use the use
+   * getDefaultConnectionFactory() to get a connection factory for internal use.
+   *
+   * @param brokerURL
+   * @return
+   */
   ConnectionFactory createFactory(String brokerURL);
 
+  /**
+   * Use this method to create a connection to another JMS network, use the use
+   * getDefaultConnectionFactory() to get a connection factory for internal use.
+   *
+   * @param brokerURL
+   * @return
+   */
   ConnectionFactory createFactory(URI brokerURL);
+
+  /**
+   * @return a default factory connecting to the JMS infrastructure.
+   */
+  ConnectionFactory getDefaultConnectionFactory();
 }

@@ -54,7 +54,6 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -67,8 +66,6 @@ public class OutgoingEmailMessageListener implements MessageListener {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(OutgoingEmailMessageListener.class);
 
-  @Property(value = "vm://localhost:61616")
-  public static final String BROKER_URL = "email.out.brokerUrl";
   @Property(value = "localhost")
   private static final String SMTP_SERVER = "sakai.smtp.server";
   @Property(intValue = 25, label = "%sakai.smtp.port.name")
@@ -94,10 +91,7 @@ public class OutgoingEmailMessageListener implements MessageListener {
   protected static final String NODE_PATH_PROPERTY = "nodePath";
 
   public static final String RECIPIENTS = "recipients";
-
-  private ConnectionFactory connectionFactory;
   private Connection connection = null;
-  private String brokerUrl;
   private Integer maxRetries;
   private Integer smtpPort;
   private String smtpServer;
@@ -366,28 +360,14 @@ public class OutgoingEmailMessageListener implements MessageListener {
       LOGGER.error("No SMTP server set");
     }
 
-    String _brokerUrl = (String) props.get(BROKER_URL);
 
     try {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (diff(brokerUrl, _brokerUrl)) {
-          LOGGER.info("Creating a new ActiveMQ Connection Factory");
-          connectionFactory = connFactoryService.createFactory(_brokerUrl);
-        }
-
-        if (connectionFactory != null) {
-          connection = connectionFactory.createConnection();
-          Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-          Topic dest = session.createTopic(TOPIC_NAME);
-          MessageConsumer consumer = session.createConsumer(dest);
-          consumer.setMessageListener(this);
-          connection.start();
-        }
-      } else {
-        LOGGER.error("Cannot create JMS connection factory with an empty URL.");
-      }
-      brokerUrl = _brokerUrl;
+      connection = connFactoryService.getDefaultConnectionFactory().createConnection();
+      Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+      Topic dest = session.createTopic(TOPIC_NAME);
+      MessageConsumer consumer = session.createConsumer(dest);
+      consumer.setMessageListener(this);
+      connection.start();
     } catch (JMSException e) {
       LOGGER.error(e.getMessage(), e);
       if (connection != null) {

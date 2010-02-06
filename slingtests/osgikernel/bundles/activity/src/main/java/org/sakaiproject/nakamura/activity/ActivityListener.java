@@ -21,7 +21,6 @@ import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACT
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_SOURCE;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -35,14 +34,12 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
 import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -55,8 +52,6 @@ public class ActivityListener implements MessageListener {
   // References/properties need for JMS
   @Reference
   protected ConnectionFactoryService connFactoryService;
-  @Property(value = "vm://localhost:41000")
-  public static final String BROKER_URL = "activity.brokerUrl";
 
   // References needed to actually deliver the activity.
   @Reference
@@ -67,39 +62,20 @@ public class ActivityListener implements MessageListener {
   public static final Logger LOG = LoggerFactory
       .getLogger(ActivityListener.class);
 
-  private String brokerUrl = "";
-  private ConnectionFactory connectionFactory;
   private Connection connection = null;
 
   /**
    * Start a JMS connection.
    */
-  @SuppressWarnings("unchecked")
   public void activate(ComponentContext componentContext) {
-    Dictionary properties = componentContext.getProperties();
-
-    String _brokerUrl = (String) properties.get(BROKER_URL);
     try {
-      boolean urlEmpty = _brokerUrl == null || _brokerUrl.trim().length() == 0;
-      if (!urlEmpty) {
-        if (!brokerUrl.equals(_brokerUrl)) {
-          LOG.info("Creating a new ActiveMQ Connection Factory for activities");
-          connectionFactory = connFactoryService.createFactory(_brokerUrl);
-        }
-
-        if (connectionFactory != null) {
-          connection = connectionFactory.createConnection();
-          javax.jms.Session session = connection.createSession(false,
-              javax.jms.Session.AUTO_ACKNOWLEDGE);
-          Topic dest = session.createTopic(ActivityConstants.EVENT_TOPIC);
-          MessageConsumer consumer = session.createConsumer(dest);
-          consumer.setMessageListener(this);
-          connection.start();
-        }
-      } else {
-        LOG.error("Cannot create JMS connection factory with an empty URL.");
-      }
-      brokerUrl = _brokerUrl;
+      connection = connFactoryService.getDefaultConnectionFactory().createConnection();
+      javax.jms.Session session = connection.createSession(false,
+          javax.jms.Session.AUTO_ACKNOWLEDGE);
+      Topic dest = session.createTopic(ActivityConstants.EVENT_TOPIC);
+      MessageConsumer consumer = session.createConsumer(dest);
+      consumer.setMessageListener(this);
+      connection.start();
     } catch (JMSException e) {
       LOG.error(e.getMessage(), e);
       if (connection != null) {
@@ -126,7 +102,7 @@ public class ActivityListener implements MessageListener {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see javax.jms.MessageListener#onMessage(javax.jms.Message)
    */
   public void onMessage(Message message) {
@@ -160,7 +136,7 @@ public class ActivityListener implements MessageListener {
 
   /**
    * Delivers an activity to a feed.
-   * 
+   *
    * @param session
    *          The session that should be used to do the delivering.
    * @param activity
@@ -197,7 +173,7 @@ public class ActivityListener implements MessageListener {
 
   /**
    * Copies an activity over.
-   * 
+   *
    * @param session
    *          The session that should be used to do the copying.
    * @param source

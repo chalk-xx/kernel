@@ -16,7 +16,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.activemq.ActiveMQConnectionFactoryService;
-import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
@@ -41,7 +40,7 @@ public class OutgoingEmailMessageListenerTest {
   private static final String NODE_PATH_PROPERTY = "nodePath";
   private static final String PATH = "/foo";
 
-  private ConnectionFactoryService connFactoryService;
+  private ActiveMQConnectionFactoryService connFactoryService;
   private OutgoingEmailMessageListener oeml;
   private Session adminSession;
   private Node messageNode;
@@ -54,7 +53,7 @@ public class OutgoingEmailMessageListenerTest {
     oeml = new OutgoingEmailMessageListener(connFactoryService);
 
     Properties props = new Properties();
-    props.put("email.out.brokerUrl", "tcp://localhost:61616");
+    props.put(ActiveMQConnectionFactoryService.BROKER_URL, "tcp://localhost:61616");
     props.put("email.out.queueName", "sakai.email.outgoing");
     props.put("sakai.smtp.server", "localhost");
     props.put("sakai.smtp.port", smtpPort);
@@ -62,7 +61,7 @@ public class OutgoingEmailMessageListenerTest {
     props.put("sakai.email.retryIntervalMinutes", 30);
 
     ComponentContext ctx = createMock(ComponentContext.class);
-    expect(ctx.getProperties()).andReturn(props);
+    expect(ctx.getProperties()).andReturn(props).anyTimes();
 
     adminSession = createMock(Session.class);
 
@@ -85,6 +84,7 @@ public class OutgoingEmailMessageListenerTest {
 
     replay(ctx, adminSession, res, rr, jrrf, repository);
 
+    connFactoryService.activateForTest(ctx);
     oeml.activate(ctx);
     wiser.getMessages().clear();
   }
