@@ -14,15 +14,15 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.files</artifactId>
+  <artifactId>org.sakaiproject.nakamura.files</artifactId>
   <packaging>bundle</packaging>
   
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Files Bundle</name>
+  <name>Sakai Nakamura Files Bundle</name>
   <description>Sakai files bundle</description>
   <build>
     <plugins>
@@ -36,9 +36,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.files </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.files.* </Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.files </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.files.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
@@ -60,8 +60,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.resource</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.resource</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -110,43 +110,43 @@
       <artifactId>org.apache.sling.commons.testing</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.personal</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.search</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.locking</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.locking</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.sakaiproject.kernel</groupId>
-    	<artifactId>org.sakaiproject.kernel.cluster</artifactId>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.cluster</artifactId>
     	<version>0.3-SNAPSHOT</version>
     	<scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.sakaiproject.kernel</groupId>
-    	<artifactId>org.sakaiproject.kernel.connections</artifactId>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.connections</artifactId>
     	<version>0.3-SNAPSHOT</version>
     	<scope>provided</scope>
     </dependency>
 	<dependency>
-	  <groupId>org.sakaiproject.kernel</groupId>
-	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+	  <groupId>org.sakaiproject.nakamura</groupId>
+	  <artifactId>org.sakaiproject.nakamura.doc</artifactId>
 	  <version>0.3-SNAPSHOT</version>
 	</dependency>
 	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.site</artifactId>
+		<groupId>org.sakaiproject.nakamura</groupId>
+		<artifactId>org.sakaiproject.nakamura.site</artifactId>
 		<version>0.3-SNAPSHOT</version>
 	</dependency>
   </dependencies>

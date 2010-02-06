@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.guice</artifactId>
+  <artifactId>org.sakaiproject.nakamura.guice</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai Guice Bundle</name>
@@ -41,8 +41,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> com.google.common.*, com.google.inject.*, org.sakaiproject.kernel.guice 
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> com.google.common.*, com.google.inject.*, org.sakaiproject.nakamura.guice 
             </Export-Package>
             <Import-Package> !com.google.inject.cglib.asm.util, !org.aopalliance.intercept,
               !org.apache.tools.ant.*, * </Import-Package>
@@ -82,8 +82,8 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -105,8 +105,8 @@
       <version>4.4</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

@@ -14,11 +14,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.batch</artifactId>
+  <artifactId>org.sakaiproject.nakamura.batch</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Batch Bundle</name>
   <version>0.3-SNAPSHOT</version>
@@ -35,8 +35,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Private-Package>org.sakaiproject.kernel.batch.*</Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Private-Package>org.sakaiproject.nakamura.batch.*</Private-Package>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
         </configuration>
@@ -59,8 +59,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
   	<dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
   	<dependency>
@@ -86,8 +86,8 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
   	<dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
@@ -103,18 +103,18 @@
     	<version>2.0.4-incubator</version>
     </dependency>
   	<dependency>
-    	<groupId>org.sakaiproject.kernel</groupId>
-    	<artifactId>org.sakaiproject.kernel.resource</artifactId>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.resource</artifactId>
     	<version>0.3-SNAPSHOT</version>
     </dependency>
   	<dependency>
-    	<groupId>org.sakaiproject.kernel</groupId>
-    	<artifactId>org.sakaiproject.kernel.doc</artifactId>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.doc</artifactId>
     	<version>0.3-SNAPSHOT</version>
     </dependency>
   	<dependency>
-       <groupId>org.sakaiproject.kernel</groupId>
-       <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+       <groupId>org.sakaiproject.nakamura</groupId>
+       <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
        <version>0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>

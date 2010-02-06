@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.samples.guiceuser</artifactId>
+  <artifactId>org.sakaiproject.nakamura.samples.guiceuser</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai Guice User Bundle</name>
@@ -40,8 +40,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Bundle-Activator>org.sakaiproject.kernel.guiceuser.GuiceUser</Bundle-Activator>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Bundle-Activator>org.sakaiproject.nakamura.guiceuser.GuiceUser</Bundle-Activator>
             <Import-Package> com.google.inject.cglib.reflect, * </Import-Package>
           </instructions>
         </configuration>

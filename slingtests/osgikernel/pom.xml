@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
+  <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
   <version>0.3-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Sakai Kernel Project OSGi Experiments</name>
-  <description> Kernel Experiments to evaluate approaches and generate Proof of Concept
+  <name>Sakai Nakamura Project OSGi Experiments</name>
+  <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
     implementations. </description>
-  <url>http://groups.google.com/sakai-kernel</url>
+  <url>http://groups.google.com/sakai-nakamura</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
     <maven>2.0.7</maven>
@@ -212,11 +212,11 @@
 <!-- ===================================================================== -->
   <mailingLists>
     <mailingList>
-      <name>Sakai Kernel Dev List</name>
-      <subscribe>sakai-kernel-subscribe@groups.google.com</subscribe>
-      <unsubscribe>sakai-kernel-unsubscribe@groups.google.com</unsubscribe>
-      <post>sakai-kernel@groups.google.com</post>
-      <archive>http://groups.google.com/sakai-kernel/</archive>
+      <name>Sakai Nakamura Dev List</name>
+      <subscribe>sakai-nakamura-subscribe@groups.google.com</subscribe>
+      <unsubscribe>sakai-nakamura-unsubscribe@groups.google.com</unsubscribe>
+      <post>sakai-nakamura@groups.google.com</post>
+      <archive>http://groups.google.com/sakai-nakamura/</archive>
     </mailingList>
   </mailingLists>
 <!-- ====================================================================== -->
@@ -315,7 +315,7 @@
             <haltOnFailure>false</haltOnFailure>
             <regexes>
               <regex>
-                <pattern>org.sakaiproject.kernel.*</pattern>
+                <pattern>org.sakaiproject.nakamura.*</pattern>
                 <branchRate>90</branchRate>
                 <lineRate>90</lineRate>
               </regex>
@@ -323,7 +323,7 @@
           </check>
           <instrumentation>
             <includes>
-              <include>org/sakaiproject/kernel/**/*.class</include>
+              <include>org/sakaiproject/nakamura/**/*.class</include>
             </includes>
           </instrumentation>
         </configuration>
@@ -401,9 +401,9 @@
           <inherited>true</inherited>
           <configuration>
             <instructions>
-              <Bundle-Category>sakai-kernel</Bundle-Category>
+              <Bundle-Category>sakai-nakamura</Bundle-Category>
               <Bundle-DocURL>
-                http://groups.google.com/group/sakai-kernel
+                http://groups.google.com/group/sakai-nakamura
               </Bundle-DocURL>
               <Bundle-Vendor>The Sakai Foundation</Bundle-Vendor>
               <Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>

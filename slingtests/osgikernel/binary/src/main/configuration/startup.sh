@@ -73,7 +73,7 @@ echo ""
 echo ""
 
 
-$java_bin -Xmx128m -jar lib/org.sakaiproject.kernel.app-${K2VERSION}.jar & > /dev/null 2>&1
+$java_bin -Xmx128m -jar lib/org.sakaiproject.nakamura.app-${K2VERSION}.jar & > /dev/null 2>&1
 
 echo $! > sakai.pid
 

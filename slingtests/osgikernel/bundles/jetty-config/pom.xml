@@ -13,11 +13,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+  <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
   <packaging>jar</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Jetty Configuration</name>

@@ -14,14 +14,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.smtp</artifactId>
+  <artifactId>org.sakaiproject.nakamura.smtp</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel SMTP Server</name>
+  <name>Sakai Nakamura SMTP Server</name>
   <description>Adds SMTP support for incoming e-mail</description>
   <build>
     <plugins>
@@ -31,8 +31,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Private-Package> org.sakaiproject.kernel.smtp.*  </Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Private-Package> org.sakaiproject.nakamura.smtp.*  </Private-Package>
             <Import-Package>!org.subethamail.smtp.*,!junit.framework,*</Import-Package>
             <Embed-Dependency>subethasmtp</Embed-Dependency>
           </instructions>
@@ -75,8 +75,8 @@
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.messaging</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>

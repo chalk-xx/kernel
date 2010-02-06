@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+  <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai JCR Bundle</name>
@@ -41,8 +41,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.jcr.* </Export-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.jcr.* </Export-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
             <Embed-Transitive>true</Embed-Transitive>

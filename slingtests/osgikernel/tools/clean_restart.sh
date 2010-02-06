@@ -22,5 +22,5 @@ then
 else
   d32=""
 fi
-java  $d32 -Xmx512m -server -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.kernel.app-${K2VERSION}.jar -f -
+java  $d32 -Xmx512m -server -Dcom.sun.management.jmxremote -jar ${TOOLSDIR}/../app/target/org.sakaiproject.nakamura.app-${K2VERSION}.jar -f -
 

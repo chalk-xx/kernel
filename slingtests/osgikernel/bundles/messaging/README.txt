@@ -64,7 +64,7 @@ sakai:state = pending
 Implementation Note:
 On post in MessagePostProcessor when a node state is updated if the box is 
 outbox and the state is none or pending then an OSGi event at 
-org/sakaiproject/kernel/message/pending with the property location set to 
+org/sakaiproject/nakamura/message/pending with the property location set to 
 the path of the node.
 
 A OSGi Event listener, MessageSentListener picks this event up and dispatches 

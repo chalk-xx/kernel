@@ -16,14 +16,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.sakaiproject.kernel</groupId>
+		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
 		<version>0.3-SNAPSHOT</version>
 	</parent>
-	<artifactId>org.sakaiproject.kernel.basiclti</artifactId>
+	<artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.3-SNAPSHOT</version>
-	<name>org.sakaiproject.kernel.basiclti</name>
+	<name>org.sakaiproject.nakamura.basiclti</name>
 	<description>Sakai Basic LTI Implementation</description>
 	<build>
 		<plugins>
@@ -37,9 +37,9 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-Category>sakai-kernel</Bundle-Category>
-						<Export-Package>org.sakaiproject.kernel.api.basiclti</Export-Package>
-						<Private-Package>org.sakaiproject.kernel.basiclti.*,org.imsglobal.basiclti.*,net.oauth.*</Private-Package>
+						<Bundle-Category>sakai-nakamura</Bundle-Category>
+						<Export-Package>org.sakaiproject.nakamura.api.basiclti</Export-Package>
+						<Private-Package>org.sakaiproject.nakamura.basiclti.*,org.imsglobal.basiclti.*,net.oauth.*</Private-Package>
 						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
 					</instructions>
 				</configuration>
@@ -68,8 +68,8 @@
 		</dependency>
 		<!--  -->
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.doc</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.doc</artifactId>
 			<version>0.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

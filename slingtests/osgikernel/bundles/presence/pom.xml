@@ -20,14 +20,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.presence</artifactId>
+  <artifactId>org.sakaiproject.nakamura.presence</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Presence Bundle</name>
+  <name>Sakai Nakamura Presence Bundle</name>
   <description>Presence end point.</description>
   <build>
     <plugins>
@@ -41,9 +41,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.presence </Export-Package>
-            <Private-Package>org.sakaiproject.kernel.presence.*</Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.presence </Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.presence.*</Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
@@ -53,26 +53,26 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.memory</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.memory</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.connections</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.connections</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.search</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.personal</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -98,8 +98,8 @@
       <artifactId>google-collections</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -127,13 +127,13 @@
       <artifactId>org.apache.felix.scr.annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
-    	<groupId>org.sakaiproject.kernel</groupId>
-    	<artifactId>org.sakaiproject.kernel.testutils</artifactId>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
     	<version>0.3-SNAPSHOT</version>
     	<scope>test</scope>
     </dependency>

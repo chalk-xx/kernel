@@ -17,11 +17,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.filters</artifactId>
+  <artifactId>org.sakaiproject.nakamura.filters</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai Filters Bundle</name>
@@ -38,8 +38,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Private-Package>org.sakaiproject.kernel.webapp.filter.*</Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Private-Package>org.sakaiproject.nakamura.webapp.filter.*</Private-Package>
           </instructions>
         </configuration>
       </plugin>

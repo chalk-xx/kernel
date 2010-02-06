@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.json-lib</artifactId>
+  <artifactId>org.sakaiproject.nakamura.json-lib</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>JSON Lib Bundle</name>
@@ -41,7 +41,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Import-Package> 
              groovy.lang;resolution:=optional, 
              com.sun.*;resolution:=optional,

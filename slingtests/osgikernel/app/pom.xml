@@ -15,16 +15,16 @@
 
     <modelVersion>4.0.0</modelVersion>
     <parent>
-      <groupId>org.sakaiproject.kernel</groupId>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
       <version>0.3-SNAPSHOT</version>
     </parent>
 
-    <artifactId>org.sakaiproject.kernel.app</artifactId>
+    <artifactId>org.sakaiproject.nakamura.app</artifactId>
     <packaging>pom</packaging>
     <version>0.3-SNAPSHOT</version>
 
-    <name>Sakai Kernel Launchpad Standalone Java Application</name>
+    <name>Sakai Nakamura Launchpad Standalone Java Application</name>
     <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
 
@@ -45,8 +45,8 @@
                             <includeDefaultBundles>false</includeDefaultBundles>
                             <!-- add in our jetty config -->
                             <jarWebSupport>
-                                 <groupId>org.sakaiproject.kernel</groupId>
-                                 <artifactId>org.sakaiproject.kernel.jetty-config</artifactId>
+                                 <groupId>org.sakaiproject.nakamura</groupId>
+                                 <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
                                  <version>0.3-SNAPSHOT</version>
                                  <startLevel>5</startLevel>
                            </jarWebSupport>

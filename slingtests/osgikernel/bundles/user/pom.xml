@@ -14,14 +14,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.user</artifactId>
+  <artifactId>org.sakaiproject.nakamura.user</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel User Extension Bundle</name>
+  <name>Sakai Nakamura User Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the user area as
     required by Sakai.</description>
   <repositories>
@@ -51,9 +51,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.user </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.user.*,
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.user </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.user.*,
               org.apache.sling.jackrabbit.usermanager.* </Private-Package>
           </instructions>
         </configuration>
@@ -62,20 +62,20 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -98,7 +98,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
       <version>2.0.5-0.3-SNAPSHOT</version>
     </dependency>
@@ -140,8 +140,8 @@
       <artifactId>slf4j-simple</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

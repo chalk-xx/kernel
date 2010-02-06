@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.jaxrs</artifactId>
+  <artifactId>org.sakaiproject.nakamura.jaxrs</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>JAX-RS 311 Bundle</name>
@@ -48,7 +48,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Import-Package> 
               !Acme.Serve, 
               !org.junit.*, 
@@ -61,12 +61,12 @@
             <Embed-Dependency> resteasy-jaxrs, resteasy-jaxb-provider,
               scannotation, javassist,
               jsr250-api </Embed-Dependency>
-            <Private-Package>org.sakaiproject.kernel.jaxrs.*, 
+            <Private-Package>org.sakaiproject.nakamura.jaxrs.*, 
             org.jboss.resteasy.*, 
             org.scannotation.*, 
             javassist.*</Private-Package>
             <Embed-Transitive> true </Embed-Transitive>
-            <Export-Package> org.sakaiproject.kernel.api.jaxrs.*, javax.ws.rs.* </Export-Package>
+            <Export-Package> org.sakaiproject.nakamura.api.jaxrs.*, javax.ws.rs.* </Export-Package>
           </instructions>
         </configuration>
       </plugin>

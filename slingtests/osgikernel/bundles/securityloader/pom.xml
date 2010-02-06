@@ -14,14 +14,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.securityloader</artifactId>
+  <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Security Loader Bundle</name>
+  <name>Sakai Nakamura Security Loader Bundle</name>
   <description>Security Loader Bundle, watches for bundles with security configuration and
     loads them into the JCR on startup, recording the details in /var in the JCR .</description>
   <build>
@@ -36,9 +36,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.securityloader </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.securityloader </Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.securityloader </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.securityloader </Private-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -46,14 +46,14 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -86,8 +86,8 @@
       <version>1.5.0</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.user</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.user</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

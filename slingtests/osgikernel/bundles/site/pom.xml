@@ -14,11 +14,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.site</artifactId>
+  <artifactId>org.sakaiproject.nakamura.site</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai Site Service Bundle</name>
@@ -35,9 +35,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.site.*</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.site.*</Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package>org.sakaiproject.nakamura.api.site.*</Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.site.*</Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Sakai-Initial-Security>SLING-INF/acl/site-acl.json</Sakai-Initial-Security>
           </instructions>
@@ -57,23 +57,23 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.resource</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.resource</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.doc</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.doc</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.personal</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -117,14 +117,14 @@
       <artifactId>org.apache.sling.commons.testing</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.version</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.version</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -133,8 +133,8 @@
       <version>2.0.4-incubator</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.search</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>

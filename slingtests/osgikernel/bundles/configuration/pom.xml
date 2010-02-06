@@ -13,15 +13,15 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+  <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Configuration Bundle</name>
-  <description>Provides configuration support for the Kernel bound to OSIGi configuration services.</description>
+  <name>Sakai Nakamura Configuration Bundle</name>
+  <description>Provides configuration support for the Nakamura bound to OSIGi configuration services.</description>
   <build>
     <plugins>
       <plugin>
@@ -34,8 +34,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.configuration </Export-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.configuration </Export-Package>
             <Import-Package> * </Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>google-collections

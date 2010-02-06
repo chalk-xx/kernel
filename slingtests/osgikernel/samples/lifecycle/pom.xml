@@ -20,15 +20,15 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.lifecycle</artifactId>
+  <artifactId>org.sakaiproject.nakamura.lifecycle</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Initialization Bundle</name>
-  <description>Provides lifecycle support to Sakai Kernel bundles outside OSGi.</description>
+  <name>Sakai Nakamura Initialization Bundle</name>
+  <description>Provides lifecycle support to Sakai Nakamura bundles outside OSGi.</description>
   <build>
     <plugins>
       <plugin>
@@ -41,11 +41,11 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package></Export-Package>
-            <Bundle-Activator>org.sakaiproject.kernel.lifecycle.Activator</Bundle-Activator>
+            <Bundle-Activator>org.sakaiproject.nakamura.lifecycle.Activator</Bundle-Activator>
             <Import-Package> *,com.google.inject.cglib.reflect </Import-Package>
-            <Private-Package>org.sakaiproject.kernel.lifecycle.*</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.lifecycle.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
           </instructions>
         </configuration>
@@ -68,20 +68,20 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.registry</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.registry</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.guice</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.guice</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

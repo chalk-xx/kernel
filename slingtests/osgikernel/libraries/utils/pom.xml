@@ -20,14 +20,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.utils</artifactId>
+  <artifactId>org.sakaiproject.nakamura.utils</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Utilities</name>
+  <name>Sakai Nakamura Utilities</name>
   <description>Utility Library providing path, string, array, IO, date and other utilities, generally not available elsewhere.</description>
   <build>
     <plugins>
@@ -42,7 +42,7 @@
         <configuration>
           <instructions>
             <Bundle-Category> sakaiux </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.util.*,org.sakaiproject.kernel.simple</Export-Package>
+            <Export-Package> org.sakaiproject.nakamura.util.*,org.sakaiproject.nakamura.simple</Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>
             </Embed-Dependency>

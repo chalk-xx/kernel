@@ -17,14 +17,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.uxloader</artifactId>
+  <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel UX Loader</name>
+  <name>Sakai Nakamura UX Loader</name>
   <description>Loads the Sakai 3 UI into the JCR</description>
   <properties>
     <sakai-ux-version>HEAD</sakai-ux-version>

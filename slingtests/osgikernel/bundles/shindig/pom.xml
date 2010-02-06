@@ -2,11 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.sakaiproject.kernel.shindig</artifactId>
+  <artifactId>org.sakaiproject.nakamura.shindig</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Shindig Bundle</name>
   <description>Apache Shindig Social API and Gadget Server bundle.</description>
@@ -22,7 +22,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category>sakai-kernel</Bundle-Category>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Bundle-Activator>${pom.artifactId}.Activator</Bundle-Activator>
             <Export-Package>
                org/apache/shindig/social/opensocial/model,
@@ -30,7 +30,7 @@
                org/apache/shindig/common/cache,
                org/apache/shindig/social
             </Export-Package>
-            <Private-Package>org.sakaiproject.kernel.shindig</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.shindig</Private-Package>
             <Import-Package>
               !sun.*;resolution:=optional,
               !oracle.xml.parser.*,
