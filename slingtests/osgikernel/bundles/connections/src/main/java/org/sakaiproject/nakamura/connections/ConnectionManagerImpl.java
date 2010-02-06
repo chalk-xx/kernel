@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.connections;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.cancel;

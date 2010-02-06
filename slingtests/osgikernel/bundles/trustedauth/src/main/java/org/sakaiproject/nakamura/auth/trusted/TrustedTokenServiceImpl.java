@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.cluster.ClusterServer;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;

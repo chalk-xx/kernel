@@ -88,6 +88,7 @@ public class LocalCache<T>  implements Cache<Object> {
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.memory.Cache#put(java.lang.String, java.lang.Object)
    */
+  @SuppressWarnings("unchecked")
   public Object put(String key, Object payload) {
     return m.put(key, (T) payload);
   }

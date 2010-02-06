@@ -32,7 +32,6 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
-import org.sakaiproject.nakamura.memory.CacheManagerServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.lang.management.ManagementFactory;

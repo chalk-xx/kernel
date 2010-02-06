@@ -244,6 +244,7 @@ public class LdapPersonProviderTest {
    * @return
    * @throws Exception
    */
+  @SuppressWarnings("unchecked")
   private LdapPersonProvider setUpForPositiveTest(String[] attributeMap, boolean allowAdmin)
       throws Exception {
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);

@@ -35,7 +35,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
-import javax.jcr.query.RowIterator;
 
 /**
  * Formats sakai/page nodes.

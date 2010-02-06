@@ -17,18 +17,16 @@
  */
 package org.sakaiproject.nakamura.locking;
 
-import static org.junit.Assert.assertEquals;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.locking.Lock;
-import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
