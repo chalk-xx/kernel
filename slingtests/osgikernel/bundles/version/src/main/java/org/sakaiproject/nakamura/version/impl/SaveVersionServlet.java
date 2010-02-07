@@ -83,7 +83,7 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SaveVersionServlet.class);
 
   /** @scr.reference */
-  private transient VersionService versionService; 
+  protected transient VersionService versionService;
   
   /**
    * {@inheritDoc}
