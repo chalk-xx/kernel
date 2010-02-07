@@ -17,35 +17,33 @@
  */
 package org.sakaiproject.nakamura.activity.routing;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+
 import org.junit.Before;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
-import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
 /**
  *
  */
-public class AbstractActivityRouterTest {
+public class AbstractActivityRouterTest extends AbstractEasyMockTest {
 
   protected Node activity;
   protected String user = "jack";
   protected String path = "/sites/foo/_pages/welcome/activity";
   protected List<ActivityRoute> routes = new ArrayList<ActivityRoute>();
-  protected boolean playNode = true;
 
   @Before
-  public void setUp() throws RepositoryException {
-
+  public void setUp() throws Exception {
+    super.setUp();
     activity = createMock(Node.class);
 
     expect(activity.hasProperty(ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE))
@@ -62,10 +60,6 @@ public class AbstractActivityRouterTest {
         actorProperty).anyTimes();
 
     expect(activity.getPath()).andReturn(path).anyTimes();
-    replay(valActor, actorProperty);
-    if (playNode) {
-      replay(activity);
-    }
 
   }
 

@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.activity.routing;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 
 import junit.framework.Assert;
 
@@ -40,14 +38,12 @@ public class SiteActivityRouterTest extends AbstractActivityRouterTest {
   private SiteService siteService;
 
   @Before
-  public void setUp() throws RepositoryException {
-    playNode = false;
+  public void setUp() throws Exception {
     super.setUp();
   }
 
   @Test
   public void testAddingSite() throws RepositoryException {
-
     siteService = createMock(SiteService.class);
 
     path = "/sites/mysite/foo";
@@ -58,7 +54,7 @@ public class SiteActivityRouterTest extends AbstractActivityRouterTest {
 
     expect(siteService.isSite(activity)).andReturn(false).anyTimes();
     expect(activity.getParent()).andReturn(siteNode).anyTimes();
-    replay(siteNode, activity, siteService);
+    replay();
 
     SiteActivityRouter router = new SiteActivityRouter();
     router.siteService = siteService;
@@ -69,6 +65,7 @@ public class SiteActivityRouterTest extends AbstractActivityRouterTest {
     Assert.assertEquals(
         "/sites/mysite/" + ActivityConstants.ACTIVITY_FEED_NAME, route
             .getDestination());
+    verify();
   }
 
   @Test
@@ -86,13 +83,14 @@ public class SiteActivityRouterTest extends AbstractActivityRouterTest {
     expect(node.getParent()).andReturn(rootNode).anyTimes();
     expect(siteService.isSite(node)).andReturn(false).anyTimes();
 
-    replay(rootNode, node, siteService);
+    replay();
 
     SiteActivityRouter router = new SiteActivityRouter();
     router.siteService = siteService;
     router.route(node, routes);
 
     Assert.assertEquals(0, routes.size());
+    verify();
   }
 
 }

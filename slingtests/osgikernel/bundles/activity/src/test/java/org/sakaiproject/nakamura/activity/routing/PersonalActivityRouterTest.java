@@ -30,6 +30,7 @@ public class PersonalActivityRouterTest extends AbstractActivityRouterTest {
 
   @Test
   public void testAdding() {
+    replay();
     PersonalActivityRouter router = new PersonalActivityRouter();
     router.route(activity, routes);
 
@@ -37,7 +38,7 @@ public class PersonalActivityRouterTest extends AbstractActivityRouterTest {
     String dest = route.getDestination();
 
     Assert.assertEquals(ActivityUtils.getUserFeed(user), dest);
-
+    verify();
   }
 
 }

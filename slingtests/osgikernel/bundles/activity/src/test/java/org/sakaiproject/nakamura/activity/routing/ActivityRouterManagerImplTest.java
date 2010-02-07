@@ -33,15 +33,20 @@ import javax.jcr.Node;
  */
 public class ActivityRouterManagerImplTest extends AbstractEasyMockTest {
 
-  @Before
-  public void setUp() {
+  protected boolean called2;
+  protected boolean called1;
 
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
   }
 
   @Test
   public void testSorting() {
     ActivityRouter router1 = new ActivityRouter() {
+
       public void route(Node activity, List<ActivityRoute> routes) {
+        called1  = true;
       }
 
       public int getPriority() {
@@ -49,7 +54,9 @@ public class ActivityRouterManagerImplTest extends AbstractEasyMockTest {
       }
     };
     ActivityRouter router2 = new ActivityRouter() {
+
       public void route(Node activity, List<ActivityRoute> routes) {
+        called2  = true;
       }
 
       public int getPriority() {
@@ -65,6 +72,20 @@ public class ActivityRouterManagerImplTest extends AbstractEasyMockTest {
     Assert.assertEquals(100, sortedRouters.get(0).getPriority());
     Assert.assertEquals(50, sortedRouters.get(1).getPriority());
 
+    Node activity = createNiceMock(Node.class);
+
+    replay();
+    manager.getActivityRoutes(activity);
+    Assert.assertTrue(called1);
+    Assert.assertTrue(called2);
+    manager.removeActivityRouter(router1);
+    called1 = false;
+    called2 = false;
+    manager.getActivityRoutes(activity);
+    Assert.assertFalse(called1);
+    Assert.assertTrue(called2);
+    verify();
   }
+
 
 }
