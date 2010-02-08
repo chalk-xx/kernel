@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.docproxy;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.extractor.PlainTextExtractor;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -84,6 +85,9 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       // Upload the file.
       InputStream stream = filebody.getInputStream();
+      
+      // Get index of this
+      
       String path;
       if (filename.getString().equals("")) {
         path = filebody.getFileName();

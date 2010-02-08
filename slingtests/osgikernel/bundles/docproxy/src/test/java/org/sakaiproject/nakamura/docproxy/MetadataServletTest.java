@@ -27,7 +27,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.After;
 import org.junit.Test;
-import org.osgi.service.component.ComponentContext;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -202,7 +202,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
     }
   }
 
-  private int checkIntBiggerThanZero(int val, int defaultVal) {
+  protected int checkIntBiggerThanZero(int val, int defaultVal) {
     if (val < 0) {
       return defaultVal;
     }
