@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.docproxy;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.extractor.PlainTextExtractor;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
