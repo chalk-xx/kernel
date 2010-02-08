@@ -1,4 +1,4 @@
-package org.sakaiproject.kernel.api.files;
+package org.sakaiproject.nakamura.api.files;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 

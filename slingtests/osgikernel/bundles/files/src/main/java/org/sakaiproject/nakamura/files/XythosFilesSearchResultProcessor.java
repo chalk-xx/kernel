@@ -1,14 +1,14 @@
-package org.sakaiproject.kernel.files;
+package org.sakaiproject.nakamura.files;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.kernel.api.files.XythosUtils;
-import org.sakaiproject.kernel.api.search.AbstractSearchResultSet;
-import org.sakaiproject.kernel.api.search.Aggregator;
-import org.sakaiproject.kernel.api.search.SearchException;
-import org.sakaiproject.kernel.api.search.SearchResultProcessor;
-import org.sakaiproject.kernel.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.files.XythosUtils;
+import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
+import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchException;
+import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchResultSet;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
