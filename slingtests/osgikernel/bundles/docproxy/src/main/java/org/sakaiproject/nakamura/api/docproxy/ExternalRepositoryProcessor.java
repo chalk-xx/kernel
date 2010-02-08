@@ -40,14 +40,14 @@ public interface ExternalRepositoryProcessor {
    *          The node, with properties where the document proxy is created, the contents
    *          of the node may be modified by the operation to store properties and
    *          metadata associated with the JCR node within K2.
+   * @param path
+   *          optional path identifying the resource, if null it will be ignored, but can
+   *          be ignored by the implementation.
    * @param properties
    *          A map of properties to associated with the document, either remotely or
    *          locally on the node, implementation specific. If a property is null it will
    *          be removed, if present it will modify the existing property, if an array it
    *          will add to the array.
-   * @param path
-   *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
    * @param documentStream
    *          an input stream containing the body of the document, if null then no body
    *          has been supplied.

@@ -36,5 +36,5 @@ public interface ExternalDocumentResult extends ExternalDocumentResultMetadata {
    *         implementation is responsible for managing the stream if it is not retrieved.
    *         Ideally the implementation will not create the stream if its not requested.
    */
-  public InputStream getDocumentInputStream(long startingAt);
+  public InputStream getDocumentInputStream(long startingAt) throws DocProxyException;
 }

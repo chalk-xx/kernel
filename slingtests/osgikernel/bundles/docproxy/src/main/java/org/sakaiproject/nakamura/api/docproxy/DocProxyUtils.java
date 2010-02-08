@@ -17,28 +17,29 @@
  */
 package org.sakaiproject.nakamura.api.docproxy;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
 /**
- *
+ * A couple of utility classes for Document Proxying.
  */
-public interface DocProxyConstants {
+public class DocProxyUtils {
 
   /**
-   * The resource type that defines an external repository node.
+   * Checks wether or not a node is a document proxy node.
    * 
-   * sakai/external-repository
+   * @param node
+   *          The node to check.
+   * @return true = the node is a doc proxy node, false it is not.
    */
-  public static final String RT_EXTERNAL_REPOSITORY = "sakai/external-repository";
-
-  /**
-   * The property on a node that identifies which processor should be used to interact
-   * with the external repository.
-   * 
-   * sakai:repository-processor
-   */
-  public static final String REPOSITORY_PROCESSOR = "sakai:repository-processor";
-
-  public static final String EXTERNAL_ID = "sakai:external-id";
-
-  public static final String REPOSITORY_LOCATION = "sakai:repository-location";
-
+  public static boolean isDocProxyNode(Node node) {
+    try {
+      return (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node.getProperty(
+          SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_EXTERNAL_REPOSITORY));
+    } catch (RepositoryException e) {
+      return false;
+    }
+  }
 }

@@ -17,7 +17,10 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
-import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult;
+import org.apache.sling.commons.json.JSONObject;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -41,11 +45,12 @@ public class DiskDocumentResult implements ExternalDocumentResult {
   }
 
   /**
+   * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult#getDocumentInputStream(long)
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult#getDocumentInputStream(long)
    */
-  public InputStream getDocumentInputStream(long startingAt) {
+  public InputStream getDocumentInputStream(long startingAt) throws DocProxyException {
     try {
       FileInputStream in = new FileInputStream(file);
       in.skip(startingAt);
@@ -77,12 +82,37 @@ public class DiskDocumentResult implements ExternalDocumentResult {
   }
 
   /**
+   * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalDocumentResultMetadata#getProperties()
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata#getProperties()
    */
-  public Map<String, Object> getProperties() {
-    return new HashMap<String, Object>();
+  public Map<String, Object> getProperties() throws DocProxyException {
+    // We assume that there is a .json file for each file
+    String jsonFile = file.getAbsolutePath() + ".json";
+    Map<String, Object> props = new HashMap<String, Object>();
+    File f = new File(jsonFile);
+    if (f.exists()) {
+      // We have some properties..
+      try {
+        FileInputStream stream = new FileInputStream(f);
+        String jsonString = IOUtils.readFully(stream, "UTF-8");
+        JSONObject o = new JSONObject(jsonString);
+        Iterator<String> keys = o.keys();
+        while (keys.hasNext()) {
+          String key = keys.next();
+          props.put(key, o.get(key));
+        }
+
+      } catch (Exception e) {
+        // Swallow all exceptions and throw one of our own.
+        throw new DocProxyException(500, "Unable to retrieve properties for file.");
+      }
+
+    }
+
+    // no properties, return empty map
+    return props;
   }
 
   /**

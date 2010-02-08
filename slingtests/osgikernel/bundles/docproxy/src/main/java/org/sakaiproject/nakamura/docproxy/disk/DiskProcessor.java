@@ -17,18 +17,21 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
-import org.apache.commons.io.IOUtils;
-import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult;
-import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResultMetadata;
-import org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor;
-import org.sakaiproject.kernel.util.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
+import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +49,12 @@ import javax.jcr.RepositoryException;
  * 
  * This processor will write/read files to disk.
  */
+@Component(enabled = true, immediate = true)
+@Service(value = ExternalRepositoryProcessor.class)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Proof-of-concept implementation of the Document Proxy API."),
+    @Property(name = "service.note", value = "This processor should NOT be run in production. It is extremely likely this can be abused to hack in the system.") })
 public class DiskProcessor implements ExternalRepositoryProcessor {
 
   protected static final String TYPE = "disk";
@@ -61,7 +70,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    */
   public ExternalDocumentResult getDocument(Node node, String path)
       throws DocProxyException {
-    File f = getFile(node);
+    File f = getFile(node, path);
     return new DiskDocumentResult(f);
   }
 
@@ -74,7 +83,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    */
   public ExternalDocumentResultMetadata getDocumentMetadata(Node node, String path)
       throws DocProxyException {
-    File f = getFile(node);
+    File f = getFile(node, path);
     return new DiskDocumentResult(f);
   }
 
@@ -157,7 +166,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
       Map<String, Object> properties, InputStream documentStream, long streamLength)
       throws DocProxyException {
     // Get the file for this node.
-    File file = getFile(node);
+    File file = getFile(node, path);
     path = file.getAbsolutePath();
 
     // Remove old file.
@@ -167,16 +176,24 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
         throw new DocProxyException(500, "Unable to update file.");
       }
     }
-
     // Create new file.
     File newFile = new File(path);
+    try {
+      newFile.createNewFile();
+    } catch (IOException e) {
+      throw new DocProxyException(500, "Unable to create new file.");
+    }
+
+    // Check if we can write.
+    if (!newFile.canWrite()) {
+      throw new DocProxyException(500, "No write access on file.");
+    }
 
     // Write content to new file
 
     try {
-      FileWriter writer = new FileWriter(newFile);
-      IOUtils.copy(documentStream, writer, "UTF-8");
-      writer.flush();
+      FileOutputStream out = new FileOutputStream(newFile);
+      IOUtils.stream(documentStream, out);
     } catch (IOException e) {
       throw new DocProxyException(500, "Unable to update file.");
     }
@@ -188,18 +205,28 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    * 
    * @param node
    *          The node in JCR.
+   * @param path
    * @return
    * @throws DocProxyException
    *           When we were unable to get the file or read a property from the node.
    */
-  protected File getFile(Node node) throws DocProxyException {
+  protected File getFile(Node node, String path) throws DocProxyException {
     try {
-      String id = node.getProperty(DocProxyConstants.EXTERNAL_ID).getString();
-      String[] parts = StringUtils.split(id, ':');
-      String path = parts[1];
+      String basePath = node.getProperty(DocProxyConstants.REPOSITORY_LOCATION)
+          .getString();
+      while (path.startsWith("/") || path.startsWith(".")) {
+        path = path.substring(1);
+      }
+
+      if (basePath.endsWith("/")) {
+        path = basePath + path;
+      } else {
+        path = basePath + "/" + path;
+      }
+
       return getFile(path);
     } catch (RepositoryException e) {
-      throw new DocProxyException(500, "Unable to interpret node.");
+      throw new DocProxyException(500, "Unable to read from node property.");
     }
   }
 
@@ -207,22 +234,8 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    * @param path
    *          The absolute path on disk.
    * @return The {@link File} on that path.
-   * @throws DocProxyException
-   *           When the path starts with a '/' or '.' this method will throw an exception.
    */
   protected File getFile(String path) throws DocProxyException {
-    if (path.startsWith("/") || path.startsWith(".")) {
-      throw new DocProxyException(403,
-          "This processor doesn't support path's starting with / or .");
-    }
-    URL url = getClass().getClassLoader().getResource(path);
-    if (url == null) {
-      File defaultFile = getDefaultFile();
-      String newPath = defaultFile.getParent() + "/" + path;
-      File file = new File(newPath);
-      return file;
-    }
-    path = url.getPath();
     File f = new File(path);
     return f;
   }

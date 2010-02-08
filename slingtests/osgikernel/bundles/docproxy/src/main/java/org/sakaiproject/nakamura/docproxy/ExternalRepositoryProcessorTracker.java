@@ -21,7 +21,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,7 +55,7 @@ public class ExternalRepositoryProcessorTracker extends ServiceTracker {
       ExternalRepositoryProcessor proc = (ExternalRepositoryProcessor) service;
       String type = proc.getType();
       if (type != null) {
-        processors.put(type, proc);
+        putProcessor(proc, type);
       }
     }
     return service;
@@ -73,7 +73,7 @@ public class ExternalRepositoryProcessorTracker extends ServiceTracker {
       ExternalRepositoryProcessor proc = (ExternalRepositoryProcessor) service;
       String type = proc.getType();
       if (type != null) {
-        processors.remove(type);
+        removeProcessor(type);
       }
     }
   }
@@ -86,6 +86,14 @@ public class ExternalRepositoryProcessorTracker extends ServiceTracker {
    */
   public ExternalRepositoryProcessor getProcessorByType(String type) {
     return processors.get(type);
+  }
+
+  protected void putProcessor(ExternalRepositoryProcessor processor, String type) {
+    processors.put(type, processor);
+  }
+
+  protected void removeProcessor(String type) {
+    processors.remove(type);
   }
 
 }

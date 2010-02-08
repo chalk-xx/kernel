@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.docproxy.disk;
+package org.sakaiproject.nakamura.docproxy.disk;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -25,12 +25,11 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult;
-import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResultMetadata;
-import org.sakaiproject.kernel.util.IOUtils;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
-import org.sakaiproject.nakamura.docproxy.disk.DiskProcessor;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
+import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,32 +49,38 @@ import javax.jcr.RepositoryException;
  */
 public class DiskProcessorTest {
 
-  private Node readmeNode;
   public static final String TEST_STRING = "K2 docProxy test resource";
   private DiskProcessor diskProcessor;
+  private String currPath;
 
   @Before
   public void setUp() throws Exception {
     // Start with a new processor.
     diskProcessor = new DiskProcessor();
 
-    // Create the default readme Node.
-    readmeNode = createMock(Node.class);
-    Property idProp = createMock(Property.class);
-    expect(idProp.getString()).andReturn("disk:README").anyTimes();
-    expect(readmeNode.getProperty(DocProxyConstants.EXTERNAL_ID)).andReturn(idProp)
-        .anyTimes();
-
-    replay(idProp, readmeNode);
+    String readmePath = getClass().getClassLoader().getResource("README").getPath();
+    currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
   }
 
   @Test
   public void testGet() throws RepositoryException, UnsupportedEncodingException,
       IOException, DocProxyException {
-    ExternalDocumentResult result = diskProcessor.getDocument(readmeNode, "");
+    // Create the proxy Node.
+    Node proxyNode = createMock(Node.class);
+    Property locationProp = createMock(Property.class);
+    expect(locationProp.getString()).andReturn(currPath).anyTimes();
+    expect(proxyNode.getProperty(DocProxyConstants.REPOSITORY_LOCATION)).andReturn(
+        locationProp);
+    replay(locationProp, proxyNode);
+    ExternalDocumentResult result = diskProcessor.getDocument(proxyNode, "README");
     InputStream in = result.getDocumentInputStream(0);
     String content = IOUtils.readFully(in, "UTF-8");
-    Assert.assertEquals(content, TEST_STRING);
+    Assert.assertEquals(TEST_STRING, content);
+
+    // Properties from .json
+    Map<String, Object> props = result.getProperties();
+    Assert.assertEquals("bar", props.get("foo"));
+    Assert.assertEquals(123, props.get("num"));
   }
 
   @Test
@@ -113,7 +118,7 @@ public class DiskProcessorTest {
     // Quickly loop over the results to get a count
     int size = 0;
     while (results.hasNext()) {
-      ExternalDocumentResult result = results.next();
+      results.next();
       size++;
     }
 
@@ -124,14 +129,15 @@ public class DiskProcessorTest {
   public void testContentType() throws PathNotFoundException,
       UnsupportedEncodingException, RepositoryException, DocProxyException {
     Node textNode = createFile("test-contentType.txt", TEST_STRING);
-    ExternalDocumentResultMetadata meta = diskProcessor.getDocumentMetadata(textNode, "");
-    Assert.assertEquals(meta.getContentType(), "text/plain");
+    ExternalDocumentResultMetadata meta = diskProcessor.getDocumentMetadata(textNode,
+        "test-contentType.txt");
+    Assert.assertEquals("text/plain", meta.getContentType());
 
     Node htmlNode = createFile("test-contentType.html",
         "<html><head><title>foo</title></head></html>");
     ExternalDocumentResultMetadata htmlMeta = diskProcessor.getDocumentMetadata(htmlNode,
-        "");
-    Assert.assertEquals(htmlMeta.getContentType(), "text/html");
+        "test-contentType.html");
+    Assert.assertEquals("text/html", htmlMeta.getContentType());
 
   }
 
@@ -143,15 +149,16 @@ public class DiskProcessorTest {
 
   private Node createFile(String path, InputStream documentStream)
       throws PathNotFoundException, RepositoryException, DocProxyException {
-    Node newNode = createMock(Node.class);
-    Property idProp = createMock(Property.class);
-    expect(idProp.getString()).andReturn("disk:" + path).anyTimes();
-    expect(newNode.getProperty(DocProxyConstants.EXTERNAL_ID)).andReturn(idProp)
-        .anyTimes();
-    replay(idProp, newNode);
-    diskProcessor.updateDocument(newNode, "", null, documentStream, 0);
+    Node proxyNode = createMock(Node.class);
+    Property locationProp = createMock(Property.class);
+    expect(locationProp.getString()).andReturn(currPath).anyTimes();
+    expect(proxyNode.getProperty(DocProxyConstants.REPOSITORY_LOCATION)).andReturn(
+        locationProp).anyTimes();
+    replay(locationProp, proxyNode);
 
-    return newNode;
+    diskProcessor.updateDocument(proxyNode, path, null, documentStream, -1);
+
+    return proxyNode;
 
   }
 
