@@ -25,11 +25,12 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.kernel.api.docproxy.DocProxyConstants;
-import org.sakaiproject.kernel.api.docproxy.DocProxyException;
 import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.kernel.util.IOUtils;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
+import org.sakaiproject.nakamura.docproxy.disk.DiskProcessor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

@@ -15,15 +15,15 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.docproxy.disk;
+package org.sakaiproject.nakamura.docproxy.disk;
 
 import org.apache.commons.io.IOUtils;
-import org.sakaiproject.kernel.api.docproxy.DocProxyConstants;
-import org.sakaiproject.kernel.api.docproxy.DocProxyException;
 import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.kernel.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor;
 import org.sakaiproject.kernel.util.StringUtils;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

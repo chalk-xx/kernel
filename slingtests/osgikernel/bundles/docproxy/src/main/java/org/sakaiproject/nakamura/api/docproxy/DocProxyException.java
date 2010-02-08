@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.kernel.api.docproxy;
+package org.sakaiproject.nakamura.api.docproxy;
 
 /**
  * The exception to use for when something goes wrong in the docProxy process.
