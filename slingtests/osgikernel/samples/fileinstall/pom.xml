@@ -13,12 +13,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.samples.fileinstall</artifactId>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.samples.fileinstall</artifactId>
   <packaging>pom</packaging>
   <name>Felix FileInstall on Sling Sample</name>
   <version>0.3-SNAPSHOT</version>

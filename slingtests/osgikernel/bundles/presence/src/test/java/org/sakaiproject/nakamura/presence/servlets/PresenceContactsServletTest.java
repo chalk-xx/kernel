@@ -1,0 +1,135 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.nakamura.presence.servlets;
+
+import static org.easymock.EasyMock.expect;
+
+import junit.framework.Assert;
+
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.json.JSONObject;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.sakaiproject.nakamura.api.connections.ConnectionManager;
+import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.PropertyIterator;
+import javax.jcr.Session;
+import javax.servlet.ServletException;
+
+/**
+ *
+ */
+public class PresenceContactsServletTest extends AbstractEasyMockTest {
+
+  private static final String CURRENT_USER = "jack";
+  private PresenceService presenceService;
+  private PresenceContactsServlet servlet;
+  private ConnectionManager connectionManager;
+
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+
+    PresenceServiceImplTest test = new PresenceServiceImplTest();
+    test.setUp();
+    presenceService = test.getPresenceService();
+
+    servlet = new PresenceContactsServlet();
+    servlet.bindPresenceService(presenceService);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    servlet.unbindPresenceService(presenceService);
+    servlet.unbindConnectionManager(connectionManager);
+  }
+
+  @Test
+  public void testAnon() throws ServletException, IOException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    expect(request.getRemoteUser()).andReturn(null);
+    response.sendError(401, "User must be logged in to check their status");
+    replay();
+    PresenceGetServlet servlet = new PresenceGetServlet();
+    servlet.doGet(request, response);
+  }
+
+  @Test
+  public void testRegularUser() throws Exception {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    expect(request.getRemoteUser()).andReturn(CURRENT_USER);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintWriter printWriter = new PrintWriter(baos);
+
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    Session session = createMock(Session.class);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+
+    expect(response.getWriter()).andReturn(printWriter);
+    List<String> contacts = new ArrayList<String>();
+    connectionManager = createMock(ConnectionManager.class);
+
+    for (int i = 0; i < 50; i++) {
+      String uuid = "user-" + i;
+      contacts.add(uuid);
+      presenceService.setStatus(uuid, "busy");
+      Node profileNode = createMock(Node.class);
+      PropertyIterator propertyIterator = createMock(PropertyIterator.class);
+      expect(propertyIterator.hasNext()).andReturn(false);
+      expect(profileNode.getProperties()).andReturn(propertyIterator);
+      expect(session.getItem(PersonalUtils.getProfilePath(uuid))).andReturn(
+          profileNode);
+    }
+    expect(
+        connectionManager.getConnectedUsers(CURRENT_USER,
+            ConnectionState.ACCEPTED)).andReturn(contacts);
+
+    servlet.bindPresenceService(presenceService);
+    servlet.bindConnectionManager(connectionManager);
+    replay();
+    servlet.doGet(request, response);
+
+    printWriter.flush();
+
+    JSONObject o = new JSONObject(baos.toString("UTF-8"));
+    Assert.assertEquals(50, o.getJSONArray("contacts").length());
+    for (int i = 0; i < 50; i++) {
+      Assert.assertEquals("busy", o.getJSONArray("contacts").getJSONObject(i)
+          .getString(PresenceService.PRESENCE_STATUS_PROP));
+    }
+  }
+
+}

@@ -1,4 +1,4 @@
-Sakai Kernel 2
+Sakai Nakamura 
 Copyright 2009 The Sakai Foundation
 
 This product includes software developed at

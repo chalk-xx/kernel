@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.docproxy</artifactId>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Document Proxy</name>
   <version>0.3-SNAPSHOT</version>
@@ -23,10 +23,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Export-Package> org.sakaiproject.kernel.api.docproxy </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.docproxy.* </Private-Package>
+            <Export-Package> org.sakaiproject.nakamura.api.docproxy </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.docproxy.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Import-Package>*</Import-Package>
           </instructions>
@@ -36,8 +36,8 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -61,8 +61,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>

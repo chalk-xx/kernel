@@ -3,8 +3,8 @@
   xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
   version="1.0" xmlns="http://java.sun.com/xml/ns/persistence">
   <persistence-unit name="default">
-    <class>org.sakaiproject.kernel.jpaprovider.model.SystemUser3</class>
-    <class>org.sakaiproject.kernel.jpaprovider.model.SystemUser4</class>
+    <class>org.sakaiproject.nakamura.jpaprovider.model.SystemUser3</class>
+    <class>org.sakaiproject.nakamura.jpaprovider.model.SystemUser4</class>
     <properties>
       <property name="testproperty2" value="testvalue2" />
     </properties>

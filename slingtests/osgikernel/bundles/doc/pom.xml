@@ -17,14 +17,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+  <artifactId>org.sakaiproject.nakamura.doc</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>org.sakaiproject.kernel.doc</name>
+  <name>org.sakaiproject.nakamura.doc</name>
   <description>Sakai Documentation Support bundle</description>
   <build>
     <plugins>
@@ -38,9 +38,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.doc </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.doc.* </Private-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.doc </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.doc.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
           </instructions>
         </configuration>
@@ -50,8 +50,8 @@
   <dependencies>
     <!--  sling and JCR -->
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>

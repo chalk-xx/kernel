@@ -12,11 +12,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.jpahelloworld</artifactId>
+  <artifactId>org.sakaiproject.nakamura.jpahelloworld</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
   <name>Sakai JPA Mysql Hello World</name>
@@ -45,8 +45,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Bundle-Activator>org.sakaiproject.kernel.jpahelloworld.model.Hello</Bundle-Activator>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Bundle-Activator>org.sakaiproject.nakamura.jpahelloworld.model.Hello</Bundle-Activator>
             <Import-Package>sun.io;resolution:=optional,
 javax.xml.parsers,
 org.w3c.dom,

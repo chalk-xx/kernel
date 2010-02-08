@@ -17,12 +17,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>base</artifactId>
-		<groupId>org.sakaiproject.kernel</groupId>
+		<groupId>org.sakaiproject.nakamura</groupId>
 		<version>0.3-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.sakaiproject.kernel</groupId>
-	<artifactId>org.sakaiproject.kernel.chat</artifactId>
+	<groupId>org.sakaiproject.nakamura</groupId>
+	<artifactId>org.sakaiproject.nakamura.chat</artifactId>
 	<packaging>bundle</packaging>
 	<name>Sakai chat services</name>
 	<version>0.3-SNAPSHOT</version>
@@ -39,9 +39,9 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-Category> sakai-kernel </Bundle-Category>
-						<Export-Package> org.sakaiproject.kernel.api.chat.* </Export-Package>
-						<Private-Package>org.sakaiproject.kernel.chat.*</Private-Package>
+						<Bundle-Category> sakai-nakamura </Bundle-Category>
+						<Export-Package> org.sakaiproject.nakamura.api.chat.* </Export-Package>
+						<Private-Package>org.sakaiproject.nakamura.chat.*</Private-Package>
 					</instructions>
 				</configuration>
 			</plugin>
@@ -49,28 +49,28 @@
 	</build>
 	<dependencies>
 		<dependency>
-			 <groupId>org.sakaiproject.kernel</groupId>
-			 <artifactId>org.sakaiproject.kernel.doc</artifactId>
+			 <groupId>org.sakaiproject.nakamura</groupId>
+			 <artifactId>org.sakaiproject.nakamura.doc</artifactId>
 			 <version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.memory</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.memory</artifactId>
 			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.messaging</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.messaging</artifactId>
 			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.search</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.search</artifactId>
 			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.jcr</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.jcr</artifactId>
 			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -117,13 +117,13 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.personal</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.personal</artifactId>
 			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.sakaiproject.kernel</groupId>
-			<artifactId>org.sakaiproject.kernel.testutils</artifactId>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
 			<version>0.3-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>

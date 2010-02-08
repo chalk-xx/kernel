@@ -20,15 +20,15 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.memory</artifactId>
+  <artifactId>org.sakaiproject.nakamura.memory</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Memory Bundle</name>
-  <description>Caching Support for Sakai Kernel (uses Ehcache for underlying cache).</description>
+  <name>Sakai Nakamura Memory Bundle</name>
+  <description>Caching Support for Sakai Nakamura (uses Ehcache for underlying cache).</description>
   <build>
     <plugins>
       <plugin>
@@ -41,15 +41,15 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.api.memory </Export-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.api.memory </Export-Package>
             <!--
               WARNING, these had to be excluded from the imports to get the bundle to activate there
               may be classcast exceptions
             -->
             <Import-Package>!sun.misc,!org.jgroups.*,!org.hibernate.cache,*
             </Import-Package>
-            <Private-Package>org.sakaiproject.kernel.memory.*</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.memory.*</Private-Package>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>ehcache,backport-util-concurrent,jsr107cache</Embed-Dependency>
@@ -95,8 +95,8 @@
       <version>1.0</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>

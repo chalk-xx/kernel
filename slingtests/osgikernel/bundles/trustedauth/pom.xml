@@ -17,14 +17,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.auth.trusted</artifactId>
+  <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Trusted Authentication Bundle</name>
+  <name>Sakai Nakamura Trusted Authentication Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -37,8 +37,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Private-Package>org.sakaiproject.kernel.auth.trusted</Private-Package>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Private-Package>org.sakaiproject.nakamura.auth.trusted</Private-Package>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
@@ -88,14 +88,14 @@
     </dependency>
     
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.cluster</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.memory</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.memory</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     

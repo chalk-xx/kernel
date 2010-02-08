@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.image</artifactId>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.image</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai image service</name>
   <version>0.3-SNAPSHOT</version>
@@ -23,7 +23,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
           </instructions>
@@ -61,8 +61,8 @@
       <classifier>jdk15</classifier>
     </dependency> 
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.jcr</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
      <dependency>
@@ -76,13 +76,13 @@
       <version>2.0.4-incubator</version>
     </dependency>
 	<dependency>
-	  <groupId>org.sakaiproject.kernel</groupId>
-	  <artifactId>org.sakaiproject.kernel.doc</artifactId>
+	  <groupId>org.sakaiproject.nakamura</groupId>
+	  <artifactId>org.sakaiproject.nakamura.doc</artifactId>
 	  <version>0.3-SNAPSHOT</version>
 	</dependency>
 	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.testutils</artifactId>
+		<groupId>org.sakaiproject.nakamura</groupId>
+		<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
 		<version>0.3-SNAPSHOT</version>
 		<scope>test</scope>
 	</dependency>

@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.proxy</artifactId>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai proxy service</name>
   <version>0.3-SNAPSHOT</version>
@@ -23,10 +23,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
             <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Export-Package> org.sakaiproject.kernel.api.proxy </Export-Package>
-            <Private-Package> org.sakaiproject.kernel.proxy.* </Private-Package>
+            <Export-Package> org.sakaiproject.nakamura.api.proxy </Export-Package>
+            <Private-Package> org.sakaiproject.nakamura.proxy.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*,!kaffe.rmi.*,!org.apache.bsf,org.apache.tools.ant.*;resolution:=optional,!org.apache.bcel.*,!org.jdom.*,!org.apache.avalon.*,*</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
@@ -54,8 +54,8 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.utils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
@@ -136,8 +136,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
@@ -159,8 +159,8 @@
     </dependency>
 <!--
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.testutils</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
 -->
@@ -198,8 +198,8 @@
     	<version>20020414</version>
     </dependency>
 	<dependency>
-		<groupId>org.sakaiproject.kernel</groupId>
-		<artifactId>org.sakaiproject.kernel.doc</artifactId>
+		<groupId>org.sakaiproject.nakamura</groupId>
+		<artifactId>org.sakaiproject.nakamura.doc</artifactId>
 		<version>0.3-SNAPSHOT</version>
 	</dependency>
   </dependencies>

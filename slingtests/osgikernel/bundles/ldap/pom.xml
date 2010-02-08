@@ -19,14 +19,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.sakaiproject.kernel</groupId>
-  <artifactId>org.sakaiproject.kernel.ldap</artifactId>
+  <groupId>org.sakaiproject.nakamura</groupId>
+  <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Kernel LDAP Connection Bundle</name>
+  <name>Sakai Nakamura LDAP Connection Bundle</name>
   <version>0.3-SNAPSHOT</version>
   <build>
     <plugins>
@@ -40,9 +40,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category>sakai-kernel</Bundle-Category>
-            <Export-Package>org.sakaiproject.kernel.api.ldap, com.novell.ldap.*;version=4.3</Export-Package>
-            <Private-Package>org.sakaiproject.kernel.ldap.*</Private-Package>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
+            <Export-Package>org.sakaiproject.nakamura.api.ldap, com.novell.ldap.*;version=4.3</Export-Package>
+            <Private-Package>org.sakaiproject.nakamura.ldap.*</Private-Package>
             <Import-Package>!org.openspml.*, !org.apache.commons.httpclient.*, *</Import-Package>
             <!-- , openspml, xmlrpc-common, ws-commons-util, soap -->
             <Embed-Dependency>jldap</Embed-Dependency>
@@ -52,10 +52,10 @@
     </plugins>
   </build>
   <dependencies>
-<!-- kernel -->
+<!-- nakamura -->
     <dependency>
-      <groupId>org.sakaiproject.kernel</groupId>
-      <artifactId>org.sakaiproject.kernel.configuration</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
 

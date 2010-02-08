@@ -20,11 +20,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>base</artifactId>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <version>0.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.sakaiproject.kernel.specs.jms</artifactId>
+  <artifactId>org.sakaiproject.nakamura.specs.jms</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Java Messaging Service (JMS) Bundle</name>
   <version>0.3-SNAPSHOT</version>
@@ -36,7 +36,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category>sakai-kernel</Bundle-Category>
+            <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Export-Package>javax.jms.*;version=1.1</Export-Package>
 			<Import-Package>javax.transaction.xa</Import-Package>
           </instructions>

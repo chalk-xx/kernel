@@ -14,14 +14,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.sakaiproject.kernel</groupId>
+    <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
     <version>0.3-SNAPSHOT</version>
   </parent>
-  <artifactId>org.sakaiproject.kernel.samples.helloworld</artifactId>
+  <artifactId>org.sakaiproject.nakamura.samples.helloworld</artifactId>
   <packaging>bundle</packaging>
   <version>0.3-SNAPSHOT</version>
-  <name>Sakai Kernel Samples: Hello World</name>
+  <name>Sakai Nakamura Samples: Hello World</name>
   <description>Sample Bundle: Hello World.</description>
   <build>
     <plugins>
@@ -35,8 +35,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-kernel </Bundle-Category>
-            <Export-Package> org.sakaiproject.kernel.samples.helloworld </Export-Package>
+            <Bundle-Category> sakai-nakamura </Bundle-Category>
+            <Export-Package> org.sakaiproject.nakamura.samples.helloworld </Export-Package>
           </instructions>
         </configuration>
       </plugin>
