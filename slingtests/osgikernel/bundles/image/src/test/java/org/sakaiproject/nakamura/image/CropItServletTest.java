@@ -44,6 +44,7 @@ import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -153,13 +154,39 @@ public class CropItServletTest extends AbstractEasyMockTest {
       assertEquals("/my/breadcrumbs/" + dimensions[i] + "_people.png", url);
     }
   }
-  
+
+  @Test
+  public void testMissingParameters() throws IOException, ServletException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    expect(request.getRequestParameter("img")).andReturn(null);
+    addStringRequestParameter(request, "save", null);
+    addStringRequestParameter(request, "x", null);
+    addStringRequestParameter(request, "y", null);
+    addStringRequestParameter(request, "width", null);
+    addStringRequestParameter(request, "height", null);
+    addStringRequestParameter(request, "dimensions", "");
+
+    response
+        .sendError(HttpServletResponse.SC_BAD_REQUEST,
+            "The following parameters are required: img, save, x, y, width, height, dimensions");
+
+    replay();
+
+    servlet.doPost(request, response);
+  }
+
   @Test
   public void testImageException() {
     ImageException e = new ImageException(500, "foo");
     assertEquals(500, e.getCode());
     assertEquals("foo", e.getMessage());
-    
+
+    e = new ImageException();
+    e.setCode(500);
+    assertEquals(500, e.getCode());
+
   }
 
   @Test
