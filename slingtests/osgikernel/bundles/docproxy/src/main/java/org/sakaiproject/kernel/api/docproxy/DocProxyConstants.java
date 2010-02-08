@@ -15,38 +15,28 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.registry.test;
-
-import org.sakaiproject.nakamura.api.registry.Provider;
+package org.sakaiproject.kernel.api.docproxy;
 
 /**
- * 
+ *
  */
-public class TProvider<V> implements Provider<V> {
-
-  private int priority;
-  private V key;
+public interface DocProxyConstants {
 
   /**
-   *
+   * The resource type that defines an external repository node.
+   * 
+   * sakai/external-repository
    */
-  public TProvider(int priority, V key) {
-    this.priority = priority;
-    this.key = key;
-  }
+  public static final String RT_EXTERNAL_REPOSITORY = "sakai/external-repository";
+
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getPriority()
+   * The property on a node that identifies which processor should be used to interact
+   * with the external repository.
+   * 
+   * sakai:repository-processor
    */
-  public int getPriority() {
-    return priority;
-  }
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getKey()
-   */
-  public V getKey() {
-    return key;
-  }
+  public static final String REPOSITORY_PROCESSOR = "sakai:repository-processor";
+  
+  public static final String EXTERNAL_ID = "sakai:external-id";
 
 }

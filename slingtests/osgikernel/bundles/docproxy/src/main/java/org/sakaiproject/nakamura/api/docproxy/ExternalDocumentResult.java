@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.docproxy;
 
+import java.io.InputStream;
+
 /**
  * Get the ExternalDocumentResult. This extends {@link ExternalDocumentResultMetadata} by
  * adding a input stream from which the body of the document can be read.
@@ -34,5 +36,5 @@ public interface ExternalDocumentResult extends ExternalDocumentResultMetadata {
    *         implementation is responsible for managing the stream if it is not retrieved.
    *         Ideally the implementation will not create the stream if its not requested.
    */
-  public void getDocumentInputStream(long startingAt);
+  public InputStream getDocumentInputStream(long startingAt);
 }
