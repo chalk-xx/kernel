@@ -23,7 +23,7 @@ import javax.jcr.query.RowIterator;
  *                description="Returns search results from Xythos"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.property name="sakai.search.processor" value="XythosFiles"
- * @scr.service interface="org.sakaiproject.kernel.api.search.SearchResultProcessor"
+ * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
 public class XythosFilesSearchResultProcessor implements SearchResultProcessor {
 
