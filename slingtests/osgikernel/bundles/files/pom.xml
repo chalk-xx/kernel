@@ -112,6 +112,16 @@
       <artifactId>org.apache.sling.commons.testing</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.caucho</groupId>
+      <artifactId>hessian</artifactId>
+      <version>3.1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.nyu</groupId>
+      <artifactId>xythos-service</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
