@@ -17,11 +17,14 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.easymock.EasyMock.expect;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
 
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -57,29 +60,10 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
 
-    proxyNode = createMock(Node.class);
-    // We use the default disk processor.
-    Property processorProperty = createMock(Property.class);
-    expect(processorProperty.getString()).andReturn("disk");
-
-    // Our resource type
-    Property resourceTypeProp = createMock(Property.class);
-    expect(resourceTypeProp.getString()).andReturn(
-        DocProxyConstants.RT_EXTERNAL_REPOSITORY);
-
-    // Repository location
-    Property locationProp = createMock(Property.class);
-    expect(locationProp.getString()).andReturn(currPath).anyTimes();
-
-    expect(proxyNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true)
-        .anyTimes();
-    expect(proxyNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(
-        resourceTypeProp).anyTimes();
-    expect(proxyNode.getProperty(REPOSITORY_PROCESSOR)).andReturn(processorProperty)
-        .anyTimes();
-    expect(proxyNode.getPath()).andReturn("/docproxy/disk").anyTimes();
-    expect(proxyNode.getProperty(REPOSITORY_LOCATION)).andReturn(locationProp).anyTimes();
-    expect(proxyNode.isNode()).andReturn(true).anyTimes();
+    proxyNode = new MockNode("/docproxy/disk");
+    proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
+    proxyNode.setProperty(REPOSITORY_PROCESSOR, "disk");
+    proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
 
     // Mock up the tracker
     diskProcessor = new DiskProcessor();

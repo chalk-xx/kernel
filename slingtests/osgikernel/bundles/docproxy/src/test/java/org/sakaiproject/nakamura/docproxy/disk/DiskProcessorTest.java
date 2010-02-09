@@ -17,12 +17,15 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
+
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
 import junit.framework.Assert;
 
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -52,6 +55,7 @@ public class DiskProcessorTest {
   public static final String TEST_STRING = "K2 docProxy test resource";
   private DiskProcessor diskProcessor;
   private String currPath;
+  private Node proxyNode;
 
   @Before
   public void setUp() throws Exception {
@@ -60,6 +64,9 @@ public class DiskProcessorTest {
 
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
+
+    proxyNode = new MockNode("/docproxy/disk");
+    proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
   }
 
   @Test
@@ -89,7 +96,7 @@ public class DiskProcessorTest {
 
     // Create a new file.
     String path = "README-copy";
-    Node newNode = createFile(path, TEST_STRING);
+    Node newNode = createFile(diskProcessor, proxyNode, path, TEST_STRING);
 
     // Get the file
     ExternalDocumentResult result = diskProcessor.getDocument(newNode, path);
@@ -103,17 +110,26 @@ public class DiskProcessorTest {
   @Test
   public void testSearch() throws PathNotFoundException, UnsupportedEncodingException,
       RepositoryException, DocProxyException {
+    // Mock proxyNode
+    Node proxyNode = createMock(Node.class);
+    Property locationProp = createMock(Property.class);
+    expect(locationProp.getString()).andReturn(currPath).anyTimes();
+    expect(proxyNode.getProperty(DocProxyConstants.REPOSITORY_LOCATION)).andReturn(
+        locationProp).anyTimes();
+    replay(locationProp, proxyNode);
+
     // Create a couple of files.
-    createFile("test-search-1", "alfa");
-    createFile("test-search-2", "beta");
-    createFile("test-search-3", "charlie");
+    createFile(diskProcessor, proxyNode, "test-disk-search-1", "alfa");
+    createFile(diskProcessor, proxyNode, "test-disk-search-2", "beta");
+    createFile(diskProcessor, proxyNode, "test-disk-search-3", "charlie");
 
     // The disk search only matches filenames starting with a term..
     Map<String, Object> searchProperties = new HashMap<String, Object>();
-    searchProperties.put("name", "test-search-");
+    searchProperties.put("starts-with", "test-disk-search-");
 
     // Perform actual search.
-    Iterator<ExternalDocumentResult> results = diskProcessor.search(searchProperties);
+    Iterator<ExternalDocumentResult> results = diskProcessor.search(proxyNode,
+        searchProperties);
 
     // Quickly loop over the results to get a count
     int size = 0;
@@ -128,12 +144,13 @@ public class DiskProcessorTest {
   @Test
   public void testContentType() throws PathNotFoundException,
       UnsupportedEncodingException, RepositoryException, DocProxyException {
-    Node textNode = createFile("test-contentType.txt", TEST_STRING);
+    Node textNode = createFile(diskProcessor, proxyNode, "test-contentType.txt",
+        TEST_STRING);
     ExternalDocumentResultMetadata meta = diskProcessor.getDocumentMetadata(textNode,
         "test-contentType.txt");
     Assert.assertEquals("text/plain", meta.getContentType());
 
-    Node htmlNode = createFile("test-contentType.html",
+    Node htmlNode = createFile(diskProcessor, proxyNode, "test-contentType.html",
         "<html><head><title>foo</title></head></html>");
     ExternalDocumentResultMetadata htmlMeta = diskProcessor.getDocumentMetadata(htmlNode,
         "test-contentType.html");
@@ -141,22 +158,17 @@ public class DiskProcessorTest {
 
   }
 
-  private Node createFile(String path, String content) throws PathNotFoundException,
-      RepositoryException, UnsupportedEncodingException, DocProxyException {
+  public static Node createFile(DiskProcessor processor, Node proxyNode, String path,
+      String content) throws PathNotFoundException, RepositoryException,
+      UnsupportedEncodingException, DocProxyException {
     ByteArrayInputStream stream = new ByteArrayInputStream(content.getBytes("UTF-8"));
-    return createFile(path, stream);
+    return createFile(processor, proxyNode, path, stream);
   }
 
-  private Node createFile(String path, InputStream documentStream)
-      throws PathNotFoundException, RepositoryException, DocProxyException {
-    Node proxyNode = createMock(Node.class);
-    Property locationProp = createMock(Property.class);
-    expect(locationProp.getString()).andReturn(currPath).anyTimes();
-    expect(proxyNode.getProperty(DocProxyConstants.REPOSITORY_LOCATION)).andReturn(
-        locationProp).anyTimes();
-    replay(locationProp, proxyNode);
-
-    diskProcessor.updateDocument(proxyNode, path, null, documentStream, -1);
+  public static Node createFile(DiskProcessor processor, Node proxyNode, String path,
+      InputStream documentStream) throws PathNotFoundException, RepositoryException,
+      DocProxyException {
+    processor.updateDocument(proxyNode, path, null, documentStream, -1);
 
     return proxyNode;
 

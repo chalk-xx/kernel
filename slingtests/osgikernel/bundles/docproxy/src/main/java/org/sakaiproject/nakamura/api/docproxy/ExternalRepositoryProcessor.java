@@ -104,13 +104,19 @@ public interface ExternalRepositoryProcessor {
    * ExternalDocumentResult on demand. The implementation should not typically try and
    * load all matching documents.
    * 
+   * @param node
+   *          The node containing the repository information.
    * @param searchProperties
    *          a key value map of search fields and search values. If the field is
    *          tokenized then the search should be a substring search, if the field is a
    *          keyword the search should be a keyword search.
+   * @throws DocProxyException
+   *           The search failed for some reason, this should contain an appropriate HTTP
+   *           status code and message.
    * @return a lazy iterator of ExternalDocumentResults.
    */
-  public Iterator<ExternalDocumentResult> search(Map<String, Object> searchProperties);
+  public Iterator<ExternalDocumentResult> search(Node node,
+      Map<String, Object> searchProperties) throws DocProxyException;
 
   /**
    * @return What kind of external repository this processor should handle.

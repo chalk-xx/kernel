@@ -20,9 +20,7 @@ package org.sakaiproject.nakamura.docproxy;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -94,17 +92,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
       // Give a JSON representation.
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
-      write.object();
-      write.key("Content-Type");
-      write.value(meta.getContentType());
-      write.key("Content-Length");
-      write.value(meta.getContentLength());
-      write.key("uri");
-      write.value(meta.getUri());
-      write.key("properties");
-      ValueMap map = new ValueMapDecorator(meta.getProperties());
-      write.valueMap(map);
-      write.endObject();
+      DocProxyUtils.writeMetaData(write, meta);
 
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

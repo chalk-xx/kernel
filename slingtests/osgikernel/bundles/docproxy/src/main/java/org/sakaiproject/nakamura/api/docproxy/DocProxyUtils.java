@@ -17,10 +17,17 @@
  */
 package org.sakaiproject.nakamura.api.docproxy;
 
+import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  * A couple of utility classes for Document Proxying.
@@ -40,6 +47,53 @@ public class DocProxyUtils {
           SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_EXTERNAL_REPOSITORY));
     } catch (RepositoryException e) {
       return false;
+    }
+  }
+
+  /**
+   * Outputs an {@link ExternalDocumentResultMetadata} in JSON.
+   * 
+   * @param write
+   *          The {@link JSONWriter} to write to.
+   * @param meta
+   *          The {@link ExternalDocumentResultMetadata} to output.
+   * @throws JSONException
+   * @throws DocProxyException
+   */
+  public static void writeMetaData(ExtendedJSONWriter write,
+      ExternalDocumentResultMetadata meta) throws JSONException, DocProxyException {
+    write.object();
+    write.key("Content-Type");
+    write.value(meta.getContentType());
+    write.key("Content-Length");
+    write.value(meta.getContentLength());
+    write.key("uri");
+    write.value(meta.getUri());
+    write.key("properties");
+    ValueMap map = new ValueMapDecorator(meta.getProperties());
+    write.valueMap(map);
+    write.endObject();
+  }
+
+  /**
+   * Get a proxy document node which holds information over an external repository,
+   * processor ..
+   * 
+   * @param node
+   *          This node should hold a property {@link DocProxyConstants.REPOSITORY_REF}
+   *          with a value of the UUID of the proxy node.
+   * @return The proxy node.
+   * @throws DocProxyException
+   *           There was no reference found to an external repository.
+   */
+  public static Node getProxyNode(Node node) throws DocProxyException {
+    try {
+      String uuid = node.getProperty(DocProxyConstants.REPOSITORY_REF).getString();
+      Session session = node.getSession();
+      return session.getNodeByUUID(uuid);
+    } catch (RepositoryException e) {
+      throw new DocProxyException(500,
+          "This node holds no reference to an external repository node.");
     }
   }
 }

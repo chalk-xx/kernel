@@ -40,7 +40,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -72,7 +71,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    * 
    * @throws DocProxyException
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor#getDocument(javax.jcr.Node,
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#getDocument(javax.jcr.Node,
    *      java.lang.String)
    */
   public ExternalDocumentResult getDocument(Node node, String path)
@@ -85,7 +84,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor#getDocumentMetadata(javax.jcr.Node,
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#getDocumentMetadata(javax.jcr.Node,
    *      java.lang.String)
    */
   public ExternalDocumentResultMetadata getDocumentMetadata(Node node, String path)
@@ -97,68 +96,91 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor#getType()
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#getType()
    */
   public String getType() {
     return TYPE;
   }
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor#search(java.util.Map)
-   */
-  public Iterator<ExternalDocumentResult> search(Map<String, Object> searchProperties) {
+  public Iterator<ExternalDocumentResult> search(Node node,
+      Map<String, Object> searchProperties) throws DocProxyException {
     // We will search in the same directory (and subs) as the README dir.
-    File defaultFile = getDefaultFile();
+    File defaultFile = getRootFile(node);
 
     String startWith = "";
-    boolean matchName = false;
-    if (searchProperties != null && searchProperties.get("name") != null) {
-      startWith = searchProperties.get("name").toString();
-      matchName = true;
+    String endsWith = "";
+    boolean matchStartName = false;
+    boolean matchEndName = false;
+    if (searchProperties != null) {
+      if (searchProperties.get("starts-with") != null
+          && !searchProperties.get("starts-with").equals("")) {
+        startWith = searchProperties.get("starts-with").toString();
+        matchStartName = true;
+      }
+      if (searchProperties.get("ends-with") != null
+          && !searchProperties.get("ends-with").equals("")) {
+        endsWith = searchProperties.get("ends-with").toString();
+        matchEndName = true;
+      }
     }
 
     final String start = startWith;
-    final boolean doMatchName = matchName;
-    // We don't want any files starting with a . (hidden files)
+    final String end = endsWith;
+    final boolean doStartWith = matchStartName;
+    final boolean doEndsWith = matchEndName;
+
+    // The filter we will be using,
     FilenameFilter filter = new FilenameFilter() {
 
       public boolean accept(File dir, String name) {
-        if (!name.startsWith(".")) {
-          if (doMatchName) {
-            if (name.startsWith(start)) {
-              return true;
-            } else {
-              return false;
-            }
-          } else {
-            return true;
-          }
+        boolean accept = true;
+        // We don't want any files starting with a . (hidden files)
+        if (name.startsWith(".")) {
+          return false;
         }
-        return false;
+
+        // We don't show our property files.
+        if (name.endsWith(".json")) {
+          return false;
+        }
+
+        // If our files should start with a certain string.
+        if (doStartWith && !name.startsWith(start)) {
+          accept = false;
+        }
+        if (doEndsWith && !name.endsWith(end)) {
+          accept = false;
+        }
+        return accept;
       }
     };
 
-    // Get children.
     List<ExternalDocumentResult> results = new ArrayList<ExternalDocumentResult>();
-    getChildren(defaultFile.getParentFile(), results, filter);
+    // Get children.
+    getChildren(defaultFile, results, filter);
     return results.iterator();
   }
 
   /**
+   * Iterate over all the children of a "file".
+   * 
    * @param parentFile
+   *          The file to list the children for.
    * @param results
+   *          The list to add the results in
    * @param filter
+   *          The filter to match the files against.
    */
   private void getChildren(File file, List<ExternalDocumentResult> results,
       FilenameFilter filter) {
-    File[] files = file.listFiles(filter);
+    File[] files = file.listFiles();
     for (File f : files) {
       if (f.isDirectory()) {
         getChildren(f, results, filter);
       }
-      results.add(new DiskDocumentResult(f));
+      if (filter.accept(f.getParentFile(), f.getName())) {
+        results.add(new DiskDocumentResult(f));
+      }
     }
   }
 
@@ -166,7 +188,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.kernel.api.docproxy.ExternalRepositoryProcessor#updateDocument(javax.jcr.Node,
+   * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#updateDocument(javax.jcr.Node,
    *      java.lang.String, java.util.Map, java.io.InputStream, long)
    */
   public Map<String, Object> updateDocument(Node node, String path,
@@ -291,10 +313,15 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     return f;
   }
 
-  protected File getDefaultFile() {
-    URL url = getClass().getClassLoader().getResource("README");
-    File defaultFile = new File(url.getPath());
-    return defaultFile;
+  protected File getRootFile(Node node) throws DocProxyException {
+    try {
+      String basePath = node.getProperty(DocProxyConstants.REPOSITORY_LOCATION)
+          .getString();
+      File defaultFile = new File(basePath);
+      return defaultFile;
+    } catch (RepositoryException e) {
+      throw new DocProxyException(500, "Failed to mount repo.");
+    }
   }
 
 }

@@ -41,4 +41,8 @@ public interface DocProxyConstants {
 
   public static final String REPOSITORY_LOCATION = "sakai:repository-location";
 
+  public static final String REPOSITORY_SEARCH_PROPS = "sakai:repository-search-properties";
+
+  public static final String REPOSITORY_REF = "sakai:repository-ref";
+
 }
