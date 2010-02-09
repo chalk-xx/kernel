@@ -1,6 +1,0 @@
-I Heart Markdown
-================
-This is just an exercise to see what github does with markdown files. I _heart_ markdown!
-
-    10 print "Zach is cool."
-    20 print goto 10

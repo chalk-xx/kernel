@@ -96,7 +96,7 @@
                 </goals>
                 <phase>generate-resources</phase>
                 <configuration>
-                  <connectionUrl>scm:git:git://github.com/zathomas/3akai-ux.git</connectionUrl>
+                  <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
                   <workingDirectory>src/main/resources/SLING-INF/content</workingDirectory>
                   <runChangelog>true</runChangelog>
                   <scmVersion>HEAD</scmVersion>
