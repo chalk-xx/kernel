@@ -47,10 +47,10 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   private SMTPServer server;
 
   /** @scr.reference */
-  private MessagingService messagingService;
+  protected MessagingService messagingService;
 
   /** @scr.reference */
-  private SlingRepository slingRepository;
+  protected SlingRepository slingRepository;
   
   /** @scr.property */
   private static String LOCAL_DOMAINS = "smtp.localdomains";
@@ -114,7 +114,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       List<String> recipients = messagingService.expandAliases(parts[0]);
       for (String localRecipient : recipients) {
         try {
-          String path = messagingService.getFullPathToStore(parts[0], session);
+          String path = messagingService.getFullPathToStore(localRecipient, session);
           if (path != null && path.length() > 0) {
             localPaths.add(path);
           }
