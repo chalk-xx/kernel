@@ -123,7 +123,7 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         }
       }
     }
-    return null;
+    return localPaths;
   }
 
   public void deliver(String from, String recipient, InputStream data)
