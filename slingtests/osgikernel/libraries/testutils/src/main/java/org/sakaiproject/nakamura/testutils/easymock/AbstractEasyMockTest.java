@@ -21,8 +21,16 @@ import static org.easymock.EasyMock.expect;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.easymock.EasyMock;
 import org.junit.Before;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,6 +109,47 @@ public class AbstractEasyMockTest {
     RequestParameter param = createMock(RequestParameter.class);
     expect(param.getString()).andReturn(value).anyTimes();
     expect(request.getRequestParameter(key)).andReturn(param).anyTimes();
+  }
+  
+  /**
+   * Add an inputstream on a request parameter.
+   * @param request
+   * @param key
+   * @param stream
+   * @param size
+   * @param filename
+   * @throws IOException
+   */
+  protected void addFileUploadRequestParameter(SlingHttpServletRequest request,
+      String key, InputStream stream, long size, String filename) throws IOException {
+    RequestParameter param = createMock(RequestParameter.class);
+    expect(param.getSize()).andReturn(size).anyTimes();
+    expect(param.isFormField()).andReturn(false).anyTimes();
+    expect(param.getFileName()).andReturn(filename).anyTimes();
+    expect(param.getInputStream()).andReturn(stream).anyTimes();
+    expect(request.getRequestParameter(key)).andReturn(param).anyTimes();
+  }
+  
+  /**
+   * If you are using the bundlecontext in a tracker somewhere, this is a handy utility.
+   * @param className The name of the class you want to track.
+   * @return {@link BundleContext}
+   * @throws InvalidSyntaxException
+   */
+  protected BundleContext expectServiceTrackerCalls(String className) throws InvalidSyntaxException {
+    BundleContext bundleContext = EasyMock.createMock(BundleContext.class);
+    Filter filter = EasyMock.createNiceMock(Filter.class);
+    EasyMock.replay(filter);
+    EasyMock.expect(
+        bundleContext.createFilter("(objectClass=" + className + ")"))
+        .andReturn(filter).anyTimes();
+    bundleContext.addServiceListener((ServiceListener) EasyMock.anyObject(),
+        EasyMock.eq("(objectClass=" + className + ")"));
+    EasyMock.expectLastCall().anyTimes();
+    EasyMock.expect(bundleContext.getServiceReferences(className, null))
+        .andReturn(new ServiceReference[0]).anyTimes();
+    EasyMock.replay(bundleContext);
+    return bundleContext;
   }
 
 }

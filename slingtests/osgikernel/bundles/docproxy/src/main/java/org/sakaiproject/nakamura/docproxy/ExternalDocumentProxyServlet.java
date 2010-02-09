@@ -18,7 +18,30 @@
 package org.sakaiproject.nakamura.docproxy;
 
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.util.IOUtils;
+import org.sakaiproject.nakamura.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * The generic access servlet for Node types of type sling/external-repository. This
@@ -27,14 +50,78 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = {"sakai/external-repository"}, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sling/nonexisting" }, methods = { "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
-  /**
-   * 
-   */
+  protected ExternalRepositoryProcessorTracker tracker;
   private static final long serialVersionUID = 1521106164249874441L;
+  public static final Logger LOGGER = LoggerFactory
+      .getLogger(ExternalDocumentProxyServlet.class);
 
-  // Implementation TODO
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    try {
+      String url = request.getRequestURI();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = JcrUtils.getFirstExistingNode(session, url);
+
+      if (!DocProxyUtils.isDocProxyNode(node)) {
+        // This must be something else, ignore it..
+        return;
+      }
+
+      // This is a repository node.
+      // Get the processor and output meta data.
+      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
+          .getString();
+      ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
+      if (processor == null) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
+        return;
+      }
+
+      String path = url.substring(node.getPath().length());
+      try {
+        // Get actual content.
+        ExternalDocumentResult result = processor.getDocument(node, path);
+        InputStream in = result.getDocumentInputStream(0);
+
+        // Stream it to the user.
+        OutputStream out = response.getOutputStream();
+        IOUtils.stream(in, out);
+      } catch (DocProxyException e) {
+        response.sendError(e.getCode(), e.getMessage());
+        return;
+      }
+
+    } catch (RepositoryException e) {
+      LOGGER.error("Failed to retrieve document's content", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to retrieve document's content");
+      return;
+    }
+
+  }
+
+  protected void activate(ComponentContext context) {
+    BundleContext bundleContext = context.getBundleContext();
+    tracker = new ExternalRepositoryProcessorTracker(bundleContext,
+        ExternalRepositoryProcessor.class.getName(), null);
+    tracker.open();
+  }
+
+  protected void deactivate(ComponentContext context) {
+    if (tracker != null) {
+      tracker.close();
+      tracker = null;
+    }
+  }
 
 }

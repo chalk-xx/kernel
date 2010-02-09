@@ -49,7 +49,8 @@ public interface ExternalDocumentResultMetadata {
   /**
    * @return a map of properties in name value pair for. The map may be hierarchical by
    *         embedding maps within maps.
+   * @throws {@link DocProxyException}
    */
-  public Map<String, Object> getProperties();
+  public Map<String, Object> getProperties() throws DocProxyException;
 
 }

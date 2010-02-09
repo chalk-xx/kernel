@@ -40,20 +40,25 @@ public interface ExternalRepositoryProcessor {
    *          The node, with properties where the document proxy is created, the contents
    *          of the node may be modified by the operation to store properties and
    *          metadata associated with the JCR node within K2.
+   * @param path
+   *          optional path identifying the resource, if null it will be ignored, but can
+   *          be ignored by the implementation.
    * @param properties
    *          A map of properties to associated with the document, either remotely or
    *          locally on the node, implementation specific. If a property is null it will
    *          be removed, if present it will modify the existing property, if an array it
    *          will add to the array.
-   * @param path
-   *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
    * @param documentStream
-   *          an input stream containing the body of the document, if null then no body has been supplied.
-   * @param streamLength the length of the stream in bytes. If set to -1, the length is unknown and the implementation should read until EOF.
+   *          an input stream containing the body of the document, if null then no body
+   *          has been supplied.
+   * @param streamLength
+   *          the length of the stream in bytes. If set to -1, the length is unknown and
+   *          the implementation should read until EOF.
+   * @throws DocProxyException
    */
   public Map<String, Object> updateDocument(Node node, String path,
-      Map<String, Object> properties, InputStream documentStream, long streamLength);
+      Map<String, Object> properties, InputStream documentStream, long streamLength)
+      throws DocProxyException;
 
   /**
    * Gets an ExternalDocumentResult from the external repository.
@@ -63,8 +68,12 @@ public interface ExternalRepositoryProcessor {
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
    *          be ignored by the implementation.
+   * @throws DocProxyException
+   *           When something goes wrong this should contain an appropriate HTTP status
+   *           code and message.
    */
-  public ExternalDocumentResult getDocument(Node node, String path);
+  public ExternalDocumentResult getDocument(Node node, String path)
+      throws DocProxyException;
 
   /**
    * Gets just the metadata of the External Document.
@@ -74,9 +83,13 @@ public interface ExternalRepositoryProcessor {
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
    *          be ignored by the implementation.
+   * @throws DocProxyException
+   *           When something goes wrong this should contain an appropriate HTTP status
+   *           code and message.
    * @return
    */
-  public ExternalDocumentResultMetadata getDocumentMetadata(Node node, String path);
+  public ExternalDocumentResultMetadata getDocumentMetadata(Node node, String path)
+      throws DocProxyException;
 
   /**
    * Searches for results matching the search properties. The implementation should return
@@ -93,4 +106,8 @@ public interface ExternalRepositoryProcessor {
    */
   public Iterator<ExternalDocumentResult> search(Map<String, Object> searchProperties);
 
+  /**
+   * @return What kind of external repository this processor should handle.
+   */
+  public String getType();
 }
