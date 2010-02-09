@@ -42,7 +42,7 @@ public class GroupModification extends Modification {
 
   public static Modification onGroupLeave(String path, Group mainGroup, Group group)  {
     GroupModification result = new GroupModification(ModificationType.MODIFY, path, null);
-    result.setGroup(mainGroup);
+    result.setMainGroup(mainGroup);
     result.setGroup(group);
     result.setJoin(false);
     return result;

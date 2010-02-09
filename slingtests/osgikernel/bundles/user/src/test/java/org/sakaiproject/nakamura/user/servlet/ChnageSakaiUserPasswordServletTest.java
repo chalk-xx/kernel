@@ -15,38 +15,18 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.registry.test;
+package org.sakaiproject.nakamura.user.servlet;
 
-import org.sakaiproject.nakamura.api.registry.Provider;
+import org.junit.Test;
+
 
 /**
- * 
+ * We only test we can create the servlet since its fully tested by Sling already
  */
-public class TProvider<V> implements Provider<V> {
+public class ChnageSakaiUserPasswordServletTest {
 
-  private int priority;
-  private V key;
-
-  /**
-   *
-   */
-  public TProvider(int priority, V key) {
-    this.priority = priority;
-    this.key = key;
+  @Test
+  public void test() {
+    ChangeSakaiUserPasswordServlet cs = new ChangeSakaiUserPasswordServlet();
   }
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getPriority()
-   */
-  public int getPriority() {
-    return priority;
-  }
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getKey()
-   */
-  public V getKey() {
-    return key;
-  }
-
 }
