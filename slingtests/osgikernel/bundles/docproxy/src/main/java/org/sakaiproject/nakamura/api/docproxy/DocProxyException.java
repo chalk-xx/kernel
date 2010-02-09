@@ -15,38 +15,54 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.registry.test;
-
-import org.sakaiproject.nakamura.api.registry.Provider;
+package org.sakaiproject.nakamura.api.docproxy;
 
 /**
- * 
+ * The exception to use for when something goes wrong in the docProxy process.
  */
-public class TProvider<V> implements Provider<V> {
+public class DocProxyException extends Exception {
 
-  private int priority;
-  private V key;
+  private int code;
+  private String message;
+  
+  public DocProxyException(int code, String message) {
+    super();
+    this.code = code;
+    this.message = message;
+  }
+  
+  
+  /**
+   * @return the code
+   */
+  public int getCode() {
+    return code;
+  }
 
   /**
-   *
+   * @param code the code to set
    */
-  public TProvider(int priority, V key) {
-    this.priority = priority;
-    this.key = key;
+  public void setCode(int code) {
+    this.code = code;
   }
+
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getPriority()
+   * @return the message
    */
-  public int getPriority() {
-    return priority;
+  public String getMessage() {
+    return message;
   }
+
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.Provider#getKey()
+   * @param message the message to set
    */
-  public V getKey() {
-    return key;
+  public void setMessage(String message) {
+    this.message = message;
   }
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 6874500958962991820L;
 
 }

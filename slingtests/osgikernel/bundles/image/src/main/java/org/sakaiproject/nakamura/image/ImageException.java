@@ -31,18 +31,6 @@ public class ImageException extends Exception {
     this.setCode(code);
   }
 
-  public ImageException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public ImageException(String message) {
-    super(message);
-  }
-
-  public ImageException(Throwable cause) {
-    super(cause);
-  }
-
   public void setCode(int code) {
     this.code = code;
   }
