@@ -42,7 +42,9 @@ public interface ExternalRepositoryProcessor {
    *          metadata associated with the JCR node within K2.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @param properties
    *          A map of properties to associated with the document, either remotely or
    *          locally on the node, implementation specific. If a property is null it will
@@ -67,7 +69,9 @@ public interface ExternalRepositoryProcessor {
    *          the node representing the document.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @throws DocProxyException
    *           When something goes wrong this should contain an appropriate HTTP status
    *           code and message.
@@ -82,7 +86,9 @@ public interface ExternalRepositoryProcessor {
    *          the node representing the external document.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @throws DocProxyException
    *           When something goes wrong this should contain an appropriate HTTP status
    *           code and message.

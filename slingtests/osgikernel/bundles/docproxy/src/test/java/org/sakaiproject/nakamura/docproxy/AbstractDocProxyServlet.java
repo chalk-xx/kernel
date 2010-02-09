@@ -42,6 +42,7 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
   protected ExternalRepositoryProcessorTracker tracker;
   protected BundleContext bundleContext;
   protected ComponentContext componentContext;
+  protected DiskProcessor diskProcessor;
 
   /**
    * {@inheritDoc}
@@ -70,16 +71,18 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     Property locationProp = createMock(Property.class);
     expect(locationProp.getString()).andReturn(currPath).anyTimes();
 
-    expect(proxyNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
+    expect(proxyNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true)
+        .anyTimes();
     expect(proxyNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(
-        resourceTypeProp);
-    expect(proxyNode.getProperty(REPOSITORY_PROCESSOR)).andReturn(processorProperty);
-    expect(proxyNode.getPath()).andReturn("/docproxy/disk");
-    expect(proxyNode.getProperty(REPOSITORY_LOCATION)).andReturn(locationProp);
-    expect(proxyNode.isNode()).andReturn(true);
+        resourceTypeProp).anyTimes();
+    expect(proxyNode.getProperty(REPOSITORY_PROCESSOR)).andReturn(processorProperty)
+        .anyTimes();
+    expect(proxyNode.getPath()).andReturn("/docproxy/disk").anyTimes();
+    expect(proxyNode.getProperty(REPOSITORY_LOCATION)).andReturn(locationProp).anyTimes();
+    expect(proxyNode.isNode()).andReturn(true).anyTimes();
 
     // Mock up the tracker
-    DiskProcessor diskProcessor = new DiskProcessor();
+    diskProcessor = new DiskProcessor();
     bundleContext = expectServiceTrackerCalls(ExternalRepositoryProcessor.class.getName());
 
     componentContext = EasyMock.createMock(ComponentContext.class);

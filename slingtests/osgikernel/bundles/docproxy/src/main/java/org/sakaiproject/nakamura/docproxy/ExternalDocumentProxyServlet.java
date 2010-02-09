@@ -74,6 +74,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isDocProxyNode(node)) {
         // This must be something else, ignore it..
+        LOGGER.info("Disregarding a request to sling/nonexisting - {}", url);
         return;
       }
 

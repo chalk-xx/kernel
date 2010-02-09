@@ -21,6 +21,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.json.JSONArray;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -30,16 +33,19 @@ import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -47,9 +53,10 @@ import javax.jcr.RepositoryException;
 /**
  * This is a proof of concept for the the External Repository processors.
  * 
- * This processor will write/read files to disk.
+ * This processor will write/read files to disk, DO NOT ENABLE THIS SERVICE ON A PUBLIC
+ * OX!
  */
-@Component(enabled = true, immediate = true)
+@Component(enabled = false, immediate = true)
 @Service(value = ExternalRepositoryProcessor.class)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -167,8 +174,53 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
       throws DocProxyException {
     // Get the file for this node.
     File file = getFile(node, path);
-    path = file.getAbsolutePath();
 
+    if (documentStream != null) {
+      // Write the stream
+      writeStreamToFile(documentStream, file);
+    }
+    if (properties != null) {
+      try {
+        // Write the json file
+        File propertiesFile = getFile(node, path + ".json");
+
+        // Retrieve previous properties
+        DiskDocumentResult result = new DiskDocumentResult(file);
+        JSONObject obj = new JSONObject(result.getProperties());
+
+        // Write/Update new ones
+        for (Entry<String, Object> entry : properties.entrySet()) {
+          Object val = entry.getValue();
+          if (val.getClass().isArray()) {
+            String[] arr = (String[]) val;
+            if (arr.length == 1) {
+              obj.put(entry.getKey(), arr[0]);
+            } else {
+              JSONArray jsonArr = new JSONArray();
+              for (String s : arr) {
+                jsonArr.put(s);
+              }
+              obj.put(entry.getKey(), jsonArr);
+            }
+          } else {
+            obj.put(entry.getKey(), val);
+          }
+        }
+        String json = obj.toString();
+        ByteArrayInputStream jsonStream = new ByteArrayInputStream(json.getBytes("UTF-8"));
+        writeStreamToFile(jsonStream, propertiesFile);
+      } catch (UnsupportedEncodingException e) {
+        throw new DocProxyException(500, "Unable to save properties.");
+      } catch (JSONException e) {
+        throw new DocProxyException(500, "Unable to retrieve properties from request.");
+      }
+    }
+
+    return properties;
+  }
+
+  protected void writeStreamToFile(InputStream documentStream, File file)
+      throws DocProxyException {
     // Remove old file.
     if (file.exists()) {
       boolean deleted = file.delete();
@@ -177,7 +229,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
       }
     }
     // Create new file.
-    File newFile = new File(path);
+    File newFile = new File(file.getAbsolutePath());
     try {
       newFile.createNewFile();
     } catch (IOException e) {
@@ -197,7 +249,6 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     } catch (IOException e) {
       throw new DocProxyException(500, "Unable to update file.");
     }
-    return properties;
   }
 
   /**

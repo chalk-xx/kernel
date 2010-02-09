@@ -23,19 +23,25 @@ import static org.junit.Assert.assertEquals;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.After;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
+import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -75,7 +81,7 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     expect(resolver.adaptTo(Session.class)).andReturn(session);
 
     // Request
-    expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
 
     expect(response.getWriter()).andReturn(printWriter);
@@ -91,6 +97,64 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     JSONObject properties = o.getJSONObject("properties");
     assertEquals(123, properties.get("num"));
     assertEquals("bar", properties.get("foo"));
+  }
+
+  @Test
+  public void testPost() throws PathNotFoundException, RepositoryException,
+      ServletException, IOException, DocProxyException, JSONException {
+    Session session = createMock(Session.class);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    Map<String, String[]> properties = new HashMap<String, String[]>();
+    properties.put("postTest", new String[] { "b", "a", "r" });
+    properties.put("alfa", new String[] { "beta" });
+
+    // Session
+    expect(session.getItem("/docproxy/disk/README"))
+        .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getResourceResolver()).andReturn(resolver);
+    expect(request.getParameterMap()).andReturn(properties);
+    expect(request.getRemoteUser()).andReturn("admin");
+
+    replay();
+    servlet.doPost(request, response);
+
+    ExternalDocumentResultMetadata meta = diskProcessor.getDocumentMetadata(proxyNode,
+        "README");
+    JSONArray arr = (JSONArray) meta.getProperties().get("postTest");
+    assertEquals("b", arr.get(0).toString());
+    assertEquals("a", arr.get(1).toString());
+    assertEquals("r", arr.get(2).toString());
 
   }
+
+  @Test
+  public void testAnonPost() throws IOException, PathNotFoundException,
+      RepositoryException, ServletException {
+    Session session = createMock(Session.class);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    // Session
+    expect(session.getItem("/docproxy/disk/README"))
+        .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getResourceResolver()).andReturn(resolver);
+
+    expect(request.getRemoteUser()).andReturn("anon");
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+        "Anonymous users can't post anything.");
+
+    replay();
+    servlet.doPost(request, response);
+  }
+
 }

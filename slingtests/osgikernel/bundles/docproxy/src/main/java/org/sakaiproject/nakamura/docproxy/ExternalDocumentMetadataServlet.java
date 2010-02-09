@@ -53,6 +53,8 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
   protected ExternalRepositoryProcessorTracker tracker;
 
   /**
+   * Fetch the properties for this file.
+   * 
    * {@inheritDoc}
    * 
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
@@ -67,6 +69,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
     try {
       String url = request.getRequestURI();
+      url = url.replace(".metadata.json", "");
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
@@ -87,7 +90,6 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
       // Get the meta data.
       String path = url.substring(node.getPath().length());
-      path = path.replace(".metadata.json", "");
       ExternalDocumentResultMetadata meta = processor.getDocumentMetadata(node, path);
 
       // Give a JSON representation.
@@ -113,7 +115,57 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Could not write JSON information.");
     }
+  }
 
+  /**
+   * Write a couple of new properties on the file.
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    try {
+      String url = request.getRequestURI();
+      url = url.replace(".metadata.json", "");
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = JcrUtils.getFirstExistingNode(session, url);
+
+      if (!DocProxyUtils.isDocProxyNode(node)) {
+        // This must be something else, ignore it..
+        return;
+      }
+
+      // Anonymous users can't do anything.
+      if (request.getRemoteUser().equals("anon")) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+            "Anonymous users can't post anything.");
+        return;
+      }
+
+      // This is a repository node.
+      // Get the processor and output meta data.
+      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
+          .getString();
+      ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
+      if (processor == null) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
+        return;
+      }
+
+      // Write the meta data.
+      String path = url.substring(node.getPath().length());
+      processor.updateDocument(node, path, request.getParameterMap(), null, -1);
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Could not lookup file information.");
+    } catch (DocProxyException e) {
+      response.sendError(e.getCode(), e.getMessage());
+    }
   }
 
   protected void activate(ComponentContext context) {

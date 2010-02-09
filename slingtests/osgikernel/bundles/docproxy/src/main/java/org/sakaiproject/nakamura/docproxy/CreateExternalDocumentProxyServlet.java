@@ -62,6 +62,13 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
+      // Anonymous users can't do anything.
+      if (request.getRemoteUser().equals("anon")) {
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+            "Anonymous users can't post anything.");
+        return;
+      }
+
       // Check required parameters.
       RequestParameter filename = request.getRequestParameter(PARAM_FILENAME);
       RequestParameter filebody = request.getRequestParameter(PARAM_FILEBODY);
@@ -84,9 +91,9 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       // Upload the file.
       InputStream stream = filebody.getInputStream();
-      
+
       // Get index of this
-      
+
       String path;
       if (filename.getString().equals("")) {
         path = filebody.getFileName();
