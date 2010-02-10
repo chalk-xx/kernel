@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
+
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -43,7 +45,8 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * This servlet provides access to the node metadata of an existing node.
  */
-@SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = { "sling/nonexisting" }, generateComponent = true, generateService = true, methods = {
+@SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
+    "sling/nonexisting", "sakai/external-repository-document" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
 public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
@@ -71,7 +74,13 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-      if (!DocProxyUtils.isDocProxyNode(node)) {
+      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
+        // This document should reference the config node.
+        String uuid = node.getProperty(REPOSITORY_REF).getString();
+        node = session.getNodeByUUID(uuid);
+      }
+
+      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
         return;
       }
@@ -123,7 +132,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-      if (!DocProxyUtils.isDocProxyNode(node)) {
+      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
         return;
       }

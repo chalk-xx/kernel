@@ -17,31 +17,22 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
-import static org.junit.Assert.assertEquals;
-
 import static org.easymock.EasyMock.expect;
-
+import static org.junit.Assert.assertEquals;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.After;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
-import org.sakaiproject.nakamura.testutils.easymock.SakaiMockNode;
-
-import static org.sakaiproject.nakamura.docproxy.disk.DiskProcessorTest.createFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;

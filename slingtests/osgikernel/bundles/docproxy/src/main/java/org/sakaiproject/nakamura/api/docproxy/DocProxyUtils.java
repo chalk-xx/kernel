@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.docproxy;
 
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
+
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
@@ -35,16 +37,33 @@ import javax.jcr.Session;
 public class DocProxyUtils {
 
   /**
-   * Checks wether or not a node is a document proxy node.
+   * Checks wether or not a node is the config for an external repository
    * 
    * @param node
    *          The node to check.
    * @return true = the node is a doc proxy node, false it is not.
    */
-  public static boolean isDocProxyNode(Node node) {
+  public static boolean isExternalRepositoryConfig(Node node) {
     try {
       return (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node.getProperty(
           SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_EXTERNAL_REPOSITORY));
+    } catch (RepositoryException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Checks wether or not a node represents a document in an external repository.
+   * 
+   * @param node
+   *          The node to check.
+   * @return true = the node is a doc proxy node, false it is not.
+   */
+  public static boolean isExternalRepositoryDocument(Node node) {
+    try {
+      return (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && node.getProperty(
+          SLING_RESOURCE_TYPE_PROPERTY).getString().equals(
+          RT_EXTERNAL_REPOSITORY_DOCUMENT));
     } catch (RepositoryException e) {
       return false;
     }

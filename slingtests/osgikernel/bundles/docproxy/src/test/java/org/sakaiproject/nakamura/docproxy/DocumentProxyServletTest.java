@@ -21,6 +21,9 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -28,16 +31,18 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.junit.After;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFormatException;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.version.VersionException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -96,7 +101,47 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
 
     String result = baos.toString("UTF-8");
     assertEquals("K2 docProxy test resource", result);
+  }
 
+  @Test
+  public void testDocumentGet() throws ValueFormatException, VersionException,
+      LockException, ConstraintViolationException, RepositoryException, IOException,
+      ServletException {
+    Session session = createMock(Session.class);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    Node documentNode = new SakaiMockNode("/docproxy/disk/README");
+    documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
+        RT_EXTERNAL_REPOSITORY_DOCUMENT);
+    documentNode.setProperty(REPOSITORY_REF, "proxyUUID");
+
+    // Session
+    expect(session.getItem("/docproxy/disk/README")).andReturn(documentNode);
+    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    expect(session.getNodeByUUID("proxyUUID")).andReturn(proxyNode);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+
+    // Request
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
+    expect(request.getResourceResolver()).andReturn(resolver);
+
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ServletOutputStream stream = new ServletOutputStream() {
+
+      @Override
+      public void write(int b) throws IOException {
+        baos.write(b);
+      }
+    };
+    expect(response.getOutputStream()).andReturn(stream);
+    replay();
+
+    servlet.doGet(request, response);
+
+    String result = baos.toString("UTF-8");
+    assertEquals("K2 docProxy test resource", result);
   }
 
   @Test
@@ -107,22 +152,9 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node node = createMock(Node.class);
-    // We use the default disk processor.
-    Property processorProperty = createMock(Property.class);
-    expect(processorProperty.getString()).andReturn("foo");
-
-    // Our resource type
-    Property resourceTypeProp = createMock(Property.class);
-    expect(resourceTypeProp.getString()).andReturn(
-        DocProxyConstants.RT_EXTERNAL_REPOSITORY);
-
-    expect(node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
-    expect(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(resourceTypeProp);
-    expect(node.getProperty(REPOSITORY_PROCESSOR)).andReturn(processorProperty);
-    expect(node.getPath()).andReturn("/docproxy/disk");
-    expect(node.isNode()).andReturn(true);
-
+    Node node = new SakaiMockNode("/docproxy/disk");
+    node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
+    node.setProperty(REPOSITORY_PROCESSOR, "foo");
     // Session
     expect(session.getItem("/docproxy/disk/README"))
         .andThrow(new PathNotFoundException());
@@ -138,6 +170,6 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     replay();
 
     servlet.doGet(request, response);
-
   }
+
 }

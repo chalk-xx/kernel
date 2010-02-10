@@ -30,6 +30,13 @@ public interface DocProxyConstants {
   public static final String RT_EXTERNAL_REPOSITORY = "sakai/external-repository";
 
   /**
+   * The resource type that defines an external repository document node.
+   * 
+   * sakai/external-repository-document
+   */
+  public static final String RT_EXTERNAL_REPOSITORY_DOCUMENT = "sakai/external-repository-document";
+
+  /**
    * The property on a node that identifies which processor should be used to interact
    * with the external repository.
    * 

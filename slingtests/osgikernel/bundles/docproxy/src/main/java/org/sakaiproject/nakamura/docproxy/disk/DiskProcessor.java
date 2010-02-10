@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.EXTERNAL_ID;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -24,12 +29,14 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 import org.sakaiproject.nakamura.util.IOUtils;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,13 +48,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 
 /**
  * This is a proof of concept for the the External Repository processors.
@@ -55,7 +70,7 @@ import javax.jcr.RepositoryException;
  * This processor will write/read files to disk, DO NOT ENABLE THIS SERVICE ON A PUBLIC
  * OX!
  */
-@Component(enabled = false, immediate = true)
+@Component(enabled = false, immediate = true, metatype = true)
 @Service(value = ExternalRepositoryProcessor.class)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
@@ -65,6 +80,15 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
 
   protected static final String TYPE = "disk";
   protected static final Logger LOGGER = LoggerFactory.getLogger(DiskProcessor.class);
+
+  @Property(name = "createJCRNodes", description = "Wether or not nodes should be created in JCR for newly uploaded files.", boolValue = false)
+  protected boolean createJCRNodes = false;
+
+  @SuppressWarnings("unchecked")
+  protected void activate(ComponentContext context) {
+    Dictionary properties = context.getProperties();
+    createJCRNodes = (Boolean) properties.get("createJCRNodes");
+  }
 
   /**
    * {@inheritDoc}
@@ -197,10 +221,16 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     // Get the file for this node.
     File file = getFile(node, path);
 
+    // Write the file stream
     if (documentStream != null) {
-      // Write the stream
-      writeStreamToFile(documentStream, file);
+      File newFile = writeStreamToFile(documentStream, file);
+      if (properties == null) {
+        properties = new HashMap<String, Object>();
+        properties.put(EXTERNAL_ID, newFile.toURI());
+      }
     }
+
+    // Write any properties
     if (properties != null) {
       try {
         // Write the json file
@@ -236,13 +266,110 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
       } catch (JSONException e) {
         throw new DocProxyException(500, "Unable to retrieve properties from request.");
       }
+
+      // This implementation will also leave a node in JCR.
+      // Note: This is optional.
+      if (createJCRNodes) {
+        updateJCRNode(node, path, properties);
+      }
     }
 
     return properties;
   }
 
-  protected void writeStreamToFile(InputStream documentStream, File file)
+  /**
+   * @param node
+   * @param path
+   * @param properties
+   * @throws DocProxyException
+   */
+  private void updateJCRNode(Node node, String path, Map<String, Object> properties)
       throws DocProxyException {
+    try {
+      // construct that path to the JCR node.
+      String base = node.getPath();
+      if (!path.startsWith("/")) {
+        base += "/";
+      }
+      base += path;
+
+      Session session = node.getSession();
+      Node documentNode = JcrUtils.deepGetOrCreateNode(session, base);
+      //documentNode.addMixin("sakai:propertiesmix");
+      // Set the reference to the external repository config node.
+      documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
+          RT_EXTERNAL_REPOSITORY_DOCUMENT);
+      documentNode.setProperty(REPOSITORY_REF, node.getUUID());
+
+      // Write all the properties on the node.
+      ValueFactory vf = session.getValueFactory();
+      Set<Entry<String, Object>> entries = properties.entrySet();
+      for (Entry<String, Object> entry : entries) {
+        String key = entry.getKey();
+        Object val = entry.getValue();
+        Value value = null;
+
+        if (val instanceof Long) {
+          long l = Long.parseLong(val.toString());
+          value = vf.createValue(l);
+        } else if (val instanceof Double) {
+          double d = Double.parseDouble(val.toString());
+          value = vf.createValue(d);
+        } else if (val instanceof String) {
+          value = vf.createValue(val.toString());
+        } else if (val instanceof Calendar) {
+          Calendar c = (Calendar) val;
+          value = vf.createValue(c);
+        } else if (val instanceof Boolean) {
+          Boolean b = (Boolean) val;
+          value = vf.createValue(b);
+        } else {
+          // Default to a string value..
+          value = vf.createValue(val.toString());
+        }
+        documentNode.setProperty(key, value);
+      }
+
+      // Save session
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+
+    } catch (RepositoryException e) {
+      throw new DocProxyException(500,
+          "Streaming to ext repo succeeded, writing back into JCR failed.");
+    }
+  }
+
+  protected File writeStreamToFile(InputStream documentStream, File file)
+      throws DocProxyException {
+
+    try {
+      // Create path to file..
+      List<String> parts = new ArrayList<String>();
+      File pathFile = file;
+      while (!pathFile.exists()) {
+        parts.add(pathFile.getName());
+        pathFile = pathFile.getParentFile();
+      }
+
+      // Create all the files in the list
+      Collections.reverse(parts);
+      String start = pathFile.getAbsolutePath();
+      for (int i = 0; i < parts.size(); i++) {
+        String part = parts.get(i);
+        start += "/" + part;
+        File pathToFile = new File(start);
+        if (i < (parts.size() - 1)) {
+          pathToFile.mkdir();
+        } else {
+          pathToFile.createNewFile();
+        }
+      }
+    } catch (IOException e) {
+      throw new DocProxyException(500, "Could not create path to file.");
+    }
+
     // Remove old file.
     if (file.exists()) {
       boolean deleted = file.delete();
@@ -264,13 +391,14 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     }
 
     // Write content to new file
-
     try {
       FileOutputStream out = new FileOutputStream(newFile);
       IOUtils.stream(documentStream, out);
     } catch (IOException e) {
       throw new DocProxyException(500, "Unable to update file.");
     }
+
+    return newFile;
   }
 
   /**
