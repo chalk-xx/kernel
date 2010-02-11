@@ -28,6 +28,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.site.SiteException;
+import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGetServlet</code>
- * 
+ *
  * @scr.component immediate="true" label="SiteGetServlet"
  *                description="Get servlet for site service"
  * @scr.service interface="javax.servlet.Servlet"
@@ -61,7 +62,7 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceExtension(name="html", description="Get the html template for the site, ready for population by the client"),
         @ServiceExtension(name="json", description="Get a json tree of the site and metadata")
     }),
-    
+
     methods=@ServiceMethod(name="GET",
         description={"This method gets one of two forms of the site. If json is requested, the site properties are seialized into" +
         		"a json structure. If html is requested, the site object is inspected to determine the html template and then " +
@@ -78,7 +79,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
           @ServiceResponse(code=404,description="Resource was not found."),
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
+    ))
 public class SiteGetServlet extends AbstractSiteServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);
@@ -92,12 +93,12 @@ public class SiteGetServlet extends AbstractSiteServlet {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, "Couldn't find site node");
       return;
     }
-    
+
     if ("json".equals(request.getRequestPathInfo().getExtension())) {
       renderAsJson(site, response);
       return;
     }
-    
+
     if (!getSiteService().isSite(site)) {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Location does not represent site ");
@@ -125,7 +126,19 @@ public class SiteGetServlet extends AbstractSiteServlet {
   private void renderAsJson(Node node, SlingHttpServletResponse response) throws IOException {
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     try {
-      writer.node(node);
+      writer.object();
+      ExtendedJSONWriter.writeNodeContentsToWriter(writer, node);
+      // Add a non-persisted property to convey the current session's rights.
+      try {
+        SiteAuthz authzHelper = new SiteAuthz(node);
+        boolean isMaintainer = authzHelper.isUserSiteMaintainer();
+        writer.key(SiteAuthz.SITE_IS_USER_MAINTAINER_PROPERTY);
+        writer.value(isMaintainer);
+      } catch (RepositoryException e) {
+        LOG.warn("Problem with authorization setup for site", e);
+        // Continue without additional properties.
+      }
+      writer.endObject();
       response.setStatus(HttpServletResponse.SC_OK);
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());

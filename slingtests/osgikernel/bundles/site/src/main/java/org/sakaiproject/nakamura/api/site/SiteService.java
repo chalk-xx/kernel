@@ -72,7 +72,7 @@ public interface SiteService {
   public static final String MEMBER_GROUPS = "member:groups";
 
   /**
-   * The muntivalued property to store the list of associated authorizables.
+   * The multivalued property to store the list of associated authorizables.
    */
   public static final String AUTHORIZABLE = "sakai:authorizables";
   /**
