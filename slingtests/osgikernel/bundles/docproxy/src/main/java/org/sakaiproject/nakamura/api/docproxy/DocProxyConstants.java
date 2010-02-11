@@ -30,6 +30,13 @@ public interface DocProxyConstants {
   public static final String RT_EXTERNAL_REPOSITORY = "sakai/external-repository";
 
   /**
+   * The resource type that defines an external repository document node.
+   * 
+   * sakai/external-repository-document
+   */
+  public static final String RT_EXTERNAL_REPOSITORY_DOCUMENT = "sakai/external-repository-document";
+
+  /**
    * The property on a node that identifies which processor should be used to interact
    * with the external repository.
    * 
@@ -40,5 +47,9 @@ public interface DocProxyConstants {
   public static final String EXTERNAL_ID = "sakai:external-id";
 
   public static final String REPOSITORY_LOCATION = "sakai:repository-location";
+
+  public static final String REPOSITORY_SEARCH_PROPS = "sakai:repository-search-properties";
+
+  public static final String REPOSITORY_REF = "sakai:repository-ref";
 
 }

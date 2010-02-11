@@ -19,8 +19,10 @@ package org.sakaiproject.nakamura.site.servlet;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor;
+import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,13 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- * 
+ *
  * @scr.service interface="org.apache.sling.servlets.post.SlingPostProcessor"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  * @scr.component immediate="true" label="SitePostProcessor"
  *                description="Post Processor for Site operations" metatype="no"
  * @scr.property name="service.description" value="Post Processes site operations"
- * 
+ *
  */
 public class SitePostProcessor extends AbstractVirtualResourcePostProcessor {
 
@@ -45,7 +47,7 @@ public class SitePostProcessor extends AbstractVirtualResourcePostProcessor {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.siteservice.AbstractResourceTypePostProcessor#getResourceType()
    */
   @Override
@@ -54,29 +56,41 @@ public class SitePostProcessor extends AbstractVirtualResourcePostProcessor {
   }
 
   /**
-   * At the moment this function does not do anything other than print out a log message.
-   * If we need to do something on the site create, then we can put it here. 
-   * 
+   * Check for changes to properties of interest to the authz handler.
+   *
    * {@inheritDoc}
-   * 
+   *
    * @see org.sakaiproject.nakamura.siteservice.AbstractResourceTypePostProcessor#onCreate(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.servlets.post.Modification)
    */
   @Override
   protected void doProcess(SlingHttpServletRequest request, List<Modification> changes) {
+    boolean authzHandled = false;
     for (Modification m : changes) {
       try {
         Session s = request.getResourceResolver().adaptTo(Session.class);
-        if (s.itemExists(m.getSource())) {
-          Item item = s.getItem(m.getSource());
-          if (item != null && item.isNode()) {
-            LOGGER.info("Change to node {} " + item);
+        // Avoid a bogus warning when the deleted item is not found.
+        if (m.getType().equals(ModificationType.DELETE)) {
+          LOGGER.info("Delete node {}", m.getSource());
+        } else {
+          if (s.itemExists(m.getSource())) {
+            Item item = s.getItem(m.getSource());
+            if (item != null && item.isNode()) {
+              LOGGER.info("Change to node {}", item);
+            } else {
+              LOGGER.info("Change to property {}", item);
+              if (!authzHandled && SiteAuthz.MONITORED_SITE_PROPERTIES.contains(item.getName())) {
+                SiteAuthz authz = new SiteAuthz(item.getParent());
+                authz.applyAuthzChanges();
+                authzHandled = true;  // Only needed once
+              }
+            }
           } else {
-            LOGGER.info("Change to property {} ", item);
+            LOGGER.info("itemExists was false for Modification source " + m.getSource() + ", " + m.getType());
           }
         }
       } catch (RepositoryException ex) {
-        LOGGER.warn("Failed to process on create for {} ", m.getSource(), ex);
+        LOGGER.warn("Failed to process on post for {} ", m.getSource(), ex);
       }
     }
   }

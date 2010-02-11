@@ -20,9 +20,8 @@ package org.sakaiproject.nakamura.site.servlet;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.resource.JcrPropertyMap;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -38,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -85,29 +86,24 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
       output.array();
       for (Entry<String, List<Group>> site : membership.entrySet()) {
-        Resource resource = request.getResourceResolver().resolve(site.getKey());
+        Node siteNode = session.getNodeByUUID(site.getKey());
+        output.object();
 
-        if (resource.getResourceType() != Resource.RESOURCE_TYPE_NON_EXISTING) {
+        output.key("groups");
 
-          output.object();
-
-          output.key("groups");
-
-          output.array();
-          for (Group g : site.getValue()) {
-            output.value(g);
-          }
-          output.endArray();
-
-          output.key("siteref");
-          output.value(site.getKey());
-          
-          output.key("site");
-          output.valueMap(resource.adaptTo(ValueMap.class));
-
-          output.endObject();
-
+        output.array();
+        for (Group g : site.getValue()) {
+          output.value(g);
         }
+        output.endArray();
+
+        output.key("siteref");
+        output.value(siteNode.getPath());
+
+        output.key("site");
+        output.valueMap(new JcrPropertyMap(siteNode));
+
+        output.endObject();
       }
       output.endArray();
     } catch (JSONException e) {
@@ -115,6 +111,9 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
     } catch (SiteException e) {
       LOGGER.warn(e.getMessage(),e);
       response.sendError(e.getStatusCode(), e.getMessage());
+    } catch (RepositoryException e) {
+      LOGGER.warn(e.getMessage(),e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;
   }

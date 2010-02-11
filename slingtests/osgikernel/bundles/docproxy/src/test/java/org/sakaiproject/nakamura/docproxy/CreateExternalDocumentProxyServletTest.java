@@ -76,7 +76,7 @@ public class CreateExternalDocumentProxyServletTest extends AbstractDocProxyServ
         .andThrow(new PathNotFoundException());
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-
+    expect(request.getRemoteUser()).andReturn("admin");
     InputStream stream = getClass().getClassLoader().getResourceAsStream("README");
 
     // Parameters
@@ -93,11 +93,36 @@ public class CreateExternalDocumentProxyServletTest extends AbstractDocProxyServ
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
+    expect(request.getRemoteUser()).andReturn("admin");
     expect(request.getRequestParameter(PARAM_FILENAME)).andReturn(null);
     addFileUploadRequestParameter(request, PARAM_FILEBODY, null, 0, "foo");
 
     response.sendError(HttpServletResponse.SC_BAD_REQUEST,
         "Not all required parameters were supplied.");
+    replay();
+    servlet.doPost(request, response);
+  }
+
+  @Test
+  public void testAnonPost() throws IOException, PathNotFoundException,
+      RepositoryException, ServletException {
+    Session session = createMock(Session.class);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    // Session
+    expect(session.getItem("/docproxy/disk/README"))
+        .andThrow(new PathNotFoundException());
+    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
+    expect(request.getResourceResolver()).andReturn(resolver);
+
+    expect(request.getRemoteUser()).andReturn("anon");
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+        "Anonymous users can't post anything.");
+
     replay();
     servlet.doPost(request, response);
   }

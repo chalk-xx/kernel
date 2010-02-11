@@ -173,6 +173,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
         }
       }
       String path = site.getPath();
+      String siteUuid = site.getUUID();
       if (changes > 0) {
 
         // set the authorizables on the site
@@ -191,10 +192,10 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
               List<Value> vnew = new ArrayList<Value>();
               boolean r = false;
               for (int i = 0; i < v.length; i++) {
-                if (!path.equals(v[i].getString())) {
+                if (!siteUuid.equals(v[i].getString())) {
                   vnew.add(v[i]);
                 } else {
-                  LOGGER.debug("Removing {}", path);
+                  LOGGER.debug("Removing {}", siteUuid);
                   r = true;
                 }
               }
@@ -217,12 +218,12 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
           Value[] vnew = null;
           if (v == null) {
             vnew = new Value[1];
-            vnew[0] = vf.createValue(path);
+            vnew[0] = vf.createValue(siteUuid);
             LOGGER.debug("Adding Site {} to Group {} ", path, auth.getID());
           } else {
             boolean a = true;
             for (int i = 0; i < v.length; i++) {
-              if (path.equals(v[i].getString())) {
+              if (siteUuid.equals(v[i].getString())) {
                 a = false;
                 LOGGER
                     .debug("Site {} already is present in Group {} ", path, auth.getID());
@@ -233,7 +234,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
               LOGGER.debug("Appending Site {} to Group {} ", path, auth.getID());
               vnew = new Value[v.length + 1];
               System.arraycopy(v, 0, vnew, 0, v.length);
-              vnew[v.length] = vf.createValue(path);
+              vnew[v.length] = vf.createValue(siteUuid);
             }
 
           }
