@@ -353,13 +353,13 @@ public class SiteAuthz {
       throws RepositoryException {
     boolean isAuthzChanged = false;
     String principalId = aceModification.optString("principal");
-    if (principalId.isEmpty()) {
+    if (principalId.length() == 0) {
       String role = aceModification.optString("role");
-      if (!role.isEmpty()) {
+      if (role.length() != 0) {
         principalId = roleToGroupMap.get(role);
       }
     }
-    if (!principalId.isEmpty()) {
+    if (principalId.length() != 0) {
       List<String> grants = new ArrayList<String>();
       List<String> denies = new ArrayList<String>();
       JSONObject aces = aceModification.optJSONObject("aces");
