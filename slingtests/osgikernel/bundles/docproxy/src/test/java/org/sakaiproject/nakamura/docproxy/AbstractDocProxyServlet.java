@@ -21,27 +21,36 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.easymock.EasyMock.expect;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 
 import org.easymock.EasyMock;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 import org.sakaiproject.nakamura.docproxy.disk.DiskProcessor;
+import org.sakaiproject.nakamura.docproxy.disk.DiskProcessorTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
+import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
+
 import javax.jcr.Node;
-import javax.jcr.Property;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  *
  */
 public class AbstractDocProxyServlet extends AbstractEasyMockTest {
-  protected Node proxyNode;
+  protected SakaiMockNode proxyNode;
   protected String currPath;
   protected ExternalRepositoryProcessorTracker tracker;
   protected BundleContext bundleContext;
   protected ComponentContext componentContext;
+  protected DiskProcessor diskProcessor;
+  protected Session session;
 
   /**
    * {@inheritDoc}
@@ -56,30 +65,16 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
 
-    proxyNode = createMock(Node.class);
-    // We use the default disk processor.
-    Property processorProperty = createMock(Property.class);
-    expect(processorProperty.getString()).andReturn("disk");
+    proxyNode = new SakaiMockNode("/docproxy/disk");
+    proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
+    proxyNode.setProperty(REPOSITORY_PROCESSOR, "disk");
+    proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
 
-    // Our resource type
-    Property resourceTypeProp = createMock(Property.class);
-    expect(resourceTypeProp.getString()).andReturn(
-        DocProxyConstants.RT_EXTERNAL_REPOSITORY);
-
-    // Repository location
-    Property locationProp = createMock(Property.class);
-    expect(locationProp.getString()).andReturn(currPath).anyTimes();
-
-    expect(proxyNode.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true);
-    expect(proxyNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY)).andReturn(
-        resourceTypeProp);
-    expect(proxyNode.getProperty(REPOSITORY_PROCESSOR)).andReturn(processorProperty);
-    expect(proxyNode.getPath()).andReturn("/docproxy/disk");
-    expect(proxyNode.getProperty(REPOSITORY_LOCATION)).andReturn(locationProp);
-    expect(proxyNode.isNode()).andReturn(true);
+    session = createProxySession();
+    proxyNode.setSession(session);
 
     // Mock up the tracker
-    DiskProcessor diskProcessor = new DiskProcessor();
+    diskProcessor = new DiskProcessor();
     bundleContext = expectServiceTrackerCalls(ExternalRepositoryProcessor.class.getName());
 
     componentContext = EasyMock.createMock(ComponentContext.class);
@@ -92,4 +87,27 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     tracker.putProcessor(diskProcessor, "disk");
 
   }
+
+  /**
+   * @return
+   */
+  private Session createProxySession() throws RepositoryException {
+    Session session = createMock(Session.class);
+    expect(session.itemExists("/docproxy/disk")).andReturn(true).anyTimes();
+    expect(session.itemExists("/docproxy")).andReturn(true).anyTimes();
+    expect(session.itemExists("/")).andReturn(true).anyTimes();
+    expect(session.getItem("/docproxy/disk")).andReturn(proxyNode).anyTimes();
+    return session;
+  }
+
+  public Node createFile(DiskProcessor processor, Node proxyNode, String path,
+      String content) throws PathNotFoundException, RepositoryException,
+      UnsupportedEncodingException, DocProxyException {
+    ByteArrayInputStream stream = new ByteArrayInputStream(content.getBytes("UTF-8"));
+    Node node = DiskProcessorTest.createFile(processor, proxyNode, path, stream);
+    session = createProxySession();
+    ((SakaiMockNode) proxyNode).setSession(session);
+    return node;
+  }
+
 }

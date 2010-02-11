@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
+
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -50,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = { "sling/nonexisting" }, methods = { "GET" }, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
@@ -72,8 +74,15 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
-      if (!DocProxyUtils.isDocProxyNode(node)) {
+      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
+        // This document should reference the config node.
+        String uuid = node.getProperty(REPOSITORY_REF).getString();
+        node = session.getNodeByUUID(uuid);
+      }
+
+      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
+        LOGGER.info("Disregarding a request to sling/nonexisting - {}", url);
         return;
       }
 

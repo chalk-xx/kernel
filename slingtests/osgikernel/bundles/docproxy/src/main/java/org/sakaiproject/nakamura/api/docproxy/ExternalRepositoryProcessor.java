@@ -42,7 +42,9 @@ public interface ExternalRepositoryProcessor {
    *          metadata associated with the JCR node within K2.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @param properties
    *          A map of properties to associated with the document, either remotely or
    *          locally on the node, implementation specific. If a property is null it will
@@ -67,7 +69,9 @@ public interface ExternalRepositoryProcessor {
    *          the node representing the document.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @throws DocProxyException
    *           When something goes wrong this should contain an appropriate HTTP status
    *           code and message.
@@ -82,7 +86,9 @@ public interface ExternalRepositoryProcessor {
    *          the node representing the external document.
    * @param path
    *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation.
+   *          be ignored by the implementation. Most of the time this will be part of the
+   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+   *          DocProxy node, the path would be /foo/bar/readme.txt
    * @throws DocProxyException
    *           When something goes wrong this should contain an appropriate HTTP status
    *           code and message.
@@ -98,13 +104,19 @@ public interface ExternalRepositoryProcessor {
    * ExternalDocumentResult on demand. The implementation should not typically try and
    * load all matching documents.
    * 
+   * @param node
+   *          The node containing the repository information.
    * @param searchProperties
    *          a key value map of search fields and search values. If the field is
    *          tokenized then the search should be a substring search, if the field is a
    *          keyword the search should be a keyword search.
+   * @throws DocProxyException
+   *           The search failed for some reason, this should contain an appropriate HTTP
+   *           status code and message.
    * @return a lazy iterator of ExternalDocumentResults.
    */
-  public Iterator<ExternalDocumentResult> search(Map<String, Object> searchProperties);
+  public Iterator<ExternalDocumentResult> search(Node node,
+      Map<String, Object> searchProperties) throws DocProxyException;
 
   /**
    * @return What kind of external repository this processor should handle.
