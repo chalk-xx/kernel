@@ -24,14 +24,13 @@ public class DocProxyException extends Exception {
 
   private int code;
   private String message;
-  
+
   public DocProxyException(int code, String message) {
     super();
-    this.code = code;
-    this.message = message;
+    setCode(code);
+    setMessage(message);
   }
-  
-  
+
   /**
    * @return the code
    */
@@ -40,7 +39,8 @@ public class DocProxyException extends Exception {
   }
 
   /**
-   * @param code the code to set
+   * @param code
+   *          the code to set
    */
   public void setCode(int code) {
     this.code = code;
@@ -54,7 +54,8 @@ public class DocProxyException extends Exception {
   }
 
   /**
-   * @param message the message to set
+   * @param message
+   *          the message to set
    */
   public void setMessage(String message) {
     this.message = message;
