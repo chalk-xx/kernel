@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
-import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -51,10 +51,10 @@ public class TestSitePostProcessor {
   public void setUp()
   {
     processor = new SitePostProcessor();
-    request = createMock(SlingHttpServletRequest.class);
-    resolver = createMock(ResourceResolver.class);
-    session = createMock(Session.class);
-    item = createMock(Item.class);
+    request = createNiceMock(SlingHttpServletRequest.class);
+    resolver = createNiceMock(ResourceResolver.class);
+    session = createNiceMock(Session.class);
+    item = createNiceMock(Item.class);
     
     expect(request.getResourceResolver()).andReturn(resolver);
     expect(resolver.adaptTo(eq(Session.class))).andReturn(session);

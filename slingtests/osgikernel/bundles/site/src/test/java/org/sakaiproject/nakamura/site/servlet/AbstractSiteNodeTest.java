@@ -56,7 +56,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
 
   protected void goodSiteNodeSetup() throws RepositoryException {
     goodResourceResolverSetup();
-    node = createMock(Node.class);
+    node = createNiceMock(Node.class);
     expect(resource.adaptTo(eq(Node.class))).andReturn(node);
     expect(node.hasProperty(eq(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))).andReturn(true)
         .anyTimes();

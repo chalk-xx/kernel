@@ -136,6 +136,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     expect(propIterator.nextProperty()).andReturn(propSlingResourceType);
     expect(propIterator.hasNext()).andReturn(false);
     expect(node.getProperties()).andReturn(propIterator);
+    expect(node.hasProperty(isA(String.class))).andReturn(false);
     response.setStatus(HttpServletResponse.SC_OK);
     preRequest();
     SiteGetServlet servlet = new SiteGetServlet();
