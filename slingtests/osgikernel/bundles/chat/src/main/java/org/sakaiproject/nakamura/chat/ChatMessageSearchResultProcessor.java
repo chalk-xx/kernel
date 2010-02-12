@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.chat;
 
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -60,7 +61,8 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
    */
   public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
+    ResourceResolver r = request.getResourceResolver();
+    Session session = r.adaptTo(Session.class);
     Node resultNode = RowUtils.getNode(row, session);
     if ( aggregator != null ) {
       aggregator.add(resultNode);
@@ -89,8 +91,8 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
     }
 
     if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM,
-          "userFrom");
+    	String from = resultNode.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
+      PersonalUtils.writeUserInfo(resultNode.getSession(), from, write, "userFrom");
     }
 
     // List all of the properties on here.
