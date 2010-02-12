@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.chat;
 
-import static org.easymock.classextension.EasyMock.*;
-
 import static org.junit.Assert.assertEquals;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -33,6 +31,11 @@ import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.memory.MapCacheImpl;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
