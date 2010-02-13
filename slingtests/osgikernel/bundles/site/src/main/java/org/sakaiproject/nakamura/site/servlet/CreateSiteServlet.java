@@ -351,8 +351,12 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, sitePath);
     Node siteNode = (Node) session.getItem(sitePath);
+    if (siteNode.hasProperty(SiteService.SAKAI_IS_SITE_TEMPLATE)) {
+      if (siteNode.getProperty(SiteService.SAKAI_IS_SITE_TEMPLATE).getBoolean()) {
+        siteNode.setProperty(SiteService.SAKAI_IS_SITE_TEMPLATE, false);
+      }
+    }
     session.save();
-
     // Give the copied nodes an initial version
     NodeIterator it = siteNode.getNodes();
     while (it.hasNext()) {
