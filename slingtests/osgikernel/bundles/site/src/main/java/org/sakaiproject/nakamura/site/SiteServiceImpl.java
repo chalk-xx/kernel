@@ -315,6 +315,17 @@ public class SiteServiceImpl implements SiteService {
     return false;
   }
 
+  /**
+   *
+   * {@inheritDoc}
+   *
+   * @see org.sakaiproject.nakamura.api.site.SiteService#isUserSiteMaintainer(javax.jcr.Node)
+   */
+  public boolean isUserSiteMaintainer(Node site) throws RepositoryException {
+    SiteAuthz authz = new SiteAuthz(site);
+    return authz.isUserSiteMaintainer();
+  }
+
   private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException,
       RepositoryException {
     Property property = site.getProperty(propName);
