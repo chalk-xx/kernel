@@ -1,0 +1,151 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.nakamura.discussion.searchresults;
+
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
+
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.commons.testing.jcr.MockNode;
+import org.junit.Test;
+import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
+import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.ValueFormatException;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.query.RowIterator;
+import javax.jcr.version.VersionException;
+
+/**
+ *
+ */
+public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
+
+  private DiscussionThreadedSearchBatchResultProcessor processor;
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest#setUp()
+   */
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+
+    processor = new DiscussionThreadedSearchBatchResultProcessor();
+  }
+
+  @Test
+  public void testProces() throws ValueFormatException, VersionException, LockException,
+      ConstraintViolationException, RepositoryException, JSONException, IOException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resolver);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Writer w = new PrintWriter(baos);
+    JSONWriter writer = new JSONWriter(w);
+
+    // 4 nodes
+    // a
+    // - b
+    // - d
+    // - c
+
+    MockNode profileNode = new MockNode("/_user/public/d0/33/e2/2a/2admin/authprofile");
+    MockNode anonProfileNode = new MockNode(
+        "/_user/public/0a/92/fa/b3/anonymous/authprofile");
+
+    MockNode nodeA = new MockNode("/msg/a");
+    nodeA.setSession(session);
+    nodeA.setProperty(MessageConstants.PROP_SAKAI_ID, "a");
+    nodeA.setProperty(MessageConstants.PROP_SAKAI_FROM, "admin");
+
+    MockNode nodeB = new MockNode("/msg/b");
+    nodeB.setSession(session);
+    nodeB.setProperty(MessageConstants.PROP_SAKAI_ID, "b");
+    nodeB.setProperty(DiscussionConstants.PROP_REPLY_ON, "a");
+    nodeB.setProperty(MessageConstants.PROP_SAKAI_FROM, "anonymous");
+    nodeB.setProperty(DiscussionConstants.PROP_EDITEDBY, "admin");
+
+    MockNode nodeC = new MockNode("/msg/c");
+    nodeC.setSession(session);
+    nodeC.setProperty(MessageConstants.PROP_SAKAI_ID, "c");
+    nodeC.setProperty(DiscussionConstants.PROP_REPLY_ON, "a");
+    nodeC.setProperty(MessageConstants.PROP_SAKAI_FROM, "admin");
+
+    MockNode nodeD = new MockNode("/msg/d");
+    nodeD.setSession(session);
+    nodeD.setProperty(MessageConstants.PROP_SAKAI_ID, "d");
+    nodeD.setProperty(DiscussionConstants.PROP_REPLY_ON, "b");
+    nodeD.setProperty(MessageConstants.PROP_SAKAI_FROM, "admin");
+
+    List<Node> nodes = new ArrayList<Node>();
+    nodes.add(nodeA);
+    nodes.add(nodeB);
+    nodes.add(nodeC);
+    nodes.add(nodeD);
+
+    expect(session.getItem("/msg/a")).andReturn(nodeA);
+    expect(session.getItem("/msg/b")).andReturn(nodeB);
+    expect(session.getItem("/msg/c")).andReturn(nodeC);
+    expect(session.getItem("/msg/d")).andReturn(nodeD);
+    expect(session.getItem("/_user/public/d0/33/e2/2a/admin/authprofile")).andReturn(
+        profileNode).anyTimes();
+    expect(session.getItem("/_user/public/0a/92/fa/b3/anonymous/authprofile")).andReturn(
+        anonProfileNode).anyTimes();
+
+    RowIterator iterator = new MockIterator(nodes);
+
+    replay();
+    processor.writeNodes(request, writer, null, iterator);
+    w.flush();
+
+    String s = baos.toString("UTF-8");
+
+    JSONObject json = new JSONObject(s);
+    assertEquals(json.getJSONArray("replies").length(), 2);
+    assertEquals(json.getJSONArray("replies").getJSONObject(0).getJSONArray("replies")
+        .length(), 1);
+    assertEquals("a", json.getJSONObject("post").get("sakai:id"));
+    assertEquals("b", json.getJSONArray("replies").getJSONObject(0).getJSONObject("post")
+        .get("sakai:id"));
+  }
+
+}

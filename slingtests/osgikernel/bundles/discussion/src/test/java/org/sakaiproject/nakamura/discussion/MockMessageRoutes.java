@@ -15,27 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-
 package org.sakaiproject.nakamura.discussion;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
-import org.sakaiproject.nakamura.api.discussion.DiscussionUtils;
+import org.sakaiproject.nakamura.api.message.MessageRoute;
+import org.sakaiproject.nakamura.api.message.MessageRoutes;
 
-public class DiscussionUtilsTest {
+import java.util.ArrayList;
 
-  private static final String POST = "6a54e2ecc61aa419f87559e74db29a38ac153ad0";
-  private static final String STORE = "/test/store";
-  private static final String FULL = "/test/store/ef/35/29/ed/6a54e2ecc61aa419f87559e74db29a38ac153ad0";
-  
-  @Test
-  public void testPath() {
-    assertEquals(FULL, DiscussionUtils.getFullPostPath(STORE, POST));
-  }
-  
-  @Test
-  public void testPathWithSelector() {
-    String sel = ".reply.html";
-    assertEquals(FULL + sel, DiscussionUtils.getFullPostPath(STORE, POST) + sel);
-  }
+/**
+ * Mock Class for message routing.
+ */
+public class MockMessageRoutes extends ArrayList<MessageRoute> implements MessageRoutes {
+  private static final long serialVersionUID = 6908624167365901970L;
 }
