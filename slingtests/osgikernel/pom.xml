@@ -53,7 +53,6 @@
         <module>bundles/jpa</module>
         <module>bundles/jpacore</module>
         <module>bundles/jetty-config</module>
-        <module>bundles/session</module>
         <module>bundles/jcr</module>
         <module>bundles/locking</module>
         <module>bundles/messaging</module>

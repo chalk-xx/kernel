@@ -431,11 +431,6 @@
       <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
-   <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.session</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
 <!--
 org.sakaiproject.nakamura.jpaprovider
 -->
