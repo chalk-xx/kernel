@@ -17,20 +17,18 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
-import static org.easymock.EasyMock.isA;
-
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
 import junit.framework.Assert;
 
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.commons.testing.jcr.MockValue;
 import org.apache.sling.commons.testing.osgi.MockBundle;
 import org.apache.sling.commons.testing.osgi.MockComponentContext;
@@ -40,7 +38,6 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
-import org.sakaiproject.nakamura.docproxy.SakaiMockNode;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -67,7 +64,7 @@ public class DiskProcessorTest {
   public static final String TEST_STRING = "K2 docProxy test resource";
   private DiskProcessor diskProcessor;
   private String currPath;
-  private SakaiMockNode proxyNode;
+  private MockNode proxyNode;
 
   @Before
   public void setUp() throws Exception {
@@ -77,7 +74,7 @@ public class DiskProcessorTest {
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
 
-    proxyNode = new SakaiMockNode("/docproxy/disk");
+    proxyNode = new MockNode("/docproxy/disk");
     proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
   }
 
@@ -199,7 +196,7 @@ public class DiskProcessorTest {
 
     String docPath = "path/to/document";
 
-    SakaiMockNode documentNode = new SakaiMockNode(proxyNode.getPath() + "/" + docPath);
+    MockNode documentNode = new MockNode(proxyNode.getPath() + "/" + docPath);
     Session session = createMock(Session.class);
     expect(session.itemExists(proxyNode.getPath() + "/" + docPath)).andReturn(true);
     expect(session.getItem(proxyNode.getPath() + "/" + docPath)).andReturn(documentNode);

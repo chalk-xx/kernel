@@ -17,20 +17,15 @@
  */
 package org.sakaiproject.nakamura.docproxy;
 
-import static org.easymock.EasyMock.replay;
-
-import static org.easymock.EasyMock.expect;
-
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.easymock.EasyMock.createMock;
-
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
-import static org.junit.Assert.assertEquals;
-
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
-
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyUtils;
 
@@ -49,7 +44,7 @@ public class DocProxyUtilsTest {
   @Test
   public void testRepositoryConfig() throws ValueFormatException, VersionException,
       LockException, ConstraintViolationException, RepositoryException {
-    Node node = new SakaiMockNode("/docproxy/disk");
+    Node node = new MockNode("/docproxy/disk");
     node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
     boolean result = DocProxyUtils.isExternalRepositoryConfig(node);
     assertEquals(true, result);
@@ -72,7 +67,7 @@ public class DocProxyUtilsTest {
   @Test
   public void testRepositoryDocument() throws ValueFormatException, VersionException,
       LockException, ConstraintViolationException, RepositoryException {
-    Node node = new SakaiMockNode("/docproxy/disk/foo/document.doc");
+    Node node = new MockNode("/docproxy/disk/foo/document.doc");
     node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY_DOCUMENT);
     boolean result = DocProxyUtils.isExternalRepositoryDocument(node);
     assertEquals(true, result);
