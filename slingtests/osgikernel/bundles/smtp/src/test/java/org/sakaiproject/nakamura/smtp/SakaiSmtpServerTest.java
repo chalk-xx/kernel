@@ -39,6 +39,7 @@ import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 
 /**
  *
@@ -79,8 +80,12 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
       + "X-JIRA-FingerPrint: 43079b93228ea120d4bc89f05c6f1356\n\n"
       + "Here is a message body";
   
+
+  
   private static final String SUBJECT_TEST = "[Sakai Jira] Commented: (KERN-631) Expose Sakai 2 tools in a Sakai\r\n"
   + " 3 environment detached from a Sakai 2 rendered site";
+  private static final String MULTIPART_SUBJECT_TEST = "Breaking News Extra: Husband of Accused Huntsville Killer Says She Was Bitter Over Tenure";
+  private static final String MULTIPART_SUBJECT_TEST2 = "TestBinary Mesage";
 
 
   @Test
@@ -156,13 +161,12 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testCoodFormatMessage() throws Exception {
+  public void testGoodFormatMessage() throws Exception {
 
     ComponentContext componentContext = createNiceMock(ComponentContext.class);
     SlingRepository slingRepository = createNiceMock(SlingRepository.class);
     JackrabbitSession session = createMock(JackrabbitSession.class);
     MessagingService messagingService = createMock(MessagingService.class);
-    Node messageNode = createMock(Node.class);
     Node myMessageNode = createMock(Node.class);
     Property property = createMock(Property.class);
 
@@ -194,6 +198,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expect(
         messagingService.create(EasyMock.capture(sessionCapture2), EasyMock
             .capture(mapProperties2))).andReturn(myMessageNode);
+    
     
     EasyMock.expect(myMessageNode.setProperty("sakai:body", dataStream)).andReturn(null);
     myMessageNode.save();
@@ -231,6 +236,188 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     String[] recieved = (String[]) headers.get("sakai:received");
     Assert.assertNotNull(recieved);
     Assert.assertEquals(recieved.length, 6);
+
+    sakaiSmtpServer.deactivate(componentContext);
+
+    verify();
+  }
+  
+
+  @Test
+  public void testGoodFormatMultipartMessage() throws Exception {
+
+    ComponentContext componentContext = createNiceMock(ComponentContext.class);
+    SlingRepository slingRepository = createNiceMock(SlingRepository.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    MessagingService messagingService = createMock(MessagingService.class);
+    Node part0Node = createNiceMock(Node.class);
+    Node myMessageNode = createMock(Node.class);
+    Property property = createMock(Property.class);
+
+    Dictionary<String, Object> properties = new Hashtable<String, Object>();
+
+    session.logout();
+    EasyMock.expectLastCall().anyTimes();
+
+    EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
+    EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
+        .anyTimes();
+    List<String> recipents = new ArrayList<String>();
+    recipents.add("alice");
+    EasyMock.expect(messagingService.expandAliases("alice")).andReturn(recipents)
+        .anyTimes();
+    EasyMock.expect(messagingService.getFullPathToStore("alice", session)).andReturn(
+        "/messagestore/alice").anyTimes();
+    List<String> senders = new ArrayList<String>();
+    senders.add("bob");
+    EasyMock.expect(messagingService.expandAliases("bob")).andReturn(senders).anyTimes();
+    EasyMock.expect(messagingService.getFullPathToStore("bob", session)).andReturn(
+        "/messagestore/bob").anyTimes();
+    System.setProperty("org.sakaiproject.nakamura.SMTPServerPort", "9025");
+    InputStream dataStream = this.getClass().getResourceAsStream("testmultipartgood.txt");
+
+
+    Capture<Map<String, Object>> mapProperties = new Capture<Map<String, Object>>();
+    Capture<Session> sessionCapture = new Capture<Session>();
+    Capture<String> messageId = new Capture<String>();
+    Capture<String> path = new Capture<String>();
+    EasyMock.expect(
+        messagingService.create(EasyMock.capture(sessionCapture), EasyMock
+            .capture(mapProperties), EasyMock.capture(messageId), EasyMock.capture(path))).andReturn(myMessageNode);
+
+    EasyMock.expect(myMessageNode.addNode("part000")).andReturn(part0Node);
+    EasyMock.expect(myMessageNode.addNode("part001")).andReturn(part0Node);
+    
+
+    EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
+    EasyMock.expect(property.getString()).andReturn("messageid");
+    EasyMock.expect(session.hasPendingChanges()).andReturn(true);
+    session.save();
+    EasyMock.expectLastCall();
+
+    replay();
+    SakaiSmtpServer sakaiSmtpServer = new SakaiSmtpServer();
+    sakaiSmtpServer.slingRepository = slingRepository;
+    sakaiSmtpServer.messagingService = messagingService;
+
+    System.err.println("Capturing sd;jflksjglksfdjgsldk;fgjsdlkgjsdklgjhdfs kghjfdskghjsdk");
+
+    sakaiSmtpServer.activate(componentContext);
+
+    sakaiSmtpServer.accept("bob@localhost", "alice@localhost");
+    sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
+
+    
+    // call to messageService.create
+    Assert.assertTrue(mapProperties.hasCaptured());
+    Assert.assertTrue(sessionCapture.hasCaptured());
+    Assert.assertTrue(messageId.hasCaptured());
+    Assert.assertTrue(path.hasCaptured());
+
+    Assert.assertEquals(session, sessionCapture.getValue());
+    Assert.assertEquals("/messagestore/alice", path.getValue());
+
+    Map<String,Object> headers = mapProperties.getValue();
+    // check multi line parsing of headers
+    Assert.assertEquals(MULTIPART_SUBJECT_TEST, headers.get("sakai:subject"));
+    
+    // check multi header parsing.
+    String[] recieved = (String[]) headers.get("sakai:received");
+    Assert.assertNotNull(recieved);
+    Assert.assertEquals(recieved.length, 6);
+
+    sakaiSmtpServer.deactivate(componentContext);
+
+    verify();
+  }
+
+
+  @Test
+  public void testGoodFormatMultipartBinaryMessage() throws Exception {
+
+    ComponentContext componentContext = createNiceMock(ComponentContext.class);
+    SlingRepository slingRepository = createNiceMock(SlingRepository.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    MessagingService messagingService = createMock(MessagingService.class);
+    Node part0Node = createNiceMock(Node.class);
+    Node myMessageNode = createMock(Node.class);
+    Property property = createMock(Property.class);
+    ValueFactory valueFactory = createNiceMock(ValueFactory.class);
+
+    Dictionary<String, Object> properties = new Hashtable<String, Object>();
+
+    session.logout();
+    EasyMock.expectLastCall().anyTimes();
+
+    EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
+    EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
+        .anyTimes();
+    List<String> recipents = new ArrayList<String>();
+    recipents.add("alice");
+    EasyMock.expect(messagingService.expandAliases("alice")).andReturn(recipents)
+        .anyTimes();
+    EasyMock.expect(messagingService.getFullPathToStore("alice", session)).andReturn(
+        "/messagestore/alice").anyTimes();
+    List<String> senders = new ArrayList<String>();
+    senders.add("bob");
+    EasyMock.expect(messagingService.expandAliases("bob")).andReturn(senders).anyTimes();
+    EasyMock.expect(messagingService.getFullPathToStore("bob", session)).andReturn(
+        "/messagestore/bob").anyTimes();
+    System.setProperty("org.sakaiproject.nakamura.SMTPServerPort", "9025");
+    InputStream dataStream = this.getClass().getResourceAsStream("testmultipartbinarygood.txt");
+
+
+    Capture<Map<String, Object>> mapProperties = new Capture<Map<String, Object>>();
+    Capture<Session> sessionCapture = new Capture<Session>();
+    Capture<String> messageId = new Capture<String>();
+    Capture<String> path = new Capture<String>();
+    EasyMock.expect(
+        messagingService.create(EasyMock.capture(sessionCapture), EasyMock
+            .capture(mapProperties), EasyMock.capture(messageId), EasyMock.capture(path))).andReturn(myMessageNode);
+
+    EasyMock.expect(myMessageNode.addNode("part000")).andReturn(part0Node);
+    EasyMock.expect(myMessageNode.addNode("part001","nt:file")).andReturn(part0Node);
+    EasyMock.expect(part0Node.addNode("jcr:content", "nt:resource")).andReturn(part0Node);
+    EasyMock.expect(session.getValueFactory()).andReturn(valueFactory);
+    
+
+    EasyMock.expect(myMessageNode.getPath()).andReturn("/messagestore/bob/messagenode");
+    EasyMock.expect(myMessageNode.getProperty("message-id")).andReturn(property);
+    EasyMock.expect(property.getString()).andReturn("messageid");
+    EasyMock.expect(session.hasPendingChanges()).andReturn(true);
+    session.save();
+    EasyMock.expectLastCall();
+
+    replay();
+    SakaiSmtpServer sakaiSmtpServer = new SakaiSmtpServer();
+    sakaiSmtpServer.slingRepository = slingRepository;
+    sakaiSmtpServer.messagingService = messagingService;
+
+    System.err.println("Capturing sd;jflksjglksfdjgsldk;fgjsdlkgjsdklgjhdfs kghjfdskghjsdk");
+
+    sakaiSmtpServer.activate(componentContext);
+
+    sakaiSmtpServer.accept("bob@localhost", "alice@localhost");
+    sakaiSmtpServer.deliver("bob@localhost", "alice@localhost", dataStream);
+
+    
+    // call to messageService.create
+    Assert.assertTrue(mapProperties.hasCaptured());
+    Assert.assertTrue(sessionCapture.hasCaptured());
+    Assert.assertTrue(messageId.hasCaptured());
+    Assert.assertTrue(path.hasCaptured());
+
+    Assert.assertEquals(session, sessionCapture.getValue());
+    Assert.assertEquals("/messagestore/alice", path.getValue());
+
+    Map<String,Object> headers = mapProperties.getValue();
+    // check multi line parsing of headers
+    Assert.assertEquals(MULTIPART_SUBJECT_TEST2, headers.get("sakai:subject"));
+    
+    // check multi header parsing.
+    String recieved =  (String) headers.get("sakai:received");
+    Assert.assertNotNull(recieved);
 
     sakaiSmtpServer.deactivate(componentContext);
 
