@@ -17,15 +17,21 @@
  */
 package org.sakaiproject.nakamura.docproxy.disk;
 
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
-
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_LOCATION;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
 import junit.framework.Assert;
 
 import org.apache.sling.commons.testing.jcr.MockNode;
+import org.apache.sling.commons.testing.jcr.MockValue;
+import org.apache.sling.commons.testing.osgi.MockBundle;
+import org.apache.sling.commons.testing.osgi.MockComponentContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -46,6 +52,9 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.ValueFactory;
+import javax.jcr.ValueFormatException;
 
 /**
  *
@@ -55,7 +64,7 @@ public class DiskProcessorTest {
   public static final String TEST_STRING = "K2 docProxy test resource";
   private DiskProcessor diskProcessor;
   private String currPath;
-  private Node proxyNode;
+  private MockNode proxyNode;
 
   @Before
   public void setUp() throws Exception {
@@ -119,13 +128,15 @@ public class DiskProcessorTest {
     replay(locationProp, proxyNode);
 
     // Create a couple of files.
-    createFile(diskProcessor, proxyNode, "test-disk-search-1", "alfa");
-    createFile(diskProcessor, proxyNode, "test-disk-search-2", "beta");
-    createFile(diskProcessor, proxyNode, "test-disk-search-3", "charlie");
+    createFile(diskProcessor, proxyNode, "test-disk-search-1-foo", "alfa");
+    createFile(diskProcessor, proxyNode, "test-disk-search-2-foo", "beta");
+    createFile(diskProcessor, proxyNode, "test-disk-search-3-foo", "charlie");
+    createFile(diskProcessor, proxyNode, ".FOOBAR-foo", "");
 
     // The disk search only matches filenames starting with a term..
     Map<String, Object> searchProperties = new HashMap<String, Object>();
     searchProperties.put("starts-with", "test-disk-search-");
+    searchProperties.put("ends-with", "foo");
 
     // Perform actual search.
     Iterator<ExternalDocumentResult> results = diskProcessor.search(proxyNode,
@@ -156,6 +167,55 @@ public class DiskProcessorTest {
         "test-contentType.html");
     Assert.assertEquals("text/html", htmlMeta.getContentType());
 
+  }
+
+  @Test
+  public void testFaultyRepositoryLocation() throws ValueFormatException,
+      RepositoryException, UnsupportedEncodingException, IOException {
+    Node proxyNode = createMock(Node.class);
+    Property locationProp = createMock(Property.class);
+    expect(locationProp.getString()).andReturn(currPath).anyTimes();
+    expect(proxyNode.getProperty(DocProxyConstants.REPOSITORY_LOCATION)).andThrow(
+        new RepositoryException());
+    replay(locationProp, proxyNode);
+    try {
+      diskProcessor.getDocument(proxyNode, "README");
+    } catch (DocProxyException e) {
+      assertEquals(500, e.getCode());
+      assertEquals("Unable to read from node property.", e.getMessage());
+    }
+  }
+
+  @Test
+  public void testWritingtoJCR() throws PathNotFoundException,
+      UnsupportedEncodingException, RepositoryException, DocProxyException {
+    MockBundle bundle = new MockBundle(111);
+    MockComponentContext context = new MockComponentContext(bundle);
+    context.setProperty("createJCRNodes", true);
+    diskProcessor.activate(context);
+
+    String docPath = "path/to/document";
+
+    MockNode documentNode = new MockNode(proxyNode.getPath() + "/" + docPath);
+    Session session = createMock(Session.class);
+    expect(session.itemExists(proxyNode.getPath() + "/" + docPath)).andReturn(true);
+    expect(session.getItem(proxyNode.getPath() + "/" + docPath)).andReturn(documentNode);
+
+    ValueFactory factory = createMock(ValueFactory.class);
+    expect(factory.createValue(isA(String.class))).andReturn(new MockValue("someuuid"));
+
+    expect(session.getValueFactory()).andReturn(factory);
+    expect(session.hasPendingChanges()).andReturn(true);
+    session.save();
+
+    replay(factory);
+    replay(session);
+    proxyNode.setSession(session);
+
+    createFile(diskProcessor, proxyNode, docPath, "random content");
+
+    assertEquals(documentNode.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString(),
+        RT_EXTERNAL_REPOSITORY_DOCUMENT);
   }
 
   public static Node createFile(DiskProcessor processor, Node proxyNode, String path,

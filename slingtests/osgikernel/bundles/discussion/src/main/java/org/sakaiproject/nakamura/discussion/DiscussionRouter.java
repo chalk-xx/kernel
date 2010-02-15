@@ -24,6 +24,7 @@ import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
+import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,11 +65,11 @@ public class DiscussionRouter implements MessageRouter {
   public void route(Node n, MessageRoutes routing) {
     // Check if this message is a discussion/comment transport.
     try {
-      // TODO check sakai:to because I think sakai:type won't be staying?
-      if (n.hasProperty(MessageConstants.PROP_SAKAI_TYPE)
+      if (n.hasProperty(MessageConstants.PROP_SAKAI_TO)
           && n.hasProperty(DiscussionConstants.PROP_MARKER)) {
 
-        String type = n.getProperty(MessageConstants.PROP_SAKAI_TYPE).getString();
+        String to = n.getProperty(MessageConstants.PROP_SAKAI_TO).getString();
+        String type = StringUtils.split(to, ':')[0];
 
         if ("comment".equals(type) || "discussion".equals(type)) {
 

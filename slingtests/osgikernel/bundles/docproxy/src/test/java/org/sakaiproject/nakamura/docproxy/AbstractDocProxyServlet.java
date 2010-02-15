@@ -23,6 +23,7 @@ import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITOR
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_PROCESSOR;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.easymock.EasyMock;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -44,7 +45,7 @@ import javax.jcr.Session;
  *
  */
 public class AbstractDocProxyServlet extends AbstractEasyMockTest {
-  protected SakaiMockNode proxyNode;
+  protected MockNode proxyNode;
   protected String currPath;
   protected ExternalRepositoryProcessorTracker tracker;
   protected BundleContext bundleContext;
@@ -65,7 +66,7 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     String readmePath = getClass().getClassLoader().getResource("README").getPath();
     currPath = readmePath.substring(0, readmePath.lastIndexOf("/"));
 
-    proxyNode = new SakaiMockNode("/docproxy/disk");
+    proxyNode = new MockNode("/docproxy/disk");
     proxyNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
     proxyNode.setProperty(REPOSITORY_PROCESSOR, "disk");
     proxyNode.setProperty(REPOSITORY_LOCATION, currPath);
@@ -106,7 +107,7 @@ public class AbstractDocProxyServlet extends AbstractEasyMockTest {
     ByteArrayInputStream stream = new ByteArrayInputStream(content.getBytes("UTF-8"));
     Node node = DiskProcessorTest.createFile(processor, proxyNode, path, stream);
     session = createProxySession();
-    ((SakaiMockNode) proxyNode).setSession(session);
+    ((MockNode) proxyNode).setSession(session);
     return node;
   }
 

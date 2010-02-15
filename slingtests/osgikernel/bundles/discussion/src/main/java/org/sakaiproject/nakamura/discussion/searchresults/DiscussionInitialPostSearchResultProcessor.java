@@ -46,8 +46,7 @@ import javax.jcr.query.Row;
  * @scr.property name="sakai.search.processor" value="DiscussionInitialPost"
  * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
-public class DiscussionInitialPostSearchResultProcessor implements
-    SearchResultProcessor {
+public class DiscussionInitialPostSearchResultProcessor implements SearchResultProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionInitialPostSearchResultProcessor.class);
@@ -59,9 +58,7 @@ public class DiscussionInitialPostSearchResultProcessor implements
     if (aggregator != null) {
       aggregator.add(node);
     }
-    write.object();
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    write.endObject();
+    ExtendedJSONWriter.writeNodeToWriter(write, node);
   }
 
   /**
@@ -70,8 +67,8 @@ public class DiscussionInitialPostSearchResultProcessor implements
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     return SearchUtil.getSearchResultSet(request, query);
   }
 }

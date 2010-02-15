@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.After;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
@@ -79,7 +80,7 @@ public class SearchServletTest extends AbstractDocProxyServlet {
     Session session = createMock(Session.class);
 
     Resource resource = createMock(Resource.class);
-    SakaiMockNode searchNode = new SakaiMockNode("/var/search/docproxy/disk/disk");
+    MockNode searchNode = new MockNode("/var/search/docproxy/disk/disk");
     searchNode.setProperty(REPOSITORY_REF, "uuid");
     searchNode.setSession(session);
     searchNode.setProperty("sakai:search-prop-starts-with", "{starts-with}");

@@ -29,6 +29,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.After;
 import org.junit.Test;
 
@@ -112,7 +113,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node documentNode = new SakaiMockNode("/docproxy/disk/README");
+    Node documentNode = new MockNode("/docproxy/disk/README");
     documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
         RT_EXTERNAL_REPOSITORY_DOCUMENT);
     documentNode.setProperty(REPOSITORY_REF, "proxyUUID");
@@ -152,7 +153,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
-    Node node = new SakaiMockNode("/docproxy/disk");
+    Node node = new MockNode("/docproxy/disk");
     node.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_EXTERNAL_REPOSITORY);
     node.setProperty(REPOSITORY_PROCESSOR, "foo");
     // Session

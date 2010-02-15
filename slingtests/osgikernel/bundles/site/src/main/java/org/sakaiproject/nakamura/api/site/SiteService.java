@@ -28,6 +28,7 @@ import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
@@ -198,6 +199,15 @@ public interface SiteService {
    * @return true if the group is a member of the site.
    */
   boolean isMember(Node site, Authorizable group);
+
+  /**
+   * Is the user who got the site node a maintainer of the site.
+   *
+   * @param site
+   *          The site in question
+   * @return true is the session who is bound to the sitenode has maintainer access on it.
+   */
+  boolean isUserSiteMaintainer(Node site) throws RepositoryException;
 
   /**
    * Initiate a join workflow for the site and the user. The user is taken from the
