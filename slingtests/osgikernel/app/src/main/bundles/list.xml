@@ -385,11 +385,6 @@
       <version>1.5.2-0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
       <groupId>org.apache.felix.commons</groupId>
       <artifactId>org.apache.felix.commons.commons-httpclient</artifactId>
       <version>3.1-0.3-SNAPSHOT</version>
@@ -498,11 +493,6 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
@@ -511,12 +501,7 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.casauth</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-      </startLevel>
+   </startLevel>
    <startLevel level="20" >
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -526,11 +511,6 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.jpaexample</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
@@ -553,12 +533,7 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-     </startLevel>
+   </startLevel>
    <startLevel level="30" >
   <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>

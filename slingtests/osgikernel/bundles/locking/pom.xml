@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.session</artifactId>
+      <artifactId>org.sakaiproject.nakamura.memory</artifactId>
       <version>0.3-SNAPSHOT</version>
     </dependency>
     <dependency>

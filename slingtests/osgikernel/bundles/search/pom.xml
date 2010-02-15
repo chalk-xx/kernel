@@ -68,12 +68,6 @@
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.session</artifactId>
-      <version>0.3-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
       <version>0.3-SNAPSHOT</version>
       <scope>provided</scope>

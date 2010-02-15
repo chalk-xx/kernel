@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
 			<artifactId>org.sakaiproject.nakamura.doc</artifactId>
-			<version>0.2-SNAPSHOT</version>
+			<version>0.3-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

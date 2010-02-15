@@ -29,17 +29,11 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
-     <!--   <module>bundles/shindig</module> -->
         <module>libraries/testutils</module>
         <module>libraries/utils</module>
-        <module>bundles/casauth</module>
         <module>bundles/formauth</module>
         <module>bundles/trustedauth</module>
-        <module>bundles/ldap</module>
-        <module>bundles/ldapauth</module>
         <module>bundles/securityloader</module>
-        <module>bundles/jpaexample</module>
-        <module>bundles/jpahelloworld</module>
         <module>bundles/jpaprovider</module>
         <module>bundles/persistence</module>
         <module>bundles/configuration</module>
@@ -84,17 +78,31 @@
         <module>libraries/utils</module>
         <module>bundles/activemq</module>
         <module>bundles/activity</module>
-        <module>bundles/import</module>
         <!-- these are sling extension bundles that replace sling classes with patched versions -->
         <module>bundles/sling/accessmanager</module>
         <module>bundles/cluster</module>
         <module>bundles/chat</module>
         <module>bundles/doc</module>
-        <module>bundles/persondirectory</module>
         <module>bundles/content</module>
         <module>bundles/docproxy</module>
         <module>bundles/google-collections</module>
       </modules>
+    </profile>
+    <profile>
+       <id>withContrib</id>
+       <modules>
+        <module>contrib/import</module>
+        <module>contrib/basiclti</module>
+        <module>contrib/filters</module>
+        <module>contrib/jaxrs</module>
+        <module>contrib/mailman</module>
+        <module>contrib/scriptrunner</module>
+        <module>contrib/sessiontest</module>
+        <module>contrib/persondirectory</module>
+        <module>contrib/casauth</module>
+        <module>contrib/ldapauth</module>
+        <module>contrib/ldap</module>
+       </modules>
     </profile>
     <profile>
        <!-- rebundle the standalone server, this must run after the build -->
