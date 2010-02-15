@@ -19,7 +19,7 @@
 
   <profiles>
     <profile>
-      <id>kernel</id>
+      <id>hybrid</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -35,7 +35,6 @@
         <dependency>
           <groupId>org.sakaiproject</groupId>
           <artifactId>sakai-portal-impl</artifactId>
-          <version>${sakai.version}</version>
         </dependency>
       </dependencies>
     </profile>
@@ -43,6 +42,10 @@
     <profile>
       <id>pre-kernel</id>
       <dependencies>
+        <dependency>
+          <groupId>org.sakaiproject</groupId>
+          <artifactId>sakai-hybrid-prekernel</artifactId>
+        </dependency>
         <dependency>
           <groupId>org.sakaiproject</groupId>
           <artifactId>sakai-authz-api</artifactId>
