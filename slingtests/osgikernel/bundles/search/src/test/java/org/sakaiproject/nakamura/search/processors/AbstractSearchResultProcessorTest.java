@@ -23,8 +23,7 @@ import javax.jcr.query.RowIterator;
 
 public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMockTest {
 
-  protected void simpleResultCountCheck(SearchResultProcessor processor) throws RepositoryException, JSONException
-  {
+  protected void simpleResultCountCheck(SearchResultProcessor processor) throws RepositoryException, JSONException {
     int itemCount = 12;
     QueryResult queryResult = createMock(QueryResult.class);
     RowIterator results = createMock(RowIterator.class);

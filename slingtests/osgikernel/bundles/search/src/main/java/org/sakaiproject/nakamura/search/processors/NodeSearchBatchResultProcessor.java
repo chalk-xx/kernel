@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
+import static org.sakaiproject.nakamura.api.search.SearchConstants.DEFAULT_PAGED_ITEMS;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -55,10 +58,13 @@ public class NodeSearchBatchResultProcessor implements
     // TODO Get size from somewhere else.
     long total = iterator.getSize();
     long start = SearchUtil.getPaging(request, total);
+    
+    int nitems = SearchUtil.intRequestParameter(request,
+        PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
 
     iterator.skip(start);
 
-    for (long i = 0; i < start && iterator.hasNext(); i++) {
+    for (long i = 0; i < nitems && iterator.hasNext(); i++) {
       Row row = iterator.nextRow();
       String path = row.getValue("jcr:path").getString();
       Node node = (Node) session.getItem(path);

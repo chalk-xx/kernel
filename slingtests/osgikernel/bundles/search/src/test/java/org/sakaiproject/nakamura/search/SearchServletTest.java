@@ -87,9 +87,9 @@ public class SearchServletTest extends AbstractEasyMockTest {
     Row row = createMock(Row.class);
     
     Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
-        row, "select * from y where x = 'foo'");
+        row, "select * from y where x = 'foo' and u = 'bob' ");
 
-    addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, SQL_QUERY);
+    addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, "select * from y where x = 'foo' and u = '{_userId}' ");
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
     expect(queryNode.hasProperty(SAKAI_PROPERTY_PROVIDER)).andReturn(false).anyTimes();
     expect(queryNode.hasProperty(SAKAI_BATCHRESULTPROCESSOR)).andReturn(false).anyTimes();

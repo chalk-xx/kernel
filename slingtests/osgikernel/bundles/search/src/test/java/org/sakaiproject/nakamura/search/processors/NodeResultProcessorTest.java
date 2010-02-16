@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import javax.jcr.RepositoryException;
 
-public class TestNodeResultProcessor extends AbstractSearchResultProcessorTest {
+public class NodeResultProcessorTest extends AbstractSearchResultProcessorTest {
 
   @Test
   public void testResultCountLimit() throws RepositoryException, JSONException {
