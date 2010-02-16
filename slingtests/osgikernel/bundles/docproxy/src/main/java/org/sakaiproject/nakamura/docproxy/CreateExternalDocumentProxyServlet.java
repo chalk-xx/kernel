@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -49,8 +51,8 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       .getLogger(CreateExternalDocumentProxyServlet.class);
   protected ExternalRepositoryProcessorTracker tracker;
   private static final long serialVersionUID = -3606817798030170480L;
-  protected static final String PARAM_FILENAME = "filename";
-  protected static final String PARAM_FILEBODY = "filebody";
+  protected static final String PARAM_FILENAME = "Filename";
+  protected static final String PARAM_FILEBODY = "Filedata";
 
   /**
    * {@inheritDoc}
@@ -98,7 +100,7 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       if (filename.getString().equals("")) {
         path = filebody.getFileName();
       } else {
-        path = filename.getString() + "/" + filebody.getFileName();
+        path = filename.getString();
       }
       processor.updateDocument(node, path, null, stream, filebody.getSize());
 
