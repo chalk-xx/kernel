@@ -72,7 +72,6 @@ public class Loader implements SecurityLoader {
   private static final Logger LOGGER = LoggerFactory.getLogger(Loader.class);
   private List<Bundle> delayedBundles;
   private SecurityLoaderService jcrContentHelper;
-  private SecurityCreator securityCreator;
 
   /**
    * The number of levels folder used to store a user, could be a configuration option.
@@ -92,7 +91,6 @@ public class Loader implements SecurityLoader {
    */
   public Loader(SecurityLoaderService jcrContentHelper) {
     this.jcrContentHelper = jcrContentHelper;
-    this.securityCreator = new SecurityCreator(jcrContentHelper);
     this.delayedBundles = new LinkedList<Bundle>();
   }
 
@@ -125,7 +123,7 @@ public class Loader implements SecurityLoader {
       this.unregisterBundle(session, bundle);
     }
 
-    LOGGER.debug("Trying to Load security from bundle {}.", bundle.getSymbolicName());
+    LOGGER.info("Trying to Load security from bundle {}.", bundle.getSymbolicName());
     if (registerBundleInternal(session, bundle, false, isUpdate)) {
 
       // handle delayed bundles, might help now
@@ -148,7 +146,7 @@ public class Loader implements SecurityLoader {
       }
 
     } else if (!isUpdate) {
-      LOGGER.debug("Delayed loading of security for {}.", bundle.getSymbolicName());
+      LOGGER.info("Delayed loading of security for {}.", bundle.getSymbolicName());
       // add to delayed bundles - if this is not an update!
       delayedBundles.add(bundle);
     }
@@ -319,7 +317,7 @@ public class Loader implements SecurityLoader {
         if (!contentAlreadyLoaded || entry.isOverwrite()) {
 
           final Node targetNode = getTargetNode(session, entry.getTarget());
-
+LOGGER.info("Got Target Node as "+targetNode);
           if (targetNode != null) {
             installFromPath(session, bundle, entry.getPath(), entry, targetNode, entry
                 .isUninstall() ? createdNodes : null);
@@ -355,7 +353,6 @@ public class Loader implements SecurityLoader {
         LOGGER.warn("Failure to rollback partial security content for bundle {}", bundle
             .getSymbolicName(), re);
       }
-      this.securityCreator.clear();
     }
     LOGGER.debug("Done installing security content from bundle {}", bundle
         .getSymbolicName());
@@ -815,6 +812,7 @@ public class Loader implements SecurityLoader {
   }
 
   private Node getTargetNode(Session session, String path) throws RepositoryException {
+    LOGGER.info("Getting node "+path);
 
     // not specyfied path directive
     if (path == null)

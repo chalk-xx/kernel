@@ -93,12 +93,12 @@ public class SecurityLoaderService implements SynchronousBundleListener {
    * 
    * @scr.reference
    */
-  private SlingRepository repository;
+  protected SlingRepository repository;
   /**
    * @scr.reference bind="bindEventAdmin" unbind="bindEventAdmin"
    *                interface="org.osgi.service.event.EventAdmin"
    */
-  private EventAdmin eventAdmin;
+  protected EventAdmin eventAdmin;
 
   /**
    * List of currently updated bundles.
