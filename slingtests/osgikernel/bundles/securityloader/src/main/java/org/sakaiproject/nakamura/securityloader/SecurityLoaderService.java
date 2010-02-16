@@ -437,6 +437,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
                       node.addNode(token, "sling:Folder");
                       node.save();
                   }
+                  LOGGER.info("Gettign node "+token+" from "+node);
                   node = node.getNode(token);
               }
               path = path.substring(pos + 1);

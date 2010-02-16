@@ -62,15 +62,11 @@ public class LoaderTest extends SecurityLoaderServiceTest {
     Mockito.when(session.getItem("/a")).thenReturn(aNode);
     Mockito.when(session.getItem("/b")).thenReturn(bNode);
     Mockito.when(session.getItem("/c")).thenReturn(cNode);
-    Mockito.when(rootNode.addNode("a")).thenReturn(aNode);
-    Mockito.when(rootNode.addNode("b")).thenReturn(bNode);
-    Mockito.when(rootNode.addNode("c")).thenReturn(bNode);
+    Mockito.when(rootNode.addNode(Mockito.anyString())).thenReturn(aNode);
+    Mockito.when(rootNode.getNode(Mockito.anyString())).thenReturn(aNode);
     Mockito.when(aNode.addNode(Mockito.anyString())).thenReturn(aNode);
-    Mockito.when(bNode.addNode(Mockito.anyString())).thenReturn(bNode);
-    Mockito.when(cNode.addNode(Mockito.anyString())).thenReturn(bNode);
+    Mockito.when(aNode.getNode(Mockito.anyString())).thenReturn(aNode);
     Mockito.when(aNode.isNode()).thenReturn(true);
-    Mockito.when(bNode.isNode()).thenReturn(true);
-    Mockito.when(cNode.isNode()).thenReturn(true);
     
     URL u = this.getClass().getResource("testacl.json");
     
