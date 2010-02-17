@@ -165,7 +165,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
       getVirtualResourceProvider().pushLastPath(realPath);
       resource = request.getResourceResolver().resolve(request, resourcePath);
     } finally {
-      getVirtualResourceProvider().popLastPath(realPath);
+      getVirtualResourceProvider().popLastPath();
     }
     LOGGER.debug("{} final Path is {} resolved to {} ", new Object[]{this.getClass(), resourcePath, resource});
     if (resource == null || resource instanceof NonExistingResource) {
@@ -282,6 +282,7 @@ public abstract class AbstractVirtualPathServlet extends SlingAllMethodsServlet 
       item = session.getItem(absRealPath);
     } catch (PathNotFoundException ex) {
     }
+
     String parentPath = absRealPath;
     while (item == null && !"/".equals(parentPath)) {
       parentPath = PathUtils.getParentReference(parentPath);

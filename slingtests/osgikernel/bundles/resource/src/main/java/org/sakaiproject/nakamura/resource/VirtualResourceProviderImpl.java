@@ -275,9 +275,12 @@ public class VirtualResourceProviderImpl implements ResourceProvider,
   /**
    * @param realPath
    */
-  public void popLastPath(String realPath) {
+  public String popLastPath() {
     List<String> lastPathList = lastPath.get();
-    lastPathList.remove(lastPathList.size() - 1);
+    if ( lastPathList.size() == 0 ) {
+     return null;
+    }
+    return lastPathList.remove(lastPathList.size() - 1);
   }
 
   public String getLastPath() {

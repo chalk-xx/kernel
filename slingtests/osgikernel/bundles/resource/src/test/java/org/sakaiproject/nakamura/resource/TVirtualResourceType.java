@@ -20,16 +20,14 @@ package org.sakaiproject.nakamura.resource;
 /**
  *
  */
-public interface VirtualResourceProvider {
+public class TVirtualResourceType extends AbstractVirtualResourceType {
 
   /**
-   * @param realPath
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.resource.VirtualResourceType#getResourceType()
    */
-  void pushLastPath(String realPath);
-
-  /**
-   * @param realPath
-   */
-  String popLastPath();
+  public String getResourceType() {
+    return "sakai/testing";
+  }
 
 }

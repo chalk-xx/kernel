@@ -17,23 +17,37 @@
  */
 package org.sakaiproject.nakamura.resource;
 
-import org.easymock.EasyMock;
+import static org.junit.Assert.assertNull;
+
+import static org.junit.Assert.assertNotNull;
+
+import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+
+import org.apache.sling.api.SlingConstants;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
 /**
  *
  */
-public class VirtualResourceProviderImplTest {
+public class VirtualResourceProviderImplTest extends AbstractEasyMockTest {
 
   private List<Object> all = new ArrayList<Object>();
   private VirtualResourceProviderImpl v;
@@ -41,7 +55,6 @@ public class VirtualResourceProviderImplTest {
 
   @Before
   public void before() {
-    clear();
      v = new VirtualResourceProviderImpl();
      session = createMock(Session.class);
   }
@@ -52,23 +65,6 @@ public class VirtualResourceProviderImplTest {
 
   }
 
-  /**
-   *
-   */
-  private void clear() {
-   all.clear();
-  }
-  public <T> T createMock(Class<T> c) {
-    T t = EasyMock.createMock(c);
-    all.add(t);
-    return t;
-  }
-  public void replay() {
-    EasyMock.replay(all.toArray());
-  }
-  public void verify() {
-    EasyMock.verify(all.toArray());
-  }
 
   public boolean checkIgnore(String path, boolean check, boolean exists) throws RepositoryException {
     if ( check ) {
@@ -77,7 +73,54 @@ public class VirtualResourceProviderImplTest {
     replay();
     return v.ignoreThisPath(session,path);
   }
+  
+  @Test 
+  public void testLastPath() {
+    replay();
+    v.pushLastPath("PathA");
+    v.pushLastPath("PathB");
+    assertEquals("PathB", v.getLastPath());
+    assertEquals("PathB",v.popLastPath());
+    assertEquals("PathA", v.getLastPath());
+    assertEquals("PathA",v.popLastPath());
+    assertEquals(null,v.popLastPath());
+  }
 
+  @Test
+  public void testGetParentReference() {
+    replay();
+    assertEquals("/testing/one", v.getParentReference("/testing/one/two"));
+  }
+  
+  
+  @Test 
+  public void testGetResource() throws PathNotFoundException, RepositoryException {
+    Node node = createMock(Node.class);
+    Property property = createNiceMock(Property.class);
+    Session session = createNiceMock(Session.class);
+    ResourceResolver resourceResolver = createNiceMock(ResourceResolver.class);
+    VirtualResourceType virtualResourceType = createMock(VirtualResourceType.class);
+    Resource resource = createNiceMock(Resource.class);
+    expect(virtualResourceType.getResourceType()).andReturn("sakai/virtualtype").anyTimes();
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
+    expect(session.getItem("/apath/bla/bla")).andThrow(new PathNotFoundException());
+    expect(session.getItem("/apath/bla")).andThrow(new PathNotFoundException());
+    expect(session.getItem("/apath")).andReturn(node);
+    expect(node.isNode()).andReturn(true).anyTimes();
+    expect(node.getPath()).andReturn("/apath").anyTimes();
+    expect(node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(true).anyTimes();
+    expect(node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)).andReturn(property).anyTimes();
+    expect(property.getString()).andReturn("sakai/virtualtype").anyTimes();
+    expect(virtualResourceType.getResource(resourceResolver, null, node, node, "/apath/bla/bla")).andReturn(resource);
+    
+    
+    replay();
+    v.bindVirtualResourceType(virtualResourceType);
+    assertNotNull(v.getResource(resourceResolver, "/apath/bla/bla"));
+    v.unbindVirtualResourceType(virtualResourceType);
+    assertNull(v.getResource(resourceResolver, "/apath/bla/bla"));
+  }
+  
   @Test
   public void testIgnoreThisPath() throws RepositoryException {
     assertTrue(checkIgnore("/trertre/erter.sdf", false, false));

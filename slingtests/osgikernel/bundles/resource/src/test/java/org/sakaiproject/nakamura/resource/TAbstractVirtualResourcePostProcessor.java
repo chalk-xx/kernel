@@ -17,19 +17,32 @@
  */
 package org.sakaiproject.nakamura.resource;
 
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.servlets.post.Modification;
+
+import java.util.List;
+
 /**
  *
  */
-public interface VirtualResourceProvider {
+public class TAbstractVirtualResourcePostProcessor  extends AbstractVirtualResourcePostProcessor{
 
   /**
-   * @param realPath
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor#doProcess(org.apache.sling.api.SlingHttpServletRequest, java.util.List)
    */
-  void pushLastPath(String realPath);
+  @Override
+  protected void doProcess(SlingHttpServletRequest request, List<Modification> changes) {
+    request.getAttribute("TESTING");
+  }
 
   /**
-   * @param realPath
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor#getResourceType()
    */
-  String popLastPath();
+  @Override
+  protected String getResourceType() {
+    return "sakai/testing";
+  }
 
 }
