@@ -86,7 +86,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * TODO remove selector binding to bind to all calls to this type. Check
+ * selectors manually for launch and behave the same as today. On POST, validate
+ * and create child node with correct ACLs. On default behavior, include secured
+ * parameters if a site owner. OPTIONS, GET, HEAD, POST, PUT not supported,
+ * DELETE must also delete child node, TRACE, CONNECT.
  */
 @SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/basiclti" }, selectors = { "launch" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
