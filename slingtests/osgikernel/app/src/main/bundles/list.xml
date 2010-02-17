@@ -599,6 +599,11 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.content</artifactId>
       <version>0.3</version>
     </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </bundle>
    </startLevel>
 
 </bundles>

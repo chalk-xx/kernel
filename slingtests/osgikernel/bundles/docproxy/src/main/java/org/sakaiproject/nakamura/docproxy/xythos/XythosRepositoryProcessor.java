@@ -30,7 +30,6 @@ import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -71,8 +70,8 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
-      //if ("anonymous".equals(currentUserId)) throw new DocProxyException(402, "anonymous user may not access Xythos");
-      return getFile(path, "zach");
+      if ("anonymous".equals(currentUserId)) throw new DocProxyException(402, "anonymous user may not access Xythos");
+      return getFile(path, currentUserId);
     } catch (RepositoryException e) {
       throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
     }
@@ -112,7 +111,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
       HessianProxyFactory factory = new HessianProxyFactory();
       XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
-      List<String> searchResultsPaths = xythos.doSearch(searchProperties, "zach");
+      List<String> searchResultsPaths = xythos.doSearch(searchProperties, currentUserId);
       if (searchResultsPaths == null) {
         searchResultsPaths = new ArrayList<String>();
       }
@@ -121,7 +120,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
         if (pathStems.length > 2 && pathStems[2].equals("trash")) {
           continue;
         }
-        searchResults.add(getFile(path, "zach"));
+        searchResults.add(getFile(path, currentUserId));
       }
       return searchResults.iterator();
     } catch (MalformedURLException e) {
@@ -147,8 +146,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       // Collection mimeTypes = MimeUtil.getMimeTypes(documentStream);
       String contentType = new MimetypesFileTypeMap().getContentType(path.substring(path.lastIndexOf("/") + 1));
       properties.put("contentType", contentType);
-      // String currentUserId = node.getSession().getUserID();
-      String currentUserId = "zach";
+      String currentUserId = node.getSession().getUserID();
       HessianProxyFactory factory = new HessianProxyFactory();
 
       XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());

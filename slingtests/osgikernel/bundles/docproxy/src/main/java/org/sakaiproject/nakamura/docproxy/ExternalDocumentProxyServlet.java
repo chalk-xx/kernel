@@ -72,15 +72,16 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
     try {
       String url = request.getRequestURI();
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      Node node = JcrUtils.getFirstExistingNode(session, url);
+      Node requestedNode = JcrUtils.getFirstExistingNode(session, url);
+      Node repositoryNode = null;
 
-      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
+      if (DocProxyUtils.isExternalRepositoryDocument(requestedNode)) {
         // This document should reference the config node.
-        String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
+        String uuid = requestedNode.getProperty(REPOSITORY_REF).getString();
+         repositoryNode = session.getNodeByUUID(uuid);
       }
 
-      if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
+      if (!DocProxyUtils.isExternalRepositoryConfig(repositoryNode)) {
         // This must be something else, ignore it..
         LOGGER.info("Disregarding a request to sling/nonexisting - {}", url);
         return;
@@ -88,7 +89,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       // This is a repository node.
       // Get the processor and output meta data.
-      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
+      String processorType = repositoryNode.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
           .getString();
       ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
       if (processor == null) {
@@ -96,10 +97,10 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
         return;
       }
 
-      String path = url.substring(node.getPath().length());
+      String path = url.substring(requestedNode.getPath().length());
       try {
         // Get actual content.
-        ExternalDocumentResult result = processor.getDocument(node, path);
+        ExternalDocumentResult result = processor.getDocument(requestedNode, path);
         InputStream in = result.getDocumentInputStream(0);
 
         // Stream it to the user.

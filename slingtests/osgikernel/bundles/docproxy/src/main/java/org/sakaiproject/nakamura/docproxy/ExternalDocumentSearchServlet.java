@@ -42,6 +42,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -53,7 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(resourceTypes = { "sakai/external-repository-search" }, generateComponent = true, generateService = true, extensions = { "json" })
 public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
 
-  protected ExternalRepositoryProcessorTracker tracker;
+  private static final String SEARCH_DEFINITION_REGEX = "{(\\w+)(|(\\w+))?}";
+protected ExternalRepositoryProcessorTracker tracker;
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ExternalDocumentSearchServlet.class);
   private static final long serialVersionUID = 8016289526361989976L;
@@ -154,10 +157,40 @@ public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
    * @param request
    * @throws RepositoryException
    */
-  protected void handleProperty(Map<String, Object> searchProperties, Property p,
+  protected void handlePropertyWithRegex(Map<String, Object> searchProperties, Property p,
       SlingHttpServletRequest request) throws RepositoryException {
-    String name = p.getName().replace("sakai:search-prop-", "");
-    String propertyValue = p.getString();
+    String searchPropertyName = p.getName().replace("sakai:search-prop-", "");
+    String searchPropertyValue = "";
+    String searchPropertyDefintion = p.getString();
+    String searchPropertyRequestParameterName =
+	parseRequestParamName(searchPropertyDefintion);
+    if (request.getParameter(searchPropertyRequestParameterName) != null) {
+	searchPropertyValue = request.getParameter(searchPropertyRequestParameterName);
+    } else {
+	searchPropertyValue = parseSearchPropertyDefaultValue(searchPropertyDefintion);
+    }
+
+    searchProperties.put(searchPropertyName, searchPropertyValue);
+  }
+
+    private String parseRequestParamName(String searchPropertyDefintion) {
+	// examples with and without a specified default value
+	// {color} {color|black}
+	Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
+	Matcher searchDefinitionMatcher = searchDefinitionPattern.matcher(searchPropertyDefintion);
+	return searchDefinitionMatcher.group(1);
+    }
+
+    private String parseSearchPropertyDefaultValue(String searchPropertyDefinition) {
+	Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
+	Matcher searchDefinitionMatcher = searchDefinitionPattern.matcher(searchPropertyDefinition);
+	return searchDefinitionMatcher.group(3);
+    }
+
+	protected void handleProperty(Map<String, Object> searchProperties, Property p,
+	      SlingHttpServletRequest request) throws RepositoryException {
+	String searchPropertyName = p.getName().replace("sakai:search-prop-", "");
+	String propertyValue = p.getString();
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
@@ -201,7 +234,7 @@ public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
       }
     }
 
-    searchProperties.put(name, sb.toString());
+    searchProperties.put(searchPropertyName, sb.toString());
   }
 
   protected void activate(ComponentContext context) {
