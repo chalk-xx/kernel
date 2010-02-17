@@ -92,7 +92,6 @@ public class MessageSentListener implements EventHandler {
     } catch (RepositoryException e) {
       LOG.warn("Unable to login to get a session for the message listener. {}",
           e.getMessage());
-      e.printStackTrace();
     }
   }
 

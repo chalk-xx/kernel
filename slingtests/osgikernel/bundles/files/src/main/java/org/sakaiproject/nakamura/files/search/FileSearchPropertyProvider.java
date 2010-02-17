@@ -273,7 +273,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       }
     } catch (RepositoryException e) {
       // Well, we failed..
-      e.printStackTrace();
     }
     return ids;
   }

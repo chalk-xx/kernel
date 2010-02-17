@@ -61,8 +61,6 @@ public class ContentSearchPropertyProviderTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "site", "phys\" and @foo=\"bar");
     replay();
     provider.loadUserProperties(request, map);
-    System.err.println(map.get("_site"));
-    System.err.println("[@id = \"phys\" and @foo=\"bar\"]");
     if ("[@id = \"phys\" and @foo=\"bar\"]".equals(map.get("_site"))) {
       fail("The property provider should take care of property injection.");
     }

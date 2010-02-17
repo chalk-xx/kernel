@@ -782,7 +782,6 @@ public class SiteServiceImpl implements SiteService {
       }
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to retrieve site: {}", e.getMessage());
-      e.printStackTrace();
     }
 
     LOGGER.info("No site found for {}", uriPath);
@@ -816,7 +815,6 @@ public class SiteServiceImpl implements SiteService {
 
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to retrieve site: {}", e.getMessage());
-      e.printStackTrace();
     }
 
     LOGGER.info("No site found for {}", siteName);

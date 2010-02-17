@@ -250,7 +250,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     assertEquals("indirectgroup:A", membership.get(0));
     assertEquals("indirectgroup:B", membership.get(1));
 
-    //System.err.println(writer.toString());
     checkActivation();
     verify();
   }

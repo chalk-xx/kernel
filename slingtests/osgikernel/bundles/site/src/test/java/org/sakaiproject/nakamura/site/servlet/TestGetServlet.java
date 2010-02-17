@@ -145,7 +145,6 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     servlet.unbindSiteService(siteService);
     writer.flush();
     String s = baos.toString("UTF-8");
-    System.err.println(s);
     JSONObject obj = new JSONObject(s);
     Assert.assertEquals("sakai/site", obj
         .get(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY));

@@ -102,10 +102,8 @@ public class Post {
       return false;
     } catch (UnsupportedRepositoryOperationException e) {
       LOG.warn("Unable to check if user has right to edit post.");
-      e.printStackTrace();
     } catch (RepositoryException e) {
       LOG.warn("Unable to check if user has right to edit post.");
-      e.printStackTrace();
     }
 
     return false;
@@ -135,10 +133,8 @@ public class Post {
       return false;
     } catch (UnsupportedRepositoryOperationException e) {
       LOG.warn("Unable to check if user has right to edit post.");
-      e.printStackTrace();
     } catch (RepositoryException e) {
       LOG.warn("Unable to check if user has right to edit post.");
-      e.printStackTrace();
     }
 
     return false;

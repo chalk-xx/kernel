@@ -500,7 +500,6 @@ public class BasicLTIUtil {
     } catch (Exception e) {
       M_log.warning("BasicLTIUtil exception parsing BasicLTI descriptor: "
           + e.getMessage());
-      e.printStackTrace();
       return false;
     }
     if (tm == null) {
@@ -557,7 +556,6 @@ public class BasicLTIUtil {
     } catch (Exception e) {
       M_log.warning("BasicLTIUtil exception parsing BasicLTI descriptor: "
           + e.getMessage());
-      e.printStackTrace();
       return false;
     }
     if (tm == null) {
@@ -605,7 +603,6 @@ public class BasicLTIUtil {
     } catch (Exception e) {
       M_log.warning("BasicLTIUtil exception parsing BasicLTI descriptor"
           + e.getMessage());
-      e.printStackTrace();
       return null;
     }
     if (tm == null) {

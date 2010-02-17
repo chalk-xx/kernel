@@ -301,7 +301,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.slingRepository = slingRepository;
     sakaiSmtpServer.messagingService = messagingService;
 
-    System.err.println("Capturing sd;jflksjglksfdjgsldk;fgjsdlkgjsdklgjhdfs kghjfdskghjsdk");
 
     sakaiSmtpServer.activate(componentContext);
 
@@ -394,7 +393,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.slingRepository = slingRepository;
     sakaiSmtpServer.messagingService = messagingService;
 
-    System.err.println("Capturing sd;jflksjglksfdjgsldk;fgjsdlkgjsdklgjhdfs kghjfdskghjsdk");
 
     sakaiSmtpServer.activate(componentContext);
 

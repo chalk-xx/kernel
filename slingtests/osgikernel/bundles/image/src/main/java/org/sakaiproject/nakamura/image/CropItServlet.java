@@ -191,13 +191,11 @@ public class CropItServlet extends SlingAllMethodsServlet {
     } catch (ImageException e) {
       // Something went wrong..
       logger.warn("ImageException e: " + e.getMessage());
-      e.printStackTrace();
       response.sendError(e.getCode(), e.getMessage());
     } catch (JSONException e) {
       response.sendError(500, "Unable to output JSON.");
     } catch (RepositoryException e) {
       logger.warn("ReposityoryException: " + e.getMessage());
-      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }

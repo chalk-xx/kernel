@@ -95,7 +95,6 @@ public class TransactionManagerFilter implements Filter {
       chain.doFilter(request, response);
       commit();
     } catch (SecurityException se) {
-      se.printStackTrace();
       rollback();
       // catch any Security exceptions and send a 401
       hresponse.reset();

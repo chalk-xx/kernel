@@ -83,7 +83,6 @@ public class DiscussionManagerImpl implements DiscussionManager {
     } catch (RepositoryException e) {
       LOG.warn("Unable to check for message with ID '{}' and marker '{}'", messageId,
           marker);
-      e.printStackTrace();
     }
 
     LOG.warn("No message with ID '{}' and marker '{}' found.", messageId, marker);
@@ -115,7 +114,6 @@ public class DiscussionManagerImpl implements DiscussionManager {
 
     } catch (RepositoryException e) {
       LOG.warn("Unable to check for settings of type '{}' and marker '{}'", type, marker);
-      e.printStackTrace();
     }
 
     LOG.warn("No settings with type '{}' and marker '{}' found.", type, marker);

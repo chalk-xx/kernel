@@ -29,6 +29,8 @@ import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -50,6 +52,7 @@ import javax.servlet.http.HttpSession;
  */
 public class TrustedTokenServiceTest {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedTokenServiceTest.class);
   private TrustedTokenServiceImpl trustedTokenService;
   private List<Object> mocks = new ArrayList<Object>();
 
@@ -120,12 +123,12 @@ public class TrustedTokenServiceTest {
     for (int i = 0; i < 1000; i++) {
       cookie = trustedTokenService.encodeCookie("ieb");
     }
-    System.err.println("Encode Time " + (System.currentTimeMillis() - start));
+    LOGGER.info("Encode Time " + (System.currentTimeMillis() - start));
     start = System.currentTimeMillis();
     for (int i = 0; i < 1000; i++) {
       user = trustedTokenService.decodeCookie(cookie);
     }
-    System.err.println("Decode Time " + (System.currentTimeMillis() - start));
+    LOGGER.info("Decode Time " + (System.currentTimeMillis() - start));
 
     verify();
   }
@@ -170,7 +173,7 @@ public class TrustedTokenServiceTest {
     replay();
     trustedTokenService.activate(context);
     String cookie = trustedTokenService.encodeCookie("ieb");
-    System.err.println("Cookie is " + cookie);
+    LOGGER.info("Cookie is " + cookie);
     String[] parts = StringUtils.split(cookie, "@");
     Assert.assertNotNull(parts);
     parts[1] = String.valueOf(System.currentTimeMillis() - 3600000L);

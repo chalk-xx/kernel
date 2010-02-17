@@ -164,11 +164,9 @@ public class CropItProcessor {
       throw new ImageException(400, "Could not find image.");
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to crop image.");
-      e.printStackTrace();
       throw new ImageException(500, "Unable to crop image.");
     } catch (IOException e) {
       LOGGER.warn("Unable to read image in order to crop it.");
-      e.printStackTrace();
       throw new ImageException(500, "Unable to read image in order to crop it.");
     } finally {
       // close the streams
@@ -177,7 +175,6 @@ public class CropItProcessor {
           in.close();
         } catch (IOException e) {
           LOGGER.debug("Exception closing inputstream.");
-          e.printStackTrace();
         }
       }
       if (out != null) {
@@ -185,7 +182,6 @@ public class CropItProcessor {
           out.close();
         } catch (IOException e) {
           LOGGER.debug("Exception closing outputstream.");
-          e.printStackTrace();
         }
       }
     }
@@ -229,7 +225,6 @@ public class CropItProcessor {
       }
     } catch (RepositoryException e) {
       LOGGER.warn("Repository exception: " + e.getMessage());
-      e.printStackTrace();
       throw new ImageException(500, "Unable to save image to JCR.");
     } finally {
       if (bais != null) {
@@ -237,7 +232,6 @@ public class CropItProcessor {
           bais.close();
         } catch (IOException e) {
           LOGGER.warn("Unable to close inputstream.");
-          e.printStackTrace();
         }
       }
     }

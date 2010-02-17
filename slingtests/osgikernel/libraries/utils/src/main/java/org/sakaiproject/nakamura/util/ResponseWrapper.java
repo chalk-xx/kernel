@@ -103,12 +103,10 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
 
   @Override
   public void reset() {
-    System.err.println("reset()");
   }
 
   @Override
   public void resetBuffer() {
-    System.err.println("resetBuffer()");
   }
 
   //

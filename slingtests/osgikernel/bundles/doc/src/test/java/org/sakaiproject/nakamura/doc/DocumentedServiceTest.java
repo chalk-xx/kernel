@@ -22,6 +22,8 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -29,35 +31,37 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
  */
 public class DocumentedServiceTest {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DocumentedServiceTest.class);
+
   @Test
   public void testDocumentedService() {
     DocumentedService docService = new DocumentedService();
     ServiceDocumentation serviceDocumetation = docService.getClass().getAnnotation(ServiceDocumentation.class);
-    System.err.println("Service Name: "+serviceDocumetation.name());
-    System.err.println("Description ");
+    LOG.info("Service Name: "+serviceDocumetation.name());
+    LOG.info("Description ");
     for (String desc : serviceDocumetation.description() ) {
-      System.err.println(desc);
+      LOG.info(desc);
     }
-    System.err.println("Bindings ");
+    LOG.info("Bindings ");
     for ( ServiceBinding sb : serviceDocumetation.bindings()) {
-      System.err.println("Type "+sb.type());
+      LOG.info("Type "+sb.type());
       for ( String binding : sb.bindings() ) {
-        System.err.println(" bound as: "+binding);
+        LOG.info(" bound as: "+binding);
       }
     }
-    System.err.println("Methods ");
+    LOG.info("Methods ");
     for ( ServiceMethod sm : serviceDocumetation.methods() ) {
-      System.err.println("Method "+sm.name());
-      System.err.println("Description ");
+      LOG.info("Method "+sm.name());
+      LOG.info("Description ");
       for (String desc : sm.description() ) {
-        System.err.println(desc);
+        LOG.info(desc);
       }
       for ( ServiceParameter sp : sm.parameters() ) {
-        System.err.println("   Parameter "+sp.name());
+        LOG.info("   Parameter "+sp.name());
         
-        System.err.println("   Description ");
+        LOG.info("   Description ");
         for (String desc : sp.description() ) {
-          System.err.println(desc);
+          LOG.info(desc);
         }
       }
     }

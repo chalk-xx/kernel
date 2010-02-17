@@ -136,7 +136,6 @@ public class SakaiSmtpServer implements SimpleMessageListener {
       session = slingRepository.loginAdministrative(null);
 
       List<String> paths = getLocalPath(session, recipient);
-      System.err.print("Got Paths " + paths.size() + " for " + recipient);
       if (paths.size() > 0) {
         Map<String, Object> mapProperties = new HashMap<String, Object>();
         mapProperties.put(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
@@ -190,7 +189,6 @@ public class SakaiSmtpServer implements SimpleMessageListener {
         } else {
           mapProperties.put("sakai:"+name.toLowerCase(), values);       
         }
-        System.err.println("Saving "+name+" "+Arrays.toString(values));
       }
     }
     String[] contentType = internetHeaders.getHeader("content-type");

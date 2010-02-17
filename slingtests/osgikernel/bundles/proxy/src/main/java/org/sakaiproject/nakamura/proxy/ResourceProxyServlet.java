@@ -319,7 +319,6 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         }
       }
       
-      System.err.println("-------------- "+this+" ========= "+proxyClientService);
       ProxyResponse proxyResponse = proxyClientService.executeCall(node, headers,
           templateParams, requestInputStream, inputStreamLength, inputStreamContentType);
       try {

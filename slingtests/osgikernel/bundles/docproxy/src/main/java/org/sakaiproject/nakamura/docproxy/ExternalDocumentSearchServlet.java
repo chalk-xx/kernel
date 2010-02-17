@@ -116,19 +116,16 @@ public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
     } catch (RepositoryException e) {
       LOGGER.error(
           "Got a repository exception when trying to grab search node information.", e);
-      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to perform search.");
     } catch (JSONException e) {
       LOGGER
           .error("Got a JSON exception when trying to grab search node information.", e);
-      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to perform search.");
     } catch (DocProxyException e) {
       LOGGER.error(
           "Got a DocProxy exception when trying to grab search node information.", e);
-      e.printStackTrace();
       response.sendError(e.getCode(), e.getMessage());
     }
   }

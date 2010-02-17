@@ -40,12 +40,10 @@ public class GeneralDocumentationServlet extends SlingSafeMethodsServlet {
     } else if ("style".equals(p.getString())) {
       // Send out the CSS file
       if (style == null) {
-        System.err.println("Loading Style");
         InputStream in = this.getClass().getResourceAsStream("style.css");
         style = IOUtils.toByteArray(in);
         in.close();
       }
-      System.err.println("Sending " + style.length);
       response.setContentType("text/css; charset=UTF-8");
       response.setContentLength(style.length);
       response.getOutputStream().write(style);

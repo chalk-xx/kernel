@@ -164,7 +164,6 @@ public class BatchServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_BAD_REQUEST,
           "Failed to parse the " + REQUESTS_PARAMETER + " parameter");
       LOGGER.warn("Failed to parse the " + REQUESTS_PARAMETER + " parameter");
-      e.printStackTrace();
       return;
     }
 
@@ -182,7 +181,6 @@ public class BatchServlet extends SlingAllMethodsServlet {
       response.getWriter().write(sw.getBuffer().toString());
     } catch (JSONException e) {
       LOGGER.warn("Failed to create a JSON response");
-      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to write JSON response");
     }

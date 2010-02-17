@@ -100,7 +100,6 @@ public class DiscussionRouter implements MessageRouter {
     } catch (RepositoryException e) {
       logger.warn("Catched an exception when trying to re-route discussion messages: {}",
           e.getMessage());
-      e.printStackTrace();
     }
   }
 

@@ -371,12 +371,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
       LOGGER.info("Caught RepositoryException {}", e.getMessage());
-      e.printStackTrace();
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getMessage());
       LOGGER.info("Caught JSONException {}", e.getMessage());
-      e.printStackTrace();
     }
   }
 

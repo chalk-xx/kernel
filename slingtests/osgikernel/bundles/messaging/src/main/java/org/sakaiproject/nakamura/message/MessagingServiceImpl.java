@@ -152,7 +152,6 @@ public class MessagingServiceImpl implements MessagingService {
       } catch (RepositoryException e) {
         LOGGER.warn("RepositoryException on trying to save message."
             + e.getMessage());
-        e.printStackTrace();
         throw new MessagingException("Unable to save message.");
       }
       return msg;
@@ -296,10 +295,8 @@ public class MessagingServiceImpl implements MessagingService {
         path = MessageConstants._USER_MESSAGE + "/" + rcpt;
       }
     } catch (SiteException e) {
-      e.printStackTrace();
       throw new MessagingException(e.getStatusCode(), e.getMessage());
     } catch (RepositoryException e) {
-      e.printStackTrace();
       throw new MessagingException(500, e.getMessage());
     }
 

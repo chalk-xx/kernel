@@ -97,11 +97,9 @@ public class FolderServlet extends SlingAllMethodsServlet {
 
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to list all the file/folders for {}", path);
-      e.printStackTrace();
       response.sendError(500, "Unable to list all the file/folders");
     } catch (JSONException e) {
       LOGGER.warn("Unable to list all the file/folders for {}", path);
-      e.printStackTrace();
       response.sendError(500, "Unable to list all the file/folders");
     }
 

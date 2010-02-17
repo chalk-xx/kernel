@@ -499,7 +499,6 @@ public class FileUtils {
       // We ignore every exception it has when looking up sites.
       // it is dirty ..
       log.info("Catched exception when looking up used sites for a file.");
-      e.printStackTrace();
     }
     write.endArray();
     write.key("total");

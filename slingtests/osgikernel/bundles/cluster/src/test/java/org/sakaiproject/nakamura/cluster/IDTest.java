@@ -22,6 +22,8 @@ import static org.junit.Assert.assertFalse;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
@@ -34,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class IDTest {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(IDTest.class);
   private static long tstart;
   private static long epoch;
   private Map<BigInteger, BigInteger> hash = new ConcurrentHashMap<BigInteger, BigInteger>();
@@ -74,17 +77,17 @@ public class IDTest {
     }
 
     do {
-      System.err.println("Running " + nrunning + " Hash Size is " + hash.size());
+      LOGGER.info("Running " + nrunning + " Hash Size is " + hash.size());
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        LOGGER.info(e.getMessage(),e);
       }
     } while (nrunning > 0);
 
     Base64 b64 = new Base64();
     for ( Entry<BigInteger, BigInteger> e : hash.entrySet() ) {
-      System.err.println(" Entry is "+e.getValue()+" "+ b64.encodeToString(e.getValue().toByteArray()).trim());
+      LOGGER.info(" Entry is "+e.getValue()+" "+ b64.encodeToString(e.getValue().toByteArray()).trim());
 
     }
 

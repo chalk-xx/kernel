@@ -86,10 +86,8 @@ public class LinkInfoServlet extends SlingAllMethodsServlet {
       FileUtils.writeLinkNode(node, session, write, siteService);
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to get file info for link.");
-      e.printStackTrace();
       response.sendError(500, "Unable get file info.");
 
-      e.printStackTrace();
     } catch (JSONException e) {
       response.sendError(500, "Unable to parse JSON.");
     }

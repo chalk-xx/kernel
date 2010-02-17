@@ -111,7 +111,6 @@ public class LinkServlet extends SlingAllMethodsServlet {
       }
     } catch (RepositoryException e) {
       LOGGER.warn("Unable to handle linked file.");
-      e.printStackTrace();
       response.sendError(500, "Unable to handle linked file.");
     }
   }
