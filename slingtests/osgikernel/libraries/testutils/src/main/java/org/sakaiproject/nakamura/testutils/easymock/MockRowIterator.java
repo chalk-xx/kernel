@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.discussion.searchresults;
+package org.sakaiproject.nakamura.testutils.easymock;
 
 import org.apache.sling.commons.testing.jcr.MockValue;
 
@@ -32,15 +32,18 @@ import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 
 /**
- *
+ * Mocks a {@link RowIterator}. Pass in a {@link List} of {@link Node}.
  */
-public class MockIterator implements RowIterator {
+public class MockRowIterator implements RowIterator {
 
   private Iterator<Node> nodeIterator;
   private Map<String, Row> convertedRows = new HashMap<String, Row>();
+  private long pos;
+  private List<Node> nodes;
 
-  public MockIterator(List<Node> nodes) {
+  public MockRowIterator(List<Node> nodes) {
     this.nodeIterator = nodes.iterator();
+    this.nodes = nodes;
   }
 
   private Row nodeToRow(Node node) {
@@ -77,6 +80,7 @@ public class MockIterator implements RowIterator {
    * @see javax.jcr.query.RowIterator#nextRow()
    */
   public Row nextRow() {
+    pos++;
     return nodeToRow(nodeIterator.next());
   }
 
@@ -86,8 +90,7 @@ public class MockIterator implements RowIterator {
    * @see javax.jcr.RangeIterator#getPosition()
    */
   public long getPosition() {
-    // TODO Auto-generated method stub
-    return 0;
+    return pos;
   }
 
   /**
@@ -96,7 +99,7 @@ public class MockIterator implements RowIterator {
    * @see javax.jcr.RangeIterator#getSize()
    */
   public long getSize() {
-    return -1;
+    return nodes.size();
   }
 
   /**
@@ -105,8 +108,10 @@ public class MockIterator implements RowIterator {
    * @see javax.jcr.RangeIterator#skip(long)
    */
   public void skip(long skipNum) {
-    // TODO Auto-generated method stub
-
+    while (skipNum > 0) {
+      nextRow();
+      skipNum++;
+    }
   }
 
   /**
@@ -124,7 +129,7 @@ public class MockIterator implements RowIterator {
    * @see java.util.Iterator#next()
    */
   public Object next() {
-    return nodeToRow(nodeIterator.next());
+    return nextRow();
   }
 
   /**

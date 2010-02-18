@@ -60,7 +60,7 @@ public class MessageServlet extends AbstractMessageServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(MessageServlet.class);
 
   @Reference
-  private transient MessagingService messagingService;
+  protected transient MessagingService messagingService;
 
   @Reference
   protected transient VirtualResourceProvider virtualResourceProvider;

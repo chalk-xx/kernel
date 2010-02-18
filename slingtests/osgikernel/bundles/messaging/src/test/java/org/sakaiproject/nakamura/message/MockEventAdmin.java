@@ -15,12 +15,41 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.message;
+package org.sakaiproject.nakamura.message;
 
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 
+ *
  */
-public class MessageUtils {
+public class MockEventAdmin implements EventAdmin {
+
+  private List<Event> events = new ArrayList<Event>();
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.service.event.EventAdmin#postEvent(org.osgi.service.event.Event)
+   */
+  public void postEvent(Event event) {
+    events.add(event);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.osgi.service.event.EventAdmin#sendEvent(org.osgi.service.event.Event)
+   */
+  public void sendEvent(Event event) {
+    events.add(event);
+  }
+
+  public List<Event> getEvents() {
+    return events;
+  }
 
 }
