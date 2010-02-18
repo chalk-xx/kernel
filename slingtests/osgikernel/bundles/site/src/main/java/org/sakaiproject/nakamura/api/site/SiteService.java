@@ -49,10 +49,6 @@ public interface SiteService {
    */
   public static final String SITE_RESOURCE_TYPE = "sakai/site";
   /**
-   * The JCR resource type for a site 
-   */
-  public static final String SITE_PRIMARY_TYPE = "sakai:site";
-  /**
    * The property name that defines if this is a site template or not.
    */
   public static final String SAKAI_IS_SITE_TEMPLATE = "sakai:is-site-template";

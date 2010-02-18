@@ -4,7 +4,7 @@
         "id": "template",
         "sakai:site-template": "/templates/template",
         "sakai:skin": "/dev/_skins/original/original.html",
-        "sling:resourceType": "sakai/site",
+        "sling:resourceType": "sakai/template",
         "jcr:primaryType": "nt:unstructured",
         "jcr:mixinTypes": ["rep:AccessControllable"],
         "status": "online",
