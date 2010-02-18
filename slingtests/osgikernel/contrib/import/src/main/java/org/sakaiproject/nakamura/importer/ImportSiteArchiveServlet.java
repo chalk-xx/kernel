@@ -88,10 +88,10 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       .getLogger(ImportSiteArchiveServlet.class);
 
   @Reference
-  private transient SlingRepository slingRepository;
+  transient SlingRepository slingRepository;
 
   @Reference
-  private transient ClusterTrackingService clusterTrackingService;
+  transient ClusterTrackingService clusterTrackingService;
 
   private transient XMLInputFactory xmlInputFactory = null;
   private transient Base64 base64 = new Base64();
