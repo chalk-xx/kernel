@@ -182,7 +182,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         }
         // delete temporary file
         if (tempZip.delete()) {
-          return;
+          LOG.debug("{}: temporary zip file deleted.", tempZip
+              .getAbsolutePath());
         } else {
           LOG.warn("Could not delete temporary file: {}", tempZip
               .getAbsolutePath());

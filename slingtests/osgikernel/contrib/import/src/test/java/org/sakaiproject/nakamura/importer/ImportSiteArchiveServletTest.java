@@ -17,25 +17,24 @@
  */
 package org.sakaiproject.nakamura.importer;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.commons.testing.jcr.MockNode;
-import org.apache.sling.commons.testing.jcr.MockProperty;
-import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
-import org.apache.sling.commons.testing.jcr.MockValue;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -45,28 +44,12 @@ import org.sakaiproject.nakamura.api.files.FilesConstants;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.UUID;
 
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
-import javax.jcr.query.RowIterator;
-import javax.jcr.version.VersionException;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletResponse;
 
@@ -170,14 +153,33 @@ public class ImportSiteArchiveServletTest {
     Session userSession = mock(Session.class, "userSession");
     when(userSession.itemExists(anyString())).thenReturn(true);
     // mock Property that returns a valid SAKAI_FILENAME
-    Property property = mock(Property.class, "fileNodeProperty");
-    when(property.getString()).thenReturn("foo");
+    Property sakaiFileNameProperty = mock(Property.class,
+        "sakaiFileNameProperty");
+    when(sakaiFileNameProperty.getString()).thenReturn("foo");
+    // mock Property that returns a valid SLING_RESOURCE_TYPE_PROPERTY
+    Property slingResourceTypeProperty = mock(Property.class,
+        "slingResourceTypeProperty");
+    when(slingResourceTypeProperty.getString()).thenReturn(
+        FilesConstants.RT_FILE_STORE);
+    // mock Property that returns a valid JCR_PRIMARYTYPE
+    Property jcrPrimaryTypeProperty = mock(Property.class,
+        "jcrPrimaryTypeProperty");
+    when(jcrPrimaryTypeProperty.getString()).thenReturn(
+        JcrConstants.NT_UNSTRUCTURED);
     // mock child Node to parent fileNode
     Node content = mock(Node.class, "contentNode");
     // mock fileNode that returns the mock Property, Session, and getPath
     Node fileNode = mock(Node.class, "fileNode");
     when(fileNode.getProperty(FilesConstants.SAKAI_FILENAME)).thenReturn(
-        property);
+        sakaiFileNameProperty);
+    when(
+        fileNode.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .thenReturn(true);
+    when(
+        fileNode.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .thenReturn(slingResourceTypeProperty);
+    when(fileNode.getProperty(JcrConstants.JCR_PRIMARYTYPE)).thenReturn(
+        jcrPrimaryTypeProperty);
     when(fileNode.getSession()).thenReturn(userSession);
     when(fileNode.getPath()).thenReturn("/foo");
     when(fileNode.getNode(JcrConstants.JCR_CONTENT)).thenReturn(content);
@@ -186,15 +188,16 @@ public class ImportSiteArchiveServletTest {
     ResourceResolver resolver = mock(ResourceResolver.class);
     when(resolver.adaptTo(Session.class)).thenReturn(userSession);
     when(request.getResourceResolver()).thenReturn(resolver);
-    // inject ClusterTrackingService
+    // inject mock ClusterTrackingService
     ClusterTrackingService clusterTrackingService = mock(ClusterTrackingService.class);
     when(clusterTrackingService.getClusterUniqueId()).thenReturn(
         UUID.randomUUID().toString());
     importSiteArchiveServlet.clusterTrackingService = clusterTrackingService;
-    // inject SlingRepository
+    // inject mock SlingRepository
     SlingRepository slingRepository = mock(SlingRepository.class);
     Session adminSession = mock(Session.class, "adminSession");
     when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+    when(adminSession.getNodeByUUID(anyString())).thenReturn(fileNode);
     importSiteArchiveServlet.slingRepository = slingRepository;
     // mock Response mainly for verify
     SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
