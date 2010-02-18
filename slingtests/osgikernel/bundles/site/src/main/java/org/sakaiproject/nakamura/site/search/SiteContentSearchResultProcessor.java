@@ -194,7 +194,7 @@ public class SiteContentSearchResultProcessor implements
     siteSearchResultProcessor.bindSiteService(siteService);
   }
 
-  protected void deactivate() {
+  protected void deactivate(ComponentContext context) {
     if (tracker != null) {
       tracker.close();
       tracker = null;

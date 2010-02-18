@@ -113,13 +113,13 @@ public class ContentSearchResultProcessor implements SearchResultProcessor {
     write.endObject();
   }
 
-  public void activate(ComponentContext context) {
+  protected void activate(ComponentContext context) {
     BundleContext bundleContext = context.getBundleContext();
     tracker = new SearchResultProcessorTracker(bundleContext);
     tracker.open();
   }
 
-  public void deactivate() {
+  protected void deactivate(ComponentContext context) {
     if (tracker != null) {
       tracker.close();
       tracker = null;
