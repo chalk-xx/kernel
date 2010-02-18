@@ -133,7 +133,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final String sitePath = siteParam.getString();
 
     final RequestParameter[] files = request.getRequestParameters("Filedata");
-    if (files == null) {
+    if (files == null || files.length < 1) {
       final String errorMessage = "Missing Filedata parameter.";
       sendError(HttpServletResponse.SC_BAD_REQUEST, errorMessage,
           new IllegalArgumentException(errorMessage), response);
