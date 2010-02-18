@@ -1,8 +1,7 @@
-{"sling:resourceType": "sakai/page",
-	"id": "introduction",
-	"title": "Introduction",
-	"type": "webpage",
-	"position": "100000",
-	"acl": "parent",
+{
+	"sling:resourceType": "sakai/page",
+	"pageTitle": "Introduction",
+	"pageType": "webpage", 
+	"pagePosition": 100000,
 	"jcr:mixinTypes": "sakai:propertiesmix"
-    }
+}
