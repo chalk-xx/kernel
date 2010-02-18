@@ -49,7 +49,7 @@ public class ContentSearchPropertyProviderTest extends AbstractEasyMockTest {
     replay();
     provider.loadUserProperties(request, map);
 
-    Assert.assertEquals("[@id = \"physics\"]", map.get("_site"));
+    Assert.assertEquals(" AND @id = \"physics\"", map.get("_site"));
   }
 
   @Test
@@ -61,7 +61,7 @@ public class ContentSearchPropertyProviderTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "site", "phys\" and @foo=\"bar");
     replay();
     provider.loadUserProperties(request, map);
-    if ("[@id = \"phys\" and @foo=\"bar\"]".equals(map.get("_site"))) {
+    if (" AND @id = \"phys\" and @foo=\"bar\"".equals(map.get("_site"))) {
       fail("The property provider should take care of property injection.");
     }
   }
