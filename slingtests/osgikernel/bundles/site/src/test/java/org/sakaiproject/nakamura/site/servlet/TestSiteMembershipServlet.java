@@ -17,16 +17,12 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -37,11 +33,8 @@ import org.sakaiproject.nakamura.api.site.SiteService;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -52,7 +45,6 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
   private static final String TEST_USER = "testuser";
   private static final String TEST_SITE_GROUP = "some_site_group";
   private static final String TEST_SITE_PATH = "/some/test/site";
-  private static final String TEST_SITE_RESOURCE_TYPE = "sakai/site";
   private static final String TEST_SITE_UUID = "50362f56-094f-4e2d-be9f-6eebb2643d30";
 
   private SlingHttpServletRequest request;
