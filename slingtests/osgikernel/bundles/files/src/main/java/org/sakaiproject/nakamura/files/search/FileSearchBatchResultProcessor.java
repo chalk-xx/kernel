@@ -112,7 +112,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       List<Row> savedRows = new ArrayList<Row>();
       List<String> processedResults = new ArrayList<String>();
       // Loop over the rows
-      while (i < (start + nitems)) {
+      while (i < (start + nitems) && iterator.hasNext()) {
         // Grab the next row and node.
         Row row = iterator.nextRow();
         Node node = RowUtils.getNode(row, session);
