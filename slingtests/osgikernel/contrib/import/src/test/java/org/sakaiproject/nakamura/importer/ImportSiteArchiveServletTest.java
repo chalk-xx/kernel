@@ -17,44 +17,41 @@
  */
 package org.sakaiproject.nakamura.importer;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.RETURNS_SMART_NULLS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
+import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.commons.testing.jcr.MockNode;
-import org.apache.sling.commons.testing.jcr.MockProperty;
-import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
-import org.apache.sling.commons.testing.jcr.MockValue;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
+import org.sakaiproject.nakamura.api.files.FilesConstants;
 
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.UUID;
 
-import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.query.Query;
-import javax.jcr.query.Row;
-import javax.jcr.query.RowIterator;
-import javax.jcr.version.VersionException;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletResponse;
 
@@ -66,16 +63,6 @@ public class ImportSiteArchiveServletTest {
   private ImportSiteArchiveServlet importSiteArchiveServlet;
   @Mock
   ServletConfig servletConfig;
-  @Mock
-  private SlingHttpServletRequest request;
-  @Mock
-  private SlingHttpServletResponse response;
-  @Mock
-  private RequestParameter requestParameter;
-  @Mock
-  private ResourceResolver resolver;
-  @Mock
-  private Session session;
 
   @Before
   public void setUp() throws Exception {
@@ -89,8 +76,10 @@ public class ImportSiteArchiveServletTest {
 
   @Test
   public void testDoPostNoSiteParam() {
-    when(response.isCommitted()).thenReturn(false);
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
     when(request.getRequestParameter("site")).thenReturn(null);
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
     try {
       importSiteArchiveServlet.doPost(request, response);
       verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST),
@@ -103,8 +92,14 @@ public class ImportSiteArchiveServletTest {
 
   @Test
   public void testDoPostBadSiteParam() {
-    when(requestParameter.getString()).thenReturn("site/foo");
-    when(request.getRequestParameter("site")).thenReturn(requestParameter);
+    RequestParameter siteParam = mock(RequestParameter.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("siteParam"));
+    when(siteParam.getString()).thenReturn("site/foo");
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
+    when(request.getRequestParameter("site")).thenReturn(siteParam);
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
+    when(response.isCommitted()).thenReturn(false);
     try {
       importSiteArchiveServlet.doPost(request, response);
       verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST),
@@ -117,8 +112,19 @@ public class ImportSiteArchiveServletTest {
 
   @Test
   public void testDoPostNoFileData() {
-    when(requestParameter.getString()).thenReturn("/site/foo");
-    when(request.getRequestParameter("site")).thenReturn(requestParameter);
+    RequestParameter siteParam = mock(RequestParameter.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("siteParam"));
+    when(siteParam.getString()).thenReturn("/site/foo");
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
+    when(request.getRequestParameter("site")).thenReturn(siteParam);
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
+    when(response.isCommitted()).thenReturn(false);
+    // mock ResourceResolver which Request will return
+    Session userSession = mock(Session.class);
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    when(resolver.adaptTo(Session.class)).thenReturn(userSession);
+    when(request.getResourceResolver()).thenReturn(resolver);
     try {
       importSiteArchiveServlet.doPost(request, response);
       verify(response).sendError(eq(HttpServletResponse.SC_BAD_REQUEST),
@@ -129,5 +135,102 @@ public class ImportSiteArchiveServletTest {
     }
   }
 
-
+  @Test
+  public void testDoPost() throws Exception {
+    // mock RequestParameter which returns a valid siteParam
+    RequestParameter siteParam = mock(RequestParameter.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("siteParam"));
+    when(siteParam.getString()).thenReturn("/site/foo");
+    // mock Request that returns valid siteParam
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
+    when(request.getRequestParameter("site")).thenReturn(siteParam);
+    // mock param which stubs a real InputStream from archive.zip test file
+    RequestParameter fileParam = mock(RequestParameter.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("fileParam"));
+    when(fileParam.getInputStream()).thenAnswer(new Answer<InputStream>() {
+      public InputStream answer(InvocationOnMock invocation) {
+        FileInputStream fis = null;
+        try {
+          File file = new File("archive.zip");
+          System.out.println("\nPATH:" + file.getAbsolutePath());
+          fis = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+          throw new Error(e);
+        }
+        return fis;
+      }
+    });
+    // Request returns a valid FileData RequestParameter[]
+    RequestParameter[] files = { fileParam };
+    when(request.getRequestParameters("Filedata")).thenReturn(files);
+    // mock Session that always claims itemExists == true
+    Session userSession = mock(Session.class, withSettings().defaultAnswer(
+        RETURNS_SMART_NULLS).name("userSession"));
+    when(userSession.itemExists(anyString())).thenReturn(true);
+    // mock Property that returns a valid SAKAI_FILENAME
+    Property sakaiFileNameProperty = mock(Property.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("sakaiFileNameProperty"));
+    when(sakaiFileNameProperty.getString()).thenReturn("foo");
+    // mock Property that returns a valid SLING_RESOURCE_TYPE_PROPERTY
+    Property slingResourceTypeProperty = mock(Property.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("slingResourceTypeProperty"));
+    when(slingResourceTypeProperty.getString()).thenReturn(
+        FilesConstants.RT_FILE_STORE);
+    // mock Property that returns a valid JCR_PRIMARYTYPE
+    Property jcrPrimaryTypeProperty = mock(Property.class, withSettings()
+        .defaultAnswer(RETURNS_SMART_NULLS).name("jcrPrimaryTypeProperty"));
+    when(jcrPrimaryTypeProperty.getString()).thenReturn(
+        JcrConstants.NT_UNSTRUCTURED);
+    // mock child Node to parent fileNode
+    Node contentNode = mock(Node.class, withSettings().defaultAnswer(
+        RETURNS_SMART_NULLS).name("contentNode"));
+    // mock fileNode that returns the mock Property, Session, and getPath
+    Node fileNode = mock(Node.class, withSettings().defaultAnswer(
+        RETURNS_SMART_NULLS).name("fileNode"));
+    when(fileNode.getProperty(FilesConstants.SAKAI_FILENAME)).thenReturn(
+        sakaiFileNameProperty);
+    when(
+        fileNode.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .thenReturn(true);
+    when(
+        fileNode.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))
+        .thenReturn(slingResourceTypeProperty);
+    when(fileNode.getProperty(JcrConstants.JCR_PRIMARYTYPE)).thenReturn(
+        jcrPrimaryTypeProperty);
+    when(fileNode.getSession()).thenReturn(userSession);
+    when(fileNode.getPath()).thenReturn("/foo");
+    when(fileNode.getNode(JcrConstants.JCR_CONTENT)).thenReturn(contentNode);
+    when(userSession.getItem(anyString())).thenReturn(fileNode);
+    // mock ResourceResolver which Request will return
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    when(resolver.adaptTo(Session.class)).thenReturn(userSession);
+    when(request.getResourceResolver()).thenReturn(resolver);
+    // inject mock ClusterTrackingService
+    ClusterTrackingService clusterTrackingService = mock(
+        ClusterTrackingService.class, withSettings().defaultAnswer(
+            RETURNS_SMART_NULLS));
+    when(clusterTrackingService.getClusterUniqueId()).thenReturn(
+        UUID.randomUUID().toString());
+    importSiteArchiveServlet.clusterTrackingService = clusterTrackingService;
+    // inject mock SlingRepository
+    SlingRepository slingRepository = mock(SlingRepository.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
+    Session adminSession = mock(Session.class, withSettings().defaultAnswer(
+        RETURNS_SMART_NULLS).name("adminSession"));
+    when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+    when(adminSession.getNodeByUUID(anyString())).thenReturn(fileNode);
+    importSiteArchiveServlet.slingRepository = slingRepository;
+    // mock Response mainly for verify
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class,
+        withSettings().defaultAnswer(RETURNS_SMART_NULLS));
+    when(response.isCommitted()).thenReturn(false);
+    try {
+      importSiteArchiveServlet.doPost(request, response);
+      verify(response).sendError(eq(HttpServletResponse.SC_OK), anyString());
+    } catch (Exception e) {
+      e.printStackTrace();
+      assertNull("doPost method should not throw any exceptions", e);
+    }
+  }
 }

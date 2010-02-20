@@ -88,10 +88,10 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       .getLogger(ImportSiteArchiveServlet.class);
 
   @Reference
-  private transient SlingRepository slingRepository;
+  transient SlingRepository slingRepository;
 
   @Reference
-  private transient ClusterTrackingService clusterTrackingService;
+  transient ClusterTrackingService clusterTrackingService;
 
   private transient XMLInputFactory xmlInputFactory = null;
   private transient Base64 base64 = new Base64();
@@ -133,7 +133,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
     final String sitePath = siteParam.getString();
 
     final RequestParameter[] files = request.getRequestParameters("Filedata");
-    if (files == null) {
+    if (files == null || files.length < 1) {
       final String errorMessage = "Missing Filedata parameter.";
       sendError(HttpServletResponse.SC_BAD_REQUEST, errorMessage,
           new IllegalArgumentException(errorMessage), response);
@@ -182,7 +182,8 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
         }
         // delete temporary file
         if (tempZip.delete()) {
-          return;
+          LOG.debug("{}: temporary zip file deleted.", tempZip
+              .getAbsolutePath());
         } else {
           LOG.warn("Could not delete temporary file: {}", tempZip
               .getAbsolutePath());
