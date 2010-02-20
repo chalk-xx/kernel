@@ -35,6 +35,7 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.util.List;
@@ -73,6 +74,14 @@ public class TagOperation extends AbstractSlingPostOperation {
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
 
+    // Check if the user has the required minimum privilege.
+    String user = request.getRemoteUser();
+    if (UserConstants.ANON_USERID.equals(user)) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN,
+          "Anonymous users can't tag things.");
+      return;
+    }
+    
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node tagNode = null;
     Node node = request.getResource().adaptTo(Node.class);
@@ -87,6 +96,7 @@ public class TagOperation extends AbstractSlingPostOperation {
     RequestParameter uuidParam = request.getRequestParameter("uuid");
     if (uuidParam == null) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
+      return;
     }
 
     // Grab the tagNode.
@@ -104,14 +114,6 @@ public class TagOperation extends AbstractSlingPostOperation {
     }
 
     try {
-      // Check if the user has the required minimum privilege.
-      String user = request.getRemoteUser();
-      if ("anon".equals(user)) {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN,
-            "Anonymous users can't tag things.");
-        return;
-      }
-
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (!hasUuid(node, uuid)) {
