@@ -86,6 +86,7 @@
         <module>bundles/content</module>
         <module>bundles/docproxy</module>
         <module>bundles/google-collections</module>
+        <module>bundles/woodstox</module>
       </modules>
     </profile>
     <profile>
