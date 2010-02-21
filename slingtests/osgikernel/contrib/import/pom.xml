@@ -43,27 +43,15 @@
 						<Private-Package> org.sakaiproject.nakamura.importer.* </Private-Package>
             <Sling-Nodetypes>SLING-INF/nodetypes/types.cnd</Sling-Nodetypes>
 						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
-						<Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*;resolution:=optional,*</Import-Package>
-						<Embed-Transitive>true</Embed-Transitive>
-						<Embed-Dependency>woodstox-core-asl,stax2-api,relaxngDatatype</Embed-Dependency>
+						<Import-Package>
+							javax.xml.stream.*,
+							org.codehaus.stax2.*,
+							com.ctc.wstx.*,
+							org.relaxng.datatype.*,
+							*
+						</Import-Package>
 					</instructions>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>embed-dependencies</id>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<includeArtifactIds>woodstox-core-asl,stax2-api,relaxngDatatype</includeArtifactIds>
-							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
@@ -115,21 +103,25 @@
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.4</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
 			<artifactId>stax2-api</artifactId>
 			<version>3.0.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
 			<artifactId>woodstox-core-asl</artifactId>
 			<version>4.0.7</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>relaxngDatatype</groupId>
 			<artifactId>relaxngDatatype</artifactId>
 			<version>20020414</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.sakaiproject.nakamura</groupId>
