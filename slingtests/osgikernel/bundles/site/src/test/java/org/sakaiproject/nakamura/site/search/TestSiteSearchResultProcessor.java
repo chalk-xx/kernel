@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.site;
+package org.sakaiproject.nakamura.site.search;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;

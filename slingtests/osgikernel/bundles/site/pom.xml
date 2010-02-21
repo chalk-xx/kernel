@@ -86,10 +86,11 @@
       <artifactId>org.apache.sling.api</artifactId>
       <version>2.0.4-incubator</version>
     </dependency>
+    <!-- Need 1.6.0 to reach Session getAccessControlManager -->
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-api</artifactId>
-      <version>1.5.0</version>
+      <version>1.6.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -141,6 +142,12 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.commons.testing</artifactId>
       <version>2.0.5-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.8.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

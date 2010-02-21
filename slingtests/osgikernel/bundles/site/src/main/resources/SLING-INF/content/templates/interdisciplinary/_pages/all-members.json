@@ -1,8 +1,7 @@
-{"sling:resourceType": "sakai/page",
-	"id": "all-members",
-	"title": "All members",
-	"type": "webpage",
-	"position": "300000",
-	"acl": "parent",
+{
+	"sling:resourceType": "sakai/page",
+	"pageTitle": "All members",
+	"pageType": "webpage", 
+	"pagePosition": 300000,
 	"jcr:mixinTypes": "sakai:propertiesmix"
-    }
+}

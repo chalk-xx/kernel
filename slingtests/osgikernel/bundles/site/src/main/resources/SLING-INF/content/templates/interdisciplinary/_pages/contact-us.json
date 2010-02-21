@@ -1,8 +1,7 @@
-{"sling:resourceType": "sakai/page",
-	"id": "contact-us",
-	"title": "Contact Us",
-	"type": "webpage",
-	"position": "500000",
-	"acl": "parent",
+{
+	"sling:resourceType": "sakai/page",
+	"pageTitle": "Contact Us",
+	"pageType": "webpage", 
+	"pagePosition": 500000,
 	"jcr:mixinTypes": "sakai:propertiesmix"
-    }
+}

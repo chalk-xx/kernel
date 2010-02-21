@@ -101,12 +101,12 @@ public class SiteAuthz {
   public SiteAuthz(Node site) throws RepositoryException {
     this.site = site;
     this.siteRef = site.getUUID();
+    this.roleToGroupMap = new HashMap<String, String>();
     if (site.hasProperty(SITE_ROLES_PROPERTY)
         && site.hasProperty(SITE_ROLE_MEMBERSHIPS_PROPERTY)) {
       Value[] roleValues = site.getProperty(SITE_ROLES_PROPERTY).getValues();
       Value[] groupValues = site.getProperty(SITE_ROLE_MEMBERSHIPS_PROPERTY).getValues();
       if (roleValues.length == groupValues.length) {
-        this.roleToGroupMap = new HashMap<String, String>();
         for (int i = 0; i < roleValues.length; i++) {
           this.roleToGroupMap.put(roleValues[i].getString(), groupValues[i].getString());
         }
@@ -123,7 +123,7 @@ public class SiteAuthz {
    * schemes, or an empty object if no configuration exists
    * @throws RepositoryException
    */
-  public static JSONObject findSiteAuthzConfig(Node site) throws RepositoryException {
+  private static JSONObject findSiteAuthzConfig(Node site) throws RepositoryException {
     JSONObject authzConfig = null;
     if (site.hasNode(AUTHZ_CONFIG_PATH)) {
       Node node = site.getNode(AUTHZ_CONFIG_PATH);
@@ -163,14 +163,6 @@ public class SiteAuthz {
     } catch (JSONException e) {
       return null;
     }
-  }
-
-  /**
-   * @return a mapping of site role names to the IDs of the Jackrabbit groups
-   * used to hold their memberships
-   */
-  public Map<String, String> getRoleToGroupMap() {
-    return roleToGroupMap;
   }
 
   /**
@@ -419,61 +411,61 @@ public class SiteAuthz {
 
   private Map<String, String> initRoleMembershipGroups(String creatorId)
       throws RepositoryException {
-    Session session = site.getSession();
-    // Site names exist in a hierarchical namespace but group names exist
-    // in a flat namespace. To lessen the chance of conflicts, use the
-    // node UUID to generate site-dependent group names.
-    String siteId = site.getUUID();
     Map<String, String> roleToGroupMap = new HashMap<String, String>();
-    ValueFactory valueFactory = session.getValueFactory();
-    String maintenanceRole = getMaintenanceRole();
-    Collection<Value> groupAdministrators = new ArrayList<Value>();
-    groupAdministrators.add(valueFactory.createValue(creatorId));
-    Collection<Group> membershipGroups = new ArrayList<Group>();
+    JSONArray roles = getAuthzConfig().optJSONArray("roles");
+    if (roles != null) {
+      // Site names exist in a hierarchical namespace but group names exist
+      // in a flat namespace. To lessen the chance of conflicts, use the
+      // node UUID to generate site-dependent group names.
+      String siteId = site.getUUID();
+      Session session = site.getSession();
+      ValueFactory valueFactory = session.getValueFactory();
+      String maintenanceRole = getMaintenanceRole();
+      Collection<Value> groupAdministrators = new ArrayList<Value>();
+      groupAdministrators.add(valueFactory.createValue(creatorId));
+      Collection<Group> membershipGroups = new ArrayList<Group>();
 
-    // Create groups to hold site role memberships.
-    try {
-      JSONObject roleToGroupPattern = getAuthzConfig()
-          .getJSONObject("roleToGroupPattern");
-      JSONArray roles = getAuthzConfig().getJSONArray("roles");
-      for (int i = 0; i < roles.length(); i++) {
-        String role = roles.getString(i);
+      // Create groups to hold site role memberships.
+      try {
+        JSONObject roleToGroupPattern = getAuthzConfig()
+            .getJSONObject("roleToGroupPattern");
+        for (int i = 0; i < roles.length(); i++) {
+          String role = roles.getString(i);
 
-        // Create JCR group to hold role memberships.
-        String groupId = roleToGroupPattern.getString(role);
-        groupId = groupId.replace("${siteId}", siteId);
-        Group group = createGroup(session, groupId, creatorId);
+          // Create JCR group to hold role memberships.
+          String groupId = roleToGroupPattern.getString(role);
+          groupId = groupId.replace("${siteId}", siteId);
+          Group group = createGroup(session, groupId, creatorId);
 
-        // Add site-related properties to the group.
-        group.setProperty(GROUP_SITE_PROPERTY, valueFactory.createValue(siteRef));
-        group.setProperty(GROUP_ROLE_PROPERTY, valueFactory.createValue(role));
+          // Add site-related properties to the group.
+          group.setProperty(GROUP_SITE_PROPERTY, valueFactory.createValue(siteRef));
+          group.setProperty(GROUP_ROLE_PROPERTY, valueFactory.createValue(role));
 
-        // Remember the mapping.
-        roleToGroupMap.put(role, groupId);
-        membershipGroups.add(group);
+          // Remember the mapping.
+          roleToGroupMap.put(role, groupId);
+          membershipGroups.add(group);
 
-        if (role.equals(maintenanceRole)) {
-          // Add the creator as a high-access site member.
-          UserManager userManager = AccessControlUtil.getUserManager(session);
-          group.addMember(userManager.getAuthorizable(creatorId));
-          LOGGER.warn("Added " + creatorId + " to group " + groupId);
+          if (role.equals(maintenanceRole)) {
+            // Add the creator as a high-access site member.
+            UserManager userManager = AccessControlUtil.getUserManager(session);
+            group.addMember(userManager.getAuthorizable(creatorId));
+            LOGGER.warn("Added " + creatorId + " to group " + groupId);
 
-          // Let members in the maintenance role administer memberships.
-          groupAdministrators.add(valueFactory.createValue(groupId));
+            // Let members in the maintenance role administer memberships.
+            groupAdministrators.add(valueFactory.createValue(groupId));
+          }
         }
+      } catch (JSONException e) {
+        LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
-    } catch (JSONException e) {
-      LOGGER.error("Bad site authz config for site " + site.getPath(), e);
+      // Set group management rights.
+      Value[] adminPrincipals = groupAdministrators.toArray(new Value[groupAdministrators
+          .size()]);
+      for (Group membershipGroup : membershipGroups) {
+        membershipGroup.setProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+            adminPrincipals);
+      }
     }
-
-    // Set group management rights.
-    Value[] adminPrincipals = groupAdministrators.toArray(new Value[groupAdministrators
-        .size()]);
-    for (Group membershipGroup : membershipGroups) {
-      membershipGroup.setProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
-          adminPrincipals);
-    }
-
     return roleToGroupMap;
   }
 
@@ -507,7 +499,7 @@ public class SiteAuthz {
    * @throws RepositoryException
    */
   public void deletionPostProcess(Session session, SlingRepository slingRepository) throws RepositoryException {
-    if (roleToGroupMap != null) {
+    if (!roleToGroupMap.isEmpty()) {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Collection<String> roleGroups = roleToGroupMap.values();
       for (String groupId : roleGroups) {
@@ -522,7 +514,7 @@ public class SiteAuthz {
    * shared service or utility function. See KERN-580.
    */
   @SuppressWarnings("unchecked")
-  public static boolean isUserGroupMaintainer(Session session, Group group) throws RepositoryException {
+  private static boolean isUserGroupMaintainer(Session session, Group group) throws RepositoryException {
     boolean isMaintainer = false;
     UserManager userManager = AccessControlUtil.getUserManager(session);
     User currentUser = (User) userManager.getAuthorizable(session.getUserID());
@@ -569,7 +561,7 @@ public class SiteAuthz {
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  public void deleteGroup(Session session, SlingRepository slingRepository, Group group)
+  private void deleteGroup(Session session, SlingRepository slingRepository, Group group)
       throws RepositoryException {
     if (!isUserGroupMaintainer(session, group)) {
       LOGGER.warn("User is not allowed to modify group");

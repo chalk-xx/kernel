@@ -217,10 +217,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         if (templatePath != null) {
           siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser.getID());
         } else {
-          siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath, SiteService.SITE_PRIMARY_TYPE);
-          siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              SiteService.SITE_RESOURCE_TYPE);
+          siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
         }
+        siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            SiteService.SITE_RESOURCE_TYPE);
 
         // setup the ACL's on the node. After this point, administrator
         // access should no longer be needed.

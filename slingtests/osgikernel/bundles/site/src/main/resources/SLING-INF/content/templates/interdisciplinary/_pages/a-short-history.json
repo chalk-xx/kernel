@@ -1,7 +1,7 @@
-{"sling:resourceType": "sakai/page",
-	"id": "a-short-history",
-	"title": "A Short History",
-	"type": "webpage",
-	"position": "200000",
-	"acl": "parent"
-    }
+{
+	"sling:resourceType": "sakai/page",
+	"pageTitle": "A short history",
+	"pageType": "webpage", 
+	"pagePosition": 200000,
+	"jcr:mixinTypes": "sakai:propertiesmix"
+}
