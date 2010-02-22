@@ -18,6 +18,7 @@ kern-309.rb 1 tests, 15 assertions, 0 failures, 0 errors
 kern-310.rb 1 tests, 6 assertions, 0 failures, 0 errors
 kern-312.rb 3 tests, 14 assertions, 0 failures, 0 errors
 kern-325.rb 1 tests, 3 assertions, 0 failures, 0 errors
+kern-330.rb 3 tests, 6 assertions, 0 failures, 3 errors
 kern-335.rb 1 tests, 8 assertions, 0 failures, 0 errors
 kern-345.rb 3 tests, 47 assertions, 0 failures, 0 errors
 kern-356.rb 2 tests, 16 assertions, 0 failures, 0 errors
