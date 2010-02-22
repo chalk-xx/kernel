@@ -610,6 +610,17 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    <repository>
+      <id>sakai-releases</id>
+      <name>Sakai Releases</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>https://source.sakaiproject.org/maven2/</url>
+    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
@@ -624,13 +635,13 @@
       <url>http://repository.apache.org/snapshots/</url>
     </pluginRepository>
     <pluginRepository>
-      <id>sakai-plugin-snapshot</id>
-      <name>Sakai Snapshots Plugins</name>
+      <id>sakai-plugin</id>
+      <name>Sakai Plugins</name>
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </snapshots>
       <url>https://source.sakaiproject.org/maven2/</url>
     </pluginRepository>
