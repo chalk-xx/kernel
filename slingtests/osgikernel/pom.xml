@@ -623,6 +623,17 @@
       </snapshots>
       <url>http://repository.apache.org/snapshots/</url>
     </pluginRepository>
+    <pluginRepository>
+      <id>sakai-plugin-snapshot</id>
+      <name>Sakai Snapshots Plugins</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>https://source.sakaiproject.org/maven2/</url>
+    </pluginRepository>
   </pluginRepositories>
 <!-- ====================================================================== -->
 <!-- D E P E N D E N C I E S -->
