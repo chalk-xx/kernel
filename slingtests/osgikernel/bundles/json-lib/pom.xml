@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.json-lib</artifactId>
   <packaging>bundle</packaging>
-  <version>0.3-SNAPSHOT</version>
+  <version>0.3</version>
   <name>JSON Lib Bundle</name>
   <description>Provides net.sf.json classes.</description>
   <build>

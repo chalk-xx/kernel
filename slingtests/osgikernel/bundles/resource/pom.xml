@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.resource</artifactId>
   <packaging>bundle</packaging>
-  <version>0.3-SNAPSHOT</version>
+  <version>0.3</version>
   <name>Sakai Sling Resource Extensione Bundle</name>
   <description>Sling Resource Extension budle containing adaptations of existing extension points</description>
   <build>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.3-SNAPSHOT</version>
+      <version>0.3</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -99,12 +99,12 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.3-SNAPSHOT</version>
+      <version>0.3</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.3-SNAPSHOT</version>
+      <version>0.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
