@@ -40,7 +40,6 @@
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
-        <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>

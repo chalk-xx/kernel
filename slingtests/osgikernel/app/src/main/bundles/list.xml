@@ -279,11 +279,6 @@
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>javax.xml.bind.jsr173</artifactId>
-      <version>1.0</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
       <version>4.0.7-0.3-SNAPSHOT</version>
     </bundle>
