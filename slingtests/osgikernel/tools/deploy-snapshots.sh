@@ -11,6 +11,14 @@ function install {
      mvn install:install-file -DgroupId=org.apache.sling -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/sling/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
    fi
 }
+function install_felix {
+   if [ -f $repo/org/apache/felix/${1}/${2}-${3}/${1}-${2}-${3}.jar ]
+   then
+     echo Version ${1}-${2}-${3} exists.
+   else
+     mvn install:install-file -DgroupId=org.apache.felix -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/felix/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
+   fi
+}
 install "org.apache.sling.extensions.webconsolebranding" "0.0.1" $version
 install "org.apache.sling.jcr.webconsole" "1.0.0" $version
 install "org.apache.sling.commons.json" "2.0.5" $version
@@ -29,6 +37,10 @@ install "org.apache.sling.scripting.jsp.taglib" 2.0.7 $version
 install "org.apache.sling.commons.testing" 2.0.5 $version
 install "maven-launchpad-plugin" 2.0.5 $version
 install "org.apache.sling.launchpad.base" 2.1.1 $version
+install "org.apache.sling.commons.log" 2.0.7 $version
+install_felix "org.apache.felix.webconsole" 2.0.7 $version
+install_felix "org.apache.felix.webconsole.plugins.event" 1.0.0 $version
+install "org.apache.sling.extensions.groovy" 1.0.0 $version
 
 pushd $repo
 vsearch="*${version}*"
