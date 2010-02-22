@@ -490,7 +490,7 @@
         <plugin>
           <groupId>org.apache.sling</groupId>
           <artifactId>maven-launchpad-plugin</artifactId>
-          <version>2.0.5-SNAPSHOT</version>
+          <version>2.0.5-20100222</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -609,6 +609,17 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    <repository>
+      <id>sakai-releases</id>
+      <name>Sakai Releases</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>https://source.sakaiproject.org/maven2/</url>
+    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
@@ -621,6 +632,17 @@
         <enabled>true</enabled>
       </snapshots>
       <url>http://repository.apache.org/snapshots/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>sakai-plugin</id>
+      <name>Sakai Plugins</name>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <url>https://source.sakaiproject.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
 <!-- ====================================================================== -->
@@ -689,7 +711,7 @@
       <dependency>
          <groupId>org.apache.sling</groupId>
          <artifactId>org.apache.sling.commons.testing</artifactId>
-         <version>2.0.5-SNAPSHOT</version>
+         <version>2.0.5-20100222</version>
          <scope>test</scope>
      </dependency>
 
