@@ -165,6 +165,9 @@ public class FileUtils {
     write.key("path");
     write.value(node.getPath());
 
+    write.key("name");
+    write.value(node.getName());
+
     if (node.hasNode(JcrConstants.JCR_CONTENT)) {
       Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
       write.key(JcrConstants.JCR_LASTMODIFIED);

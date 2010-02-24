@@ -77,7 +77,8 @@ public class FilesUtilsTest {
    * 
    */
   private void assertFileNodeInfo(JSONObject j) throws JSONException {
-    assertEquals("/path/to/file", j.getString("path"));
+    assertEquals("/path/to/file.doc", j.getString("path"));
+    assertEquals("file.doc", j.getString("name"));
     assertEquals("bar", j.getString("foo"));
     assertEquals("text/plain", j.getString("jcr:mimeType"));
     assertEquals(12345, j.getLong("jcr:data"));
@@ -112,7 +113,8 @@ public class FilesUtilsTest {
     when(node.getProperties()).thenReturn(propertyIterator);
     when(node.hasNode("jcr:content")).thenReturn(true);
     when(node.getNode("jcr:content")).thenReturn(contentNode);
-    when(node.getPath()).thenReturn("/path/to/file");
+    when(node.getPath()).thenReturn("/path/to/file.doc");
+    when(node.getName()).thenReturn("file.doc");
 
     return node;
   }

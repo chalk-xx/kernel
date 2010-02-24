@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.mockito.Mockito.verify;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -162,12 +164,16 @@ public class TagOperationTest {
     Value newValue = new MockValue("uuid-of-tag");
     when(valueFactory.createValue(Mockito.anyString(), Mockito.anyInt())).thenReturn(
         newValue).thenReturn(newValue);
-    when(adminSession.getValueFactory()).thenReturn(valueFactory).thenReturn(valueFactory);
+    when(adminSession.getValueFactory()).thenReturn(valueFactory)
+        .thenReturn(valueFactory);
     when(slingRepo.loginAdministrative(null)).thenReturn(adminSession);
 
+    when(adminSession.hasPendingChanges()).thenReturn(true);
     operation.doRun(request, response, null);
 
     assertEquals(200, response.getStatusCode());
+    verify(adminSession).save();
+    verify(adminSession).logout();
 
   }
 
