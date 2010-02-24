@@ -61,7 +61,7 @@ public class JcrInternalFileHandlerTest {
 
     Session session = mock(Session.class);
     Node mockNode = new MockNode(file);
-    when(session.getNodeByUUID(to)).thenReturn(mockNode);
+    when(session.getNodeByIdentifier(to)).thenReturn(mockNode);
 
     ResourceResolver resolver = mock(ResourceResolver.class);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
@@ -84,7 +84,7 @@ public class JcrInternalFileHandlerTest {
 
     Session session = mock(Session.class);
     Node mockNode = new MockNode(file);
-    when(session.getNodeByUUID(to)).thenReturn(mockNode);
+    when(session.getNodeByIdentifier(to)).thenReturn(mockNode);
 
     ResourceResolver resolver = mock(ResourceResolver.class);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
@@ -105,7 +105,7 @@ public class JcrInternalFileHandlerTest {
     String to = UUID.randomUUID().toString();
 
     Session session = mock(Session.class);
-    when(session.getNodeByUUID(to)).thenThrow(new ItemNotFoundException());
+    when(session.getNodeByIdentifier(to)).thenThrow(new ItemNotFoundException());
 
     ResourceResolver resolver = mock(ResourceResolver.class);
     when(resolver.adaptTo(Session.class)).thenReturn(session);

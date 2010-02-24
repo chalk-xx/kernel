@@ -71,7 +71,7 @@ public class FileSearchBatchResultProcessor implements SearchBatchResultProcesso
       .getLogger(FileSearchBatchResultProcessor.class);
 
   @Reference
-  private SiteService siteService;
+  protected transient SiteService siteService;
 
   /**
    * @param siteService

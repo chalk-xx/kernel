@@ -58,10 +58,10 @@ import javax.jcr.query.Query;
 public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   @Reference
-  private SiteService siteService;
+  protected SiteService siteService;
 
   @Reference
-  private ConnectionManager connectionManager;
+  protected ConnectionManager connectionManager;
 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
@@ -162,7 +162,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doUsedIn(SlingHttpServletRequest request) {
+  protected String doUsedIn(SlingHttpServletRequest request) {
     String usedin[] = request.getParameterValues("usedin");
     if (usedin != null && usedin.length > 0) {
       StringBuilder sb = new StringBuilder();
@@ -184,7 +184,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     return "";
   }
 
-  private String getSearchValue(SlingHttpServletRequest request) {
+  protected String getSearchValue(SlingHttpServletRequest request) {
     RequestParameter searchParam = request.getRequestParameter("search");
     String search = "*";
     if (searchParam != null) {
@@ -201,7 +201,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doSortOrder(SlingHttpServletRequest request) {
+  protected String doSortOrder(SlingHttpServletRequest request) {
     RequestParameter sortOnParam = request.getRequestParameter("sortOn");
     RequestParameter sortOrderParam = request.getRequestParameter("sortOrder");
     String sortOn = "sakai:filename";
@@ -223,7 +223,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doTags(SlingHttpServletRequest request) {
+  protected String doTags(SlingHttpServletRequest request) {
     String[] tags = request.getParameterValues("sakai:tags");
     if (tags != null) {
       StringBuilder sb = new StringBuilder();
@@ -293,7 +293,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   @SuppressWarnings(justification = "siteService is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  private String getMySites(Session session, String user) {
+  protected String getMySites(Session session, String user) {
     try {
       StringBuilder sb = new StringBuilder();
       Map<String, List<Group>> membership = siteService.getMembership(session, user);
@@ -322,7 +322,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param queryLanguage
    * @return
    */
-  private String escapeString(String value, String queryLanguage) {
+  protected String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
@@ -343,7 +343,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   @SuppressWarnings(justification = "connectionManager is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  private String getMyContacts(String user) {
+  protected String getMyContacts(String user) {
     List<String> connectedUsers = connectionManager.getConnectedUsers(user,
         ConnectionState.ACCEPTED);
     StringBuilder sb = new StringBuilder();

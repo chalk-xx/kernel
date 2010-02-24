@@ -17,23 +17,16 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.NonExistingResource;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
@@ -44,15 +37,15 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.files.FileUtils;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.util.JcrUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 import javax.jcr.Node;
-import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
@@ -97,19 +90,19 @@ public class LinkOperation extends AbstractSlingPostOperation {
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
 
-    String link = request.getParameter(LINK_PARAM);
-    String site = request.getParameter(SITE_PARAM);
-    Resource resource = request.getResource();
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node node = (Node) session.getItem(resource.getPath());
-    if ("anon".equals(request.getRemoteUser())) {
+    if (UserConstants.ANON_USERID.equals(request.getRemoteUser())) {
       response.setStatus(HttpServletResponse.SC_FORBIDDEN,
           "Anonymous users can't link things.");
       return;
     }
-    if (resource == null || ResourceUtil.isNonExistingResource(resource)) {
+
+    String link = request.getParameter(LINK_PARAM);
+    String site = request.getParameter(SITE_PARAM);
+    Resource resource = request.getResource();
+    Node node = resource.adaptTo(Node.class);
+    if (node == null || resource == null || ResourceUtil.isNonExistingResource(resource)) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-          "A tag operation must be performed on an actual resource");
+          "A link operation must be performed on an actual resource");
       return;
     }
     if (link == null) {
@@ -117,15 +110,12 @@ public class LinkOperation extends AbstractSlingPostOperation {
           "A link parameter has to be provided.");
       return;
     }
-    if (node == null || resource == null || resource instanceof NonExistingResource) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
-          "The link operation can't be done on NonExisting Resources.");
-      return;
-    }
 
     if (site != null) {
       try {
+        Session session = request.getResourceResolver().adaptTo(Session.class);
         Node siteNode = (Node) session.getNodeByIdentifier(site);
+        site = siteNode.getPath();
         if (siteNode == null || !siteService.isSite(siteNode)) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "The site parameter doesn't point to a valid site.");
@@ -137,63 +127,10 @@ public class LinkOperation extends AbstractSlingPostOperation {
             "The site parameter doesn't point to a valid site.");
         return;
       }
-
     }
 
     try {
-      boolean hasMixin = JcrUtils.hasMixin(node, REQUIRED_MIXIN);
-      if (!hasMixin || site != null) {
-        // The required mixin is not on the node.
-        // Set it.
-        Session adminSession = null;
-        try {
-          adminSession = slingRepository.loginAdministrative(null);
-
-          // Grab the node via the adminSession
-          String path = resource.getPath();
-          Node adminNode = (Node) adminSession.getItem(path);
-          if (!hasMixin) {
-            adminNode.addMixin(REQUIRED_MIXIN);
-          }
-
-          // Used in a site.
-          if (site != null) {
-            JcrUtils.addUniqueValue(adminSession, adminNode, "sakai:sites", site,
-                PropertyType.STRING);
-          }
-
-          if (adminSession.hasPendingChanges()) {
-            adminSession.save();
-          }
-        } finally {
-          adminSession.logout();
-        }
-      }
-
-      // Now that the file is referenceable, it has a uuid.
-      // Use it for the link.
-      // Grab the (updated) node via the user's session id.
-      node = (Node) session.getItem(node.getPath());
-
-      // Grab the content of node.
-      Node contentNode = node;
-      if (node.hasNode(JcrConstants.JCR_CONTENT)) {
-        contentNode = node.getNode(JcrConstants.JCR_CONTENT);
-      }
-
-      // Create the link
-      Node linkNode = JcrUtils.deepGetOrCreateNode(session, link, "nt:linkedFile");
-      linkNode.setProperty(JcrConstants.JCR_CONTENT, contentNode);
-      linkNode.addMixin(REQUIRED_MIXIN);
-      linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-         RT_SAKAI_LINK);
-      linkNode.setProperty(SAKAI_LINK, node.getIdentifier());
-
-      // Save link.
-      if (session.hasPendingChanges()) {
-        session.save();
-      }
-
+      FileUtils.createLink(node, link, site, slingRepository);
     } catch (RepositoryException e) {
       log.warn("Failed to create a link.", e);
     }
