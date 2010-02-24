@@ -25,6 +25,7 @@ import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.jcr.query.Row;
 
@@ -58,17 +59,17 @@ public class RowIteratorImplTest extends AbstractEasyMockTest {
     } catch ( NotImplementedException e) {
       
     }
-    try {
-      rowIteratorImpl.skip(10L);
-      Assert.fail();
-    } catch ( NotImplementedException e) {
-      
-    }
     Assert.assertTrue(rowIteratorImpl.hasNext());
     Assert.assertEquals(row1, rowIteratorImpl.next());
     Assert.assertTrue(rowIteratorImpl.hasNext());
     Assert.assertEquals(row2, rowIteratorImpl.nextRow());
-    Assert.assertFalse(rowIteratorImpl.hasNext());
+
+    try {
+      rowIteratorImpl.skip(10L);
+      Assert.fail();
+    } catch ( NoSuchElementException e) {
+      // Swallow exception.
+    }
     verify();
   }
 }
