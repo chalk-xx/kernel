@@ -75,13 +75,13 @@ public class MessageRouterManagerImpl implements MessageRouterManager {
   /**
    * @return
    */
-  private List<MessageRouter> getSortedRouterList() {
+  protected List<MessageRouter> getSortedRouterList() {
     
     List<MessageRouter> sortedRouterList = new ArrayList<MessageRouter>(messageRouters);
     Collections.sort(sortedRouterList,new Comparator<MessageRouter>() {
 
       public int compare(MessageRouter o1, MessageRouter o2) {
-        return o1.getPriority() - o2.getPriority();
+        return o2.getPriority() - o1.getPriority();
       }
     });
     return sortedRouterList;

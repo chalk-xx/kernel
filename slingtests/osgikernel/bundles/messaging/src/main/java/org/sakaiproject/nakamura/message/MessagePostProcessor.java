@@ -93,7 +93,6 @@ public class MessagePostProcessor implements SlingPostProcessor {
    */
   public void process(SlingHttpServletRequest request,
       List<Modification> changes) throws Exception {
-    // if (request.getAttribute(MessageConstants.MESSAGE_OPERATION) != null) {
     Map<Node, String> messageMap = new HashMap<Node, String>();
     Session s = request.getResourceResolver().adaptTo(Session.class);
     for (Modification m : changes) {

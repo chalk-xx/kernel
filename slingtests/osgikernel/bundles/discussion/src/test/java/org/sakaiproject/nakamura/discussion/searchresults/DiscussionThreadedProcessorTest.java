@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -131,7 +132,7 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     expect(session.getItem("/_user/public/0a/92/fa/b3/anonymous/authprofile")).andReturn(
         anonProfileNode).anyTimes();
 
-    RowIterator iterator = new MockIterator(nodes);
+    RowIterator iterator = new MockRowIterator(nodes);
 
     replay();
     processor.writeNodes(request, writer, null, iterator);

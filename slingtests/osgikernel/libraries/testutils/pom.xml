@@ -112,6 +112,11 @@
       <artifactId>powermock-api-easymock</artifactId>
       <version>${powermock.version}</version>
       <scope>compile</scope>
-   </dependency>  
+   </dependency>
+   <dependency>
+   	<groupId>org.apache.jackrabbit</groupId>
+   	<artifactId>jackrabbit-api</artifactId>
+   	<version>1.6.0</version>
+   </dependency>
   </dependencies>
 </project>
