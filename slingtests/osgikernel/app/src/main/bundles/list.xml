@@ -304,11 +304,6 @@
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.specs.jta</artifactId>
-      <version>0.3-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.specs.ejb</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
@@ -321,6 +316,11 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
       <version>5.3.0-0.3-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jta_1.1_spec</artifactId>
+      <version>1.1.1</version>
     </bundle>
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
