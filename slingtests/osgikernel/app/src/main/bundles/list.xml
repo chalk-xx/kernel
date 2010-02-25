@@ -304,6 +304,11 @@
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.specs.jta</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.specs.ejb</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
@@ -319,13 +324,20 @@
     </bundle>
     <bundle>
       <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jta_1.1_spec</artifactId>
-      <version>1.1.1</version>
-    </bundle>
-    <bundle>
-      <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-j2ee-connector_1.5_spec</artifactId>
       <version>2.0.0</version>
+    </bundle>
+    <bundle>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>1.1.0</version>
+    </bundle>
+   </startLevel>
+   <startLevel level="10" >
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.eclipse.persistence.core</artifactId>
+      <version>1.1.0</version>
     </bundle>
    </startLevel>
    <startLevel level="11" >
@@ -345,21 +357,11 @@
       <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>javax.persistence</artifactId>
-      <version>1.1.0</version>
-    </bundle>
-    <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
       <version>0.3-SNAPSHOT</version>
     </bundle>
     <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.eclipse.persistence.core</artifactId>
-      <version>1.1.0</version>
-    </bundle>
-   <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
       <version>1.1.0-0.3-SNAPSHOT</version>
