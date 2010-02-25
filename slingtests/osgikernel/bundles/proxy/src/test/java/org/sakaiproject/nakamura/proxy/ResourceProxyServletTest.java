@@ -26,14 +26,18 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.proxy.ProxyClientService;
+import org.sakaiproject.nakamura.api.proxy.ProxyPostProcessor;
+import org.sakaiproject.nakamura.api.proxy.ProxyPreProcessor;
 import org.sakaiproject.nakamura.api.proxy.ProxyResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Vector;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
@@ -59,9 +63,9 @@ public class ResourceProxyServletTest {
   @Mock
   private Node node;
 
-  private ConcurrentHashMap<String, String> headerNames;
+  private Vector<String> headerNames;
 
-  private ConcurrentHashMap<String, String> parameterNames;
+  private Vector<String> parameterNames;
 
   @Mock
   private ProxyClientService proxyClientService;
@@ -72,11 +76,28 @@ public class ResourceProxyServletTest {
   @Mock
   private ServletOutputStream responseOutputStream;
 
+  @Mock
+  private Property jcrProperty;
+  
+  private Map<String, ProxyPreProcessor> proxyPreProcessors;
+  
+  @Mock
+  private ProxyPreProcessor proxyPreProcessor;
+  
+  private Map<String, ProxyPostProcessor> proxyPostProcessors;
+  
+  @Mock
+  private ProxyPostProcessor proxyPostProcessor;
+
   @Before
   public void setup() {
     servlet = new ResourceProxyServlet();
-    headerNames = new ConcurrentHashMap<String, String>();
-    parameterNames = new ConcurrentHashMap<String, String>();
+    headerNames = new Vector<String>();
+    parameterNames = new Vector<String>();
+    proxyPreProcessors = new HashMap<String, ProxyPreProcessor>();
+    proxyPreProcessors.put("rss", proxyPreProcessor);
+    proxyPostProcessors = new HashMap<String, ProxyPostProcessor>();
+    proxyPostProcessors.put("rss", proxyPostProcessor);
   }
 
   @Test
@@ -96,7 +117,7 @@ public class ResourceProxyServletTest {
   public void returnsAProxiedGet() throws Exception {
     // given
     requestReturnsAResource();
-    resourceWithTwitterPath();
+    resourceWithLegitimatePath();
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
@@ -110,10 +131,10 @@ public class ResourceProxyServletTest {
   }
 
   @Test
-  public void canDoBasicAuth() throws Exception {
+  public void canDoHeaderBasicAuth() throws Exception {
     // given
     requestReturnsAResource();
-    resourceWithTwitterPath();
+    resourceWithLegitimatePath();
     resourceReturnsANode();
     requestReturnsHeaderNames();
     requestReturnsParameterNames();
@@ -126,10 +147,158 @@ public class ResourceProxyServletTest {
     // when
     servlet.doGet(request, response);
   }
+  
+  @Test
+  public void canDoParameterBasicAuth() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestReturnsHeaderNames();
+    requestReturnsParameterNames();
+    requestHasBasicAuthParameters();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.proxyClientService = proxyClientService;
+
+    // when
+    servlet.doGet(request, response);
+  }
+  
+  private void requestHasBasicAuthParameters() {
+    parameterNames.add(":basic-user");
+    parameterNames.add(":basic-password");
+    when(request.getParameterValues(":basic-user")).thenReturn(new String[]{"zach"});
+    when(request.getParameterValues(":basic-password")).thenReturn(new String[]{"secret"});
+  }
+
+  @Test
+  public void canPostWithAContentBody() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestHasSakaiProxyRequestBodyOneHeader();
+    requestReturnsHeaderNames();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.proxyClientService = proxyClientService;
+    
+    // when
+    servlet.doPost(request, response);
+  }
+  
+  @Test
+  public void canPutWithAContentBody() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestHasSakaiProxyRequestBodyZeroHeader();
+    requestReturnsHeaderNames();
+    requestReturnsParameterNames();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.proxyClientService = proxyClientService;
+    
+    // when
+    servlet.doPut(request, response);
+  }
+  
+  @Test
+  public void conveysParamsToTheProxy() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestReturnsHeaderNames();
+    requestReturnsParameterNames();
+    requestHasACoupleOfQueryParameters();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.proxyClientService = proxyClientService;
+
+    // when
+    servlet.doGet(request, response);
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Test
+  public void canInvokePreProcessor() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestReturnsHeaderNames();
+    requestReturnsParameterNames();
+    nodeHasSakaiPreprocessorProperty();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.preProcessors = proxyPreProcessors;
+    servlet.proxyClientService = proxyClientService;
+    
+    // when
+    servlet.doGet(request, response);
+    
+    verify(proxyPreProcessor).preProcessRequest(eq(request), (Map<String,String>)any(), (Map<String,Object>)any());
+  }
+  
+  @Test
+  public void canInvokePostProcessor() throws Exception {
+    // given
+    requestReturnsAResource();
+    resourceWithLegitimatePath();
+    resourceReturnsANode();
+    requestReturnsHeaderNames();
+    requestReturnsParameterNames();
+    nodeHasSakaiPostprocessorProperty();
+    proxyClientServiceReturnsAProxyResponse();
+    proxyResponseHasHelloWorldInputStream();
+    slingResponseHasOutputStream();
+    servlet.postProcessors = proxyPostProcessors;
+    servlet.proxyClientService = proxyClientService;
+    
+    // when
+    servlet.doGet(request, response);
+    
+    verify(proxyPostProcessor).process(response, proxyResponse);
+  }
+
+  private void nodeHasSakaiPostprocessorProperty() throws Exception {
+    when(node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).thenReturn(Boolean.TRUE);
+    when(node.getProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)).thenReturn(jcrProperty);
+    when(jcrProperty.getString()).thenReturn("rss");
+  }
+
+  private void nodeHasSakaiPreprocessorProperty() throws Exception {
+    when(node.hasProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR)).thenReturn(Boolean.TRUE);
+    when(node.getProperty(ProxyPreProcessor.SAKAI_PREPROCESSOR)).thenReturn(jcrProperty);
+    when(jcrProperty.getString()).thenReturn("rss");
+  }
+
+  private void requestHasACoupleOfQueryParameters() {
+    parameterNames.add("q");
+    parameterNames.add("max");
+    when(request.getParameter("q")).thenReturn("puppies");
+    when(request.getParameter("max")).thenReturn("25");
+  }
+
+  private void requestHasSakaiProxyRequestBodyOneHeader() {
+    when(request.getHeader("Sakai-Proxy-Request-Body")).thenReturn("1");
+  }
+
+  private void requestHasSakaiProxyRequestBodyZeroHeader() {
+    when(request.getHeader("Sakai-Proxy-Request-Body")).thenReturn("0");
+  }
 
   private void requestHasBasicAuthHeaders() {
-    headerNames.put(":basic-user", "");
-    headerNames.put(":basic-password", "");
+    headerNames.add(":basic-user");
+    headerNames.add(":basic-password");
     when(request.getHeader(":basic-user")).thenReturn("zach");
     when(request.getHeader(":basic-password")).thenReturn("secret");
   }
@@ -152,11 +321,11 @@ public class ResourceProxyServletTest {
   }
 
   private void requestReturnsParameterNames() {
-    when(request.getParameterNames()).thenReturn(parameterNames.keys());
+    when(request.getParameterNames()).thenReturn(parameterNames.elements());
   }
 
   private void requestReturnsHeaderNames() {
-    when(request.getHeaderNames()).thenReturn(headerNames.keys());
+    when(request.getHeaderNames()).thenReturn(headerNames.elements());
   }
 
   private void resourceReturnsANode() {
@@ -171,7 +340,7 @@ public class ResourceProxyServletTest {
     when(resource.getPath()).thenReturn("/foo/bar/_dostuff");
   }
 
-  private void resourceWithTwitterPath() {
+  private void resourceWithLegitimatePath() {
     when(resource.getPath()).thenReturn(
         ResourceProxyServlet.PROXY_PATH_PREFIX + "twitter");
   }

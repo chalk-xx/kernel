@@ -43,15 +43,15 @@ public class ProxyResponseImpl implements ProxyResponse {
     this.result = result;
     this.method = method;
 
-    for (Header h : method.getResponseHeaders()) {
-      String name = h.getName();
+    for (Header header : method.getResponseHeaders()) {
+      String name = header.getName();
       String[] values = headers.get(name);
       if ( values == null ) {
-        values = new String[] {h.getValue()};
+        values = new String[] {header.getValue()};
       } else {
         String[] newValues = new String[values.length+1];
         System.arraycopy(values, 0, newValues, 0, values.length);
-        newValues[values.length] = h.getValue();
+        newValues[values.length] = header.getValue();
         values = newValues;
       }
 

@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -118,15 +117,15 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       .getLogger(ResourceProxyServlet.class);
 
   @Reference
-  protected transient ProxyClientService proxyClientService;
+  transient ProxyClientService proxyClientService;
 
   private transient ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPreProcessor.class, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
-  private Map<String, ProxyPreProcessor> preProcessors = new ConcurrentHashMap<String, ProxyPreProcessor>();
+  Map<String, ProxyPreProcessor> preProcessors = new ConcurrentHashMap<String, ProxyPreProcessor>();
 
   @Reference(cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, referenceInterface = ProxyPostProcessor.class, bind = "bindPostProcessor", unbind = "unbindPostProcessor")
-  private Map<String, ProxyPostProcessor> postProcessors = new ConcurrentHashMap<String, ProxyPostProcessor>();
+  Map<String, ProxyPostProcessor> postProcessors = new ConcurrentHashMap<String, ProxyPostProcessor>();
 
   private Set<String> headerBacklist = new HashSet<String>();
 
@@ -238,7 +237,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
           userInputStream = Boolean.parseBoolean(v[0].getString());
         }
       }
-      Map<String, String> headers = new HashMap<String, String>();
+      Map<String, String> headers = new ConcurrentHashMap<String, String>();
       for (Enumeration<?> enames = request.getHeaderNames(); enames.hasMoreElements();) {
 
         String name = (String) enames.nextElement();
@@ -262,7 +261,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         }
       }
 
-      Map<String, Object> templateParams = new HashMap<String, Object>();
+      Map<String, Object> templateParams = new ConcurrentHashMap<String, Object>();
       InputStream requestInputStream = null;
       long inputStreamLength = -1L;
       String inputStreamContentType = null;
@@ -309,7 +308,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
         }
       }
       ProxyPostProcessor postProcessor = defaultPostProcessor;
-      // we might want to pre-process the headers
+      // we might want to post-process the headers
       if (node.hasProperty(ProxyPostProcessor.SAKAI_POSTPROCESSOR)) {
         String postProcessorName = node.getProperty(
             ProxyPostProcessor.SAKAI_POSTPROCESSOR).getString();
