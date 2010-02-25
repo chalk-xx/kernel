@@ -42,7 +42,7 @@
         <configuration>
           <instructions>
             <Private-Package>initial-content.*</Private-Package>
-            <Sling-Initial-Content>SLING-INF/content;overwrite:=true</Sling-Initial-Content>
+            <Sling-Initial-Content>SLING-INF/content;ignoreImportProviders:="xml,json";overwrite:=true</Sling-Initial-Content>
           </instructions>
         </configuration>
       </plugin>
