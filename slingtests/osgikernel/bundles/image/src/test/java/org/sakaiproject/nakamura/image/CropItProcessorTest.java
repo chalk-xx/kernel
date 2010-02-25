@@ -125,6 +125,8 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   @Test
   public void testInvalidImage() throws RepositoryException {
     expect(node.getName()).andReturn("foo.bar").anyTimes();
+    expect(node.isNodeType("nt:file")).andReturn(false);
+    expect(node.isNodeType("nt:resource")).andReturn(false);
     expect(node.hasNode(JCRConstants.JCR_CONTENT)).andReturn(false);
     expect(node.hasProperty(JCRConstants.JCR_DATA)).andReturn(false);
     replay();
@@ -139,10 +141,12 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   @Test
   public void testInvalidImageMimeType() throws RepositoryException {
     expect(node.getName()).andReturn("foo.bar").anyTimes();
+    expect(node.isNodeType("nt:file")).andReturn(true);
     expect(node.hasNode(JCRConstants.JCR_CONTENT)).andReturn(true);
     expect(node.hasProperty(JCRConstants.JCR_DATA)).andReturn(false);
 
     Node contentNode = createMock(Node.class);
+    expect(contentNode.isNodeType("nt:resource")).andReturn(true);
     createMimeType(contentNode, "image/foo");
     expect(node.getNode(JCRConstants.JCR_CONTENT)).andReturn(contentNode);
 
