@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Creates documentation by tracking servlets and inspecting some annotations.
@@ -71,7 +72,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -6622263132868029827L;
-  private transient ServletDocumentationTracker servletTracker;
+  protected transient ServletDocumentationTracker servletTracker;
 
   /**
    * {@inheritDoc}
@@ -90,7 +91,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
       ServletDocumentation doc = servletTracker.getServletDocumentation().get(
           p.getString());
       if (doc == null) {
-        response.setBufferSize(404);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
       send(request, response, doc);
@@ -104,7 +105,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
     servletTracker.open();
   }
 
-  public void deactivate() {
+  public void deactivate(ComponentContext context) {
     if (servletTracker != null) {
       servletTracker.close();
       servletTracker = null;
