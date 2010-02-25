@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,8 +59,8 @@ import javax.jcr.RepositoryException;
 public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
 
   @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://localhost:9090")
-  protected String xythosHost = "http://localhost:9090";
-
+  protected String xythosHost;
+  
   protected String remotePath = "/remoting/remoting/XythosService";
 
   protected static final String TYPE = "xythos";
@@ -172,6 +174,20 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       return new XythosDocumentResult(data, contentLength, contentType, props, uri);
     } catch (MalformedURLException e) {
       throw new RuntimeException("MalformedURLException: " + e.getMessage());
+    }
+  }
+
+  /**
+   * When the component gets activated we retrieve the OSGi properties.
+   *
+   * @param context
+   */
+  @SuppressWarnings("unchecked")
+  protected void activate(ComponentContext context) {
+    // Get the properties from the console.
+    Dictionary props = context.getProperties();
+    if (props.get("xythosHost") != null) {
+      xythosHost = props.get("xythosHost").toString();
     }
   }
 
