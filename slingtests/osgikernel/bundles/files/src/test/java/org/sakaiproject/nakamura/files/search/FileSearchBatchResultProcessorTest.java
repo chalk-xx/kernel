@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.core.query.lucene.SingleColumnQueryResult;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
@@ -33,6 +34,7 @@ import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.api.search.RowIteratorImpl;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.site.SiteService;
@@ -83,10 +85,10 @@ public class FileSearchBatchResultProcessorTest {
     rows.add(fileProperC);
 
     Query q = mock(Query.class);
-    //SingleColumnQueryResult result = mock(SingleColumnQueryResult.class);
-    //when(result.getTotalSize()).thenReturn(5);
-    //when(result.getRows()).thenReturn(new RowIteratorImpl(rows));
-    //when(q.execute()).thenReturn(result);
+    SingleColumnQueryResult result = mock(SingleColumnQueryResult.class);
+    when(result.getTotalSize()).thenReturn(5);
+    when(result.getRows()).thenReturn(new RowIteratorImpl(rows));
+    when(q.execute()).thenReturn(result);
 
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     ResourceResolver resolver = mock(ResourceResolver.class);
