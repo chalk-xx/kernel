@@ -28,10 +28,6 @@ public interface MessageConstants {
   public static final String SAKAI_MESSAGESTORE_RT = "sakai/messagestore";
 
   /**
-   *
-   */
-  public static final String MESSAGE_OPERATION = "org.sakaiproject.nakamura.message.operation";
-  /**
   *
   */
   public static final String PROP_SAKAI_MESSAGEBOX = "sakai:messagebox";

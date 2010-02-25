@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.resource.AbstractVirtualPathServlet;
 import org.sakaiproject.nakamura.resource.VirtualResourceProvider;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ import javax.jcr.Session;
       @ServiceMethod(name = "PUT"), @ServiceMethod(name = "DELETE")
     }
 )
-public class MessageServlet extends AbstractMessageServlet {
+public class MessageServlet extends AbstractVirtualPathServlet {
 
   /**
    *

@@ -146,8 +146,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
 
-    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request.getMethod());
-
     // This is the message store resource.
     Resource baseResource = request.getResource();
     Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -314,8 +312,7 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       }
     };
     options.setReplaceSelectors("");
-    LOGGER.info("Sending the request out again with attribute: "
-        + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
+    LOGGER.info("Sending the request out again.");
     request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
     response.reset();
     try {
