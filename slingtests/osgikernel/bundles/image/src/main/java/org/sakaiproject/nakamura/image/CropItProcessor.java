@@ -89,17 +89,21 @@ public class CropItProcessor {
 
       if (imgNode != null) {
 
-        String sImg = "";
-        if (imgNode.hasNode(JCRConstants.JCR_CONTENT)) {
-          sImg = imgNode.getName();
+        String sImg = imgNode.getName();
+        // nt:file
+        if (imgNode.isNodeType(JCRConstants.NT_FILE)) {
           imgNode = imgNode.getNode(JCRConstants.JCR_CONTENT);
-        } else if (imgNode.hasProperty(JCRConstants.JCR_DATA)) {
-          sImg = imgNode.getParent().getPath();
-        }
-        else {
+        } else if (imgNode.isNodeType(JCRConstants.NT_RESOURCE)) {
+          // This is an nt:resource file.
+          // We check if it has an nt:file to use the name from, otherwise we just use
+          // this name.
+          Node parentNode = imgNode.getParent();
+          if (parentNode.isNodeType(JCRConstants.NT_FILE)) {
+            sImg = parentNode.getName();
+          }
+        } else {
           throw new ImageException(500, "Invalid image");
         }
-
 
         // get the MIME type of the image
         String sType = getMimeTypeForNode(imgNode, sImg);
@@ -270,7 +274,7 @@ public class CropItProcessor {
       if (mapExtensionsToRGBType.containsKey(sType)) {
         type = mapExtensionsToRGBType.get(sType);
       }
-      
+
       Image imgScaled = getScaledInstance(img, width, height, type);
 
       BufferedImage biScaled = toBufferedImage(imgScaled, type);
@@ -282,7 +286,8 @@ public class CropItProcessor {
 
       // If it's a gif try to write it as a jpg
       if (sType.equalsIgnoreCase("image/gif")) {
-        // TODO: This does not do anything. commenting out, what was the intention ? (Findbugs found it)
+        // TODO: This does not do anything. commenting out, what was the intention ?
+        // (Findbugs found it)
         // sImg = sImg.replaceAll("\\.gif", ".png");
         sIOtype = "png";
       }

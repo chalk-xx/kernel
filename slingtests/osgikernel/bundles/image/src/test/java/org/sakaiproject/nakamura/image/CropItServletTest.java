@@ -94,9 +94,11 @@ public class CropItServletTest extends AbstractEasyMockTest {
     // Item retrieval stuff
     Node imgNode = createMock(Node.class);
     Node imgContentNode = createMock(Node.class);
+    expect(imgContentNode.isNodeType("nt:resource")).andReturn(true);
     Property imgContentData = createMock(Property.class);
     Property imgContentType = createMock(Property.class);
 
+    expect(imgNode.isNodeType("nt:file")).andReturn(true);
     expect(imgNode.getName()).andReturn("people.png");
     expect(imgNode.hasNode("jcr:content")).andReturn(true);
     expect(imgNode.getNode("jcr:content")).andReturn(imgContentNode);
