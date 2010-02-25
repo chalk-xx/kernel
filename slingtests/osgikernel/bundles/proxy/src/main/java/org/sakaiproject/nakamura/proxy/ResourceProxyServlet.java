@@ -55,6 +55,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * This servlet binds to a resource that defines an end point.
@@ -80,6 +81,8 @@ import javax.servlet.ServletException;
 				@ServiceResponse(code = 403, description = "Proxying templates may only be stored in /var/proxy"),
 				@ServiceResponse(code = 500, description = "ProxyClientException or RepositoryException") }) })
 public class ResourceProxyServlet extends SlingAllMethodsServlet {
+
+  public static final String PROXY_PATH_PREFIX = "/var/proxy/";
 
   /**
    * 
@@ -115,7 +118,7 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
       .getLogger(ResourceProxyServlet.class);
 
   @Reference
-  private transient ProxyClientService proxyClientService;
+  protected transient ProxyClientService proxyClientService;
 
   private transient ProxyPostProcessor defaultPostProcessor = new DefaultProxyPostProcessorImpl();
 
@@ -224,8 +227,8 @@ public class ResourceProxyServlet extends SlingAllMethodsServlet {
     try {
       
       Resource resource = request.getResource();
-      if ( !resource.getPath().startsWith("/var/proxy/") ) {
-        response.sendError(403, "Proxying templates may only be stored in /var/proxy ");
+      if ( !resource.getPath().startsWith(PROXY_PATH_PREFIX) ) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Proxying templates may only be stored in " + PROXY_PATH_PREFIX);
         return;
       }
       Node node = resource.adaptTo(Node.class);

@@ -102,9 +102,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     Map<String, String[]> headers = proxyResponse.getResponseHeaders();
 
     // Check if the content-length is smaller than the maximum (if any).
-    String[] header = headers.get("Content-Length");
-    if (header != null) {
-      int length = Integer.parseInt(header[0]);
+    String[] contentLengthHeader = headers.get("Content-Length");
+    if (contentLengthHeader != null) {
+      int length = Integer.parseInt(contentLengthHeader[0]);
       if (length > MAX_RSS_LENGTH) {
         response.sendError(HttpServletResponse.SC_FORBIDDEN,
             "This RSS feed is too big. The maximum for a feed is: " + MAX_RSS_LENGTH);
@@ -113,8 +113,9 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     }
 
     // Check if the Content-Type we get is valid (if any).
-    String contentType = headers.get("Content-Type")[0];
-    if (header != null) {
+    String[] contentTypeHeader = headers.get("Content-Type");
+    if (contentTypeHeader != null) {
+      String contentType = contentTypeHeader[0];
       if (contentType.contains(";")) {
         contentType = contentType.substring(0, contentType.indexOf(';'));
       }
@@ -133,12 +134,13 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
     XMLEventWriter writer = null;
     ByteArrayOutputStream out = null;
 
+    int i = 0;
     try {
       XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(reader);
       // Create a temporary outputstream where we can write to.
       out = new ByteArrayOutputStream();
 
-      int i = 0;
+      
       Map<String, Boolean> checkedElements = new HashMap<String, Boolean>();
       checkedElements.put("rss", false);
       checkedElements.put("channel", false);

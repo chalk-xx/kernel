@@ -50,6 +50,10 @@ import java.util.Map;
     @Property(name = "service.description", value = { "Pre processor for proxy requests to Sakai 2 instance with a trusted token filter." }),
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
+  
+  public static final String HASH_ALGORITHM = "SHA1";
+  public static final String SECURE_TOKEN_HEADER_NAME = "X-SAKAI-TOKEN";
+  public static final String TOKEN_SEPARATOR = ";";
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(TrustedLoginTokenProxyPreProcessor.class);
@@ -70,17 +74,17 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
     String user = request.getRemoteUser();
 
     String other = "" + System.currentTimeMillis();
-    String hash = sharedSecret + ";" + user + ";" + other;
+    String hash = sharedSecret + TOKEN_SEPARATOR + user + TOKEN_SEPARATOR + other;
     try {
-      hash = byteArrayToHexStr(MessageDigest.getInstance("SHA1").digest(
+      hash = byteArrayToHexStr(MessageDigest.getInstance(HASH_ALGORITHM).digest(
           hash.getBytes("UTF-8")));
 
     } catch (NoSuchAlgorithmException e1) {
-      LOGGER.error("SHA1 Algorithm does not exist on this JVM", e1);
+      LOGGER.error(HASH_ALGORITHM +" Algorithm does not exist on this JVM", e1);
     } catch (UnsupportedEncodingException e) {
       LOGGER.error("UTF8 Encoding does not exist on the JVM (as if!)", e);
     }
-    String full = hash + ";" + user + ";" + other;
+    String full = hash + TOKEN_SEPARATOR + user + TOKEN_SEPARATOR + other;
     headers.put("X-SAKAI-TOKEN", full);
 
     templateParams.put("port", port);
