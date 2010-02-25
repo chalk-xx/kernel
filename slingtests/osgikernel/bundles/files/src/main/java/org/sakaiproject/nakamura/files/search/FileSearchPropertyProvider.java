@@ -35,16 +35,13 @@ import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.query.Query;
 
 /**
@@ -87,9 +84,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     // Set all mysites.
     propertiesMap.put("_mysites", getMySites(session, user));
-
-    // Set all my bookmarks
-    propertiesMap.put("_mybookmarks", getMyBookmarks(session, auUser));
 
     // request specific.
     // Sorting order
@@ -244,44 +238,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
       }
     }
     return "";
-  }
-
-  /**
-   * Gets the user his bookmarks in a string that can be used in a query.
-   * 
-   * @param session
-   * @param user
-   * @return
-   */
-  private String getMyBookmarks(Session session, Authorizable user) {
-    String userPath = PersonalUtils.getPrivatePath(user);
-    String bookmarksPath = userPath + "/mybookmarks";
-    String ids = "and (@sakai:id=\"somenoneexistingid\")";
-    try {
-      if (session.itemExists(bookmarksPath)) {
-        Node node = (Node) session.getItem(bookmarksPath);
-        Value[] values = JcrUtils.getValues(node, "files");
-
-        StringBuilder sb = new StringBuilder("");
-
-        for (Value val : values) {
-          sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
-        }
-
-        String bookmarks = sb.toString();
-        int i = bookmarks.lastIndexOf(" or ");
-        if (i > -1) {
-          bookmarks = bookmarks.substring(0, i);
-        }
-        if (bookmarks.length() > 0) {
-          bookmarks = " and (" + bookmarks + ")";
-          return bookmarks;
-        }
-      }
-    } catch (RepositoryException e) {
-      // Well, we failed..
-    }
-    return ids;
   }
 
   /**
