@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
-		<version>0.3-SNAPSHOT</version>
+		<version>0.3</version>
 	</parent>
 	<properties>
 		<stax1ApiVersion>1.0.1</stax1ApiVersion>
@@ -32,7 +32,7 @@
 		<implVersion>4.0.7</implVersion>
 		<relaxArtifactId>relaxngDatatype</relaxArtifactId>
 		<relaxVersion>20020414</relaxVersion>
-		<pomVersion>0.3-SNAPSHOT</pomVersion>
+		<pomVersion>0.3</pomVersion>
 		<osgiVersion>${implVersion}</osgiVersion>
 	</properties>
 	<groupId>org.sakaiproject.nakamura</groupId>
