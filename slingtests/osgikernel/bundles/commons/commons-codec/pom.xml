@@ -29,7 +29,7 @@
     <properties>
         <pkgArtifactId>commons-codec</pkgArtifactId>
         <pkgVersion>1.4</pkgVersion>
-        <pomVersion>0.3</pomVersion>
+        <pomVersion>0.3-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>
