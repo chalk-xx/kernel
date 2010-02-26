@@ -135,8 +135,11 @@ public class MeServletTest {
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
 
     expect(resolver.adaptTo(Session.class)).andReturn(session);
-    expect(request.getResourceResolver()).andReturn(resolver);
+    expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(response.getWriter()).andReturn(w);
+    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
+    response.setContentType("contenttype");
+    response.setCharacterEncoding("UTF-8");
 
     replay(session, resolver, profileNode, propIterator, nodeIterator, request, response);
 
@@ -170,6 +173,9 @@ public class MeServletTest {
 
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     expect(response.getWriter()).andReturn(w);
+    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
+    response.setContentType("contenttype");
+    response.setCharacterEncoding("UTF-8");
 
     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
         "Failed to get the profile node.");
