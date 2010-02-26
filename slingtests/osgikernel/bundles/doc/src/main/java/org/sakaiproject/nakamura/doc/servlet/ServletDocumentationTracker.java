@@ -56,31 +56,47 @@ public class ServletDocumentationTracker extends ServiceTracker {
   public Object addingService(ServiceReference reference) {
     Object service = super.addingService(reference);
     if (service instanceof Servlet) {
-      ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
-      String key = doc.getKey();
-      if ( key != null ) {
-        servletDocumentation.put(key, doc);
-      }
+      addServlet(reference, (Servlet) service);
     }
     return service;
   }
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.osgi.util.tracker.ServiceTracker#removedService(org.osgi.framework.ServiceReference,
    *      java.lang.Object)
    */
   @Override
   public void removedService(ServiceReference reference, Object service) {
     if (service instanceof Servlet) {
-      ServletDocumentation doc = new ServletDocumentation(reference, (Servlet) service);
-      String key = doc.getKey();
-      if ( key != null ) {
-        servletDocumentation.remove(key);
-      }
+      removeServlet(reference, (Servlet) service);
     }
     super.removedService(reference, service);
+  }
+
+  /**
+   * @param reference
+   * @param service
+   */
+  public void removeServlet(ServiceReference reference, Servlet servlet) {
+    ServletDocumentation doc = new ServletDocumentation(reference, servlet);
+    String key = doc.getKey();
+    if (key != null) {
+      servletDocumentation.remove(key);
+    }
+  }
+
+  /**
+   * @param reference
+   * @param service
+   */
+  public void addServlet(ServiceReference reference, Servlet servlet) {
+    ServletDocumentation doc = new ServletDocumentation(reference, servlet);
+    String key = doc.getKey();
+    if (key != null) {
+      servletDocumentation.put(key, doc);
+    }
   }
 
   /**
