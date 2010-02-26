@@ -269,6 +269,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
 
       final Node siteNode = findSiteNode(node);
+      if (siteNode == null) {
+        final String message = "Could not locate site node.";
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message,
+            new IllegalStateException(message), response);
+        return;
+      }
       launchProps.put(CONTEXT_ID, siteNode.getPath());
       launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
       launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
