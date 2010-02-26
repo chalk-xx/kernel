@@ -69,7 +69,7 @@ public class MessageSentListenerTest {
     msl = new MessageSentListener();
     msl.bindMessageRouterManager(messageRouterManager);
     msl.bindSlingRepository(slingRepository);
-    msl.bindSession(session);
+    msl.activate(null);
   }
 
   @After

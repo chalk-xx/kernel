@@ -44,6 +44,7 @@ import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.message.internal.InternalCreateMessagePreProcessor;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,11 +58,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -148,11 +146,10 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       org.apache.sling.api.SlingHttpServletResponse response)
       throws javax.servlet.ServletException, java.io.IOException {
 
-    request.setAttribute(MessageConstants.MESSAGE_OPERATION, request.getMethod());
-
     // This is the message store resource.
     Resource baseResource = request.getResource();
-
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    
     // Current user.
     String user = request.getRemoteUser();
 
@@ -216,7 +213,6 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     String path = null;
     String messageId = null;
     try {
-      Session session = baseResource.getResourceResolver().adaptTo(Session.class);
       msg = messagingService.create(session, mapProperties);
       if (msg == null) {
         throw new MessagingException("Unable to create the message.");
@@ -316,36 +312,17 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
       }
     };
     options.setReplaceSelectors("");
-    LOGGER.info("Sending the request out again with attribute: "
-        + request.getAttribute(MessageConstants.MESSAGE_OPERATION));
+    LOGGER.info("Sending the request out again.");
     request.getRequestDispatcher(wrapper, options).forward(request, wrappedResponse);
     response.reset();
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
       Node messageNode = (Node) session.getItem(path);
       JSONWriter write = new JSONWriter(response.getWriter());
       write.object();
       write.key("id");
       write.value(messageId);
       write.key("message");
-      write.object();
-
-      PropertyIterator userPropertyIterator = messageNode.getProperties();
-      while (userPropertyIterator.hasNext()) {
-        Property userProperty = userPropertyIterator.nextProperty();
-        write.key(userProperty.getName());
-        try {
-          write.value(userProperty.getString());
-        } catch (Exception ex) {
-          Value[] vals = userProperty.getValues();
-          write.array();
-          for (Value val : vals) {
-            write.value(val.getString());
-          }
-          write.endArray();
-        }
-      }
-      write.endObject();
+      ExtendedJSONWriter.writeNodeToWriter(write, messageNode);
       write.endObject();
     } catch (JSONException e) {
       throw new ServletException(e.getMessage(), e);

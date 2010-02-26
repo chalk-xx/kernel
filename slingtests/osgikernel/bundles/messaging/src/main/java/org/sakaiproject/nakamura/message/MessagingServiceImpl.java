@@ -59,7 +59,7 @@ import javax.jcr.ValueFormatException;
 public class MessagingServiceImpl implements MessagingService {
 
   /** @scr.reference */
-  private LockManager lockManager;
+  protected LockManager lockManager;
   private SiteService siteService;
   protected void bindSiteService(SiteService siteService) {
     this.siteService = siteService;
