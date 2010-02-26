@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
@@ -106,6 +107,33 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public void node(Node node) throws JSONException, RepositoryException {
     writeNodeToWriter(this, node);
+  }
+  
+  /**
+   * Represent an entire JCR tree in JSON format.
+   * 
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node)
+      throws RepositoryException, JSONException {
+    // Write this node's properties.
+    write.object();
+    writeNodeContentsToWriter(write, node);
+
+    // Write all the child nodes.
+    NodeIterator iterator = node.getNodes();
+    while (iterator.hasNext()) {
+      Node childNode = iterator.nextNode();
+      write.key(childNode.getName());
+      writeNodeTreeToWriter(write, childNode);
+    }
+    write.endObject();
   }
 
 }
