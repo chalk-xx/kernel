@@ -52,18 +52,26 @@ import javax.jcr.Session;
 public class MailmanGroupManager implements EventHandler, ManagedService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MailmanGroupManager.class);
-  
+
   /** @scr.property value="password" type="String" */
   private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
 
   /** @scr.reference */
   private MailmanManager mailmanManager;
-  
+
   /** @scr.reference */
   private SlingRepository slingRepository;
 
   private String listManagementPassword;
-  
+
+  public MailmanGroupManager() {
+  }
+
+  public MailmanGroupManager(MailmanManager mailmanManager, SlingRepository slingRepository) {
+    this.mailmanManager = mailmanManager;
+    this.slingRepository = slingRepository;
+  }
+
   public void handleEvent(Event event) {
     LOGGER.info("Got event on topic: " + event.getTopic());
     Operation operation = (Operation) event.getProperty(AuthorizableEvent.OPERATION);
@@ -137,7 +145,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
   private String getEmailForUser(User user) throws RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
     Node profileNode = (Node)session.getItem(PersonalUtils.getProfilePath(user.getID()));
-    String emailAddress = PersonalUtils.getEmailAddress(profileNode);
+    String emailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
     session.logout();
     return emailAddress;
   }
@@ -147,7 +155,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
     LOGGER.info("Got config update");
     listManagementPassword = (String) config.get(LIST_MANAGEMENT_PASSWORD);
   }
-  
+
   protected void activate(ComponentContext componentContext) {
     LOGGER.info("Got component initialization");
     listManagementPassword = (String)componentContext.getProperties().get(LIST_MANAGEMENT_PASSWORD);
