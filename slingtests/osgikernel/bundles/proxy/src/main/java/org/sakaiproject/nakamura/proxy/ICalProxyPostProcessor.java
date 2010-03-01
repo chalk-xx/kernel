@@ -71,6 +71,9 @@ public class ICalProxyPostProcessor implements ProxyPostProcessor {
   public void process(SlingHttpServletResponse response, ProxyResponse proxyResponse)
       throws IOException {
     try {
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+      
       InputStream in = proxyResponse.getResponseBodyAsInputStream();
       CalendarBuilder builder = new CalendarBuilder();
       Calendar calendar = builder.build(in);
