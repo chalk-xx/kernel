@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # This script will create a release candidate and tag it after a sucessfull build,  and leave the head version on the original version.

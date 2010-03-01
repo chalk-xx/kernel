@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 TOOLSDIR=`dirname $0`
 . ${TOOLSDIR}/version
 has_32_bit=`java -help | grep -c "\-d32"`

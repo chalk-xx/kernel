@@ -23,23 +23,24 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.nodetype.PropertyDefinition;
 
 public class MailmanGroupManagerTest extends AbstractEasyMockTest {
 
   private MailmanManager mailmanManager;
   private SlingRepository slingRepository;
   private MailmanGroupManager groupManager;
-  
+
+  @Override
   @Before
   public void setUp() throws Exception {
     super.setUp();
     mailmanManager = createMock(MailmanManager.class);
     slingRepository = createMock(SlingRepository.class);
-    groupManager = new MailmanGroupManager();
-    groupManager.setMailmanManager(mailmanManager);
-    groupManager.setSlingRepository(slingRepository);
+    groupManager = new MailmanGroupManager(mailmanManager, slingRepository);
   }
-  
+
   @Test
   public void testHandleGroupAdd() throws MailmanException {
     String groupName = "g-testgroup";
@@ -49,7 +50,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     properties.put(AuthorizableEvent.PRINCIPAL_NAME, groupName);
     properties.put(AuthorizableEvent.TOPIC, topic);
     Event event = new Event(topic, properties);
-    
+
     mailmanManager.createList(groupName, groupName + "@example.com", null);
     replay();
     groupManager.handleEvent(event);
@@ -65,7 +66,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     properties.put(AuthorizableEvent.PRINCIPAL_NAME, groupName);
     properties.put(AuthorizableEvent.TOPIC, topic);
     Event event = new Event(topic, properties);
-    
+
     mailmanManager.deleteList(groupName, null);
     replay();
     groupManager.handleEvent(event);
@@ -88,7 +89,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     properties.put(AuthorizableEvent.USER, dummyUser);
     properties.put(AuthorizableEvent.GROUP, dummyGroup);
     Event event = new Event(topic, properties);
-    
+
     expect(mailmanManager.addMember(groupName, null, testAddress)).andReturn(true);
     replay();
     groupManager.handleEvent(event);
@@ -111,7 +112,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     properties.put(AuthorizableEvent.USER, dummyUser);
     properties.put(AuthorizableEvent.GROUP, dummyGroup);
     Event event = new Event(topic, properties);
-    
+
     expect(mailmanManager.removeMember(groupName, null, testAddress)).andReturn(true);
     replay();
     groupManager.handleEvent(event);
@@ -125,9 +126,17 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     Property property = createMock(Property.class);
     expect(slingRepository.loginAdministrative(null)).andReturn(session);
     expect(session.getItem(eq(profileNodePath))).andReturn(node);
-    expect(node.hasProperty(eq(PersonalConstants.EMAIL_ADDRESS))).andReturn(true);
+    expect(node.hasProperty(eq(PersonalConstants.EMAIL_ADDRESS))).andReturn(true).times(2);
     expect(node.getProperty(eq(PersonalConstants.EMAIL_ADDRESS))).andReturn(property);
-    expect(property.getString()).andReturn(testAddress);
+
+    PropertyDefinition propDef = createMock(PropertyDefinition.class);
+    expect(propDef.isMultiple()).andReturn(false);
+    expect(property.getDefinition()).andReturn(propDef);
+
+    Value value = createMock(Value.class);
+    expect(value.getString()).andReturn(testAddress);
+    expect(property.getValue()).andReturn(value);
+
     session.logout();
   }
 
@@ -136,7 +145,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     expect(group.getID()).andReturn(groupName).anyTimes();
     return group;
   }
-  
+
   private User createDummyUser(String userName) throws RepositoryException {
     User user = createMock(User.class);
     expect(user.getID()).andReturn(userName).anyTimes();
