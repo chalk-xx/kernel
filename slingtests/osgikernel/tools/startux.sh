@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Use this script to map the UX files easily
 #
