@@ -55,6 +55,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
@@ -69,7 +70,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
@@ -81,6 +84,9 @@ import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.version.VersionException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -128,6 +134,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_URL}
    */
   private transient String instanceUrl;
+  /**
+   * The keys that must be specially secured from normal Sling operation.
+   */
+  private transient Set<String> sensitiveKeys = null;
 
   /**
    * {@inheritDoc}
@@ -137,6 +147,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
+    // initialize the keys that must be secured from normal Sling operation
+    sensitiveKeys = new HashSet<String>(2);
+    sensitiveKeys.add(LTI_KEY);
+    sensitiveKeys.add(LTI_SECRET);
+
     applicationSettings = new HashMap<String, String>(8);
     applicationSettings.put(LTI_URL, LTI_URL_LOCK);
     applicationSettings.put(LTI_SECRET, LTI_SECRET_LOCK);
@@ -436,7 +451,51 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
     // TODO Create child node to store sensitive data and ACL it
-    super.doPost(request, response);
+    final Resource resource = request.getResource();
+    if (resource == null) {
+      sendError(HttpServletResponse.SC_NOT_FOUND,
+          "Resource could not be found", new Error(
+              "Resource could not be found"), response);
+    }
+    final Node node = resource.adaptTo(Node.class);
+    final Session session = request.getResourceResolver()
+        .adaptTo(Session.class);
+    for (final Entry<String, RequestParameter[]> entry : request
+        .getRequestParameterMap().entrySet()) {
+      try {
+        final String key = entry.getKey();
+        if (entry.getValue() == null || entry.getValue().length == 0) {
+          removeProperty(node, key);
+        } else {
+          if (entry.getValue().length > 1) {
+            sendError(HttpServletResponse.SC_BAD_REQUEST,
+                "Multi-valued parameters are not supported", null, response);
+            return;
+          } else {
+            final String value = entry.getValue()[0].getString("UTF-8");
+            if ("".equals(value)) {
+              removeProperty(node, key);
+            } else {
+              node.setProperty(key, value);
+            }
+          }
+        }
+        if (session.hasPendingChanges()) {
+          session.save();
+        }
+      } catch (Exception e) {
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+            .getLocalizedMessage(), e, response);
+      }
+    }
+  }
+
+  private void removeProperty(final Node node, final String property)
+      throws VersionException, LockException, ConstraintViolationException,
+      PathNotFoundException, RepositoryException {
+    if (node.hasProperty(property)) {
+      node.getProperty(property).remove();
+    }
   }
 
   /**
