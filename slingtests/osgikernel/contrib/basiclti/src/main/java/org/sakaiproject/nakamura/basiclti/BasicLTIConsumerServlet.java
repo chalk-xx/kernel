@@ -92,7 +92,7 @@ import javax.servlet.http.HttpServletResponse;
  * parameters if a site owner. OPTIONS, GET, HEAD, POST, PUT not supported,
  * DELETE must also delete child node, TRACE, CONNECT.
  */
-@SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/basiclti" }, selectors = { "launch" })
+@SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
   private static final Logger LOG = LoggerFactory
@@ -167,6 +167,40 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       SlingHttpServletResponse response) throws ServletException, IOException {
     LOG
         .debug("doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)");
+    final String[] selectors = request.getRequestPathInfo().getSelectors();
+    if (selectors != null && selectors.length > 0) {
+      for (final String selector : request.getRequestPathInfo().getSelectors()) {
+        if ("launch".equalsIgnoreCase(selector)) {
+          doLaunch(request, response);
+          return;
+        }
+      }
+    } else { // no selectors requested
+      // TODO verify permissions and return sensitive data *only* to site admins
+      if ("json".equalsIgnoreCase(request.getRequestPathInfo().getExtension())) {
+        final Resource resource = request.getResource();
+        if (resource == null) {
+          sendError(HttpServletResponse.SC_NOT_FOUND,
+              "Resource could not be found", new Error(
+                  "Resource could not be found"), response);
+        }
+        final Node node = resource.adaptTo(Node.class);
+        final ExtendedJSONWriter json = new ExtendedJSONWriter(response
+            .getWriter());
+        try {
+          json.node(node);
+        } catch (Exception e) {
+          sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+              .getLocalizedMessage(), e, response);
+        }
+      }
+    }
+  }
+
+  protected void doLaunch(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    LOG
+        .debug("doLaunch(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final Resource resource = request.getResource();
     if (resource == null) {
       sendError(HttpServletResponse.SC_NOT_FOUND,
@@ -377,6 +411,45 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getLocalizedMessage(), e, response);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doDelete(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doDelete(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    // TODO Delete child node or is it auto deleted?
+    super.doDelete(request, response);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doPost(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    // TODO Create child node to store sensitive data and ACL it
+    super.doPost(request, response);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPut(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doPut(SlingHttpServletRequest request,
+      SlingHttpServletResponse response) throws ServletException, IOException {
+    // TODO Auto-generated method stub
+    super.doPut(request, response);
   }
 
   /**
