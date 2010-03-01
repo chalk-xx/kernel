@@ -39,6 +39,7 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -360,7 +361,7 @@ public class FileUtils {
       Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
       write.key(JcrConstants.JCR_LASTMODIFIED);
       Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
-      write.value(FilesConstants.DATEFORMAT.format(cal));
+      write.value(DateUtils.iso8601(cal));
       write.key(FilesConstants.SAKAI_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
 

@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import org.apache.commons.lang.time.FastDateFormat;
 
 public interface FilesConstants {
 
@@ -97,7 +96,5 @@ public interface FilesConstants {
   public static final String LINK_HANDLER = "LinkHandler";
 
   public static final String REG_PROCESSOR_NAMES = "sakai.files.handler";
-  public static final FastDateFormat DATEFORMAT = FastDateFormat
-      .getInstance("yyyy-MM-dd'T'HH:mm:ss");
 
 }

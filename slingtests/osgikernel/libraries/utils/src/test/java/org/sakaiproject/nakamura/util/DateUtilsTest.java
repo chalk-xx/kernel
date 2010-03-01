@@ -41,7 +41,6 @@ public class DateUtilsTest {
 
   @Test
   public void testIso8601() throws Exception {
-    System.err.println(DateUtils.iso8601());
     Pattern dateFormat = Pattern
         .compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[-+]\\d{2}:\\d{2}$");
     assertTrue(dateFormat.matcher(DateUtils.iso8601()).matches());
