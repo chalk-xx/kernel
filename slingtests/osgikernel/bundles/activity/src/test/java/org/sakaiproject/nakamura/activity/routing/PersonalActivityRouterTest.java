@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.activity.routing;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
@@ -28,6 +29,11 @@ import org.sakaiproject.nakamura.api.activity.ActivityUtils;
  */
 public class PersonalActivityRouterTest extends AbstractActivityRouterTest {
 
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+  }
+  
   @Test
   public void testAdding() {
     replay();
