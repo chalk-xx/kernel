@@ -30,7 +30,7 @@
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*,!kaffe.rmi.*,!org.apache.bsf,org.apache.tools.ant.*;resolution:=optional,!org.apache.bcel.*,!org.jdom.*,!org.apache.avalon.*,*</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,oro</Embed-Dependency>
+            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,oro,ical4j</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -44,7 +44,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro</includeArtifactIds>
+              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,ical4j</includeArtifactIds>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>
@@ -82,22 +82,22 @@
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>1.1</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>werken-xpath</groupId>
         <artifactId>werken-xpath</artifactId>
         <version>0.9.4</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>ant</groupId>
         <artifactId>ant</artifactId>
         <version>1.6</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>antlr</groupId>
         <artifactId>antlr</artifactId>
         <version>2.7.7</version>
-    </dependency> 
+    </dependency>
     <dependency>
       <groupId>xml-resolver</groupId>
       <artifactId>xml-resolver</artifactId>
@@ -107,12 +107,12 @@
         <groupId>oro</groupId>
         <artifactId>oro</artifactId>
         <version>2.0.8</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>logkit</groupId>
         <artifactId>logkit</artifactId>
         <version>2.0</version>
-    </dependency> 
+    </dependency>
 
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
