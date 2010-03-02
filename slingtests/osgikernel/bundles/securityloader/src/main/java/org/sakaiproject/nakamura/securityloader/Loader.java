@@ -25,6 +25,8 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.principal.NoSuchPrincipalException;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -414,11 +416,15 @@ LOGGER.info("Got Target Node as "+targetNode);
     String principalId = acl.getString(PRINCIPAL);
     if (principalId == null) {
       LOGGER.warn("No Principal specified, ignoring :" + acl);
+      return;
     }
-    UserManager userManager = AccessControlUtil.getUserManager(session);
-    Authorizable authorizable = userManager.getAuthorizable(principalId);
-    if (authorizable == null) {
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal principal;
+    try {
+      principal = principalManager.getPrincipal(principalId);
+    } catch (NoSuchPrincipalException e) {
       LOGGER.warn("No Principal "+principalId+" found, ignoring :" + acl);
+      return;
     }
 
     String path = acl.getString(PATH);
@@ -435,9 +441,6 @@ LOGGER.info("Got Target Node as "+targetNode);
     // create the path, if it doesnt exist.
     // this may cause problems if we are putting files with acls
     jcrContentHelper.createRepositoryPath(session, resourcePath);
-    
-    
-     
 
     List<String> grantedPrivilegeNames = new ArrayList<String>();
     List<String> deniedPrivilegeNames = new ArrayList<String>();
@@ -544,33 +547,29 @@ LOGGER.info("Got Target Node as "+targetNode);
       newPrivileges.append(privilege.getName());
     }
     if (grantedPrivilegeList.size() > 0) {
-      Principal principal = authorizable.getPrincipal();
       updatedAcl.addAccessControlEntry(principal, grantedPrivilegeList
           .toArray(new Privilege[grantedPrivilegeList.size()]));
     }
 
-    // if the authorizable is a user (not a group) process any denied privileges
-    if (!authorizable.isGroup()) {
-      // add a fresh ACE with the denied privileges
-      List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : deniedPrivilegeNames) {
-        if (name.length() == 0) {
-          continue; // empty, skip it.
-        }
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        deniedPrivilegeList.add(privilege);
+    // process any denied privileges
+    // add a fresh ACE with the denied privileges
+    List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
+    for (String name : deniedPrivilegeNames) {
+      if (name.length() == 0) {
+        continue; // empty, skip it.
+      }
+      Privilege privilege = accessControlManager.privilegeFromName(name);
+      deniedPrivilegeList.add(privilege);
 
-        if (newPrivileges.length() > 0) {
-          newPrivileges.append(", "); // separate entries by commas
-        }
-        newPrivileges.append("denied=");
-        newPrivileges.append(privilege.getName());
+      if (newPrivileges.length() > 0) {
+        newPrivileges.append(", "); // separate entries by commas
       }
-      if (deniedPrivilegeList.size() > 0) {
-        Principal principal = authorizable.getPrincipal();
-        AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
-            .toArray(new Privilege[deniedPrivilegeList.size()]), false);
-      }
+      newPrivileges.append("denied=");
+      newPrivileges.append(privilege.getName());
+    }
+    if (deniedPrivilegeList.size() > 0) {
+      AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
+          .toArray(new Privilege[deniedPrivilegeList.size()]), false);
     }
 
     accessControlManager.setPolicy(resourcePath, updatedAcl);
@@ -581,7 +580,7 @@ LOGGER.info("Got Target Node as "+targetNode);
     jcrContentHelper.fireEvent(resourcePath, newPrivileges.toString());
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Updated ACE for principalId {} for resource {} from {} to {}",
-          new Object[] {authorizable.getID(), resourcePath, oldPrivileges.toString(),
+          new Object[] {principal.getName(), resourcePath, oldPrivileges.toString(),
               newPrivileges.toString()});
     }
 
