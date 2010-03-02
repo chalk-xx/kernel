@@ -3,7 +3,7 @@
   "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[(@sling:resourceType='sakai/message' and @sakai:type='chat' and @sakai:created >= xs:dateTime('{t}')){_from}] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "ChatMessage",
-  "sakai:resultprocessor": "ChatMessage",
+  "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Chat - Unread.",
   "sakai:shortDescription": "Get all the chat messages in your message store after a certain timestamp",
   "sakai:parameters" : [
