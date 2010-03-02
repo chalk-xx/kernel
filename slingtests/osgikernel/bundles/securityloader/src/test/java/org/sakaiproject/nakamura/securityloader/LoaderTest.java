@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.securityloader;
 
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
@@ -43,6 +44,7 @@ public class LoaderTest extends SecurityLoaderServiceTest {
   @Mock private Node bNode;
   @Mock private Node cNode;
   @Mock private UserManager userManager;
+  @Mock private PrincipalManager principalManager;
   @Mock private Group group;
   @Mock private ValueFactory valueFactory;
 
@@ -55,6 +57,7 @@ public class LoaderTest extends SecurityLoaderServiceTest {
   public void testLoader() throws JSONException, IOException, RepositoryException {
     Mockito.when(userManager.createGroup((Principal) Mockito.anyObject(), Mockito.anyString())).thenReturn(group);
     Mockito.when(session.getUserManager()).thenReturn(userManager);
+    Mockito.when(session.getPrincipalManager()).thenReturn(principalManager);
     Mockito.when(session.getValueFactory()).thenReturn(valueFactory);
     Mockito.when(session.itemExists("/a")).thenReturn(true);
     Mockito.when(session.itemExists("/b")).thenReturn(true);
