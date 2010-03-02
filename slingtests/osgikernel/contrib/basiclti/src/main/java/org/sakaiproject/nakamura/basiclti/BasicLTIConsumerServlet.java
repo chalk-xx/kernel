@@ -70,6 +70,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -425,6 +426,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
   }
 
+  /**
+   * Intended for nodes of sling:resourceType=sakai/basiclti - i.e. not
+   * sensitive nodes.
+   * 
+   * @param node
+   * @return
+   * @throws RepositoryException
+   */
   private Map<String, String> getSettings(final Node node)
       throws RepositoryException {
     // loop through Node properties
@@ -440,15 +449,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
       settings.put(propertyName, property.getValue().getString());
     }
-    if (node.hasNode(LTI_ADMIN_NODE_NAME)) {
-      final Node adminNode = node.getNode(LTI_ADMIN_NODE_NAME);
-      for (String skey : sensitiveKeys) {
-        if (adminNode.hasProperty(skey)) {
-          final String value = adminNode.getProperty(skey).getString();
-          settings.put(skey, value);
-        }
-      }
-    }
+    final Map<String, String> sensitiveData = readSensitiveNode(node);
+    settings.putAll(sensitiveData);
     return settings;
   }
 
@@ -485,7 +487,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
     try {
-      final Node adminNode = createAdminNode(node, session);
+      final Map<String, String> sensitiveData = new HashMap<String, String>(
+          sensitiveKeys.size());
       // loop through request parameters
       for (final Entry<String, RequestParameter[]> entry : request
           .getRequestParameterMap().entrySet()) {
@@ -503,7 +506,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
               removeProperty(node, key);
             } else { // has a valid value
               if (sensitiveKeys.contains(key)) {
-                adminNode.setProperty(key, value);
+                sensitiveData.put(key, value);
               } else {
                 node.setProperty(key, value);
               }
@@ -518,13 +521,15 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (session.hasPendingChanges()) {
         session.save();
       }
+      createSensitiveNode(node, session, sensitiveData);
     } catch (Exception e) {
       sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
           .getLocalizedMessage(), e, response);
     }
   }
 
-  private Node createAdminNode(final Node parent, final Session userSession)
+  private void createSensitiveNode(final Node parent,
+      final Session userSession, Map<String, String> sensitiveData)
       throws ItemExistsException, PathNotFoundException, VersionException,
       ConstraintViolationException, LockException, RepositoryException {
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
@@ -554,25 +559,61 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           adminNodePath);
       // TODO repair admin node?
     }
+    // now let's elevate Privileges and do some admin modifications
     Session adminSession = null;
     try {
       adminSession = slingRepository.loginAdministrative(null);
-    } catch (Exception e) {
-      throw new Error(e);
+      final Node adminNode = JcrUtils.deepGetOrCreateNode(adminSession,
+          adminNodePath);
+      for (final Entry<String, String> entry : sensitiveData.entrySet()) {
+        adminNode.setProperty(entry.getKey(), entry.getValue());
+        // TODO set proper ACLs
+      }
+      if (adminSession.hasPendingChanges()) {
+        adminSession.save();
+      }
     } finally {
       if (adminSession != null) {
         adminSession.logout();
       }
-    }
-    Node node = null;
-    if (parent.hasNode(LTI_ADMIN_NODE_NAME)) {
-      node = parent.getNode(LTI_ADMIN_NODE_NAME);
-    } else {
-      node = parent.addNode(LTI_ADMIN_NODE_NAME);
-    }
-    return node;
+    } // end admin elevation
   }
 
+  private Map<String, String> readSensitiveNode(final Node parent)
+      throws RepositoryException {
+    final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
+    Map<String, String> settings = null;
+    // now let's elevate Privileges and do some admin modifications
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      if (adminSession.itemExists(adminNodePath)) {
+        Node adminNode = (Node) adminSession.getItem(adminNodePath);
+        final PropertyIterator iter = adminNode.getProperties();
+        settings = new HashMap<String, String>((int) iter.getSize());
+        while (iter.hasNext()) {
+          final Property property = iter.nextProperty();
+          settings.put(property.getName(), property.getValue().getString());
+        }
+      } else {
+        throw new PathNotFoundException("Node does not exist: " + adminNodePath);
+      }
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    } // end admin elevation
+    return settings;
+  }
+
+  /**
+   * Checks to see if the current user is a member of the administrators group.
+   * 
+   * @param session
+   * @return
+   * @throws UnsupportedRepositoryOperationException
+   * @throws RepositoryException
+   */
   private boolean isAdminUser(final Session session)
       throws UnsupportedRepositoryOperationException, RepositoryException {
     final UserManager userManager = AccessControlUtil.getUserManager(session);

@@ -72,6 +72,11 @@
 			<artifactId>org.sakaiproject.nakamura.doc</artifactId>
 			<version>0.4-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.sakaiproject.nakamura</groupId>
+			<artifactId>org.sakaiproject.nakamura.utils</artifactId>
+			<version>0.3-SNAPSHOT</version>
+		</dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
