@@ -154,7 +154,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
       byte[] fileData = new byte[documentStream.available()];
       documentStream.read(fileData);
-      xythos.updateFile("/" + currentUserId + /" + path, fileData, properties, currentUserId);
+      xythos.updateFile("/" + currentUserId + "/" + path, fileData, properties, currentUserId);
       return properties;
     } catch(Exception e) {
       throw new RuntimeException(e);
