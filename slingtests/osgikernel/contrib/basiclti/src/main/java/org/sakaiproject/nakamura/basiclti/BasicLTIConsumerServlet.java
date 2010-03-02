@@ -69,6 +69,8 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.ACLUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
@@ -557,7 +559,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     if (invalidPrivileges) {
       LOG.error("{} can access sensitive data: {}", userSession.getUserID(),
           adminNodePath);
-      // TODO repair admin node?
+      // Will be repaired by accessControlSensitiveNode(adminNodePath,
+      // adminSession) below.
     }
     // now let's elevate Privileges and do some admin modifications
     Session adminSession = null;
@@ -567,8 +570,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           adminNodePath);
       for (final Entry<String, String> entry : sensitiveData.entrySet()) {
         adminNode.setProperty(entry.getKey(), entry.getValue());
-        // TODO set proper ACLs
       }
+      // ensure only admins can read the node
+      accessControlSensitiveNode(adminNodePath, adminSession);
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
@@ -577,6 +581,23 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         adminSession.logout();
       }
     } // end admin elevation
+  }
+
+  private void accessControlSensitiveNode(final String adminNodePath,
+      final Session adminSession) throws AccessDeniedException,
+      UnsupportedRepositoryOperationException, RepositoryException {
+    final UserManager userManager = AccessControlUtil
+        .getUserManager(adminSession);
+    final PrincipalManager principalManager = AccessControlUtil
+        .getPrincipalManager(adminSession);
+    final Authorizable anonymous = userManager
+        .getAuthorizable(UserConstants.ANON_USERID);
+    final Authorizable everyone = userManager.getAuthorizable(principalManager
+        .getEveryone());
+    ACLUtils.addEntry(adminNodePath, anonymous, adminSession,
+        ACLUtils.ALL_DENIED);
+    ACLUtils.addEntry(adminNodePath, everyone, adminSession,
+        ACLUtils.ALL_DENIED);
   }
 
   private Map<String, String> readSensitiveNode(final Node parent)
@@ -593,7 +614,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         settings = new HashMap<String, String>((int) iter.getSize());
         while (iter.hasNext()) {
           final Property property = iter.nextProperty();
-          settings.put(property.getName(), property.getValue().getString());
+          final String propertyName = property.getName();
+          if ("jcr:mixinTypes".equals(propertyName)) { // skip this property
+            continue;
+          }
+          settings.put(propertyName, property.getValue().getString());
         }
       } else {
         throw new PathNotFoundException("Node does not exist: " + adminNodePath);
