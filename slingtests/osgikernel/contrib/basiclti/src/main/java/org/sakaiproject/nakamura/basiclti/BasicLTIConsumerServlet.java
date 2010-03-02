@@ -35,6 +35,7 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
@@ -203,6 +204,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         final ExtendedJSONWriter json = new ExtendedJSONWriter(response
             .getWriter());
         try {
+          response.setContentType("application/json");
           json.node(node);
         } catch (Exception e) {
           sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
@@ -241,16 +243,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (session.itemExists(adminNodePath)) {
         LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
         final Node adminNode = (Node) session.getItem(adminNodePath);
-        // loop through admin properties
-        final PropertyIterator api = adminNode.getProperties();
-        adminSettings = new HashMap<String, String>((int) api.getSize());
-        while (api.hasNext()) {
-          final Property property = api.nextProperty();
-          LOG.info("adminSettings: " + property.getName() + "="
-              + property.getValue().getString());
-          adminSettings
-              .put(property.getName(), property.getValue().getString());
-        }
+        adminSettings = getSettings(adminNode);
       } else {
         LOG
             .debug(
@@ -258,17 +251,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
                 vtoolId);
         adminSettings = Collections.emptyMap();
       }
-
-      // loop through user properties
-      final PropertyIterator upi = node.getProperties();
-      final Map<String, String> userSettings = new HashMap<String, String>(
-          (int) upi.getSize());
-      while (upi.hasNext()) {
-        final Property property = upi.nextProperty();
-        LOG.info("userSettings: " + property.getName() + "="
-            + property.getValue().getString());
-        userSettings.put(property.getName(), property.getString());
-      }
+      final Map<String, String> userSettings = getSettings(node);
 
       // merge admin and user properties
       final Map<String, String> effectiveSettings = new HashMap<String, String>(
@@ -428,6 +411,28 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
   }
 
+  private Map<String, String> getSettings(final Node node)
+      throws RepositoryException {
+    // loop through Node properties
+    final PropertyIterator iter = node.getProperties();
+    Map<String, String> settings = new HashMap<String, String>((int) iter
+        .getSize());
+    while (iter.hasNext()) {
+      final Property property = iter.nextProperty();
+      settings.put(property.getName(), property.getValue().getString());
+    }
+    if (node.hasNode(LTI_ADMIN_NODE_NAME)) {
+      final Node adminNode = node.getNode(LTI_ADMIN_NODE_NAME);
+      for (String skey : sensitiveKeys) {
+        if (adminNode.hasProperty(skey)) {
+          final String value = adminNode.getProperty(skey).getString();
+          settings.put(skey, value);
+        }
+      }
+    }
+    return settings;
+  }
+
   /**
    * {@inheritDoc}
    * 
@@ -463,6 +468,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     for (final Entry<String, RequestParameter[]> entry : request
         .getRequestParameterMap().entrySet()) {
       try {
+        // create admin node
+        if (!node.hasNode(LTI_ADMIN_NODE_NAME)) {
+          node.addNode(LTI_ADMIN_NODE_NAME);
+        }
+        final Node adminNode = node.getNode(LTI_ADMIN_NODE_NAME);
         final String key = entry.getKey();
         if (entry.getValue() == null || entry.getValue().length == 0) {
           removeProperty(node, key);
@@ -475,10 +485,18 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
             final String value = entry.getValue()[0].getString("UTF-8");
             if ("".equals(value)) {
               removeProperty(node, key);
-            } else {
-              node.setProperty(key, value);
+            } else { // has a valid value
+              if (sensitiveKeys.contains(key)) {
+                adminNode.setProperty(key, value);
+              } else {
+                node.setProperty(key, value);
+              }
             }
           }
+        }
+        // safety precaution - just to be safe
+        for (String skey : sensitiveKeys) {
+          removeProperty(node, skey);
         }
         if (session.hasPendingChanges()) {
           session.save();

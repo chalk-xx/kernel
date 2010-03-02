@@ -41,4 +41,8 @@ public class BasicLtiAppConstants {
    * by user placements.
    */
   public static final String ADMIN_CONFIG_PATH = "/var/basiclti";
+  /**
+   * The name of the child node that stores sensitive LTI information.
+   */
+  public static final String LTI_ADMIN_NODE_NAME = "ltiKeys";
 }
