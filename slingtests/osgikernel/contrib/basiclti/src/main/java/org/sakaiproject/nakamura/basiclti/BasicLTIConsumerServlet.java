@@ -49,17 +49,23 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEAS
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
 import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
 import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
@@ -69,6 +75,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,6 +84,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemExistsException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -84,6 +92,7 @@ import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
@@ -113,6 +122,15 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * Keys we never want sent in the launch data.
    */
   private static final String[] BLACKLIST = { LTI_KEY, LTI_SECRET, LTI_URL };
+  /**
+   * The keys that must be specially secured from normal Sling operation.
+   */
+  private transient Set<String> sensitiveKeys = null;
+  /**
+   * Dependency injected from OSGI container.
+   */
+  @Reference
+  private transient SlingRepository slingRepository;
 
   // global properties used for every tool launch
   /**
@@ -135,10 +153,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * See: {@link BasicLTIConstants#TOOL_CONSUMER_INSTANCE_URL}
    */
   private transient String instanceUrl;
-  /**
-   * The keys that must be specially secured from normal Sling operation.
-   */
-  private transient Set<String> sensitiveKeys = null;
 
   /**
    * {@inheritDoc}
@@ -470,14 +484,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Node node = resource.adaptTo(Node.class);
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
-    for (final Entry<String, RequestParameter[]> entry : request
-        .getRequestParameterMap().entrySet()) {
-      try {
-        // create admin node
-        if (!node.hasNode(LTI_ADMIN_NODE_NAME)) {
-          node.addNode(LTI_ADMIN_NODE_NAME);
-        }
-        final Node adminNode = node.getNode(LTI_ADMIN_NODE_NAME);
+    try {
+      final Node adminNode = createAdminNode(node, session);
+      // loop through request parameters
+      for (final Entry<String, RequestParameter[]> entry : request
+          .getRequestParameterMap().entrySet()) {
         final String key = entry.getKey();
         if (entry.getValue() == null || entry.getValue().length == 0) {
           removeProperty(node, key);
@@ -499,18 +510,112 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
             }
           }
         }
-        // safety precaution - just to be safe
-        for (String skey : sensitiveKeys) {
-          removeProperty(node, skey);
+      } // end request parameters loop
+      // safety precaution - just to be safe
+      for (String skey : sensitiveKeys) {
+        removeProperty(node, skey);
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (Exception e) {
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getLocalizedMessage(), e, response);
+    }
+  }
+
+  private Node createAdminNode(final Node parent, final Session userSession)
+      throws ItemExistsException, PathNotFoundException, VersionException,
+      ConstraintViolationException, LockException, RepositoryException {
+    final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
+    // sanity check to verify user does not have permissions to admin node
+    boolean invalidPrivileges = false;
+    if (!isAdminUser(userSession)) { // i.e. normal user
+      try {
+        final AccessControlManager acm = AccessControlUtil
+            .getAccessControlManager(userSession);
+        Privilege[] userPrivs = acm.getPrivileges(adminNodePath);
+        Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
+        for (Privilege privilege : userPrivs) {
+          System.out.println("Privilege=" + privilege.getName());
+          if (invalidUserPrivileges.contains(privilege)) {
+            invalidPrivileges = true;
+          }
         }
-        if (session.hasPendingChanges()) {
-          session.save();
-        }
-      } catch (Exception e) {
-        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-            .getLocalizedMessage(), e, response);
+      } catch (PathNotFoundException e) { // This is to be expected
+        LOG
+            .debug(
+                "The node does not exist or the user does not have permission(?): {}",
+                adminNodePath);
       }
     }
+    if (invalidPrivileges) {
+      LOG.error("{} can access sensitive data: {}", userSession.getUserID(),
+          adminNodePath);
+      // TODO repair admin node?
+    }
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+    } catch (Exception e) {
+      throw new Error(e);
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    }
+    Node node = null;
+    if (parent.hasNode(LTI_ADMIN_NODE_NAME)) {
+      node = parent.getNode(LTI_ADMIN_NODE_NAME);
+    } else {
+      node = parent.addNode(LTI_ADMIN_NODE_NAME);
+    }
+    return node;
+  }
+
+  private boolean isAdminUser(final Session session)
+      throws UnsupportedRepositoryOperationException, RepositoryException {
+    final UserManager userManager = AccessControlUtil.getUserManager(session);
+    final Authorizable authorizable = userManager.getAuthorizable(session
+        .getUserID());
+    boolean isAdmin = false;
+    if (authorizable != null) {
+      final Principal principal = authorizable.getPrincipal();
+      if (principal != null) {
+        final PrincipalManager principalManager = AccessControlUtil
+            .getPrincipalManager(session);
+        final PrincipalIterator it = principalManager
+            .getGroupMembership(principal);
+        while (it.hasNext()) {
+          if (SecurityConstants.ADMINISTRATORS_NAME.equals(it.nextPrincipal()
+              .getName())) {
+            isAdmin = true;
+            break;
+          }
+        }
+      }
+    }
+    return isAdmin;
+  }
+
+  private Set<Privilege> getInvalidUserPrivileges(final AccessControlManager acm)
+      throws AccessControlException, RepositoryException {
+    Set<Privilege> invalidUserPrivileges = new HashSet<Privilege>(9);
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_ALL));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_READ));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_WRITE));
+    invalidUserPrivileges.add(acm
+        .privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES));
+    invalidUserPrivileges.add(acm
+        .privilegeFromName(Privilege.JCR_READ_ACCESS_CONTROL));
+    invalidUserPrivileges.add(acm
+        .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL));
+    invalidUserPrivileges.add(acm
+        .privilegeFromName(Privilege.JCR_ADD_CHILD_NODES));
+    invalidUserPrivileges.add(acm
+        .privilegeFromName(Privilege.JCR_REMOVE_CHILD_NODES));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_REMOVE_NODE));
+    return invalidUserPrivileges;
   }
 
   private void removeProperty(final Node node, final String property)
@@ -530,8 +635,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPut(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    super.doPut(request, response);
+    sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
+        "PUT method not allowed.", null, response);
   }
 
   /**
@@ -657,5 +762,19 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       LOG.error(errorCode + ": " + message, exception);
       throw new Error(message, exception);
     }
+  }
+
+  /**
+   * @param slingRepository
+   */
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  /**
+   * @param slingRepository
+   */
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 }
