@@ -419,7 +419,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .getSize());
     while (iter.hasNext()) {
       final Property property = iter.nextProperty();
-      settings.put(property.getName(), property.getValue().getString());
+      final String propertyName = property.getName();
+      if (sensitiveKeys.contains(propertyName)) {
+        LOG.error("Sensitive data exposed: {} in {}!", propertyName, node
+            .getPath());
+      }
+      settings.put(propertyName, property.getValue().getString());
     }
     if (node.hasNode(LTI_ADMIN_NODE_NAME)) {
       final Node adminNode = node.getNode(LTI_ADMIN_NODE_NAME);
