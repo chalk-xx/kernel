@@ -28,12 +28,11 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.query.Query;
@@ -95,14 +94,8 @@ public class ChatMessageSearchResultProcessor implements SearchResultProcessor {
       PersonalUtils.writeUserInfo(resultNode.getSession(), from, write, "userFrom");
     }
 
-    // List all of the properties on here.
-    PropertyIterator pi = resultNode.getProperties();
-    while (pi.hasNext()) {
-      Property p = pi.nextProperty();
-      write.key(p.getName());
-      write.value(p.getString());
-    }
-
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
+    
     write.endObject();
 
     // Check if this message has been read already.

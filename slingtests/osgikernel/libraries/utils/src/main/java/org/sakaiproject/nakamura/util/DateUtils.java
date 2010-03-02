@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.util;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -104,6 +105,18 @@ public class DateUtils {
    */
   public static String iso8601(Date d) {
     return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(d);
+  }
+
+  /**
+   * Returns an <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601> compliant
+   * datetime stamp.
+   * 
+   * @param c
+   *          The date to format.
+   * @return yyyy-MM-dd'T'HH:mm:ssZZ
+   */
+  public static String iso8601(Calendar c) {
+    return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(c);
   }
 
 }

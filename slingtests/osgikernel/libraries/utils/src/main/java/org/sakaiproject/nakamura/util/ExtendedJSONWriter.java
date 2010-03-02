@@ -22,8 +22,6 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import java.io.Writer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
@@ -36,12 +34,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
-
-  private static ThreadLocal<DateFormat> formatHolder = new ThreadLocal<DateFormat>() {
-    protected DateFormat initialValue() {
-      return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    };
-  };
+  
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
@@ -116,7 +109,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.DOUBLE:
       return value.getDouble();     
     case PropertyType.DATE:
-      return formatHolder.get().format(value.getDate().getTime());
+      return DateUtils.iso8601(value.getDate());
     default:
       return value.toString();
     }
