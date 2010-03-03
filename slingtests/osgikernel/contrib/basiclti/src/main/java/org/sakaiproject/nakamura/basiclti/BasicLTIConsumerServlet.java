@@ -104,13 +104,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * TODO remove selector binding to bind to all calls to this type. Check
- * selectors manually for launch and behave the same as today. On POST, validate
- * and create child node with correct ACLs. On default behavior, include secured
- * parameters if a site owner. OPTIONS, GET, HEAD, POST, PUT not supported,
- * DELETE must also delete child node, TRACE, CONNECT.
- */
 @SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
@@ -208,21 +201,25 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           return;
         }
       }
-    } else { // no selectors requested
-      // TODO verify permissions and return sensitive data *only* to site admins
+    } else { // no selectors requested check extension
       if ("json".equalsIgnoreCase(request.getRequestPathInfo().getExtension())) {
         final Resource resource = request.getResource();
         if (resource == null) {
           sendError(HttpServletResponse.SC_NOT_FOUND,
               "Resource could not be found", new Error(
                   "Resource could not be found"), response);
+          return;
         }
         final Node node = resource.adaptTo(Node.class);
-        final ExtendedJSONWriter json = new ExtendedJSONWriter(response
-            .getWriter());
         try {
           response.setContentType("application/json");
-          json.node(node);
+          final Map<String, String> settings = readProperties(node);
+          final Session session = request.getResourceResolver().adaptTo(
+              Session.class);
+          if (canManageSettings(node.getPath(), session)) {
+            settings.putAll(readSensitiveNode(node));
+          }
+          renderJson(response.getWriter(), settings);
         } catch (Exception e) {
           sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
               .getLocalizedMessage(), e, response);
@@ -245,7 +242,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final Session session = request.getResourceResolver()
         .adaptTo(Session.class);
     try {
-      // TODO this is commented out just for quick testing workaround
+      // FIXME Work with UX team to develop virtual widget model.
       final String vtoolId = "basiclti";
       // if (!node.hasProperty(LTI_VTOOL_ID)) {
       // sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_VTOOL_ID
@@ -260,7 +257,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (session.itemExists(adminNodePath)) {
         LOG.debug("Found administrative settings for virtual tool: " + vtoolId);
         final Node adminNode = (Node) session.getItem(adminNodePath);
-        adminSettings = getSettings(adminNode);
+        adminSettings = getLaunchSettings(adminNode);
       } else {
         LOG
             .debug(
@@ -268,7 +265,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
                 vtoolId);
         adminSettings = Collections.emptyMap();
       }
-      final Map<String, String> userSettings = getSettings(node);
+      final Map<String, String> userSettings = getLaunchSettings(node);
 
       // merge admin and user properties
       final Map<String, String> effectiveSettings = new HashMap<String, String>(
@@ -324,22 +321,21 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
             new IllegalStateException(message), response);
         return;
       }
-      launchProps.put(CONTEXT_ID, siteNode.getPath());
+      final String sitePath = siteNode.getPath();
+      launchProps.put(CONTEXT_ID, sitePath);
       launchProps.put(CONTEXT_TITLE, siteNode.getProperty("name").getString());
       launchProps.put(CONTEXT_LABEL, siteNode.getProperty("id").getString());
 
-      // TODO how to determine site type?
+      // FIXME how to determine site type?
       // CourseSection probably satisfies 90% of our use cases.
       // Maybe Group should be used for project sites?
       launchProps.put(CONTEXT_TYPE, "CourseSection");
 
-      // FIXME need to pull roles from system
       final AccessControlManager accessControlManager = AccessControlUtil
           .getAccessControlManager(session);
       final Privilege[] modifyACLs = { accessControlManager
           .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL) };
-      // TODO replace with real site path
-      boolean canManageSite = accessControlManager.hasPrivileges("/sites/foo",
+      boolean canManageSite = accessControlManager.hasPrivileges(sitePath,
           modifyACLs);
       LOG.info("hasPrivileges(modifyAccessControl)=" + canManageSite);
       if ("anonymous".equals(session.getUserID())) {
@@ -401,16 +397,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       launchProps.put("simple_key", "custom_simple_value");
       launchProps.put("Complex!@#$^*(){}[]KEY", "Complex!@#$^*(){}[]Value");
 
-      // TODO remove debug output
-      for (final Entry<String, String> entry : launchProps.entrySet()) {
-        LOG.info("launchProps: " + entry.getKey() + "=" + entry.getValue());
-      }
       final Map<String, String> cleanProps = BasicLTIUtil.cleanupProperties(
           launchProps, BLACKLIST);
-      // TODO remove debug output
-      for (final Entry<String, String> entry : cleanProps.entrySet()) {
-        LOG.info("cleanProps: " + entry.getKey() + "=" + entry.getValue());
-      }
       final Map<String, String> signedProperties = BasicLTIUtil.signProperties(
           cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, instanceGuid,
           instanceDescription, instanceUrl, instanceName, instanceContactEmail);
@@ -429,30 +417,55 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Intended for nodes of sling:resourceType=sakai/basiclti - i.e. not
-   * sensitive nodes.
+   * Intended for nodes of <code>sling:resourceType=sakai/basiclti</code> - i.e.
+   * not sensitive nodes.
    * 
    * @param node
    * @return
    * @throws RepositoryException
    */
-  private Map<String, String> getSettings(final Node node)
+  private Map<String, String> getLaunchSettings(final Node node)
+      throws RepositoryException {
+    final Map<String, String> settings = readProperties(node);
+    // sanity check for sensitive data in settings node
+    for (final Entry<String, String> entry : settings.entrySet()) {
+      final String key = entry.getKey();
+      if (sensitiveKeys.contains(key)) {
+        LOG.error("Sensitive data exposed: {} in {}!", key, node.getPath());
+        settings.remove(key);
+      }
+    }
+    final Map<String, String> sensitiveData = readSensitiveNode(node);
+    settings.putAll(sensitiveData);
+    return settings;
+  }
+
+  /**
+   * Simple helper method to read Node Properties into a
+   * <code>Map<String, String></code>. No sanity checking is performed for
+   * issues regarding sensitive data exposure.
+   * <p>
+   * Only well known application settings will be returned in the Map (i.e.
+   * other properties will be filtered out).
+   * 
+   * @param node
+   * @return
+   * @throws RepositoryException
+   */
+  private Map<String, String> readProperties(final Node node)
       throws RepositoryException {
     // loop through Node properties
     final PropertyIterator iter = node.getProperties();
-    Map<String, String> settings = new HashMap<String, String>((int) iter
+    final Map<String, String> settings = new HashMap<String, String>((int) iter
         .getSize());
     while (iter.hasNext()) {
       final Property property = iter.nextProperty();
       final String propertyName = property.getName();
-      if (sensitiveKeys.contains(propertyName)) {
-        LOG.error("Sensitive data exposed: {} in {}!", propertyName, node
-            .getPath());
+      // only put well known properties
+      if (applicationSettings.containsKey(propertyName)) {
+        settings.put(propertyName, property.getValue().getString());
       }
-      settings.put(propertyName, property.getValue().getString());
     }
-    final Map<String, String> sensitiveData = readSensitiveNode(node);
-    settings.putAll(sensitiveData);
     return settings;
   }
 
@@ -478,7 +491,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    // TODO Create child node to store sensitive data and ACL it
     final Resource resource = request.getResource();
     if (resource == null) {
       sendError(HttpServletResponse.SC_NOT_FOUND,
@@ -535,7 +547,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       throws ItemExistsException, PathNotFoundException, VersionException,
       ConstraintViolationException, LockException, RepositoryException {
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
-    // sanity check to verify user does not have permissions to admin node
+    // sanity check to verify user does not have permissions to sensitive node
     boolean invalidPrivileges = false;
     if (!isAdminUser(userSession)) { // i.e. normal user
       try {
@@ -544,7 +556,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         Privilege[] userPrivs = acm.getPrivileges(adminNodePath);
         Set<Privilege> invalidUserPrivileges = getInvalidUserPrivileges(acm);
         for (Privilege privilege : userPrivs) {
-          System.out.println("Privilege=" + privilege.getName());
           if (invalidUserPrivileges.contains(privilege)) {
             invalidPrivileges = true;
           }
@@ -559,8 +570,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     if (invalidPrivileges) {
       LOG.error("{} can access sensitive data: {}", userSession.getUserID(),
           adminNodePath);
-      // Will be repaired by accessControlSensitiveNode(adminNodePath,
-      // adminSession) below.
+      // Will be repaired by accessControlSensitiveNode() below.
     }
     // now let's elevate Privileges and do some admin modifications
     Session adminSession = null;
@@ -583,7 +593,17 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     } // end admin elevation
   }
 
-  private void accessControlSensitiveNode(final String adminNodePath,
+  /**
+   * Apply the necessary access control entries so that only admin users can
+   * read/write the sensitive node.
+   * 
+   * @param sensitiveNodePath
+   * @param adminSession
+   * @throws AccessDeniedException
+   * @throws UnsupportedRepositoryOperationException
+   * @throws RepositoryException
+   */
+  private void accessControlSensitiveNode(final String sensitiveNodePath,
       final Session adminSession) throws AccessDeniedException,
       UnsupportedRepositoryOperationException, RepositoryException {
     final UserManager userManager = AccessControlUtil
@@ -594,12 +614,25 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .getAuthorizable(UserConstants.ANON_USERID);
     final Authorizable everyone = userManager.getAuthorizable(principalManager
         .getEveryone());
-    ACLUtils.addEntry(adminNodePath, anonymous, adminSession,
+    ACLUtils.addEntry(sensitiveNodePath, anonymous, adminSession,
         ACLUtils.ALL_DENIED);
-    ACLUtils.addEntry(adminNodePath, everyone, adminSession,
+    ACLUtils.addEntry(sensitiveNodePath, everyone, adminSession,
         ACLUtils.ALL_DENIED);
   }
 
+  /**
+   * Since normal users do not have privileges to read the sensitive node, this
+   * method elevates privileges to admin to read the values.
+   * <p>
+   * This method should <em>only</em> be called from <code>doLaunch()</code> or
+   * if the user has permissions to manage the <code>sakai/basiclti</code>
+   * settings node (i.e. <code>canManageSettings()</code> from
+   * <code>doGet()</code>).
+   * 
+   * @param parent
+   * @return
+   * @throws RepositoryException
+   */
   private Map<String, String> readSensitiveNode(final Node parent)
       throws RepositoryException {
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
@@ -615,10 +648,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         while (iter.hasNext()) {
           final Property property = iter.nextProperty();
           final String propertyName = property.getName();
-          if ("jcr:mixinTypes".equals(propertyName)) { // skip this property
-            continue;
+          if (sensitiveKeys.contains(propertyName)) { // the ones we care about
+            settings.put(propertyName, property.getValue().getString());
           }
-          settings.put(propertyName, property.getValue().getString());
         }
       } else {
         throw new PathNotFoundException("Node does not exist: " + adminNodePath);
@@ -664,6 +696,39 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     return isAdmin;
   }
 
+  /**
+   * Does userSession.getUserId have permission to modify the
+   * <code>sakai/basiclti</code> settings node?
+   * 
+   * @param path
+   *          Absolute path to the <code>sakai/basiclti</code> settings node.
+   * @param userSession
+   *          The session of the current user (i.e. not the admin session)
+   * @return <code>true</code> if the session has the specified privileges;
+   *         <code>false</code> otherwise.
+   * @throws UnsupportedRepositoryOperationException
+   * @throws RepositoryException
+   */
+  private boolean canManageSettings(final String path, final Session userSession)
+      throws UnsupportedRepositoryOperationException, RepositoryException {
+    final AccessControlManager accessControlManager = AccessControlUtil
+        .getAccessControlManager(userSession);
+    final Privilege[] modifyProperties = { accessControlManager
+        .privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES) };
+    boolean canManageSettings = accessControlManager.hasPrivileges(path,
+        modifyProperties);
+    return canManageSettings;
+  }
+
+  /**
+   * Helper method to return a Set of Privileges that a normal user <i>should
+   * not</i> have on a sensitive Node.
+   * 
+   * @param acm
+   * @return
+   * @throws AccessControlException
+   * @throws RepositoryException
+   */
   private Set<Privilege> getInvalidUserPrivileges(final AccessControlManager acm)
       throws AccessControlException, RepositoryException {
     Set<Privilege> invalidUserPrivileges = new HashSet<Privilege>(9);
@@ -684,6 +749,17 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     return invalidUserPrivileges;
   }
 
+  /**
+   * Quietly removes a Property on a Node if it exists.
+   * 
+   * @param node
+   * @param property
+   * @throws VersionException
+   * @throws LockException
+   * @throws ConstraintViolationException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   */
   private void removeProperty(final Node node, final String property)
       throws VersionException, LockException, ConstraintViolationException,
       PathNotFoundException, RepositoryException {
@@ -721,11 +797,29 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     writer.value(ltiUrl);
     writer.key("postData");
     writer.object();
-    for (final Object propkey : properties.keySet()) {
-      writer.key((String) propkey);
-      writer.value(properties.get((String) propkey));
+    for (final Entry<String, String> entry : properties.entrySet()) {
+      writer.key(entry.getKey());
+      writer.value(entry.getValue());
     }
     writer.endObject(); // postData
+    writer.endObject(); // root object
+  }
+
+  /**
+   * Simple helper to render a JSON response.
+   * 
+   * @param pwriter
+   * @param properties
+   * @throws JSONException
+   */
+  private void renderJson(final Writer pwriter,
+      final Map<String, String> properties) throws JSONException {
+    final ExtendedJSONWriter writer = new ExtendedJSONWriter(pwriter);
+    writer.object(); // root object
+    for (final Entry<String, String> entry : properties.entrySet()) {
+      writer.key(entry.getKey());
+      writer.value(entry.getValue());
+    }
     writer.endObject(); // root object
   }
 
