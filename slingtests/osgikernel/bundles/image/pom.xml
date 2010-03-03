@@ -23,9 +23,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-Category> sakai-nakamura </Bundle-Category>
-            <DynamicImport-Package>sun.misc.*</DynamicImport-Package>
-            <Embed-Transitive>true</Embed-Transitive>
+               <Bundle-Category> sakai-nakamura </Bundle-Category>
+	           <Private-Package>org.sakaiproject.nakamura.image.*</Private-Package>
+	           <Embed-Transitive>true</Embed-Transitive>
+	           <Embed-Dependency>commons-sanselan</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -85,6 +86,11 @@
 		<artifactId>org.sakaiproject.nakamura.testutils</artifactId>
 		<version>0.4-SNAPSHOT</version>
 		<scope>test</scope>
+	</dependency>
+	<dependency>
+	  <groupId>org.apache.commons</groupId>
+	  <artifactId>commons-sanselan</artifactId>
+	  <version>0.98-SNAPSHOT</version>
 	</dependency>
   </dependencies>
 </project>
