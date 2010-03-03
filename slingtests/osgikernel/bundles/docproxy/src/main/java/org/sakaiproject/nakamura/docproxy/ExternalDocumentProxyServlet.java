@@ -52,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sakai/external-repository" }, methods = { "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
@@ -73,12 +73,6 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       String url = request.getRequestURI();
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
-
-      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
-        // This document should reference the config node.
-        String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
-      }
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..

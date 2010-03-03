@@ -46,7 +46,7 @@ import javax.servlet.http.HttpServletResponse;
  * This servlet provides access to the node metadata of an existing node.
  */
 @SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
-    "sling/nonexisting", "sakai/external-repository-document" }, generateComponent = true, generateService = true, methods = {
+    "sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
 public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
@@ -73,12 +73,6 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       url = url.replace(".metadata.json", "");
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
-
-      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
-        // This document should reference the config node.
-        String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
-      }
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
