@@ -64,7 +64,6 @@ public class OsgiJmsBridge implements EventHandler {
   private ConnectionFactoryService connFactoryService;
 
   private Connection conn;
-  private Session clientSession;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
@@ -115,9 +114,6 @@ public class OsgiJmsBridge implements EventHandler {
       conn = connFactoryService.getDefaultConnectionFactory().createConnection();
       conn.setClientID(connectionClientId);
 
-      clientSession = conn.createSession(transacted, acknowledgeMode);
-
-      clientSession.run();
       conn.start();
     } catch (JMSException e) {
       throw new RuntimeException(e.getMessage(), e);
@@ -130,13 +126,6 @@ public class OsgiJmsBridge implements EventHandler {
    * @param ctx
    */
   protected void deactivate(ComponentContext ctx) {
-    if (clientSession != null) {
-      try {
-        clientSession.close();
-      } catch (JMSException e) {
-        LOGGER.warn(e.getMessage(), e);
-      }
-    }
     if (conn != null) {
       try {
         conn.close();
@@ -156,8 +145,12 @@ public class OsgiJmsBridge implements EventHandler {
     LOGGER.trace("Receiving event");
     if (conn != null) {
       LOGGER.debug("Processing event {}", event);
+      Session clientSession = null;
       try {
         // post to JMS
+        // Sessions are not thread safe, so we need to create and destroy a session, for sending.
+        clientSession = conn.createSession(transacted, acknowledgeMode);
+
         Topic emailTopic = clientSession.createTopic(event.getTopic());
         MessageProducer client = clientSession.createProducer(emailTopic);
         Message msg = clientSession.createMessage();
@@ -175,8 +168,17 @@ public class OsgiJmsBridge implements EventHandler {
         }
 
         client.send(msg);
+        clientSession.commit();
       } catch (JMSException e) {
         LOGGER.error(e.getMessage(), e);
+      } finally {
+        try {
+          clientSession.close();
+        } catch ( NullPointerException e ) {
+          LOGGER.debug(e.getMessage(), e);
+        } catch (Exception e) {
+          LOGGER.error(e.getMessage(), e);
+        }
       }
     }
   }
