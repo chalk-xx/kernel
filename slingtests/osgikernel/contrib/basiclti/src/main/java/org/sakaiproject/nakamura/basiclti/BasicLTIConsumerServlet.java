@@ -79,14 +79,17 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
+import javax.jcr.Item;
 import javax.jcr.ItemExistsException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
@@ -428,12 +431,17 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       throws RepositoryException {
     final Map<String, String> settings = readProperties(node);
     // sanity check for sensitive data in settings node
+    final List<String> keysToRemove = new ArrayList<String>(sensitiveKeys
+        .size());
     for (final Entry<String, String> entry : settings.entrySet()) {
       final String key = entry.getKey();
       if (sensitiveKeys.contains(key)) {
-        LOG.error("Sensitive data exposed: {} in {}!", key, node.getPath());
-        settings.remove(key);
+        LOG.error("Sensitive data exposed: {} in {}", key, node.getPath());
+        keysToRemove.add(key);
       }
+    }
+    for (final String key : keysToRemove) {
+      settings.remove(key);
     }
     final Map<String, String> sensitiveData = readSensitiveNode(node);
     settings.putAll(sensitiveData);
@@ -478,8 +486,33 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   @Override
   protected void doDelete(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {
-    // TODO Delete child node or is it auto deleted?
-    super.doDelete(request, response);
+    LOG
+        .debug("doDelete(SlingHttpServletRequest request, SlingHttpServletResponse response)");
+    final Resource resource = request.getResource();
+    if (resource == null) {
+      sendError(HttpServletResponse.SC_NOT_FOUND,
+          "Resource could not be found", new Error(
+              "Resource could not be found"), response);
+    }
+    final Node node = resource.adaptTo(Node.class);
+    final Session session = request.getResourceResolver()
+        .adaptTo(Session.class);
+    try {
+      if (canRemoveNode(node.getPath(), session)) {
+        removeSensitiveNode(node);
+        node.remove();
+        if (session.hasPendingChanges()) {
+          session.save();
+        }
+        response.setStatus(HttpServletResponse.SC_OK);
+      } else {
+        sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied", null,
+            response);
+      }
+    } catch (Exception e) {
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
+          .getLocalizedMessage(), e, response);
+    }
   }
 
   /**
@@ -642,7 +675,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     try {
       adminSession = slingRepository.loginAdministrative(null);
       if (adminSession.itemExists(adminNodePath)) {
-        Node adminNode = (Node) adminSession.getItem(adminNodePath);
+        final Node adminNode = (Node) adminSession.getItem(adminNodePath);
         final PropertyIterator iter = adminNode.getProperties();
         settings = new HashMap<String, String>((int) iter.getSize());
         while (iter.hasNext()) {
@@ -661,6 +694,25 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
     } // end admin elevation
     return settings;
+  }
+
+  private void removeSensitiveNode(final Node parent)
+      throws PathNotFoundException, RepositoryException {
+    final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
+    Map<String, String> settings = null;
+    // now let's elevate Privileges and do some admin modifications
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      if (adminSession.itemExists(adminNodePath)) {
+        final Item adminNode = adminSession.getItem(adminNodePath);
+        adminNode.remove();
+      }
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    } // end admin elevation
   }
 
   /**
@@ -718,6 +770,27 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     boolean canManageSettings = accessControlManager.hasPrivileges(path,
         modifyProperties);
     return canManageSettings;
+  }
+
+  /**
+   * Does userSession.getUserId have permission to remove the
+   * <code>sakai/basiclti</code> settings node?
+   * 
+   * @param path
+   * @param userSession
+   * @return
+   * @throws UnsupportedRepositoryOperationException
+   * @throws RepositoryException
+   */
+  private boolean canRemoveNode(final String path, final Session userSession)
+      throws UnsupportedRepositoryOperationException, RepositoryException {
+    final AccessControlManager accessControlManager = AccessControlUtil
+        .getAccessControlManager(userSession);
+    final Privilege[] modifyProperties = { accessControlManager
+        .privilegeFromName(Privilege.JCR_REMOVE_NODE) };
+    boolean canRemoveNode = accessControlManager.hasPrivileges(path,
+        modifyProperties);
+    return canRemoveNode;
   }
 
   /**
