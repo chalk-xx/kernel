@@ -23,6 +23,7 @@ import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
+import org.apache.sanselan.util.IOUtils;
 import org.sakaiproject.nakamura.api.jcr.JCRConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -33,7 +34,6 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -107,25 +107,23 @@ public class CropItProcessor {
 
         // Read the image
         in = imgNode.getProperty(JCRConstants.JCR_DATA).getStream();
-        BufferedInputStream bufStream = new BufferedInputStream(in);
-        // We use a buffered input stream so we can mark the start.
-        // This allows us to stream the image, rather then keep it all in-memory.
-        // We keep the first 40K in memory. This is because sanselan looks at the first
-        // "magic bytes" to deterime the ImageInfo.
-        bufStream.mark(51200);
         try {
 
+          // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
+          // ImageInfo _and_ the BufferedImage.
+          // I've tried using a BufferedInputStream which allows you to reset, but for BMP
+          // this doesn't help.
+          byte[] bytes = IOUtils.getInputStreamBytes(in);
+
           // Guess the format and check if it is a valid one.
-          ImageInfo info = Sanselan.getImageInfo(bufStream, imgName);
+          ImageInfo info = Sanselan.getImageInfo(bytes);
           if (info.getFormat() == ImageFormat.IMAGE_FORMAT_UNKNOWN) {
             // This is not a valid image.
             LOGGER.error("Can't parse this format.");
             throw new ImageException(406, "Can't parse this format.");
           }
 
-          // Reset the stream so we can read it in a BufferedImage.
-          bufStream.reset();
-          BufferedImage imgBuf = Sanselan.getBufferedImage(bufStream);
+          BufferedImage imgBuf = Sanselan.getBufferedImage(bytes);
 
           // Set the correct width & height.
           width = (width <= 0) ? info.getWidth() : width;
