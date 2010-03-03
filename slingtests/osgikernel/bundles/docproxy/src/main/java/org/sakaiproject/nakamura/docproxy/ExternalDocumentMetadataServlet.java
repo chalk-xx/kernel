@@ -46,7 +46,7 @@ import javax.servlet.http.HttpServletResponse;
  * This servlet provides access to the node metadata of an existing node.
  */
 @SlingServlet(selectors = "metadata", extensions = "json", resourceTypes = {
-    "sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
+    "sling/nonexisting","sakai/external-repository" }, generateComponent = true, generateService = true, methods = {
     "GET", "POST" })
 public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
@@ -76,6 +76,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 

@@ -52,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = { "sakai/external-repository" }, methods = { "GET" }, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
@@ -76,7 +76,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
-        LOGGER.info("Disregarding a request to sling/nonexisting - {}", url);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 
