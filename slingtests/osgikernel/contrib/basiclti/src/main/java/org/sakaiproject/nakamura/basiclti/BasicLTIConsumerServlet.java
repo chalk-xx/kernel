@@ -601,7 +601,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
     }
     if (invalidPrivileges) {
-      LOG.error("{} can access sensitive data: {}", userSession.getUserID(),
+      LOG.error("{} has invalid privileges: {}", userSession.getUserID(),
           adminNodePath);
       // Will be repaired by accessControlSensitiveNode() below.
     }
@@ -615,7 +615,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         adminNode.setProperty(entry.getKey(), entry.getValue());
       }
       // ensure only admins can read the node
-      accessControlSensitiveNode(adminNodePath, adminSession);
+      accessControlSensitiveNode(adminNodePath, adminSession, userSession
+          .getUserID());
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
@@ -637,19 +638,23 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * @throws RepositoryException
    */
   private void accessControlSensitiveNode(final String sensitiveNodePath,
-      final Session adminSession) throws AccessDeniedException,
-      UnsupportedRepositoryOperationException, RepositoryException {
+      final Session adminSession, String currentUserId)
+      throws AccessDeniedException, UnsupportedRepositoryOperationException,
+      RepositoryException {
     final UserManager userManager = AccessControlUtil
         .getUserManager(adminSession);
     final PrincipalManager principalManager = AccessControlUtil
         .getPrincipalManager(adminSession);
     final Authorizable anonymous = userManager
         .getAuthorizable(UserConstants.ANON_USERID);
+    final Authorizable currentUser = userManager.getAuthorizable(currentUserId);
     final Authorizable everyone = userManager.getAuthorizable(principalManager
         .getEveryone());
     ACLUtils.addEntry(sensitiveNodePath, anonymous, adminSession,
         ACLUtils.ALL_DENIED);
     ACLUtils.addEntry(sensitiveNodePath, everyone, adminSession,
+        ACLUtils.ALL_DENIED);
+    ACLUtils.addEntry(sensitiveNodePath, currentUser, adminSession,
         ACLUtils.ALL_DENIED);
   }
 
