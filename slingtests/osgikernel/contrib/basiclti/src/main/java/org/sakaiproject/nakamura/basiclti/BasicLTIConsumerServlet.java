@@ -35,6 +35,7 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.DEBUG_LOCK;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.FRAME_HEIGHT_LOCK;
+import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.GLOBAL_SETTINGS;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY_LOCK;
@@ -177,12 +178,52 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     applicationSettings
         .put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
 
-    // FIXME read from global settings location TBD
-    instanceContactEmail = "admin@sakaiproject.org";
-    instanceDescription = "The Sakai Project";
-    instanceGuid = "sakaiproject.org";
-    instanceName = "Sakai";
-    instanceUrl = "http://sakaiproject.org";
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      if (adminSession.itemExists(GLOBAL_SETTINGS)) {
+        final Node adminNode = (Node) adminSession.getItem(GLOBAL_SETTINGS);
+        final PropertyIterator iter = adminNode.getProperties();
+        while (iter.hasNext()) {
+          final Property property = iter.nextProperty();
+          final String propertyName = property.getName();
+          if ("instanceContactEmail".equals(propertyName)) {
+            instanceContactEmail = property.getValue().getString();
+            continue;
+          }
+          if ("instanceDescription".equals(propertyName)) {
+            instanceDescription = property.getValue().getString();
+            continue;
+          }
+          if ("instanceGuid".equals(propertyName)) {
+            instanceGuid = property.getValue().getString();
+            continue;
+          }
+          if ("instanceName".equals(propertyName)) {
+            instanceName = property.getValue().getString();
+            continue;
+          }
+          if ("instanceUrl".equals(propertyName)) {
+            instanceUrl = property.getValue().getString();
+            continue;
+          }
+        }
+      } else {
+        throw new IllegalStateException("Node does not exist: "
+            + GLOBAL_SETTINGS);
+      }
+    } catch (RepositoryException e) {
+      throw new Error(e);
+    } finally {
+      if (adminSession != null) {
+        adminSession.logout();
+      }
+    }
+    if (instanceContactEmail == null || instanceDescription == null
+        || instanceGuid == null || instanceName == null || instanceUrl == null) {
+      throw new IllegalStateException(
+          "Missing one or more required global settings!");
+    }
   }
 
   /**
@@ -704,7 +745,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private void removeSensitiveNode(final Node parent)
       throws PathNotFoundException, RepositoryException {
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
-    Map<String, String> settings = null;
     // now let's elevate Privileges and do some admin modifications
     Session adminSession = null;
     try {
