@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jms.Connection;
+import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
@@ -43,7 +44,7 @@ import javax.jms.Topic;
 /**
  * Bridge to send OSGi events onto a JMS topic.
  */
-@Component(label = "%bridge.name", description = "%bridge.description", metatype = true, immediate=true)
+@Component(label = "%bridge.name", description = "%bridge.description", metatype = true, immediate = true)
 @Service
 public class OsgiJmsBridge implements EventHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(OsgiJmsBridge.class);
@@ -63,7 +64,6 @@ public class OsgiJmsBridge implements EventHandler {
   @Reference
   private ConnectionFactoryService connFactoryService;
 
-  private Connection conn;
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
@@ -76,13 +76,13 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * Testing constructor to pass in a mocked connection factory.
-   *
+   * 
    * @param connFactory
    *          Connection factory to use when activating.
    * @param brokerUrl
-   *          Broker url to use for comparison. This has to match what is passed
-   *          in through the context properties or a new connection factory will
-   *          be created not using the one passed in.
+   *          Broker url to use for comparison. This has to match what is passed in
+   *          through the context properties or a new connection factory will be created
+   *          not using the one passed in.
    */
   protected OsgiJmsBridge(ConnectionFactoryService connFactoryService) {
     this.connFactoryService = connFactoryService;
@@ -90,7 +90,7 @@ public class OsgiJmsBridge implements EventHandler {
 
   /**
    * Called by the OSGi container to activate this component.
-   *
+   * 
    * @param ctx
    */
   @SuppressWarnings("unchecked")
@@ -101,84 +101,75 @@ public class OsgiJmsBridge implements EventHandler {
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
 
-
-    LOGGER.debug(
-        "Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
+    LOGGER.info("Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
         new Object[] { transacted, acknowledgeMode, connectionClientId });
-
-
-    // may want to consider getting this connection from a pool but activity
-    // is expected to be high enough that the connection will be used almost
-    // constantly or at least with very little delay between messages.
-    try {
-      conn = connFactoryService.getDefaultConnectionFactory().createConnection();
-      conn.setClientID(connectionClientId);
-
-      conn.start();
-    } catch (JMSException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }
   }
 
   /**
    * Called by the OSGi container to deactivate this component.
-   *
+   * 
    * @param ctx
    */
   protected void deactivate(ComponentContext ctx) {
-    if (conn != null) {
-      try {
-        conn.close();
-      } catch (JMSException e) {
-        LOGGER.warn(e.getMessage(), e);
-      }
-    }
   }
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.osgi.service.event.EventHandler#handleEvent(org.osgi.service.event.Event)
    */
   @SuppressWarnings("unchecked")
   public void handleEvent(Event event) {
     LOGGER.trace("Receiving event");
-    if (conn != null) {
-      LOGGER.debug("Processing event {}", event);
-      Session clientSession = null;
+    Connection conn = null;
+
+    LOGGER.debug("Processing event {}", event);
+    Session clientSession = null;
+    try {
+      
+      conn = connFactoryService.getDefaultPooledConnectionFactory().createConnection();
+      // conn.setClientID(connectionClientId);
+      // post to JMS
+      // Sessions are not thread safe, so we need to create and destroy a session, for
+      // sending.
+      clientSession = conn.createSession(transacted, acknowledgeMode);
+
+      Topic emailTopic = clientSession.createTopic(event.getTopic());
+      MessageProducer client = clientSession.createProducer(emailTopic);
+      Message msg = clientSession.createMessage();
+      // may need to set a delivery mode eg persistent for certain types of messages.
+      // this should be specified in the OSGi event.
+      msg.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+      msg.setJMSType(event.getTopic());
+      for (String name : event.getPropertyNames()) {
+        Object obj = event.getProperty(name);
+        // "Only objectified primitive objects, String, Map and List types are
+        // allowed" as stated by an exception when putting something into the
+        // message that was not of one of these types.
+        if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
+            || obj instanceof Number || obj instanceof Map || obj instanceof String
+            || obj instanceof List) {
+          msg.setObjectProperty(name, obj);
+        }
+      }
+
+      client.send(msg);
+    } catch (JMSException e) {
+      LOGGER.error(e.getMessage(), e);
+    } finally {
       try {
-        // post to JMS
-        // Sessions are not thread safe, so we need to create and destroy a session, for sending.
-        clientSession = conn.createSession(transacted, acknowledgeMode);
-
-        Topic emailTopic = clientSession.createTopic(event.getTopic());
-        MessageProducer client = clientSession.createProducer(emailTopic);
-        Message msg = clientSession.createMessage();
-        msg.setJMSType(event.getTopic());
-        for (String name : event.getPropertyNames()) {
-          Object obj = event.getProperty(name);
-          // "Only objectified primitive objects, String, Map and List types are
-          // allowed" as stated by an exception when putting something into the
-          // message that was not of one of these types.
-          if (obj instanceof Byte || obj instanceof Boolean || obj instanceof Character
-              || obj instanceof Number || obj instanceof Map || obj instanceof String
-              || obj instanceof List) {
-            msg.setObjectProperty(name, obj);
-          }
+        if (conn != null) {
+          conn.close();
         }
-
-        client.send(msg);
-        clientSession.commit();
-      } catch (JMSException e) {
+      } catch (Exception e) {
         LOGGER.error(e.getMessage(), e);
-      } finally {
-        try {
+      }
+      try {
+        if (clientSession != null) {
           clientSession.close();
-        } catch ( NullPointerException e ) {
-          LOGGER.debug(e.getMessage(), e);
-        } catch (Exception e) {
-          LOGGER.error(e.getMessage(), e);
         }
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage(), e);
       }
     }
   }

@@ -78,7 +78,7 @@ public class OsgiJmsBridgeTest {
 
     // mock a connection factory service
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
+    expect(connFactoryService.getDefaultPooledConnectionFactory()).andReturn(connFactory).anyTimes();
   }
 
   /**
@@ -171,7 +171,7 @@ public class OsgiJmsBridgeTest {
     connFactory = createMock(ConnectionFactory.class);
 
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
+    expect(connFactoryService.getDefaultPooledConnectionFactory()).andReturn(connFactory).anyTimes();
 
     expect(connFactory.createConnection()).andThrow(new JMSException("can't create connection"));
 
@@ -180,15 +180,9 @@ public class OsgiJmsBridgeTest {
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
-    try {
-      sendMessage(props);
-      fail("Should fail when can't create connection");
-    } catch (RuntimeException e) {
-      // verify that all expected calls were made.
-      verify(ctx, connFactory);
-
-      assertTrue(e.getCause() instanceof JMSException);
-    }
+    sendMessage(props);
+    // should log the message, but not fail
+    verify(ctx, connFactory);
   }
 
 
@@ -275,10 +269,6 @@ public class OsgiJmsBridgeTest {
       conn = createMock(Connection.class);
       expect(connFactory.createConnection()).andReturn(conn);
 
-      // expect the client id to be set
-      conn.setClientID((String) anyObject());
-      
-      conn.start();
 
       if (closeConnection) {
         // expect the connection to get closed
@@ -323,7 +313,6 @@ public class OsgiJmsBridgeTest {
       // expect the message to be sent
       prod.send(message);
       
-      sess.commit();
 
       sess.close();
     } catch (JMSException e) {
