@@ -30,13 +30,10 @@ import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
@@ -45,6 +42,7 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -68,49 +66,43 @@ public class MessageUserPostProcessor implements UserPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageUserPostProcessor.class);
 
-  public void process(Session session, SlingHttpServletRequest request,
-      List<Modification> changes) throws Exception {
+  public void process(Authorizable authorizable, Session session,
+      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
     LOGGER.debug("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-      String principalName = null;
-      UserManager userManager = AccessControlUtil.getUserManager(session);
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      RequestParameter rpid = request
-          .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
-      if (rpid != null) {
-        principalName = rpid.getString();
-        Authorizable authorizable = userManager.getAuthorizable(principalName);
-        if (authorizable != null) {
+      String pathPrivate = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE,
+          authorizable.getID(), "");
+      LOGGER
+          .debug("Getting/creating private profile node with messages: {}", pathPrivate);
 
-          String pathPrivate = PathUtils.toInternalHashedPath(
-              MessageConstants._USER_MESSAGE, principalName, "");
-          LOGGER.debug("Getting/creating private profile node with messages: {}",
-              pathPrivate);
+      /*
+       * Node messageStore = null; if (session.itemExists(pathPrivate)) { messageStore =
+       * (Node) session.getItem(pathPrivate); }
+       */
+      Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+      messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          MessageConstants.SAKAI_MESSAGESTORE_RT);
+      // ACL's are managed by the Personal User Post processor.
+      Principal anon = new Principal() {
 
-          /*
-           * Node messageStore = null; if (session.itemExists(pathPrivate)) { messageStore
-           * = (Node) session.getItem(pathPrivate); }
-           */
-          Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.SAKAI_MESSAGESTORE_RT);
-          // ACL's are managed by the Personal User Post processor.
-          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
-          Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
-
-          addEntry(messageStore.getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
-              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-              ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
-          
-          // explicitly deny anon and everyone, this is private space.
-          addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED );
-          addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED );
-          
+        public String getName() {
+          return UserConstants.ANON_USERID;
         }
-      }
-    }
 
+      };
+      Principal everyone = principalManager.getEveryone();
+
+      addEntry(messageStore.getPath(), authorizable.getPrincipal(), session,
+          READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
+          MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+
+      // explicitly deny anon and everyone, this is private space.
+      addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED);
+      addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED);
+
+    }
   }
 
 }
