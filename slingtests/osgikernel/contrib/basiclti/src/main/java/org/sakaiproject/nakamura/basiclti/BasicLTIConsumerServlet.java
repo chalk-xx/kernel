@@ -240,13 +240,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     final String[] selectors = request.getRequestPathInfo().getSelectors();
     if (selectors != null && selectors.length > 0) {
       for (final String selector : request.getRequestPathInfo().getSelectors()) {
-        if ("launch".equalsIgnoreCase(selector)) {
+        if ("launch".equals(selector)) {
           doLaunch(request, response);
           return;
         }
       }
     } else { // no selectors requested check extension
-      if ("json".equalsIgnoreCase(request.getRequestPathInfo().getExtension())) {
+      final String extension = request.getRequestPathInfo().getExtension();
+      if (extension == null || "json".equals(extension)) {
         final Resource resource = request.getResource();
         if (resource == null) {
           sendError(HttpServletResponse.SC_NOT_FOUND,
@@ -509,11 +510,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .getSize());
     while (iter.hasNext()) {
       final Property property = iter.nextProperty();
-      final String propertyName = property.getName();
-      // only put well known properties
-      if (applicationSettings.containsKey(propertyName)) {
-        settings.put(propertyName, property.getValue().getString());
-      }
+      settings.put(property.getName(), property.getValue().getString());
     }
     return settings;
   }
@@ -581,15 +578,16 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       for (final Entry<String, RequestParameter[]> entry : request
           .getRequestParameterMap().entrySet()) {
         final String key = entry.getKey();
-        if (entry.getValue() == null || entry.getValue().length == 0) {
+        final RequestParameter[] requestParameterArray = entry.getValue();
+        if (requestParameterArray == null || requestParameterArray.length == 0) {
           removeProperty(node, key);
         } else {
-          if (entry.getValue().length > 1) {
+          if (requestParameterArray.length > 1) {
             sendError(HttpServletResponse.SC_BAD_REQUEST,
                 "Multi-valued parameters are not supported", null, response);
             return;
           } else {
-            final String value = entry.getValue()[0].getString("UTF-8");
+            final String value = requestParameterArray[0].getString("UTF-8");
             if ("".equals(value)) {
               removeProperty(node, key);
             } else { // has a valid value
@@ -620,6 +618,19 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final Session userSession, Map<String, String> sensitiveData)
       throws ItemExistsException, PathNotFoundException, VersionException,
       ConstraintViolationException, LockException, RepositoryException {
+    if (parent == null) {
+      throw new IllegalArgumentException("Node parent==null");
+    }
+    // if (!"sakai/basiclti".equals(parent.getProperty("sling:resourceType"))) {
+    // throw new
+    // IllegalArgumentException("sling:resourceType != sakai/basiclti");
+    // }
+    if (userSession == null) {
+      throw new IllegalArgumentException("userSession == null");
+    }
+    if (sensitiveData == null || sensitiveData.isEmpty()) {
+      throw new IllegalArgumentException("sensitiveData is null or empty");
+    }
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
     // sanity check to verify user does not have permissions to sensitive node
     boolean invalidPrivileges = false;
