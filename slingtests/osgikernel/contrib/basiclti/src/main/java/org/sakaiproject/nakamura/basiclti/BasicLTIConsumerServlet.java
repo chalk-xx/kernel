@@ -127,6 +127,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    */
   private transient Set<String> sensitiveKeys = null;
   /**
+   * The keys which we cannot set on a Node due to JCR semantics.
+   */
+  private transient Set<String> unsupportedKeys = null;
+  /**
    * Dependency injected from OSGI container.
    */
   @Reference
@@ -177,6 +181,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     applicationSettings.put(RELEASE_EMAIL, RELEASE_EMAIL_LOCK);
     applicationSettings
         .put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
+
+    unsupportedKeys = new HashSet<String>(2);
+    unsupportedKeys.add("jcr:primaryType");
+    unsupportedKeys.add("jcr:created");
 
     Session adminSession = null;
     try {
@@ -594,7 +602,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
               if (sensitiveKeys.contains(key)) {
                 sensitiveData.put(key, value);
               } else {
-                node.setProperty(key, value);
+                if (!unsupportedKeys.contains(key)) {
+                  node.setProperty(key, value);
+                }
               }
             }
           }
