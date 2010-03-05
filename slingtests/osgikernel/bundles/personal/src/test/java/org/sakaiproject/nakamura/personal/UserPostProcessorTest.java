@@ -138,6 +138,6 @@ public class UserPostProcessorTest {
 
     replay(principal, authorizable, userManager, uidDef, userId, profileNode, node,
         session, rr, requestPathInfo, requestParameter, request);
-    uppi.process(session, request, changes);
+    uppi.process(authorizable, session, request, changes);
   }
 }

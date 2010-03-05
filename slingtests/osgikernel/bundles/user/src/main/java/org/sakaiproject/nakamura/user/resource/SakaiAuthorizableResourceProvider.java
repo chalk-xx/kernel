@@ -113,6 +113,10 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                 return null; // something bogus on the end of the path so bail
                              // out now.
             }
+            if ( "jcr:content".equals(pid) ) {
+              return null; // dont try and resolve the content subnode and waste 6ms
+            }
+            long start = System.currentTimeMillis();
             try {
                 Session session = resourceResolver.adaptTo(Session.class);
                 if (session != null) {
@@ -127,9 +131,12 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                         }
                     }
                 }
+                log.info("Faled to resolve {} ",path);
             } catch (RepositoryException re) {
                 throw new SlingException(
                     "Error looking up Authorizable for principal: " + pid, re);
+            } finally {
+              log.debug("Resolution took {} ms {} ",System.currentTimeMillis()-start,path);
             }
         }
         return null;

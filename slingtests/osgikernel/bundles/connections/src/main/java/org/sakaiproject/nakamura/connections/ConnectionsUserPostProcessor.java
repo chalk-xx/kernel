@@ -30,13 +30,10 @@ import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
@@ -45,6 +42,7 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -68,44 +66,36 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionsUserPostProcessor.class);
 
-  public void process(Session session, SlingHttpServletRequest request,
-      List<Modification> changes) throws Exception {
+  public void process(Authorizable authorizable, Session session,
+      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-      String principalName = null;
-      UserManager userManager = AccessControlUtil.getUserManager(session);
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      RequestParameter rpid = request
-          .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
-      if (rpid != null) {
-        principalName = rpid.getString();
-        Authorizable authorizable = userManager.getAuthorizable(principalName);
-        if (authorizable != null) {
+      String path = PathUtils.toInternalHashedPath(ConnectionUtils.CONNECTION_PATH_ROOT,
+          authorizable.getID(), "");
+      LOGGER.debug("Creating connections store: {}", path);
 
-          String path = PathUtils.toInternalHashedPath(
-              ConnectionUtils.CONNECTION_PATH_ROOT, principalName, "");
-          LOGGER.debug("Creating connections store: {}", path);
+      Node store = JcrUtils.deepGetOrCreateNode(session, path);
+      store.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          ConnectionConstants.SAKAI_CONTACT_RT);
+      // ACL's are managed by the Personal User Post processor.
+      Principal anon = new Principal() {
 
-          Node store = JcrUtils.deepGetOrCreateNode(session, path);
-          store.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              ConnectionConstants.SAKAI_CONTACT_RT);
-          // ACL's are managed by the Personal User Post processor.
-          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
-          Authorizable everyone = userManager.getAuthorizable(principalManager
-              .getEveryone());
-
-          addEntry(store.getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
-              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-              ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
-
-          // explicitly deny anon and everyone, this is private space.
-          addEntry(store.getPath(), anon, session, READ_DENIED, WRITE_DENIED);
-          addEntry(store.getPath(), everyone, session, READ_DENIED, WRITE_DENIED);
-
+        public String getName() {
+          return UserConstants.ANON_USERID;
         }
-      }
-    }
+      };
+      Principal everyone = principalManager.getEveryone();
 
+      addEntry(store.getPath(), authorizable.getPrincipal(), session, READ_GRANTED,
+          WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+          ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+
+      // explicitly deny anon and everyone, this is private space.
+      addEntry(store.getPath(), anon, session, READ_DENIED, WRITE_DENIED);
+      addEntry(store.getPath(), everyone, session, READ_DENIED, WRITE_DENIED);
+
+    }
   }
 
 }

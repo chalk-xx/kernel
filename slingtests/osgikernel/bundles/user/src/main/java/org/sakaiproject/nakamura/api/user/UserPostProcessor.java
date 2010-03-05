@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.api.user;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 
@@ -35,7 +36,7 @@ public interface UserPostProcessor {
    * @param session the administrative session used to create the user.
    * @throws Exception
    */
-  void process(Session session, SlingHttpServletRequest request, List<Modification> changes)
+  void process(Authorizable authorizable, Session session, SlingHttpServletRequest request, List<Modification> changes)
       throws Exception;
 
 }
