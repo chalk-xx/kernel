@@ -3,7 +3,7 @@
   "sakai:query-template": "/{_userMessagePath}//element(*)MetaData[(@sling:resourceType='sakai/message' and @sakai:type='chat'){_from}] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "ChatMessage",
-  "sakai:resultprocessor": "ChatMessage",
+  "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Chat - All.",
   "sakai:shortDescription": "Get all the chat messages in your message store",
   "sakai:parameters" : [
