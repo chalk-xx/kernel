@@ -17,13 +17,19 @@
  */
 package org.sakaiproject.nakamura.util;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.sakaiproject.nakamura.api.resource.SubPathProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.util.Calendar;
+
+import javax.jcr.Item;
+import javax.jcr.RepositoryException;
 
 /**
  * Generate a path prefix based on the user id.
@@ -44,6 +50,7 @@ public class PathUtils {
    *          the user for which the path will be generated.
    * @return a structured path fragment for the user.
    */
+  @Deprecated
   public static String getUserPrefix(String user, int levels) {
     if (user != null) {
       if (user.length() == 0) {
@@ -60,6 +67,7 @@ public class PathUtils {
    * @return Prefix used to store a message. Defaults to a yyyy/mm/dd structure.
    * @see java.text.SimpleDateFormat for pattern definitions.
    */
+  @Deprecated
   public static String getMessagePath() {
     Calendar c = Calendar.getInstance();
     String prefix = "/" + c.get(Calendar.YEAR) + "/" + c.get(Calendar.MONTH) + "/";
@@ -72,6 +80,7 @@ public class PathUtils {
    * @param b
    * @return the structured path.
    */
+  @Deprecated
   private static String getStructuredHash(String target, int levels, boolean absPath) {
     try {
       // take the first element as the key for the target so that subtrees end up in the
@@ -145,6 +154,7 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
+  @Deprecated
   public static String getDatePath(String path, int levels) {
     String hash = getStructuredHash(path, levels, true);
     Calendar c = Calendar.getInstance();
@@ -159,6 +169,7 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
+  @Deprecated
   public static String getHashedPath(String path, int levels) {
     return getStructuredHash(path, levels, true);
   }
@@ -280,6 +291,7 @@ public class PathUtils {
    * @param pathInfo
    * @return
    */
+  @Deprecated
   public static String toInternalHashedPath(String servletPath, String pathInfo,
       String selector) {
     return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
@@ -303,5 +315,36 @@ public class PathUtils {
       dest = dest.substring(0, i);
     }
     return dest;
+  }
+  
+  /**
+   * Returns a suitable hash path that can be used to create full path's to locations.
+   * 
+   * @param o
+   *          An object that can be adapted to something where a path can get extracted
+   *          from. Currently supported: {@link Authorizable}, {@link ItemBasedPrincipal} and {@link SubPathProducer}
+   * @return
+   */
+  public static String getSubPath(Object o) {
+    String sub = null;
+    if (o instanceof Authorizable) {
+      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal interface.
+      try {
+        Authorizable au = (Authorizable) o;
+        String userID = au.getID();
+        sub = getHashedPath(userID, 4);
+      } catch (RepositoryException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    else if (o instanceof Principal) {
+      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal interface.
+      String userID = ((Principal)o).getName();
+      sub = getHashedPath(userID, 4);
+    }
+    else if (o instanceof SubPathProducer) {
+      sub = ((SubPathProducer) o).getPath();
+    }
+    return sub;
   }
 }

@@ -24,8 +24,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.resource.AbstractVirtualResourceType;
-import org.sakaiproject.nakamura.resource.VirtualResourceType;
+import org.sakaiproject.nakamura.api.resource.AbstractVirtualResourceType;
+import org.sakaiproject.nakamura.api.resource.VirtualResourceType;
 
 /**
  * This class checks resource paths to see if there is a preferred resource type, where the

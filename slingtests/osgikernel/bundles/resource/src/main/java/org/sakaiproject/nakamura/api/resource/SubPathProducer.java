@@ -15,34 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.resource;
-
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.servlets.post.Modification;
-
-import java.util.List;
+package org.sakaiproject.nakamura.api.resource;
 
 /**
- *
+ * This interface will be able to produce hashed paths.
  */
-public class TAbstractVirtualResourcePostProcessor  extends AbstractVirtualResourcePostProcessor{
+public interface SubPathProducer {
 
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor#doProcess(org.apache.sling.api.SlingHttpServletRequest, java.util.List)
+   * @return A hashed subpath that identifies the path to a specific item.
    */
-  @Override
-  protected void doProcess(SlingHttpServletRequest request, List<Modification> changes) {
-    request.getAttribute("TESTING");
-  }
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor#getResourceType()
-   */
-  @Override
-  protected String getResourceType() {
-    return "sakai/testing";
-  }
+  String getPath();
 
 }

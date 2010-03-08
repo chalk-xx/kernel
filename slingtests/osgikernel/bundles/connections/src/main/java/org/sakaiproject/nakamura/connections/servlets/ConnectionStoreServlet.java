@@ -29,10 +29,10 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.resource.AbstractVirtualPathServlet;
+import org.sakaiproject.nakamura.api.resource.VirtualResourceProvider;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.connections.ConnectionUtils;
-import org.sakaiproject.nakamura.resource.AbstractVirtualPathServlet;
-import org.sakaiproject.nakamura.resource.VirtualResourceProvider;
 import org.sakaiproject.nakamura.util.StringUtils;
 
 import java.io.IOException;

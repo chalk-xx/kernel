@@ -208,6 +208,14 @@ public class PersonalUtils {
       return PathUtils.toInternalHashedPath(_USER_PRIVATE, userS, path);
     }
   }
+  
+  public static String getHomeFolder(Node parentNode, Object o) {
+    String folder = null;
+    
+    
+    
+    return folder;
+  }
 
   public static String getPrimaryEmailAddress(Node profileNode)
       throws RepositoryException {
