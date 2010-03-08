@@ -265,8 +265,7 @@ public class PersonalUtils {
    */
   public static String getProfilePath(Authorizable au) {
     StringBuilder sb = new StringBuilder();
-    sb.append(getHomeFolder(au)).append("/").append(PUBLIC).append("/").append(
-        AUTH_PROFILE);
+    sb.append(getPublicPath(au)).append("/").append(AUTH_PROFILE);
     return sb.toString();
   }
   /**

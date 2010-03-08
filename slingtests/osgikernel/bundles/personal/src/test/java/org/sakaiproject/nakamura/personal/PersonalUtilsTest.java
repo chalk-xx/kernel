@@ -39,7 +39,6 @@ import javax.jcr.nodetype.PropertyDefinition;
  */
 public class PersonalUtilsTest extends AbstractEasyMockTest {
 
-  
   private Authorizable adminUser;
   private Authorizable myGroup;
   private String groupName = "g-mygroup";
@@ -52,7 +51,7 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    
+
     adminUser = createAuthorizable(userName, false, true);
     myGroup = createAuthorizable(groupName, true, true);
   }
@@ -67,7 +66,13 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
     result = PersonalUtils.getPublicPath(adminUser);
     Assert.assertEquals(userPublicPath, result);
   }
-  
+
+  @Test
+  public void testProfilePath() {
+    String result = PersonalUtils.getProfilePath(adminUser);
+    Assert.assertEquals(userPublicPath + "/authprofile", result);
+  }
+
   @Test
   public void testPrivatePath() {
     // Group
@@ -78,17 +83,19 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
     result = PersonalUtils.getPrivatePath(adminUser);
     Assert.assertEquals(userPrivatePath, result);
   }
-  
+
   @Test
-  public void testGetPrefferedMailTransport() throws Exception{
+  public void testGetPrefferedMailTransport() throws Exception {
     String pref = "internal";
     Node node = createMock(Node.class);
     Property prop = createMock(Property.class);
-    expect(node.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(true);
-    expect(node.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(prop);
+    expect(node.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+        true);
+    expect(node.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+        prop);
     expect(prop.getString()).andReturn(pref);
     replay();
-    
+
     String result = PersonalUtils.getPreferredMessageTransport(node);
     Assert.assertEquals(pref, result);
   }
@@ -107,8 +114,7 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
-        .times(2);
+    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
     expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);
@@ -135,8 +141,7 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
-        .times(2);
+    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
     expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);
