@@ -41,4 +41,14 @@ public class BasicLtiAppConstants {
    * by user placements.
    */
   public static final String ADMIN_CONFIG_PATH = "/var/basiclti";
+
+  /**
+   * The path to the node that will contain the system wide settings.
+   */
+  public static final String GLOBAL_SETTINGS = ADMIN_CONFIG_PATH + "/"
+      + "globalSettings";
+  /**
+   * The name of the child node that stores sensitive LTI information.
+   */
+  public static final String LTI_ADMIN_NODE_NAME = "ltiKeys";
 }
