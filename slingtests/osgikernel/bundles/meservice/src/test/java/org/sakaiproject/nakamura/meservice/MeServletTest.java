@@ -22,6 +22,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -56,7 +59,7 @@ import javax.servlet.http.HttpServletResponse;
 public class MeServletTest {
 
   @Test
-  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException {
+  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException, RepositoryException {
 
     MeServlet servlet = new MeServlet();
 
@@ -64,7 +67,11 @@ public class MeServletTest {
     PrintWriter w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
 
-    String user = "admin";
+    Authorizable user = createMock(Authorizable.class);
+    expect(user.getID()).andReturn("admin").anyTimes();
+    expect(user.isGroup()).andReturn(false).anyTimes();
+    replay(user);
+    
     Set<String> subjects = new HashSet<String>();
     subjects.add("administrators");
     Map<String, Object> properties = new HashMap<String, Object>();
@@ -122,7 +129,11 @@ public class MeServletTest {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     ResourceResolver resolver = createMock(ResourceResolver.class);
     Node profileNode = createMock(Node.class);
-    String profilePath = PersonalUtils.getProfilePath(UserConstants.ANON_USERID);
+    
+    UserManager um = createAuthorizable(UserConstants.ANON_USERID);
+    Authorizable au = um.getAuthorizable(UserConstants.ANON_USERID);
+    
+    String profilePath = PersonalUtils.getProfilePath(au);
     PropertyIterator propIterator = createMock(PropertyIterator.class);
     NodeIterator nodeIterator = createMock(NodeIterator.class);
     expect(propIterator.hasNext()).andReturn(false);
@@ -130,9 +141,10 @@ public class MeServletTest {
     expect(profileNode.getNodes()).andReturn(nodeIterator);
     expect(profileNode.getProperties()).andReturn(propIterator);
 
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
+    expect(session.getUserManager()).andReturn(um).anyTimes();
 
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
@@ -155,6 +167,21 @@ public class MeServletTest {
     assertEquals(0, j.getJSONArray("subjects").length());
   }
 
+  /**
+   * @param userid
+   * @return
+   * @throws RepositoryException 
+   */
+  private UserManager createAuthorizable(String userid) throws RepositoryException {
+    Authorizable au = createMock(Authorizable.class);
+    expect(au.getID()).andReturn(UserConstants.ANON_USERID).anyTimes();
+    expect(au.isGroup()).andReturn(false).anyTimes();
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable(UserConstants.ANON_USERID)).andReturn(au).anyTimes();
+    replay(um, au);
+    return um;
+  }
+
   @Test
   public void testExceptions() throws IOException, ServletException,
       PathNotFoundException, RepositoryException {
@@ -167,7 +194,9 @@ public class MeServletTest {
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
-    String profilePath = PersonalUtils.getProfilePath(UserConstants.ANON_USERID);
+    UserManager um = createAuthorizable(UserConstants.ANON_USERID);
+    Authorizable au = um.getAuthorizable(UserConstants.ANON_USERID);
+    String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException());
 

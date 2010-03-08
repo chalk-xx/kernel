@@ -18,6 +18,10 @@
 
 package org.sakaiproject.nakamura.connections;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.CONTACT_STORE_NAME;
+
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
@@ -45,6 +49,7 @@ public class ConnectionUtils {
    *          element. / is not used to separate.
    * @return the path to the connection node or subtree node.
    */
+  @Deprecated
   public static String getConnectionPath(String user, String targetUser,
       String remainderPath) {
     // /_user/contacts.invite.html
@@ -60,6 +65,7 @@ public class ConnectionUtils {
     return PathUtils.toInternalHashedPath(path, targetUser, "") + remainderPath;
   }
 
+  @Deprecated
   public static String getConnectionPath(String user, String targetUser) {
     return getConnectionPath(user, targetUser, "");
   }
@@ -69,8 +75,58 @@ public class ConnectionUtils {
    * @param user1
    * @return
    */
+  @Deprecated
   public static String getConnectionPathBase(String user1) {
     return PathUtils.toInternalHashedPath(CONNECTION_PATH_ROOT, user1, "");
+  }
+
+  /**
+   * Builds the path to the connection node.
+   * 
+   * @param user
+   *          the user who owns the connection
+   * @param targetUser
+   *          the target user of the connection
+   * @param remainderPath
+   *          any path after the name of the node, including selectors eg .accept.html
+   *          would results in /_users/connect/xx/yy/zz/ieb/xz/xy/zy/nico.accept.html,
+   *          this is not an absolute path fragment and may start half way through an
+   *          element. / is not used to separate.
+   * @return the path to the connection node or subtree node.
+   */
+  public static String getConnectionPath(Authorizable user, Authorizable targetUser,
+      String remainderPath) {
+    if (remainderPath == null) {
+      remainderPath = "";
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(getConnectionPathBase(user));
+    sb.append(PathUtils.getSubPath(targetUser)).append("/").append(remainderPath);
+    return sb.toString();
+  }
+
+  /**
+   * Builds the path to the connection node.
+   * 
+   * @param user
+   *          the user who owns the connection
+   * @param targetUser
+   *          the target user of the connection
+   * @return the path to the connection node or subtree node.
+   */
+  public static String getConnectionPath(Authorizable user, Authorizable targetUser) {
+    return getConnectionPath(user, targetUser, null);
+  }
+
+  /**
+   * @param au
+   *          The <code>authorizable</code> to get the connection folder for.
+   * @return The absolute path to the connection folder in a user his home folder. ex:
+   *         /_user/j/jo/joh/john/johndoe/contacts
+   */
+  public static String getConnectionPathBase(Authorizable au) {
+    return PersonalUtils.getHomeFolder(au) + "/" + CONTACT_STORE_NAME;
   }
 
 }

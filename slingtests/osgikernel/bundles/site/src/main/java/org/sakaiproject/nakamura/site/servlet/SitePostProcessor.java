@@ -20,8 +20,7 @@ package org.sakaiproject.nakamura.site.servlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
-import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.resource.AbstractVirtualResourcePostProcessor;
+import org.apache.sling.servlets.post.SlingPostProcessor;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,30 +40,14 @@ import javax.jcr.Session;
  * @scr.property name="service.description" value="Post Processes site operations"
  *
  */
-public class SitePostProcessor extends AbstractVirtualResourcePostProcessor {
+public class SitePostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SitePostProcessor.class);
 
   /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.siteservice.AbstractResourceTypePostProcessor#getResourceType()
-   */
-  @Override
-  protected String getResourceType() {
-    return SiteService.SITE_RESOURCE_TYPE;
-  }
-
-  /**
    * Check for changes to properties of interest to the authz handler.
-   *
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.siteservice.AbstractResourceTypePostProcessor#onCreate(org.apache.sling.api.SlingHttpServletRequest,
-   *      org.apache.sling.servlets.post.Modification)
    */
-  @Override
-  protected void doProcess(SlingHttpServletRequest request, List<Modification> changes) {
+  public void process(SlingHttpServletRequest request, List<Modification> changes) throws Exception{
     boolean authzHandled = false;
     for (Modification m : changes) {
       try {

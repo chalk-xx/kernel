@@ -65,7 +65,7 @@ public class TestSitePostProcessor {
   }
   
   @Test
-  public void testModifySite() throws PathNotFoundException, RepositoryException
+  public void testModifySite() throws Exception
   {    
     expect(session.itemExists(eq(itemPath))).andReturn(true);
     expect(session.getItem(eq(itemPath))).andReturn(item);
@@ -74,7 +74,7 @@ public class TestSitePostProcessor {
   }
 
   @Test
-  public void testModifySiteProperty() throws PathNotFoundException, RepositoryException
+  public void testModifySiteProperty() throws Exception
   {  
     expect(session.itemExists(eq(itemPath))).andReturn(true);
     expect(session.getItem(eq(itemPath))).andReturn(item);
@@ -83,15 +83,15 @@ public class TestSitePostProcessor {
   }
 
   @Test
-  public void testModifySiteException() throws PathNotFoundException, RepositoryException
+  public void testModifySiteException() throws Exception
   {    
     expect(session.itemExists(eq(itemPath))).andThrow(new RepositoryException("Exceptional"));
     checkSatisfied();    
   }
 
-  private void checkSatisfied() {
+  private void checkSatisfied() throws Exception {
     replay(request, resolver, session, item);
-    processor.doProcess(request, changes);
+    processor.process(request, changes);
     verify(request, resolver, session, item);    
   }
   

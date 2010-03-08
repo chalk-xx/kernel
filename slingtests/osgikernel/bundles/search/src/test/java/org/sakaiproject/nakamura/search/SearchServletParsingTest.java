@@ -23,12 +23,17 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.jcr.Session;
 import javax.jcr.query.Query;
 
 /**
@@ -41,7 +46,7 @@ public class SearchServletParsingTest {
   private Object[] mocks;
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
     searchServlet = new SearchServlet();
     request = createMock(SlingHttpServletRequest.class);
     RequestParameter rp = createMock(RequestParameter.class);
@@ -53,8 +58,21 @@ public class SearchServletParsingTest {
 
     expect(request.getRequestParameter("a")).andReturn(rp_a).anyTimes();
     expect(rp_a.getString()).andReturn("again").anyTimes();
-
-    mocks = new Object[] {request, rp, rp_a};
+    
+    Authorizable au = createMock(Authorizable.class);
+    expect(au.isGroup()).andReturn(false).anyTimes();
+    expect(au.getID()).andReturn("bob").anyTimes();
+    
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable("bob")).andReturn(au).anyTimes();
+    
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    expect(session.getUserManager()).andReturn(um).anyTimes();
+    
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
+    expect(request.getResourceResolver()).andReturn(resourceResolver).anyTimes();
+    mocks = new Object[] {request, rp, rp_a, resourceResolver, um, session, au};
     replay(mocks);
 
   }

@@ -19,12 +19,14 @@ package org.sakaiproject.nakamura.message;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -244,12 +246,9 @@ public class MessagingServiceImpl implements MessagingService {
         // This is a site.
         Node n = siteService.findSiteByName(session, rcpt.substring(2));
         path = n.getPath() + "/store";
-      } else if (rcpt.startsWith("g-")) {
-        // This is a group.
-        path = PathUtils.toInternalHashedPath(MessageConstants._GROUP_MESSAGE, rcpt, "");
       } else {
-        // Assume that it is a user.
-        path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, rcpt, "");
+        Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
+        path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
       }
     } catch (SiteException e) {
       LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt,e);

@@ -214,7 +214,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   private Node createProfile(Session session, Authorizable athorizable, boolean isGroup)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(athorizable.getID());
+    String path = PersonalUtils.getProfilePath(athorizable);
     String type = nodeTypeForAuthorizable(isGroup);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
@@ -236,8 +236,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
 
   private Node createPrivate(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String privatePathCreated = PersonalUtils.getPrivatePath(athorizable.getID(),
-        "created");
+    String privatePathCreated = PersonalUtils.getPrivatePath(athorizable);
     if (session.itemExists(privatePathCreated)) {
       return (Node) session.getItem(privatePathCreated).getParent();
     }
@@ -265,11 +264,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private void deleteProfileNode(Session session, Authorizable athorizable)
       throws RepositoryException {
     if (athorizable != null) { 
-      String path = PersonalUtils.getProfilePath(athorizable.getID());
+      String path = PersonalUtils.getProfilePath(athorizable);
       if (session.itemExists(path)) {
         Node node = (Node) session.getItem(path);
         node.remove();
-      }
+	  }
     }
   }
 

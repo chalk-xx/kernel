@@ -39,6 +39,8 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPER
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -47,6 +49,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -80,6 +83,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -442,8 +446,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
       String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
-    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
-    propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    try {
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(userId);
+      String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(au);
+      propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    } catch (RepositoryException e) {
+      LOGGER.error("Unable to get the authorizable for this user.", e);
+    }
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);

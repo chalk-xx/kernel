@@ -35,10 +35,10 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,15 +72,11 @@ public class MessageUserPostProcessor implements UserPostProcessor {
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      String pathPrivate = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE,
-          authorizable.getID(), "");
+      String pathPrivate = PersonalUtils.getHomeFolder(authorizable) + "/"
+          + MessageConstants.FOLDER_MESSAGES;
       LOGGER
           .debug("Getting/creating private profile node with messages: {}", pathPrivate);
 
-      /*
-       * Node messageStore = null; if (session.itemExists(pathPrivate)) { messageStore =
-       * (Node) session.getItem(pathPrivate); }
-       */
       Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
       messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
           MessageConstants.SAKAI_MESSAGESTORE_RT);

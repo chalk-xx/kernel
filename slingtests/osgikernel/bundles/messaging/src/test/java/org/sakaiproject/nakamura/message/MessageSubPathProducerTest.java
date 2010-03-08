@@ -15,16 +15,25 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.resource;
+package org.sakaiproject.nakamura.message;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+import org.sakaiproject.nakamura.api.resource.SubPathProducer;
+import org.sakaiproject.nakamura.message.resource.MessageSubPathProducer;
 
 /**
- * This interface will be able to produce hashed paths.
+ *
  */
-public interface SubPathProducer {
+public class MessageSubPathProducerTest {
 
-  /**
-   * @return A hashed subpath that identifies the path to a specific item.
-   */
-  String getSubPath();
+  @Test
+  public void testGetPath() {
+    SubPathProducer producer = new MessageSubPathProducer(
+        "7eb256fd000d8fb33668138998251f605696b112");
+    String expected = "/09/93/4d/50/7eb256fd000d8fb33668138998251f605696b112";
+    assertEquals(expected, producer.getSubPath());
+  }
+
 }

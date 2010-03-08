@@ -17,13 +17,21 @@
  */
 package org.sakaiproject.nakamura.api.personal;
 
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.AUTH_PROFILE;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PRIVATE;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PUBLIC;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP_PRIVATE;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP_PUBLIC;
+import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PRIVATE;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PUBLIC;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -69,8 +77,8 @@ public class PersonalUtils {
   public static void writeUserInfo(Session session, String user, JSONWriter write,
       String jsonName) {
     try {
-
-      String path = PersonalUtils.getProfilePath(user);
+      Authorizable au = getAuthorizable(session, user);
+      String path = PersonalUtils.getProfilePath(au);
       Node userNode = (Node) session.getItem(path);
 
       PropertyIterator userPropertyIterator = userNode.getProperties();
@@ -125,7 +133,8 @@ public class PersonalUtils {
    */
   public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
     try {
-      String profilePath = PersonalUtils.getProfilePath(user);
+      Authorizable au = getAuthorizable(session, user);
+      String profilePath = PersonalUtils.getProfilePath(au);
       write.object();
       write.key("userid");
       write.value(user);
@@ -140,6 +149,8 @@ public class PersonalUtils {
       }
       write.endObject();
     } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    } catch (RepositoryException e) {
       LOGGER.error(e.getMessage(), e);
     }
   }
@@ -187,10 +198,12 @@ public class PersonalUtils {
     writeUserInfo(resultNode.getSession(), user, write, jsonName);
   }
 
+  @Deprecated
   public static String getProfilePath(String user) {
     return getPublicPath(user, PersonalConstants.AUTH_PROFILE);
   }
 
+  @Deprecated
   public static String getPublicPath(String user, String path) {
     String userS = String.valueOf(user);
     if (userS.startsWith("g-")) {
@@ -200,6 +213,7 @@ public class PersonalUtils {
     }
   }
 
+  @Deprecated
   public static String getPrivatePath(String user, String path) {
     String userS = String.valueOf(user);
     if (userS.startsWith("g-")) {
@@ -207,14 +221,6 @@ public class PersonalUtils {
     } else {
       return PathUtils.toInternalHashedPath(_USER_PRIVATE, userS, path);
     }
-  }
-  
-  public static String getHomeFolder(Node parentNode, Object o) {
-    String folder = null;
-    
-    
-    
-    return folder;
   }
 
   public static String getPrimaryEmailAddress(Node profileNode)
@@ -250,4 +256,68 @@ public class PersonalUtils {
     }
     return transport;
   }
+  
+  /**
+   * @param au
+   *          The authorizable to get the authprofile path for.
+   * @return The absolute path in JCR to the authprofile node that contains all the
+   *         profile information.
+   */
+  public static String getProfilePath(Authorizable au) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getHomeFolder(au)).append("/").append(PUBLIC).append("/").append(
+        AUTH_PROFILE);
+    return sb.toString();
+  }
+  /**
+   * @param au
+   *          The authorizable to get the private path for.
+   * @return The absolute path in JCR to the private folder in the user his home folder.
+   */
+  public static String getPrivatePath(Authorizable au) {
+    return getHomeFolder(au) + "/" + PRIVATE;
+  }
+
+  /**
+   * @param au
+   *          The authorizable to get the public path for.
+   * @return The absolute path in JCR to the public folder in the user his home folder.
+   */
+  public static String getPublicPath(Authorizable au) {
+    return getHomeFolder(au) + "/" + PUBLIC;
+  }
+  
+  /**
+   * Get the home folder for an authorizable. If the authorizable is a user, this might
+   * return: /_user/t/te/tes/test/testuser
+   * 
+   * @param au
+   *          The authorizable to get the home folder for.
+   * @return The absolute path in JCR to the home folder for an authorizable.
+   */
+  public static String getHomeFolder(Authorizable au) {
+    String folder = PathUtils.getSubPath(au);
+    if (au.isGroup()) {
+      folder = _GROUP + folder;
+    } else {
+      // Assume this is a user.
+      folder = _USER + folder;
+    }
+    return PathUtils.normalizePath(folder);
+  }
+
+  /**
+   * @param session
+   *          The Jackrabbit session.
+   * @param id
+   *          The id of an authorizable.
+   * @return An authorizable that represents a person.
+   * @throws RepositoryException
+   */
+  public static Authorizable getAuthorizable(Session session, String id)
+      throws RepositoryException {
+    UserManager um = AccessControlUtil.getUserManager(session);
+    return um.getAuthorizable(id);
+  }
+  
 }

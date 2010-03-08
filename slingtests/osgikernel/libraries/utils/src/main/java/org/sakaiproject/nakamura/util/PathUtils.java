@@ -28,7 +28,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.Calendar;
 
-import javax.jcr.Item;
 import javax.jcr.RepositoryException;
 
 /**
@@ -80,7 +79,6 @@ public class PathUtils {
    * @param b
    * @return the structured path.
    */
-  @Deprecated
   private static String getStructuredHash(String target, int levels, boolean absPath) {
     try {
       // take the first element as the key for the target so that subtrees end up in the
@@ -169,7 +167,6 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  @Deprecated
   public static String getHashedPath(String path, int levels) {
     return getStructuredHash(path, levels, true);
   }
@@ -291,7 +288,6 @@ public class PathUtils {
    * @param pathInfo
    * @return
    */
-  @Deprecated
   public static String toInternalHashedPath(String servletPath, String pathInfo,
       String selector) {
     return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
@@ -322,13 +318,15 @@ public class PathUtils {
    * 
    * @param o
    *          An object that can be adapted to something where a path can get extracted
-   *          from. Currently supported: {@link Authorizable}, {@link ItemBasedPrincipal} and {@link SubPathProducer}
+   *          from. Currently supported: {@link Authorizable}, {@link ItemBasedPrincipal}
+   *          and {@link SubPathProducer}
    * @return
    */
   public static String getSubPath(Object o) {
     String sub = null;
     if (o instanceof Authorizable) {
-      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal interface.
+      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal
+      // interface.
       try {
         Authorizable au = (Authorizable) o;
         String userID = au.getID();
@@ -336,14 +334,13 @@ public class PathUtils {
       } catch (RepositoryException e) {
         throw new RuntimeException(e);
       }
-    }
-    else if (o instanceof Principal) {
-      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal interface.
-      String userID = ((Principal)o).getName();
+    } else if (o instanceof Principal) {
+      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal
+      // interface.
+      String userID = ((Principal) o).getName();
       sub = getHashedPath(userID, 4);
-    }
-    else if (o instanceof SubPathProducer) {
-      sub = ((SubPathProducer) o).getPath();
+    } else if (o instanceof SubPathProducer) {
+      sub = ((SubPathProducer) o).getSubPath();
     }
     return sub;
   }

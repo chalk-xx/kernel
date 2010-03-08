@@ -34,6 +34,11 @@ public interface ConnectionConstants {
    */
   public static final String SAKAI_CONTACT_RT = "sakai/contact";
 
+  /**
+   * This marks the nodename for the contact store's folder.
+   */
+  public static final String CONTACT_STORE_NAME = "contacts";
+  
   public static final String SAKAI_CONNECTION_STATE = "sakai:state";
 
   public static final String SEARCH_PROP_CONNECTIONSTORE = "_connectionstore";

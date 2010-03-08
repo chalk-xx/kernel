@@ -76,16 +76,18 @@ public class MeServlet extends SlingSafeMethodsServlet {
       response.setContentType(request.getResponseContentType());
       response.setCharacterEncoding("UTF-8");
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(session.getUserID());
       PrintWriter w = response.getWriter();
       ExtendedJSONWriter writer = new ExtendedJSONWriter(w);
       writer.object();
       // User info
       writer.key("user");
-      writeUserJSON(writer, session);
+      writeUserJSON(writer, session, au);
 
       // Dump this user his info
       writer.key("profile");
-      String profilePath = PersonalUtils.getProfilePath(session.getUserID());
+      String profilePath = PersonalUtils.getProfilePath(au);
       Node profileNode = (Node) session.getItem(profilePath);
       ExtendedJSONWriter.writeNodeTreeToWriter(writer, profileNode);
 
@@ -106,11 +108,12 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * 
    * @param write
    * @param session
+   * @param authorizable
    * @throws RepositoryException
    * @throws JSONException
    */
-  protected void writeUserJSON(ExtendedJSONWriter write, Session session)
-      throws RepositoryException, JSONException {
+  protected void writeUserJSON(ExtendedJSONWriter write, Session session,
+      Authorizable authorizable) throws RepositoryException, JSONException {
 
     String user = session.getUserID();
     boolean isAnonymous = (UserConstants.ANON_USERID.equals(user));
@@ -126,13 +129,11 @@ public class MeServlet extends SlingSafeMethodsServlet {
       write.endObject();
     } else {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(user);
       Set<String> subjects = getSubjects(authorizable, principalManager);
       Map<String, Object> properties = getProperties(authorizable);
 
       write.object();
-      writeGeneralInfo(write, user, subjects, properties);
+      writeGeneralInfo(write, authorizable, subjects, properties);
       writeLocale(write, properties);
       write.endObject();
     }
@@ -205,16 +206,19 @@ public class MeServlet extends SlingSafeMethodsServlet {
    * he is a superUser or not..
    * 
    * @param write
+   * @param user
    * @param session
    * @throws JSONException
+   * @throws RepositoryException
    */
-  protected void writeGeneralInfo(ExtendedJSONWriter write, String user,
-      Set<String> subjects, Map<String, Object> properties) throws JSONException {
+  protected void writeGeneralInfo(ExtendedJSONWriter write, Authorizable user,
+      Set<String> subjects, Map<String, Object> properties) throws JSONException,
+      RepositoryException {
 
-    write.key("userid").value(user);
+    write.key("userid").value(user.getID());
     write.key("userStoragePrefix");
-    write.value(PathUtils.getHashedPath(user, UserConstants.DEFAULT_HASH_LEVELS)
-        .substring(1));
+    // For backwards compatibility we substring the first slash out.
+    write.value(PathUtils.getSubPath(user).substring(1));
     write.key("userProfilePath");
     write.value(PersonalUtils.getProfilePath(user));
     write.key("superUser");

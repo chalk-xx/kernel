@@ -42,7 +42,6 @@ import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +70,7 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      String path = PathUtils.toInternalHashedPath(ConnectionUtils.CONNECTION_PATH_ROOT,
-          authorizable.getID(), "");
+      String path = ConnectionUtils.getConnectionPathBase(authorizable);
       LOGGER.debug("Creating connections store: {}", path);
 
       Node store = JcrUtils.deepGetOrCreateNode(session, path);

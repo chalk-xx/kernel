@@ -159,5 +159,11 @@
 		<artifactId>org.sakaiproject.nakamura.site</artifactId>
 		<version>0.4-SNAPSHOT</version>
 	</dependency>
+	<dependency>
+		<groupId>org.sakaiproject.nakamura</groupId>
+		<artifactId>org.sakaiproject.nakamura.utils</artifactId>
+		<version>0.4-SNAPSHOT</version>
+		<scope>provided</scope>
+	</dependency>
   </dependencies>
 </project>

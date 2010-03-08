@@ -11,6 +11,9 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_T
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_LIMIT_RESULTS;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -106,8 +109,20 @@ public class SearchServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
     
-    @SuppressWarnings("unused")
-    Session session = createMock(Session.class);
+    Authorizable au = createMock(Authorizable.class);
+    expect(au.isGroup()).andReturn(false);
+    expect(au.getID()).andReturn("bob");
+    
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable("bob")).andReturn(au);
+    
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    expect(session.getUserManager()).andReturn(um);
+    
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    
     executeQuery(queryNode);
   }
 

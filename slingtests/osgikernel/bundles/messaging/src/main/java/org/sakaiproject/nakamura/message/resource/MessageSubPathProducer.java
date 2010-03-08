@@ -15,16 +15,31 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.resource;
+package org.sakaiproject.nakamura.message.resource;
 
+import org.sakaiproject.nakamura.api.resource.SubPathProducer;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
- * This interface will be able to produce hashed paths.
+ * A Path producer for messages.
  */
-public interface SubPathProducer {
+public class MessageSubPathProducer implements SubPathProducer {
+
+  private String id;
+
+  public MessageSubPathProducer(String id) {
+    this.id = id;
+  }
 
   /**
-   * @return A hashed subpath that identifies the path to a specific item.
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.resource.SubPathProducer#getSubPath()
    */
-  String getSubPath();
+  public String getSubPath() {
+    // Our id is something like 7eb256fd000d8fb33668138998251f605696b112
+    // This will return: /09/93/4d/50/7eb256fd000d8fb33668138998251f605696b112
+    return PathUtils.normalizePath(PathUtils.getHashedPath(id, 4));
+  }
+
 }

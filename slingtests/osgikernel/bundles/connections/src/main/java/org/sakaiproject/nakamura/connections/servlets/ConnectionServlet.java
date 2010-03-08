@@ -23,7 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.nakamura.api.connections.ConnectionException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionOperation;
@@ -35,11 +36,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.resource.AbstractVirtualPathServlet;
-import org.sakaiproject.nakamura.api.resource.VirtualResourceProvider;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.connections.ConnectionUtils;
-import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,19 +94,16 @@ import javax.servlet.http.HttpServletResponse;
 @Properties(value = {
     @Property(name = "service.description", value = "Provides support for connection stores."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-public class ConnectionServlet extends AbstractVirtualPathServlet {
+public class ConnectionServlet extends SlingAllMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionServlet.class);
   private static final long serialVersionUID = 1112996718559864951L;
 
-  private static final String TARGET_USERID = "connections:targetUserId";
+  private static final String TARGET_USERID = "targetUserId";
 
   @Reference
   protected transient ConnectionManager connectionManager;
-
-  @Reference
-  protected transient VirtualResourceProvider virtualResourceProvider;
 
   protected void bindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = connectionManager;
@@ -118,38 +111,6 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
 
   protected void unbindConnectionManager(ConnectionManager connectionManager) {
     this.connectionManager = null;
-  }
-
-  @Override
-  protected String getTargetPath(Resource baseResource, SlingHttpServletRequest request,
-      SlingHttpServletResponse response, String realPath, String virtualPath) {
-    String path;
-    String user = request.getRemoteUser(); // current user
-    if (user == null || UserConstants.ANON_USERID.equals(user)) {
-      // cannot proceed if the user is not logged in
-      try {
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-            "User must be logged in to access connections");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      path = realPath; // default
-    } else {
-      
-      // /_user/contacts.invite.html
-      // /_user/contacts/aaron.accept.html
-      
-      String[] virtualParts = StringUtils.split(virtualPath, '.');
-      if (virtualParts.length > 0) {
-        String targetUser = virtualParts[0];
-        path = ConnectionUtils.getConnectionPath(user,targetUser,virtualPath);
-        request.setAttribute(TARGET_USERID, targetUser);
-      } else {
-        // nothing extra included so use the base
-        path = realPath;
-      }
-    }
-    return path;
   }
 
 
@@ -164,35 +125,38 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
    */
   @SuppressWarnings("unchecked")
   @Override
-  protected boolean preDispatch(SlingHttpServletRequest request,
-      SlingHttpServletResponse response, Resource baseResource, Resource resource)
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws IOException {
-    ConnectionOperation operation = ConnectionOperation.noop;
-    if ("POST".equals(request.getMethod())) {
+    
+    RequestParameter userParam = request.getRequestParameter(TARGET_USERID);
+    if (userParam == null || userParam.getString().equals("")) {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+          "targetUserId not found in the request, cannot continue without it being set.");
+      return;
+    }
+    
+    try {
+      // current user
+      String user = request.getRemoteUser();
+      // Use to connect to
+      String targetUserId = userParam.getString();
+      // Get the connection operation from the selector.
       String selector = request.getRequestPathInfo().getSelectorString();
+      ConnectionOperation operation = ConnectionOperation.noop;
       try {
         operation = ConnectionOperation.valueOf(selector);
       } catch (IllegalArgumentException e) {
         operation = ConnectionOperation.noop;
       }
-    }
-    try {
-      String user = request.getRemoteUser(); // current user
-      String targetUserId = null;
-      switch (operation) {
-      case noop:
-        return true;
-      default: 
-        targetUserId = (String) request.getAttribute(TARGET_USERID);
-        if (targetUserId == null || "".equals(targetUserId)) {
-          response
-              .sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                  "targetUserId not found in the request, cannot continue without it being set");
-          return false;
-        }
+
+      // Nearly impossible to get a noop, but we'll check it anyway..
+      if (operation == ConnectionOperation.noop) {
+        return;
       }
-      LOGGER.info("Connection {} {} {} ",new Object[]{user,targetUserId,operation});
-      return connectionManager.connect(request.getParameterMap(), baseResource, user, targetUserId, operation);
+      
+      // Do the connection.
+      LOGGER.info("Connection {} {} ",new Object[]{user,targetUserId});
+      connectionManager.connect(request.getParameterMap(), request.getResource(), user, targetUserId, operation);
     } catch (ConnectionException e) {
       if ( e.getCode() == 200 ) {
         PrintWriter writer = response.getWriter();
@@ -203,19 +167,6 @@ public class ConnectionServlet extends AbstractVirtualPathServlet {
         LOGGER.error("Connection exception: {}", e);
         response.sendError(e.getCode(), e.getMessage());
       }
-      return false;
     }
   }
-
-
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.resource.AbstractVirtualPathServlet#getVirtualResourceProvider()
-   */
-  @Override
-  protected VirtualResourceProvider getVirtualResourceProvider() {
-    return virtualResourceProvider;
-  }
-
-
 }

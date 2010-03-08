@@ -68,7 +68,7 @@ public class UserPostProcessorTest {
 
     Authorizable authorizable = createMock(Authorizable.class);
     expect(authorizable.getID()).andReturn("bar").times(3);
-    expect(authorizable.isGroup()).andReturn(false);
+    expect(authorizable.isGroup()).andReturn(false).anyTimes();
     expect(authorizable.getPrincipal()).andReturn(principal);
     expect(authorizable.getPropertyNames()).andReturn(propNames.iterator());
     expect(authorizable.getProperty("rep:userId")).andReturn(new Value[] {});
@@ -97,19 +97,19 @@ public class UserPostProcessorTest {
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     
-    expect(session.itemExists("/_user/private/62/cd/b7/02/bar/created")).andReturn(
+    expect(session.itemExists("/_user/62/cd/b7/02/bar/private")).andReturn(
         true);
     Node createdNode = createMock(Node.class);
-    expect(session.getItem("/_user/private/62/cd/b7/02/bar/created")).andReturn(
+    expect(session.getItem("/_user/62/cd/b7/02/bar/private")).andReturn(
         createdNode);
     
     Node privateNode = createMock(Node.class);
     expect(createdNode.getParent()).andReturn(privateNode);
 
     expect(session.getUserManager()).andReturn(userManager);
-    expect(session.itemExists("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
+    expect(session.itemExists("/_user/62/cd/b7/02/bar/public/authprofile")).andReturn(
         true);
-    expect(session.getItem("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
+    expect(session.getItem("/_user/62/cd/b7/02/bar/public/authprofile")).andReturn(
         profileNode);
 
     

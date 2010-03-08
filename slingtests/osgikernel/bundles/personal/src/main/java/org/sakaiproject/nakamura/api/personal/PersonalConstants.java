@@ -23,6 +23,23 @@ package org.sakaiproject.nakamura.api.personal;
 public interface PersonalConstants {
 
   /**
+   * The base location of the user space.
+   */
+  public static final String _USER = "/_user";
+  /**
+   * The base location of the group space.
+   */
+  public static final String _GROUP = "/_group";
+  /**
+   * The name of the private folder
+   */
+  public static final String PRIVATE = "private";
+  /**
+   * The name of the public folder
+   */
+  public static final String PUBLIC = "public";
+  
+  /**
    * The base location of personal private stores.
    */
   public static final String _USER_PRIVATE = "/_user/private";
