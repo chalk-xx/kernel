@@ -85,7 +85,7 @@
                 <phase>generate-resources</phase>
                 <configuration>
                   <skipCheckoutIfExists>true</skipCheckoutIfExists>
-                  <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
+                  <connectionUrl>scm:git:git://github.com/nyusawg/3akai-ux.git</connectionUrl>
                   <checkoutDirectory>src/main/resources/SLING-INF/content</checkoutDirectory>
                 </configuration>
               </execution>
@@ -96,7 +96,7 @@
                 </goals>
                 <phase>generate-resources</phase>
                 <configuration>
-                  <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
+                  <connectionUrl>scm:git:git://github.com/nyusawg/3akai-ux.git</connectionUrl>
                   <workingDirectory>src/main/resources/SLING-INF/content</workingDirectory>
                   <runChangelog>true</runChangelog>
                   <scmVersion>HEAD</scmVersion>
@@ -155,7 +155,7 @@
                 </goals>
                 <phase>generate-resources</phase>
                 <configuration>
-                  <connectionUrl>scm:git:git://github.com/oszkarnagy/3akai-ux.git</connectionUrl>
+                  <connectionUrl>scm:git:git://github.com/nyusawg/3akai-ux.git</connectionUrl>
                   <checkoutDirectory>target/checkout/SLING-INF/content</checkoutDirectory>
                   <runChangelog>true</runChangelog>
                   <scmVersion>${sakai-ux-tag}</scmVersion>
