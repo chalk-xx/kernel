@@ -40,7 +40,7 @@ public class TestSiteService extends AbstractEasyMockTest {
     expect(siteNode.getSession()).andReturn(session).anyTimes();
     expect(session.getUserManager()).andReturn(userManager);
     Node profileNode = createMock(Node.class);
-    expect(session.getItem("/_user/public/48/18/1a/cd/bob/authprofile")).andReturn(profileNode).anyTimes();
+    expect(session.getItem("/_user/48/18/1a/cd/bob/public/authprofile")).andReturn(profileNode).anyTimes();
     expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
     expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
     Property prop = createMock(Property.class);
@@ -76,6 +76,7 @@ public class TestSiteService extends AbstractEasyMockTest {
   private Iterator<Authorizable> createUserIterator(String userName) throws RepositoryException {
     final User mockUser = createMock(User.class);
     expect(mockUser.getID()).andReturn(userName).anyTimes();
+    expect(mockUser.isGroup()).andReturn(false).anyTimes();
     return new Iterator<Authorizable>() {
 
       boolean had = false;

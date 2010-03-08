@@ -100,15 +100,17 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     setSiteGroups(new String[] { TEST_GROUP });
     User testUser = createDummyUser(TEST_USER);
     createDummyGroupWithMember(TEST_GROUP, testUser);
-
+    
+    Authorizable testAuthorizable = createAuthorizable(TEST_USER, false, true);
+    
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver)
         .anyTimes();
-    expect(resourceResolver.resolve(PersonalUtils.getProfilePath(TEST_USER)))
+    expect(resourceResolver.resolve(PersonalUtils.getProfilePath(testAuthorizable)))
         .andReturn(dummyUserResource(TEST_USER));
     
     Node profileNode = createMock(Node.class);
-    expect(session.getItem(PersonalUtils.getProfilePath(TEST_USER))).andReturn(profileNode).anyTimes();
+    expect(session.getItem(PersonalUtils.getProfilePath(testAuthorizable))).andReturn(profileNode).anyTimes();
     expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
     expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
     Property prop = createMock(Property.class);
@@ -284,13 +286,14 @@ public class TestMembersServlet extends AbstractSiteNodeTest {
     for (int i = start; i < start + count; i++) {
       String testUserName = TEST_USER + i;
       User testUser = createDummyUser(testUserName);
+      Authorizable testAuthorizable = createAuthorizable(testUserName, false, true);
       users.add(testUser);
       expect(
-          resourceResolver.resolve(PersonalUtils.getProfilePath(testUserName)))
+          resourceResolver.resolve(PersonalUtils.getProfilePath(testAuthorizable)))
           .andReturn(dummyUserResource(testUserName)).anyTimes();
       
       Node profileNode = createMock(Node.class);
-      expect(session.getItem(PersonalUtils.getProfilePath(testUserName))).andReturn(profileNode).anyTimes();
+      expect(session.getItem(PersonalUtils.getProfilePath(testAuthorizable))).andReturn(profileNode).anyTimes();
       expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
       expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
       Property prop = createMock(Property.class);

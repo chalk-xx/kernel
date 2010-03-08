@@ -74,6 +74,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
     for (Authorizable member : members) {
       expect(group.isMember(eq(member))).andReturn(true).anyTimes();
     }
+    expect(group.isGroup()).andReturn(true).anyTimes();
     expect(group.getDeclaredMembers()).andReturn(members.iterator()).anyTimes();
     return group;
   }
@@ -86,6 +87,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   protected User createDummyUserWithGroups(String userName, List<Group> groups) throws RepositoryException {
     User user = createMock(User.class);
     registerAuthorizable(user, userName);
+    expect(user.isGroup()).andReturn(false).anyTimes();
     expect(user.memberOf()).andReturn(groups.iterator()).anyTimes();
     return user;
   }

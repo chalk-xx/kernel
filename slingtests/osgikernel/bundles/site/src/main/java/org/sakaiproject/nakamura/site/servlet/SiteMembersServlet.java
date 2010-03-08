@@ -180,8 +180,7 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         for (; members.hasNext();) {
           User u = members.next();
           Resource resource = request.getResourceResolver().resolve(
-          //    "/system/userManager/user/" + u.getID());
-                  PersonalUtils.getProfilePath(u.getID()));
+              PersonalUtils.getProfilePath(u));
           ValueMap map = resource.adaptTo(ValueMap.class);
           
           

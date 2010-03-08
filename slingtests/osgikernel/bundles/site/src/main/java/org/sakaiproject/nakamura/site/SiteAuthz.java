@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.site;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
-
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -31,7 +30,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -403,7 +401,7 @@ public class SiteAuthz {
       public String getName() {
         return principalName;
       }
-    }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
+    });
 
     return group;
   }

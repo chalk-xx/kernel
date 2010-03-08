@@ -562,7 +562,7 @@ public class SiteServiceImpl implements SiteService {
           } else if (a instanceof User) {
             // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
-              String profilePath = PersonalUtils.getProfilePath(a.getID());
+              String profilePath = PersonalUtils.getProfilePath(a);
               Node profileNode = (Node) session.getItem(profilePath);
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
             }
@@ -693,7 +693,7 @@ public class SiteServiceImpl implements SiteService {
           groups.put(new GroupKey((Group) a), new Membership(group, a));
           populateMembers((Group) a, groups, users, session);
         } else {
-          String profilePath = PersonalUtils.getProfilePath(a.getID());
+          String profilePath = PersonalUtils.getProfilePath(a);
           Node profileNode = (Node) session.getItem(profilePath);
           users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }

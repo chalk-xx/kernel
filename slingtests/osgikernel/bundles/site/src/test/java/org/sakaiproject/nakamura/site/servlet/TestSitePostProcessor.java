@@ -33,7 +33,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 
 import javax.jcr.Item;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
