@@ -135,7 +135,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(session, request, changes);
+        userPostProcessor.process(null, session, request, changes);
       }
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(),e);

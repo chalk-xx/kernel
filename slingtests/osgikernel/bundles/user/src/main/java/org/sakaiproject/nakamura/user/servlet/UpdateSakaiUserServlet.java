@@ -17,7 +17,9 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
 import org.apache.sling.servlets.post.Modification;
@@ -138,10 +140,12 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     super.handleOperation(request, response, changes);
+    Resource resource = request.getResource();
+    Authorizable authorizable = resource.adaptTo(Authorizable.class);
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(session, request, changes);
+        userPostProcessor.process(authorizable, session, request, changes);
       }
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);

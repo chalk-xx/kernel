@@ -270,7 +270,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
       try {
         for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-          userPostProcessor.process(session, request, changes);
+          userPostProcessor.process(authorizable, session, request, changes);
         }
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);

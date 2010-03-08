@@ -28,24 +28,33 @@ public interface ConnectionFactoryService {
 
   /**
    * Use this method to create a connection to another JMS network, use the use
-   * getDefaultConnectionFactory() to get a connection factory for internal use.
-   *
+   * getDefaultPooledConnectionFactory() to get a connection factory for internal use.
+   * 
+   * It is the responsibility of the caller to start, stop and close the connection factory.
+   * 
    * @param brokerURL
    * @return
    */
   ConnectionFactory createFactory(String brokerURL);
 
   /**
-   * Use this method to create a connection to another JMS network, use the use
-   * getDefaultConnectionFactory() to get a connection factory for internal use.
-   *
    * @param brokerURL
    * @return
    */
   ConnectionFactory createFactory(URI brokerURL);
 
   /**
-   * @return a default factory connecting to the JMS infrastructure.
+   * The default pooled connection factory uses pooled connections and can be regot, and
+   * reused. It should not be started, stoped or closed since that is the responsibility
+   * of the service.
+   * 
+   * @return a default pooled factory connecting to the JMS infrastructure.
+   */
+  ConnectionFactory getDefaultPooledConnectionFactory();
+  
+  /**
+   * @return a standard connection factory.
    */
   ConnectionFactory getDefaultConnectionFactory();
+
 }

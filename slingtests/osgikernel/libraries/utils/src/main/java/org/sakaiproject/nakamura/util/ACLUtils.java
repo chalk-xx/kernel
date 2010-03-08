@@ -105,11 +105,26 @@ public class ACLUtils {
    * @param session
    * @param writePrivilageGranted
    * @throws RepositoryException
+   * @Deprecated use the version with the principal, its expensive to get hold of authorizables at times.
    */
   public static void addEntry(String path, Authorizable authorizable, Session session,
       String... privilegeSpec) throws RepositoryException {
+    addEntry(path, authorizable.getPrincipal(), session, privilegeSpec);
+  }
+  /**
+   * Add an ACL entry at a path for the authorizable.
+   *
+   *
+   * @param path
+   * @param principal
+   * @param session
+   * @param writePrivilageGranted
+   * @throws RepositoryException
+   */
+  public static void addEntry(String path, Principal principal, Session session,
+        String... privilegeSpec) throws RepositoryException {
 
-    String principalName = authorizable.getPrincipal().getName();
+    String principalName = principal.getName();
 
     List<String> grantedPrivilegeNames = new ArrayList<String>();
     List<String> deniedPrivilegeNames = new ArrayList<String>();
@@ -152,7 +167,7 @@ public class ACLUtils {
 
     StringBuilder oldPrivileges = null;
     StringBuilder newPrivileges = null;
-    if (LOGGER.isInfoEnabled()) {
+    if (LOGGER.isDebugEnabled()) {
       oldPrivileges = new StringBuilder();
       newPrivileges = new StringBuilder();
     }
@@ -162,13 +177,13 @@ public class ACLUtils {
     List<AccessControlEntry> oldAces = new ArrayList<AccessControlEntry>();
     for (AccessControlEntry ace : accessControlEntries) {
       if (principalName.equals(ace.getPrincipal().getName())) {
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info("Found Existing ACE for principal {} on resource: ", new Object[] {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Found Existing ACE for principal {} on resource: ", new Object[] {
               principalName, path});
         }
         oldAces.add(ace);
 
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
           // collect the information for debug logging
           boolean isAllow = AccessControlUtil.isAllow(ace);
           Privilege[] privileges = ace.getPrivileges();
@@ -203,7 +218,7 @@ public class ACLUtils {
       Privilege privilege = accessControlManager.privilegeFromName(name);
       grantedPrivilegeList.add(privilege);
 
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isDebugEnabled()) {
         if (newPrivileges.length() > 0) {
           newPrivileges.append(", "); // separate entries by commas
         }
@@ -212,7 +227,6 @@ public class ACLUtils {
       }
     }
     if (grantedPrivilegeList.size() > 0) {
-      Principal principal = authorizable.getPrincipal();
       updatedAcl.addAccessControlEntry(principal, grantedPrivilegeList
           .toArray(new Privilege[grantedPrivilegeList.size()]));
     }
@@ -226,7 +240,7 @@ public class ACLUtils {
       Privilege privilege = accessControlManager.privilegeFromName(name);
       deniedPrivilegeList.add(privilege);
 
-      if (LOGGER.isInfoEnabled()) {
+      if (LOGGER.isDebugEnabled()) {
         if (newPrivileges.length() > 0) {
           newPrivileges.append(", "); // separate entries by commas
         }
@@ -235,16 +249,15 @@ public class ACLUtils {
       }
     }
     if (deniedPrivilegeList.size() > 0) {
-      Principal principal = authorizable.getPrincipal();
       AccessControlUtil.addEntry(updatedAcl, principal, deniedPrivilegeList
           .toArray(new Privilege[deniedPrivilegeList.size()]), false);
     }
 
     accessControlManager.setPolicy(path, updatedAcl);
 
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Updated ACE for principalId {} for resource {} from {} to {}",
-          new Object[] {authorizable.getID(), path, oldPrivileges.toString(),
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Updated ACE for principalId {} for resource {} from {} to {}",
+          new Object[] {principal.getName(), path, oldPrivileges.toString(),
               newPrivileges.toString()});
     }
 

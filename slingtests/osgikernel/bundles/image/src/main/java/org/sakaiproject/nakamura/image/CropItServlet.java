@@ -55,47 +55,20 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(paths = "/var/image/cropit", methods = { "POST" })
 @Properties(value = { @Property(name = "service.description", value = "Crops an image."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
-@ServiceDocumentation(
-   name = "CropItServlet",
-   shortDescription = "Crop an image.",
-   description = "Use this servlet to cut out a part of an image and resize it to different sizes.",
-   bindings = @ServiceBinding(
-       type = BindingType.PATH,
-       bindings = "/var/image/cropit"
-   ),
-   methods = @ServiceMethod(
-       name = "POST",
-       description = "Cut out part of an image and save it in different sizes. <br />" +
-       		"Example: curl -d\"img=/dev/_images/gateway.png\" -d\"save=/test\" -d\"x=0\" -d\"y=0\" -d\"width=100\" -d\"height=100\" -d\"dimensions=16x16;32x32\" http://admin:admin@localhost:8080/var/image/cropit",
-       parameters = {
-           @ServiceParameter(name = "img", description = "The location where the image that needs cropping is saved."),
-           @ServiceParameter(name = "save", description = "The location where you want to save the resized/cropped images."),
-           @ServiceParameter(name = "x", description = "Start cropping from this point on the x-axis. Must be an integer-value."),
-           @ServiceParameter(name = "y", description = "Start cropping from this point on the y-axis. Must be an integer-value."),
-           @ServiceParameter(name = "width", description = "How many pixels to crop out starting from the x point. Must be an integer-value."),
-           @ServiceParameter(name = "height", description = "How many pixels to crop out starting from the y point. Must be an integer-value."),
-           @ServiceParameter(name = "dimensions", description = "A list of dimensions you want the cropped out image to be resized in. Example: 32x32;256x256;128x128.")           
-       },
-       response = {@ServiceResponse(
-             code = 200,
-             description = "Everything is OK, a JSON response is also provided with an array of all the created url's.<br />" +
-             		"Example: {\"files\":[\"/test/16x16_gateway.png\",\"/test/32x32_gateway.png\"]}"
-         ),
-         @ServiceResponse(
-             code = 400,
-             description = "There is a missing (or invalid) parameter."
-         ),
-         @ServiceResponse(
-             code = 406,
-             description = "The provided image is not a valid imagetype."
-         ),
-         @ServiceResponse(
-             code = 500,
-             description = "Failure, explanation is in the HTML."
-         )
-       }
-   )
-)
+@ServiceDocumentation(name = "CropItServlet", shortDescription = "Crop an image.", description = "Use this servlet to cut out a part of an image and resize it to different sizes.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = "/var/image/cropit"), methods = @ServiceMethod(name = "POST", description = "Cut out part of an image and save it in different sizes. <br />"
+    + "Example: curl -d\"img=/dev/_images/gateway.png\" -d\"save=/test\" -d\"x=0\" -d\"y=0\" -d\"width=100\" -d\"height=100\" -d\"dimensions=16x16;32x32\" http://admin:admin@localhost:8080/var/image/cropit", parameters = {
+    @ServiceParameter(name = "img", description = "The location where the image that needs cropping is saved."),
+    @ServiceParameter(name = "save", description = "The location where you want to save the resized/cropped images."),
+    @ServiceParameter(name = "x", description = "Start cropping from this point on the x-axis. Must be an integer-value."),
+    @ServiceParameter(name = "y", description = "Start cropping from this point on the y-axis. Must be an integer-value."),
+    @ServiceParameter(name = "width", description = "How many pixels to crop out starting from the x point. Must be an integer-value."),
+    @ServiceParameter(name = "height", description = "How many pixels to crop out starting from the y point. Must be an integer-value."),
+    @ServiceParameter(name = "dimensions", description = "A list of dimensions you want the cropped out image to be resized in. Example: 32x32;256x256;128x128.") }, response = {
+    @ServiceResponse(code = 200, description = "Everything is OK, a JSON response is also provided with an array of all the created url's.<br />"
+        + "Example: {\"files\":[\"/test/16x16_gateway.png\",\"/test/32x32_gateway.png\"]}"),
+    @ServiceResponse(code = 400, description = "There is a missing (or invalid) parameter."),
+    @ServiceResponse(code = 406, description = "The provided image is not a valid imagetype."),
+    @ServiceResponse(code = 500, description = "Failure, explanation is in the HTML.") }))
 public class CropItServlet extends SlingAllMethodsServlet {
 
   private static final Logger logger = LoggerFactory.getLogger(CropItServlet.class);
@@ -110,6 +83,13 @@ public class CropItServlet extends SlingAllMethodsServlet {
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+
+    // Check if the current user is logged in.
+    if (request.getRemoteUser().equals("anonymous")) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+          "Anonymous user cannot crop images.");
+      return;
+    }
 
     RequestParameter imgParam = request.getRequestParameter("img");
     RequestParameter saveParam = request.getRequestParameter("save");
@@ -152,7 +132,7 @@ public class CropItServlet extends SlingAllMethodsServlet {
         d.setSize(diWidth, diHeight);
         dimensions.add(d);
       }
-      
+
       // Make sure we have correct values.
       img = URIExpander.expandStorePath(session, img);
       save = URIExpander.expandStorePath(session, save);

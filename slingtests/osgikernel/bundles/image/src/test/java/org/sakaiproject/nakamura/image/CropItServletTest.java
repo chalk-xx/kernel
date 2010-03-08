@@ -81,6 +81,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     addStringRequestParameter(request, "width", "70");
     addStringRequestParameter(request, "height", "70");
     addStringRequestParameter(request, "dimensions", StringUtils.join(dimensions, 0, ';'));
+    expect(request.getRemoteUser()).andReturn("johndoe");
 
     // Session stuff
     Session session = createMock(Session.class);
@@ -89,7 +90,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     expect(request.getResourceResolver()).andReturn(resolver);
 
     // Base image stream
-    InputStream in = getClass().getClassLoader().getResourceAsStream("people.png");
+    InputStream in = getClass().getResourceAsStream("people.png");
 
     // Item retrieval stuff
     Node imgNode = createMock(Node.class);
@@ -158,11 +159,24 @@ public class CropItServletTest extends AbstractEasyMockTest {
   }
 
   @Test
+  public void testAnon() throws IOException, ServletException {
+    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+
+    expect(request.getRemoteUser()).andReturn("anonymous");
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+        "Anonymous user cannot crop images.");
+    replay();
+    servlet.doPost(request, response);
+  }
+
+  @Test
   public void testMissingParameters() throws IOException, ServletException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
 
     expect(request.getRequestParameter("img")).andReturn(null);
+    expect(request.getRemoteUser()).andReturn("johndoe");
     addStringRequestParameter(request, "save", null);
     addStringRequestParameter(request, "x", null);
     addStringRequestParameter(request, "y", null);

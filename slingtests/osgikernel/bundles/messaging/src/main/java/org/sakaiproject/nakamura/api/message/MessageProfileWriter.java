@@ -15,28 +15,31 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.user;
+package org.sakaiproject.nakamura.api.message;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.servlets.post.Modification;
-
-import java.util.List;
+import org.apache.sling.commons.json.io.JSONWriter;
 
 import javax.jcr.Session;
 
 /**
- * 
+ *
  */
-public interface UserPostProcessor {
+public interface MessageProfileWriter {
 
   /**
-   * @param request
-   * @param changes
-   * @param session the administrative session used to create the user.
-   * @throws Exception
+   * Pass in the profile information that should be displayed for this message.
+   * 
+   * @param session
+   *          A {@link Session session} to access the JCR repository.
+   * @param recipient
+   *          Identifies the recipient to write the information for.
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
    */
-  void process(Authorizable authorizable, Session session, SlingHttpServletRequest request, List<Modification> changes)
-      throws Exception;
+  void writeProfileInformation(Session session, String recipient, JSONWriter write);
 
+  /**
+   * @return The type of recipients it handles.
+   */
+  String getType();
 }
