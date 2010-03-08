@@ -19,15 +19,19 @@ package org.sakaiproject.nakamura.connections;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_DENIED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_DENIED;
 import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.READ_DENIED;
+import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_DENIED;
 import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -50,17 +54,13 @@ import javax.jcr.Session;
 
 /**
  * This PostProcessor listens to post operations on User objects and creates a connection
- * store.
- * 
- * @scr.service interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="ConnectionsUserPostProcessor" description=
- *                "Post Processor for User and Group operations to create a connection store"
- *                metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes User and Group operations"
- * 
+ * store. 
  */
+@Component(immediate = true, description = "Post Processor for User and Group operations to create a connection store", label = "ConnectionsUserPostProcessor")
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Post Processes User and Group operations") })
+@Service(value = UserPostProcessor.class)
 public class ConnectionsUserPostProcessor implements UserPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
