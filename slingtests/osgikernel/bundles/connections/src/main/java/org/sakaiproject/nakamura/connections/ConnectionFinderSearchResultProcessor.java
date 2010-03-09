@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -37,13 +41,11 @@ import javax.jcr.query.Row;
 /**
  * Formats connection search results. We get profile nodes from the query and make a
  * uniformed result.
- * 
- * @scr.component immediate="true" label="ConnectionSearchResultProcessor"
- *                description="Formatter for connection search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="ConnectionFinder"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, description = "Formatter for connection search results", label = "ConnectionFinderSearchResultProcessor")
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.processor", value = "ConnectionFinder") })
+@Service(value = SearchResultProcessor.class)
 public class ConnectionFinderSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)

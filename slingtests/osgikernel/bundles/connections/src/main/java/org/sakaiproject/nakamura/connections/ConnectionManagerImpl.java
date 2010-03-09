@@ -38,6 +38,11 @@ import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
@@ -79,23 +84,19 @@ import javax.jcr.query.QueryResult;
 
 /**
  * Service for doing operations with connections.
- * 
- * @scr.component immediate="true" label="Sakai Connections Service"
- *                description="Service for doing operations with connections." name
- *                ="org.sakaiproject.nakamura.api.connections.ConnectionManager"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.connections.ConnectionManager"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@Component(immediate = true, description = "Service for doing operations with connections.", label = "ConnectionSearchResultProcessor")
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation") })
+@Service(value = ConnectionManager.class)
 public class ConnectionManagerImpl implements ConnectionManager {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionManagerImpl.class);
 
-  /** @scr.reference */
+  @Reference
   protected LockManager lockManager;
-  
+
+  @Reference
   protected SlingRepository slingRepository;
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
@@ -155,8 +156,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throws ConnectionException {
     Authorizable authorizable;
     try {
-      if ( "anonymous".equals(session.getUserID()) || "anonymous".equals(userId)  ) {
-        throw new ConnectionException(403, "Cant make a connection with anonymous.");       
+      if ("anonymous".equals(session.getUserID()) || "anonymous".equals(userId)) {
+        throw new ConnectionException(403, "Cant make a connection with anonymous.");
       }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
@@ -169,9 +170,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
     } catch (Exception e) {
       // other failures return false
       LOGGER.info("Failure checking for valid user (" + userId + "): " + e);
-      throw new ConnectionException(404,"User "+userId+" does not exist.");
+      throw new ConnectionException(404, "User " + userId + " does not exist.");
     }
-    throw new ConnectionException(404,"User "+userId+" does not exist.");
+    throw new ConnectionException(404, "User " + userId + " does not exist.");
   }
 
   /**
@@ -210,7 +211,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *      org.sakaiproject.nakamura.api.connections.ConnectionConstants.ConnectionOperation,
    *      java.lang.String)
    */
-  public boolean connect(Map<String,String[]> requestParameters, Resource resource,
+  public boolean connect(Map<String, String[]> requestParameters, Resource resource,
       String thisUserId, String otherUserId, ConnectionOperation operation)
       throws ConnectionException {
 
@@ -218,8 +219,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
     // fail if the supplied users are invalid
     checkValidUserId(session, thisUserId);
     checkValidUserId(session, otherUserId);
-    if ( thisUserId.equals(otherUserId)) {
-      throw new ConnectionException(400, "A user cannot operate on their own connection, this user and the other user are the same");
+    if (thisUserId.equals(otherUserId)) {
+      throw new ConnectionException(
+          400,
+          "A user cannot operate on their own connection, this user and the other user are the same");
     }
 
     Session adminSession = null;
@@ -255,14 +258,15 @@ public class ConnectionManagerImpl implements ConnectionManager {
       }
 
       if (operation == ConnectionOperation.invite) {
-        throw new ConnectionException(200,
-            "Invitation made between "+thisNode.getPath()+" and "+otherNode.getPath());
+        throw new ConnectionException(200, "Invitation made between "
+            + thisNode.getPath() + " and " + otherNode.getPath());
       }
 
     } catch (InvalidItemStateException e) {
-      throw new ConnectionException(409, "There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)");
-    }
-    catch (RepositoryException e) {
+      throw new ConnectionException(
+          409,
+          "There was a data conflict that cannot be resolved without user input (Simultaneaus requests.)");
+    } catch (RepositoryException e) {
       throw new ConnectionException(500, e.getMessage(), e);
     } finally {
       if (adminSession != null) {
@@ -338,8 +342,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
         Authorizable authorizable = AccessControlUtil.getUserManager(session)
             .getAuthorizable(fromUser);
         addEntry(basePath, authorizable, session, WRITE_GRANTED,
-            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-            REMOVE_NODE_GRANTED);
+            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
         LOGGER.info("Added ACL to [{}]", basePath);
       }
       Node node = JcrUtils.deepGetOrCreateNode(session, nodePath);
@@ -356,8 +360,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     }
   }
 
-  private void handleInvitation(Map<String,String[]> requestProperties, Session session, Node fromNode, Node toNode)
-      throws RepositoryException {
+  private void handleInvitation(Map<String, String[]> requestProperties, Session session,
+      Node fromNode, Node toNode) throws RepositoryException {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
     Map<String, String[]> sharedProperties = new HashMap<String, String[]>();
@@ -376,20 +380,22 @@ public class ConnectionManagerImpl implements ConnectionManager {
       }
     }
     addArbitraryProperties(fromNode, sharedProperties);
-    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
-        fromRelationships.toArray(new String[fromRelationships.size()]));
+    fromNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, fromRelationships
+        .toArray(new String[fromRelationships.size()]));
     addArbitraryProperties(toNode, sharedProperties);
-    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES,
-        toRelationships.toArray(new String[toRelationships.size()]));
+    toNode.setProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES, toRelationships
+        .toArray(new String[toRelationships.size()]));
   }
 
   /**
    * Add property values as individual strings or as string arrays.
+   * 
    * @param node
    * @param properties
    */
-  private void addArbitraryProperties(Node node, Map<String, String[]> properties) throws RepositoryException {
-    for (Entry<String,String[]> param: properties.entrySet()) {
+  private void addArbitraryProperties(Node node, Map<String, String[]> properties)
+      throws RepositoryException {
+    for (Entry<String, String[]> param : properties.entrySet()) {
       String[] values = param.getValue();
       if (values.length == 1) {
         node.setProperty(param.getKey(), values[0]);
