@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.api.activity;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.EVENT_TOPIC;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -52,9 +53,20 @@ public class ActivityUtils {
    * @param user
    * @return
    */
+  @Deprecated
   public static String getUserFeed(String user) {
     return PersonalUtils.getPrivatePath(user,
         ActivityConstants.ACTIVITY_FEED_NAME);
+  }
+  
+  /**
+   * Returns the path to the activity feed for a user.
+   * 
+   * @param user
+   * @return
+   */
+  public static String getUserFeed(Authorizable user) {
+    return PersonalUtils.getHomeFolder(user) + "/" + ActivityConstants.ACTIVITY_FEED_NAME;
   }
 
   /**

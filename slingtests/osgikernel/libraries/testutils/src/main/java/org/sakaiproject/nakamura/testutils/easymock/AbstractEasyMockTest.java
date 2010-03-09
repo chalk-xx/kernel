@@ -193,7 +193,7 @@ public class AbstractEasyMockTest {
   protected UserManager createUserManager(UserManager um, boolean doReplay,
       Authorizable... authorizables) throws RepositoryException {
     if (um == null) {
-      um = createMock(UserManager.class);
+      um = EasyMock.createMock(UserManager.class);
     }
     for (Authorizable au : authorizables) {
       expect(um.getAuthorizable(au.getID())).andReturn(au).anyTimes();

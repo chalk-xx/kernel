@@ -261,17 +261,6 @@ public class MessagingServiceImpl implements MessagingService {
     return path;
   }
 
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getUriToMessage(java.lang.String,
-   *      java.lang.String)
-   */
-  public String getUriToMessage(String rcpt, String messageId, Session session) throws MessagingException {
-    String storePath = getUriToStore(rcpt, session);
-    return storePath + "/" + messageId;
-  }
 
   /**
    * 

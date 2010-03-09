@@ -217,8 +217,8 @@ public class MeServlet extends SlingSafeMethodsServlet {
 
     write.key("userid").value(user.getID());
     write.key("userStoragePrefix");
-    // For backwards compatibility we substring the first slash out.
-    write.value(PathUtils.getSubPath(user).substring(1));
+    // For backwards compatibility we substring the first slash out and append one at the back.
+    write.value(PathUtils.getSubPath(user).substring(1) + "/");
     write.key("userProfilePath");
     write.value(PersonalUtils.getProfilePath(user));
     write.key("superUser");

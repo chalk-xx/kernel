@@ -23,33 +23,42 @@ import static org.mockito.Mockito.when;
 
 import static org.mockito.Mockito.mock;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
  *
  */
-public class MessageSearchPropertyProviderTest {
+public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
 
   @Test
-  public void testProperties() {
+  public void testProperties() throws RepositoryException {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
 
     ResourceResolver resolver = mock(ResourceResolver.class);
-    Session session = mock(Session.class);
+    JackrabbitSession session = mock(JackrabbitSession.class);
     when(resolver.adaptTo(Session.class)).thenReturn(session);
     when(request.getResourceResolver()).thenReturn(resolver);
     when(request.getRemoteUser()).thenReturn("admin");
 
+    Authorizable au = createAuthorizable("admin", false, true);
+    UserManager um = createUserManager(null, true, au);
+    when(session.getUserManager()).thenReturn(um);
+    
     // Special requests
     RequestParameter fromParam = mock(RequestParameter.class);
     when(fromParam.getString()).thenReturn("usera,userb");
@@ -63,7 +72,7 @@ public class MessageSearchPropertyProviderTest {
     provider.loadUserProperties(request, pMap);
     provider.unbindMessagingService(messagingService);
 
-    assertEquals("/_user/message/d0/_x0033_3/e2/_x0032_a/admin", pMap
+    assertEquals("/_user/d0/_x0033_3/e2/_x0032_a/admin/message", pMap
         .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
     assertEquals(" and (@sakai:from=\"usera\" or @sakai:from=\"userb\")", pMap

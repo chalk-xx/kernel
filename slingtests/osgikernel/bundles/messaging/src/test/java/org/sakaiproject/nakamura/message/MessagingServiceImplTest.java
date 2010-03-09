@@ -27,6 +27,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.junit.After;
@@ -46,7 +49,6 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
 
 /**
@@ -56,11 +58,13 @@ public class MessagingServiceImplTest {
 
   private MessagingServiceImpl messagingServiceImpl;
   private SiteService siteService;
-  private Session session;
+  private JackrabbitSession session;
 
   private String siteName = "physics-101";
   private String sitePath = "/sites/" + siteName;
   private String siteNameException = "fubar";
+  private String userName = "admin";
+  private String groupName = "g-physics-101-viewers";
 
   @Before
   public void setUp() throws Exception {
@@ -68,8 +72,21 @@ public class MessagingServiceImplTest {
     expect(siteNode.getPath()).andReturn(sitePath);
     replay(siteNode);
 
-    session = createMock(Session.class);
-    replay(session);
+    session = createMock(JackrabbitSession.class);
+    Authorizable user = createMock(Authorizable.class);
+    expect(user.getID()).andReturn(userName).anyTimes();
+    expect(user.isGroup()).andReturn(false).anyTimes();
+    Authorizable group = createMock(Authorizable.class);
+    expect(group.getID()).andReturn(groupName).anyTimes();
+    expect(group.isGroup()).andReturn(true).anyTimes();
+
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable(userName)).andReturn(user).anyTimes();
+    expect(um.getAuthorizable(groupName)).andReturn(group).anyTimes();
+
+    replay(um, user, group);
+    
+    expect(session.getUserManager()).andReturn(um).anyTimes();
 
     siteService = createMock(SiteService.class);
     expect(siteService.findSiteByName(session, siteName)).andReturn(siteNode).anyTimes();
@@ -89,17 +106,19 @@ public class MessagingServiceImplTest {
 
   @Test
   public void testFullPathToStoreSite() {
+    replay(session);
+    
     // Sites
     String path = messagingServiceImpl.getFullPathToStore("s-physics-101", session);
     assertEquals(sitePath + "/store", path);
 
     // Groups
-    path = messagingServiceImpl.getFullPathToStore("g-physics-101-viewers", session);
-    assertEquals("/_group/message/10/41/8e/87/g_physics_101_viewers", path);
+    path = messagingServiceImpl.getFullPathToStore(groupName, session);
+    assertEquals("/_group/10/41/8e/87/g_physics_101_viewers/message", path);
 
     // Users
-    path = messagingServiceImpl.getFullPathToStore("admin", session);
-    assertEquals("/_user/message/d0/33/e2/2a/admin", path);
+    path = messagingServiceImpl.getFullPathToStore(userName, session);
+    assertEquals("/_user/d0/33/e2/2a/admin/message", path);
 
     // Site Exception
     try {
@@ -142,27 +161,13 @@ public class MessagingServiceImplTest {
 
   @Test
   public void testGetFullPathToMessage() {
-    String rcpt = "admin";
+    replay(session);
+    
     String messageId = "cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c";
-    String path = messagingServiceImpl.getFullPathToMessage(rcpt, messageId, session);
+    String path = messagingServiceImpl.getFullPathToMessage(userName, messageId, session);
     assertEquals(
-        "/_user/message/d0/33/e2/2a/admin/1a/62/60/12/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
+        "/_user/d0/33/e2/2a/admin/message/1a/62/60/12/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
         path);
-  }
-
-  @Test
-  public void testGetURItoStore() {
-    // Site
-    String path = messagingServiceImpl.getUriToStore("s-" + siteName, session);
-    assertEquals(sitePath + "/store", path);
-
-    // Groups
-    path = messagingServiceImpl.getUriToStore("g-foo", session);
-    assertEquals("/_group/message/g-foo", path);
-
-    // User
-    path = messagingServiceImpl.getUriToStore("admin", session);
-    assertEquals("/_user/message/admin", path);
   }
 
   @Test
@@ -187,25 +192,26 @@ public class MessagingServiceImplTest {
     mapProperties.put("s", "foobar");
     String messageId = "foo";
 
-    Session session = mock(Session.class);
-    when(session.getUserID()).thenReturn("admin");
+    expect(session.getUserID()).andReturn("admin");
     // expect(session.getUserID()).andReturn("admin");
 
-    Node messageNode = new MockNode("/_user/message/d0/33/e2/2a/admin");
+    Node messageNode = new MockNode("/_user/d0/33/e2/2a/admin/message");
 
-    when(session.itemExists("/_user/message/d0/33/e2/2a/admin/0b/ee/c7/b5/foo"))
-        .thenReturn(true);
-    when(session.getItem("/_user/message/d0/33/e2/2a/admin/0b/ee/c7/b5/foo")).thenReturn(
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin/message/0b/ee/c7/b5/foo"))
+        .andReturn(true);
+    expect(session.getItem("/_user/d0/33/e2/2a/admin/message/0b/ee/c7/b5/foo")).andReturn(
         messageNode);
-    when(session.hasPendingChanges()).thenReturn(true);
-
+    expect(session.hasPendingChanges()).andReturn(true);
+    session.save();
     // expect(session.itemExists("/_user/message/d0/33/e2/2a/admin/0b/ee/c7/b5/foo")).andReturn(true);
     // expect(session.getItem("/_user/message/d0/33/e2/2a/admin/0b/ee/c7/b5/foo")).andReturn(messageNode);
     // expect(session.hasPendingChanges()).andReturn(true);
 
-    LockManager lockManager = mock(LockManager.class);
-    lockManager.waitForLock("/_user/message/d0/33/e2/2a/admin");
-
+    LockManager lockManager = createMock(LockManager.class);
+    expect(lockManager.waitForLock("/_user/d0/33/e2/2a/admin/message")).andReturn(null);
+    lockManager.clearLocks();
+    replay(lockManager, session);
+    
     messagingServiceImpl.lockManager = lockManager;
     Node result = messagingServiceImpl.create(session, mapProperties, messageId);
     assertEquals("foo", result.getProperty(MessageConstants.PROP_SAKAI_ID).getString());
@@ -218,14 +224,15 @@ public class MessagingServiceImplTest {
     Map<String, Object> mapProperties = new HashMap<String, Object>();
     String messageId = "foo";
 
-    Session session = mock(Session.class);
-    when(session.getUserID()).thenReturn("admin");
-    when(session.itemExists("/_user/message/d0/33/e2/2a/admin/0b/ee/c7/b5/foo"))
-        .thenThrow(new RepositoryException());
+    expect(session.getUserID()).andReturn("admin");
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin/message/0b/ee/c7/b5/foo"))
+        .andThrow(new RepositoryException());
 
-    LockManager lockManager = mock(LockManager.class);
-    lockManager.waitForLock("/_user/message/d0/33/e2/2a/admin");
-
+    LockManager lockManager = createMock(LockManager.class);
+    expect(lockManager.waitForLock("/_user/d0/33/e2/2a/admin/message")).andReturn(null);
+    lockManager.clearLocks();
+    replay(session, lockManager);
+    
     messagingServiceImpl.lockManager = lockManager;
     try {
       messagingServiceImpl.create(session, mapProperties, messageId);

@@ -28,6 +28,7 @@ import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
@@ -178,7 +179,8 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
       PresenceUtils.makePresenceJSON(output, requestedUser, presenceService, true);
       // add in the profile
       output.key("profile");
-      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(requestedUser));
+      Authorizable au = PersonalUtils.getAuthorizable(session, requestedUser);
+      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(au));
       ExtendedJSONWriter.writeNodeToWriter(output, profileNode);
       // finish it
       output.endObject();
