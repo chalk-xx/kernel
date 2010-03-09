@@ -18,19 +18,8 @@
 package org.sakaiproject.nakamura.casauth;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.Dictionary;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
 
-import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.login.FailedLoginException;
-import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -38,13 +27,9 @@ import javax.servlet.http.HttpSession;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
 import org.jasig.cas.client.authentication.GatewayResolver;
 import org.jasig.cas.client.util.CommonUtils;
@@ -55,10 +40,9 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(immediate = false, label = "%auth.cas.name", description = "%auth.cas.description", enabled = false, metatype = true)
+@Component(immediate = true, label = "%auth.cas.name", description = "%auth.cas.description", enabled = true, metatype = true)
 @Service
-public final class CasAuthenticationHandler implements AuthenticationHandler,
-    LoginModulePlugin {
+public final class CasAuthenticationHandler implements AuthenticationHandler {
 
   @Property(value = "https://localhost:8443")
   protected static final String serverName = "auth.cas.server.name";
@@ -75,8 +59,7 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
   @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
-  @Reference
-  private SlingRepository repository;
+  @Property(name = org.osgi.framework.Constants.SERVICE_RANKING, value = "5")
 
   /** Defines the parameter to look for for the service. */
   private String serviceParameterName = "service";
@@ -146,16 +129,10 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
     return true;
   }
 
-  @SuppressWarnings("unchecked")
   private AuthenticationInfo createAuthnInfo(final Assertion assertion) {
     AuthenticationInfo authnInfo;
-    SimpleCredentials creds = new SimpleCredentials(assertion.getPrincipal().getName(),
-        new char[0]);
-    Map<String, String> attribs = assertion.getAttributes();
-    for (Entry<String, String> e : attribs.entrySet()) {
-      creds.setAttribute(e.getKey(), e.getValue());
-    }
-    authnInfo = new AuthenticationInfo(AUTH_TYPE);
+    String username = assertion.getPrincipal().getName();
+    authnInfo = new AuthenticationInfo(AUTH_TYPE, username);
     return authnInfo;
   }
 
@@ -210,45 +187,4 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
     casServerLoginUrl = (String) properties.get(loginUrl);
     casServerLogoutUrl = (String) properties.get(logoutUrl);
   }
-
-  @SuppressWarnings("unchecked")
-  public void addPrincipals(Set principals) {
-    // Nothing to do
-
-  }
-
-  public boolean canHandle(Credentials credentials) {
-    boolean result = (credentials instanceof SimpleCredentials);
-    return result;
-  }
-
-  @SuppressWarnings("unchecked")
-  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
-      throws LoginException {
-    // Nothing to do
-  }
-
-  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
-      throws RepositoryException {
-    return new CasAuthentication(principal, repository);
-  }
-
-  public Principal getPrincipal(Credentials credentials) {
-    CasPrincipal user = null;
-    if (credentials != null && credentials instanceof SimpleCredentials) {
-      SimpleCredentials sc = (SimpleCredentials) credentials;
-      user = new CasPrincipal(sc.getUserID());
-    }
-    return user;
-  }
-
-  public int impersonate(Principal principal, Credentials credentials)
-      throws RepositoryException, FailedLoginException {
-    return LoginModulePlugin.IMPERSONATION_DEFAULT;
-  }
-
-  protected void bindRepository(SlingRepository repository) {
-    this.repository = repository;
-  }
-
 }

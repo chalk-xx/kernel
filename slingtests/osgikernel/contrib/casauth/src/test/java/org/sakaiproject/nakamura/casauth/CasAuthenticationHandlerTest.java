@@ -4,22 +4,14 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.SimpleCredentials;
-import javax.security.auth.login.FailedLoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
 import org.junit.Before;
@@ -137,32 +129,5 @@ public class CasAuthenticationHandlerTest {
     replay(principal, assertion, session, request, response);
 
     cah.extractCredentials(request, response);
-  }
-
-  @Test
-  public void testCanHandleSimpleCreds() {
-    SimpleCredentials sc = new SimpleCredentials("foo", new char[0]);
-    assertTrue(cah.canHandle(sc));
-  }
-
-  @Test
-  public void testCantHandleNonSimpleCreds() {
-    class TestCredentials implements Credentials {
-      private static final long serialVersionUID = 1L;
-    }
-    ;
-    TestCredentials tc = new TestCredentials();
-    assertFalse(cah.canHandle(tc));
-  }
-
-  @Test
-  public void testGetPrincipal() {
-    SimpleCredentials sc = new SimpleCredentials("foo", new char[0]);
-    assertEquals("foo", cah.getPrincipal(sc).getName());
-  }
-
-  @Test
-  public void testImpersonate() throws FailedLoginException, RepositoryException {
-    assertEquals(LoginModulePlugin.IMPERSONATION_DEFAULT, cah.impersonate(null, null));
   }
 }
