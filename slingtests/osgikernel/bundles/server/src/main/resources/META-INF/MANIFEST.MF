@@ -26,7 +26,7 @@ Tool: Bnd-0.0.357
 Bundle-Name: Apache Sling Jackrabbit Embedded Repository
 Created-By: 1.6.0_17 (Apple Inc.)
 Bundle-Vendor: The Apache Software Foundation
-Bundle-Version: 2.0.7.SNAPSHOT.sakai
+Bundle-Version: 2.0.7.sakai-SNAPSHOT
 Bnd-LastModified: 1266511924745
 Old-Bundle-Activator: org.apache.sling.jcr.jackrabbit.server.impl.Acti
  vator

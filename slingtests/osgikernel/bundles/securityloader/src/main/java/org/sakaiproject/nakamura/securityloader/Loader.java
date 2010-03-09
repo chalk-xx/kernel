@@ -467,7 +467,6 @@ LOGGER.info("Got Target Node as "+targetNode);
 
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
-    System.err.println("========== got "+accessControlManager+" from "+session.getClass());
     AccessControlList updatedAcl = null;
     
     AccessControlPolicyIterator applicablePolicies = accessControlManager

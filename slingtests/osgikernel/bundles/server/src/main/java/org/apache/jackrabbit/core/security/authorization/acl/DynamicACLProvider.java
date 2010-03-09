@@ -82,6 +82,8 @@ public class DynamicACLProvider extends ACLProvider {
   @Override
   public void init(Session systemSession, Map configuration) throws RepositoryException {
     super.init(systemSession, configuration);
+    NodeImpl node = (NodeImpl) systemSession.getRootNode();
+    rootNodeId = node.getNodeId();
   }
 
   /**
@@ -91,9 +93,6 @@ public class DynamicACLProvider extends ACLProvider {
   @Override
   public CompiledPermissions compilePermissions(Set<Principal> principals)
       throws RepositoryException {
-    Session session = DynamicSecurityManager.getThreadBoundAMContext().getSession();
-    NodeImpl node = (NodeImpl) session.getRootNode();
-    rootNodeId = node.getNodeId();
     userId = DynamicSecurityManager.getThreadBoundAMContext().getSession().getUserID();
     return super.compilePermissions(principals);
   }
