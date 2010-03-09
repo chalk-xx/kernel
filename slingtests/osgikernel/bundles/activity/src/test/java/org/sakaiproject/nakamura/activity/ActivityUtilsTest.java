@@ -17,27 +17,32 @@
  */
 package org.sakaiproject.nakamura.activity;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.jcr.RepositoryException;
+
 /**
  *
  */
-public class ActivityUtilsTest {
+public class ActivityUtilsTest extends AbstractEasyMockTest{
 
   @Test
-  public void testUserFeed() {
+  public void testUserFeed() throws RepositoryException {
     String user = "admin";
+    Authorizable au = createAuthorizable(user, false, true);
     String expected = "/_user/d0/33/e2/2a/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME;
-    String result = ActivityUtils.getUserFeed(user);
+    String result = ActivityUtils.getUserFeed(au);
     Assert.assertEquals(expected, result);
   }
 

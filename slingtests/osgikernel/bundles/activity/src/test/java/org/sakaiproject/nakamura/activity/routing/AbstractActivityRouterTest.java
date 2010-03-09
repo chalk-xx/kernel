@@ -53,10 +53,10 @@ public class AbstractActivityRouterTest extends AbstractEasyMockTest {
 
     session = createMock(JackrabbitSession.class);
     auJack = createAuthorizable(user, false, true);
-    um = createUserManager(null, false, auJack);
-    
+    um = createUserManager(null, true, auJack);
     expect(activity.hasProperty(ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE))
         .andReturn(true).anyTimes();
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(activity.getSession()).andReturn(session).anyTimes();
 
     Property actorProperty = createMock(Property.class);
