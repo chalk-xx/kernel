@@ -69,6 +69,16 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
   @Override
   public void flushBuffer() throws IOException {
   }
+  
+  /**
+   * {@inheritDoc}
+   * @see javax.servlet.ServletResponseWrapper#isCommitted()
+   */
+  @Override
+  public boolean isCommitted() {
+    // We always return false, so we can keep on outputting.
+   return false;
+  }
 
   /**
    * {@inheritDoc}
