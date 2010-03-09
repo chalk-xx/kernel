@@ -45,6 +45,7 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 
 public class CropItProcessor {
 
@@ -106,7 +107,7 @@ public class CropItProcessor {
         }
 
         // Read the image
-        in = imgNode.getProperty(JCRConstants.JCR_DATA).getStream();
+        in = imgNode.getProperty(JCRConstants.JCR_DATA).getBinary().getStream();
         try {
 
           // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
@@ -230,7 +231,8 @@ public class CropItProcessor {
       } else {
         contentNode = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_RESOURCE);
       }
-      contentNode.setProperty(JCRConstants.JCR_DATA, bais);
+      ValueFactory vf = session.getValueFactory();
+      contentNode.setProperty(JCRConstants.JCR_DATA, vf.createBinary(bais));
       contentNode.setProperty(JCRConstants.JCR_MIMETYPE, mimetype);
       contentNode.setProperty(JCRConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 

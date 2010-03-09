@@ -42,6 +42,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -158,6 +159,7 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
     Property lastModifiedProperty = createMock(Property.class);
     PropertyDefinition propertyDefinition = createMock(PropertyDefinition.class);
     Value value = createMock(Value.class);
+    Binary binary = createMock(Binary.class);
 
     expect(node.hasProperty(ProxyClientService.SAKAI_REQUEST_PROXY_ENDPOINT)).andReturn(
         true);
@@ -190,8 +192,9 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         false).atLeastOnce();
     
     expect(templateProperty.getValue()).andReturn(value);
-    expect(templateProperty.getDefinition()).andReturn(propertyDefinition);    
-    expect(value.getStream()).andReturn(new ByteArrayInputStream(REQUEST_TEMPLATE.getBytes()));
+    expect(templateProperty.getDefinition()).andReturn(propertyDefinition);
+    expect(value.getBinary()).andReturn(binary);
+    expect(binary.getStream()).andReturn(new ByteArrayInputStream(REQUEST_TEMPLATE.getBytes()));
 
     expect(node.hasProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(true).atLeastOnce();
     expect(node.getProperty(JcrConstants.JCR_LASTMODIFIED)).andReturn(

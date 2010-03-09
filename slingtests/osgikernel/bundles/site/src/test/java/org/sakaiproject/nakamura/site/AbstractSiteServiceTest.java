@@ -67,7 +67,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
     return createDummyGroupWithMembers(groupName, members);
   }
 
-  protected Group createDummyGroupWithMembers(String groupName, List<? extends Authorizable> members)
+  protected Group createDummyGroupWithMembers(String groupName, List<Authorizable> members)
       throws RepositoryException {
     Group group = createMock(Group.class);
     registerAuthorizable(group, groupName);

@@ -16,39 +16,12 @@
  */
 package org.apache.jackrabbit.core;
 
-import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.config.AccessManagerConfig;
-import org.apache.jackrabbit.core.config.LoginModuleConfig;
-import org.apache.jackrabbit.core.config.SecurityConfig;
-import org.apache.jackrabbit.core.config.WorkspaceConfig;
-import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
-import org.apache.jackrabbit.core.config.SecurityManagerConfig;
-import org.apache.jackrabbit.core.security.AMContext;
-import org.apache.jackrabbit.core.security.AccessManager;
-import org.apache.jackrabbit.core.security.JackrabbitSecurityManager;
-import org.apache.jackrabbit.core.security.SecurityConstants;
-import org.apache.jackrabbit.core.security.DefaultAccessManager;
-import org.apache.jackrabbit.core.security.authentication.AuthContext;
-import org.apache.jackrabbit.core.security.authentication.AuthContextProvider;
-import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
-import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
-import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactoryImpl;
-import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
-import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
-import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
-import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
-import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
-import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
-import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
-import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
-import org.apache.jackrabbit.core.security.user.UserManagerImpl;
-import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.DynamicAccessControlProviderFactoryImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -57,13 +30,40 @@ import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.security.AccessControlException;
 import javax.security.auth.Subject;
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.config.AccessManagerConfig;
+import org.apache.jackrabbit.core.config.LoginModuleConfig;
+import org.apache.jackrabbit.core.config.SecurityConfig;
+import org.apache.jackrabbit.core.config.SecurityManagerConfig;
+import org.apache.jackrabbit.core.config.WorkspaceConfig;
+import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
+import org.apache.jackrabbit.core.config.UserManagerConfig;
+import org.apache.jackrabbit.core.security.AMContext;
+import org.apache.jackrabbit.core.security.AccessManager;
+import org.apache.jackrabbit.core.security.DefaultAccessManager;
+import org.apache.jackrabbit.core.security.JackrabbitSecurityManager;
+import org.apache.jackrabbit.core.security.SecurityConstants;
+import org.apache.jackrabbit.core.security.authentication.AuthContext;
+import org.apache.jackrabbit.core.security.authentication.AuthContextProvider;
+import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
+import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
+import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
+import org.apache.jackrabbit.core.security.authorization.acl.DynamicAccessControlProviderFactoryImpl;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
+import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
+import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
+import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
+import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
+import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
+import org.apache.jackrabbit.core.security.user.UserManagerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The security manager acts as central managing class for all security related
@@ -96,9 +96,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private RepositoryImpl repository;
 
     /**
-     * session on the system workspace.
+     * System session.
      */
-    private SystemSession securitySession;
+    private SystemSession systemSession;
 
     /**
      * System user manager. Implementation needed here for the DefaultPrincipalProvider.
@@ -106,30 +106,25 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private UserManager systemUserManager;
 
     /**
-     * System Sessions PrincipalMangager used for internal access to Principals
-     */
-    private PrincipalManager systemPrincipalManager;
-
-    /**
      * The user id of the administrator. The value is retrieved from
      * configuration. If the config entry is missing a default id is used (see
      * {@link SecurityConstants#ADMIN_ID}).
      */
-    private String adminId;
+    protected String adminId;
 
     /**
      * The user id of the anonymous user. The value is retrieved from
      * configuration. If the config entry is missing a default id is used (see
      * {@link SecurityConstants#ANONYMOUS_ID}).
      */
-    private String anonymousId;
+    protected String anonymousId;
 
     /**
      * Contains the access control providers per workspace.
      * key = name of the workspace,
      * value = {@link AccessControlProvider}
      */
-    private final Map acProviders = new HashMap();
+    private final Map<String, AccessControlProvider> acProviders = new HashMap<String, AccessControlProvider>();
 
     /**
      * the AccessControlProviderFactory
@@ -166,7 +161,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             throw new RepositoryException("SystemSession expected");
         }
 
-        securitySession = (SystemSession) systemSession;
+        this.systemSession = (SystemSession) systemSession;
         this.repository = (RepositoryImpl) repository;
 
         SecurityConfig config = this.repository.getConfig().getSecurityConfig();
@@ -186,13 +181,13 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
 
         Properties[] moduleConfig = authContextProvider.getModuleConfig();
 
-        // retrieve default-ids (admin and anomymous) from login-module-configuration.
-        for (int i = 0; i < moduleConfig.length; i++) {
-            if (moduleConfig[i].containsKey(LoginModuleConfig.PARAM_ADMIN_ID)) {
-                adminId = moduleConfig[i].getProperty(LoginModuleConfig.PARAM_ADMIN_ID);
+        // retrieve default-ids (admin and anonymous) from login-module-configuration.
+        for (Properties props : moduleConfig) {
+            if (props.containsKey(LoginModuleConfig.PARAM_ADMIN_ID)) {
+                adminId = props.getProperty(LoginModuleConfig.PARAM_ADMIN_ID);
             }
-            if (moduleConfig[i].containsKey(LoginModuleConfig.PARAM_ANONYMOUS_ID)) {
-                anonymousId = moduleConfig[i].getProperty(LoginModuleConfig.PARAM_ANONYMOUS_ID);
+            if (props.containsKey(LoginModuleConfig.PARAM_ANONYMOUS_ID)) {
+                anonymousId = props.getProperty(LoginModuleConfig.PARAM_ANONYMOUS_ID);
             }
         }
         // fallback:
@@ -206,37 +201,34 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         }
 
         // create the system userManager and make sure the system-users exist.
-        systemUserManager = new UserManagerImpl(securitySession, adminId);
-        createSystemUsers(systemUserManager, adminId, anonymousId);
+        systemUserManager = createUserManager(this.systemSession);
+        createSystemUsers(systemUserManager, this.systemSession, adminId, anonymousId);
 
         // init default ac-provider-factory
         acProviderFactory = new DynamicAccessControlProviderFactoryImpl();
-        acProviderFactory.init(securitySession);
+        acProviderFactory.init(this.systemSession);
 
-        // create the evalutor for workspace access
+        // create the workspace access manager
         SecurityManagerConfig smc = config.getSecurityManagerConfig();
         if (smc != null && smc.getWorkspaceAccessConfig() != null) {
-            workspaceAccessManager = (WorkspaceAccessManager) smc.getWorkspaceAccessConfig().newInstance();
+            workspaceAccessManager =
+                smc.getWorkspaceAccessConfig().newInstance(WorkspaceAccessManager.class);
         } else {
             // fallback -> the default implementation
             log.debug("No WorkspaceAccessManager configured; using default.");
-            workspaceAccessManager = new WorkspaceAccessManagerImpl();
+            workspaceAccessManager = createDefaultWorkspaceAccessManager();
         }
-        workspaceAccessManager.init(securitySession);
+        workspaceAccessManager.init(this.systemSession);
 
-        // initialize principa-provider registry
+        // initialize principal-provider registry
         // 1) create default
-        PrincipalProvider defaultPP = new DefaultPrincipalProvider(securitySession, (UserManagerImpl) systemUserManager);
-        defaultPP.init(new Properties());
+        PrincipalProvider defaultPP = createDefaultPrincipalProvider();
         // 2) create registry instance
         principalProviderRegistry = new ProviderRegistryImpl(defaultPP);
         // 3) register all configured principal providers.
-        for (int i = 0; i < moduleConfig.length; i++) {
-            principalProviderRegistry.registerProvider(moduleConfig[i]);
+        for (Properties props : moduleConfig) {
+            principalProviderRegistry.registerProvider(props);
         }
-
-        // create the principal manager for the security workspace
-        systemPrincipalManager = new PrincipalManagerImpl(securitySession, principalProviderRegistry.getProviders());
 
         initialized = true;
     }
@@ -247,7 +239,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void dispose(String workspaceName) {
         checkInitialized();
         synchronized (acProviders) {
-            AccessControlProvider prov = (AccessControlProvider) acProviders.remove(workspaceName);
+            AccessControlProvider prov = acProviders.remove(workspaceName);
             if (prov != null) {
                 prov.close();
             }
@@ -260,9 +252,8 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void close() {
         checkInitialized();
         synchronized (acProviders) {
-            Iterator itr = acProviders.values().iterator();
-            while (itr.hasNext()) {
-                ((AccessControlProvider) itr.next()).close();
+            for (AccessControlProvider accessControlProvider : acProviders.values()) {
+                accessControlProvider.close();
             }
             acProviders.clear();
         }
@@ -282,7 +273,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
                 log.debug("No configuration entry for AccessManager. Using org.apache.jackrabbit.core.security.DefaultAccessManager");
                 accessMgr = new DefaultAccessManager();
             } else {
-                accessMgr = (AccessManager) amConfig.newInstance();
+                accessMgr = amConfig.newInstance(AccessManager.class);
             }
             // place the AMContext in a thread local to make it available to underlying classes
             // we have to do this since this is going through API's
@@ -298,7 +289,8 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             throw e;
         } catch (Exception e) {
             // wrap in RepositoryException
-            String msg = "Failed to instantiate AccessManager (" + amConfig.getClassName() + ")";
+            String clsName = (amConfig == null) ? "-- missing access manager configuration --" : amConfig.getClassName();
+            String msg = "Failed to instantiate AccessManager (" + clsName + ")";
             log.error(msg, e);
             throw new RepositoryException(msg, e);
         }
@@ -307,14 +299,11 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     /**
      * @see JackrabbitSecurityManager#getPrincipalManager(Session)
      */
-    public synchronized PrincipalManager getPrincipalManager(Session session)
-            throws RepositoryException {
+    public PrincipalManager getPrincipalManager(Session session) throws RepositoryException {
         checkInitialized();
-        if (session == securitySession) {
-            return systemPrincipalManager;
-        } else if (session instanceof SessionImpl) {
+        if (session instanceof SessionImpl) {
             SessionImpl sImpl = (SessionImpl) session;
-            return new PrincipalManagerImpl(sImpl, principalProviderRegistry.getProviders());
+            return createPrincipalManager(sImpl);
         } else {
             throw new RepositoryException("Internal error: SessionImpl expected.");
         }
@@ -325,18 +314,18 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      */
     public UserManager getUserManager(Session session) throws RepositoryException {
         checkInitialized();
-        if (session == securitySession) {
+        if (session == systemSession) {
             return systemUserManager;
         } else if (session instanceof SessionImpl) {
-            String workspaceName = securitySession.getWorkspace().getName();
+            String workspaceName = systemSession.getWorkspace().getName();
             try {
                 SessionImpl sImpl = (SessionImpl) session;
                 UserManagerImpl uMgr;
                 if (workspaceName.equals(sImpl.getWorkspace().getName())) {
-                    uMgr = new UserManagerImpl(sImpl, adminId);
+                    uMgr = createUserManager(sImpl);
                 } else {
                     SessionImpl s = (SessionImpl) sImpl.createSession(workspaceName);
-                    uMgr = new UserManagerImpl(s, adminId);
+                    uMgr = createUserManager(s);
                     sImpl.addListener(uMgr);
                 }
                 return uMgr;
@@ -349,63 +338,208 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     }
 
     /**
-     * @see JackrabbitSecurityManager#getUserID(Subject)
+     * @see JackrabbitSecurityManager#getUserID(javax.security.auth.Subject, String)
      */
-    public String getUserID(Subject subject) throws RepositoryException {
+    public String getUserID(Subject subject, String workspaceName) throws RepositoryException {
         checkInitialized();
+
         /* shortcut if the subject contains the AdminPrincipal in which case
            the userID is already known. */
         if (!subject.getPrincipals(AdminPrincipal.class).isEmpty()) {
             return adminId;
         }
+        /* if there is a configure principal class that should be used to
+           determine the UserID -> try this one. */
+        Class cl = getConfig().getUserIdClass();
+        if (cl != null) {
+            Set<Principal> s = subject.getPrincipals(cl);
+            if (!s.isEmpty()) {
+                for (Principal p : s) {
+                    if (!(p instanceof java.security.acl.Group)) {
+                        return p.getName();
+                    }
+                }
+                // all principals found with the given p-Class were Group principals
+                log.debug("Only Group principals found with class '" + cl.getName() + "' -> Not used for UserID.");
+            } else {
+                log.debug("No principal found with class '" + cl.getName() + "'.");
+            }
+        }
+
         /*
-         Retrieve userID from the subject.
+         Fallback scenario to retrieve userID from the subject:
          Since the subject may contain multiple principals and the principal
-         name must not be equals to the UserID by definition, the userID
-         may either be obtained from the login-credentials or from the
-         user manager. in the latter case the set of principals present with
-         the specified subject is used to search for the user.
+         name may not be equals to the UserID, the id is retrieved by
+         searching for the corresponding authorizable and if this doesn't
+         succeed an attempt is made to obtained it from the login-credentials.
         */
         String uid = null;
-        // try simple access to userID over SimpleCredentials first.
-        Iterator creds = subject.getPublicCredentials(SimpleCredentials.class).iterator();
-        if (creds.hasNext()) {
-            SimpleCredentials sc = (SimpleCredentials) creds.next();
-            uid = sc.getUserID();
-        } else {
-            // no SimpleCredentials: retrieve authorizables corresponding to
-            // a non-group principal. the first one present is used to determine
-            // the userID.
-            for (Iterator it = subject.getPrincipals().iterator(); it.hasNext();) {
-                Principal p = (Principal) it.next();
+
+        // first try to retrieve an authorizable corresponding to
+        // a non-group principal. the first one present is used
+        // to determine the userID.
+        try {
+            UserManager umgr = getSystemUserManager(workspaceName);
+            for (Principal p : subject.getPrincipals()) {
                 if (!(p instanceof Group)) {
-                    Authorizable authorz = systemUserManager.getAuthorizable(p);
+                    Authorizable authorz = umgr.getAuthorizable(p);
                     if (authorz != null && !authorz.isGroup()) {
                         uid = authorz.getID();
                         break;
                     }
                 }
             }
+        } catch (RepositoryException e) {
+            // failed to access userid via user manager -> use fallback 2.
+            log.error("Unexpected error while retrieving UserID.", e);
         }
+
+        // 2. if no matching user is found try simple access to userID over
+        // SimpleCredentials.
+        if (uid == null) {
+            Iterator<SimpleCredentials> creds = subject.getPublicCredentials(
+                    SimpleCredentials.class).iterator();
+            if (creds.hasNext()) {
+                SimpleCredentials sc = creds.next();
+                uid = sc.getUserID();
+            }
+        }
+
         return uid;
     }
 
     /**
      * Creates an AuthContext for the given {@link Credentials} and
-     * {@link Subject}.<br>
+     * {@link Subject}. The workspace name is ignored and users are
+     * stored and retrieved from a specific (separate) workspace.<br>
      * This includes selection of application specific LoginModules and
      * initialization with credentials and Session to System-Workspace
      *
      * @return an {@link AuthContext} for the given Credentials, Subject
      * @throws RepositoryException in other exceptional repository states
      */
-    public AuthContext getAuthContext(Credentials creds, Subject subject)
+    public AuthContext getAuthContext(Credentials creds, Subject subject, String workspaceName)
             throws RepositoryException {
         checkInitialized();
-        return authContextProvider.getAuthContext(creds, subject, securitySession,
-                principalProviderRegistry, adminId, anonymousId);
+        return getAuthContextProvider().getAuthContext(creds, subject, systemSession,
+                getPrincipalProviderRegistry(), adminId, anonymousId);
     }
 
+    //----------------------------------------------------------< protected >---
+    /**
+     * @return The <code>SecurityManagerConfig</code> configured for the
+     * repository this manager has been created for.
+     */
+    protected SecurityManagerConfig getConfig() {
+        return repository.getConfig().getSecurityConfig().getSecurityManagerConfig();
+    }
+
+    /**
+     * @param workspaceName
+     * @return The system user manager. Since this implementation stores users
+     * in a dedicated workspace the system user manager is the same for all
+     * sessions irrespective of the workspace.
+     */
+    protected UserManager getSystemUserManager(String workspaceName) throws RepositoryException {
+        return systemUserManager;
+    }
+
+    /**
+     * Creates a {@link UserManagerImpl} for the given session. May be overridden
+     * to return a custom implementation.
+     *
+     * @param session session
+     * @return user manager
+     * @throws RepositoryException if an error occurs
+     */
+    protected UserManagerImpl createUserManager(SessionImpl session) throws RepositoryException {
+        UserManagerConfig umc = getConfig().getUserManagerConfig();
+        Properties params = (umc == null) ? null : umc.getParameters();
+
+        // since users are stored in and retrieved from a dedicated workspace
+        // only the system session assigned with that workspace will get the
+        // system user manager (special implementation that asserts the existance
+        // of the admin user).
+        UserManagerImpl um;
+        if (umc != null) {
+            Class<?>[] paramTypes = new Class[] { SessionImpl.class, String.class, Properties.class };
+            um = (UserManagerImpl) umc.getUserManager(UserManagerImpl.class, paramTypes, (SessionImpl) session, adminId, params);
+            // TODO: should we make sure the implementation doesn't allow
+            // TODO: to change the autosave behavior? since the user manager
+            // TODO: writes to a separate workspace this would cause troubles.
+        } else {
+            um = new UserManagerImpl(session, adminId, params);
+        }
+        return um;
+    }
+
+    /**
+     * @param session The session used to create the principal manager.
+     * @return A new instance of PrincipalManagerImpl
+     * @throws javax.jcr.RepositoryException If an error occurs.
+     */
+    protected PrincipalManager createPrincipalManager(SessionImpl session) throws RepositoryException {
+        return new PrincipalManagerImpl(session, getPrincipalProviderRegistry().getProviders());
+    }
+
+    /**
+     * @return A nwe instance of WorkspaceAccessManagerImpl to be used as
+     * default workspace access manager if the configuration doesn't specify one.
+     */
+    protected WorkspaceAccessManager createDefaultWorkspaceAccessManager() {
+        return new WorkspaceAccessManagerImpl();
+    }
+
+    /**
+     * Creates the default principal provider used to create the
+     * {@link PrincipalProviderRegistry}.
+     *
+     * @return An new instance of <code>DefaultPrincipalProvider</code>.
+     * @throws RepositoryException If an error occurs.
+     */
+    protected PrincipalProvider createDefaultPrincipalProvider() throws RepositoryException {
+        PrincipalProvider defaultPP = new DefaultPrincipalProvider(this.systemSession, (UserManagerImpl) systemUserManager);
+        defaultPP.init(new Properties());
+        return defaultPP;
+    }
+
+    /**
+     * @return The PrincipalProviderRegistry created during initialization.
+     */
+    protected PrincipalProviderRegistry getPrincipalProviderRegistry() {
+        return principalProviderRegistry;
+    }
+
+    /**
+     * @return The AuthContextProvider created during initialization.
+     */
+    protected AuthContextProvider getAuthContextProvider() {
+        return authContextProvider;
+    }
+
+    /**
+     * Throws <code>IllegalStateException</code> if this manager hasn't been
+     * initialized.
+     */
+    protected void checkInitialized() {
+        if (!initialized) {
+            throw new IllegalStateException("Not initialized");
+        }
+    }
+
+    /**
+     * @return The system session used to initialize this SecurityManager.
+     */
+    protected Session getSystemSession() {
+        return systemSession;
+    }
+
+    /**
+     * @return The repository used to initialize this SecurityManager.
+     */
+    protected Repository getRepository() {
+        return repository;
+    }
     //--------------------------------------------------------------------------
     /**
      * Returns the access control provider for the specified
@@ -419,60 +553,65 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private AccessControlProvider getAccessControlProvider(String workspaceName)
             throws NoSuchWorkspaceException, RepositoryException {
         checkInitialized();
-        synchronized (acProviders) {
-            AccessControlProvider provider = (AccessControlProvider) acProviders.get(workspaceName);
-            if (provider == null) {
-                SystemSession systemSession = repository.getSystemSession(workspaceName);
-                WorkspaceConfig conf = repository.getConfig().getWorkspaceConfig(workspaceName);
-                WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
+        AccessControlProvider provider = acProviders.get(workspaceName);
+        if (provider == null || !provider.isLive()) {
+            SystemSession systemSession = repository.getSystemSession(workspaceName);
+            // mark this session as 'active' so the workspace does not get disposed
+            // by the workspace-janitor until the garbage collector is done
+            // TODO: review again... this workaround is now used in several places.
+            repository.onSessionCreated(systemSession);
+
+            WorkspaceConfig conf = repository.getConfig().getWorkspaceConfig(workspaceName);
+            WorkspaceSecurityConfig secConf = (conf == null) ?  null : conf.getSecurityConfig();
+            synchronized (acProviders) {
                 provider = acProviderFactory.createProvider(systemSession, secConf);
                 acProviders.put(workspaceName, provider);
             }
-            return provider;
         }
+        return provider;
     }
 
     /**
-     * Make sure the 'administrators' group exists and the user with the
-     * configured (or default) adminID is member of this user-group.
+     * Make sure the sytem users (admin and anonymous) exist.
      *
      * @param userManager Manager to create users/groups.
+     * @param session
      * @param adminId UserID of the administrator.
      * @param anonymousId UserID of the anonymous user.
      * @throws RepositoryException If an error occurs.
      */
-    private static void createSystemUsers(UserManager userManager,
-                                          String adminId,
-                                          String anonymousId) throws RepositoryException {
-        Principal pr = new PrincipalImpl(SecurityConstants.ADMINISTRATORS_NAME);
-        Group admins = (Group) userManager.getAuthorizable(pr);
-        if (admins == null) {
-            admins = userManager.createGroup(new PrincipalImpl(SecurityConstants.ADMINISTRATORS_NAME));
-            log.debug("...created administrators group with name '"+SecurityConstants.ADMINISTRATORS_NAME+"'");
-        }
+    static void createSystemUsers(UserManager userManager,
+                                  SystemSession session,
+                                  String adminId,
+                                  String anonymousId) throws RepositoryException {
 
+        Authorizable admin = null;
         if (adminId != null) {
-            Authorizable admin = userManager.getAuthorizable(adminId);
+            admin = userManager.getAuthorizable(adminId);
             if (admin == null) {
                 admin = userManager.createUser(adminId, adminId);
-                log.info("...created admin-user with id \'" + adminId + "\' ...");
-                admins.addMember(admin);
-                log.info("...added admin \'" + adminId + "\' as member of the administrators group.");
+                if (!userManager.isAutoSave()) {
+                    session.save();
+                }
+                log.info("... created admin-user with id \'" + adminId + "\' ...");
             }
         }
 
         if (anonymousId != null) {
             Authorizable anonymous = userManager.getAuthorizable(anonymousId);
             if (anonymous == null) {
-                userManager.createUser(anonymousId, "");
-                log.info("...created anonymous-user with id \'" + anonymousId + "\' ...");
+                try {
+                    userManager.createUser(anonymousId, "");
+                    if (!userManager.isAutoSave()) {
+                        session.save();
+                    }
+                    log.info("... created anonymous user with id \'" + anonymousId + "\' ...");
+                } catch (RepositoryException e) {
+                    // exception while creating the anonymous user.
+                    // log an error but don't abort the repository start-up
+                    log.error("Failed to create anonymous user.", e);
+                }
             }
-        }
-    }
-
-    private void checkInitialized() {
-        if (!initialized) {
-            throw new IllegalStateException("Not initialized");
         }
     }
 
@@ -482,14 +621,13 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * evaluates if access to the root node of a workspace with the specified
      * name is granted.
      */
-    private class WorkspaceAccessManagerImpl implements SecurityConstants, WorkspaceAccessManager {
+    private final class WorkspaceAccessManagerImpl implements SecurityConstants, WorkspaceAccessManager {
 
         //-----------------------------------------< WorkspaceAccessManager >---
         /**
          * {@inheritDoc}
-         * @param securitySession
          */
-        public void init(Session securitySession) throws RepositoryException {
+        public void init(Session systemSession) throws RepositoryException {
             // nothing to do here.
         }
 
@@ -503,14 +641,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         /**
          * {@inheritDoc}
          */
-        public boolean grants(Set principals, String workspaceName) throws RepositoryException {
-            try {
-                AccessControlProvider prov = getAccessControlProvider(workspaceName);
-                return prov.canAccessRoot(principals);
-            } catch (NoSuchWorkspaceException e) {
-                // no such workspace -> return false.
-                return false;
-            }
+        public boolean grants(Set<Principal> principals, String workspaceName) throws RepositoryException {
+            AccessControlProvider prov = getAccessControlProvider(workspaceName);
+            return prov.canAccessRoot(principals);
         }
     }
 

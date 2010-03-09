@@ -197,7 +197,7 @@ public class SakaiAuthorizableResourceProviderTest extends AbstractEasyMockTest 
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     EasyMock.expect(session.getPrincipalManager()).andReturn(prinipalManager).anyTimes();
     EasyMock.expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    EasyMock.expect(prinipalManager.findPrincipals(".*",1)).andReturn(principalIterator);
+    EasyMock.expect(prinipalManager.getPrincipals(1)).andReturn(principalIterator);
     EasyMock.expect(principalIterator.hasNext()).andReturn(true);
 
     Principal p1 = new UserPrincipal("ieb");
@@ -244,7 +244,7 @@ public class SakaiAuthorizableResourceProviderTest extends AbstractEasyMockTest 
     EasyMock.expect(resourceResolver.adaptTo(Session.class)).andReturn(session).anyTimes();
     EasyMock.expect(session.getPrincipalManager()).andReturn(prinipalManager).anyTimes();
     EasyMock.expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    EasyMock.expect(prinipalManager.findPrincipals(".*",1)).andReturn(principalIterator);
+    EasyMock.expect(prinipalManager.getPrincipals(2)).andReturn(principalIterator);
     EasyMock.expect(principalIterator.hasNext()).andReturn(true);
 
     Principal p1 = new UserPrincipal("g-test1");

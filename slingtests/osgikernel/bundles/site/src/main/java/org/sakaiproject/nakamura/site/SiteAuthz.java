@@ -19,13 +19,6 @@ package org.sakaiproject.nakamura.site;
 
 import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
-import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -59,6 +52,12 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+import javax.jcr.security.AccessControlEntry;
+import javax.jcr.security.AccessControlList;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
+import javax.jcr.security.Privilege;
 
 /**
  *
@@ -100,7 +99,7 @@ public class SiteAuthz {
    */
   public SiteAuthz(Node site) throws RepositoryException {
     this.site = site;
-    this.siteRef = site.getUUID();
+    this.siteRef = site.getIdentifier();
     this.roleToGroupMap = new HashMap<String, String>();
     if (site.hasProperty(SITE_ROLES_PROPERTY)
         && site.hasProperty(SITE_ROLE_MEMBERSHIPS_PROPERTY)) {
@@ -417,7 +416,7 @@ public class SiteAuthz {
       // Site names exist in a hierarchical namespace but group names exist
       // in a flat namespace. To lessen the chance of conflicts, use the
       // node UUID to generate site-dependent group names.
-      String siteId = site.getUUID();
+      String siteId = site.getIdentifier();
       Session session = site.getSession();
       ValueFactory valueFactory = session.getValueFactory();
       String maintenanceRole = getMaintenanceRole();
@@ -513,7 +512,6 @@ public class SiteAuthz {
    * TODO Mostly copied from UpdateSakaiGroupPostServlet, and should be moved to a
    * shared service or utility function. See KERN-580.
    */
-  @SuppressWarnings("unchecked")
   private static boolean isUserGroupMaintainer(Session session, Group group) throws RepositoryException {
     boolean isMaintainer = false;
     UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -526,10 +524,12 @@ public class SiteAuthz {
     } else {
       if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
         Set<String> userPrincipals = new HashSet<String>();
+        /* The following does not exist in JR2
         for (PrincipalIterator iter = currentUser.getPrincipals(); iter.hasNext();) {
           String pname = iter.nextPrincipal().getName();
           userPrincipals.add(pname);
         }
+        */
         for (Iterator<Group> iter = currentUser.declaredMemberOf(); iter.hasNext();) {
           Group userGroup = iter.next();
           userPrincipals.add(userGroup.getID());
@@ -560,7 +560,6 @@ public class SiteAuthz {
    * @param group
    * @throws RepositoryException
    */
-  @SuppressWarnings("unchecked")
   private void deleteGroup(Session session, SlingRepository slingRepository, Group group)
       throws RepositoryException {
     if (!isUserGroupMaintainer(session, group)) {

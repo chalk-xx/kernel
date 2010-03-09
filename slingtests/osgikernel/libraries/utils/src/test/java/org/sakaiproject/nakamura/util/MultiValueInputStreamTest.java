@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.jcr.Binary;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
@@ -49,23 +50,27 @@ public class MultiValueInputStreamTest {
     Value[] values = new Value[3];
 
     byte[][] buffer = new byte[3][100];
+    Binary[] bin = new Binary[3];
     for (int i = 0; i < 3; i++) {
       values[i] = createMock(Value.class);
       for (int j = 0; j < 100; j++) {
         buffer[i][j] = (byte) (i + j);
       }
       stream[i] = new ByteArrayInputStream(buffer[i]);
+      bin[i] = createMock(Binary.class);
     }
 
     expect(property.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(true);
     expect(property.getValues()).andReturn(values);
+    for ( int i = 0; i < 3; i++ ) {
+      expect(values[i].getBinary()).andReturn(bin[i]);
+      expect(bin[i].getStream()).andReturn(stream[i]);
 
-    expect(values[0].getStream()).andReturn(stream[0]);
-    expect(values[1].getStream()).andReturn(stream[1]);
-    expect(values[2].getStream()).andReturn(stream[2]);
+    }
 
-    replay(property, propertyDefinition, values[0], values[1], values[2]);
+
+    replay(property, propertyDefinition, values[0], values[1], values[2], bin[0], bin[1], bin[2]);
     MultiValueInputStream multiValueInputStream = new MultiValueInputStream(property);
 
     for (int i = 0; i < 3; i++) {
@@ -76,7 +81,7 @@ public class MultiValueInputStreamTest {
     }
 
     multiValueInputStream.close();
-    verify(property, propertyDefinition, values[0], values[1], values[2]);
+    verify(property, propertyDefinition, values[0], values[1], values[2], bin[0], bin[1], bin[2]);
   }
 
   @Test
@@ -96,10 +101,12 @@ public class MultiValueInputStreamTest {
     expect(property.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false);
     expect(property.getValue()).andReturn(value);
+    Binary bin = createMock(Binary.class);
 
-    expect(value.getStream()).andReturn(stream);
+    expect(value.getBinary()).andReturn(bin);
+    expect(bin.getStream()).andReturn(stream);
 
-    replay(property, propertyDefinition, value);
+    replay(property, propertyDefinition, value, bin);
     MultiValueInputStream multiValueInputStream = new MultiValueInputStream(property);
 
     for (int j = 0; j < 100; j++) {
@@ -108,7 +115,7 @@ public class MultiValueInputStreamTest {
     
     multiValueInputStream.close();
 
-    verify(property, propertyDefinition, value);
+    verify(property, propertyDefinition, value, bin);
   }
 
 }

@@ -51,7 +51,7 @@ public class MultiValueInputStream extends InputStream {
     }
     nextStream = 0;
     nvalues = values.length;
-    currentInputStream = values[nextStream].getStream();
+    currentInputStream = values[nextStream].getBinary().getStream();
     nextStream++;
   }
 
@@ -65,7 +65,7 @@ public class MultiValueInputStream extends InputStream {
     while ( c < 0 && nextStream < nvalues ) {
       currentInputStream.close();
       try {
-        currentInputStream = values[nextStream].getStream();
+        currentInputStream = values[nextStream].getBinary().getStream();
       } catch (IllegalStateException e) {
         throw new IOException("Failed to open property value no "+nextStream+" as stream:"+e.getMessage());
       } catch (RepositoryException e) {

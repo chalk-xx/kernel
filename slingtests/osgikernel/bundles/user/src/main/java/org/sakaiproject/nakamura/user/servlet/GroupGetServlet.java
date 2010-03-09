@@ -61,7 +61,6 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 2792407832129918578L;
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {

@@ -59,6 +59,10 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
       <version>0.4-SNAPSHOT</version>

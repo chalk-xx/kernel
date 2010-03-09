@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
+package org.apache.jackrabbit.core.security.authorization.acl;
 
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.SessionImpl;
@@ -23,6 +23,8 @@ import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
 import org.apache.jackrabbit.core.security.user.UserAccessControlProvider;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,8 @@ public class DynamicAccessControlProviderFactoryImpl implements
   private String secWorkspaceName = null;
   private String defaultWorkspaceName = null;
 
+  private DynamicPrincipalManager dynamicPrincipalManager;
+
   // ---------------------------------------< AccessControlProviderFactory >---
   /**
    * @see AccessControlProviderFactory#init(Session)
@@ -62,6 +66,8 @@ public class DynamicAccessControlProviderFactoryImpl implements
       defaultWorkspaceName = ((RepositoryImpl) securitySession.getRepository())
           .getConfig().getDefaultWorkspaceName();
     } // else: unable to determine default workspace name
+    dynamicPrincipalManager = SakaiActivator.getDynamicPrincipalManagerFactory().getDynamicPrincipalManager();
+
   }
 
   /**
@@ -81,7 +87,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
     Map<?,?> props;
     if (config != null && config.getAccessControlProviderConfig() != null) {
       BeanConfig bc = config.getAccessControlProviderConfig();
-      prov = (AccessControlProvider) bc.newInstance();
+      prov =  bc.newInstance(AccessControlProvider.class);
       props = bc.getParameters();
     } else {
       log.debug("No ac-provider configuration for workspace " + workspaceName
@@ -93,7 +99,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
         // this ac provider for the default workspace.
         prov = new UserAccessControlProvider();
       } else {
-        prov = new DynamicACLProvider();
+        prov = new DynamicACLProvider(dynamicPrincipalManager);
       }
       log.debug("Default provider for workspace " + workspaceName + " = "
           + prov.getClass().getName());

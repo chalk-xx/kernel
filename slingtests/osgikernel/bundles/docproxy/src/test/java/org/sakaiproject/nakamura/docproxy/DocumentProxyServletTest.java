@@ -121,7 +121,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     // Session
     expect(session.getItem("/docproxy/disk/README")).andReturn(documentNode);
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
-    expect(session.getNodeByUUID("proxyUUID")).andReturn(proxyNode);
+    expect(session.getNodeByIdentifier("proxyUUID")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
 
     // Request

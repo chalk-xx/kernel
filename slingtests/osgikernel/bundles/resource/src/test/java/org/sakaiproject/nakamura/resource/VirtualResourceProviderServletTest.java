@@ -26,7 +26,6 @@ import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 
 import javax.servlet.ServletException;
 

@@ -22,8 +22,6 @@ import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
@@ -41,6 +39,8 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
 /**
  * This router will deliver an activity to the feed of all the contacts of the actor. It

@@ -77,7 +77,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       if (DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This document should reference the config node.
         String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
+        node = session.getNodeByIdentifier(uuid);
       }
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {

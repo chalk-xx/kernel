@@ -19,13 +19,6 @@ package org.sakaiproject.nakamura.securityloader;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
-import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.principal.NoSuchPrincipalException;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -34,12 +27,10 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.jackrabbit.usermanager.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.framework.Bundle;
 import org.sakaiproject.nakamura.api.user.AuthorizableEvent.Operation;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +55,13 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
+import javax.jcr.security.AccessControlEntry;
+import javax.jcr.security.AccessControlList;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
+import javax.jcr.security.Privilege;
+
 
 /**
  * 
@@ -75,10 +73,20 @@ public class Loader implements SecurityLoader {
   private List<Bundle> delayedBundles;
   private SecurityLoaderService jcrContentHelper;
 
-  /**
-   * The number of levels folder used to store a user, could be a configuration option.
-   */
-  private static final int STORAGE_LEVELS = 3;
+  public static final String SYSTEM_USER_MANAGER_PATH = "/system/userManager";
+
+  public static final String SYSTEM_USER_MANAGER_USER_PATH = SYSTEM_USER_MANAGER_PATH
+      + "/user";
+
+  public static final String SYSTEM_USER_MANAGER_GROUP_PATH = SYSTEM_USER_MANAGER_PATH
+      + "/group";
+
+  public static final String SYSTEM_USER_MANAGER_USER_PREFIX = SYSTEM_USER_MANAGER_USER_PATH
+      + "/";
+
+  public static final String SYSTEM_USER_MANAGER_GROUP_PREFIX = SYSTEM_USER_MANAGER_GROUP_PATH
+      + "/";
+
   private static final String MEMBERS = "members";
   private static final String PASSWORD = "password";
   private static final String NAME = "name";
@@ -420,12 +428,7 @@ LOGGER.info("Got Target Node as "+targetNode);
     }
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal principal;
-    try {
-      principal = principalManager.getPrincipal(principalId);
-    } catch (NoSuchPrincipalException e) {
-      LOGGER.warn("No Principal "+principalId+" found, ignoring :" + acl);
-      return;
-    }
+    principal = principalManager.getPrincipal(principalId);
 
     String path = acl.getString(PATH);
     String targetPath = targetNode.getPath();
@@ -461,8 +464,10 @@ LOGGER.info("Got Target Node as "+targetNode);
       }
     }
 
+
     AccessControlManager accessControlManager = AccessControlUtil
         .getAccessControlManager(session);
+    System.err.println("========== got "+accessControlManager+" from "+session.getClass());
     AccessControlList updatedAcl = null;
     
     AccessControlPolicyIterator applicablePolicies = accessControlManager
@@ -608,12 +613,8 @@ LOGGER.info("Got Target Node as "+targetNode);
     if (authorizable == null) {
       List<Modification> changes = new ArrayList<Modification>();
       User user = userManager.createUser(principalName, jcrContentHelper
-          .digestPassword(principal.getString(PASSWORD)), new Principal() {
-        public String getName() {
-          return principalName;
-        }
-      }, PathUtils.getUserPrefix(principalName, STORAGE_LEVELS));
-      String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+          .digestPassword(principal.getString(PASSWORD)));
+      String userPath = SYSTEM_USER_MANAGER_USER_PREFIX
           + user.getID();
 
       changes.add(Modification.onCreated(userPath));
@@ -654,8 +655,8 @@ LOGGER.info("Got Target Node as "+targetNode);
         public String getName() {
           return principalName;
         }
-      }, PathUtils.getUserPrefix(principalName, STORAGE_LEVELS));
-      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+      });
+      String groupPath = SYSTEM_USER_MANAGER_GROUP_PREFIX
           + group.getID();
       changes.add(Modification.onCreated(groupPath));
       // write content from form
@@ -686,7 +687,7 @@ LOGGER.info("Got Target Node as "+targetNode);
       JSONException {
     if (authorizable.isGroup()) {
       Group group = ((Group) authorizable);
-      String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+      String groupPath = SYSTEM_USER_MANAGER_GROUP_PREFIX
           + group.getID();
 
       boolean changed = false;
@@ -856,10 +857,10 @@ LOGGER.info("Got Target Node as "+targetNode);
 
     String parentPath;
     if (parent.isGroup()) {
-      parentPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+      parentPath = SYSTEM_USER_MANAGER_GROUP_PREFIX
           + parent.getID();
     } else {
-      parentPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+      parentPath = SYSTEM_USER_MANAGER_USER_PREFIX
           + parent.getID();
     }
 

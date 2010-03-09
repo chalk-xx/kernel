@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.uuid.UUID;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.sakaiproject.nakamura.api.files.LinkHandler;
@@ -56,9 +55,7 @@ public class JcrInternalFileHandler implements LinkHandler {
 
     String path = null;
     try {
-      // Check if the to value is a UUID
-      UUID uuid = UUID.fromString(to);
-      Node node = session.getNodeByUUID(uuid.toString());
+      Node node = session.getNodeByIdentifier(to);
       path = node.getPath();
     } catch (ItemNotFoundException e) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND, "This file has been removed.");

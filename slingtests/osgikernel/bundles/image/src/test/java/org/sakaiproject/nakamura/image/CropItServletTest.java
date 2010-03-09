@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.sanselan.util.IOUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -33,16 +34,19 @@ import org.junit.Test;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Calendar;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -89,8 +93,10 @@ public class CropItServletTest extends AbstractEasyMockTest {
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
 
+    ValueFactory valueFactory = createMock(ValueFactory.class);
+    expect(session.getValueFactory()).andReturn(valueFactory).anyTimes();
+
     // Base image stream
-    InputStream in = getClass().getResourceAsStream("people.png");
 
     // Item retrieval stuff
     Node imgNode = createMock(Node.class);
@@ -103,7 +109,11 @@ public class CropItServletTest extends AbstractEasyMockTest {
     expect(imgNode.getName()).andReturn("people.png");
     expect(imgNode.hasNode("jcr:content")).andReturn(true);
     expect(imgNode.getNode("jcr:content")).andReturn(imgContentNode);
-    expect(imgContentData.getStream()).andReturn(in);
+
+    Binary bin = createMock(Binary.class);
+    expect(imgContentData.getBinary()).andReturn(bin);
+    byte[] b = IOUtils.getInputStreamBytes(getClass().getClassLoader().getResourceAsStream("people.png"));
+    expect(bin.getStream()).andReturn(new ByteArrayInputStream(b));
     expect(imgContentType.getString()).andReturn("image/png");
     expect(imgContentNode.getProperty("jcr:data")).andReturn(imgContentData);
     expect(imgContentNode.hasProperty("jcr:mimeType")).andReturn(true);
@@ -112,8 +122,8 @@ public class CropItServletTest extends AbstractEasyMockTest {
     for (String s : dimensions) {
       Node breadCrumbNode = EasyMock.createMock(Node.class);
       Node breadCrumbContentNode = EasyMock.createMock(Node.class);
-
-      expect(breadCrumbContentNode.setProperty(eq("jcr:data"), isA(InputStream.class)))
+      expect(valueFactory.createBinary(isA(InputStream.class))).andReturn(bin);
+      expect(breadCrumbContentNode.setProperty(eq("jcr:data"), eq(bin)))
           .andReturn(null);
       expect(breadCrumbContentNode.setProperty("jcr:mimeType", "image/png")).andReturn(
           null);

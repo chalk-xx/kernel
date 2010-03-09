@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.jackrabbit.api.jsr283.Session;
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -53,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 @RunWith(MockitoJUnitRunner.class)
 public class TestSiteDeleteServlet {
   @Mock
-  private Session session;
+  private JackrabbitSession session;
   @Mock
   private SlingHttpServletRequest request;
   @Mock

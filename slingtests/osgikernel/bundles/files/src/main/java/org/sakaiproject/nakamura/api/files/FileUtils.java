@@ -26,8 +26,6 @@ import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.JcrConstants;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.value.ValueFactoryImpl;
@@ -61,6 +59,9 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
 // TODO: Javadoc
 public class FileUtils {
@@ -120,7 +121,8 @@ public class FileUtils {
 
           // Create the content node.
           content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
-          content.setProperty(JcrConstants.JCR_DATA, is);
+          ValueFactory valueFactory = session.getValueFactory();
+          content.setProperty(JcrConstants.JCR_DATA, valueFactory.createBinary(is));
           content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
           content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
           // Set the person who last modified it.s
@@ -145,7 +147,8 @@ public class FileUtils {
           content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
         }
 
-        content.setProperty(JcrConstants.JCR_DATA, is);
+        ValueFactory valueFactory = session.getValueFactory();
+        content.setProperty(JcrConstants.JCR_DATA, valueFactory.createBinary(is));
         content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
         content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
         // Set the person who last modified it.
@@ -201,7 +204,7 @@ public class FileUtils {
     }
     
     
-    String fileUUID = fileNode.getUUID();
+    String fileUUID = fileNode.getIdentifier();
     Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
     // linkNode.addMixin("sakai:propertiesmix");
     linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
@@ -228,9 +231,9 @@ public class FileUtils {
       adminSession = slingRepository.loginAdministrative(null);
 
       // Get the node trough the admin session.
-      Node adminFileNode = adminSession.getNodeByUUID(fileUUID);
+      Node adminFileNode = adminSession.getNodeByIdentifier(fileUUID);
 
-      addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
+      addValue(adminFileNode, "jcr:reference", linkNode.getIdentifier());
       addValue(adminFileNode, "sakai:sites", sitePath);
       addValue(adminFileNode, "sakai:linkpaths", linkPath);
 
@@ -405,7 +408,7 @@ public class FileUtils {
       String uuid = node.getProperty("jcr:reference").getString();
       write.key("file");
       try {
-        Node fileNode = session.getNodeByUUID(uuid);
+        Node fileNode = session.getNodeByIdentifier(uuid);
         writeFileNode(fileNode, session, write, siteService);
       } catch (ItemNotFoundException e) {
         write.value(false);
@@ -487,7 +490,7 @@ public class FileUtils {
         String path = v.getString();
         if (!handledSites.contains(path)) {
           handledSites.add(path);
-          Node siteNode = (Node) session.getNodeByUUID(v.getString());
+          Node siteNode = (Node) session.getNodeByIdentifier(v.getString());
 
           boolean hasAccess = acm.hasPrivileges(path, privs);
           if (siteService.isSite(siteNode) && hasAccess) {

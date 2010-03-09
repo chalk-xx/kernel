@@ -98,7 +98,6 @@ public class SiteMembersServlet extends AbstractSiteServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
-  @SuppressWarnings("unchecked")
   @Override
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="Exceptions are caught to ensure that the correct status code gets sent.", value={"REC_CATCH_EXCEPTION"})
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

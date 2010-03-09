@@ -683,7 +683,6 @@ public class SiteServiceImpl implements SiteService {
    *          the session to grab the profile node for users.
    * @throws RepositoryException
    */
-  @SuppressWarnings("unchecked")
   private void populateMembers(Group group, Map<GroupKey, Membership> groups,
       Map<UserKey, Membership> users, Session session) throws RepositoryException {
     for (Iterator<Authorizable> igm = group.getDeclaredMembers(); igm.hasNext();) {
@@ -716,7 +715,6 @@ public class SiteServiceImpl implements SiteService {
    * @throws ValueFormatException
    * @see org.sakaiproject.nakamura.api.site.SiteService#getMembership(org.apache.jackrabbit.api.security.user.User)
    */
-  @SuppressWarnings("unchecked")
   public Map<String, List<Group>> getMembership(Session session, String user) throws SiteException {
     try {
       Map<String, List<Group>> sites = Maps.newHashMap();

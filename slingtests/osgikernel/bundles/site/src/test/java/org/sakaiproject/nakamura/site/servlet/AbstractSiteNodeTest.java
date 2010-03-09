@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.security.AccessControlManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +41,8 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
 
   protected Resource resource;
   protected Node node;
+
+  protected AccessControlManager accessControlManager;
 
   protected void setSiteGroups(String[] groups) throws RepositoryException {
     expect(node.hasProperty(eq(SiteService.AUTHORIZABLE))).andReturn(true).anyTimes();
@@ -57,6 +60,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
   protected void goodSiteNodeSetup() throws RepositoryException {
     goodResourceResolverSetup();
     node = createNiceMock(Node.class);
+    accessControlManager = createNiceMock(AccessControlManager.class);
     expect(resource.adaptTo(eq(Node.class))).andReturn(node);
     expect(node.hasProperty(eq(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))).andReturn(true)
         .anyTimes();
@@ -66,6 +70,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
         resourceType).anyTimes();
     expect(node.getPath()).andReturn(SITE_PATH).anyTimes();
     expect(node.getSession()).andReturn(session).anyTimes();
+    expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
   }
   
   @Test

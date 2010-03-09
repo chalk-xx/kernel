@@ -22,7 +22,6 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,8 +75,11 @@ public class SearchUtil {
    * @return
    */
   public static int getHits(QueryResult rs) throws SearchException {
-    QueryHitsExtractor extr = new QueryHitsExtractor(rs);
-    return extr.getHits();
+    //QueryHitsAdapter qha = new QueryHitsAdapter(hits, selectorName)
+    //QueryHitsExtractor extr = new QueryHitsExtractor(rs);
+    //return extr.getHits();
+    // FIXME: the above needs porting to 
+    return -1; 
   }
 
   /**

@@ -47,6 +47,7 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.query.RowIterator;
+import javax.jcr.security.AccessControlManager;
 import javax.jcr.version.VersionException;
 
 /**
@@ -75,6 +76,8 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
 
+    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
+    expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
