@@ -102,8 +102,8 @@ public class ConnectionUtils {
 
     StringBuilder sb = new StringBuilder();
     sb.append(getConnectionPathBase(user));
-    sb.append(PathUtils.getSubPath(targetUser)).append("/").append(remainderPath);
-    return sb.toString();
+    sb.append(PathUtils.getSubPath(targetUser)).append(remainderPath);
+    return PathUtils.normalizePath(sb.toString());
   }
 
   /**

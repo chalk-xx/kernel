@@ -342,6 +342,6 @@ public class PathUtils {
     } else if (o instanceof SubPathProducer) {
       sub = ((SubPathProducer) o).getSubPath();
     }
-    return sub;
+    return PathUtils.normalizePath(sub);
   }
 }

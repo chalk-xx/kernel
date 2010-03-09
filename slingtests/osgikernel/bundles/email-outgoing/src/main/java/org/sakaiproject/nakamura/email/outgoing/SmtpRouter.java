@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.email.outgoing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -76,9 +77,10 @@ public class SmtpRouter implements MessageRouter {
       if (rcptNotNull && transportNullOrInternal) {
         // check the user's profile for message delivery preference. if the
         // preference is set to smtp, change the transport to 'smtp'.
-        String profilePath = PersonalUtils.getProfilePath(rcpt);
         try {
           Session session = slingRepository.loginAdministrative(null);
+          Authorizable user = PersonalUtils.getAuthorizable(session, rcpt);
+          String profilePath = PersonalUtils.getProfilePath(user);
           Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
 
           boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
