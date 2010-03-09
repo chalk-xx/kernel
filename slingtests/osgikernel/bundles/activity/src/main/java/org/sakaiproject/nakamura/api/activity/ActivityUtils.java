@@ -66,7 +66,8 @@ public class ActivityUtils {
    * @return
    */
   public static String getUserFeed(Authorizable user) {
-    return PersonalUtils.getHomeFolder(user) + "/" + ActivityConstants.ACTIVITY_FEED_NAME;
+    return PersonalUtils.getPrivatePath(user) + "/"
+        + ActivityConstants.ACTIVITY_FEED_NAME;
   }
 
   /**

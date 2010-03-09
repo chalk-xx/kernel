@@ -35,7 +35,7 @@ public class ActivityUtilsTest {
   @Test
   public void testUserFeed() {
     String user = "admin";
-    String expected = "/_user/private/d0/33/e2/2a/admin/"
+    String expected = "/_user/d0/33/e2/2a/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME;
     String result = ActivityUtils.getUserFeed(user);
     Assert.assertEquals(expected, result);

@@ -19,11 +19,13 @@ package org.sakaiproject.nakamura.activity.routing;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouter;
 import org.sakaiproject.nakamura.api.activity.ActivityUtils;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +64,8 @@ public class PersonalActivityRouter implements ActivityRouter {
     try {
       String actor = activity.getProperty(ActivityConstants.PARAM_ACTOR_ID)
           .getString();
-      String path = ActivityUtils.getUserFeed(actor);
+      Authorizable au = PersonalUtils.getAuthorizable(activity.getSession(), actor);
+      String path = ActivityUtils.getUserFeed(au);
       ActivityRoute route = new AbstractActivityRoute(path) {
       };
       routes.add(route);
