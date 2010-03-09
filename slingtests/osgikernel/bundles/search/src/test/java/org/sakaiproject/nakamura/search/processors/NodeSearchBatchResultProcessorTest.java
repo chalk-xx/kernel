@@ -24,7 +24,6 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.search.AggregateCount;
@@ -33,7 +32,6 @@ import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import java.io.StringWriter;
 
 import javax.jcr.Node;
-import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -85,7 +83,8 @@ public class NodeSearchBatchResultProcessorTest extends AbstractEasyMockTest {
     
     String output = stringWriter.toString();
     Assert.assertTrue(output.length() > 0);
-    JSONObject jsonO = new JSONObject(output);
+    // Make sure that the output is valid JSON.
+    new JSONObject(output);
 
     verify();
   }

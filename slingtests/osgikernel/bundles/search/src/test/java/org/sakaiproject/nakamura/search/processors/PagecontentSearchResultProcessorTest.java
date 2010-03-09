@@ -82,7 +82,8 @@ public class PagecontentSearchResultProcessorTest extends AbstractEasyMockTest {
     
     String output = stringWriter.toString();
     Assert.assertTrue(output.length() > 0);
-    JSONObject jsonO = new JSONObject(output);
+    // Make sure that the output is valid JSON.
+    new JSONObject(output);
     
     
     verify();
