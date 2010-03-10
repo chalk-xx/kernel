@@ -263,7 +263,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
 
   private void deleteProfileNode(Session session, Authorizable athorizable)
       throws RepositoryException {
-    if (athorizable != null) { 
+    if (athorizable != null) {
       String path = PersonalUtils.getProfilePath(athorizable);
       if (session.itemExists(path)) {
         Node node = (Node) session.getItem(path);
