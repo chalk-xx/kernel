@@ -77,7 +77,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
-
+    
+    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
+    expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
     Authorizable adminUser = createAuthorizable("admin", false, true);
     Authorizable anonUser = createAuthorizable("anonymous", false, true);
     UserManager um = createUserManager(null, true, adminUser, anonUser);
