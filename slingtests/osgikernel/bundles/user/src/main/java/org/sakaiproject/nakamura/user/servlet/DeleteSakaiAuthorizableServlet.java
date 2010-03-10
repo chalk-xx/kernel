@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet;

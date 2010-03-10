@@ -94,29 +94,32 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @param changes
    * @throws Exception
    */
-  public void process(Authorizable athorizable, Session session, SlingHttpServletRequest request,
-      List<Modification> changes) throws Exception {
+  public void process(Authorizable athorizable, Session session,
+      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
+    if ( athorizable == null ) {
+      return;
+    }
     try {
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-            createPrivate(session, athorizable);
-            Node profileNode = createProfile(session, athorizable, false);
-            updateProperties(session, profileNode, athorizable, changes);
-          fireEvent(request, athorizable.getID(), changes);
+        createPrivate(session, athorizable);
+        Node profileNode = createProfile(session, athorizable, false);
+        updateProperties(session, profileNode, athorizable, changes);
+        fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-            createPrivate(session, athorizable);
-            Node profileNode = createProfile(session, athorizable, true);
-            updateProperties(session, profileNode, athorizable, changes);
-          fireEvent(request, athorizable.getID(), changes);
+        createPrivate(session, athorizable);
+        Node profileNode = createProfile(session, athorizable, true);
+        updateProperties(session, profileNode, athorizable, changes);
+        fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-          createPrivate(session, athorizable);
-          Node profileNode = createProfile(session, athorizable, false);
-          updateProperties(session, profileNode, athorizable, changes);
+        createPrivate(session, athorizable);
+        Node profileNode = createProfile(session, athorizable, false);
+        updateProperties(session, profileNode, athorizable, changes);
         fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-          createPrivate(session, athorizable);
-          Node profileNode = createProfile(session, athorizable, true);
-          updateProperties(session, profileNode, athorizable, changes);
+        createPrivate(session, athorizable);
+        Node profileNode = createProfile(session, athorizable, true);
+        updateProperties(session, profileNode, athorizable, changes);
         fireEvent(request, athorizable.getID(), changes);
       }
     } catch (Exception ex) {
@@ -134,8 +137,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @throws PathNotFoundException
    */
   private void updateProperties(Session session, Node profileNode,
-      Authorizable athorizable, List<Modification> changes)
-      throws RepositoryException {
+      Authorizable athorizable, List<Modification> changes) throws RepositoryException {
 
     for (Modification m : changes) {
       String dest = m.getDestination();
@@ -174,14 +176,15 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     // copy the non blacklist set of properties into the users profile.
     if (athorizable != null) {
       // explicitly add protected properties form the authorizable
-      if ( !profileNode.hasProperty("rep:userId") ) {
+      if (!profileNode.hasProperty("rep:userId")) {
         Property useridProp = profileNode.setProperty("rep:userId", athorizable.getID());
         changes.add(Modification.onModified(useridProp.getPath()));
       }
       Iterator<?> inames = athorizable.getPropertyNames();
       while (inames.hasNext()) {
         String propertyName = (String) inames.next();
-        // No need to copy in jcr:* properties, otherwise we would copy over the uuid which could lead to a lot of confusion.
+        // No need to copy in jcr:* properties, otherwise we would copy over the uuid
+        // which could lead to a lot of confusion.
         if (!propertyName.startsWith("jcr:") && !propertyName.startsWith("rep:")) {
           if (!privateProperties.contains(propertyName)) {
             Value[] v = athorizable.getProperty(propertyName);
@@ -197,7 +200,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             }
           }
         } else {
-          LOGGER.debug("Not Updating {}",propertyName);
+          LOGGER.debug("Not Updating {}", propertyName);
         }
       }
     }
@@ -223,19 +226,21 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
       profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
     }
-    
-    addEntry(profileNode.getParent().getPath(), athorizable.getPrincipal(), session, READ_GRANTED, WRITE_GRANTED,
-        REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-        REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED );
+
+    addEntry(profileNode.getParent().getPath(), athorizable.getPrincipal(), session,
+        READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
+        MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED,
+        NODE_TYPE_MANAGEMENT_GRANTED);
     return profileNode;
   }
-  
+
   private Node createPrivate(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String privatePathCreated = PersonalUtils.getPrivatePath(athorizable.getID(), "created");
+    String privatePathCreated = PersonalUtils.getPrivatePath(athorizable.getID(),
+        "created");
     if (session.itemExists(privatePathCreated)) {
       return (Node) session.getItem(privatePathCreated).getParent();
-    } 
+    }
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal anon = new Principal() {
       public String getName() {
@@ -243,26 +248,28 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       }
     };
     Principal everyone = principalManager.getEveryone();
-    
+
     Node createdNode = JcrUtils.deepGetOrCreateNode(session, privatePathCreated);
     createdNode.setProperty(UserConstants.JCR_CREATED_BY, athorizable.getID());
     Node privateNode = createdNode.getParent();
     String privateNodePath = privateNode.getPath();
-    addEntry(privateNodePath, athorizable.getPrincipal(), session, READ_GRANTED, WRITE_GRANTED,
-          REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-          REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
+    addEntry(privateNodePath, athorizable.getPrincipal(), session, READ_GRANTED,
+        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
     // explicitly deny anon and everyone, this is private space.
-    addEntry(privateNodePath, anon, session,READ_DENIED, WRITE_DENIED );
-    addEntry(privateNodePath, everyone, session, READ_DENIED, WRITE_DENIED );
+    addEntry(privateNodePath, anon, session, READ_DENIED, WRITE_DENIED);
+    addEntry(privateNodePath, everyone, session, READ_DENIED, WRITE_DENIED);
     return privateNode;
   }
-  
+
   private void deleteProfileNode(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(athorizable.getID());
-    if (session.itemExists(path)) {
-      Node node = (Node) session.getItem(path);
-      node.remove();
+    if (athorizable != null) { 
+      String path = PersonalUtils.getProfilePath(athorizable.getID());
+      if (session.itemExists(path)) {
+        Node node = (Node) session.getItem(path);
+        node.remove();
+      }
     }
   }
 
@@ -304,16 +311,16 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         if (AuthorizableEventUtil.isAuthorizableModification(m)) {
           LOGGER.info("Got Authorizable modification: " + m);
           switch (m.getType()) {
-            case COPY:
-            case CREATE:
-            case DELETE:
-            case MOVE:
-              LOGGER.debug("Ignoring unknown modification type: " + m.getType());
-              break;
-            case MODIFY:
-              eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(m));
-              break;
-            }
+          case COPY:
+          case CREATE:
+          case DELETE:
+          case MOVE:
+            LOGGER.debug("Ignoring unknown modification type: " + m.getType());
+            break;
+          case MODIFY:
+            eventAdmin.postEvent(AuthorizableEventUtil.newGroupEvent(m));
+            break;
+          }
         } else if (path.endsWith(principalName)) {
           switch (m.getType()) {
           case COPY:
