@@ -19,7 +19,7 @@ module SlingUsers
     # Get the home folder of a user.
     def home_folder_for()
       sha1 = Digest::SHA1.hexdigest(@name)
-      path = "/_user/" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + name
+      path = "/_user/" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + name.gsub(/-/,'_')
       return path
     end
     

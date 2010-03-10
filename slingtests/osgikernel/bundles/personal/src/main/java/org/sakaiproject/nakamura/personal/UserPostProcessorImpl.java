@@ -249,7 +249,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     Principal everyone = principalManager.getEveryone();
 
     Node createdNode = JcrUtils.deepGetOrCreateNode(session, privatePathCreated);
-    createdNode.setProperty(UserConstants.JCR_CREATED_BY, athorizable.getID());
     Node privateNode = createdNode.getParent();
     String privateNodePath = privateNode.getPath();
     addEntry(privateNodePath, athorizable.getPrincipal(), session, READ_GRANTED,
