@@ -35,7 +35,7 @@ class TC_MyMessageTest < SlingTest
 	puts(message)
 	assert_not_nil( message['id'],"Expected to be given a location ")
 	messageid = message['id']
-	messagelocation = "http://localhost:8080/_user/message/"+messageid+".json"	
+	messagelocation = "http://localhost:8080"+a.message_path_for(messageid)+".json"	
 	puts("==========getting location" + messagelocation)
 	res = @s.execute_get(messagelocation)
 	assert_equal("200",res.code,"Expected to get Inbox Ok")
@@ -76,6 +76,9 @@ class TC_MyMessageTest < SlingTest
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
 
     @s.switch_user(n)	
+	messagelocation = "http://localhost:8080"+n.message_path_for(messageid)+".json"	
+
+        
 	puts("==========getting location" + messagelocation)
 	res = @s.execute_get(messagelocation)
 	assert_equal("200",res.code,"Expected to get Inbox Ok")
@@ -114,6 +117,7 @@ class TC_MyMessageTest < SlingTest
 	assert_equal(0,box["total"],"Should have given 0 entry in the outbox for nico");
 
     @s.switch_user(a)	
+	messagelocation = "http://localhost:8080"+a.message_path_for(messageid)+".json"	
 	res = @mm.list_inbox()
 	assert_equal("200", res.code, "Expected to be able to list the outbox")
 	puts("List Of the Inbox for user aaron 0 entries")

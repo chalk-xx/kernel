@@ -11,14 +11,14 @@ module SlingMessage
     end
 
     def create(name, type, box = "drafts", props = {})
-      home = @sling.get_user().home_folder_for()
-      return @sling.execute_post(@sling.url_for("#{home}/message.create.html"), props.update("sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => box))
+      @home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{@home}/message.create.html"), props.update("sakai:type" => type, "sakai:to" => name, "sakai:sendstate" => "pending", "sakai:messagebox" => box))
     end
  
     def send(messageId)
       sha1 = Digest::SHA1.hexdigest(messageId)
       path = "" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + messageId
-      return @sling.execute_post(@sling.url_for("#{home}/message/#{path}.html"), "sakai:messagebox" => "outbox" )
+      return @sling.execute_post(@sling.url_for("#{@home}/message/#{path}.html"), "sakai:messagebox" => "outbox" )
     end
 
     def list_all_noopts()

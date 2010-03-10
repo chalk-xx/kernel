@@ -32,6 +32,11 @@ module SlingUsers
     def private_path_for()
       return home_folder_for() + "/private"
     end
+    
+    def message_path_for(messageid)
+      sha1 = Digest::SHA1.hexdigest(messageid)
+      return home_folder_for() + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
+    end
 
   end
   
