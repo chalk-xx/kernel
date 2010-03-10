@@ -189,9 +189,6 @@ public class SiteAuthz {
     JcrResourceUtil.setProperty(site, SiteService.AUTHORIZABLE, membershipGroups
         .toArray(new String[membershipGroups.size()]));
 
-    // Apply standard ACLs to site node.
-    applyStandardAccessRules();
-
     // Apply default access scheme to site node.
     JSONObject defaultProperties = getAuthzConfig().optJSONObject("defaultProperties");
     if (defaultProperties != null) {
@@ -204,6 +201,8 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
       applyAuthzChanges();
+    } else {
+      applyStandardAccessRules();
     }
   }
 
@@ -243,6 +242,11 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
     }
+
+    // Re-apply standard ACLs to site node to position them as most recent.
+    // Otherwise they might be functionally overwritten due to ordered
+    // ACL provision.
+    applyStandardAccessRules();
   }
 
   private boolean applyAccessScheme(String accessSchemeName, JSONObject accessSchemes)
