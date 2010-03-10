@@ -15,6 +15,23 @@ module SlingUsers
     def initialize(name)
       @name = name
     end
+    
+    # Get the home folder of a user.
+    def home_folder_for()
+      sha1 = Digest::SHA1.hexdigest(@name)
+      path = "/_user/" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + name
+      return path
+    end
+    
+    # Get the public path for a user
+    def public_path_for()
+      return home_folder_for() + "/public"
+    end
+    
+    # Get the private path for a user
+    def private_path_for()
+      return home_folder_for() + "/private"
+    end
 
   end
   
@@ -136,28 +153,6 @@ module SlingUsers
       sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
     end
     
-    # Get the home folder of a user.
-    def self.home_folder_for(name)
-      sha1 = Digest::SHA1.hexdigest(name)
-      path = "/_user/" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + name
-      return path
-    end
-    
-    # Get the public path for a user
-    def self.public_path_for(name)
-      return home_folder_for(name) + "/public"
-    end
-    
-    # Get the private path for a user
-    def self.private_path_for(name)
-      return home_folder_for(name) + "/private"
-    end
-    
-    # Get the contact store path for a user
-    def self.public_path_for(name)
-      return home_folder_for(name) + "/contacts"
-    end
-
     def self.url_for(name)
       return "#{$USERMANAGER_URI}user/#{name}"
     end

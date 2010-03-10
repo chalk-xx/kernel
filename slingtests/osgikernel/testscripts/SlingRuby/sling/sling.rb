@@ -228,6 +228,10 @@ module SlingInterface
       result = execute_post(url_for(path), params.update("jcr:createdBy" => @user.name))
     end
     
+    def get_user()
+      return @user
+    end
+    
     def get_node_props_json(path)
       puts "Getting props for path: #{path}" if @debug
       result = execute_get(url_for("#{path}.json"))

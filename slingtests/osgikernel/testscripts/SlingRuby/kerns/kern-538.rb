@@ -17,10 +17,10 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create foo node in private store
-    @s.execute_post(@s.url_for("_user/private/foo"), {"foo" => "bar"})
+    @s.execute_post(@s.url_for("#{treeuser.private_path_for()}/foo"), {"foo" => "bar"})
     
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "_user/private/foo")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for()}/foo")
     
     #Assertions
     default_asserts(jsonRes)
@@ -32,12 +32,12 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create foo node in private store
-    @s.execute_post(@s.url_for("_user/private/foo"), {"foo" => "bar"})
+    @s.execute_post(@s.url_for("#{treeuser.private_path_for()}/foo"), {"foo" => "bar"})
     
     # Create the default tree
     tree = default_tree()
     tree["foo"]["jcr:primaryType"] = "nt:file"
-    jsonRes = create_tree(tree, "_user/private/foo")
+    jsonRes = create_tree(tree, "#{treeuser.private_path_for()}/foo")
     
     #Assertions
     default_asserts(jsonRes)
@@ -49,7 +49,7 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "_user/private/test")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for()}/test")
     
     #Assertions
     default_asserts(jsonRes)    

@@ -34,36 +34,38 @@ class TC_MyFileTest < SlingTest
     assert_equal(200, res.code.to_i(), "Expected to get the site information.")
     site = JSON.parse(res.body)
     
+    publicSimon = simon.public_path_for()
+    
     # Upload a couple of files to the user his public space.
-    res = @s.execute_file_post(@s.url_for("_user/public/simon#{m}/files"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")
+    res = @s.execute_file_post(@s.url_for("#{publicSimon}/files"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")
     assert_equal(201, res.code.to_i(), "Expected to be able to upload a file.")    
-    res = @s.execute_file_post(@s.url_for("_user/public/simon#{m}/files"), "beta", "beta", "This is some random content: betabeta.", "text/plain")
+    res = @s.execute_file_post(@s.url_for("#{publicSimon}/files"), "beta", "beta", "This is some random content: betabeta.", "text/plain")
     # This will return modified..
     assert_equal(200, res.code.to_i(), "Expected to be able to upload a file.")
     
     # Create a tag.
-    res = @ff.createTag("foobar", "_user/public/simon#{m}/tags/footag")
+    res = @ff.createTag("foobar", "#{publicSimon}/tags/footag")
     assert_equal(201, res.code.to_i(), "Expected to be able to create a tag.")
     # Get tag info
-    res = @s.execute_get(@s.url_for("_user/public/simon#{m}/tags/footag.json"))
+    res = @s.execute_get(@s.url_for("#{publicSimon}/tags/footag.json"))
     tag = JSON.parse(res.body)
     assert_not_nil(tag, "No response when creating a tag.")
     assert_not_nil(tag['jcr:uuid'], "Expected a uuid for a tag.")
     
     # Tag the alfa file.
-    res = @ff.tag("_user/public/simon#{m}/files/alfa", tag['jcr:uuid'])
+    res = @ff.tag("#{publicSimon}/files/alfa", tag['jcr:uuid'])
     assert_equal(200, res.code.to_i(), "Expected to be able to tag an uploaded file.")
     
     # Tag a file with a non-existing tag.
-    res = @ff.tag("_user/public/simon#{m}/files/alfa", "foobar")
+    res = @ff.tag("#{publicSimon}/files/alfa", "foobar")
     assert_equal(400, res.code.to_i(), "Tagging something with a non existing tag should return 400.")
     
     # Link a file 
-    res = @ff.createlink("_user/public/simon#{m}/files/alfa", "/sites/simon#{m}/_files/alfa", nil)
+    res = @ff.createlink("#{publicSimon}/files/alfa", "/sites/simon#{m}/_files/alfa", nil)
     assert_equal(200, res.code.to_i(), "Expected to be able to link this thing.")
     
     # Link a file and associate it with a site.
-    res = @ff.createlink("_user/public/simon#{m}/files/alfa", "/sites/simon#{m}/_files/alfa", site['jcr:uuid'])
+    res = @ff.createlink("#{publicSimon}/files/alfa", "/sites/simon#{m}/_files/alfa", site['jcr:uuid'])
     assert_equal(200, res.code.to_i(), "Expected to be able to link this file.")
     
     

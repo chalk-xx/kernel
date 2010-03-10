@@ -19,11 +19,12 @@ class TC_Kern568Test < SlingTest
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
-    firstres = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"))
+    home = user.home_folder_for()
+    firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"))
     assert_equal(200, firstres.code.to_i)
 
     params = {"t" => "invalid"}
-    res = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
+    res = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     assert_equal(200, res.code.to_i)
   end
 
@@ -33,7 +34,7 @@ class TC_Kern568Test < SlingTest
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
-    firstres = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"))
+    firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"))
     assert_equal(200, firstres.code.to_i)
 
     sleep(1)
@@ -45,7 +46,7 @@ class TC_Kern568Test < SlingTest
     expected = now.xmlschema(3)
 
     params = {"t" => msec}
-    res = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
+    res = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     json = JSON.parse(res.body)
     assert_equal(expected, json["pulltime"])
   end
@@ -67,13 +68,13 @@ class TC_Kern568Test < SlingTest
     schematime = time.xmlschema(3)
     params = {"t" => sec * 1000 }
 
-    firstres = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
+    firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     json = JSON.parse(firstres.body)
     assert_equal(true, json["update"], "First check should always force update")
     assert_not_equal(schematime, json["pulltime"], "First check should not return an arbitrary timestamp")
 
     # On second request for the same time, we should see false
-    res = @s.execute_get(@s.url_for("/_user/message.chatupdate.json"), params)
+    res = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     json = JSON.parse(res.body)
     assert_equal(false, json["update"], "Second check should not force update")
     assert_equal(schematime, json["pulltime"], "Second check should return specified pulltime")

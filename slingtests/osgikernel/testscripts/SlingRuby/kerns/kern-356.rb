@@ -120,7 +120,7 @@ class Kern356Test < SlingTest
 	u1 = create_user(user1)
 	u2 = create_user(user2)
   	@s.switch_user(u1)
-	res = @s.execute_post(@s.url_for("_user/private/GetAllProfilesTest"+m+".html"),"testprop" => "testset")
+	res = @s.execute_post(@s.url_for("#{u1.private_path_for()}/GetAllProfilesTest"+m+".html"),"testprop" => "testset")
 	assert_equal("201",res.code,"Expected to be able to Create a private node "+res.body)
 	res = @s.execute_get(@s.url_for("_user.tidy.infinity.json"))
         if ( res.code != "200" && res.code != "300" )

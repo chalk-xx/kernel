@@ -18,27 +18,33 @@ module SlingContacts
     end
  
     def accept_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.accept.html"), {})
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.accept.html"), {"targetUserId" => name})
     end
 
     def reject_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.reject.html"), {})
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.reject.html"), {"targetUserId" => name})
     end
 
     def ignore_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.ignore.html"), {})
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.ignore.html"), {"targetUserId" => name})
     end
 
     def block_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.block.html"), {})
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.block.html"), {"targetUserId" => name})
     end
 
     def remove_contact(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.remove.html"), {})
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.remove.html"), {"targetUserId" => name})
     end
 
     def cancel_invitation(name)
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.cancel.html"))
+      home = @sling.get_user().home_folder_for()
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.cancel.html"), {"targetUserId" => name})
     end
 
 

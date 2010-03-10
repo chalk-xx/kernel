@@ -46,7 +46,6 @@ class TC_Kern345Test < SlingTest
     puts "About to remove contact"
     cm.remove_contact(u1.name)
     puts "Afterwards..."
-    contacts = @s.get_node_props("/_user/contacts/all")
     assert_equal(0, cm.get_all()["results"].length, "Should have removed all contacts")
     @s.switch_user(u1)
     cm.invite_contact(u2.name, ["colleague"])

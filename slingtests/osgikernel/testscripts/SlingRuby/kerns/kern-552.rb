@@ -12,8 +12,9 @@ include SlingAuthz
 
 class TC_KernMeTest < SlingTest
   
-  def set_first_name(name, userid)
-    path = "_user/public/#{userid}/authprofile"
+  def set_first_name(name, user)
+    public = user.public_path_for()
+    path = "#{public}/authprofile"
     props = {"firstName" => name, "_charset_" => "UTF-8"}
     @s.execute_post(@s.url_for(path), props)
   end
@@ -33,7 +34,7 @@ class TC_KernMeTest < SlingTest
     
     # Safe characters
     characters = "foobar"
-    set_first_name(characters, user.name)
+    set_first_name(characters, user)
     json = get_system_me()
     
     # Check if name is correct.
@@ -41,7 +42,7 @@ class TC_KernMeTest < SlingTest
     
     # Non-safe
     characters = "ççççç"
-    set_first_name(characters, user.name)
+    set_first_name(characters, user)
     json = get_system_me()
     
     # Check if name is correct.
