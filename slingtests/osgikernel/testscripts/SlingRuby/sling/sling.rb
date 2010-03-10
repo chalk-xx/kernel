@@ -225,7 +225,7 @@ module SlingInterface
     end
     
     def create_node(path, params)
-      result = execute_post(url_for(path), params.update("jcr:createdBy" => @user.name))
+      result = execute_post(url_for(path), params)
     end
     
     def get_user()
