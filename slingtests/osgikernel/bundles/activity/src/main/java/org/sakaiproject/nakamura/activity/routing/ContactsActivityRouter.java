@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.activity.routing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
