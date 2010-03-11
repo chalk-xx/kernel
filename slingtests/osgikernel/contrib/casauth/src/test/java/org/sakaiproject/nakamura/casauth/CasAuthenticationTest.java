@@ -8,6 +8,11 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertTrue;
 
+import java.security.Principal;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
+
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -16,17 +21,12 @@ import org.junit.Test;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 
-import java.security.Principal;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.SimpleCredentials;
-
 public class CasAuthenticationTest {
 
   @Test
   public void testAuthenticate() throws RepositoryException {
     SimpleCredentials sc = new SimpleCredentials("foo", new char[0]);
-    Principal principal = new CasAuthenticationHandler().getPrincipal(sc);
+    Principal principal = new CasLoginModulePlugin().getPrincipal(sc);
 
     Authorizable authorizable = createMock(Authorizable.class);
 
@@ -50,7 +50,7 @@ public class CasAuthenticationTest {
   @Test
   public void testAuthenticateNewUser() throws RepositoryException {
     SimpleCredentials sc = new SimpleCredentials("foo", new char[0]);
-    Principal principal = new CasAuthenticationHandler().getPrincipal(sc);
+    Principal principal = new CasLoginModulePlugin().getPrincipal(sc);
 
     UserManager um = createMock(UserManager.class);
     expect(um.getAuthorizable("foo")).andReturn(null);

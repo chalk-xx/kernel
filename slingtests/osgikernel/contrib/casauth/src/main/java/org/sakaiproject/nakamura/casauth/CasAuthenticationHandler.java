@@ -17,16 +17,19 @@
  */
 package org.sakaiproject.nakamura.casauth;
 
+import java.io.IOException;
+import java.util.Dictionary;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.engine.auth.AuthenticationHandler;
-import org.apache.sling.engine.auth.AuthenticationInfo;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.apache.sling.commons.auth.spi.AuthenticationHandler;
+import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.jasig.cas.client.authentication.DefaultGatewayResolverImpl;
 import org.jasig.cas.client.authentication.GatewayResolver;
 import org.jasig.cas.client.util.CommonUtils;
@@ -37,28 +40,9 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-
-import javax.jcr.Credentials;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.login.FailedLoginException;
-import javax.security.auth.login.LoginException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-@Component(immediate = false, label = "%auth.cas.name", description = "%auth.cas.description", enabled = false, metatype = true)
+@Component(immediate = true, label = "%auth.cas.name", description = "%auth.cas.description", enabled = true, metatype = true)
 @Service
-public final class CasAuthenticationHandler implements AuthenticationHandler,
-    LoginModulePlugin {
+public final class CasAuthenticationHandler implements AuthenticationHandler {
 
   @Property(value = "https://localhost:8443")
   protected static final String serverName = "auth.cas.server.name";
@@ -66,14 +50,16 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
   @Property(value = "https://localhost:8443/cas/login")
   protected static final String loginUrl = "auth.cas.server.login";
 
+  @Property(value = "")
+  protected static final String logoutUrl = "auth.cas.server.logout";
+
   /**
    * Path on which this authentication should be activated.
    */
   @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
-  @Reference
-  private SlingRepository repository;
+  @Property(name = org.osgi.framework.Constants.SERVICE_RANKING, value = "5")
 
   /** Defines the parameter to look for for the service. */
   private String serviceParameterName = "service";
@@ -95,28 +81,31 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
 
   private String casServerLoginUrl = null;
 
+  private String casServerLogoutUrl = null;
+
   public static final String AUTH_TYPE = CasAuthenticationHandler.class.getName();
 
-  public AuthenticationInfo authenticate(HttpServletRequest request,
+  public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    final HttpSession session = request.getSession(false);
+    if (session != null) {
+      session.invalidate();
+    }
+    if (casServerLogoutUrl != null && !casServerLogoutUrl.equals("")) {
+      response.sendRedirect(casServerLogoutUrl);
+    }
+  }
+
+  public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
-    LOGGER.debug("authenticate called");
+    LOGGER.debug("extractCredentials called");
     AuthenticationInfo authnInfo = null;
-    // See if we already have auth info on the request
     final HttpSession session = request.getSession(false);
     final Assertion assertion = session != null ? (Assertion) session
         .getAttribute(CONST_CAS_ASSERTION) : null;
     if (assertion != null) {
       LOGGER.debug("assertion found");
       authnInfo = createAuthnInfo(assertion);
-      // See if the user requested forced auth
-    } else if (isForcedAuth(request)) {
-      try {
-        redirectToCas(request, response);
-        authnInfo = AuthenticationInfo.DOING_AUTH;
-      } catch (IOException e) {
-        LOGGER.error(e.getMessage(), e);
-      }
-      // See if the user is already authenticated through CAS
     } else {
       final String serviceUrl = constructServiceUrl(request, response);
       final String ticket = CommonUtils.safeGetParameter(request, artifactParameterName);
@@ -133,28 +122,18 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
     return authnInfo;
   }
 
-  private boolean isForcedAuth(HttpServletRequest request) {
-    return (request.getParameter("sling:authRequestLogin") != null);
-  }
-
-  @SuppressWarnings("unchecked")
-  private AuthenticationInfo createAuthnInfo(final Assertion assertion) {
-    AuthenticationInfo authnInfo;
-    SimpleCredentials creds = new SimpleCredentials(assertion.getPrincipal().getName(),
-        new char[0]);
-    Map<String, String> attribs = assertion.getAttributes();
-    for (Entry<String, String> e : attribs.entrySet()) {
-      creds.setAttribute(e.getKey(), e.getValue());
-    }
-    authnInfo = new AuthenticationInfo(AUTH_TYPE, creds);
-    return authnInfo;
-  }
-
-  public boolean requestAuthentication(HttpServletRequest request,
+  public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
-    LOGGER.debug("requestAuthentication called");
+    LOGGER.debug("requestCredentials called");
     redirectToCas(request, response);
     return true;
+  }
+
+  private AuthenticationInfo createAuthnInfo(final Assertion assertion) {
+    AuthenticationInfo authnInfo;
+    String username = assertion.getPrincipal().getName();
+    authnInfo = new AuthenticationInfo(AUTH_TYPE, username);
+    return authnInfo;
   }
 
   private void redirectToCas(HttpServletRequest request, HttpServletResponse response)
@@ -206,45 +185,6 @@ public final class CasAuthenticationHandler implements AuthenticationHandler,
     Dictionary properties = context.getProperties();
     casServerUrl = (String) properties.get(serverName);
     casServerLoginUrl = (String) properties.get(loginUrl);
-  }
-
-  @SuppressWarnings("unchecked")
-  public void addPrincipals(Set principals) {
-    // Nothing to do
-
-  }
-
-  public boolean canHandle(Credentials credentials) {
-    boolean result = (credentials instanceof SimpleCredentials);
-    return result;
-  }
-
-  @SuppressWarnings("unchecked")
-  public void doInit(CallbackHandler callbackHandler, Session session, Map options)
-      throws LoginException {
-    // Nothing to do
-  }
-
-  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
-      throws RepositoryException {
-    return new CasAuthentication(principal, repository);
-  }
-
-  public Principal getPrincipal(Credentials credentials) {
-    CasPrincipal user = null;
-    if (credentials != null && credentials instanceof SimpleCredentials) {
-      SimpleCredentials sc = (SimpleCredentials) credentials;
-      user = new CasPrincipal(sc.getUserID());
-    }
-    return user;
-  }
-
-  public int impersonate(Principal principal, Credentials credentials)
-      throws RepositoryException, FailedLoginException {
-    return LoginModulePlugin.IMPERSONATION_DEFAULT;
-  }
-
-  protected void bindRepository(SlingRepository repository) {
-    this.repository = repository;
+    casServerLogoutUrl = (String) properties.get(logoutUrl);
   }
 }
