@@ -17,6 +17,7 @@
 package org.sakaiproject.nakamura.user.servlet;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -44,6 +45,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.slf4j.Logger;
@@ -59,6 +61,7 @@ import java.util.Set;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -280,6 +283,10 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                         return principalName;
                     }
                 });
+                ItemBasedPrincipal p = (ItemBasedPrincipal) group.getPrincipal();
+                ValueFactory vf = session.getValueFactory();
+                group.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.GROUP_REPO_LOCATION.length())));
+                LOGGER.info("Group {} created at {} ",p.getName(), p.getPath());
 
                 String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
                     + group.getID();

@@ -8,8 +8,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -146,6 +146,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     Group group = createMock(Group.class);
     User user = createMock(User.class);
+    ItemBasedPrincipal principal = createNiceMock(ItemBasedPrincipal.class);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver rr = createMock(ResourceResolver.class);
@@ -174,6 +175,12 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(session.getUserManager()).andReturn(userManager).times(1);
     expect(group.getID()).andReturn("g-foo").times(2);
     expect(group.isGroup()).andReturn(true);
+    expect(group.getPrincipal()).andReturn(principal);
+    expect(principal.getPath()).andReturn("/rep:security/rep:authorizables/rep:groups/group/path");
+    expect(session.getValueFactory()).andReturn(valueFactory);
+    expect(valueFactory.createValue("/group/path")).andReturn(value);
+    group.setProperty("path", value);
+    expectLastCall();
 
     expect(rr.map("/system/userManager/group/g-foo")).andReturn("");
     expect(rr.map("/system/userManager/group")).andReturn("");

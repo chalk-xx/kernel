@@ -41,6 +41,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -225,6 +227,29 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
         }
         postProcessorTracker.setComponentContext(componentContext);
+
+        // check that the admin and anon users are setup correctly
+        Session session = null;
+        try {
+          session = getSession();
+          ValueFactory vf = session.getValueFactory();
+          UserManager userManager = AccessControlUtil.getUserManager(session);
+          for (String userId : UserConstants.DEFAULT_USERS) {
+            User user = (User) userManager.getAuthorizable(userId);
+            if ( user != null && !user.hasProperty("path")) {
+              user.setProperty("path", vf.createValue(((ItemBasedPrincipal) user
+                  .getPrincipal()).getPath().substring(UserConstants.USER_REPO_LOCATION.length())));
+            }
+          }
+          if ( session.hasPendingChanges()) {
+            session.save();
+          }
+        } catch (RepositoryException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } finally {
+          ungetSession(session);
+        }
     }
 
     /*
@@ -303,6 +328,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
                 User user = userManager.createUser(principalName,
                     digestPassword(pwd));
                 ItemBasedPrincipal p = (ItemBasedPrincipal) user.getPrincipal();
+                ValueFactory vf = selfRegSession.getValueFactory();
+                user.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.USER_REPO_LOCATION.length())));
                 log.info("User {} created at {} ",p.getName(), p.getPath());
 
                 String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX

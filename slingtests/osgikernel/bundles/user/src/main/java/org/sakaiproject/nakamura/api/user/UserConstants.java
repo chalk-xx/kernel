@@ -63,6 +63,13 @@ public interface UserConstants {
   
   public static final String ADMIN_PRINCIPALS_PROPERTY = "sakai:delegatedGroupAdmin";
 
+  public static final String ADMIN_USERID = "admin";
+
+  public static final String[] DEFAULT_USERS = { ANON_USERID, ADMIN_USERID};
+
+  public static final String USER_REPO_LOCATION = "/rep:security/rep:authorizables/rep:users";
+  public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
+
 
   
 }
