@@ -13,8 +13,9 @@ module SlingContacts
         when String
         sharedRelationships = [sharedRelationships]
       end
-      return @sling.execute_post(@sling.url_for("_user/contacts/#{name}.invite.html"), "sakai:types" => sharedRelationships,
-        "fromRelationships" => fromRelationships, "toRelationships" => toRelationships)
+      home = @sling.get_user().home_folder_for(@sling)
+      return @sling.execute_post(@sling.url_for("#{home}/contacts.invite.html"), "sakai:types" => sharedRelationships,
+        "fromRelationships" => fromRelationships, "toRelationships" => toRelationships, "targetUserId" => name)
     end
  
     def accept_contact(name)

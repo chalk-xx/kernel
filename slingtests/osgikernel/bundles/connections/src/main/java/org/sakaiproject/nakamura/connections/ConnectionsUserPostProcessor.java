@@ -75,7 +75,7 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
 
       Node store = JcrUtils.deepGetOrCreateNode(session, path);
       store.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          ConnectionConstants.SAKAI_CONTACT_RT);
+          ConnectionConstants.SAKAI_CONTACTSTORE_RT);
       // ACL's are managed by the Personal User Post processor.
       Principal anon = new Principal() {
 

@@ -66,6 +66,9 @@ public class ConnectionSearchPropertyProvider implements SearchPropertyProvider 
       Authorizable auMe = um.getAuthorizable(user);
       String connectionPath = ISO9075.encodePath(ConnectionUtils
           .getConnectionPathBase(auMe));
+      if ( connectionPath.startsWith("/"))  {
+        connectionPath = connectionPath.substring(1);
+      }
       propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
       String query = getConnectionQuery(request);
       if (query == null) {
