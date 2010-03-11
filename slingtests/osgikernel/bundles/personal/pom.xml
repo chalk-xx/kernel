@@ -41,7 +41,6 @@
             <Private-Package> org.sakaiproject.nakamura.personal.* </Private-Package>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Sling-Nodetypes>SLING-INF/nodetypes/sakai.cnd</Sling-Nodetypes>
-            <Sakai-Initial-Security>SLING-INF/acl/personal-acl.json</Sakai-Initial-Security>
           </instructions>
         </configuration>
       </plugin>

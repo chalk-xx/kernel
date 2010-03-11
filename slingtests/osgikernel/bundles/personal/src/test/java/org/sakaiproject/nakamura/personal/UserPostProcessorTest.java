@@ -8,6 +8,7 @@ import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAG
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -91,23 +92,31 @@ public class UserPostProcessorTest extends AbstractEasyMockTest {
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin/private")).andReturn(
-        true);
-    Node createdNode = createMock(Node.class);
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/private")).andReturn(
-        createdNode);
+    Node underHome = createMock(Node.class);
     
+    // Home folder
+    expect(session.itemExists("/_user/d0/33/e2/2a")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin/private")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin/public")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(true).anyTimes();
+
+    Node homeNode = createMock(Node.class);
     Node privateNode = createMock(Node.class);
-    expect(createdNode.getParent()).andReturn(privateNode);
+    Node publicNode = createMock(Node.class);
+    
+    
+    expect(session.getItem("/_user/d0/33/e2/2a")).andReturn(underHome).anyTimes();
+    expect(session.getItem("/_user/d0/33/e2/2a/admin")).andReturn(homeNode).anyTimes();
+    expect(session.getItem("/_user/d0/33/e2/2a/admin/private")).andReturn(privateNode).anyTimes();
+    expect(session.getItem("/_user/d0/33/e2/2a/admin/public")).andReturn(publicNode).anyTimes();
+    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(
+        profileNode).anyTimes();
 
     expect(session.getUserManager()).andReturn(userManager);
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(
-        true);
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(
-        profileNode);
-
     
-
+    PrincipalManager principalManager = createNiceMock(PrincipalManager.class);
+    expect(session.getPrincipalManager()).andReturn(principalManager);
 
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.adaptTo(Session.class)).andReturn(session);

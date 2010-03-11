@@ -47,6 +47,7 @@ import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
@@ -236,10 +237,26 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
           UserManager userManager = AccessControlUtil.getUserManager(session);
           for (String userId : UserConstants.DEFAULT_USERS) {
             User user = (User) userManager.getAuthorizable(userId);
-            if ( user != null && !user.hasProperty("path")) {
-              user.setProperty("path", vf.createValue(((ItemBasedPrincipal) user
-                  .getPrincipal()).getPath().substring(UserConstants.USER_REPO_LOCATION.length())));
-            }
+              if (user != null && !user.hasProperty("path")) {
+                user.setProperty("path", vf.createValue(((ItemBasedPrincipal) user
+                    .getPrincipal()).getPath().substring(
+                    UserConstants.USER_REPO_LOCATION.length())));
+              }
+              try {
+                // Let all the processors create the nescecary paths ( home folders, authprofile, ..)
+                List<Modification> changes = new ArrayList<Modification>();
+                SakaiSlingHttpServletRequest request = new SakaiSlingHttpServletRequest(
+                    session, UserConstants.SYSTEM_USER_MANAGER_USER_PATH);
+                log.debug("Looping all the post processors");
+                for (UserPostProcessor userPostProcessor : postProcessorTracker
+                    .getProcessors()) {
+                  log.debug("Processor: {}", userPostProcessor);
+                  userPostProcessor.process(user, session, request, changes);
+                }
+                log.debug("Finished Looping all the post processors");
+              } catch (Exception e) {
+                log.warn(e.getMessage(), e);
+              }
           }
           if ( session.hasPendingChanges()) {
             session.save();
