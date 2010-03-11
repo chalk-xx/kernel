@@ -114,6 +114,8 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
       PropertyIterator propertyIterator = createMock(PropertyIterator.class);
       expect(propertyIterator.hasNext()).andReturn(false);
       expect(profileNode.getProperties()).andReturn(propertyIterator);
+      expect(profileNode.getPath()).andReturn("/profile"+i+"/nodepath").anyTimes();
+      expect(profileNode.getName()).andReturn("profile"+i+"nodename").anyTimes();
       Authorizable au = createAuthorizable(uuid, false, true);
       authorizables.add(au);
       expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
