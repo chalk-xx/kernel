@@ -6,6 +6,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -17,6 +18,8 @@ import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.personal.PersonalConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.message.listener.MessageRoutesImpl;
+
+import java.security.Principal;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
@@ -99,10 +102,17 @@ public class SmtpRouterTest {
 
     UserManager um = createMock(UserManager.class);
     expect(um.getAuthorizable(username)).andReturn(au).anyTimes();
+    ItemBasedPrincipal principal = createMock(ItemBasedPrincipal.class);
+    expect(au.getPrincipal()).andReturn(principal).anyTimes();
+    expect(principal.getPath()).andReturn("/rep:system/rep:authorizables/rep:users/f/fo/foo").anyTimes();
+    expect(au.hasProperty("path")).andReturn(true).anyTimes();
+    Value value = createMock(Value.class);
+    expect(au.getProperty("path")).andReturn(new Value[]{value}).anyTimes();
+    expect(value.getString()).andReturn("/f/fo/foo").anyTimes();
     
     expect(session.getUserManager()).andReturn(um).anyTimes();
-    
-    replay(um, au);
+
+    replay(um, au, principal, value);
     
     return au;
   }
