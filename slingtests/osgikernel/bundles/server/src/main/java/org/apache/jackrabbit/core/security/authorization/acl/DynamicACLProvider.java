@@ -117,12 +117,16 @@ public class DynamicACLProvider extends ACLProvider {
     private final Collection<String> principalNames;
     private final List<AccessControlEntry> userAces = new ArrayList<AccessControlEntry>();
     private final List<AccessControlEntry> groupAces = new ArrayList<AccessControlEntry>();
+    private StringBuilder construct;
 
     private Entries(NodeImpl node, Collection<String> principalNames)
         throws RepositoryException {
       this.principalNames = principalNames;
+      if ( LOG.isDebugEnabled() ) {
+        construct = new StringBuilder();
+        construct.append("\nPath:").append(node.getPath());
+      }
       collectEntries(node, node);
-      
     }
 
     private void collectEntries(NodeImpl node, NodeImpl contextNode) throws RepositoryException {
@@ -150,6 +154,10 @@ public class DynamicACLProvider extends ACLProvider {
      *           if an error occurs
      */
     private void collectEntriesFromAcl(NodeImpl aclNode, NodeImpl contextNode) throws RepositoryException {
+      if ( LOG.isDebugEnabled() ) {
+        construct.append(":ACLNode:").append(aclNode.getPath());
+        construct.append("\n");
+      }
       SessionImpl sImpl = (SessionImpl) aclNode.getSession();
       PrincipalManager principalMgr = sImpl.getPrincipalManager();
       AccessControlManager acMgr = sImpl.getAccessControlManager();
@@ -175,6 +183,16 @@ public class DynamicACLProvider extends ACLProvider {
           Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
               .getValues();
           Privilege[] privs = new Privilege[privValues.length];
+          if ( LOG.isDebugEnabled() ) {
+            construct.append("[Matched,");
+            construct.append((princ instanceof Group)?"group,":"user,");
+            construct.append(aceNode
+                .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE)?"grant,":"deny,").append(principalName);
+            for (int i = 0; i < privValues.length; i++) {
+              construct.append(",").append(privValues[i].getString());
+            }
+            construct.append("]\n");
+          }
           for (int i = 0; i < privValues.length; i++) {
             privs[i] = acMgr.privilegeFromName(privValues[i].getString());
           }
@@ -192,6 +210,9 @@ public class DynamicACLProvider extends ACLProvider {
           } else {
             uaces.add(0, ace);
           }
+        } else if ( LOG.isDebugEnabled() ){
+          construct.append("[Ignored,").append(principalName).append("]\n");
+
         }
       }
 
@@ -207,6 +228,7 @@ public class DynamicACLProvider extends ACLProvider {
 
     @SuppressWarnings("unchecked")
     private Iterator<AccessControlEntry> iterator() {
+      LOG.debug("User {} ACE {} ",userId,construct);
       return new IteratorChain(userAces.iterator(), groupAces.iterator());
     }
   }
@@ -220,8 +242,15 @@ public class DynamicACLProvider extends ACLProvider {
      * be included in ACLs until their dynamic/static status has been set, and
      * that setting will not be modified subsequently.
      */
+    if ( LOG.isDebugEnabled()) {
+      try {
+        LOG.debug("Dynamic Principal Resolution for Principal {} on {} context {} for {} ", new Object[] {principalName, aclNode.getPath(), contextNode.getPath(), userId});
+      } catch (RepositoryException e1) {
+        LOG.warn(e1.getMessage(),e1);
+      }
+    }
     if (staticPrincipals.containsKey(principalName)) {
-      LOG.debug("Principal " + principalName + " is cached static - not resolving dynamically");
+      LOG.debug("Principal {} is cached static - not resolving dynamically",principalName );
       return false;
     }
     Session session = aclNode.getSession();
@@ -236,12 +265,12 @@ public class DynamicACLProvider extends ACLProvider {
         } else if (principal.hasProperty("dynamic")) {
           Value[] dyn = principal.getProperty("dynamic");
           if (dyn != null && dyn.length > 0 && ("true".equals(dyn[0].getString()))) {
-            LOG.debug("Found dynamic principal " + principalName);
+            LOG.debug("Found dynamic principal {} ",principalName);
             dynamic = true;
           }
         }
         if (!dynamic) {
-          LOG.debug("Found static principal " + principalName + ". Caching");
+          LOG.debug("Found static principal {}. Caching ",principalName);
           staticPrincipals.put(principalName, true);
           return false;
         }
@@ -253,7 +282,16 @@ public class DynamicACLProvider extends ACLProvider {
         LOG.error("Unable to access user manager", e);
       }
     }
-    return dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode, contextNode, userId);
+    LOG.debug("Resolving dynamic principal {} ",principalName);
+    boolean has = dynamicPrincipalManager.hasPrincipalInContext(principalName, aclNode, contextNode, userId);
+    if ( LOG.isDebugEnabled() ) {
+      try {
+        LOG.debug("This user {} has principal {}  at {} : {} ", new Object[] {userId, principalName, contextNode.getPath(), has});
+      } catch (RepositoryException e) {
+        LOG.warn(e.getMessage(),e);
+      }
+    }
+    return has;
   }
 
 }

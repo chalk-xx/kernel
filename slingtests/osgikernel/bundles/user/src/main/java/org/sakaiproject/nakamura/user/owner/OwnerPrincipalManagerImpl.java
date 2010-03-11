@@ -31,6 +31,7 @@ import javax.jcr.RepositoryException;
 
 /**
  * The <code>OwnerPrincipalManager</code>
+ * Note, nodes must have mix:created or be a hierachy node (nt:file, nt:folder) to get jcr:createdBy 
  * 
  * @scr.component immediate="true" label="OwnerPrincipalManagerImpl"
  *                description="Implementation of the Dynamic Principal Manager Service"
@@ -55,16 +56,16 @@ public class OwnerPrincipalManagerImpl implements DynamicPrincipalManager {
       }
       if ("owner".equals(principalName)) {
         
-        LOG.debug("Granting .owner privs to node owner");
+        LOG.debug("Granting .owner privs to node owner {} ",contextNode.getPath());
         if (contextNode.hasProperty(JCR_CREATED_BY)) {
           Property owner = contextNode.getProperty(JCR_CREATED_BY);
           String ownerName = owner.getString();
           LOG.debug("Got node owner: {}, Current User {}", ownerName, userId);
           if (userId.equals(ownerName)) {
-              LOG.info(" Current user [{}] is the owner of {} ",new Object[] {ownerName, contextNode.getPath()});
+              LOG.debug(" Current user [{}] is the owner of {} ",new Object[] {ownerName, contextNode.getPath()});
             return true;
           }
-          LOG.info(" node owner [{}] didn't match current user [{}] at {} ",new Object[] {ownerName, userId, contextNode.getPath()});
+          LOG.debug(" node owner [{}] didn't match current user [{}] at {} ",new Object[] {ownerName, userId, contextNode.getPath()});
         } else {
           LOG.debug("Node: {}  has no {} property", contextNode.getPath(), JCR_CREATED_BY);
         }

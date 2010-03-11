@@ -334,7 +334,7 @@ public class PathUtils {
         } else if ( p instanceof ItemBasedPrincipal ) {
           String path = ((ItemBasedPrincipal) p).getPath();
           int i = path.lastIndexOf("rep:");
-          i = path.indexOf(i+1,'/');
+          i = path.indexOf('/',i+1);
           sub = path.substring(i);
         } else {
           sub = "/"+au.getID();          

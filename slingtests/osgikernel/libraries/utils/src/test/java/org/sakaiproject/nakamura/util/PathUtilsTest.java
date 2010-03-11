@@ -1,9 +1,18 @@
 package org.sakaiproject.nakamura.util;
 
+import junit.framework.Assert;
+
 import static org.junit.Assert.*;
 
+import java.security.Principal;
 import java.util.regex.Pattern;
 
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 public class PathUtilsTest {
@@ -131,4 +140,39 @@ public class PathUtilsTest {
     assertEquals("",PathUtils.lastElement(".aaa"));
   }
 
+  @Test
+  public void testGetSubPath() throws RepositoryException {
+    Authorizable au = EasyMock.createMock(Authorizable.class);
+    ItemBasedPrincipal principal = EasyMock.createMock(ItemBasedPrincipal.class);
+    EasyMock.expect(au.getPrincipal()).andReturn(principal);
+    EasyMock.expect(au.hasProperty("path")).andReturn(false);
+    EasyMock.expect(principal.getPath()).andReturn("/rep:system/re:authsdfsdfds/rep:user/f/fo/foo");
+    EasyMock.replay(au,principal);
+    PathUtils.getSubPath(au);
+    EasyMock.verify(au,principal);
+  }
+  @Test
+  public void testGetSubPathNoPrincipal() throws RepositoryException {
+    Authorizable au = EasyMock.createMock(Authorizable.class);
+    Principal principal = EasyMock.createMock(Principal.class);
+    EasyMock.expect(au.getPrincipal()).andReturn(principal);
+    EasyMock.expect(au.hasProperty("path")).andReturn(false);
+    EasyMock.expect(au.getID()).andReturn("theid");
+    EasyMock.replay(au,principal);
+    Assert.assertEquals("/theid", PathUtils.getSubPath(au));
+    EasyMock.verify(au,principal);
+  }
+  @Test
+  public void testGetSubPathHasPath() throws RepositoryException {
+    Authorizable au = EasyMock.createMock(Authorizable.class);
+    Principal principal = EasyMock.createMock(Principal.class);
+    Value value = EasyMock.createMock(Value.class);
+    EasyMock.expect(au.getPrincipal()).andReturn(principal);
+    EasyMock.expect(au.hasProperty("path")).andReturn(true);
+    EasyMock.expect(au.getProperty("path")).andReturn(new Value[]{value});
+    EasyMock.expect(value.getString()).andReturn("/f/fo/foo");
+    EasyMock.replay(au,principal,value);
+    Assert.assertEquals("/f/fo/foo", PathUtils.getSubPath(au));
+    EasyMock.verify(au,principal,value);
+  }
 }
