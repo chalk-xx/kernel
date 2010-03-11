@@ -176,7 +176,7 @@ public class AbstractEasyMockTest {
     expect(au.isGroup()).andReturn(isGroup).anyTimes();
     ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
     String hashedPath = PathUtils.getHashedPath(id, 4);
-    expect(p.getPath()).andReturn("rep:" + hashedPath);
+    expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
     expect(au.getPrincipal()).andReturn(p).anyTimes();
     expect(au.hasProperty("path")).andReturn(true).anyTimes();
     Value v = EasyMock.createNiceMock(Value.class);
