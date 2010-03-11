@@ -90,7 +90,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     Row row = createMock(Row.class);
     
     Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
-        row, "select * from y where x = 'foo' and u = 'bob' ");
+        row, "select * from y where x = 'foo' and u = 'admin' ");
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, "select * from y where x = 'foo' and u = '{_userId}' ");
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
@@ -103,18 +103,16 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     request = createMock(SlingHttpServletRequest.class);
-    expect(request.getRemoteUser()).andReturn("bob");
+    expect(request.getRemoteUser()).andReturn("admin");
     expect(request.getResource()).andReturn(resource);
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null).anyTimes();
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
     
-    Authorizable au = createMock(Authorizable.class);
-    expect(au.isGroup()).andReturn(false);
-    expect(au.getID()).andReturn("bob");
+    Authorizable au = createAuthorizable("admin", false, true);
     
     UserManager um = createMock(UserManager.class);
-    expect(um.getAuthorizable("bob")).andReturn(au);
+    expect(um.getAuthorizable("admin")).andReturn(au);
     
     JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(session.getUserManager()).andReturn(um);

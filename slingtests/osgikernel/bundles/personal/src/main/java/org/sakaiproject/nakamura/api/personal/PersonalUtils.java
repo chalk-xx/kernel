@@ -27,24 +27,20 @@ import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PRIVATE;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PUBLIC;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -79,38 +75,14 @@ public class PersonalUtils {
     try {
       Authorizable au = getAuthorizable(session, user);
       String path = PersonalUtils.getProfilePath(au);
+      String hash = getUserHashedPath(au);
       Node userNode = (Node) session.getItem(path);
-
-      PropertyIterator userPropertyIterator = userNode.getProperties();
-      Map<String, Object> mapPropertiesToWrite = new HashMap<String, Object>();
-
-      while (userPropertyIterator.hasNext()) {
-        Property userProperty = userPropertyIterator.nextProperty();
-        try {
-          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValue());
-        } catch (ValueFormatException ex) {
-          mapPropertiesToWrite.put(userProperty.getName(), userProperty.getValues());
-        }
-      }
-
       // We can't have anymore exceptions from now on.
       write.key(jsonName);
       write.object();
-      for (Entry<String, Object> entry : mapPropertiesToWrite.entrySet()) {
-        write.key(entry.getKey());
-        if (entry.getValue() instanceof Value) {
-          write.value(((Value) entry.getValue()).getString());
-        } else {
-          write.array();
-
-          Value[] vals = (Value[]) entry.getValue();
-          for (Value v : vals) {
-            write.value(v.getString());
-          }
-
-          write.endArray();
-        }
-      }
+      write.key("hash");
+      write.value(hash);
+      ExtendedJSONWriter.writeNodeContentsToWriter(write, userNode);
       write.endObject();
 
     } catch (PathNotFoundException pnfe) {
@@ -121,9 +93,27 @@ public class PersonalUtils {
   }
 
   /**
+   * @param au
+   *          The authorizable to get the hashed path for.
+   * @return The hashed path (ex: a/ad/adm/admi/admin/)
+   * @throws RepositoryException
+   */
+  public static String getUserHashedPath(Authorizable au) throws RepositoryException {
+    String hash = null;
+    if (au.hasProperty("path")) {
+      hash = au.getProperty("path")[0].getString();
+    } else {
+      LOGGER.warn("Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!", au);
+      ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
+      hash = principal.getPath();
+    }
+    return hash;
+  }
+
+  /**
    * Write a small bit of information from an authprofile. userid, firstName, lastName,
    * picture.
-   *
+   * 
    * @param session
    *          The {@link Session session} to access the authprofile.
    * @param user
@@ -135,9 +125,12 @@ public class PersonalUtils {
     try {
       Authorizable au = getAuthorizable(session, user);
       String profilePath = PersonalUtils.getProfilePath(au);
+      String hash = getUserHashedPath(au);
       write.object();
       write.key("userid");
       write.value(user);
+      write.key("hash");
+      write.value(hash);
       try {
         Node profileNode = (Node) session.getItem(profilePath);
         writeValue("firstName", profileNode, write);
@@ -158,7 +151,7 @@ public class PersonalUtils {
   /**
    * Write the value of a property form the profileNode. If the property doesn't exist it
    * outputs "name": false.
-   *
+   * 
    * @param string
    * @param profileNode
    * @throws RepositoryException
@@ -256,7 +249,7 @@ public class PersonalUtils {
     }
     return transport;
   }
-  
+
   /**
    * @param au
    *          The authorizable to get the authprofile path for.
@@ -268,6 +261,7 @@ public class PersonalUtils {
     sb.append(getPublicPath(au)).append("/").append(AUTH_PROFILE);
     return sb.toString();
   }
+
   /**
    * @param au
    *          The authorizable to get the private path for.
@@ -285,7 +279,7 @@ public class PersonalUtils {
   public static String getPublicPath(Authorizable au) {
     return getHomeFolder(au) + "/" + PUBLIC;
   }
-  
+
   /**
    * Get the home folder for an authorizable. If the authorizable is a user, this might
    * return: /_user/t/te/tes/test/testuser
@@ -318,5 +312,5 @@ public class PersonalUtils {
     UserManager um = AccessControlUtil.getUserManager(session);
     return um.getAuthorizable(id);
   }
-  
+
 }

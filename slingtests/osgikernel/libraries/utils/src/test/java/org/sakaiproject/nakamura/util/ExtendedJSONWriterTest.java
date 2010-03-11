@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.commons.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -78,6 +79,8 @@ public class ExtendedJSONWriterTest {
   public void testNode() {
     try {
       Node node = createMock(Node.class);
+      expect(node.getPath()).andReturn("/path/to/node");
+      expect(node.getName()).andReturn("node");
       PropertyIterator propertyIterator = createMock(PropertyIterator.class);
       PropertyDefinition propDefSingle = createMock(PropertyDefinition.class);
       PropertyDefinition propDefMultiple = createMock(PropertyDefinition.class);
@@ -123,10 +126,13 @@ public class ExtendedJSONWriterTest {
       ExtendedJSONWriter ext = new ExtendedJSONWriter(writer);
       try {
         ext.node(node);
-
+        writer.flush();
         String s = writer.toString();
-        assertEquals("Returned JSON was not as excepted",
-            "{\"doub\":1.5,\"multiString\":[\"foo\",\"bar\"]}", s);
+        JSONObject o = new JSONObject(s);
+        assertEquals(1.5, o.getDouble("doub"), 0);
+        assertEquals(2, o.getJSONArray("multiString").length());
+        assertEquals("/path/to/node", o.get("jcr:path"));
+        assertEquals("node", o.get("jcr:name"));
 
       } catch (JSONException e) {
         fail("Should not throw a JSONException.");

@@ -17,37 +17,27 @@
  */
 package org.sakaiproject.nakamura.connections;
 
-import static org.easymock.EasyMock.replay;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.junit.Before;
 import org.junit.Test;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 /**
  * 
  */
-public class ConnectionUtilsTest {
+public class ConnectionUtilsTest extends AbstractEasyMockTest {
 
   private Authorizable user1;
   private Authorizable user2;
   
   @Before
   public void setUp() throws Exception {
-    user1 = createMock(Authorizable.class);
-    expect(user1.getID()).andReturn("user1").anyTimes();
-    expect(user1.isGroup()).andReturn(false).anyTimes();
-
-    user2 = createMock(Authorizable.class);
-    expect(user2.getID()).andReturn("user2").anyTimes();
-    expect(user2.isGroup()).andReturn(false).anyTimes();
-    
-    replay(user1, user2);
+    user1 = createAuthorizable("user1", false, true);
+    user2 = createAuthorizable("user2", false, true);
   }
-  
+
   /**
    *
    */

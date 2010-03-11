@@ -19,12 +19,14 @@ package org.sakaiproject.nakamura.testutils.easymock;
 
 import static org.easymock.EasyMock.expect;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.commons.testing.jcr.MockValue;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.osgi.framework.BundleContext;
@@ -32,6 +34,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -171,6 +174,16 @@ public class AbstractEasyMockTest {
     Authorizable au = EasyMock.createMock(Authorizable.class);
     expect(au.getID()).andReturn(id).anyTimes();
     expect(au.isGroup()).andReturn(isGroup).anyTimes();
+    ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
+    String hashedPath = PathUtils.getHashedPath(id, 4);
+    expect(p.getPath()).andReturn("rep:" + hashedPath);
+    expect(au.getPrincipal()).andReturn(p).anyTimes();
+    expect(au.hasProperty("path")).andReturn(true).anyTimes();
+    Value v = EasyMock.createNiceMock(Value.class);
+    expect(v.getString()).andReturn(hashedPath).anyTimes();
+    expect(au.getProperty("path")).andReturn(new Value[] { v }).anyTimes();
+    EasyMock.replay(p);
+    EasyMock.replay(v);
     if (doReplay) {
       EasyMock.replay(au);
     }
