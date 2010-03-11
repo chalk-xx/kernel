@@ -69,6 +69,7 @@ public abstract class AbstractSiteNodeTest extends AbstractSiteServiceServletTes
     expect(node.getProperty(eq(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY))).andReturn(
         resourceType).anyTimes();
     expect(node.getPath()).andReturn(SITE_PATH).anyTimes();
+    expect(node.getName()).andReturn("sitename").anyTimes();
     expect(node.getSession()).andReturn(session).anyTimes();
     expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
   }

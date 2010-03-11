@@ -21,20 +21,24 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 
 public class AbstractSiteServiceTest extends AbstractEasyMockTest {
 
@@ -94,10 +98,18 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
 
   private void registerAuthorizable(Authorizable authorizable, String name)
       throws RepositoryException {
-    Principal authorizablePrincipal = createMock(Principal.class);
-    expect(authorizable.getPrincipal()).andReturn(authorizablePrincipal).anyTimes();
+    ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
+    String hashedPath = PathUtils.getHashedPath(name, 4);
+    expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
+    expect(p.getName()).andReturn(name).anyTimes();
+    expect(authorizable.getPrincipal()).andReturn(p).anyTimes();
+    expect(authorizable.hasProperty("path")).andReturn(true).anyTimes();
+    Value v = EasyMock.createNiceMock(Value.class);
+    expect(v.getString()).andReturn(hashedPath).anyTimes();
+    expect(authorizable.getProperty("path")).andReturn(new Value[] { v }).anyTimes();
     expect(authorizable.getID()).andReturn(name).anyTimes();
-    expect(authorizablePrincipal.getName()).andReturn(name).anyTimes();
+    EasyMock.replay(p);
+    EasyMock.replay(v);
     expect(userManager.getAuthorizable(eq(name))).andReturn(authorizable).anyTimes();
   }
 

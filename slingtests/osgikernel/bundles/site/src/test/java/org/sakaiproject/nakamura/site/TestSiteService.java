@@ -5,17 +5,20 @@ import static junit.framework.Assert.assertFalse;
 import static org.easymock.EasyMock.expect;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.testing.jcr.MockValue;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.site.SortField;
 import org.sakaiproject.nakamura.site.SiteServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.AbstractCollection;
 import java.util.HashSet;
@@ -40,7 +43,7 @@ public class TestSiteService extends AbstractEasyMockTest {
     expect(siteNode.getSession()).andReturn(session).anyTimes();
     expect(session.getUserManager()).andReturn(userManager);
     Node profileNode = createMock(Node.class);
-    expect(session.getItem("/_user/48/18/1a/cd/bob/public/authprofile")).andReturn(profileNode).anyTimes();
+    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(profileNode).anyTimes();
     expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
     expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
     Property prop = createMock(Property.class);
@@ -54,9 +57,9 @@ public class TestSiteService extends AbstractEasyMockTest {
     Group group2 = createMock(Group.class);
     expect(userManager.getAuthorizable("group1")).andReturn(group1);
     expect(userManager.getAuthorizable("group2")).andReturn(group2);
-    expect(group1.getDeclaredMembers()).andReturn(createUserIterator("bob"));
+    expect(group1.getDeclaredMembers()).andReturn(createUserIterator("admin"));
     expect(group1.getID()).andReturn("group1").anyTimes();
-    expect(group2.getDeclaredMembers()).andReturn(createUserIterator("bob"));
+    expect(group2.getDeclaredMembers()).andReturn(createUserIterator("admin"));
     expect(group2.getID()).andReturn("group2").anyTimes();
 
     replay();
@@ -77,6 +80,16 @@ public class TestSiteService extends AbstractEasyMockTest {
     final User mockUser = createMock(User.class);
     expect(mockUser.getID()).andReturn(userName).anyTimes();
     expect(mockUser.isGroup()).andReturn(false).anyTimes();
+    ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
+    String hashedPath = PathUtils.getHashedPath(userName, 4);
+    expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
+    expect(mockUser.getPrincipal()).andReturn(p).anyTimes();
+    expect(mockUser.hasProperty("path")).andReturn(true).anyTimes();
+    Value v = EasyMock.createNiceMock(Value.class);
+    expect(v.getString()).andReturn(hashedPath).anyTimes();
+    expect(mockUser.getProperty("path")).andReturn(new Value[] { v }).anyTimes();
+    EasyMock.replay(p);
+    EasyMock.replay(v);
     return new Iterator<Authorizable>() {
 
       boolean had = false;
