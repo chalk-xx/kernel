@@ -16,26 +16,20 @@ module SlingUsers
       @name = name
     end
     
-    # Get the home folder of a user.
-    def home_folder_for()
-      sha1 = Digest::SHA1.hexdigest(@name)
-      path = "/_user/" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + name.gsub(/-/,'_')
-      return path
-    end
     
     # Get the public path for a user
-    def public_path_for()
-      return home_folder_for() + "/public"
+    def public_path_for(sling)
+      return home_folder_for(sling) + "/public"
     end
     
     # Get the private path for a user
-    def private_path_for()
-      return home_folder_for() + "/private"
+    def private_path_for(sling)
+      return home_folder_for(sling) + "/private"
     end
     
-    def message_path_for(messageid)
+    def message_path_for(slin,gmessageid)
       sha1 = Digest::SHA1.hexdigest(messageid)
-      return home_folder_for() + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
+      return home_folder_for(sling) + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
     end
 
   end
@@ -106,8 +100,17 @@ module SlingUsers
     end
 
     def members(sling)
-      props = sling.get_node_props("#{group_url}.json")
+      props = sling.get_node_props(group_url)
       return props["members"]
+    end
+
+    # Get the home folder of a group.
+    def home_folder_for(sling)
+      if ( @path == nil )
+        props = sling.get_node_props(group_url)
+        @path = props["path"]
+      end
+      return "/_group"+@path
     end
 
     def self.url_for(name)
@@ -157,6 +160,16 @@ module SlingUsers
     def update_properties(sling, props)
       sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
     end
+
+    # Get the home folder of a group.
+    def home_folder_for(sling)
+      if ( @path == nil )
+        props = sling.get_node_props(user_url)
+        @path = props["path"]
+      end
+      return "/_user"+@path
+    end
+
     
     def self.url_for(name)
       return "#{$USERMANAGER_URI}user/#{name}"

@@ -85,7 +85,7 @@ class TC_Kern330Test < SlingTest
     m = Time.now.to_i.to_s
     user2 = create_user("user2-"+m)
     
-    homefolder = user2.home_folder_for()
+    homefolder = user2.home_folder_for(@s)
     
     @s.switch_user(user2)
     str = [{
@@ -129,7 +129,7 @@ class TC_Kern330Test < SlingTest
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
     
-    homefolder = user3.home_folder_for()
+    homefolder = user3.home_folder_for(@s)
     @s.switch_user(user3)
     str = [
     {
@@ -185,7 +185,7 @@ class TC_Kern330Test < SlingTest
     
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
-    homefolder = user3.home_folder_for()
+    homefolder = user3.home_folder_for(@s)
     
     @s.switch_user(user3)
     str = [

@@ -19,7 +19,7 @@ class TC_Kern568Test < SlingTest
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
-    home = user.home_folder_for()
+    home = user.home_folder_for(@s)
     firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"))
     assert_equal(200, firstres.code.to_i)
 

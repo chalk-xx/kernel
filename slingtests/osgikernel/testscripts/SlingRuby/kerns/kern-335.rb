@@ -28,8 +28,8 @@ class TC_Kern335Test < SlingTest
     @mm.create("chat:chatuser2-#{m}", "chat", "outbox")
     @s.switch_user(user2)
     
-    home1 = user1.home_folder_for()
-    home2 = user2.home_folder_for()
+    home1 = user1.home_folder_for(@s)
+    home2 = user2.home_folder_for(@s)
     
     # First GET should respond with true.
     res = @s.execute_get(@s.url_for("#{home2}/message.chatupdate.json"))
