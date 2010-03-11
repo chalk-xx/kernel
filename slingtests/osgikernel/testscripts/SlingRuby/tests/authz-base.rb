@@ -20,7 +20,7 @@ class AuthZBase < SlingTest
          @authz.grant(path,principal,"jcr:read" => "denied")
       end
       if ( writeGrant ) then
-         @authz.grant(path,principal,"jcr:write" => "granted")
+         @authz.grant(path,principal,"jcr:write" => "granted", "jcr:nodeTypeManagement" => "granted")
       else
          @authz.grant(path,principal,"jcr:write" => "denied")
       end

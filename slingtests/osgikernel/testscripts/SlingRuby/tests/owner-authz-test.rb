@@ -36,14 +36,14 @@ class TC_OwnerAuthZTest < AuthZBase
 	admin = SlingUsers::User.admin_user()
 	
 	puts("Creating Node at #{path}")
-	create_node(path,"testproperty" => "testvalue")
+	create_node(path,"jcr:mixinTypes" => "mix:created", "testproperty" => "testvalue")
 	
 	updateAcl(path,user1,true,true) # allow u1 to write, so we can create the sub node
 	checkAcl(path,user1,true,true)
 	@s.switch_user(u1)
 	# create a child node as u1
 	childPath = path+"/childnode"
-	create_node(path+"/childnode","testchildproperty" => "testvalue")
+	create_node(path+"/childnode","jcr:mixinTypes" => "mix:created", "sakai:testchildproperty" => "testvalue")
 	@s.switch_user(admin)
 	deleteAcl(path,user1) # remove the user1 acl
 	updateAcl(path, "everyone" ,true,false) # grant everyone read
