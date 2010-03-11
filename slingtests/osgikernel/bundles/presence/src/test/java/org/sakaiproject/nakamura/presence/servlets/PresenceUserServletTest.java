@@ -124,6 +124,8 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(propertyIterator.hasNext()).andReturn(false);
     expect(profileNode.getProperties()).andReturn(propertyIterator);
+    expect(profileNode.getPath()).andReturn("/profile/node/path").anyTimes();
+    expect(profileNode.getName()).andReturn("profile_node_name").anyTimes();
     expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
         profileNode);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
