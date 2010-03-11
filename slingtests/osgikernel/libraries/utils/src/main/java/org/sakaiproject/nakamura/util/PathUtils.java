@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.util;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.sakaiproject.nakamura.api.resource.SubPathProducer;
 import org.slf4j.Logger;
@@ -325,12 +326,19 @@ public class PathUtils {
   public static String getSubPath(Object o) {
     String sub = null;
     if (o instanceof Authorizable) {
-      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal
-      // interface.
       try {
         Authorizable au = (Authorizable) o;
-        String userID = au.getID();
-        sub = getHashedPath(userID, 4);
+        Principal p = au.getPrincipal();
+        if ( au.hasProperty("path") ) {
+          sub = au.getProperty("path")[0].getString();
+        } else if ( p instanceof ItemBasedPrincipal ) {
+          String path = ((ItemBasedPrincipal) p).getPath();
+          int i = path.lastIndexOf("rep:");
+          i = path.indexOf(i+1,'/');
+          sub = path.substring(i);
+        } else {
+          sub = "/"+au.getID();          
+        }
       } catch (RepositoryException e) {
         throw new RuntimeException(e);
       }
