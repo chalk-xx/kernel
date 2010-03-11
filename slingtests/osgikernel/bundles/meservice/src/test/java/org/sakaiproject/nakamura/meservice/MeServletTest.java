@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -33,6 +31,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -56,7 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-public class MeServletTest {
+public class MeServletTest extends AbstractEasyMockTest {
 
   @Test
   public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException, RepositoryException {
@@ -67,10 +66,7 @@ public class MeServletTest {
     PrintWriter w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
 
-    Authorizable user = createMock(Authorizable.class);
-    expect(user.getID()).andReturn("admin").anyTimes();
-    expect(user.isGroup()).andReturn(false).anyTimes();
-    replay(user);
+    Authorizable user = createAuthorizable("admin", false, true);
     
     Set<String> subjects = new HashSet<String>();
     subjects.add("administrators");
@@ -130,8 +126,8 @@ public class MeServletTest {
     ResourceResolver resolver = createMock(ResourceResolver.class);
     Node profileNode = createMock(Node.class);
     
-    UserManager um = createAuthorizable(UserConstants.ANON_USERID);
-    Authorizable au = um.getAuthorizable(UserConstants.ANON_USERID);
+    Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
+    UserManager um = createUserManager(null, true, au);
     
     String profilePath = PersonalUtils.getProfilePath(au);
     PropertyIterator propIterator = createMock(PropertyIterator.class);
@@ -140,6 +136,8 @@ public class MeServletTest {
     expect(nodeIterator.hasNext()).andReturn(false);
     expect(profileNode.getNodes()).andReturn(nodeIterator);
     expect(profileNode.getProperties()).andReturn(propIterator);
+    expect(profileNode.getName()).andReturn("authprofile").anyTimes();
+    expect(profileNode.getPath()).andReturn("/path/to/authprofile").anyTimes();
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
@@ -153,7 +151,7 @@ public class MeServletTest {
     response.setContentType("contenttype");
     response.setCharacterEncoding("UTF-8");
 
-    replay(session, resolver, profileNode, propIterator, nodeIterator, request, response);
+    replay();
 
     MeServlet servlet = new MeServlet();
 
@@ -165,21 +163,6 @@ public class MeServletTest {
     assertEquals(true, j.getBoolean("anon"));
     assertEquals(false, j.getBoolean("superUser"));
     assertEquals(0, j.getJSONArray("subjects").length());
-  }
-
-  /**
-   * @param userid
-   * @return
-   * @throws RepositoryException 
-   */
-  private UserManager createAuthorizable(String userid) throws RepositoryException {
-    Authorizable au = createMock(Authorizable.class);
-    expect(au.getID()).andReturn(UserConstants.ANON_USERID).anyTimes();
-    expect(au.isGroup()).andReturn(false).anyTimes();
-    UserManager um = createMock(UserManager.class);
-    expect(um.getAuthorizable(UserConstants.ANON_USERID)).andReturn(au).anyTimes();
-    replay(um, au);
-    return um;
   }
 
   @Test
@@ -194,8 +177,7 @@ public class MeServletTest {
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
-    UserManager um = createAuthorizable(UserConstants.ANON_USERID);
-    Authorizable au = um.getAuthorizable(UserConstants.ANON_USERID);
+    Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
     String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException());
@@ -208,7 +190,7 @@ public class MeServletTest {
 
     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
         "Failed to get the profile node.");
-    replay(request, response, resolver, session);
+    replay();
 
     MeServlet servlet = new MeServlet();
 
