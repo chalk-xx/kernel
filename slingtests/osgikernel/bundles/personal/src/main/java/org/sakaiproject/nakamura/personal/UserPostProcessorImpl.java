@@ -102,24 +102,16 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     try {
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-        createPrivate(session, athorizable);
-        Node profileNode = createProfile(session, athorizable, false);
-        updateProperties(session, profileNode, athorizable, changes);
+        createHomeFolder(session, athorizable, false, changes);
         fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-        createPrivate(session, athorizable);
-        Node profileNode = createProfile(session, athorizable, true);
-        updateProperties(session, profileNode, athorizable, changes);
+        createHomeFolder(session, athorizable, true, changes);
         fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-        createPrivate(session, athorizable);
-        Node profileNode = createProfile(session, athorizable, false);
-        updateProperties(session, profileNode, athorizable, changes);
+        createHomeFolder(session, athorizable, false, changes);
         fireEvent(request, athorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-        createPrivate(session, athorizable);
-        Node profileNode = createProfile(session, athorizable, true);
-        updateProperties(session, profileNode, athorizable, changes);
+        createHomeFolder(session, athorizable, true, changes);
         fireEvent(request, athorizable.getID(), changes);
       }
     } catch (Exception ex) {
@@ -206,6 +198,50 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
   }
 
+  
+  /**
+   * Creates the home folder for a {@link User user} or a {@link Group group}. It will
+   * also create all the subfolders such as private, public, ..
+   * 
+   * @param session
+   * @param authorizable
+   * @param isGroup
+   * @param changes
+   * @return
+   * @throws RepositoryException
+   */
+  private Node createHomeFolder(Session session, Authorizable authorizable,
+      boolean isGroup, List<Modification> changes) throws RepositoryException {
+    String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
+    if (session.itemExists(homeFolderPath)) {
+      return (Node) session.getItem(homeFolderPath);
+    }
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal anon = new Principal() {
+      public String getName() {
+        return UserConstants.ANON_USERID;
+      }
+    };
+    Principal everyone = principalManager.getEveryone();
+
+    Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
+    addEntry(homeFolderPath, authorizable.getPrincipal(), session, READ_GRANTED,
+        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
+    // explicitly deny anon and everyone, this is private space.
+    addEntry(homeFolderPath, anon, session, READ_GRANTED, WRITE_DENIED);
+    addEntry(homeFolderPath, everyone, session, READ_GRANTED, WRITE_DENIED);
+
+    // Create the public, private, authprofile
+    createPrivate(session, authorizable);
+    createPublic(session, authorizable);
+    Node profileNode = createProfile(session, authorizable, isGroup);
+
+    // Update the values on the profile node.
+    updateProperties(session, profileNode, authorizable, changes);
+    return homeNode;
+  }
+  
   /**
    * @param request
    * @param authorizable
@@ -227,6 +263,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
     }
 
+    // The user can update his own profile.
     addEntry(profileNode.getParent().getPath(), athorizable.getPrincipal(), session,
         READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
         MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED,
@@ -234,11 +271,59 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return profileNode;
   }
 
+  /**
+   * Creates the private folder in the user his home space.
+   * 
+   * @param session
+   *          The session to create the node
+   * @param athorizable
+   *          The Authorizable to create it for
+   * @return The {@link Node node} that represents the private folder.
+   * @throws RepositoryException
+   */
   private Node createPrivate(Session session, Authorizable athorizable)
       throws RepositoryException {
-    String privatePathCreated = PersonalUtils.getPrivatePath(athorizable);
-    if (session.itemExists(privatePathCreated)) {
-      return (Node) session.getItem(privatePathCreated).getParent();
+    String privatePath = PersonalUtils.getPrivatePath(athorizable);
+    if (session.itemExists(privatePath)) {
+      return (Node) session.getItem(privatePath);
+    }
+    // No need to set ACL's on the private folder.
+    // Everyting is private in the user's folder anyway.
+    
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal anon = new Principal() {
+      public String getName() {
+        return UserConstants.ANON_USERID;
+      }
+    };
+    Principal everyone = principalManager.getEveryone();
+
+    Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+    addEntry(privatePath, athorizable.getPrincipal(), session, READ_GRANTED,
+        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
+    // Anonymous can see the public space but they can't write.
+    addEntry(privatePath, anon, session, READ_DENIED, WRITE_DENIED);
+    addEntry(privatePath, everyone, session, READ_DENIED, WRITE_DENIED);
+    
+    return privateNode;
+  }
+  
+  /**
+   * Creates the public folder in the user his home space.
+   * 
+   * @param session
+   *          The session to create the node
+   * @param athorizable
+   *          The Authorizable to create it for
+   * @return The {@link Node node} that represents the public folder.
+   * @throws RepositoryException
+   */
+  private Node createPublic(Session session, Authorizable athorizable)
+      throws RepositoryException {
+    String publicPath = PersonalUtils.getPublicPath(athorizable);
+    if (session.itemExists(publicPath)) {
+      return (Node) session.getItem(publicPath);
     }
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal anon = new Principal() {
@@ -248,18 +333,17 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     };
     Principal everyone = principalManager.getEveryone();
 
-    Node createdNode = JcrUtils.deepGetOrCreateNode(session, privatePathCreated);
-    Node privateNode = createdNode.getParent();
-    String privateNodePath = privateNode.getPath();
-    addEntry(privateNodePath, athorizable.getPrincipal(), session, READ_GRANTED,
+    Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
+    String publicNodePath = publicNode.getPath();
+    addEntry(publicNodePath, athorizable.getPrincipal(), session, READ_GRANTED,
         WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
         ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
-    // explicitly deny anon and everyone, this is private space.
-    addEntry(privateNodePath, anon, session, READ_DENIED, WRITE_DENIED);
-    addEntry(privateNodePath, everyone, session, READ_DENIED, WRITE_DENIED);
-    return privateNode;
+    // Anonymous can see the public space but they can't write.
+    addEntry(publicNodePath, anon, session, READ_GRANTED, WRITE_DENIED);
+    addEntry(publicNodePath, everyone, session, READ_GRANTED, WRITE_DENIED);
+    return publicNode;
   }
-
+  
   private void deleteProfileNode(Session session, Authorizable athorizable)
       throws RepositoryException {
     if (athorizable != null) {
@@ -267,7 +351,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       if (session.itemExists(path)) {
         Node node = (Node) session.getItem(path);
         node.remove();
-	  }
+      }
     }
   }
 
