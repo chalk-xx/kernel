@@ -17,7 +17,7 @@
  */
 package org.sakaiproject.nakamura.site;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -50,11 +50,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
-import javax.jcr.security.AccessControlEntry;
-import javax.jcr.security.AccessControlList;
 import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
 
 /**
@@ -189,9 +185,6 @@ public class SiteAuthz {
     JcrResourceUtil.setProperty(site, SiteService.AUTHORIZABLE, membershipGroups
         .toArray(new String[membershipGroups.size()]));
 
-    // Apply standard ACLs to site node.
-    applyStandardAccessRules();
-
     // Apply default access scheme to site node.
     JSONObject defaultProperties = getAuthzConfig().optJSONObject("defaultProperties");
     if (defaultProperties != null) {
@@ -204,6 +197,8 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
       applyAuthzChanges();
+    } else {
+      applyStandardAccessRules();
     }
   }
 
@@ -243,6 +238,11 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
     }
+
+    // Re-apply standard ACLs to site node to position them as most recent.
+    // Otherwise they might be functionally overwritten due to ordered
+    // ACL provision.
+    applyStandardAccessRules();
   }
 
   private boolean applyAccessScheme(String accessSchemeName, JSONObject accessSchemes)
@@ -264,79 +264,6 @@ public class SiteAuthz {
     return isAuthzChanged;
   }
 
-  /**
-   * TODO This is copied from
-   * org.apache.sling.jcr.jackrabbit.accessmanager.post.ModifyAceServlet code which should
-   * instead be refactored into a shared service.
-   */
-  private void replaceAccessControlEntry(Session session, String resourcePath,
-      String principalId, Collection<String> grants, Collection<String> denies)
-      throws RepositoryException {
-    AccessControlManager accessControlManager = AccessControlUtil
-        .getAccessControlManager(session);
-
-    // Get the ACL for the node.
-    AccessControlList acl = null;
-    AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
-    for (AccessControlPolicy policy : policies) {
-      if (policy instanceof AccessControlList) {
-        acl = (AccessControlList) policy;
-        break;
-      }
-    }
-    if (acl == null) {
-      AccessControlPolicyIterator applicablePolicies = accessControlManager
-          .getApplicablePolicies(resourcePath);
-      while (applicablePolicies.hasNext()) {
-        AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-        if (policy instanceof AccessControlList) {
-          acl = (AccessControlList) policy;
-          break;
-        }
-      }
-    }
-    if (acl == null) {
-      throw new RepositoryException("Could not obtain ACL for resource " + resourcePath);
-    }
-
-    // Remove any existing ACE for the specified principal.
-    AccessControlEntry[] accessControlEntries = acl.getAccessControlEntries();
-    for (AccessControlEntry ace : accessControlEntries) {
-      if (principalId.equals(ace.getPrincipal().getName())) {
-        acl.removeAccessControlEntry(ace);
-      }
-    }
-
-    // Add new ACEs (if any) for the specified principal.
-    if (!grants.isEmpty() || !denies.isEmpty()) {
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Principal principal = userManager.getAuthorizable(principalId).getPrincipal();
-      List<Privilege> grantedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : grants) {
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        grantedPrivilegeList.add(privilege);
-      }
-      if (grantedPrivilegeList.size() > 0) {
-        acl.addAccessControlEntry(principal, grantedPrivilegeList
-            .toArray(new Privilege[grantedPrivilegeList.size()]));
-      }
-      List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : denies) {
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        deniedPrivilegeList.add(privilege);
-      }
-      if (deniedPrivilegeList.size() > 0) {
-        AccessControlUtil.addEntry(acl, principal, deniedPrivilegeList
-            .toArray(new Privilege[deniedPrivilegeList.size()]), false);
-      }
-    }
-
-    // Save the changes.
-    accessControlManager.setPolicy(resourcePath, acl);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-  }
 
   private boolean applyAceModification(JSONObject aceModification)
       throws RepositoryException {
@@ -349,6 +276,9 @@ public class SiteAuthz {
       }
     }
     if (principalId.length() != 0) {
+      Session session = site.getSession();
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+      Principal principal = principalManager.getPrincipal(principalId);
       List<String> grants = new ArrayList<String>();
       List<String> denies = new ArrayList<String>();
       JSONObject aces = aceModification.optJSONObject("aces");
@@ -364,8 +294,10 @@ public class SiteAuthz {
           }
         }
       }
-      replaceAccessControlEntry(site.getSession(), site.getPath(), principalId, grants,
-          denies);
+      // Start with a clean slate for this principal.
+      String[] removes = {"jcr:all"};
+      AccessControlUtil.replaceAccessControlEntry(site.getSession(), site.getPath(), principal,
+          grants.toArray(new String[grants.size()]), denies.toArray(new String[denies.size()]), removes);
       isAuthzChanged = true;
     }
     return isAuthzChanged;
