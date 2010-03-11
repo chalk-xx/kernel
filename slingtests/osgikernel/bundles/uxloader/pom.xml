@@ -87,6 +87,8 @@
                   <skipCheckoutIfExists>true</skipCheckoutIfExists>
                   <connectionUrl>scm:git:git://github.com/nyusawg/3akai-ux.git</connectionUrl>
                   <checkoutDirectory>src/main/resources/SLING-INF/content</checkoutDirectory>
+                  <scmVersion>sawg</scmVersion>
+                  <scmVersionType>branch</scmVersionType>
                 </configuration>
               </execution>
               <execution>
@@ -99,8 +101,8 @@
                   <connectionUrl>scm:git:git://github.com/nyusawg/3akai-ux.git</connectionUrl>
                   <workingDirectory>src/main/resources/SLING-INF/content</workingDirectory>
                   <runChangelog>true</runChangelog>
-                  <scmVersion>HEAD</scmVersion>
-                  <scmVersionType>revision</scmVersionType>
+                  <scmVersion>sawg</scmVersion>
+                  <scmVersionType>branch</scmVersionType>
                 </configuration>
               </execution>
             </executions>
