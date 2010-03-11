@@ -17,9 +17,7 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
@@ -30,7 +28,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
-import org.apache.sling.jackrabbit.usermanager.impl.post.CreateUserServlet;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
@@ -181,7 +178,6 @@ public class MeServletTest extends AbstractEasyMockTest {
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
     Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
-    UserManager um = createUserManager(null, true, au);
     String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException());
