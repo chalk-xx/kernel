@@ -291,28 +291,39 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
   @Test
   public void testInvokeServiceNodeEndPointGet() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("GET", "GET", RESPONSE_BODY);
+    testRequest("GET", "GET", RESPONSE_BODY, -1 );
+  }
+  @Test
+  public void testInvokeServiceNodeEndPointGetLimit() throws ProxyClientException,
+      RepositoryException, IOException {
+    testRequest("GET", "GET", RESPONSE_BODY, 1020000 );
+  }
+
+  @Test
+  public void testInvokeServiceNodeEndPointGetLimitLow() throws ProxyClientException,
+      RepositoryException, IOException {
+    testRequest("GET", "HEAD", null, 1 );
   }
 
   @Test
   public void testInvokeServiceNodeEndPointOptions() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("OPTIONS", "OPTIONS", RESPONSE_BODY);
+    testRequest("OPTIONS", "OPTIONS", RESPONSE_BODY, -1);
   }
 
   @Test
   public void testInvokeServiceNodeEndPointHead() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest("HEAD", "HEAD", null);
+    testRequest("HEAD", "HEAD", null, -1);
   }
 
   @Test
   public void testInvokeServiceNodeEndPointOther() throws ProxyClientException,
       RepositoryException, IOException {
-    testRequest(null, "GET", RESPONSE_BODY);
+    testRequest(null, "GET", RESPONSE_BODY, -1);
   }
 
-  private void testRequest(String type, String expectedMethod, String body)
+  private void testRequest(String type, String expectedMethod, String body, long limit)
       throws ProxyClientException, RepositoryException, IOException {
     Node node = createMock(Node.class);
 
@@ -332,6 +343,18 @@ public class ProxyClientServiceImplTest extends AbstractEasyMockTest {
         endpointProperty);
     expect(node.hasProperty(ProxyClientService.SAKAI_PROXY_HEADER)).andReturn(
         false).atLeastOnce();
+
+    if ( limit == -1 ) {
+      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
+          false).anyTimes();
+    } else {
+      expect(node.hasProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
+          true).anyTimes();
+      Property sizeProperty = createNiceMock(Property.class);
+      expect(node.getProperty(ProxyClientService.SAKAI_LIMIT_GET_SIZE)).andReturn(
+          sizeProperty).anyTimes();
+      expect(sizeProperty.getLong()).andReturn(limit).anyTimes();
+    }
  
     expect(endpointProperty.getDefinition()).andReturn(propertyDefinition);
     expect(propertyDefinition.isMultiple()).andReturn(false).atLeastOnce();
