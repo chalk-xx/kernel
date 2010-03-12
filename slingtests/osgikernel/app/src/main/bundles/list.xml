@@ -602,7 +602,7 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
-      <version>0.3-SNAPSHOT</version>
+      <version>0.3</version>
     </bundle>
    </startLevel>
 
