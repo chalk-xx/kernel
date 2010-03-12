@@ -63,6 +63,7 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(session.getUserID()).andReturn("notadmin");
     expect(userManager.getAuthorizable("notadmin")).andReturn(currentUser);
     expect(currentUser.isAdmin()).andReturn(false);
+    expect(currentUser.getID()).andReturn("notadmin").anyTimes();
     expect(currentUser.declaredMemberOf()).andReturn(groupIterator);
     
     expect(groupIterator.hasNext()).andReturn(true);

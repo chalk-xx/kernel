@@ -218,6 +218,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
         if (authorizable.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
           Set<String> userPrincipals = new HashSet<String>();
+          userPrincipals.add(currentUser.getID());
           for (Iterator pi = currentUser.declaredMemberOf(); pi.hasNext();) {
             Group group = (Group)pi.next();
             userPrincipals.add(group.getID());
