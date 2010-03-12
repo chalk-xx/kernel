@@ -29,6 +29,7 @@ import org.apache.jackrabbit.core.SessionImpl;
 import org.apache.jackrabbit.core.id.NodeId;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
 import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
+import org.apache.jackrabbit.core.security.principal.EveryonePrincipal;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,7 +206,9 @@ public class DynamicACLProvider extends ACLProvider {
            * NOTE: access control entries must be collected in reverse order in order to
            * assert proper evaluation.
            */
-          if (princ instanceof Group) {
+          if (EveryonePrincipal.getInstance().getName().equals(princ.getName()) ) {
+            gaces.add(ace);
+          } else if (princ instanceof Group) {
             gaces.add(0, ace);
           } else {
             uaces.add(0, ace);
