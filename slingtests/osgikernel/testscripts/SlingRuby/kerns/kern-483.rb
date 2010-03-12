@@ -56,15 +56,6 @@ class TC_Kern483Test < SlingTest
     # the modify-ACE servlet does try to retrieve the existing ACL, the update
     # attempt will fail. So we need to switch to an administrative account.
     @s.switch_user(SlingUsers::User.admin_user())
-
-    # TODO At this moment, due to a regression on KERN-308 a non-admin user can create a
-    # group but can't add members to it. That's a problem, but it's not the problem this
-    # script is meant to test...
-    collabs.add_member(@s, creatorid, "user")
-    collabs.add_member(@s, collabid, "user")
-    res = @s.execute_get(@s.url_for("/system/userManager/group/#{collabsid}.json"))
-    puts("from admin, group=#{res.body}")
-
 	res = @s.execute_post(@s.url_for(nodepath)+".modifyAce.html", {
 		"principalId" => collabsid,
 		"privilege@jcr:readAccessControl" => "granted","privilege@jcr:read" => "granted","privilege@jcr:modifyAccessControl" => "granted","privilege@jcr:removeChildNodes" => "granted","privilege@jcr:write" => "granted","privilege@jcr:removeNode" => "granted","privilege@jcr:addChildNodes" => "granted","privilege@jcr:modifyProperties" => "granted"
