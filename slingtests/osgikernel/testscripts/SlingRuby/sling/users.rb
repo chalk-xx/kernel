@@ -19,17 +19,17 @@ module SlingUsers
     
     # Get the public path for a user
     def public_path_for(sling)
-      return home_folder_for(sling) + "/public"
+      return home_path_for(sling) + "/public"
     end
     
     # Get the private path for a user
     def private_path_for(sling)
-      return home_folder_for(sling) + "/private"
+      return home_path_for(sling) + "/private"
     end
     
     def message_path_for(sling,messageid)
       sha1 = Digest::SHA1.hexdigest(messageid)
-      return home_folder_for(sling) + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
+      return home_path_for(sling) + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
     end
 
   end
@@ -105,7 +105,7 @@ module SlingUsers
     end
 
     # Get the home folder of a group.
-    def home_folder_for(sling)
+    def home_path_for(sling)
       if ( @path == nil )
         props = sling.get_node_props(group_url)
         @path = props["path"]
@@ -162,7 +162,7 @@ module SlingUsers
     end
 
     # Get the home folder of a group.
-    def home_folder_for(sling)
+    def home_path_for(sling)
       if ( @path == nil )
         props = sling.get_node_props(user_url)
         @path = props["path"]

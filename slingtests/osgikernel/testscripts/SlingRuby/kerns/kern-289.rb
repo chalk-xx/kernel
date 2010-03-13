@@ -14,7 +14,7 @@ class TC_Kern289Test < SlingTest
     u1 = create_user("testuser#{m}")
     u2 = create_user("otheruser#{m}")
     
-    home1 = u1.home_path_for()
+    home1 = u1.home_path_for(@s)
     
     cm = ContactManager.new(@s)
     @s.switch_user(u1)

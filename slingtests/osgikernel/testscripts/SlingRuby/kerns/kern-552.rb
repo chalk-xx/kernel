@@ -13,7 +13,7 @@ include SlingAuthz
 class TC_KernMeTest < SlingTest
   
   def set_first_name(name, user)
-    public = user.public_path_for()
+    public = user.public_path_for(@s)
     path = "#{public}/authprofile"
     props = {"firstName" => name, "_charset_" => "UTF-8"}
     @s.execute_post(@s.url_for(path), props)

@@ -19,7 +19,7 @@ class TC_Kern568Test < SlingTest
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
-    home = user.home_folder_for(@s)
+    home = user.home_path_for(@s)
     firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"))
     assert_equal(200, firstres.code.to_i)
 
@@ -34,6 +34,7 @@ class TC_Kern568Test < SlingTest
     userid = "testuser-#{m}"
     user = create_user(userid)
     @s.switch_user(user)
+    home = user.home_path_for(@s)
     firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"))
     assert_equal(200, firstres.code.to_i)
 
@@ -46,6 +47,7 @@ class TC_Kern568Test < SlingTest
     expected = now.xmlschema(3)
 
     params = {"t" => msec}
+    home = user.home_path_for(@s)
     res = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     json = JSON.parse(res.body)
     assert_equal(expected, json["pulltime"])
@@ -68,6 +70,7 @@ class TC_Kern568Test < SlingTest
     schematime = time.xmlschema(3)
     params = {"t" => sec * 1000 }
 
+    home = user.home_path_for(@s)
     firstres = @s.execute_get(@s.url_for("#{home}/message.chatupdate.json"), params)
     json = JSON.parse(firstres.body)
     assert_equal(true, json["update"], "First check should always force update")

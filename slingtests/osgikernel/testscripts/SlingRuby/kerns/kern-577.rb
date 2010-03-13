@@ -34,7 +34,7 @@ class TC_MyFileTest < SlingTest
     assert_equal(200, res.code.to_i(), "Expected to get the site information.")
     site = JSON.parse(res.body)
     
-    publicSimon = simon.public_path_for()
+    publicSimon = simon.public_path_for(@s)
     
     # Upload a couple of files to the user his public space.
     res = @s.execute_file_post(@s.url_for("#{publicSimon}/files"), "alfa", "alfa", "This is some random content: alfaalfa.", "text/plain")

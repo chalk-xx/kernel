@@ -18,8 +18,8 @@ class TC_PrivateNodeCreateTest < SlingTest
     user2 = "user2-"+m
     u2 = create_user(user2)
     @s.switch_user(u1)
-    u1home = u1.home_folder_for(@s)
-    u2home = u2.home_folder_for(@s)
+    u1home = u1.home_path_for(@s)
+    u2home = u2.home_path_for(@s)
     create_node(u1home+testpath, "a" => "user1", "b" => "bar")
 
     @s.switch_user(u2)

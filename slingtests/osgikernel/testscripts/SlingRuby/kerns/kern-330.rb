@@ -16,7 +16,7 @@ class TC_Kern330Test < SlingTest
     user1 = create_user("user1-"+m)
     
     @s.switch_user(user1)
-    path = user1.private_path_for()
+    path = user1.private_path_for(@s)
     res = @s.execute_post(@s.url_for("#{path}/test/b"), {"foo" => "bar"})
     
     # Batch post to private store
@@ -85,7 +85,7 @@ class TC_Kern330Test < SlingTest
     m = Time.now.to_i.to_s
     user2 = create_user("user2-"+m)
     
-    homefolder = user2.home_folder_for(@s)
+    homefolder = user2.home_path_for(@s)
     
     @s.switch_user(user2)
     str = [{
@@ -129,7 +129,7 @@ class TC_Kern330Test < SlingTest
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
     
-    homefolder = user3.home_folder_for(@s)
+    homefolder = user3.home_path_for(@s)
     @s.switch_user(user3)
     str = [
     {
@@ -185,7 +185,7 @@ class TC_Kern330Test < SlingTest
     
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
-    homefolder = user3.home_folder_for(@s)
+    homefolder = user3.home_path_for(@s)
     
     @s.switch_user(user3)
     str = [

@@ -13,38 +13,38 @@ module SlingContacts
         when String
         sharedRelationships = [sharedRelationships]
       end
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.invite.html"), "sakai:types" => sharedRelationships,
         "fromRelationships" => fromRelationships, "toRelationships" => toRelationships, "targetUserId" => name)
     end
  
     def accept_contact(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.accept.html"), {"targetUserId" => name})
     end
 
     def reject_contact(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.reject.html"), {"targetUserId" => name})
     end
 
     def ignore_contact(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.ignore.html"), {"targetUserId" => name})
     end
 
     def block_contact(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.block.html"), {"targetUserId" => name})
     end
 
     def remove_contact(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.remove.html"), {"targetUserId" => name})
     end
 
     def cancel_invitation(name)
-      home = @sling.get_user().home_folder_for(@sling)
+      home = @sling.get_user().home_path_for(@sling)
       return @sling.execute_post(@sling.url_for("#{home}/contacts.cancel.html"), {"targetUserId" => name})
     end
 

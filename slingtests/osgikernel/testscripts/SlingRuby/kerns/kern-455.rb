@@ -67,7 +67,7 @@ class TC_Kern455Test < SlingTest
     puts("Admin File was uploaded to "+filepath)
     @s.switch_user(dummyuser)
 
-  privateFolder = dummyuser.private_path_for()
+  privateFolder = dummyuser.private_path_for(@s)
 
 	# check what happens when we try and post to a file, check for hashed path creation
 	testnode = "#{privateFolder}/testnode#{m}"
