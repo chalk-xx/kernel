@@ -17,9 +17,25 @@
  */
 package org.sakaiproject.nakamura.site;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.net.MalformedURLException;
+import java.util.AbstractCollection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
@@ -38,25 +54,12 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.AbstractCollection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.caucho.hessian.client.HessianProxyFactory;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
-import javax.servlet.http.HttpServletResponse;
+import edu.nyu.XythosRemote;
 
 /**
  * The <code>SiteServiceImpl</code> provides a Site Service implementatoin.
@@ -77,6 +80,15 @@ public class SiteServiceImpl implements SiteService {
    * @scr.reference
    */
   private SlingRepository slingRepository;
+  
+  /**
+   * @scr.property name="xythosHost"
+   *               description="The remote host (and port) of the Xythos instance"
+   *               value="http://localhost:9090"
+   */
+  protected String xythosHost = "http://localhost:9090";
+  
+  protected String remotePath = "/remoting/remoting/XythosService";
 
   /**
    * The default site template, used when none has been defined.
@@ -189,6 +201,9 @@ public class SiteServiceImpl implements SiteService {
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
         targetGroup.addMember(userAuthorizable);
+        HessianProxyFactory factory = new HessianProxyFactory();
+        XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, SiteServiceImpl.class.getClassLoader());
+        xythosService.addMember(requestedGroup, user);
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
       } else {
@@ -197,6 +212,8 @@ public class SiteServiceImpl implements SiteService {
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (MalformedURLException e) {
+      LOGGER.warn(e.getMessage(), e);
     }
   }
 
@@ -328,7 +345,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException,
       RepositoryException {
-    Property property = site.getProperty(propName);
+    javax.jcr.Property property = site.getProperty(propName);
     if (property.getDefinition().isMultiple()) {
       return property.getValues();
     } else {

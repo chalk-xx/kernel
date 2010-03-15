@@ -64,35 +64,22 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="authorize"
  */
-@ServiceDocumentation(name="Site Authorize Servlet",
-    description=" The <code>SiteServiceGroupServlet</code> supports add and remove groups from the site.",
-    shortDescription="Adds or removes groups from a site.",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sakai/site"},
-        selectors=@ServiceSelector(name="authorize", description="Authorize a group with a site"),
-        extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
-    methods=@ServiceMethod(name="POST",
-        description={"Adds or removes the groups listed in the addauth, and removeauth request parameters to the site." +
-        		" All of the groups must already exist. The service will also store the sites where the group is used on the " +
-        		"group object.",
-            "Example<br>" +
-            "<pre>Example needed</pre>"
-        },
-        parameters={
-          @ServiceParameter(name="addauth", description="The Path to the site being created (required)"),
-          @ServiceParameter(name="removeauth", description="Path to a template node in JCR to use when creating the site (optional)")
-        
-        },
-        response={
-          @ServiceResponse(code=200,description="The body will be empty on sucess."),
-          @ServiceResponse(code=400,description={
-              "If the location does not represent a site.",
-              "If the addauth and removeauth parameters dont make sense either becuase there are " +
-              "the wrong numer of items or the groups dont exists"
-          }),
-          @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
-          @ServiceResponse(code=404,description="Resource was not found."),
-          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
+@ServiceDocumentation(name = "Site Authorize Servlet", description = " The <code>SiteServiceGroupServlet</code> supports add and remove groups from the site.", shortDescription = "Adds or removes groups from a site.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/site" }, selectors = @ServiceSelector(name = "authorize", description = "Authorize a group with a site"), extensions = @ServiceExtension(name = "html", description = "A standard HTML response for creating a node.")), methods = @ServiceMethod(name = "POST", description = {
+    "Adds or removes the groups listed in the addauth, and removeauth request parameters to the site."
+        + " All of the groups must already exist. The service will also store the sites where the group is used on the "
+        + "group object.", "Example<br>" + "<pre>Example needed</pre>" }, parameters = {
+    @ServiceParameter(name = "addauth", description = "The Path to the site being created (required)"),
+    @ServiceParameter(name = "removeauth", description = "Path to a template node in JCR to use when creating the site (optional)")
+
+}, response = {
+    @ServiceResponse(code = 200, description = "The body will be empty on sucess."),
+    @ServiceResponse(code = 400, description = {
+        "If the location does not represent a site.",
+        "If the addauth and removeauth parameters dont make sense either becuase there are "
+            + "the wrong numer of items or the groups dont exists" }),
+    @ServiceResponse(code = 403, description = "Current user is not allowed to create a site in the current location."),
+    @ServiceResponse(code = 404, description = "Resource was not found."),
+    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
 public class SiteAuthorizeServlet extends AbstractSiteServlet {
 
   /**
@@ -207,12 +194,12 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
           }
         }
 
-        LOGGER
-            .debug("Adding Site {} references to Site {} ", added.size(), site.getPath());
+        LOGGER.debug("Adding Site {} references to Site {} ", added.size(), site
+            .getPath());
         // add new sites
         for (Authorizable auth : added.values()) {
           Value[] v = null;
-          if ( auth.hasProperty(SiteService.SITES) ) {
+          if (auth.hasProperty(SiteService.SITES)) {
             v = auth.getProperty(SiteService.SITES);
           }
           Value[] vnew = null;
@@ -225,8 +212,8 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
             for (int i = 0; i < v.length; i++) {
               if (siteUuid.equals(v[i].getString())) {
                 a = false;
-                LOGGER
-                    .debug("Site {} already is present in Group {} ", path, auth.getID());
+                LOGGER.debug("Site {} already is present in Group {} ", path, auth
+                    .getID());
                 break;
               }
             }
