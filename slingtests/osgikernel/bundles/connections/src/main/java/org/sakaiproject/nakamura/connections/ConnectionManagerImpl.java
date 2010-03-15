@@ -355,7 +355,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
             ConnectionConstants.SAKAI_CONTACT_RT);
         // Place a reference to the authprofile of the user.
         Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
-        node.setProperty("jcr:reference", profileNode.getUUID(), PropertyType.REFERENCE);
+        node.setProperty("jcr:reference", profileNode.getIdentifier(), PropertyType.REFERENCE);
       }
       return node;
     } finally {
