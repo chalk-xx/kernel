@@ -89,6 +89,21 @@ public class SiteServiceImpl implements SiteService {
   protected String xythosHost = "http://localhost:9090";
   
   protected String remotePath = "/remoting/remoting/XythosService";
+  
+  private XythosRemote xythosService;
+  public void setXythosService(XythosRemote xythosService) {
+    this.xythosService = xythosService;
+  }
+  
+  public SiteServiceImpl() {
+    HessianProxyFactory factory = new HessianProxyFactory();
+    try {
+      this.xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, SiteServiceImpl.class.getClassLoader());
+    } catch (MalformedURLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
 
   /**
    * The default site template, used when none has been defined.
@@ -201,8 +216,6 @@ public class SiteServiceImpl implements SiteService {
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
         targetGroup.addMember(userAuthorizable);
-        HessianProxyFactory factory = new HessianProxyFactory();
-        XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, SiteServiceImpl.class.getClassLoader());
         xythosService.addMember(requestedGroup, user);
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
@@ -212,8 +225,6 @@ public class SiteServiceImpl implements SiteService {
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    } catch (MalformedURLException e) {
-      LOGGER.warn(e.getMessage(), e);
     }
   }
 
