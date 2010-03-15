@@ -142,8 +142,9 @@ public class SiteServiceImpl implements SiteService {
    *      java.lang.String, java.lang.String)
    */
   public void joinSite(Node site, String requestedGroup) throws SiteException {
+    Session session = null;
     try {
-      Session session = slingRepository.loginAdministrative(null);
+       session = slingRepository.loginAdministrative(null);
       String user = site.getSession().getUserID();
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable userAuthorizable = userManager.getAuthorizable(user);
@@ -194,9 +195,18 @@ public class SiteServiceImpl implements SiteService {
       } else {
         startJoinWorkflow(site, targetGroup);
       }
+      if ( session.hasPendingChanges()) {
+        session.save();
+      }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } finally {
+      try {
+        session.logout();
+      } catch ( Exception ex ) {
+        LOGGER.debug("Error cleaning up session ",ex.getMessage(),ex);
+      }
     }
   }
 
