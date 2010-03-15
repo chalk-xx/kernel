@@ -790,7 +790,7 @@ public class SiteServiceImpl implements SiteService {
         if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString()
                 .equals("sakai/sites")) {
-          String path = PathUtils.toInternalHashedPath(node.getPath(), siteName, "");
+          String path = PathUtils.toSimpleShardPath(node.getPath(), siteName, "");
           Node siteNode = (Node) session.getItem(path);
           if (isSite(siteNode)) {
             return siteNode;

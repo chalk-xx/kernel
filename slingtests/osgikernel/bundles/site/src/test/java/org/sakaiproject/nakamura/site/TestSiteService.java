@@ -43,7 +43,7 @@ public class TestSiteService extends AbstractEasyMockTest {
     expect(siteNode.getSession()).andReturn(session).anyTimes();
     expect(session.getUserManager()).andReturn(userManager);
     Node profileNode = createMock(Node.class);
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(profileNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(profileNode).anyTimes();
     expect(profileNode.hasProperty(SortField.firstName.toString())).andReturn(true).anyTimes();
     expect(profileNode.hasProperty(SortField.lastName.toString())).andReturn(true).anyTimes();
     Property prop = createMock(Property.class);
@@ -81,7 +81,7 @@ public class TestSiteService extends AbstractEasyMockTest {
     expect(mockUser.getID()).andReturn(userName).anyTimes();
     expect(mockUser.isGroup()).andReturn(false).anyTimes();
     ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
-    String hashedPath = PathUtils.getHashedPath(userName, 4);
+    String hashedPath = "/"+userName.substring(0,1)+"/"+userName.substring(0,2)+"/"+userName;
     expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
     expect(mockUser.getPrincipal()).andReturn(p).anyTimes();
     expect(mockUser.hasProperty("path")).andReturn(true).anyTimes();
