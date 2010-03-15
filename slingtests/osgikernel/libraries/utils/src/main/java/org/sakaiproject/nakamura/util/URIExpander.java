@@ -38,7 +38,8 @@ public class URIExpander {
    * @return The expanded path.
    * @throws RepositoryException
    */
-  public static String expandStorePath(Session session, String path)
+  // Note, This method is now invalid since all stores are always referenced by path and there is no path expansion.
+  public static String expandStorePathInvalid(Session session, String path)
       throws RepositoryException {
     // Get the first existing item.
     
@@ -65,7 +66,7 @@ public class URIExpander {
           String rt = node.getProperty(
               JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString();
           if (types.contains(rt)) {
-            p += PathUtils.getHashedPath((i < parts.length) ? parts[i+1] : "", 4);
+            p += PathUtils.getShardPath((i < parts.length) ? parts[i+1] : "", 4);
             if (p.endsWith("/")) {
               p = p.substring(0, p.length() - 1);
             }
