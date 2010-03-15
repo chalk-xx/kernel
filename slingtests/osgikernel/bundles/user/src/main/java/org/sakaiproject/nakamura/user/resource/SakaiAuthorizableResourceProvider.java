@@ -131,7 +131,7 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                         }
                     }
                 }
-                log.info("Faled to resolve {} ",path);
+                log.debug("Failed to resolve {} ",path);
             } catch (RepositoryException re) {
                 throw new SlingException(
                     "Error looking up Authorizable for principal: " + pid, re);
