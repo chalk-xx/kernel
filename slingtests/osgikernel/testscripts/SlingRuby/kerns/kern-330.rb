@@ -83,13 +83,15 @@ class TC_Kern330Test < SlingTest
   def test_accessdenied
     
     m = Time.now.to_i.to_s
-    user2 = create_user("user2-"+m)
+    user2 = create_user("user12-"+m)
+    adminUser = SlingUsers::User.admin_user()
     
-    homefolder = user2.home_path_for(@s)
+    adminHome = adminUser.home_path_for(@s)
+    user2Home = user2.home_path_for(@s)
     
     @s.switch_user(user2)
     str = [{
-          "url" => "#{homefolder}/public/admin/foo/bar",
+          "url" => "#{adminHome}/public/foo/bar",
           "method" => "POST",
           "data" => {
               "title" => "alfa",
@@ -99,7 +101,7 @@ class TC_Kern330Test < SlingTest
       }
     },
     {
-          "url" => "#{homefolder}/private/foo/bar",
+          "url" => "#{user2Home}/private/foo/bar",
           "method" => "POST",
           "data" => {
               "title" => "beta",
@@ -113,15 +115,18 @@ class TC_Kern330Test < SlingTest
       "requests" => JSON.generate(str)
     }
     
-    
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     jsonRes = JSON.parse(res.body)
     
-    assert_equal(jsonRes[0]["url"], "#{homefolder}/public/admin/foo/bar")
-    assert_equal(jsonRes[0]["status"], 500, "Expexted access denied.")
-    assert_equal(jsonRes[1]["url"], "#{homefolder}/private/foo/bar")
-    assert_equal(jsonRes[1]["status"], 201, "Expected to get a created statuscode.")
+    assert_equal("#{adminHome}/public/foo/bar", jsonRes[0]["url"])
+    stat = jsonRes[0]["status"]
+    body = jsonRes[0]["body"]
+    assert_equal(500, jsonRes[0]["status"], "Expexted access denied. #{stat} #{body} ")
+    assert_equal("#{user2Home}/private/foo/bar", jsonRes[1]["url"])
+    stat = jsonRes[1]["status"]
+    body = jsonRes[1]["body"]
+    assert_equal(201, jsonRes[1]["status"], "Expected to get a created statuscode. #{stat} #{body} ")
     
   end
   
