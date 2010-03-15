@@ -32,7 +32,7 @@ public class MessageSubPathProducerTest {
   public void testGetPath() {
     SubPathProducer producer = new MessageSubPathProducer(
         "7eb256fd000d8fb33668138998251f605696b112");
-    String expected = "/09/93/4d/50/7eb256fd000d8fb33668138998251f605696b112";
+    String expected = "/7e/b2/56/fd/7eb256fd000d8fb33668138998251f605696b112";
     assertEquals(expected, producer.getSubPath());
   }
 

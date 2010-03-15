@@ -129,7 +129,7 @@ public class MessagingServiceImpl implements MessagingService {
     }
     try {
       //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
-      String messagePath = PathUtils.toInternalHashedPath(messagePathBase, messageId, "");
+      String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
@@ -193,7 +193,7 @@ public class MessagingServiceImpl implements MessagingService {
   public void copyMessageNode(Node sourceMessage, String targetStore) throws PathNotFoundException, RepositoryException {
     Session session = sourceMessage.getSession();
     String messageId = sourceMessage.getName();
-    String targetNodePath = PathUtils.toInternalHashedPath(targetStore, messageId, "");
+    String targetNodePath = PathUtils.toSimpleShardPath(targetStore, messageId, "");
     String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
     Node parentNode = JcrUtils.deepGetOrCreateNode(session, parent);
     LOGGER.info("Created parent node at: " + parentNode.getPath());
@@ -230,7 +230,7 @@ public class MessagingServiceImpl implements MessagingService {
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
-    return PathUtils.toInternalHashedPath(storePath, messageId, "");
+    return PathUtils.toSimpleShardPath(storePath, messageId, "");
   }
 
   /**

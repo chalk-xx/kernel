@@ -72,7 +72,7 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
     provider.loadUserProperties(request, pMap);
     provider.unbindMessagingService(messagingService);
 
-    assertEquals("/_user/d0/_x0033_3/e2/_x0032_a/admin/message", pMap
+    assertEquals("/_user/a/ad/admin/message", pMap
         .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));
 
     assertEquals(" and (@sakai:from=\"usera\" or @sakai:from=\"userb\")", pMap

@@ -188,7 +188,7 @@ public class MessagingServiceImplTest {
     String messageId = "cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c";
     String path = messagingServiceImpl.getFullPathToMessage(userName, messageId, session);
     assertEquals(
-        "/_user/a/ad/admin/message/1a/62/60/12/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
+        "/_user/a/ad/admin/message/cd/5c/20/8b/cd5c208be6bd17f9e3d4c979ee9e319eca61ad6c",
         path);
   }
 
@@ -219,9 +219,9 @@ public class MessagingServiceImplTest {
 
     Node messageNode = new MockNode("/_user/a/ad/admin/message");
 
-    expect(session.itemExists("/_user/a/ad/admin/message/0b/ee/c7/b5/foo"))
+    expect(session.itemExists("/_user/a/ad/admin/message/fo/o_/__/__/foo"))
         .andReturn(true);
-    expect(session.getItem("/_user/a/ad/admin/message/0b/ee/c7/b5/foo")).andReturn(
+    expect(session.getItem("/_user/a/ad/admin/message/fo/o_/__/__/foo")).andReturn(
         messageNode);
     expect(session.hasPendingChanges()).andReturn(true);
     session.save();
@@ -247,7 +247,7 @@ public class MessagingServiceImplTest {
     String messageId = "foo";
 
     expect(session.getUserID()).andReturn("admin");
-    expect(session.itemExists("/_user/a/ad/admin/message/0b/ee/c7/b5/foo"))
+    expect(session.itemExists("/_user/a/ad/admin/message/fo/o_/__/__/foo"))
         .andThrow(new RepositoryException());
 
     LockManager lockManager = createMock(LockManager.class);
