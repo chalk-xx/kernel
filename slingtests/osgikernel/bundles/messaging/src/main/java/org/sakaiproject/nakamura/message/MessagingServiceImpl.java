@@ -263,34 +263,6 @@ public class MessagingServiceImpl implements MessagingService {
 
 
   /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getUriToStore(java.lang.String)
-   */
-  public String getUriToStore(String rcpt, Session session) throws MessagingException {
-    String path = "";
-    try {
-      if (rcpt.startsWith("s-")) {
-        // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt.substring(2));
-        path = n.getPath() + "/store";
-      } else if (rcpt.startsWith("g-")) {
-        // This is a group.
-        path = MessageConstants._GROUP_MESSAGE + "/" + rcpt;
-      } else {
-        // Assume that it is a user.
-        path = MessageConstants._USER_MESSAGE + "/" + rcpt;
-      }
-    } catch (SiteException e) {
-      throw new MessagingException(e.getStatusCode(), e.getMessage());
-    } catch (RepositoryException e) {
-      throw new MessagingException(500, e.getMessage());
-    }
-
-    return path;
-  }
-  /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.message.MessagingService#expandAliases(java.lang.String)
    */
