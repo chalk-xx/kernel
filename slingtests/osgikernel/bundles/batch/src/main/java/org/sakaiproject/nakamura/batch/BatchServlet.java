@@ -72,7 +72,7 @@ import javax.servlet.http.HttpServletResponse;
             description = "All requests are succesfull. <br />" +
                 "A JSON array is returning which holds an object for each resource. Example:" +
                 "<pre>[\n" +
-                "{\"url\": \"/_user/public/admin/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
+                "{\"url\": \"/_user/a/ad/admin/public/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
           ),
           @ServiceResponse(
             code = 400,
