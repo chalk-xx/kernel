@@ -28,8 +28,7 @@ module SlingUsers
     end
     
     def message_path_for(sling,messageid)
-      sha1 = Digest::SHA1.hexdigest(messageid)
-      return home_path_for(sling) + "/message/"+sha1[0,2]+"/"+sha1[2,2]+"/"+sha1[4,2]+"/"+sha1[6,2]+"/"+messageid
+      return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
     end
 
   end

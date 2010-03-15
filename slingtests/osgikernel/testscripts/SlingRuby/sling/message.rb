@@ -16,8 +16,7 @@ module SlingMessage
     end
  
     def send(messageId)
-      sha1 = Digest::SHA1.hexdigest(messageId)
-      path = "" + sha1[0, 2] + "/" + sha1[2, 2] + "/" + sha1[4,2]+ "/" + sha1[6,2] + "/" + messageId
+      path = "" + messageId[0, 2] + "/" + messageId[2, 2] + "/" + messageId[4,2]+ "/" + messageId[6,2] + "/" + messageId
       return @sling.execute_post(@sling.url_for("#{@home}/message/#{path}.html"), "sakai:messagebox" => "outbox" )
     end
 
