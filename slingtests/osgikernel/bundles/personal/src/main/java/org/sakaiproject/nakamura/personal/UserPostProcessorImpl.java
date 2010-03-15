@@ -94,25 +94,26 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @param changes
    * @throws Exception
    */
-  public void process(Authorizable athorizable, Session session,
+  public void process(Authorizable authorizable, Session session,
       SlingHttpServletRequest request, List<Modification> changes) throws Exception {
-    if ( athorizable == null ) {
+    if ( authorizable == null ) {
+      LOGGER.warn("No Authorizable Provided, not processing User Update" );
       return;
     }
     try {
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-        createHomeFolder(session, athorizable, false, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, false, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-        createHomeFolder(session, athorizable, true, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, true, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-        createHomeFolder(session, athorizable, false, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, false, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-        createHomeFolder(session, athorizable, true, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, true, changes);
+        fireEvent(request, authorizable.getID(), changes);
       }
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
@@ -248,13 +249,15 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @return
    * @throws RepositoryException
    */
-  private Node createProfile(Session session, Authorizable athorizable, boolean isGroup)
+  private Node createProfile(Session session, Authorizable authorizable, boolean isGroup)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(athorizable);
+    String path = PersonalUtils.getProfilePath(authorizable);
+    
     String type = nodeTypeForAuthorizable(isGroup);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
+    LOGGER.info("Creating  Profile Node {} for authorizable {} ",path,authorizable.getID());
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
     // Make sure we can place references to this profile node in the future.
@@ -264,7 +267,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
 
     // The user can update his own profile.
-    addEntry(profileNode.getParent().getPath(), athorizable.getPrincipal(), session,
+    addEntry(profileNode.getParent().getPath(), authorizable.getPrincipal(), session,
         READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
         MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED,
         NODE_TYPE_MANAGEMENT_GRANTED);
