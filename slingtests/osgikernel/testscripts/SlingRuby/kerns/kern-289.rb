@@ -19,7 +19,9 @@ class TC_Kern289Test < SlingTest
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
     cm.invite_contact(u2.name, "follower")
-    contacts = @s.get_node_props("#{home1}/contacts/all")
+    @s.debug = true
+    contacts = @s.get_node_props("/var/contacts/all")
+    @s.debug = false
     assert_not_nil(contacts)
     assert_not_nil(contacts["results"]," No Contacts found")
     assert_not_nil(contacts["results"][0], " No Contacts found ")
