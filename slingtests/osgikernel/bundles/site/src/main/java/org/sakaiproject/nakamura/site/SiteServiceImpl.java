@@ -561,8 +561,8 @@ public class SiteServiceImpl implements SiteService {
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Value[] values = getPropertyValues(site, SiteService.AUTHORIZABLE);
         for (Value v : values) {
-          String groupId = v.getString();
-          Authorizable a = userManager.getAuthorizable(groupId);
+          String id = v.getString();
+          Authorizable a = userManager.getAuthorizable(id);
           if (a instanceof Group) {
             // FIXME: a is never a Group Key (bug?)
             if (!groups.containsKey(a)) {
@@ -579,14 +579,11 @@ public class SiteServiceImpl implements SiteService {
               } catch ( PathNotFoundException e ) {
                 LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
               }
-              LOGGER.info("Adding Profile as {} {} ",profilePath,profileNode);	
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
-            } else {
-              LOGGER.info("{} Already present as user",id);
             }
           } else if (a == null) {
             // if a is null
-            LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
+            LOGGER.warn("Authorizable could not be resolved from id: {}", id);
           } else {
             // if a is not one of the known types
             LOGGER.warn("Cannot handle Authorizable {} of type {}", a,  a
@@ -602,7 +599,8 @@ public class SiteServiceImpl implements SiteService {
                 .getPath(), SiteService.AUTHORIZABLE);
       }
     } catch (RepositoryException ex) {
-      LOGGER.warn("Failed to build membership Tree for {} ", site, ex);
+      // dont change this warn into {} form, doing so will prevent the exception being displayed.
+      LOGGER.warn("Failed to build membership Tree for  site ["+site+"] ", ex);
     }
     return new MembershipTree(groups, users);
   }

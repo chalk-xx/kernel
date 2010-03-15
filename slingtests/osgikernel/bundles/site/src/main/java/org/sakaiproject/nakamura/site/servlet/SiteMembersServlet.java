@@ -24,6 +24,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -43,9 +44,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -184,6 +188,24 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           ValueMap map = null;
           if ( resource != null ) {
             map = resource.adaptTo(ValueMap.class);
+          }
+          if ( map == null ) {
+            Map<String, Object> m = new HashMap<String, Object>();
+            for ( Iterator<String> names = u.getPropertyNames(); names.hasNext(); ) {
+              String n = names.next();
+              Value[] v = u.getProperty(n);
+              if ( v.length == 1 ) {
+                m.put(n, v[0].getString());
+              } else if ( v.length > 1 ) {
+                String[] s = new String[v.length];
+                for ( int i = 0; i < v.length; i++ ) {
+                  s[i] = v[i].getString();
+                }
+                m.put(n, s);
+              }
+            }
+            m.put("rep:userId", u.getID());
+            map = new ValueMapDecorator(m);
           }
           
           
