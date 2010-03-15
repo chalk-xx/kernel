@@ -43,10 +43,10 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
   private Authorizable myGroup;
   private String groupName = "g-mygroup";
   private String userName = "admin";
-  private String groupPublicPath = "/_group/d2/1b/4f/df/g_mygroup/public";
-  private String userPublicPath = "/_user/d0/33/e2/2a/admin/public";
-  private String groupPrivatePath = "/_group/d2/1b/4f/df/g_mygroup/private";
-  private String userPrivatePath = "/_user/d0/33/e2/2a/admin/private";
+  private String groupPublicPath = "/_group/g/g-/g-mygroup/public";
+  private String userPublicPath = "/_user/a/ad/admin/public";
+  private String groupPrivatePath = "/_group/g/g-/g-mygroup/private";
+  private String userPrivatePath = "/_user/a/ad/admin/private";
 
   @Before
   public void setUp() throws Exception {
