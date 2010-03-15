@@ -62,7 +62,7 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     provider.loadUserProperties(request, propertiesMap);
     String actual = propertiesMap.get("_myFeed");
-    String expected = ISO9075.encodePath("/_user/d0/33/e2/2a/admin/private/"
+    String expected = ISO9075.encodePath("/_user/a/ad/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME);
     assertEquals(expected, actual);
     String siteFeed = propertiesMap.get("_siteFeed");

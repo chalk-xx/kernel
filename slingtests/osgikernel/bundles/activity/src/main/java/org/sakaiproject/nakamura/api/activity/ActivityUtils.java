@@ -46,18 +46,6 @@ public class ActivityUtils {
     map.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
     return new Event(EVENT_TOPIC, (Dictionary) map);
   }
-
-  /**
-   * Returns the path to the activity feed for a user.
-   * 
-   * @param user
-   * @return
-   */
-  @Deprecated
-  public static String getUserFeed(String user) {
-    return PersonalUtils.getPrivatePath(user,
-        ActivityConstants.ACTIVITY_FEED_NAME);
-  }
   
   /**
    * Returns the path to the activity feed for a user.
