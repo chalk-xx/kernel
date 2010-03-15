@@ -34,7 +34,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.commons.httpclient.params.HttpParams;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.velocity.Template;
@@ -118,7 +117,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  public void activate(ComponentContext ctx) throws Exception {
+  protected void activate(ComponentContext ctx) throws Exception {
     velocityEngine = new VelocityEngine();
     velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
         this.getClass()));
@@ -146,7 +145,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  public void deactivate(ComponentContext ctx) throws Exception {
+  protected void deactivate(ComponentContext ctx) throws Exception {
     httpClientConnectionManager.shutdown();
   }
 
