@@ -573,8 +573,16 @@ public class SiteServiceImpl implements SiteService {
             // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
               String profilePath = PersonalUtils.getProfilePath(a);
-              Node profileNode = (Node) session.getItem(profilePath);
+              Node profileNode = null;
+              try {
+                profileNode = (Node) session.getItem(profilePath);
+              } catch ( PathNotFoundException e ) {
+                LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+              }
+              LOGGER.info("Adding Profile as {} {} ",profilePath,profileNode);	
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
+            } else {
+              LOGGER.info("{} Already present as user",id);
             }
           } else if (a == null) {
             // if a is null
@@ -704,7 +712,13 @@ public class SiteServiceImpl implements SiteService {
           populateMembers((Group) a, groups, users, session);
         } else {
           String profilePath = PersonalUtils.getProfilePath(a);
-          Node profileNode = (Node) session.getItem(profilePath);
+          Node profileNode = null;
+          try {
+            profileNode = (Node) session.getItem(profilePath);
+          } catch ( PathNotFoundException e ) {
+            LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+          }
+          LOGGER.info("Populate Members adding profile {} {} ",profileNode,profilePath);
           users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }
       }

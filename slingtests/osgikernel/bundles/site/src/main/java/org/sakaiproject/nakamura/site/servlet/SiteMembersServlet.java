@@ -181,7 +181,10 @@ public class SiteMembersServlet extends AbstractSiteServlet {
           User u = members.next();
           Resource resource = request.getResourceResolver().resolve(
               PersonalUtils.getProfilePath(u));
-          ValueMap map = resource.adaptTo(ValueMap.class);
+          ValueMap map = null;
+          if ( resource != null ) {
+            map = resource.adaptTo(ValueMap.class);
+          }
           
           
           // add in the listing of member group names -
@@ -198,7 +201,9 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
           // create the JSON object
           output.object();
-          output.valueMapInternals(map);
+          if ( map != null ) {
+            output.valueMapInternals(map);
+          }
           // add in the extra fields if there are any
           if (groupIds != null && !groupIds.isEmpty()) {
             // filter the group ids so only the ones which are part of this site are shown
