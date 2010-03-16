@@ -498,30 +498,38 @@ public class SiteAuthz {
     }
     // Switch to an administrative session.
     String groupId = group.getID();
-    Session adminSession = slingRepository.loginAdministrative(null);
-    UserManager userManager = AccessControlUtil.getUserManager(adminSession);
-    Authorizable authorizable = userManager.getAuthorizable(groupId);
-    if (authorizable.isGroup()) {
-      Group workingGroup = (Group)authorizable;
-      // Is this group actually dependent on the site?
-      if (group.hasProperty(GROUP_SITE_PROPERTY)) {
-        Value[] groupSiteValues = group.getProperty(GROUP_SITE_PROPERTY);
-        if (groupSiteValues.length == 1) {
-          String groupSiteRef = groupSiteValues[0].getString();
-          if (groupSiteRef.equals(siteRef)) {
-            LOGGER.info("Delete site membership group {}", workingGroup.getID());
-            Iterator<Authorizable> members = workingGroup.getDeclaredMembers();
-            while (members.hasNext()) {
-              Authorizable member = members.next();
-              workingGroup.removeMember(member);
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      UserManager userManager = AccessControlUtil.getUserManager(adminSession);
+      Authorizable authorizable = userManager.getAuthorizable(groupId);
+      if (authorizable.isGroup()) {
+        Group workingGroup = (Group)authorizable;
+        // Is this group actually dependent on the site?
+        if (group.hasProperty(GROUP_SITE_PROPERTY)) {
+          Value[] groupSiteValues = group.getProperty(GROUP_SITE_PROPERTY);
+          if (groupSiteValues.length == 1) {
+            String groupSiteRef = groupSiteValues[0].getString();
+            if (groupSiteRef.equals(siteRef)) {
+              LOGGER.info("Delete site membership group {}", workingGroup.getID());
+              Iterator<Authorizable> members = workingGroup.getDeclaredMembers();
+              while (members.hasNext()) {
+                Authorizable member = members.next();
+                workingGroup.removeMember(member);
+              }
+              workingGroup.remove();
+            } else {
+              LOGGER.info("Membership group {} not linked to site {}",
+                  new Object[] {workingGroup.getID(), siteRef});
             }
-            workingGroup.remove();
-          } else {
-            LOGGER.info("Membership group {} not linked to site {}",
-                new Object[] {workingGroup.getID(), siteRef});
           }
         }
       }
+      if ( adminSession.hasPendingChanges() ) {
+        adminSession.save();
+      }
+    } finally {
+      adminSession.logout();
     }
   }
 }

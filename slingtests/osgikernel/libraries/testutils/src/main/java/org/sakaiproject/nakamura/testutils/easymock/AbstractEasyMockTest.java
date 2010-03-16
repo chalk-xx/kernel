@@ -26,7 +26,6 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.commons.testing.jcr.MockValue;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.osgi.framework.BundleContext;
@@ -34,7 +33,6 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
-import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,7 +173,7 @@ public class AbstractEasyMockTest {
     expect(au.getID()).andReturn(id).anyTimes();
     expect(au.isGroup()).andReturn(isGroup).anyTimes();
     ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
-    String hashedPath = PathUtils.getHashedPath(id, 4);
+    String hashedPath = "/"+id.substring(0,1)+"/"+id.substring(0,2)+"/"+id;
     expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
     expect(au.getPrincipal()).andReturn(p).anyTimes();
     expect(au.hasProperty("path")).andReturn(true).anyTimes();

@@ -21,11 +21,7 @@ import static org.sakaiproject.nakamura.api.personal.PersonalConstants.AUTH_PROF
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PRIVATE;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants.PUBLIC;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP_PRIVATE;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._GROUP_PUBLIC;
 import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PRIVATE;
-import static org.sakaiproject.nakamura.api.personal.PersonalConstants._USER_PUBLIC;
 
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -75,6 +71,7 @@ public class PersonalUtils {
     try {
       Authorizable au = getAuthorizable(session, user);
       String path = PersonalUtils.getProfilePath(au);
+      LOGGER.info("Hashing {} as {} ",au.getID(),path);
       String hash = getUserHashedPath(au);
       Node userNode = (Node) session.getItem(path);
       // We can't have anymore exceptions from now on.
@@ -191,30 +188,6 @@ public class PersonalUtils {
     writeUserInfo(resultNode.getSession(), user, write, jsonName);
   }
 
-  @Deprecated
-  public static String getProfilePath(String user) {
-    return getPublicPath(user, PersonalConstants.AUTH_PROFILE);
-  }
-
-  @Deprecated
-  public static String getPublicPath(String user, String path) {
-    String userS = String.valueOf(user);
-    if (userS.startsWith("g-")) {
-      return PathUtils.toInternalHashedPath(_GROUP_PUBLIC, userS, path);
-    } else {
-      return PathUtils.toInternalHashedPath(_USER_PUBLIC, userS, path);
-    }
-  }
-
-  @Deprecated
-  public static String getPrivatePath(String user, String path) {
-    String userS = String.valueOf(user);
-    if (userS.startsWith("g-")) {
-      return PathUtils.toInternalHashedPath(_GROUP_PRIVATE, userS, path);
-    } else {
-      return PathUtils.toInternalHashedPath(_USER_PRIVATE, userS, path);
-    }
-  }
 
   public static String getPrimaryEmailAddress(Node profileNode)
       throws RepositoryException {

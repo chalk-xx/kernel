@@ -2,75 +2,75 @@ The Connections management service manages connections for the user.
 
 1. Each use has their own contacts store.
 In JCR this is
-/_user/contacts/ed/3e/4d/cd/aaron
+/_user/a/aa/aaron/contacts
 or in URL space
-/_user/contacts/aaron
+/_user/a/aa/aaron/contacts
 
 2. Within that store are connections.
-/_user/contacts/ed/3e/4d/cd/aaron/ed/ff/55/cc/ian
+/_user/a/aa/aaron/contacts/i/ia/ian
 or in URL space
-/_user/contacts/aaron/ian
+/_user/a/aa/aaron/contacts/i/ia/ian
 
 In this case the node ian representing the connection between aaron  
 and ian from the point of view of aaron.
 
 There is a mirror node of the connection from the point of view of ian.
-/_user/contacts/ian/aaron
+/_user/i/ia/ian/contacts/a/aaaaron
 
 3. On each of these nodes, there are 1..n properties, some are  
 multivalue some are single value.
 One of the properties is "sakai:state"
 
 To create a new connection Aaron would POST to
-/_user/contacts.invite.html with a post parameter of 'nico'
+/_user/a/aaron/contacts.invite.html with a post parameter of 'nico'
 creates
-/_user/contacts/ed/3e/4d/cd/aaron/34/e2/f5/dd/nico
+/_user/a/aa/aaron/contacts/n/ni/nico
 +
 sakai:state = 'pending'
 and
-/_user/contacts/34/e2/f5/dd/nico/ed/3e/4d/cd/aaron
+/_user/n/ni/nico/contacts/a/aa/aaron
 +
 sakai:state = 'invited'
 
 and any other properties you care to use.
 
 To accept Nico would POST to
-/_user/contacts/aaron.accept.html
+/_user/n/ni/nico/contacts.accept.html
 
 any properties would appear on the .../nico/.../aaron/ node and the  
 state of both nodes would be changed to 'connected'
 
 To cancel Aaron would POST to
-/_user/contacts/nico.cancel.html 
+/_user/a/aa/aaron/contacts/n/ni/nico.cancel.html 
 
 More examples:
 Logged in as Aaron
-/_user/contacts.invite.html with nico as a post parameter
+/_user/a/aa/aaron/contacts.invite.html with nico as a post parameter
 
-/_user/contacts/nico.cancel.html
+/_user/a/aa/aaron/contacts/n/ni/nico.cancel.html
 
 Logged in as Nico
-/_user/contacts/aaron.accept.html
-/_user/contacts/aaron.reject.html
-/_user/contacts/aaron.block.html
-/_user/contacts/aaron.ignore.html
+/_user/n/ni/nico/contacts.accept.html
+/_user/n/ni/nico/contacts.reject.html
+/_user/n/ni/nico/contacts.block.html
+/_user/n/ni/nico/contacts.ignore.html
 
 If accepted Aaron
-/_user/contacts/nico.remove.html
+/_user/a/aa/aaron/contacts/nico.remove.html
 
 and Nico
-/_user/contacts/aaron.remove.html
+/_user/n/ni/nico/contacts.remove.html
 
 
 For nico to see a contact
-/_user/contacts/aaron.html
+/_user/n/ni/nico/contacts.html
 
 
 To find all pendings we probably want
-/_user/contacts.invited.html
+/_user/n/ni/nico/contacts.invited.html
 
 The default view
-/_user/contacts.html
+/_user/a/aa/aaron/contacts.html
 
 
 It uses a bigstore underneath the users public space protected by a group to store 

@@ -129,7 +129,7 @@ public class MessagingServiceImpl implements MessagingService {
     }
     try {
       //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
-      String messagePath = PathUtils.toInternalHashedPath(messagePathBase, messageId, "");
+      String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
@@ -193,7 +193,7 @@ public class MessagingServiceImpl implements MessagingService {
   public void copyMessageNode(Node sourceMessage, String targetStore) throws PathNotFoundException, RepositoryException {
     Session session = sourceMessage.getSession();
     String messageId = sourceMessage.getName();
-    String targetNodePath = PathUtils.toInternalHashedPath(targetStore, messageId, "");
+    String targetNodePath = PathUtils.toSimpleShardPath(targetStore, messageId, "");
     String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
     Node parentNode = JcrUtils.deepGetOrCreateNode(session, parent);
     LOGGER.info("Created parent node at: " + parentNode.getPath());
@@ -230,7 +230,7 @@ public class MessagingServiceImpl implements MessagingService {
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
-    return PathUtils.toInternalHashedPath(storePath, messageId, "");
+    return PathUtils.toSimpleShardPath(storePath, messageId, "");
   }
 
   /**
@@ -262,34 +262,6 @@ public class MessagingServiceImpl implements MessagingService {
   }
 
 
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getUriToStore(java.lang.String)
-   */
-  public String getUriToStore(String rcpt, Session session) throws MessagingException {
-    String path = "";
-    try {
-      if (rcpt.startsWith("s-")) {
-        // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt.substring(2));
-        path = n.getPath() + "/store";
-      } else if (rcpt.startsWith("g-")) {
-        // This is a group.
-        path = MessageConstants._GROUP_MESSAGE + "/" + rcpt;
-      } else {
-        // Assume that it is a user.
-        path = MessageConstants._USER_MESSAGE + "/" + rcpt;
-      }
-    } catch (SiteException e) {
-      throw new MessagingException(e.getStatusCode(), e.getMessage());
-    } catch (RepositoryException e) {
-      throw new MessagingException(500, e.getMessage());
-    }
-
-    return path;
-  }
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.message.MessagingService#expandAliases(java.lang.String)

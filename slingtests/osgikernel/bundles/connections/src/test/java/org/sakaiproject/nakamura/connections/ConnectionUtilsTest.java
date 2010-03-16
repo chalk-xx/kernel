@@ -41,7 +41,7 @@ public class ConnectionUtilsTest extends AbstractEasyMockTest {
   /**
    *
    */
-  private static final String BASE = "/_user/b3/da/a7/7b/user1/contacts/a1/88/1c/06/user2";
+  private static final String BASE = "/_user/u/us/user1/contacts/u/us/user2";
 
   @Test
   public void testBasePath() {

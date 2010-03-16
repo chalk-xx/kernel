@@ -188,7 +188,7 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
     initBlacklist();
   }
 
-  public void activate(ComponentContext componentContext) {
+  protected void activate(ComponentContext componentContext) {
     httpClient = new HttpClient(proxyClientService.getHttpConnectionManager());
   }
 

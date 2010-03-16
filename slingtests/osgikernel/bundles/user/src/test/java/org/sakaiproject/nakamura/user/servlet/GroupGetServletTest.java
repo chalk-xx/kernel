@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -91,7 +92,6 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
     GroupGetServlet ggs = new GroupGetServlet();
 
     Principal principal = createMock(Principal.class);
-    expect(principal.getName()).andReturn("g-foo");
 
     ArrayList<Authorizable> al = new ArrayList<Authorizable>();
 
@@ -111,6 +111,12 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
     expect(resource.adaptTo(ValueMap.class)).andReturn(groupProps);
+
+    expect(authorizable.hasProperty("path")).andReturn(true).anyTimes();
+    Value pathValue = createMock(Value.class);
+
+    expect(authorizable.getProperty("path")).andReturn(new Value[] {pathValue}).anyTimes();
+    expect(pathValue.getString()).andReturn("/g/g-/g-foo").anyTimes();
 
     Session session = createMock(Session.class);
 
@@ -136,12 +142,18 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
     GroupGetServlet ggs = new GroupGetServlet();
 
     Principal principal = createMock(Principal.class);
-    expect(principal.getName()).andReturn("g-foo");
 
     Group authorizable = createMock(Group.class);
     expect(authorizable.isGroup()).andReturn(true);
     expect(authorizable.getPrincipal()).andReturn(principal);
     expect(authorizable.getMembers()).andThrow(new RepositoryException());
+
+    expect(authorizable.hasProperty("path")).andReturn(true).anyTimes();
+    Value pathValue = createMock(Value.class);
+
+    expect(authorizable.getProperty("path")).andReturn(new Value[] {pathValue}).anyTimes();
+    expect(pathValue.getString()).andReturn("/g/g-/g-foo").anyTimes();
+
 
     HashMap<String, Object> map = new HashMap<String, Object>();
     map.put("foo", "bar");

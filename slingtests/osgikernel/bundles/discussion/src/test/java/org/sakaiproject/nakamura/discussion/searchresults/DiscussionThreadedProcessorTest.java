@@ -98,9 +98,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     // - d
     // - c
 
-    MockNode profileNode = new MockNode("/_user/d0/33/e2/2a/2admin/public/authprofile");
+    MockNode profileNode = new MockNode("/_user/a/ad/admin/public/authprofile");
     MockNode anonProfileNode = new MockNode(
-        "/_user/0a/92/fa/b3/anonymous/public/authprofile");
+        "/_user/a/an/anonymous/public/authprofile");
 
     MockNode nodeA = new MockNode("/msg/a");
     nodeA.setSession(session);
@@ -136,9 +136,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     expect(session.getItem("/msg/b")).andReturn(nodeB);
     expect(session.getItem("/msg/c")).andReturn(nodeC);
     expect(session.getItem("/msg/d")).andReturn(nodeD);
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(
         profileNode).anyTimes();
-    expect(session.getItem("/_user/0a/92/fa/b3/anonymous/public/authprofile")).andReturn(
+    expect(session.getItem("/_user/a/an/anonymous/public/authprofile")).andReturn(
         anonProfileNode).anyTimes();
 
     RowIterator iterator = new MockRowIterator(nodes);

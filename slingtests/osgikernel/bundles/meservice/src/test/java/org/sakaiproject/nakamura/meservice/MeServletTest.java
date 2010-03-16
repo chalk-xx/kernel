@@ -82,7 +82,7 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     assertEquals("admin", j.getString("userid"));
     assertEquals(true, j.getBoolean("superUser"));
-    assertEquals("d0/33/e2/2a/admin/", j.getString("userStoragePrefix"));
+    assertEquals("a/ad/admin/", j.getString("userStoragePrefix"));
     assertEquals(1, j.getJSONArray("subjects").length());
   }
 

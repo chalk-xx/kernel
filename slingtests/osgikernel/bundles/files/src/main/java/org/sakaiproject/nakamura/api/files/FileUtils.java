@@ -40,7 +40,6 @@ import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -277,9 +276,6 @@ public class FileUtils {
     }
   }
 
-  public static String getHashedPath(String store, String id) {
-    return PathUtils.toInternalHashedPath(store, id, "");
-  }
 
   /**
    * Get the download path.

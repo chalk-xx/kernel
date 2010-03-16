@@ -87,7 +87,7 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(
     name = "CreateMessageServlet",
     shortDescription = "Create a message.",
-    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/message and /_group/message",
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/u/us/user/message and /_group/g/gr/group/message",
     bindings = @ServiceBinding(type = BindingType.TYPE, 
         bindings = "sakai/messagestore", 
         selectors = @ServiceSelector(name = "create")), 

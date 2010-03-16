@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.user.servlet;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet;
 import org.apache.sling.servlets.post.Modification;
@@ -36,6 +38,7 @@ import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
@@ -132,15 +135,45 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   @Override
   protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
-    super.handleOperation(request, response, changes);
+
+    Iterator<Resource> res = getApplyToResources(request);
+    if (res == null) {
+        Resource resource = request.getResource();
+        Authorizable item = resource.adaptTo(Authorizable.class);
+        if (item == null) {
+            String msg = "Missing source " + resource.getPath()
+                + " for delete";
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND, msg);
+            throw new ResourceNotFoundException(msg);
+        }
+        changes.add(Modification.onDeleted(resource.getPath()));
+    } else {
+        while (res.hasNext()) {
+            Resource resource = res.next();
+            Authorizable item = resource.adaptTo(Authorizable.class);
+            if (item != null) {
+                changes.add(Modification.onDeleted(resource.getPath()));
+            }
+        }
+    }
+    int endOfChanges = changes.size();
+
+
+    Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      Session session = request.getResourceResolver().adaptTo(Session.class);
       for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
         userPostProcessor.process(null, session, request, changes);
       }
-    } catch (Exception e) {
-      LOGGER.warn(e.getMessage(),e);
+      // delete the user objects
+      super.handleOperation(request, response, changes);
 
+      for( int i = 0; i < endOfChanges; i++ ) {
+        changes.remove(0);
+      }
+    } catch (Exception e) {
+      // undo any changes
+      session.refresh(true);
+      LOGGER.warn(e.getMessage(),e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }

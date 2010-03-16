@@ -50,28 +50,28 @@ module SlingContacts
 
 
     def get_accepted()
-      return @sling.get_node_props("_user/contacts/accepted")
+      return @sling.get_node_props("var/contacts/accepted")
     end
 
     def get_pending()
-      return @sling.get_node_props("_user/contacts/pending")
+      return @sling.get_node_props("var/contacts/pending")
     end
 
     def get_invited()
-      return @sling.get_node_props("_user/contacts/invited")
+      return @sling.get_node_props("var/contacts/invited")
     end
 
     def get_blocked()
-      return @sling.get_node_props("_user/contacts/blocked")
+      return @sling.get_node_props("var/contacts/blocked")
     end
 
     def get_ignored()
-      return @sling.get_node_props("_user/contacts/ignored")
+      return @sling.get_node_props("var/contacts/ignored")
     end
 
 
     def get_all()
-      return @sling.get_node_props("_user/contacts/all")
+      return @sling.get_node_props("var/contacts/all")
     end
     
   end

@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.search;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
@@ -29,18 +32,14 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>JsonQueryServletBlocker</code> blocks the default sling JsonQueryServlet
  * 
- * @scr.component immediate="true" label="JsonQueryServletBlocker"
- *                description="Blocks the default sling JsonQueryServlet."
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Blocks the default sling JsonQueryServlet."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json"
- * @scr.property name="sling.servlet.selectors" value="query"
- * @scr.property name="sling.servlet.prefix" value="-1"
  */
+
+@SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sling/servlet/default"}, selectors={"query"} )
+@Properties(value={
+ @Property(name="sling.servlet.prefix", value={"-1"}),
+ @Property(name="service.description", value={"Blocks the default sling JsonQueryServlet."}),
+ @Property(name="service.vendor", value={"The Sakai Foundation"})
+})
 public class JsonQueryServletBlocker extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 9135814126478411413L;

@@ -260,7 +260,6 @@ public class MeServlet extends SlingSafeMethodsServlet {
     return subjects;
   }
 
-  @SuppressWarnings("unchecked")
   private Map<String, Object> getProperties(Authorizable authorizable)
       throws RepositoryException {
     Map<String, Object> result = new HashMap<String, Object>();

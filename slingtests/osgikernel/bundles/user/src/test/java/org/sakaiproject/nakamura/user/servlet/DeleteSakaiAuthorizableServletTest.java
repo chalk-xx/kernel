@@ -27,9 +27,9 @@ public class DeleteSakaiAuthorizableServletTest extends AbstractEasyMockTest {
     expect(rr.adaptTo(Session.class)).andReturn(session);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getParameterValues(":applyTo")).andReturn(new String[] {});
-    expect(request.getResourceResolver()).andReturn(rr).times(2);
-    expect(request.getResource()).andReturn(null);
+    expect(request.getParameterValues(":applyTo")).andReturn(new String[] {}).times(2);
+    expect(request.getResourceResolver()).andReturn(rr).times(3);
+    expect(request.getResource()).andReturn(null).times(2);
 
     HtmlResponse response = new HtmlResponse();
 

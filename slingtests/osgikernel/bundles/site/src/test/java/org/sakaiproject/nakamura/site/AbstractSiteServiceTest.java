@@ -33,7 +33,6 @@ import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.PathUtils;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,7 +98,7 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   private void registerAuthorizable(Authorizable authorizable, String name)
       throws RepositoryException {
     ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
-    String hashedPath = PathUtils.getHashedPath(name, 4);
+    String hashedPath = "/"+name.substring(0,1)+"/"+name.substring(0,2)+"/"+name;
     expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
     expect(p.getName()).andReturn(name).anyTimes();
     expect(authorizable.getPrincipal()).andReturn(p).anyTimes();

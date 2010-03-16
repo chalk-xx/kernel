@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.util;
 
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.omg.PortableServer.Servant;
 import org.sakaiproject.nakamura.api.resource.SubPathProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +169,7 @@ public class PathUtils {
    *          the original path.
    * @return a pooled hash of the filename
    */
-  public static String getHashedPath(String path, int levels) {
+  public static String getShardPath(String path, int levels) {
     return getStructuredHash(path, levels, true);
   }
 
@@ -289,9 +290,9 @@ public class PathUtils {
    * @param pathInfo
    * @return
    */
-  public static String toInternalHashedPath(String servletPath, String pathInfo,
+  public static String toInternalShardPath(String servletPath, String pathInfo,
       String selector) {
-    return PathUtils.normalizePath(servletPath + PathUtils.getHashedPath(pathInfo, 4)
+    return PathUtils.normalizePath(servletPath + PathUtils.getShardPath(pathInfo, 4)
         + selector);
   }
 
@@ -342,14 +343,42 @@ public class PathUtils {
       } catch (RepositoryException e) {
         throw new RuntimeException(e);
       }
+    } else if (o instanceof ItemBasedPrincipal) {
+      try {
+        String path = ((ItemBasedPrincipal) o).getPath();
+        int i = path.lastIndexOf("rep:");
+        i = path.indexOf('/',i+1);
+        sub = path.substring(i);
+      } catch (RepositoryException e) {
+        throw new RuntimeException(e);
+      }
     } else if (o instanceof Principal) {
-      // Once we're at JCR2, we can scrap the following bit and use the ItemBasedPrincipal
-      // interface.
-      String userID = ((Principal) o).getName();
-      sub = getHashedPath(userID, 4);
+      sub = "/"+((Principal) o).getName();
     } else if (o instanceof SubPathProducer) {
       sub = ((SubPathProducer) o).getSubPath();
-    }
+    } 
     return PathUtils.normalizePath(sub);
+  }
+
+  /**
+   * @param messagePathBase
+   * @param messageId
+   * @param string
+   * @return
+   */
+  public static String toSimpleShardPath(String pathBase, String messageId,
+      String pathEnd) {
+    char[] shard = "________".toCharArray();
+    for( int i = 0; i < messageId.length() && i < shard.length; i++ ) {
+      shard[i] = messageId.charAt(i);
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append(pathBase);
+    for ( int i = 0; i < 4; i++ ) {
+      sb.append("/").append(new String(shard,i*2,2));
+    }
+    sb.append("/").append(messageId);
+    sb.append(pathEnd);
+    return sb.toString();
   }
 }

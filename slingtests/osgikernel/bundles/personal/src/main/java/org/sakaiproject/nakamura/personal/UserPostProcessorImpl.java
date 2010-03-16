@@ -37,6 +37,8 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
@@ -94,25 +96,48 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @param changes
    * @throws Exception
    */
-  public void process(Authorizable athorizable, Session session,
+  public void process(Authorizable authorizable, Session session,
       SlingHttpServletRequest request, List<Modification> changes) throws Exception {
-    if ( athorizable == null ) {
+    if ( authorizable == null ) {
+      // there may be multiples in the changes.
+      ResourceResolver rr = request.getResourceResolver();
+      Modification[] mc = changes.toArray(new Modification[changes.size()]);
+      for (Modification m : mc) {
+        String dest = m.getDestination();
+        if (dest == null) {
+          dest = m.getSource();
+        }
+        switch (m.getType()) {
+        case DELETE:
+          Resource r = rr.resolve(dest);
+          if ( r != null ) {
+            Authorizable a = r.adaptTo(Authorizable.class);
+            if ( a != null ) {
+              deleteHomeNode(session,a);
+              changes.add(Modification.onDeleted(PersonalUtils.getHomeFolder(a)));
+            } else {
+              LOGGER.warn("Failed to find resource to delete {} ",dest);
+            }
+          }
+          break;
+        }
+      }
       return;
     }
     try {
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-        createHomeFolder(session, athorizable, false, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, false, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-        createHomeFolder(session, athorizable, true, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, true, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-        createHomeFolder(session, athorizable, false, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, false, changes);
+        fireEvent(request, authorizable.getID(), changes);
       } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-        createHomeFolder(session, athorizable, true, changes);
-        fireEvent(request, athorizable.getID(), changes);
+        createHomeFolder(session, authorizable, true, changes);
+        fireEvent(request, authorizable.getID(), changes);
       }
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
@@ -145,8 +170,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             changes.add(Modification.onDeleted(prop.getPath()));
             prop.remove();
           }
-        } else {
-          deleteProfileNode(session, athorizable);
         }
         break;
       }
@@ -248,13 +271,15 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @return
    * @throws RepositoryException
    */
-  private Node createProfile(Session session, Authorizable athorizable, boolean isGroup)
+  private Node createProfile(Session session, Authorizable authorizable, boolean isGroup)
       throws RepositoryException {
-    String path = PersonalUtils.getProfilePath(athorizable);
+    String path = PersonalUtils.getProfilePath(authorizable);
+    
     String type = nodeTypeForAuthorizable(isGroup);
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
+    LOGGER.info("Creating  Profile Node {} for authorizable {} ",path,authorizable.getID());
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
     // Make sure we can place references to this profile node in the future.
@@ -264,7 +289,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
 
     // The user can update his own profile.
-    addEntry(profileNode.getParent().getPath(), athorizable.getPrincipal(), session,
+    addEntry(profileNode.getParent().getPath(), authorizable.getPrincipal(), session,
         READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
         MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED,
         NODE_TYPE_MANAGEMENT_GRANTED);
@@ -344,10 +369,10 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return publicNode;
   }
   
-  private void deleteProfileNode(Session session, Authorizable athorizable)
+  private void deleteHomeNode(Session session, Authorizable athorizable)
       throws RepositoryException {
     if (athorizable != null) {
-      String path = PersonalUtils.getProfilePath(athorizable);
+      String path = PersonalUtils.getHomeFolder(athorizable);
       if (session.itemExists(path)) {
         Node node = (Node) session.getItem(path);
         node.remove();

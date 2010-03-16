@@ -35,50 +35,7 @@ public class ConnectionUtils {
    */
   public static final String CONNECTION_PATH_ROOT = "/_user/contacts";
 
-  /**
-   * Builds a path to the connection node.
-   * 
-   * @param user
-   *          the user who owns the connection
-   * @param targetUser
-   *          the target user of the connection
-   * @param remainderPath
-   *          any path after the name of the node, including selectors eg .accept.html
-   *          would results in /_users/connect/xx/yy/zz/ieb/xz/xy/zy/nico.accept.html,
-   *          this is not an absolute path fragment and may start half way through an
-   *          element. / is not used to separate.
-   * @return the path to the connection node or subtree node.
-   */
-  @Deprecated
-  public static String getConnectionPath(String user, String targetUser,
-      String remainderPath) {
-    // /_user/contacts.invite.html
-    // /_user/contacts/aaron.accept.html
 
-    if (remainderPath == null) {
-      remainderPath = "";
-    }
-    if (remainderPath.startsWith(targetUser)) {
-      remainderPath = remainderPath.substring(targetUser.length());
-    }
-    String path = getConnectionPathBase(user);
-    return PathUtils.toInternalHashedPath(path, targetUser, "") + remainderPath;
-  }
-
-  @Deprecated
-  public static String getConnectionPath(String user, String targetUser) {
-    return getConnectionPath(user, targetUser, "");
-  }
-
-  /**
-   * @param path
-   * @param user1
-   * @return
-   */
-  @Deprecated
-  public static String getConnectionPathBase(String user1) {
-    return PathUtils.toInternalHashedPath(CONNECTION_PATH_ROOT, user1, "");
-  }
 
   /**
    * Builds the path to the connection node.

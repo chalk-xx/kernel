@@ -142,8 +142,9 @@ public class SiteServiceImpl implements SiteService {
    *      java.lang.String, java.lang.String)
    */
   public void joinSite(Node site, String requestedGroup) throws SiteException {
+    Session session = null;
     try {
-      Session session = slingRepository.loginAdministrative(null);
+       session = slingRepository.loginAdministrative(null);
       String user = site.getSession().getUserID();
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable userAuthorizable = userManager.getAuthorizable(user);
@@ -194,9 +195,18 @@ public class SiteServiceImpl implements SiteService {
       } else {
         startJoinWorkflow(site, targetGroup);
       }
+      if ( session.hasPendingChanges()) {
+        session.save();
+      }
     } catch (RepositoryException e) {
       LOGGER.warn(e.getMessage(), e);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } finally {
+      try {
+        session.logout();
+      } catch ( Exception ex ) {
+        LOGGER.debug("Error cleaning up session ",ex.getMessage(),ex);
+      }
     }
   }
 
@@ -551,8 +561,8 @@ public class SiteServiceImpl implements SiteService {
       if (site.hasProperty(SiteService.AUTHORIZABLE)) {
         Value[] values = getPropertyValues(site, SiteService.AUTHORIZABLE);
         for (Value v : values) {
-          String groupId = v.getString();
-          Authorizable a = userManager.getAuthorizable(groupId);
+          String id = v.getString();
+          Authorizable a = userManager.getAuthorizable(id);
           if (a instanceof Group) {
             // FIXME: a is never a Group Key (bug?)
             if (!groups.containsKey(a)) {
@@ -563,12 +573,17 @@ public class SiteServiceImpl implements SiteService {
             // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
               String profilePath = PersonalUtils.getProfilePath(a);
-              Node profileNode = (Node) session.getItem(profilePath);
+              Node profileNode = null;
+              try {
+                profileNode = (Node) session.getItem(profilePath);
+              } catch ( PathNotFoundException e ) {
+                LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+              }
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
             }
           } else if (a == null) {
             // if a is null
-            LOGGER.warn("Authorizable could not be resolved from groupId: {}", groupId);
+            LOGGER.warn("Authorizable could not be resolved from id: {}", id);
           } else {
             // if a is not one of the known types
             LOGGER.warn("Cannot handle Authorizable {} of type {}", a,  a
@@ -584,7 +599,8 @@ public class SiteServiceImpl implements SiteService {
                 .getPath(), SiteService.AUTHORIZABLE);
       }
     } catch (RepositoryException ex) {
-      LOGGER.warn("Failed to build membership Tree for {} ", site, ex);
+      // dont change this warn into {} form, doing so will prevent the exception being displayed.
+      LOGGER.warn("Failed to build membership Tree for  site ["+site+"] ", ex);
     }
     return new MembershipTree(groups, users);
   }
@@ -694,7 +710,13 @@ public class SiteServiceImpl implements SiteService {
           populateMembers((Group) a, groups, users, session);
         } else {
           String profilePath = PersonalUtils.getProfilePath(a);
-          Node profileNode = (Node) session.getItem(profilePath);
+          Node profileNode = null;
+          try {
+            profileNode = (Node) session.getItem(profilePath);
+          } catch ( PathNotFoundException e ) {
+            LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+          }
+          LOGGER.info("Populate Members adding profile {} {} ",profileNode,profilePath);
           users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }
       }
@@ -768,7 +790,7 @@ public class SiteServiceImpl implements SiteService {
         if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
             && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString()
                 .equals("sakai/sites")) {
-          String path = PathUtils.toInternalHashedPath(node.getPath(), siteName, "");
+          String path = PathUtils.toSimpleShardPath(node.getPath(), siteName, "");
           Node siteNode = (Node) session.getItem(path);
           if (isSite(siteNode)) {
             return siteNode;

@@ -20,25 +20,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>felix</artifactId>
-        <version>1.0.4</version>
-        <relativePath>../../pom</relativePath>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>base</artifactId>
+      <version>0.4-SNAPSHOT</version>
     </parent>
-
-    <properties>
-        <pkgArtifactId>commons-email</pkgArtifactId>
-        <pkgVersion>1.1</pkgVersion>
-        <pomVersion>0.4-SNAPSHOT</pomVersion>
-        <osgiVersion>${pkgVersion}</osgiVersion>
-    </properties>
-    <groupId>org.apache.felix.commons</groupId>
-    <artifactId>${pom.groupId}.${pkgArtifactId}</artifactId>
-    <version>${osgiVersion}-${pomVersion}</version>
+    <groupId>org.sakaiproject.nakamura</groupId>
+    <artifactId>org.sakaiproject.nakamura.commons.commons-email</artifactId>
+    <version>1.1-0.4-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>${pkgArtifactId} bundle</name>
+    <name>commons-email bundle</name>
     <description>
-        This bundle simply wraps ${pkgArtifactId}-${pkgVersion}.jar.
+        This bundle simply wraps commons-email-1.1.jar.
     </description>
     <organization>
         <name>Apache Felix Project</name>
@@ -55,8 +47,8 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
-            <artifactId>${pkgArtifactId}</artifactId>
-            <version>${pkgVersion}</version>
+            <artifactId>commons-email</artifactId>
+            <version>1.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.mail</groupId>
@@ -87,9 +79,9 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>
-                            ${pom.artifactId}
+                            commons-email
                         </Bundle-SymbolicName>
-                        <Export-Package>*;version=${pkgVersion}</Export-Package>
+                        <Export-Package>*;version=1.1</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

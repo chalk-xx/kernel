@@ -24,8 +24,6 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.sakaiproject.nakamura.util.StringUtils;
-import org.sakaiproject.nakamura.util.URIExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +71,8 @@ public abstract class AbstractPropertyOperationModifier extends
       Resource resource = request.getResource();
       Item item = resource.adaptTo(Item.class);
       if (item == null) {
-        String path = URIExpander.expandStorePath(session, resource.getPath());
+        // resources are all refenced by path, there is no path expansion as before.
+        String path = resource.getPath();
         if (session.itemExists(path)) {
           item = session.getItem(path);
         } else {
@@ -111,13 +110,6 @@ public abstract class AbstractPropertyOperationModifier extends
     if (applyTo == null) {
       return null;
     }
-
-    for (String uri : applyTo) {
-      String path = URIExpander.expandStorePath(session, uri);
-      applyTo = StringUtils.removeString(applyTo, uri);
-      applyTo = StringUtils.addString(applyTo, path);
-    }
-
     return applyTo;
   }
 

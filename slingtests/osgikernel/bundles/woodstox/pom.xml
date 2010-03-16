@@ -24,20 +24,9 @@
 		<artifactId>base</artifactId>
 		<version>0.4-SNAPSHOT</version>
 	</parent>
-	<properties>
-		<stax1ApiVersion>1.0.1</stax1ApiVersion>
-		<stax2ApiArtifactId>stax2-api</stax2ApiArtifactId>
-		<stax2ApiVersion>3.0.1</stax2ApiVersion>
-		<implArtifactId>woodstox-core-asl</implArtifactId>
-		<implVersion>4.0.7</implVersion>
-		<relaxArtifactId>relaxngDatatype</relaxArtifactId>
-		<relaxVersion>20020414</relaxVersion>
-		<pomVersion>0.4-SNAPSHOT</pomVersion>
-		<osgiVersion>${implVersion}</osgiVersion>
-	</properties>
 	<groupId>org.sakaiproject.nakamura</groupId>
-	<artifactId>${pom.groupId}.woodstox</artifactId>
-	<version>${osgiVersion}-${pomVersion}</version>
+	<artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
+	<version>4.0.7-0.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>Woodstox/StAX</name>
 	<description>
@@ -50,18 +39,18 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
-			<artifactId>${stax2ApiArtifactId}</artifactId>
-			<version>${stax2ApiVersion}</version>
+			<artifactId>stax2-api</artifactId>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.woodstox</groupId>
-			<artifactId>${implArtifactId}</artifactId>
-			<version>${implVersion}</version>
+			<artifactId>woodstox-core-asl</artifactId>
+			<version>4.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>relaxngDatatype</groupId>
-			<artifactId>${relaxArtifactId}</artifactId>
-			<version>${relaxVersion}</version>
+			<artifactId>relaxngDatatype</artifactId>
+			<version>20020414</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -73,13 +62,13 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>
+						<Bundle-SymbolicName>org.sakaiproject.nakamura.woodstox</Bundle-SymbolicName>
 						<Import-Package>!javax.xml.stream.*,!com.sun.msv.*,*</Import-Package>
 						<Export-Package>
-							javax.xml.stream.*;version=${stax1ApiVersion},
-							org.codehaus.stax2.*;version=${stax2ApiVersion},
-							com.ctc.wstx.*;version=${implVersion},
-							org.relaxng.datatype.*;version=${relaxVersion}
+							javax.xml.stream.*;version=1.0.1,
+							org.codehaus.stax2.*;version=3.0.1,
+							com.ctc.wstx.*;version=4.0.7,
+							org.relaxng.datatype.*;version=20020414
 						</Export-Package>
 					</instructions>
 				</configuration>

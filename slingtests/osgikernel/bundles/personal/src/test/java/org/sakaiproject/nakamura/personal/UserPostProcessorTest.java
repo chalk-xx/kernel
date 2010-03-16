@@ -95,22 +95,22 @@ public class UserPostProcessorTest extends AbstractEasyMockTest {
     Node underHome = createMock(Node.class);
     
     // Home folder
-    expect(session.itemExists("/_user/d0/33/e2/2a")).andReturn(true).anyTimes();
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin")).andReturn(true).anyTimes();
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin/private")).andReturn(true).anyTimes();
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin/public")).andReturn(true).anyTimes();
-    expect(session.itemExists("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/private")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/public")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/public/authprofile")).andReturn(true).anyTimes();
 
     Node homeNode = createMock(Node.class);
     Node privateNode = createMock(Node.class);
     Node publicNode = createMock(Node.class);
     
     
-    expect(session.getItem("/_user/d0/33/e2/2a")).andReturn(underHome).anyTimes();
-    expect(session.getItem("/_user/d0/33/e2/2a/admin")).andReturn(homeNode).anyTimes();
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/private")).andReturn(privateNode).anyTimes();
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/public")).andReturn(publicNode).anyTimes();
-    expect(session.getItem("/_user/d0/33/e2/2a/admin/public/authprofile")).andReturn(
+    expect(session.getItem("/_user/a/ad")).andReturn(underHome).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin")).andReturn(homeNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/private")).andReturn(privateNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public")).andReturn(publicNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(
         profileNode).anyTimes();
 
     expect(session.getUserManager()).andReturn(userManager);

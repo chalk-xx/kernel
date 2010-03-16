@@ -39,7 +39,7 @@ public class MessageSubPathProducer implements SubPathProducer {
   public String getSubPath() {
     // Our id is something like 7eb256fd000d8fb33668138998251f605696b112
     // This will return: /09/93/4d/50/7eb256fd000d8fb33668138998251f605696b112
-    return PathUtils.normalizePath(PathUtils.getHashedPath(id, 4));
+    return PathUtils.normalizePath(PathUtils.toSimpleShardPath("", id, ""));
   }
 
 }

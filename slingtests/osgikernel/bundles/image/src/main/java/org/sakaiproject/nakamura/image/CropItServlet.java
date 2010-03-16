@@ -35,7 +35,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
-import org.sakaiproject.nakamura.util.URIExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -133,9 +131,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
         dimensions.add(d);
       }
 
-      // Make sure we have correct values.
-      img = URIExpander.expandStorePath(session, img);
-      save = URIExpander.expandStorePath(session, save);
 
       x = checkIntBiggerThanZero(x, 0);
       y = checkIntBiggerThanZero(y, 0);
@@ -174,9 +169,6 @@ public class CropItServlet extends SlingAllMethodsServlet {
       response.sendError(e.getCode(), e.getMessage());
     } catch (JSONException e) {
       response.sendError(500, "Unable to output JSON.");
-    } catch (RepositoryException e) {
-      logger.warn("ReposityoryException: " + e.getMessage());
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
   }
 

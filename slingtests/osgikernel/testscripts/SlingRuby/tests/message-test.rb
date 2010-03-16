@@ -54,7 +54,7 @@ class TC_MyMessageTest < SlingTest
 
 
 	puts("Sending Message ")
-    res = @mm.send(messageid)	
+	res = @mm.send(messageid)
 	assert_equal("200", res.code, "Dispatched ok")
 
 

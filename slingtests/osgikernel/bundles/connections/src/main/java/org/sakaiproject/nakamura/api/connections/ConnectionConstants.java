@@ -25,7 +25,6 @@ public interface ConnectionConstants {
 
   /**
    * This marks the base contacts node,
-   * this must match the one in /resources/SLING-INF/content/_user/contacts.json
    */
   public static final String SAKAI_CONTACTSTORE_RT = "sakai/contactstore";
 
