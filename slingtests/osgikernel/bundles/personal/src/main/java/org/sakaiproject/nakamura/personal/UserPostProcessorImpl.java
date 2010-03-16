@@ -37,6 +37,8 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
@@ -97,7 +99,29 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(Authorizable authorizable, Session session,
       SlingHttpServletRequest request, List<Modification> changes) throws Exception {
     if ( authorizable == null ) {
-      LOGGER.warn("No Authorizable Provided, not processing User Update" );
+      // there may be multiples in the changes.
+      ResourceResolver rr = request.getResourceResolver();
+      Modification[] mc = changes.toArray(new Modification[changes.size()]);
+      for (Modification m : mc) {
+        String dest = m.getDestination();
+        if (dest == null) {
+          dest = m.getSource();
+        }
+        switch (m.getType()) {
+        case DELETE:
+          Resource r = rr.resolve(dest);
+          if ( r != null ) {
+            Authorizable a = r.adaptTo(Authorizable.class);
+            if ( a != null ) {
+              deleteHomeNode(session,a);
+              changes.add(Modification.onDeleted(PersonalUtils.getHomeFolder(a)));
+            } else {
+              LOGGER.warn("Failed to find resource to delete {} ",dest);
+            }
+          }
+          break;
+        }
+      }
       return;
     }
     try {
@@ -146,8 +170,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
             changes.add(Modification.onDeleted(prop.getPath()));
             prop.remove();
           }
-        } else {
-          deleteProfileNode(session, athorizable);
         }
         break;
       }
@@ -347,10 +369,10 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     return publicNode;
   }
   
-  private void deleteProfileNode(Session session, Authorizable athorizable)
+  private void deleteHomeNode(Session session, Authorizable athorizable)
       throws RepositoryException {
     if (athorizable != null) {
-      String path = PersonalUtils.getProfilePath(athorizable);
+      String path = PersonalUtils.getHomeFolder(athorizable);
       if (session.itemExists(path)) {
         Node node = (Node) session.getItem(path);
         node.remove();
