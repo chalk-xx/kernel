@@ -302,7 +302,11 @@ public class CropItProcessor {
       out = new ByteArrayOutputStream();
 
       // Write to stream.
-      Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
+      if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
+        ImageIO.write(imgScaled, info.getFormatName(), out);
+      } else {
+        Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
+      }
     } finally {
       if (out != null) {
         out.close();
