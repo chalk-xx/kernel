@@ -1,6 +1,5 @@
 package edu.nyu;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,11 @@ public interface XythosRemote {
 	
 	void addMember(String groupId, String userId);
 	
+	
 	void createGroup(String groupId, String userId);
+	
+	void removeDocument(String path, String userId);
+	
+
 
 }
