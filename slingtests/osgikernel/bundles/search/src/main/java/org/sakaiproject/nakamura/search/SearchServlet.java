@@ -39,6 +39,13 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPER
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
@@ -95,28 +102,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SearchServlet</code> uses nodes from the
  * 
- * @scr.component immediate="true" label="SearchServlet"
- *                description="a generic resource driven search servlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Perfoms searchs based on the associated node."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/search"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json"
- * @scr.reference name="SearchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="SearchBatchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor"
- *                bind="bindSearchBatchResultProcessor"
- *                unbind="unbindSearchBatchResultProcessor" cardinality="0..n"
- *                policy="dynamic"
- * @scr.reference name="SearchPropertyProvider"
- *                interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
- *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
- *                cardinality="0..n" policy="dynamic"
  */
 @ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -178,6 +163,23 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
+
+@SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
+@Properties( value={
+    @Property(name="service.description", value={"Perfoms searchs based on the associated node."}),
+    @Property(name="service.vendor", value={"The Sakai Foundation"})
+})
+@References(value={
+    @Reference(name="SearchResultProcessor", referenceInterface=SearchResultProcessor.class,
+        bind="bindSearchResultProcessor", unbind="unbindSearchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchBatchResultProcessor", referenceInterface=SearchBatchResultProcessor.class,
+        bind="bindSearchBatchResultProcessor", unbind="unbindSearchBatchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchPropertyProvider", referenceInterface=SearchPropertyProvider.class,
+        bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+})
 public class SearchServlet extends SlingAllMethodsServlet {
 
   /**
@@ -200,7 +202,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  /** @scr.property name="maximumResults" value="1000" type="Long" */
+  @Property(name="maximumResults", longValue=1000L  )
   private long maximumResults;
 
   // Default processors
