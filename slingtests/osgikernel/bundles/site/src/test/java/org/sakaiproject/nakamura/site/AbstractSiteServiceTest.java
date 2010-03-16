@@ -201,6 +201,11 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
         // TODO Auto-generated method stub
         
       }
+
+      public void removeDocument(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        
+      }
     };
   }
 
