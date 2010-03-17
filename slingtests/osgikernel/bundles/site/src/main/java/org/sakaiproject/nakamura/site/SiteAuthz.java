@@ -305,9 +305,11 @@ public class SiteAuthz {
 
   private void applyStandardAccessRules() throws RepositoryException {
     try {
-      JSONArray standardAces = getAuthzConfig().getJSONArray("standardAces");
-      for (int i = 0; i < standardAces.length(); i++) {
-        applyAceModification(standardAces.getJSONObject(i));
+      JSONArray standardAces = getAuthzConfig().optJSONArray("standardAces");
+      if (standardAces != null) {
+        for (int i = 0; i < standardAces.length(); i++) {
+          applyAceModification(standardAces.getJSONObject(i));
+        }
       }
     } catch (JSONException e) {
       LOGGER.error("Bad site authz config for site " + site.getPath(), e);
