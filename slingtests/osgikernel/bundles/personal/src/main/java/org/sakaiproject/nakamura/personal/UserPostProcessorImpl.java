@@ -99,7 +99,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public void process(Authorizable authorizable, Session session,
       SlingHttpServletRequest request, List<Modification> changes) throws Exception {
     if ( authorizable == null ) {
-      // there may be multiples in the changes.
+      LOGGER.debug("Processing  Null Authorizable ");
+           // there may be multiples in the changes.
       ResourceResolver rr = request.getResourceResolver();
       Modification[] mc = changes.toArray(new Modification[changes.size()]);
       for (Modification m : mc) {
@@ -124,6 +125,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       }
       return;
     }
+    LOGGER.debug("Processing  {} ",authorizable.getID());
     try {
       String resourcePath = request.getRequestPathInfo().getResourcePath();
       if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
@@ -139,6 +141,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         createHomeFolder(session, authorizable, true, changes);
         fireEvent(request, authorizable.getID(), changes);
       }
+      LOGGER.debug("DoneProcessing  {} ",authorizable.getID());
     } catch (Exception ex) {
       LOGGER.error("Post Processing failed " + ex.getMessage(), ex);
     }
@@ -236,8 +239,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createHomeFolder(Session session, Authorizable authorizable,
       boolean isGroup, List<Modification> changes) throws RepositoryException {
     String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
+    LOGGER.debug("Creating Home for {} at   {} ",authorizable.getID(), homeFolderPath);
     if (session.itemExists(homeFolderPath)) {
-      return (Node) session.getItem(homeFolderPath);
+      Node node =  (Node) session.getItem(homeFolderPath);
+      LOGGER.debug("Home Exists for {} at  {} as {} ",new Object[] {authorizable.getID(), homeFolderPath, node});
+      return node;
     }
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal anon = new Principal() {
@@ -248,12 +254,14 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     Principal everyone = principalManager.getEveryone();
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
+    LOGGER.debug("Created Home Node for {} at   {} ",authorizable.getID(), homeNode);
     addEntry(homeFolderPath, authorizable.getPrincipal(), session, READ_GRANTED,
         WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
         ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
     // explicitly deny anon and everyone, this is private space.
     addEntry(homeFolderPath, anon, session, READ_GRANTED, WRITE_DENIED);
     addEntry(homeFolderPath, everyone, session, READ_GRANTED, WRITE_DENIED);
+    LOGGER.debug("Set ACL on Node for {} at   {} ",authorizable.getID(), homeNode);
 
     // Create the public, private, authprofile
     createPrivate(session, authorizable);
@@ -279,7 +287,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (session.itemExists(path)) {
       return (Node) session.getItem(path);
     }
-    LOGGER.info("Creating  Profile Node {} for authorizable {} ",path,authorizable.getID());
+    LOGGER.debug("Creating  Profile Node {} for authorizable {} ", path,authorizable.getID());
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
     profileNode.setProperty("sling:resourceType", type);
     // Make sure we can place references to this profile node in the future.
@@ -309,6 +317,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createPrivate(Session session, Authorizable athorizable)
       throws RepositoryException {
     String privatePath = PersonalUtils.getPrivatePath(athorizable);
+    LOGGER.debug("creating private at {} ",privatePath);
     if (session.itemExists(privatePath)) {
       return (Node) session.getItem(privatePath);
     }
@@ -330,6 +339,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     // Anonymous can see the public space but they can't write.
     addEntry(privatePath, anon, session, READ_DENIED, WRITE_DENIED);
     addEntry(privatePath, everyone, session, READ_DENIED, WRITE_DENIED);
+    LOGGER.debug("Done creating private at {} ",privatePath);
     
     return privateNode;
   }
@@ -347,6 +357,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createPublic(Session session, Authorizable athorizable)
       throws RepositoryException {
     String publicPath = PersonalUtils.getPublicPath(athorizable);
+    LOGGER.debug("Creating Public  for {} at   {} ",athorizable.getID(), publicPath);
     if (session.itemExists(publicPath)) {
       return (Node) session.getItem(publicPath);
     }
@@ -416,7 +427,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
           path = m.getSource();
         }
         if (AuthorizableEventUtil.isAuthorizableModification(m)) {
-          LOGGER.info("Got Authorizable modification: " + m);
+          LOGGER.debug("Got Authorizable modification: " + m);
           switch (m.getType()) {
           case COPY:
           case CREATE:
@@ -472,6 +483,14 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    */
   protected void unbindEventAdmin(EventAdmin eventAdmin) {
     this.eventAdmin = null;
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   */
+  public int getSequence() {
+    return 0;
   }
 
 }

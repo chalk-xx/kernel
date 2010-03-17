@@ -101,4 +101,12 @@ public class MessageUserPostProcessor implements UserPostProcessor {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   */
+  public int getSequence() {
+    return 10;
+  }
+
 }
