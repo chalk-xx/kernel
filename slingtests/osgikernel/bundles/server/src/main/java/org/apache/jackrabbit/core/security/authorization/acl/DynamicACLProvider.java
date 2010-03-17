@@ -19,6 +19,7 @@ package org.apache.jackrabbit.core.security.authorization.acl;
 
 import org.apache.commons.collections.iterators.IteratorChain;
 import org.apache.commons.collections.map.LRUMap;
+import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -30,7 +31,10 @@ import org.apache.jackrabbit.core.id.NodeId;
 import org.apache.jackrabbit.core.security.authorization.AccessControlConstants;
 import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
 import org.apache.jackrabbit.core.security.principal.EveryonePrincipal;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RuleProcessorManager;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleProcessor;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
+import javax.jcr.ItemNotFoundException;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -63,14 +68,16 @@ public class DynamicACLProvider extends ACLProvider {
   private DynamicPrincipalManager dynamicPrincipalManager;
   private LRUMap staticPrincipals = new LRUMap(1000);
   private NodeId rootNodeId;
+  private RuleProcessorManager ruleProccesorManager;
 
   
 
   /**
    * @param dynamicPrincipalManager2
    */
-  public DynamicACLProvider(DynamicPrincipalManager dynamicPrincipalManager) {
+  public DynamicACLProvider(DynamicPrincipalManager dynamicPrincipalManager, RuleProcessorManager ruleProcessorManager) {
     this.dynamicPrincipalManager = dynamicPrincipalManager;
+    this.ruleProccesorManager = ruleProcessorManager;
   }
 
   /**
@@ -170,52 +177,63 @@ public class DynamicACLProvider extends ACLProvider {
       NodeIterator itr = aclNode.getNodes();
       while (itr.hasNext()) {
         NodeImpl aceNode = (NodeImpl) itr.nextNode();
-
         String principalName = aceNode.getProperty(
             AccessControlConstants.P_PRINCIPAL_NAME).getString();
-        // only process aceNode if 'principalName' is contained in the given set
-        // or the dynamicPrincialManager says the user has the principal.
+        RulesPrincipal rp = null;
+        try {
+          rp = new RulesPrincipal(principalName);
+          principalName = rp.getPrincipalName();
+        } catch ( IllegalArgumentException e ) {
 
-        if (principalNames.contains(principalName)
-            || hasPrincipal(principalName, aclNode, contextNode, 
-                userId)) {
-          Principal princ = principalMgr.getPrincipal(principalName);
+        }
+        if ( rp == null || isAceActiveCheap(aceNode) ) {
+          // only process aceNode if 'principalName' is contained in the given set
+          // or the dynamicPrincialManager says the user has the principal.
 
-          Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
-              .getValues();
-          Privilege[] privs = new Privilege[privValues.length];
-          if ( LOG.isDebugEnabled() ) {
-            construct.append("[Matched,");
-            construct.append((princ instanceof Group)?"group,":"user,");
-            construct.append(aceNode
-                .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE)?"grant,":"deny,").append(principalName);
-            for (int i = 0; i < privValues.length; i++) {
-              construct.append(",").append(privValues[i].getString());
+          if (principalNames.contains(principalName)
+              || hasPrincipal(principalName, aclNode, contextNode,
+                  userId)) {
+            if ( rp == null || isAceActiveExpensive(aceNode,contextNode,userId) ) {
+              Principal princ = principalMgr.getPrincipal(principalName);
+
+              Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
+                  .getValues();
+              Privilege[] privs = new Privilege[privValues.length];
+              if ( LOG.isDebugEnabled() ) {
+                construct.append("[Matched,");
+                construct.append((princ instanceof Group)?"group,":"user,");
+                construct.append(aceNode
+                    .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE)?"grant,":"deny,").append(principalName);
+                for (int i = 0; i < privValues.length; i++) {
+                  construct.append(",").append(privValues[i].getString());
+                }
+                construct.append("]\n");
+              }
+              for (int i = 0; i < privValues.length; i++) {
+                privs[i] = acMgr.privilegeFromName(privValues[i].getString());
+              }
+              // create a new ACEImpl (omitting validation check)
+              AccessControlEntry ace = new ACLTemplate.Entry(princ, privs, aceNode
+                  .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE), sImpl
+                  .getValueFactory());
+              // add it to the proper list (e.g. separated by principals)
+              /**
+               * NOTE: access control entries must be collected in reverse order in order to
+               * assert proper evaluation.
+               */
+              if (EveryonePrincipal.getInstance().getName().equals(princ.getName()) ) {
+                gaces.add(ace);
+              } else if (princ instanceof Group) {
+                gaces.add(0, ace);
+              } else {
+                uaces.add(0, ace);
+              }
+            } else if ( LOG.isDebugEnabled() ) {
+              construct.append("[Not Active,").append(principalName).append("]\n");
             }
-            construct.append("]\n");
+          } else if ( LOG.isDebugEnabled() ){
+            construct.append("[Ignored,").append(principalName).append("]\n");
           }
-          for (int i = 0; i < privValues.length; i++) {
-            privs[i] = acMgr.privilegeFromName(privValues[i].getString());
-          }
-          // create a new ACEImpl (omitting validation check)
-          AccessControlEntry ace = new ACLTemplate.Entry(princ, privs, aceNode
-              .isNodeType(AccessControlConstants.NT_REP_GRANT_ACE), sImpl
-              .getValueFactory());
-          // add it to the proper list (e.g. separated by principals)
-          /**
-           * NOTE: access control entries must be collected in reverse order in order to
-           * assert proper evaluation.
-           */
-          if (EveryonePrincipal.getInstance().getName().equals(princ.getName()) ) {
-            gaces.add(ace);
-          } else if (princ instanceof Group) {
-            gaces.add(0, ace);
-          } else {
-            uaces.add(0, ace);
-          }
-        } else if ( LOG.isDebugEnabled() ){
-          construct.append("[Ignored,").append(principalName).append("]\n");
-
         }
       }
 
@@ -229,10 +247,82 @@ public class DynamicACLProvider extends ACLProvider {
       }
     }
 
+
     @SuppressWarnings("unchecked")
     private Iterator<AccessControlEntry> iterator() {
       LOG.debug("User {} ACE {} ",userId,construct);
       return new IteratorChain(userAces.iterator(), groupAces.iterator());
+    }
+  }
+
+  /**
+   * A more expensive check on the Ace to see if its active. The user will already have this principal so this can look wider than just the node.
+   * @param aceNode
+   * @param contextNode
+   * @param userId
+   * @return
+   */
+  protected boolean isAceActiveExpensive(NodeImpl aceNode, NodeImpl contextNode,
+      String userId) {
+    try {
+      // check
+      RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString()); 
+      if ( aceNode.hasProperty(RulesBasedAce.P_RULEPROCESSOR)) {
+        String name = aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE).getString();
+        RuleProcessor ruleProcessor = ruleProccesorManager.getRuleProcessor(name);
+        if ( ruleProcessor != null ) {
+          return ruleProcessor.isAceActive(aceNode,contextNode,userId);
+        }
+        return false; // no rule processor found so cant be active
+      }
+      return true; // it was active cheap, this MUST have been called, we could add a 2nd check here but that would be a waste.
+    } catch ( IllegalArgumentException e ) {
+      return true; // its not a rules based ACL so it must be active.
+    } catch ( Exception e ) {
+      return false; // an error in processing has to default to inactive
+    }
+  }
+
+  /**
+   * A cheap check on the node to see it it should be ignored. This should only consider properties on the node.
+   * @param aceNode
+   * @return
+   * @throws RepositoryException
+   * @throws ItemNotFoundException
+   */
+  protected boolean isAceActiveCheap(NodeImpl aceNode) throws ItemNotFoundException, RepositoryException {
+    // should only be here if the principal is a RulesPrincipal
+    try {
+      RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString());
+      long now = System.currentTimeMillis();
+      if ( aceNode.hasProperty(RulesBasedAce.P_ACTIVE_RANGE)) {
+        Value[] activeRanges = aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE).getValues();
+        for ( Value r : activeRanges) {
+          String[] range = StringUtils.split(r.getString(),'/');
+          ISO8601Date from = new ISO8601Date(range[0]);
+          ISO8601Date to = new ISO8601Date(range[1]);
+          if ( from.before(now) && to.after(now) ) {
+            return true;
+          }
+        }
+        return false; // it had active times but none matched
+      }
+      if ( aceNode.hasProperty(RulesBasedAce.P_INACTIVE_RANGE)) {
+        Value[] activeRanges = aceNode.getProperty(RulesBasedAce.P_INACTIVE_RANGE).getValues();
+        for ( Value r : activeRanges) {
+          String[] range = StringUtils.split(r.getString(),'/');
+          ISO8601Date from = new ISO8601Date(range[0]);
+          ISO8601Date to = new ISO8601Date(range[1]);
+          if ( from.before(now) && to.after(now) ) {
+            return false;
+          }
+        }
+      }
+      return true;
+    } catch ( IllegalArgumentException e ) {
+      return true; // its not a rules based ACL so it must be active.
+    } catch ( Exception e ) {
+      return true; // an error in processing has to default to active
     }
   }
 

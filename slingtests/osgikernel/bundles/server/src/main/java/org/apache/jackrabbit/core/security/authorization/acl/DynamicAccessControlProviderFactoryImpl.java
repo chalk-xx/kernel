@@ -23,6 +23,7 @@ import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
 import org.apache.jackrabbit.core.security.user.UserAccessControlProvider;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RuleProcessorManager;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
 import org.slf4j.Logger;
@@ -56,6 +57,8 @@ public class DynamicAccessControlProviderFactoryImpl implements
 
   private DynamicPrincipalManager dynamicPrincipalManager;
 
+  private RuleProcessorManager ruleProcessorManager;
+
   // ---------------------------------------< AccessControlProviderFactory >---
   /**
    * @see AccessControlProviderFactory#init(Session)
@@ -67,6 +70,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
           .getConfig().getDefaultWorkspaceName();
     } // else: unable to determine default workspace name
     dynamicPrincipalManager = SakaiActivator.getDynamicPrincipalManagerFactory().getDynamicPrincipalManager();
+    ruleProcessorManager = SakaiActivator.getRuleProcessorManager();
 
   }
 
@@ -99,7 +103,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
         // this ac provider for the default workspace.
         prov = new UserAccessControlProvider();
       } else {
-        prov = new DynamicACLProvider(dynamicPrincipalManager);
+        prov = new DynamicACLProvider(dynamicPrincipalManager, ruleProcessorManager);
       }
       log.debug("Default provider for workspace " + workspaceName + " = "
           + prov.getClass().getName());

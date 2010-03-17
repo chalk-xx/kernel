@@ -26,6 +26,7 @@ public class SakaiActivator extends Activator {
   
   
   private static DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactory;
+  private static RuleProcessorManagerImpl ruleProcessorManager;
 
   /**
    * {@inheritDoc}
@@ -40,6 +41,11 @@ public class SakaiActivator extends Activator {
           bundleContext);
     }
     dynamicPrincipalManagerFactory.open();
+    if (ruleProcessorManager == null) {
+      ruleProcessorManager = new RuleProcessorManagerImpl(
+          bundleContext);
+    }
+    ruleProcessorManager.open();
     
   }
   
@@ -54,6 +60,10 @@ public class SakaiActivator extends Activator {
       dynamicPrincipalManagerFactory.close();
       dynamicPrincipalManagerFactory = null;
     }
+    if (ruleProcessorManager != null) {
+      ruleProcessorManager.close();
+      ruleProcessorManager = null;
+    }
     super.stop(arg0);
   }
   /**
@@ -61,6 +71,14 @@ public class SakaiActivator extends Activator {
    */
   public static DynamicPrincipalManagerFactory getDynamicPrincipalManagerFactory() {
     return dynamicPrincipalManagerFactory;
+  }
+
+
+  /**
+   * @return
+   */
+  public static RuleProcessorManager getRuleProcessorManager() {
+    return ruleProcessorManager;
   }
 
 
