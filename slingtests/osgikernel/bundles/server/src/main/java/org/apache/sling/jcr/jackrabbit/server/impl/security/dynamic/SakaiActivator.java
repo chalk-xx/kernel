@@ -27,6 +27,7 @@ public class SakaiActivator extends Activator {
   
   private static DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactory;
   private static RuleProcessorManagerImpl ruleProcessorManager;
+  private static PrincipalProviderRegistryManagerImpl principalProviderRegistryManager;
 
   /**
    * {@inheritDoc}
@@ -41,12 +42,19 @@ public class SakaiActivator extends Activator {
           bundleContext);
     }
     dynamicPrincipalManagerFactory.open();
+
     if (ruleProcessorManager == null) {
       ruleProcessorManager = new RuleProcessorManagerImpl(
           bundleContext);
     }
     ruleProcessorManager.open();
-    
+
+    if (principalProviderRegistryManager == null) {
+      principalProviderRegistryManager = new PrincipalProviderRegistryManagerImpl(
+          bundleContext);
+    }
+    principalProviderRegistryManager.open();
+
   }
   
   
@@ -64,6 +72,10 @@ public class SakaiActivator extends Activator {
       ruleProcessorManager.close();
       ruleProcessorManager = null;
     }
+    if (principalProviderRegistryManager != null) {
+      principalProviderRegistryManager.close();
+      principalProviderRegistryManager = null;
+    }
     super.stop(arg0);
   }
   /**
@@ -80,6 +92,21 @@ public class SakaiActivator extends Activator {
   public static RuleProcessorManager getRuleProcessorManager() {
     return ruleProcessorManager;
   }
+  /**
+   * @return
+   */
+  public static PrincipalProviderRegistryManager getPrincipalProviderRegistryManager() {
+    return principalProviderRegistryManager;
+  }
 
+  protected static void setDynamicPrincipalManagerFactory(DynamicPrincipalManagerFactoryImpl dynamicPrincipalManagerFactory) {
+      SakaiActivator.dynamicPrincipalManagerFactory = dynamicPrincipalManagerFactory;
+  }
 
+  protected static void setRuleProcessorManager(RuleProcessorManagerImpl ruleProcessorManagerImpl) {
+    SakaiActivator.ruleProcessorManager = ruleProcessorManagerImpl;
+  }
+  protected static void setPrincipalProviderManager(PrincipalProviderRegistryManagerImpl principalProviderRegistryManagerImpl) {
+    SakaiActivator.principalProviderRegistryManager = principalProviderRegistryManagerImpl;
+  }
 }

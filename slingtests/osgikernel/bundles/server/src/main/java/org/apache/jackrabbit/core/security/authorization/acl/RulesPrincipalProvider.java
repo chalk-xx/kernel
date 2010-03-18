@@ -30,6 +30,8 @@ import javax.jcr.Session;
 /**
  *
  */
+// the component is configured manually in the service component. @Component(immediate=true,description="Provides Principal resolution")
+//@Service(value=PrincipalProvider.class)
 public class RulesPrincipalProvider implements PrincipalProvider {
 
 
@@ -38,7 +40,7 @@ public class RulesPrincipalProvider implements PrincipalProvider {
    * @see org.apache.jackrabbit.core.security.principal.PrincipalProvider#canReadPrincipal(javax.jcr.Session, java.security.Principal)
    */
   public boolean canReadPrincipal(Session session, Principal principalToRead) {
-    return true;
+    return (principalToRead instanceof RulesPrincipal);
   }
 
   /**

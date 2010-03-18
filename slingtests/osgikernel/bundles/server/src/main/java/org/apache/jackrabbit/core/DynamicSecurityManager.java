@@ -17,11 +17,14 @@
 package org.apache.jackrabbit.core;
 
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -62,6 +65,7 @@ import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
 import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,7 +228,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         // 1) create default
         PrincipalProvider defaultPP = createDefaultPrincipalProvider();
         // 2) create registry instance
-        principalProviderRegistry = new ProviderRegistryImpl(defaultPP);
+        principalProviderRegistry = SakaiActivator.getPrincipalProviderRegistryManager().getPrincipalProvider(defaultPP);
         // 3) register all configured principal providers.
         for (Properties props : moduleConfig) {
             principalProviderRegistry.registerProvider(props);
@@ -479,7 +483,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * @throws javax.jcr.RepositoryException If an error occurs.
      */
     protected PrincipalManager createPrincipalManager(SessionImpl session) throws RepositoryException {
-        return new PrincipalManagerImpl(session, getPrincipalProviderRegistry().getProviders());
+        PrincipalProvider[] pp = getPrincipalProviderRegistry().getProviders();
+        log.info("Got Principal Providers {} ", Arrays.toString(pp));
+        return new PrincipalManagerImpl(session, pp);
     }
 
     /**
