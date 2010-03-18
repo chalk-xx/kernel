@@ -58,7 +58,7 @@ import javax.jcr.RepositoryException;
     @Property(name = "service.note", value = "This service is in alpha") })
 public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
   
-  @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://localhost:9090")
+  @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
   protected String xythosHost;
   
   protected String remotePath = "/remoting/remoting/XythosService";
