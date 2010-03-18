@@ -47,7 +47,7 @@ import javax.jcr.RepositoryException;
 
 /**
  * This is a proof of concept for the the External Repository processors.
- *
+ * 
  * This processor will write/read files to Xythos at a remote URI
  */
 @Component(enabled = true, immediate = true, metatype = true)
@@ -57,7 +57,7 @@ import javax.jcr.RepositoryException;
     @Property(name = "service.description", value = "Document Proxy implementation for Xythos Repository"),
     @Property(name = "service.note", value = "This service is in alpha") })
 public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
-
+  
   @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://localhost:9090")
   protected String xythosHost;
   
@@ -144,7 +144,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       if (properties == null) {
         properties = new HashMap<String, Object>();
       }
-
+      
       // Collection mimeTypes = MimeUtil.getMimeTypes(documentStream);
       String contentType = new MimetypesFileTypeMap().getContentType(path.substring(path.lastIndexOf("/") + 1));
       properties.put("contentType", contentType);
@@ -160,7 +160,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       throw new RuntimeException(e);
     }
   }
-
+  
   private XythosDocumentResult getFile(String path, String userId) {
 
     try {
@@ -176,7 +176,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       throw new RuntimeException("MalformedURLException: " + e.getMessage());
     }
   }
-
+  
   /**
    * When the component gets activated we retrieve the OSGi properties.
    *
@@ -188,6 +188,19 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
     Dictionary props = context.getProperties();
     if (props.get("xythosHost") != null) {
       xythosHost = props.get("xythosHost").toString();
+    }
+  }
+
+  public void removeDocument(Node node, String path) throws DocProxyException {
+    try {
+      String currentUserId = node.getSession().getUserID();
+      HessianProxyFactory factory = new HessianProxyFactory();
+      XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
+      xythos.removeDocument(path, currentUserId);
+    } catch (MalformedURLException e) {
+      throw new RuntimeException("MalformedURLException: " + e.getMessage());
+    } catch (RepositoryException e) {
+      throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
     }
   }
 

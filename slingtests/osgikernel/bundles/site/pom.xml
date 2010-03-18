@@ -38,6 +38,8 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.site.*</Export-Package>
             <Private-Package>org.sakaiproject.nakamura.site.*</Private-Package>
+            <Embed-Transitive>true</Embed-Transitive>
+            <Embed-Dependency>hessian,xythos-service</Embed-Dependency>
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Sakai-Initial-Security>SLING-INF/acl/site-acl.json</Sakai-Initial-Security>
           </instructions>
@@ -55,6 +57,16 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.caucho</groupId>
+      <artifactId>hessian</artifactId>
+      <version>3.1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.nyu</groupId>
+      <artifactId>xythos-service</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -141,7 +153,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.8.2</version>
+      <version>1.8.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

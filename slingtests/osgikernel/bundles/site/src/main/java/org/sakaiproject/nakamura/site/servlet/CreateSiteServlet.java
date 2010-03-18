@@ -53,12 +53,17 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
+import org.sakaiproject.nakamura.site.SiteServiceImpl;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.caucho.hessian.client.HessianProxyFactory;
+
+import edu.nyu.XythosRemote;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -81,7 +86,7 @@ import javax.servlet.http.HttpServletResponse;
  * /site/container/site.createsite If the node is of type of sakai/sites, then create the
  * site based on a request property If the note is not of type sakai/sites, and exists
  * make it a sakai/site
- *
+ * 
  * @scr.component immediate="true" label="CreateSiteServlet"
  *                description="Create site servlet"
  * @scr.service interface="javax.servlet.Servlet"
@@ -95,40 +100,29 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.reference name="SlingRepository"
  *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
-@ServiceDocumentation(name="Create a Site",
-    description="The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite " +
-    		"/site/container/site.createsite If the node is of type of sakai/sites, then create the " +
-    		"site based on a request property. If the node is not of type sakai/sites, and exists make it a sakai/site",
-    shortDescription="Create a new Site",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default","sakai/sites"},
-        selectors=@ServiceSelector(name="createsite", description="Create Site"),
-        extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
-    methods=@ServiceMethod(name="POST",
-        description={"Creates a site, with a name specified in :sitepath from an optional template. In the process the servlet" +
-        		"will also create all related structures (message stores etc) and set up any groups associated with the site. " +
-        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed" +
-        		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then" +
-        		"a 403 is returned. " +
-        		"Any parameters other than :sitepath will be stored as properties on the new site node.",
-            "Example<br>" +
-            "<pre>Example needed</pre>"
-        },
-        parameters={
-          @ServiceParameter(name=":sitepath", description="The Path to the site being created (required)"),
-          @ServiceParameter(name=SAKAI_SITE_TEMPLATE, description="Path to a template node in JCR to use when creating the site (optional)")
+@ServiceDocumentation(name = "Create a Site", description = "The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite "
+    + "/site/container/site.createsite If the node is of type of sakai/sites, then create the "
+    + "site based on a request property. If the node is not of type sakai/sites, and exists make it a sakai/site", shortDescription = "Create a new Site", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = {
+    "sling/servlet/default", "sakai/sites" }, selectors = @ServiceSelector(name = "createsite", description = "Create Site"), extensions = @ServiceExtension(name = "html", description = "A standard HTML response for creating a node.")), methods = @ServiceMethod(name = "POST", description = {
+    "Creates a site, with a name specified in :sitepath from an optional template. In the process the servlet"
+        + "will also create all related structures (message stores etc) and set up any groups associated with the site. "
+        + "Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed"
+        + "to create sites under that node. If the current user is not allowed to create a site in the chosen location, then"
+        + "a 403 is returned. "
+        + "Any parameters other than :sitepath will be stored as properties on the new site node.",
+    "Example<br>" + "<pre>Example needed</pre>" }, parameters = {
+    @ServiceParameter(name = ":sitepath", description = "The Path to the site being created (required)"),
+    @ServiceParameter(name = SAKAI_SITE_TEMPLATE, description = "Path to a template node in JCR to use when creating the site (optional)")
 
-        },
-        response={
-          @ServiceResponse(code=200,description="Success a body is returned containing a json ove the name of the version saved"),
-          @ServiceResponse(code=400,description={
-              "If the :sitepath parameter is not present",
-              "If the " + SAKAI_SITE_TEMPLATE + " parameter does not point to a template in JCR"
-          }),
-          @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
-          @ServiceResponse(code=404,description="Resource was not found."),
-          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    ))
-
+}, response = {
+    @ServiceResponse(code = 200, description = "Success a body is returned containing a json ove the name of the version saved"),
+    @ServiceResponse(code = 400, description = {
+        "If the :sitepath parameter is not present",
+        "If the " + SAKAI_SITE_TEMPLATE
+            + " parameter does not point to a template in JCR" }),
+    @ServiceResponse(code = 403, description = "Current user is not allowed to create a site in the current location."),
+    @ServiceResponse(code = 404, description = "Resource was not found."),
+    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
 public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final long serialVersionUID = -7996020354919244147L;
@@ -138,13 +132,22 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
 
   private transient SlingRepository slingRepository;
+  
+  /**
+   * @scr.property name="xythosHost"
+   *               description="The remote host (and port) of the Xythos instance"
+   *               value="http://localhost:9090"
+   */
+  protected String xythosHost = "http://localhost:9090";
+  
+  protected String remotePath = "/remoting/remoting/XythosService";
 
   /** @scr.reference */
   private transient VersionService versionService;
 
   /**
    * {@inheritDoc}
-   *
+   * 
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -215,7 +218,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       try {
         Node siteNode;
         if (templatePath != null) {
-          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser.getID());
+          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath,
+              currentUser.getID());
         } else {
           siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
         }
@@ -224,10 +228,14 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
         // setup the ACL's on the node. After this point, administrator
         // access should no longer be needed.
-        addEntry(siteNode.getPath(), currentUser, createSession, READ_GRANTED, WRITE_GRANTED,
-            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+        addEntry(siteNode.getPath(), currentUser, createSession, READ_GRANTED,
+            WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
             MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
+        
+        HessianProxyFactory factory = new HessianProxyFactory();
+        XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, CreateSiteServlet.class.getClassLoader());
+        xythosService.createGroup(sitePath, request.getRemoteUser());
 
         if (createSession.hasPendingChanges()) {
           LOGGER.info("Saving changes");
@@ -267,7 +275,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       // in the usual way.
       RequestDispatcherOptions requestDispatcherOptions = new RequestDispatcherOptions();
       requestDispatcherOptions.setReplaceSelectors("");
-      RequestDispatcher requestDispatcher = request.getRequestDispatcher(sitePath, requestDispatcherOptions);
+      RequestDispatcher requestDispatcher = request.getRequestDispatcher(sitePath,
+          requestDispatcherOptions);
       requestDispatcher.forward(request, response);
     } catch (RepositoryException ex) {
       throw new ServletException(ex.getMessage(), ex);
@@ -276,22 +285,22 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   }
 
   /**
-   * A special pseudo-privilege stored as a normal node property is used
-   * to determine whether the current user has permission to create a site
-   * in the specified location. The standard "jcr:addChildNodes" privilege
-   * is both insufficient (it does not allow setting properties on the newly
-   * created node) and too powerful (it would let users sabotage site
-   * trees which were otherwise inaccessible to them).
-   *
+   * A special pseudo-privilege stored as a normal node property is used to determine
+   * whether the current user has permission to create a site in the specified location.
+   * The standard "jcr:addChildNodes" privilege is both insufficient (it does not allow
+   * setting properties on the newly created node) and too powerful (it would let users
+   * sabotage site trees which were otherwise inaccessible to them).
+   * 
    * @param session
    * @param sitePath
    * @param userId
-   * @return true if the specified user can create a site at the specified path
-   *   regardless of other access restrictions; false if the user needs to rely on
-   *   normal security checks
+   * @return true if the specified user can create a site at the specified path regardless
+   *         of other access restrictions; false if the user needs to rely on normal
+   *         security checks
    * @throws RepositoryException
    */
-  private boolean isCreateSiteGranted(Session session, String sitePath, Authorizable currentUser) throws RepositoryException {
+  private boolean isCreateSiteGranted(Session session, String sitePath,
+      Authorizable currentUser) throws RepositoryException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
@@ -299,8 +308,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     // iterate up to the root looking for a site marker.
     Node siteMarker = firstRealNode;
     Set<String> principals = new HashSet<String>();
-    PrincipalIterator principalIterator = principalManager
-        .getGroupMembership(currentUser.getPrincipal());
+    PrincipalIterator principalIterator = principalManager.getGroupMembership(currentUser
+        .getPrincipal());
     boolean granted = false;
     while (!"/".equals(siteMarker.getPath())) {
       if (siteMarker.hasProperty(SITE_CREATE_PRIVILEGE)) {
@@ -331,14 +340,15 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   /**
    * Create a site from a template node and its children.
-   *
+   * 
    * @param session
    * @param templatePath
    * @param sitePath
    * @return the new site node
    * @throws RepositoryException
    */
-  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, String userId) throws RepositoryException {
+  private Node createSiteFromTemplate(Session session, String templatePath,
+      String sitePath, String userId) throws RepositoryException {
     // Workspace copy needs the destination's parent to exist and be saved.
     String parentPath = PathUtils.getParentReference(sitePath);
     JcrUtils.deepGetOrCreateNode(session, parentPath);
@@ -346,8 +356,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       session.save();
     }
     // Copy the template files in the new folder.
-    LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
-        sitePath);
+    LOGGER.debug("Copying template ({}) to new dir ({})", templatePath, sitePath);
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, sitePath);
     Node siteNode = (Node) session.getItem(sitePath);
@@ -369,7 +378,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   /**
    * Versions a node and all it's childnodes.
-   *
+   * 
    * @param n
    * @param userID
    * @param createSession
@@ -377,7 +386,12 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private void versionNode(Node n, String userID, Session createSession) {
     try {
       // TODO do better check
-      if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
+      if (n.isNode()
+          && !n.getName().startsWith("rep:")
+          && !n.getName().startsWith("jcr:")
+          && n.hasProperties()
+          && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
+              JcrConstants.NT_RESOURCE)) {
         versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
         NodeIterator it = n.getNodes();
         // Version the childnodes

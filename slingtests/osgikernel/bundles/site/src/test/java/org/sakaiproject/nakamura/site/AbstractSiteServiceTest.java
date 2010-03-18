@@ -30,9 +30,14 @@ import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
+import edu.nyu.XythosDocument;
+import edu.nyu.XythosRemote;
+
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.jcr.RepositoryException;
 
@@ -110,6 +115,98 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
     siteService.unbindEventAdmin(eventAdmin);
     siteService.unbindSlingRepository(slingRepository);
     verify();
+  }
+  
+  protected XythosRemote dummyXythoService() {
+    return new XythosRemote() {
+
+      public void addMember(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        
+      }
+
+      public void createDirectory(String arg0, String arg1, String arg2, String arg3) {
+        // TODO Auto-generated method stub
+        
+      }
+
+      public void createGroup(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        
+      }
+
+      public List<String> doSearch(Map<String, Object> arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public String findAllFilesForUser(String arg0) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public Collection<Map<String, String>> findFilesWithXPath(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public long getContentLength(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return 0;
+      }
+
+      public String getContentType(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public String getContentUri(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public XythosDocument getDocument(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public byte[] getFileContent(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public Map<String, Object> getFileProperties(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public Map<String, String> getProperties() {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public boolean ping() {
+        // TODO Auto-generated method stub
+        return false;
+      }
+
+      public String saveFile(String arg0, String arg1, byte[] arg2, String arg3,
+          String arg4, String arg5) {
+        // TODO Auto-generated method stub
+        return null;
+      }
+
+      public void updateFile(String arg0, byte[] arg1, Map<String, Object> arg2,
+          String arg3) {
+        // TODO Auto-generated method stub
+        
+      }
+
+      public void removeDocument(String arg0, String arg1) {
+        // TODO Auto-generated method stub
+        
+      }
+    };
   }
 
 }
