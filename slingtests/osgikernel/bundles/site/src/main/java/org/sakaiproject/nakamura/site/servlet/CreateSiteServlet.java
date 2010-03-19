@@ -233,9 +233,13 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
             MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
         
-        HessianProxyFactory factory = new HessianProxyFactory();
-        XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, CreateSiteServlet.class.getClassLoader());
-        xythosService.createGroup(sitePath, request.getRemoteUser());
+        try {
+			HessianProxyFactory factory = new HessianProxyFactory();
+			XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, CreateSiteServlet.class.getClassLoader());
+			xythosService.createGroup(sitePath, request.getRemoteUser());
+		} catch (Exception e1) {
+			LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
+		}
 
         if (createSession.hasPendingChanges()) {
           LOGGER.info("Saving changes");
