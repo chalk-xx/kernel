@@ -27,6 +27,8 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
+
+import javax.jcr.Item;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -107,9 +109,18 @@ public class DocProxyUtils {
    */
   public static Node getProxyNode(Node node) throws DocProxyException {
     try {
-      String uuid = node.getProperty(DocProxyConstants.REPOSITORY_REF).getString();
+      String ref = node.getProperty(DocProxyConstants.REPOSITORY_REF).getString();
       Session session = node.getSession();
-      return session.getNodeByUUID(uuid);
+      Node retval = null;
+      if (ref.startsWith("/")) {
+        Item item = session.getItem(ref);
+        if (item.isNode()) {
+          retval = (Node) item;
+        }
+      } else {
+        retval = session.getNodeByUUID(ref);
+      }
+      return retval;
     } catch (RepositoryException e) {
       throw new DocProxyException(500,
           "This node holds no reference to an external repository node.");
