@@ -21,6 +21,7 @@ import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,20 +34,32 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.jcr.Item;
 import javax.jcr.LoginException;
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
+import javax.jcr.security.AccessControlList;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
+import javax.jcr.security.Privilege;
 
 /**
  *
  */
 public class RepositoryBaseTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryBaseTest.class);
+  private static final long ADAY = 3600000L*24L;
   private static BundleContext bundleContext;
   private static RepositoryBase repositoryBase;
 
@@ -185,5 +198,105 @@ public class RepositoryBaseTest {
       session.logout();
     }
   }
+
+  @Test
+  public void testAddRuleBasedPrincipal() throws RepositoryException, IOException {
+    Repository repo = getRepositoryBase().getRepository();
+    JackrabbitSession session = null;
+    try {
+      LOGGER.info("Opening Admin Session ");
+      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
+          .toCharArray()));
+      LOGGER.info("Done Opening Admin Session ");
+      PrincipalManager principalManager = session.getPrincipalManager();
+
+
+      Node node = session.getRootNode().addNode("testnodeace");
+      AccessControlManager accessControlManager = session.getAccessControlManager();
+      String resourcePath = node.getPath();
+
+      AccessControlList acl = null;
+      AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
+      for (AccessControlPolicy policy : policies) {
+        if (policy instanceof AccessControlList) {
+          acl = (AccessControlList) policy;
+          break;
+        }
+      }
+      if (acl == null) {
+        AccessControlPolicyIterator applicablePolicies = accessControlManager.getApplicablePolicies(resourcePath);
+        while (applicablePolicies.hasNext()) {
+          AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
+          if (policy instanceof AccessControlList) {
+            acl = (AccessControlList) policy;
+            break;
+          }
+        }
+      }
+      Assert.assertNotNull(acl);
+
+
+      Principal principal = principalManager.getPrincipal(RulesBasedAce.createPrincipal(
+      "ieb").getName());
+
+      Assert.assertNotNull(principal);
+      Assert.assertTrue(principal instanceof RulesPrincipal);
+      RulesPrincipal rp = (RulesPrincipal) principal;
+      Assert.assertEquals("ieb", rp.getPrincipalName());
+
+
+      Privilege[] privileges = new Privilege[]{
+          accessControlManager.privilegeFromName("jcr:write")
+      };
+
+      acl.addAccessControlEntry(principal, privileges);
+
+      accessControlManager.setPolicy(resourcePath, acl);
+
+
+
+      // make the ACL a rules based.
+      RuleACLModifier ruleAclModifier = new RuleACLModifier();
+      Map<String, Object> ruleProperties = new HashMap<String, Object>();
+
+      ValueFactory vf = session.getValueFactory();
+
+
+      long now = System.currentTimeMillis();
+      String[] range = new String[4];
+      for ( int i = 0; i < 4; i++ ) {
+        GregorianCalendar start = new GregorianCalendar();
+        start.setTimeInMillis((ADAY*i)+now-3600000L);
+        GregorianCalendar end = new GregorianCalendar();
+        end.setTimeInMillis((ADAY*i)+now+3600000L);
+        range[i] = start.toString()+"/"+end.toString();
+      }
+
+      Value[] ranges = new Value[] {
+          vf.createValue(range[1]),
+          vf.createValue(range[2]),
+          vf.createValue(range[3])
+      };
+      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range[0]));
+
+      Property[] p = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      Assert.assertEquals(1, p.length);
+      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p[0].getName());
+      Assert.assertEquals(range[0], p[0].getString());
+
+      ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, ranges);
+      p = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      Assert.assertEquals(3, p.length);
+      for ( int i = 0; i < 3; i++ ) {
+        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE+i, p[i].getName());
+        Assert.assertEquals(range[i+1], p[i].getString());
+      }
+    } finally {
+      session.logout();
+    }
+
+  }
+
+
 
 }

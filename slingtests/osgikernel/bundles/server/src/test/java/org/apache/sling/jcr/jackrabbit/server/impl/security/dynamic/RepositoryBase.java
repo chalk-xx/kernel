@@ -19,6 +19,7 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;
@@ -29,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
 
 /**
  *
@@ -56,6 +59,12 @@ public class RepositoryBase {
     setupSakaiActivator();
     RepositoryConfig crc = RepositoryConfig.create(ins, home.getAbsolutePath());
     repository = RepositoryImpl.create(crc);
+    Session session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
+    session.getWorkspace().getNamespaceRegistry().registerNamespace("sakai", "http://www.sakaiproject.org/testing");
+    if ( session.hasPendingChanges() ) {
+      session.save();
+    }
+    session.logout();
    }
 
   /**

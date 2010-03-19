@@ -33,6 +33,7 @@ import org.apache.jackrabbit.core.security.authorization.CompiledPermissions;
 import org.apache.jackrabbit.core.security.principal.EveryonePrincipal;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RuleProcessorManager;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
+import org.apache.sling.jcr.jackrabbit.server.security.dynamic.ISO8601Date;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleProcessor;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
 import org.slf4j.Logger;
