@@ -21,10 +21,15 @@ import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvi
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -32,13 +37,17 @@ import java.util.List;
 public class PrincipalProviderRegistryManagerImpl extends ServiceTracker implements
     PrincipalProviderRegistryManager {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(PrincipalProviderRegistryManagerImpl.class);
   private List<PrincipalProvider> testServices = new ArrayList<PrincipalProvider>();
+  private Map<DynamicProviderRegistryImpl, DynamicProviderRegistryImpl> serviceListeners = new HashMap<DynamicProviderRegistryImpl, DynamicProviderRegistryImpl>();
+  private BundleContext bundleContext;
 
   /**
    * @param bundleContext
    */
   public PrincipalProviderRegistryManagerImpl(BundleContext bundleContext) {
     super(bundleContext, PrincipalProvider.class.getName(),null);
+    this.bundleContext = bundleContext;
   }
 
   /**
@@ -46,8 +55,56 @@ public class PrincipalProviderRegistryManagerImpl extends ServiceTracker impleme
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.PrincipalProviderRegistryManager#getPrincipalProvider(org.apache.jackrabbit.core.security.principal.PrincipalProvider)
    */
   public PrincipalProviderRegistry getPrincipalProvider(PrincipalProvider defaultPrincipalProvider) {
-    return new DynamicProviderRegistryImpl(defaultPrincipalProvider, (PrincipalProvider[]) getServices(), testServices);
+    DynamicProviderRegistryImpl dpp = new DynamicProviderRegistryImpl(defaultPrincipalProvider, (PrincipalProvider[]) getServices(), testServices);
+    LOGGER.info("Creating Principal provider registry and keeping reference, if there are lots of these messages in the log, there is a memory leak in progress.");
+    serviceListeners .put(dpp,dpp);
+    return dpp;
   }
+
+  /**
+   * {@inheritDoc}
+   * @see org.osgi.util.tracker.ServiceTracker#addingService(org.osgi.framework.ServiceReference)
+   */
+  @Override
+  public Object addingService(ServiceReference reference) {
+    PrincipalProvider pp = (PrincipalProvider) bundleContext.getService(reference);
+    if ( pp != null ) {
+      synchronized (serviceListeners) {
+        for ( DynamicProviderRegistryImpl d : serviceListeners.values() ) {
+          d.addService(pp);
+        }
+      }
+    }
+    return super.addingService(reference);
+  }
+  /**
+   * {@inheritDoc}
+   * @see org.osgi.util.tracker.ServiceTracker#modifiedService(org.osgi.framework.ServiceReference, java.lang.Object)
+   */
+  @Override
+  public void modifiedService(ServiceReference reference, Object service) {
+      synchronized (serviceListeners) {
+        for ( DynamicProviderRegistryImpl d : serviceListeners.values() ) {
+          d.updateService((PrincipalProvider) service);
+        }
+      }
+    super.modifiedService(reference, service);
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.osgi.util.tracker.ServiceTracker#removedService(org.osgi.framework.ServiceReference, java.lang.Object)
+   */
+  @Override
+  public void removedService(ServiceReference reference, Object service) {
+      synchronized (serviceListeners) {
+        for ( DynamicProviderRegistryImpl d : serviceListeners.values() ) {
+          d.removeService((PrincipalProvider) service);
+        }
+      }
+    super.removedService(reference, service);
+  }
+
 
   /**
    * @param rulesPrincipalProvider

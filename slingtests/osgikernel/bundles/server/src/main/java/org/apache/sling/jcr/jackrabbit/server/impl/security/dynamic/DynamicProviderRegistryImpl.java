@@ -19,6 +19,8 @@ package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -30,6 +32,7 @@ import java.util.Map;
  */
 public class DynamicProviderRegistryImpl extends ProviderRegistryImpl {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(DynamicProviderRegistryImpl.class);
   private Map<String, PrincipalProvider> providers = new LinkedHashMap<String, PrincipalProvider>();
   /**
    * @param defaultPrincipalProvider
@@ -40,11 +43,13 @@ public class DynamicProviderRegistryImpl extends ProviderRegistryImpl {
     super(defaultPrincipalProvider);
     if ( serviceBasedProviders != null ) {
       for ( PrincipalProvider p : serviceBasedProviders ) {
+        LOGGER.info("Adding Principal Provider {} ",p);
         providers.put(p.getClass().getName(),p);
       }
     }
     if ( testServices != null ) {
       for ( PrincipalProvider p : testServices ) {
+        LOGGER.info("Adding Test {} ",p);
         providers.put(p.getClass().getName(),p);
       }
     }
@@ -75,6 +80,35 @@ public class DynamicProviderRegistryImpl extends ProviderRegistryImpl {
       System.arraycopy(pp, 0, ppf, 0, pp.length);
       System.arraycopy(ppl, 0, ppf, pp.length, ppl.length);
       return ppf;
+    }
+  }
+
+  /**
+   * @param pp
+   */
+  public void addService(PrincipalProvider pp) {
+    synchronized (providers) {
+      if ( pp != null) {
+        providers.put(pp.getClass().getName(), pp);
+      }
+    }
+  }
+
+  /**
+   * @param service
+   */
+  public void updateService(PrincipalProvider pp) {
+     addService(pp);
+  }
+
+  /**
+   * @param service
+   */
+  public void removeService(PrincipalProvider pp) {
+    synchronized (providers) {
+      if ( pp != null) {
+        providers.remove(pp.getClass().getName());
+      }
     }
   }
 
