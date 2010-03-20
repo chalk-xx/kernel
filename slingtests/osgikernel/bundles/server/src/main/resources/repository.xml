@@ -46,8 +46,6 @@
         <LoginModule class="org.apache.sling.jcr.jackrabbit.server.impl.security.PluggableDefaultLoginModule">
             <param name="anonymousId" value="anonymous"/>
             <param name="adminId" value="admin"/>
-            <!--  only 1 principal Provider is allowed per local login module so this will have to act as a switch for others -->
-            <param name="principalProvider" value="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider" />
         </LoginModule>
     </Security>
 
