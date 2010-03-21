@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.formauth;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.engine.auth.NoAuthenticationHandlerException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -35,7 +34,6 @@ import java.io.IOException;
 import java.util.Date;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -43,7 +41,7 @@ import javax.servlet.http.HttpSession;
  * will response with the remote username of the logged in user or "anonymous" if there is
  * no logged in user. On POST, the FormAutenticationHandler will be invoked. see
  * {@link FormAuthenticationHandler} to see the parameters.
- * 
+ *
  * @scr.component metatype="no"
  * @scr.service interface="javax.servlet.Servlet"
  * @scr.property name="service.description" value="Form Login Servlet"
@@ -94,7 +92,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -106,7 +104,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -114,12 +112,15 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
-      
+
       // was the request just authenticated ?
-      FormAuthentication authenticaton = (FormAuthentication) request.getAttribute(FormAuthenticationHandler.USER_CREDENTIALS);
+      // If the Formauthentication object got to this point, a session was created and logged in, therefore the
+      // username and password have been checked by logging into the JCR. We can safely capture the FormAuthentication
+      // object in session. (or we could use the secure token at this point to avoid session usage.)
+      FormAuthentication authenticaton = (FormAuthentication) request.getAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
       if ( authenticaton != null && authenticaton.isValid()) {
         HttpSession session = request.getSession(true);
-        session.setAttribute(FormAuthenticationHandler.USER_CREDENTIALS, authenticaton);
+        session.setAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION, authenticaton);
         LOGGER
             .warn("Saving a populated credentials object to session, this should not be "
                 + "allowed to go into production as it may result in the password being stored "
@@ -139,12 +140,7 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
     } catch (IllegalStateException ise) {
       LOGGER.error("doPOST: Response already committed, cannot login");
       return;
-    } catch (NoAuthenticationHandlerException nahe) {
-      LOGGER.error("doPOST: No AuthenticationHandler to login registered");
     }
-
-    // fall back to forbid access
-    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cannot login");
   }
 
 }
