@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.presence.servlets;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -83,11 +83,16 @@ import javax.servlet.http.HttpServletResponse;
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
         })
-public class PresenceGetServlet extends SlingAllMethodsServlet {
+public class PresenceGetServlet extends SlingSafeMethodsServlet {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 919177623558565626L;
+
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PresenceGetServlet.class);
 
-  private static final long serialVersionUID = 11111111L;
 
   protected transient PresenceService presenceService;
 
@@ -112,6 +117,10 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     LOGGER.info("GET to PresenceServlet (" + user + ")");
 
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       Writer writer = response.getWriter();
       PresenceUtils.makePresenceJSON(writer, user, presenceService);
     } catch (JSONException e) {

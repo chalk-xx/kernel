@@ -73,7 +73,7 @@ public class MeServlet extends SlingSafeMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
-      response.setContentType(request.getResponseContentType());
+      response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
       Session session = request.getResourceResolver().adaptTo(Session.class);
       UserManager um = AccessControlUtil.getUserManager(session);

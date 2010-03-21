@@ -130,6 +130,10 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
     PrintWriter write = new PrintWriter(System.out);
 
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    response.setContentType("application/json");
+    EasyMock.expectLastCall();
+    response.setCharacterEncoding("UTF-8");
+    EasyMock.expectLastCall();
     expect(response.getWriter()).andReturn(write);
 
     replay();
@@ -177,6 +181,10 @@ public class GroupGetServletTest extends AbstractEasyMockTest {
     PrintWriter write = new PrintWriter(System.out);
 
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
+    response.setContentType("application/json");
+    EasyMock.expectLastCall();
+    response.setCharacterEncoding("UTF-8");
+    EasyMock.expectLastCall();
     expect(response.getWriter()).andReturn(write);
     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
         "Error reading from repository");

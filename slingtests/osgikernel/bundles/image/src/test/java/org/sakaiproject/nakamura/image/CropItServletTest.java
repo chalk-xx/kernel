@@ -151,6 +151,8 @@ public class CropItServletTest extends AbstractEasyMockTest {
     // Capture output.
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter write = new PrintWriter(baos);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(write);
 
     replay();

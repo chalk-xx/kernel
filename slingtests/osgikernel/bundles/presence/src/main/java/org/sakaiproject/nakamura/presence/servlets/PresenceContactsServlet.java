@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
@@ -118,7 +118,7 @@ import org.slf4j.LoggerFactory;
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
         })
-public class PresenceContactsServlet extends SlingAllMethodsServlet {
+public class PresenceContactsServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PresenceContactsServlet.class);
@@ -155,6 +155,10 @@ public class PresenceContactsServlet extends SlingAllMethodsServlet {
           "User must be logged in to check their status");
     }
     LOGGER.info("GET to PresenceContactsServlet (" + user + ")");
+
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
 
     try {
       Writer writer = response.getWriter();

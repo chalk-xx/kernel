@@ -24,7 +24,7 @@ import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceWrapper;
 import org.apache.sling.api.resource.ValueMap;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.SlingHttpServletRequestWrapper;
 import org.apache.sling.jcr.resource.JcrModifiablePropertyMap;
 import org.apache.sling.jcr.resource.JcrPropertyMap;
@@ -90,7 +90,7 @@ import javax.servlet.http.HttpServletResponse;
         )) 
         
         
-public class GetVersionServlet extends SlingAllMethodsServlet {
+public class GetVersionServlet extends SlingSafeMethodsServlet {
 
   public static final Logger LOG = LoggerFactory.getLogger(GetVersionServlet.class);
   /**

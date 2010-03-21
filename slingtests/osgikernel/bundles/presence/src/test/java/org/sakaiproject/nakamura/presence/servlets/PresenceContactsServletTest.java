@@ -131,6 +131,8 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
 
     servlet.bindPresenceService(presenceService);
     servlet.bindConnectionManager(connectionManager);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     replay();
     servlet.doGet(request, response);
 

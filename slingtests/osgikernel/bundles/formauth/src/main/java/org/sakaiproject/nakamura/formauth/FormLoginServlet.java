@@ -99,6 +99,10 @@ public class FormLoginServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
+
+    response.setContentType("text/plain");
+    response.setCharacterEncoding("UTF-8");
+
     response.getWriter().write(request.getRemoteUser());
   }
 

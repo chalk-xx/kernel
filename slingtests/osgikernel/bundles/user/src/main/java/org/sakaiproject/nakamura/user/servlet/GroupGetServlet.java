@@ -83,6 +83,10 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
     }
 
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.object();
       ValueMap groupProps = resource.adaptTo(ValueMap.class);

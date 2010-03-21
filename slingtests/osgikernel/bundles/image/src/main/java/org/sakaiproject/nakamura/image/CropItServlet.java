@@ -143,6 +143,10 @@ public class CropItServlet extends SlingAllMethodsServlet {
       String[] crop = CropItProcessor.crop(session, x, y, width, height, dimensions, img,
           save);
 
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
+
       JSONWriter output = new JSONWriter(response.getWriter());
       output.object();
       output.key("files");

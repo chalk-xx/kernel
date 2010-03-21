@@ -177,7 +177,8 @@ public class BatchServlet extends SlingAllMethodsServlet {
         doRequest(request, response, r, write);
       }
       write.endArray();
-      response.setHeader("Content-Type", "application/json");
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
       response.getWriter().write(sw.getBuffer().toString());
     } catch (JSONException e) {
       LOGGER.warn("Failed to create a JSON response");

@@ -147,8 +147,7 @@ public class MeServletTest extends AbstractEasyMockTest {
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(response.getWriter()).andReturn(w);
-    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
-    response.setContentType("contenttype");
+    response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
     replay();
@@ -184,8 +183,7 @@ public class MeServletTest extends AbstractEasyMockTest {
 
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     expect(response.getWriter()).andReturn(w);
-    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
-    response.setContentType("contenttype");
+    response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

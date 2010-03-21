@@ -245,7 +245,10 @@ public class SearchServletTest extends AbstractEasyMockTest {
       ServletException, RepositoryException {
     stringWriter = new StringWriter();
     response = createMock(SlingHttpServletResponse.class);
-    response.setHeader("Content-Type", "application/json");
+    response.setContentType("application/json");
+    expectLastCall();
+    response.setCharacterEncoding("UTF-8");
+    expectLastCall();
     expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
     searchServlet.defaultSearchProcessor = proc;

@@ -317,6 +317,10 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     response.reset();
     try {
       Node messageNode = (Node) session.getItem(path);
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       JSONWriter write = new JSONWriter(response.getWriter());
       write.object();
       write.key("id");

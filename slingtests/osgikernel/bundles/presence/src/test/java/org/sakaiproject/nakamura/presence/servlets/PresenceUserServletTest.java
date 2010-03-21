@@ -139,6 +139,8 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
     bindConnectionManager();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
 

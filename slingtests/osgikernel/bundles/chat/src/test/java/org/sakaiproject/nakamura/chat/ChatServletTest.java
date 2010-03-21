@@ -92,6 +92,8 @@ public class ChatServletTest {
     expect(request.getRequestParameter("t")).andReturn(null);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     response.setHeader("Connection", "close");
     replay(request, response);
@@ -114,6 +116,8 @@ public class ChatServletTest {
     expect(request.getRequestParameter("t")).andReturn(param);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     response.setHeader("Connection", "close");
     replay(param, request, response);
@@ -138,6 +142,8 @@ public class ChatServletTest {
     expect(request.getRequestParameter("t")).andReturn(param);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter printWriter = new PrintWriter(baos);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     response.setHeader("Connection", "close");
     replay(param, request, response);

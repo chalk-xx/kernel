@@ -53,7 +53,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -180,7 +180,7 @@ import javax.servlet.http.HttpServletResponse;
         bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
         cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
 })
-public class SearchServlet extends SlingAllMethodsServlet {
+public class SearchServlet extends SlingSafeMethodsServlet {
 
   /**
    *
@@ -310,7 +310,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
           return;
         }
 
-        response.setHeader("Content-Type", "application/json");
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
