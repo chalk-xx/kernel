@@ -216,7 +216,7 @@ public class SiteServiceImpl implements SiteService {
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
         targetGroup.addMember(userAuthorizable);
-        xythosService.addMember(requestedGroup, user);
+//        xythosService.addMember(requestedGroup, user);
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
       } else {
