@@ -22,11 +22,11 @@
 	<parent>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
-		<version>0.4</version>
+		<version>0.4-SNAPSHOT</version>
 	</parent>
 	<groupId>org.sakaiproject.nakamura</groupId>
 	<artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
-	<version>4.0.7-0.4</version>
+	<version>4.0.7-0.4-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>Woodstox/StAX</name>
 	<description>

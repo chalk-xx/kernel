@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
   <packaging>bundle</packaging>
-  <version>0.4</version>
+  <version>0.4-SNAPSHOT</version>
   <name>Sakai Nakamura UX Loader</name>
   <description>Loads the Sakai 3 UI into the JCR</description>
   <properties>
