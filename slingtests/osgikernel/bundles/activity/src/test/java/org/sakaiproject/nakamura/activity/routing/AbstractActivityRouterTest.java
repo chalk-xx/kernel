@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.activity.routing;
 
 import static org.easymock.EasyMock.expect;
 
-import org.junit.Before;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -41,7 +40,6 @@ public class AbstractActivityRouterTest extends AbstractEasyMockTest {
   protected String path = "/sites/foo/_pages/welcome/activity";
   protected List<ActivityRoute> routes = new ArrayList<ActivityRoute>();
 
-  @Before
   public void setUp() throws Exception {
     super.setUp();
     activity = createMock(Node.class);

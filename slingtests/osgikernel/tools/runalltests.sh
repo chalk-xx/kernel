@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 TESTS=`find . -name testall.sh`
 for i in $TESTS
 do

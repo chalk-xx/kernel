@@ -31,11 +31,11 @@ import javax.jcr.Value;
 
 public class NodeDocumentation {
 
-  private static final String TITLE = "sakai:title";
-  private static final String DESCRIPTION = "sakai:description";
-  private static final String PARAMETERS = "sakai:parameters";
-  private static final String RESPONSE = "sakai:response";
-  private static final String SHORT_DESCRIPTION = "sakai:shortDescription";
+  public static final String TITLE = "sakai:title";
+  public static final String DESCRIPTION = "sakai:description";
+  public static final String PARAMETERS = "sakai:parameters";
+  public static final String RESPONSE = "sakai:response";
+  public static final String SHORT_DESCRIPTION = "sakai:shortDescription";
   private boolean documentationNode;
   private String title;
   private String[] description;
@@ -119,13 +119,12 @@ public class NodeDocumentation {
     System.arraycopy(description, 0, r, 0, description.length);
     return r;
   }
-  
 
   /**
    * @param description
    *          the description to set
    */
-  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
+  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setDescription(String[] description) {
     this.description = description;
   }
@@ -134,8 +133,13 @@ public class NodeDocumentation {
    * @return the parameters
    */
   public NodeDocumentationParameter[] getParameters() {
-    NodeDocumentationParameter[] r = new NodeDocumentationParameter[parameters.length];
-    System.arraycopy(parameters, 0, r, 0, parameters.length);
+    NodeDocumentationParameter[] r;
+    if (parameters != null) {
+      r = new NodeDocumentationParameter[parameters.length];
+      System.arraycopy(parameters, 0, r, 0, parameters.length);
+    } else {
+      r = new NodeDocumentationParameter[0];
+    }
     return r;
   }
 
@@ -143,7 +147,7 @@ public class NodeDocumentation {
    * @param parameters
    *          the parameters to set
    */
-  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
+  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setParameters(NodeDocumentationParameter[] parameters) {
     this.parameters = parameters;
   }
@@ -161,7 +165,7 @@ public class NodeDocumentation {
    * @param response
    *          the response to set
    */
-  @SuppressWarnings(justification="Annotations fields are immutable", value={"EI_EXPOSE_REP2"})
+  @SuppressWarnings(justification = "Annotations fields are immutable", value = { "EI_EXPOSE_REP2" })
   public void setResponse(String[] response) {
     this.response = response;
   }
@@ -234,8 +238,7 @@ public class NodeDocumentation {
     if (description == null) {
       writer.append("<p class=\"");
       writer.append(DocumentationConstants.CSS_CLASS_NODOC);
-      writer
-          .append("\">No description has been provided by the developer, tut tut!</p>");
+      writer.append("\">No description has been provided by the developer, tut tut!</p>");
     } else {
       for (String desc : description) {
         writer.append("<p>");
@@ -249,11 +252,10 @@ public class NodeDocumentation {
    * @param writer
    * @param parameters
    */
-  private void writeParameters(PrintWriter writer,
-      NodeDocumentationParameter[] parameters) {
+  private void writeParameters(PrintWriter writer, NodeDocumentationParameter[] parameters) {
 
-    writer.append("<ul class=\"").append(
-        DocumentationConstants.CSS_CLASS_PARAMETERS).append("\">");
+    writer.append("<ul class=\"").append(DocumentationConstants.CSS_CLASS_PARAMETERS)
+        .append("\">");
     if (parameters == null || parameters.length == 0) {
       writer.append("<li>No parameters required</li>");
     } else {
@@ -290,8 +292,8 @@ public class NodeDocumentation {
       sendDescription(writer, getDescription());
 
       writer.append("<h3>Path</h3>");
-      writer.append("<p class=\">").append(
-          DocumentationConstants.CSS_CLASS_PATH).append("\">");
+      writer.append("<p class=\">").append(DocumentationConstants.CSS_CLASS_PATH).append(
+          "\">");
       writer.append(getPath());
       writer.append("</p>");
 

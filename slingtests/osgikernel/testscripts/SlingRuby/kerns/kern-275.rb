@@ -129,7 +129,8 @@ class CropitTest < SlingTest
 
   def test_crop_image_bad_mime_type
     @s.switch_user(SlingUsers::User.admin_user())
-    upload_image("text/plain")
+    data = "This is plain text!"
+    create_file_node("logo_test", "logo", "logo", data, "text/plain")
     cropreq = { "dimensions" => "250x100;100x50", 
                 "height" => 10, 
                 "width" => 50, 

@@ -113,6 +113,57 @@ public class PersonalUtils {
   }
 
   /**
+   * Write a small bit of information from an authprofile. userid, firstName, lastName,
+   * picture.
+   *
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param user
+   *          The userid to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
+    try {
+      String profilePath = PersonalUtils.getProfilePath(user);
+      write.object();
+      write.key("userid");
+      write.value(user);
+      try {
+        Node profileNode = (Node) session.getItem(profilePath);
+        writeValue("firstName", profileNode, write);
+        writeValue("lastName", profileNode, write);
+        writeValue("picture", profileNode, write);
+      } catch (RepositoryException e) {
+        // The provided user-string is probably not a user id.
+        LOGGER.error(e.getMessage(), e);
+      }
+      write.endObject();
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Write the value of a property form the profileNode. If the property doesn't exist it
+   * outputs "name": false.
+   *
+   * @param string
+   * @param profileNode
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  private static void writeValue(String name, Node profileNode, JSONWriter write)
+      throws RepositoryException, JSONException {
+    write.key(name);
+    if (profileNode.hasProperty(name)) {
+      write.value(profileNode.getProperty(name).getString());
+    } else {
+      write.value(false);
+    }
+  }
+
+  /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
    * 

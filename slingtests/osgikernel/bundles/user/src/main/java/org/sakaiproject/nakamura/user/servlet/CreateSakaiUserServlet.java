@@ -17,10 +17,10 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -178,6 +178,10 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
    */
   private transient SlingRepository repository;
 
+  private String adminUserId = null;
+
+  private Object lock = new Object();
+
   /** Returns the JCR repository used by this service. */
   @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
   protected SlingRepository getRepository() {
@@ -239,9 +243,18 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     boolean administrator = false;
     try {
       Session currentSession = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(currentSession);
-      User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
-      administrator = currentUser.isAdmin();
+      if ( adminUserId == null ) {
+        synchronized (lock) {
+          UserManager um = AccessControlUtil.getUserManager(currentSession);
+          User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
+          administrator = currentUser.isAdmin();
+          if ( administrator ) {
+            adminUserId = currentUser.getID();
+          }
+        }
+      } else {
+        administrator = adminUserId.equals(currentSession.getUserID());
+      }
     } catch ( Exception ex ) {
       log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
       administrator = false;
@@ -252,10 +265,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
           "Sorry, registration of new users is not currently enabled.  Please try again later.");
     }
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    if (session == null) {
-      throw new RepositoryException("JCR Session not found");
-    }
 
     // check that the submitted parameter values have valid values.
     final String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
@@ -279,34 +288,28 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     Session selfRegSession = null;
     try {
       selfRegSession = getSession();
-
       UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
-      Authorizable authorizable = userManager.getAuthorizable(principalName);
 
-      if (authorizable != null) {
-        // user already exists!
-        throw new RepositoryException(
-            "A principal already exists with the requested name: " + principalName);
-      } else {
         Map<String, RequestProperty> reqProperties = collectContent(request, response);
 
-        User user = userManager.createUser(principalName, digestPassword(pwd),
-            new Principal() {
-              public String getName() {
-                return principalName;
-              }
-            }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
+        String pass = digestPassword(pwd);
+        Principal p = new Principal() {
+          public String getName() {
+            return principalName;
+          }
+        };
+        String prefix = PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS);
+        // if the user exists an exception will be thrown.
+        User user = userManager.createUser(principalName, pass, p, prefix);
         String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
             + user.getID();
 
         log.debug("The user path is: {} ", userPath);
 
         response.setPath(userPath);
-        response.setLocation(externalizePath(request, userPath));
-        response.setParentLocation(externalizePath(request,
-            AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH));
+        response.setLocation(userPath);
+        response.setParentLocation(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
         changes.add(Modification.onCreated(userPath));
-
         // write content from form
         writeContent(selfRegSession, user, reqProperties, changes);
 
@@ -314,7 +317,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
           log.debug("Looping all the post processors");
           for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
             log.debug("Processor: {}", userPostProcessor);
-            userPostProcessor.process(selfRegSession, request, changes);
+            userPostProcessor.process(user, selfRegSession, request, changes);
           }
           log.debug("Finished Looping all the post processors");
         } catch (Exception e) {
@@ -325,7 +328,6 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
         if (selfRegSession.hasPendingChanges()) {
           selfRegSession.save();
         }
-      }
     } finally {
       ungetSession(selfRegSession);
     }

@@ -99,7 +99,9 @@ public class MessageSearchResultProcessorTest {
         MessageConstants.BOX_INBOX);
     assertEquals(2, o.getJSONArray("foo").length());
 
-    JSONObject prev = o.getJSONObject(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE);
+    assertEquals(previousId, o.getString(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE));
+
+    JSONObject prev = o.getJSONObject("previousMessage");
     assertEquals(prev.getString("id"), previousId);
   }
 

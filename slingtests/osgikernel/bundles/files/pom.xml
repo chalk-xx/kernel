@@ -16,12 +16,12 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.3</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.files</artifactId>
   <packaging>bundle</packaging>
   
-  <version>0.3</version>
+  <version>0.4-SNAPSHOT</version>
   <name>Sakai Nakamura Files Bundle</name>
   <description>Sakai files bundle</description>
   <build>
@@ -62,7 +62,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -112,42 +112,42 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.locking</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.cluster</artifactId>
-    	<version>0.3</version>
+    	<version>0.4-SNAPSHOT</version>
     	<scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.connections</artifactId>
-    	<version>0.3</version>
+    	<version>0.4-SNAPSHOT</version>
     	<scope>provided</scope>
     </dependency>
 	<dependency>
 	  <groupId>org.sakaiproject.nakamura</groupId>
 	  <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-	  <version>0.3</version>
+	  <version>0.4-SNAPSHOT</version>
 	</dependency>
 	<dependency>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>org.sakaiproject.nakamura.site</artifactId>
-		<version>0.3</version>
+		<version>0.4-SNAPSHOT</version>
 	</dependency>
   </dependencies>
 </project>

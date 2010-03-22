@@ -14,7 +14,7 @@ class TC_KernMeTest < SlingTest
   
   def set_first_name(name, userid)
     path = "_user/public/#{userid}/authprofile"
-    props = {"firstName" => name}
+    props = {"firstName" => name, "_charset_" => "UTF-8"}
     @s.execute_post(@s.url_for(path), props)
   end
   
