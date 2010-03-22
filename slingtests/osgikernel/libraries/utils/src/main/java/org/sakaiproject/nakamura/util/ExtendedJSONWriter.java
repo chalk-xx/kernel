@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.sakaiproject.nakamura.util;
 
 import org.apache.sling.api.resource.ValueMap;
@@ -5,11 +22,10 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 
 import java.io.Writer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.PropertyType;
@@ -18,12 +34,7 @@ import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 public class ExtendedJSONWriter extends JSONWriter {
-
-  private static ThreadLocal<DateFormat> formatHolder = new ThreadLocal<DateFormat>() {
-    protected DateFormat initialValue() {
-      return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    };
-  };
+  
   public ExtendedJSONWriter(Writer w) {
     super(w);
   }
@@ -98,7 +109,7 @@ public class ExtendedJSONWriter extends JSONWriter {
     case PropertyType.DOUBLE:
       return value.getDouble();     
     case PropertyType.DATE:
-      return formatHolder.get().format(value.getDate().getTime());
+      return DateUtils.iso8601(value.getDate());
     default:
       return value.toString();
     }
@@ -106,6 +117,33 @@ public class ExtendedJSONWriter extends JSONWriter {
 
   public void node(Node node) throws JSONException, RepositoryException {
     writeNodeToWriter(this, node);
+  }
+  
+  /**
+   * Represent an entire JCR tree in JSON format.
+   * 
+   * @param write
+   *          The {@link JSONWriter writer} to send the data to.
+   * @param node
+   *          The node and it's subtree to output. Note: The properties of this node will
+   *          be outputted as well.
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeNodeTreeToWriter(JSONWriter write, Node node)
+      throws RepositoryException, JSONException {
+    // Write this node's properties.
+    write.object();
+    writeNodeContentsToWriter(write, node);
+
+    // Write all the child nodes.
+    NodeIterator iterator = node.getNodes();
+    while (iterator.hasNext()) {
+      Node childNode = iterator.nextNode();
+      write.key(childNode.getName());
+      writeNodeTreeToWriter(write, childNode);
+    }
+    write.endObject();
   }
 
 }

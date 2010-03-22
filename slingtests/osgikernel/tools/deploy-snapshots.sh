@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This script deploys snapshots to the local repo based on the current snapshot version and creates a tarball of the repo.
 
 version=$1

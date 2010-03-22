@@ -17,27 +17,55 @@
  */
 package org.sakaiproject.nakamura.doc;
 
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 /**
  * Testing the documentation annotations.
  */
-@ServiceDocumentation(name = "DocmentedService", description = {
+@ServiceDocumentation(
+  name = "DocmentedService", 
+  shortDescription = "shortDescription ..",
+  description = {
     "This service has been documented using annotations, this is really just a test ",
     "of what is possible. I am using annotations to ensure that this information is ",
     "available at runtime so that we can extract it and processes it automatically",
     "Perhapse this inst the right way of doing this, and OSGi Properties are going to be"
-        + "a better way of exposing this information" }, bindings = {
-    @ServiceBinding(type = BindingType.PATH, bindings = { "/system/documentationTest" }),
-    @ServiceBinding(type = BindingType.TYPE, bindings = { "sakai/connectionStore" }) }, methods = {
-    @ServiceMethod(name = "GET", description = "Get Responds with a page of documentation, depending on the "
+        + "a better way of exposing this information" }, 
+  bindings = {
+    @ServiceBinding(
+        type = BindingType.TYPE, 
+        bindings = { "sakai/connectionStore" }, 
+        selectors = @ServiceSelector(name = "invite", description = {"invite"}),
+        extensions = @ServiceExtension(name = "json", description = {"JSON"})
+     ),
+     @ServiceBinding(type = BindingType.PATH, bindings = { "/system/documentationTest" })
+  }, 
+  methods = {
+    @ServiceMethod(
+        name = "GET", 
+        description = "Get Responds with a page of documentation, depending on the "
         + "type of extension there will be different serializations of the output of the resource,"
-        + "a .json extention will take the node properties and serialize them into a json tree. ", parameters = { @ServiceParameter(name = "any parameter not starting with a :", description = { "There are no parameters to the get" }) }),
-    @ServiceMethod(name = "POST", description = "Does nothing") })
-public class DocumentedService {
+        + "a .json extention will take the node properties and serialize them into a json tree. ", 
+        parameters = { 
+            @ServiceParameter(name = "any parameter not starting with a :", description = { "There are no parameters to the get" }) 
+        }
+    ),
+    @ServiceMethod(
+        name = "POST", 
+        description = "Does nothing") 
+  },
+  url = "some value that makes this class a 'document servlet'."
+)
+public class DocumentedService extends SlingSafeMethodsServlet {
 
+  // Class to test our annotations.
+  
+  private static final long serialVersionUID = -8484041094583306737L;
 }

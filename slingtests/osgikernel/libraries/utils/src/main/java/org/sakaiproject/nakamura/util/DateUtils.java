@@ -17,8 +17,10 @@
  */
 package org.sakaiproject.nakamura.util;
 
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -35,28 +37,86 @@ public class DateUtils {
   }
 
   /**
-   * Returns an <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3339</a>
-   * compliant time stamp.
-   *
+   * Returns an <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3339</a> compliant time
+   * stamp.
+   * 
    * @return yyyy-MM-dd hh:mm:ssZ
    * @see java.text.SimpleDateFormat
    */
   public static String rfc3339() {
     Date d = new Date();
+    return rfc3399(d);
+  }
+
+  /**
+   * Returns an <a href="http://www.ietf.org/rfc/rfc3339.txt">RFC 3339</a> compliant time
+   * stamp.
+   * 
+   *@param
+   * @return yyyy-MM-dd hh:mm:ssZ
+   * @see java.text.SimpleDateFormat
+   */
+  public static String rfc3399(Date d) {
     String s = rfc3339.format(d);
     return s;
   }
 
   /**
-   * Returns an <a href="http://www.ietf.org/rfc/rfc2822.txt">RFC 2822</a>
-   * compliant time stamp for messages.
-   *
+   * Returns an <a href="http://www.ietf.org/rfc/rfc2822.txt">RFC 2822</a> compliant time
+   * stamp for messages.
+   * 
    * @return EEE, dd MMM yyyy HH:mm:ss Z
    * @see java.text.SimpleDateFormat
    */
   public static String rfc2822() {
     Date d = new Date();
+    return rfc2822(d);
+  }
+
+  /**
+   * Returns an <a href="http://www.ietf.org/rfc/rfc2822.txt">RFC 2822</a> compliant time
+   * stamp for messages.
+   * 
+   * @return EEE, dd MMM yyyy HH:mm:ss Z
+   * @see java.text.SimpleDateFormat
+   */
+  public static String rfc2822(Date d) {
     String s = rfc2822.format(d);
     return s;
   }
+
+  /**
+   * Returns an <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601> compliant
+   * datetime stamp.
+   * 
+   * @return yyyy-MM-dd'T'HH:mm:ssZZ
+   */
+  public static String iso8601() {
+    return iso8601(new Date());
+  }
+
+  /**
+   * Returns an <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601> compliant
+   * datetime stamp.
+   * 
+   * @param d
+   *          The date to format.
+   * @return yyyy-MM-dd'T'HH:mm:ssZZ
+   */
+  public static String iso8601(Date d) {
+    return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(d);
+  }
+
+  /**
+   * Returns an <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601> compliant
+   * datetime stamp.
+   * 
+   * @param c
+   *          The date to format.
+   * @return yyyy-MM-dd'T'HH:mm:ssZZ
+   */
+  public static String iso8601(Calendar c) {
+    return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(c);
+  }
+
 }

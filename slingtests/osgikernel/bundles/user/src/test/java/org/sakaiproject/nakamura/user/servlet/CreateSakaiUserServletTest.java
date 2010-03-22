@@ -19,32 +19,6 @@ import javax.jcr.Session;
 
 public class CreateSakaiUserServletTest extends AbstractEasyMockTest {
 
-  @Test
-  public void testNoSession() {
-    CreateSakaiUserServlet csus = new CreateSakaiUserServlet();
-
-    ResourceResolver rr = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);
-    
-
-    SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
-    expect(rr.adaptTo(Session.class)).andReturn(session);
-
-    expect(rr.adaptTo(Session.class)).andReturn(null);
-
-    HtmlResponse response = new HtmlResponse();
-
-    replay();
-
-    try {
-      csus.handleOperation(request, response, null);
-      fail();
-    } catch (RepositoryException e) {
-      assertEquals("JCR Session not found", e.getMessage());
-    }
-    verify();    
-  }
 
   @Test
   public void testNoPrincipalName() throws RepositoryException {

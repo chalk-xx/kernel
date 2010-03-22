@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.activity.routing;
 
 import org.easymock.EasyMock;
+import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
@@ -33,6 +34,11 @@ import javax.jcr.Session;
  */
 public class ContactsActivityRouterTest extends AbstractActivityRouterTest {
 
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+  }
+  
   @Test
   public void testAdding() throws RepositoryException {
     Session session = createNiceMock(Session.class);

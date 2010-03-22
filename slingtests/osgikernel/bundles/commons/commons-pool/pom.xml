@@ -29,7 +29,7 @@
     <properties>
         <pkgArtifactId>commons-pool</pkgArtifactId>
         <pkgVersion>1.5.2</pkgVersion>
-        <pomVersion>0.3</pomVersion>
+        <pomVersion>0.4-SNAPSHOT</pomVersion>
         <osgiVersion>${pkgVersion}</osgiVersion>
     </properties>
     <groupId>org.apache.felix.commons</groupId>

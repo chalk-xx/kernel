@@ -17,29 +17,30 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_FROM;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TO;
+
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
-import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.message.internal.InternalMessageHandler;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sakaiproject.nakamura.util.StringUtils;
 
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
-import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
@@ -58,10 +59,8 @@ import javax.jcr.query.Row;
  */
 public class MessageSearchResultProcessor implements SearchResultProcessor {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(MessageSearchResultProcessor.class);
-
   protected MessagingService messagingService;
+  protected MessageProfileWriterTracker tracker;
 
   protected void bindMessagingService(MessagingService messagingService) {
     this.messagingService = messagingService;
@@ -69,6 +68,19 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
 
   protected void unbindMessagingService(MessagingService messagingService) {
     this.messagingService = null;
+  }
+
+  protected void activate(ComponentContext context) {
+    BundleContext bundleContext = context.getBundleContext();
+    tracker = new MessageProfileWriterTracker(bundleContext);
+    tracker.open();
+  }
+
+  protected void deactivate(ComponentContext context) {
+    if (tracker != null) {
+      tracker.close();
+      tracker = null;
+    }
   }
 
   /**
@@ -79,11 +91,11 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @throws JSONException
    * @throws RepositoryException
    */
-  public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
-      throws JSONException, RepositoryException {
+  public void writeNode(SlingHttpServletRequest request, JSONWriter write,
+      Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node resultNode = RowUtils.getNode(row, session);
-    if ( aggregator != null ) {
+    if (aggregator != null) {
       aggregator.add(resultNode);
     }
     writeNode(request, write, resultNode);
@@ -94,47 +106,59 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
 
     write.object();
 
+    // Write out all the properties on the message.
+    ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
+
     // Add some extra properties.
     write.key("id");
     write.value(resultNode.getName());
 
-    // TODO : This should probably be using an Authorizable. However, updated
-    // properties were not included in this..
-    if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_TO)) {
-      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_TO,
-          "userTo");
-    }
+    Session session = resultNode.getSession();
 
-    if (resultNode.hasProperty(MessageConstants.PROP_SAKAI_FROM)) {
-      PersonalUtils.writeUserInfo(resultNode, write, MessageConstants.PROP_SAKAI_FROM,
-          "userFrom");
-    }
-
-    // List all of the properties on here.
-    PropertyIterator pi = resultNode.getProperties();
-    while (pi.hasNext()) {
-      Property p = pi.nextProperty();
-
-      // If the path of a previous message is in here we go and retrieve that
-      // node and parse it as well.
-      if (p.getName().equalsIgnoreCase(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE)) {
-        write.key(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE);
-        parsePreviousMessages(request, write, resultNode);
-
-      } else {
-        // These are normal properties.., just parse them.
-        write.key(p.getName());
-        if (p.getDefinition().isMultiple()) {
-          Value[] values = p.getValues();
-          write.array();
-          for (Value value : values) {
-            write.value(value.getString());
-          }
-          write.endArray();
-        } else {
-          write.value(p.getString());
+    // Write out all the recipients their information on this message.
+    // We always return this as an array, even if it is only 1 recipient.
+    MessageProfileWriter defaultProfileWriter = new InternalMessageHandler();
+    if (resultNode.hasProperty(PROP_SAKAI_TO)) {
+      String toVal = resultNode.getProperty(PROP_SAKAI_TO).getString();
+      String[] rcpts = StringUtils.split(toVal, ',');
+      write.key("userTo");
+      write.array();
+      for (String rcpt : rcpts) {
+        String[] values = StringUtils.split(rcpt, ':');
+        MessageProfileWriter writer = null;
+        // usually it should be type:user. But in case the handler changed this..
+        String user = values[0];
+        if (values.length == 2) {
+          user = values[1];
+          String type = values[0];
+          writer = tracker.getMessageProfileWriterByType(type);
         }
+        if (writer == null) {
+          writer = defaultProfileWriter;
+        }
+        writer.writeProfileInformation(session, user, write);
       }
+      write.endArray();
+    }
+
+    // Although in most cases the sakai:from field will only contain 1 value.
+    // We add in the option to support multiple cases.
+    // For now we expect it to always be the user who sends the message.
+    if (resultNode.hasProperty(PROP_SAKAI_FROM)) {
+      String fromVal = resultNode.getProperty(PROP_SAKAI_FROM).getString();
+      String[] senders = StringUtils.split(fromVal, ',');
+      write.key("userFrom");
+      write.array();
+      for (String sender : senders) {
+        defaultProfileWriter.writeProfileInformation(session, sender, write);
+      }
+      write.endArray();
+    }
+
+    // Write the previous message.
+    if (resultNode.hasProperty(PROP_SAKAI_PREVIOUS_MESSAGE)) {
+      write.key("previousMessage");
+      parsePreviousMessages(request, write, resultNode);
     }
     write.endObject();
   }
@@ -147,26 +171,14 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @param write
    * @param excerpt
    * @throws JSONException
-   * @throws ValueFormatException
-   * @throws PathNotFoundException
    * @throws RepositoryException
    */
   private void parsePreviousMessages(SlingHttpServletRequest request, JSONWriter write,
-      Node node) throws JSONException, ValueFormatException, PathNotFoundException,
-      RepositoryException {
+      Node node) throws JSONException, RepositoryException {
 
     Session s = node.getSession();
-    String id = node.getProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE)
-        .getString();
+    String id = node.getProperty(PROP_SAKAI_PREVIOUS_MESSAGE).getString();
     String path = messagingService.getFullPathToMessage(s.getUserID(), id, s);
-    /*
-     * String path = messagingService.getMessageStorePathFromMessageNode(node) + "/" +
-     * node.getProperty(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE).getString(); path =
-     * PathUtils.normalizePath(path);
-     */
-
-    LOGGER.info("Getting message at {}", path);
-
     Node previousMessage = (Node) s.getItem(path);
     writeNode(request, write, previousMessage);
   }
@@ -177,8 +189,8 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     return SearchUtil.getSearchResultSet(request, query);
   }
 

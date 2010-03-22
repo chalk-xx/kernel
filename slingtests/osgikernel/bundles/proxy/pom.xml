@@ -2,14 +2,14 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.3</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai proxy service</name>
-  <version>0.3</version>
+  <version>0.4-SNAPSHOT</version>
   <description>This will proxy through to other websites and fetch data</description>
   <build>
     <plugins>
@@ -30,7 +30,7 @@
             <Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
             <Import-Package>!com.sun.*,!sun.misc,!sun.rmi.rmic,!sun.tools.*,!kaffe.rmi.*,!org.apache.bsf,org.apache.tools.ant.*;resolution:=optional,!org.apache.bcel.*,!org.jdom.*,!org.apache.avalon.*,*</Import-Package>
             <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,oro,woodstox-core-asl,stax2-api,relaxngDatatype</Embed-Dependency>
+            <Embed-Dependency>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,oro,ical4j</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
@@ -44,7 +44,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,woodstox-core-asl,stax2-api,relaxngDatatype</includeArtifactIds>
+              <includeArtifactIds>velocity,werken-xpath,commons-logging,log4j,logkit,ant,xml-resolver,antlr,oro,ical4j</includeArtifactIds>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
             </configuration>
           </execution>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -82,22 +82,22 @@
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>1.1</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>werken-xpath</groupId>
         <artifactId>werken-xpath</artifactId>
         <version>0.9.4</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>ant</groupId>
         <artifactId>ant</artifactId>
         <version>1.6</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>antlr</groupId>
         <artifactId>antlr</artifactId>
         <version>2.7.7</version>
-    </dependency> 
+    </dependency>
     <dependency>
       <groupId>xml-resolver</groupId>
       <artifactId>xml-resolver</artifactId>
@@ -107,12 +107,12 @@
         <groupId>oro</groupId>
         <artifactId>oro</artifactId>
         <version>2.0.8</version>
-    </dependency> 
+    </dependency>
     <dependency>
         <groupId>logkit</groupId>
         <artifactId>logkit</artifactId>
         <version>2.0</version>
-    </dependency> 
+    </dependency>
 
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>
@@ -138,7 +138,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -161,7 +161,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.3</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
 -->
     <!--  needed for http, now available as a bundle-->
@@ -192,21 +192,29 @@
 	    <groupId>org.codehaus.woodstox</groupId>
 	    <artifactId>stax2-api</artifactId>
 	    <version>3.0.1</version>
+			<scope>provided</scope>
 	</dependency>
     <dependency>
     	<groupId>org.codehaus.woodstox</groupId>
     	<artifactId>woodstox-core-asl</artifactId>
     	<version>4.0.6</version>
+			<scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>relaxngDatatype</groupId>
     	<artifactId>relaxngDatatype</artifactId>
     	<version>20020414</version>
+			<scope>provided</scope>
     </dependency>
 	<dependency>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>org.sakaiproject.nakamura.doc</artifactId>
-		<version>0.3</version>
+		<version>0.4-SNAPSHOT</version>
+	</dependency>
+	<dependency>
+		<groupId>ical4j</groupId>
+		<artifactId>ical4j</artifactId>
+		<version>0.9.20</version>
 	</dependency>
   </dependencies>
 </project>

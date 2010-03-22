@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.3</version>
+  <version>0.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project OSGi Experiments</name>
   <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
@@ -41,7 +41,6 @@
         <module>bundles/connections</module>
         <module>bundles/version</module>
         <module>bundles/memory</module>
-        <module>bundles/jsr173</module>
         <module>bundles/jaxb</module>
         <module>bundles/jaxp-api</module>
         <module>bundles/json-lib</module>

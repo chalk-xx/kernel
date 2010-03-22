@@ -20,42 +20,35 @@ import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.config.AccessManagerConfig;
 import org.apache.jackrabbit.core.config.LoginModuleConfig;
 import org.apache.jackrabbit.core.config.SecurityConfig;
-import org.apache.jackrabbit.core.config.SecurityManagerConfig;
 import org.apache.jackrabbit.core.config.WorkspaceConfig;
 import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
+import org.apache.jackrabbit.core.config.SecurityManagerConfig;
 import org.apache.jackrabbit.core.security.AMContext;
 import org.apache.jackrabbit.core.security.AccessManager;
-import org.apache.jackrabbit.core.security.DefaultAccessManager;
 import org.apache.jackrabbit.core.security.JackrabbitSecurityManager;
 import org.apache.jackrabbit.core.security.SecurityConstants;
+import org.apache.jackrabbit.core.security.DefaultAccessManager;
 import org.apache.jackrabbit.core.security.authentication.AuthContext;
 import org.apache.jackrabbit.core.security.authentication.AuthContextProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
+import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactoryImpl;
 import org.apache.jackrabbit.core.security.authorization.WorkspaceAccessManager;
-import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.jackrabbit.core.security.principal.DefaultPrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalImpl;
 import org.apache.jackrabbit.core.security.principal.PrincipalManagerImpl;
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
 import org.apache.jackrabbit.core.security.principal.PrincipalProviderRegistry;
 import org.apache.jackrabbit.core.security.principal.ProviderRegistryImpl;
+import org.apache.jackrabbit.core.security.principal.AdminPrincipal;
 import org.apache.jackrabbit.core.security.user.UserManagerImpl;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.DynamicAccessControlProviderFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.Principal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.Credentials;
@@ -65,6 +58,12 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.security.auth.Subject;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * The security manager acts as central managing class for all security related
@@ -87,7 +86,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     private static final ThreadLocal<AMContext> amContextHolder = new ThreadLocal<AMContext>();
 
     /**
-     *
+     * Flag indicating if the security manager was properly initialized.
      */
     private boolean initialized;
 
@@ -130,7 +129,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * key = name of the workspace,
      * value = {@link AccessControlProvider}
      */
-    private final Map<String,AccessControlProvider> acProviders = new HashMap<String,AccessControlProvider>();
+    private final Map acProviders = new HashMap();
 
     /**
      * the AccessControlProviderFactory
@@ -175,10 +174,10 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
 
         // build AuthContextProvider based on appName + optional LoginModuleConfig
         authContextProvider = new AuthContextProvider(config.getAppName(), loginModConf);
-        if (authContextProvider.isJAAS()) {
-            log.info("init: use JAAS login-configuration for " + config.getAppName());
-        } else if (authContextProvider.isLocal()) {
+        if (authContextProvider.isLocal()) {
             log.info("init: use Repository Login-Configuration for " + config.getAppName());
+        } else if (authContextProvider.isJAAS()) {
+            log.info("init: use JAAS login-configuration for " + config.getAppName());
         } else {
             String msg = "Neither JAAS nor RepositoryConfig contained a valid Configuriation for " + config.getAppName();
             log.error(msg);
@@ -261,9 +260,9 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
     public void close() {
         checkInitialized();
         synchronized (acProviders) {
-            Iterator<AccessControlProvider> itr = acProviders.values().iterator();
+            Iterator itr = acProviders.values().iterator();
             while (itr.hasNext()) {
-                itr.next().close();
+                ((AccessControlProvider) itr.next()).close();
             }
             acProviders.clear();
         }
@@ -285,7 +284,6 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             } else {
                 accessMgr = (AccessManager) amConfig.newInstance();
             }
-            
             // place the AMContext in a thread local to make it available to underlying classes
             // we have to do this since this is going through API's
             DynamicSecurityManager.amContextHolder.set(amContext);
@@ -294,8 +292,6 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             } finally {
               DynamicSecurityManager.amContextHolder.set(null);
             }
-            
-            
             return accessMgr;
         } catch (AccessDeniedException e) {
             // re-throw
@@ -335,8 +331,15 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             String workspaceName = securitySession.getWorkspace().getName();
             try {
                 SessionImpl sImpl = (SessionImpl) session;
-                SessionImpl s = (SessionImpl) sImpl.createSession(workspaceName);
-                return new UserManagerImpl(s, adminId);
+                UserManagerImpl uMgr;
+                if (workspaceName.equals(sImpl.getWorkspace().getName())) {
+                    uMgr = new UserManagerImpl(sImpl, adminId);
+                } else {
+                    SessionImpl s = (SessionImpl) sImpl.createSession(workspaceName);
+                    uMgr = new UserManagerImpl(s, adminId);
+                    sImpl.addListener(uMgr);
+                }
+                return uMgr;
             } catch (NoSuchWorkspaceException e) {
                 throw new AccessControlException("Cannot build UserManager for " + session.getUserID(), e);
             }
@@ -365,7 +368,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         */
         String uid = null;
         // try simple access to userID over SimpleCredentials first.
-        Iterator<?> creds = subject.getPublicCredentials(SimpleCredentials.class).iterator();
+        Iterator creds = subject.getPublicCredentials(SimpleCredentials.class).iterator();
         if (creds.hasNext()) {
             SimpleCredentials sc = (SimpleCredentials) creds.next();
             uid = sc.getUserID();
@@ -373,12 +376,12 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
             // no SimpleCredentials: retrieve authorizables corresponding to
             // a non-group principal. the first one present is used to determine
             // the userID.
-            for (Iterator<?> it = subject.getPrincipals().iterator(); it.hasNext();) {
+            for (Iterator it = subject.getPrincipals().iterator(); it.hasNext();) {
                 Principal p = (Principal) it.next();
                 if (!(p instanceof Group)) {
                     Authorizable authorz = systemUserManager.getAuthorizable(p);
                     if (authorz != null && !authorz.isGroup()) {
-                        uid = ((User) authorz).getID();
+                        uid = authorz.getID();
                         break;
                     }
                 }
@@ -408,7 +411,7 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * Returns the access control provider for the specified
      * <code>workspaceName</code>.
      *
-     * @param workspaceName
+     * @param workspaceName Name of the workspace.
      * @return access control provider
      * @throws NoSuchWorkspaceException If no workspace with 'workspaceName' exists.
      * @throws RepositoryException
@@ -433,10 +436,10 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
      * Make sure the 'administrators' group exists and the user with the
      * configured (or default) adminID is member of this user-group.
      *
-     * @param userManager
-     * @param adminId
-     * @param anonymousId
-     * @throws RepositoryException
+     * @param userManager Manager to create users/groups.
+     * @param adminId UserID of the administrator.
+     * @param anonymousId UserID of the anonymous user.
+     * @throws RepositoryException If an error occurs.
      */
     private static void createSystemUsers(UserManager userManager,
                                           String adminId,
@@ -500,7 +503,6 @@ public class DynamicSecurityManager implements JackrabbitSecurityManager {
         /**
          * {@inheritDoc}
          */
-        @SuppressWarnings("unchecked")
         public boolean grants(Set principals, String workspaceName) throws RepositoryException {
             try {
                 AccessControlProvider prov = getAccessControlProvider(workspaceName);
