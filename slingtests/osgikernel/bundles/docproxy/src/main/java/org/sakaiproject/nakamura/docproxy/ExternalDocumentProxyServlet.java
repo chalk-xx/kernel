@@ -52,7 +52,8 @@ import javax.servlet.http.HttpServletResponse;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = {
+    "GET", "POST" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
@@ -76,7 +77,8 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
-        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND,
+            "Requested resource does not exist here: " + url);
         return;
       }
 
@@ -111,6 +113,41 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       return;
     }
 
+  }
+
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    try {
+      String url = request.getRequestURI();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      Node node = JcrUtils.getFirstExistingNode(session, url);
+
+      // for deletes, we look for the resources property
+      String[] resources = request.getParameterValues("resources");
+      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
+          .getString();
+      ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
+      if (processor == null) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
+        return;
+      }
+
+      for (String resource : resources) {
+        try {
+          String path = resource.substring(node.getPath().length());
+          processor.removeDocument(node, path);
+        } catch (DocProxyException e) {
+          response.sendError(e.getCode(), e.getMessage());
+        }
+      }
+
+    } catch (RepositoryException e) {
+      LOGGER.error("Failed to retrieve document's content", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to retrieve document's content");
+      return;
+    }
   }
 
   protected void activate(ComponentContext context) {
