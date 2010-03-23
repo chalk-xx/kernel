@@ -512,6 +512,11 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.postprocessors</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.meservice</artifactId>
       <version>0.4-SNAPSHOT</version>
     </bundle>
