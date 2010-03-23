@@ -17,17 +17,19 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_COPY_FROM;
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_MOVE_FROM;
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
-import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE;
-import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
-import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_ACL_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.READ_ACL_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.NODE_TYPE_MANAGEMENT_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.VERSION_MANAGEMENT_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
+import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -50,7 +52,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -80,37 +81,47 @@ import javax.servlet.http.HttpServletResponse;
  * /site/container/site.createsite If the node is of type of sakai/sites, then create the
  * site based on a request property If the note is not of type sakai/sites, and exists
  * make it a sakai/site
+ *
+ * @scr.component immediate="true" label="CreateSiteServlet"
+ *                description="Create site servlet"
+ * @scr.service interface="javax.servlet.Servlet"
+ * @scr.property name="service.description" value=
+ *               "Supports creation of sites, either from existing folders, or new folders."
+ * @scr.property name="service.vendor" value="The Sakai Foundation"
+ * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
+ *               values.1="sakai/sites"
+ * @scr.property name="sling.servlet.methods" value="POST"
+ * @scr.property name="sling.servlet.selectors" value="createsite"
+ * @scr.reference name="SlingRepository"
+ *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
-@Component(immediate = true, label = "%site.createSiteServlet.label", description = "%site.createSiteServlet.desc")
-@SlingServlet(resourceTypes = { "sling/servlet/default", "sakai/sites" }, methods = "POST", selectors = "createsite", generateComponent = false)
 @ServiceDocumentation(name="Create a Site",
     description="The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite " +
-    		"/site/container/site.createsite If the node is of type " + SITES_CONTAINER_RESOURCE_TYPE + ", then create the " +
-    		"site based on a request property. If the node is not of type " + SITES_CONTAINER_RESOURCE_TYPE + ", and exists make it a " + SITE_RESOURCE_TYPE,
+    		"/site/container/site.createsite If the node is of type of sakai/sites, then create the " +
+    		"site based on a request property. If the node is not of type sakai/sites, and exists make it a sakai/site",
     shortDescription="Create a new Site",
-    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default",SITES_CONTAINER_RESOURCE_TYPE},
+    bindings=@ServiceBinding(type=BindingType.TYPE,bindings={"sling/servlet/default","sakai/sites"},
         selectors=@ServiceSelector(name="createsite", description="Create Site"),
         extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
     methods=@ServiceMethod(name="POST",
-        description={"Creates a site, with a name specified in " + PARAM_SITE_PATH + " from an optional template. In the process the servlet" +
+        description={"Creates a site, with a name specified in :sitepath from an optional template. In the process the servlet" +
         		"will also create all related structures (message stores etc) and set up any groups associated with the site. " +
         		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed" +
         		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then" +
         		"a 403 is returned. " +
-        		"Any parameters other than " + PARAM_SITE_PATH + " will be stored as properties on the new site node.",
+        		"Any parameters other than :sitepath will be stored as properties on the new site node.",
             "Example<br>" +
             "<pre>Example needed</pre>"
         },
         parameters={
-          @ServiceParameter(name=PARAM_SITE_PATH, description="The Path to the site being created (required)"),
-          @ServiceParameter(name=SAKAI_SITE_TEMPLATE, description="Path to a template node in JCR to use when creating the site (optional)"),
-          @ServiceParameter(name=PARAM_MOVE_FROM, description="Path to an existing site which should be renamed and relocated to the new site path (optional)"),
-          @ServiceParameter(name=PARAM_COPY_FROM, description="Path to an existing site which should be copied to the new site path (optional)")
+          @ServiceParameter(name=":sitepath", description="The Path to the site being created (required)"),
+          @ServiceParameter(name=SAKAI_SITE_TEMPLATE, description="Path to a template node in JCR to use when creating the site (optional)")
+
         },
         response={
           @ServiceResponse(code=200,description="Success a body is returned containing a json ove the name of the version saved"),
           @ServiceResponse(code=400,description={
-              "If the " + PARAM_SITE_PATH + " parameter is not present",
+              "If the :sitepath parameter is not present",
               "If the " + SAKAI_SITE_TEMPLATE + " parameter does not point to a template in JCR"
           }),
           @ServiceResponse(code=403,description="Current user is not allowed to create a site in the current location."),
@@ -124,18 +135,11 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
-  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
-  static final String SERVICE_VENDOR = "service.vendor";
-
-  @org.apache.felix.scr.annotations.Property(value = "Supports creation of sites, either from existing folders, or new folders.")
-  static final String SERVICE_DESCRIPTION = "service.description";
-
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
 
-  @Reference
   private transient SlingRepository slingRepository;
 
-  @Reference
+  /** @scr.reference */
   private transient VersionService versionService;
 
   /**
@@ -149,95 +153,105 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       throws ServletException, IOException {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      if ( UserConstants.ANON_USERID.equals(session.getUserID()) ) {
-        response.sendError(HttpServletResponse.SC_FORBIDDEN);
-        return;
-      }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable currentUser = userManager.getAuthorizable(request.getRemoteUser());
 
+      String resourceType = request.getResource().getResourceType();
+      String sitePath = request.getRequestPathInfo().getResourcePath();
       String templatePath = null;
-      String copyFromPath = null;
-      String moveFromPath = null;
 
-      String sitePath = getSitePath(request, response);
-      if (sitePath == null) {
-        return;
+      // If the current target URL is a parent node for sites, construct the final
+      // site path from it and the ":sitepath" parameter.
+      if ("sakai/sites".equals(resourceType)) {
+        RequestParameter relativePathParam = request.getRequestParameter(":sitepath");
+        if (relativePathParam == null) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + ":sitepath" + " must be set to a relative path ");
+          return;
+        }
+        String relativePath = relativePathParam.getString();
+        if (StringUtils.isEmpty(relativePath)) {
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
+              + ":sitepath" + " must be set to a relative path ");
+          return;
+        }
+
+        if (sitePath.startsWith("/")) {
+          sitePath = sitePath + relativePath;
+        } else {
+          sitePath = sitePath + "/" + relativePath;
+        }
       }
-      LOGGER.debug("The sitePath is: {}", sitePath);
-     
+
       // If we base this site on a template, make sure it exists.
-      RequestParameter siteTemplateParam = request
-          .getRequestParameter(SAKAI_SITE_TEMPLATE);
-      if (siteTemplateParam != null) {
-        templatePath = siteTemplateParam.getString();
+      RequestParameter siteTemplate = request
+          .getRequestParameter(SiteService.SAKAI_SITE_TEMPLATE);
+      if (siteTemplate != null) {
+        templatePath = siteTemplate.getString();
         if (!session.itemExists(templatePath)) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + SAKAI_SITE_TEMPLATE + " must be set to a site template");
+              + SiteService.SAKAI_SITE_TEMPLATE + " must be set to a site template");
           return;
         }
         // make sure it is a template site.
         if (!getSiteService().isSiteTemplate(session.getItem(templatePath))) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + SAKAI_SITE_TEMPLATE + " must be set to a site which has the "
-              + SAKAI_IS_SITE_TEMPLATE + " set.");
+              + SiteService.SAKAI_SITE_TEMPLATE + " must be set to a site which has the "
+              + SiteService.SAKAI_IS_SITE_TEMPLATE + " set.");
           return;
         }
       }
-      // If we have been asked to move a site, make sure it exists.
-      RequestParameter requestParameter = request.getRequestParameter(PARAM_MOVE_FROM);
-      if (requestParameter != null) {
-        moveFromPath = requestParameter.getString();
-        if (!session.itemExists(moveFromPath) || !getSiteService().isSite(session.getItem(moveFromPath))) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + PARAM_MOVE_FROM + " must be set to an existing site.");
-          return;
-        }
-      }
-      // If we have been asked to copy a site, make sure it exists.
-      requestParameter = request.getRequestParameter(PARAM_COPY_FROM);
-      if (requestParameter != null) {
-        copyFromPath = requestParameter.getString();
-        if (!session.itemExists(copyFromPath) || !getSiteService().isSite(session.getItem(copyFromPath))) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + PARAM_COPY_FROM + " must be set to an existing site.");
-          return;
-        }
-      }
-      // We can only create a site in one way at a time.
-      if ( ((templatePath != null) && ((moveFromPath != null) || (copyFromPath != null)))
-          || ((moveFromPath != null) && (copyFromPath != null)) ) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-            "Only one of " + SAKAI_SITE_TEMPLATE + ", " + PARAM_MOVE_FROM +
-            ", and " + PARAM_COPY_FROM + " can be specified.");
-        return;
-      }
+      LOGGER.debug("The sitePath is: {}", sitePath);
 
-      Session adminSession = slingRepository.loginAdministrative(null);
-      boolean granted = isCreateSiteGranted(session, adminSession, sitePath, currentUser);
+      boolean granted = isCreateSiteGranted(session, sitePath, currentUser);
       Session createSession = session;
       if (granted) {
         // Switch to gain administrative powers for at least long enough
         // to create the site node and give the current user access to
         // it.
-        createSession = adminSession;
-      } else {
-        adminSession.logout();
-        adminSession = null;
+        createSession = slingRepository.loginAdministrative(null);
       }
 
-      // Perform the actual creation or move.
       try {
         Node siteNode;
         if (templatePath != null) {
-          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser);
-        } else if (copyFromPath != null) {
-          siteNode = copySite(createSession, copyFromPath, sitePath, currentUser);
-        } else if (moveFromPath != null) {
-          siteNode = moveSite(createSession, moveFromPath, sitePath, currentUser);
+          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser.getID());
         } else {
-          siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser);
+          siteNode = JcrUtils.deepGetOrCreateNode(createSession, sitePath);
         }
+        siteNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            SiteService.SITE_RESOURCE_TYPE);
+
+        // Set the site type
+        RequestParameter sakaiSiteType = request
+            .getRequestParameter(SiteService.SAKAI_SITE_TYPE);
+        if ( sakaiSiteType != null )
+            siteNode.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType.getString() );
+
+        // setup the ACL's on the node. After this point, administrator
+        // access should no longer be needed.
+        addEntry(siteNode.getPath(), currentUser, createSession, READ_GRANTED, WRITE_GRANTED,
+            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
+            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
+            MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
+
+        if (createSession.hasPendingChanges()) {
+          LOGGER.info("Saving changes");
+          createSession.save();
+          // Save initial version of site
+          // TODO Is this really the right place to do this?
+          versionService.saveNode(siteNode, currentUser.getID());
+        }
+
+        // We add a message store to this site.
+        Node storeNode = siteNode.addNode("store");
+        storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+            "sakai/messagestore");
+
+        // Handle authz configuration via a helper.
+        SiteAuthz authzHelper = new SiteAuthz(siteNode);
+        authzHelper.initAccess(currentUser.getID());
+
         if (LOGGER.isDebugEnabled()) {
           try {
             JcrUtils.logItem(LOGGER, siteNode);
@@ -245,9 +259,13 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             LOGGER.warn(e.getMessage(), e);
           }
         }
+
+        if (createSession.hasPendingChanges()) {
+          createSession.save();
+        }
       } finally {
-        if (adminSession != null) {
-          adminSession.logout();
+        if (granted) {
+          createSession.logout();
         }
       }
 
@@ -273,35 +291,18 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    *
    * @param session
    * @param sitePath
-   * @param adminSession needed to check node paths in case the current user does
-   *   not have read access
    * @param userId
    * @return true if the specified user can create a site at the specified path
    *   regardless of other access restrictions; false if the user needs to rely on
    *   normal security checks
    * @throws RepositoryException
    */
-  private boolean isCreateSiteGranted(Session session, Session adminSession, String sitePath, Authorizable currentUser) throws RepositoryException {
+  private boolean isCreateSiteGranted(Session session, String sitePath, Authorizable currentUser) throws RepositoryException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
-    Node firstRealNode = null;
-    for (String firstRealNodePath = sitePath;
-      (firstRealNode == null) && (firstRealNodePath != null);
-      firstRealNodePath = PathUtils.getParentReference(firstRealNodePath)) {
-      if (adminSession.itemExists(firstRealNodePath)) {
-        firstRealNode = (Node)adminSession.getItem(firstRealNodePath);
-      }
-    }
-    if (firstRealNode == null) {
-      return false;
-    }
-    // If the target path already exists, do not circumvent normal access checks.
-    if (firstRealNode.getPath().equals(sitePath)) {
-      return false;
-    }
-
-    // iterate up to (but not including) the root looking for a site marker.
+    Node firstRealNode = JcrUtils.getFirstExistingNode(session, sitePath);
+    // iterate up to the root looking for a site marker.
     Node siteMarker = firstRealNode;
     Set<String> principals = new HashSet<String>();
     PrincipalIterator principalIterator = principalManager
@@ -328,10 +329,6 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             principals.add(principal.getName());
           }
         }
-      } else if (getSiteService().isSite(siteMarker)) {
-        // Do not circumvent normal access checks under an existing site, no matter
-        // what its parent is.
-        return false;
       }
       siteMarker = siteMarker.getParent();
     }
@@ -347,162 +344,43 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    * @return the new site node
    * @throws RepositoryException
    */
-  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator) throws RepositoryException {
-    ensureParent(session, sitePath);
-    
+  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, String userId) throws RepositoryException {
+    // Workspace copy needs the destination's parent to exist and be saved.
+    String parentPath = PathUtils.getParentReference(sitePath);
+    JcrUtils.deepGetOrCreateNode(session, parentPath);
+    if (session.hasPendingChanges()) {
+      session.save();
+    }
     // Copy the template files in the new folder.
     LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
         sitePath);
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, sitePath);
     Node siteNode = (Node) session.getItem(sitePath);
-    if (siteNode.hasProperty(SAKAI_IS_SITE_TEMPLATE)) {
-      if (siteNode.getProperty(SAKAI_IS_SITE_TEMPLATE).getBoolean()) {
-        siteNode.setProperty(SAKAI_IS_SITE_TEMPLATE, false);
+    if (siteNode.hasProperty(SiteService.SAKAI_IS_SITE_TEMPLATE)) {
+      if (siteNode.getProperty(SiteService.SAKAI_IS_SITE_TEMPLATE).getBoolean()) {
+        siteNode.setProperty(SiteService.SAKAI_IS_SITE_TEMPLATE, false);
       }
     }
     session.save();
-
-    initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode);
-    if (session.hasPendingChanges()) {
-      session.save();
+    // Give the copied nodes an initial version
+    NodeIterator it = siteNode.getNodes();
+    while (it.hasNext()) {
+      Node n = it.nextNode();
+      versionNode(n, userId, session);
     }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
     LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-  
-  private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator) throws RepositoryException {
-    Node siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
-    session.save();
-
-    initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-  
-  private Node copySite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
-    ensureParent(session, sitePath);
-    
-    // Copy the template files in the new folder.
-    LOGGER.debug("Copying site ({}) to new dir ({})", fromPath,
-        sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.copy(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    session.save();
-
-    initializeAccess(session, siteNode, creator);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator.getID(), session);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-  
-  private Node moveSite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
-    ensureParent(session, sitePath);
-    
-    // Copy the template files in the new folder.
-    LOGGER.debug("Moving site ({}) to new dir ({})", fromPath,
-        sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.move(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    session.save();
-
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionService.saveNode(siteNode, creator.getID());
-    LOGGER.debug("Finished move");
     return siteNode;
   }
 
   /**
-   * Workspace copy/move needs the destination's parent to exist and be saved.
-   * @param session
-   * @param sitePath
-   * @throws RepositoryException 
-   */
-  private void ensureParent(Session session, String sitePath) throws RepositoryException {
-    String parentPath = PathUtils.getParentReference(sitePath);
-    JcrUtils.deepGetOrCreateNode(session, parentPath);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-  }
-  
-  private void initializeAccess(Session session, Node site, Authorizable creator) throws RepositoryException {
-    // Give the creator full rights on the site tree.
-    AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator.getPrincipal(),
-        new String[] {"jcr:all"}, null, null);
-
-    // Handle authz configuration via a helper.
-    SiteAuthz authzHelper = new SiteAuthz(site);
-    authzHelper.initAccess(creator.getID());
-  }
-  
-  private void initializeNewSite(Session session, Node site) throws RepositoryException {
-    site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        SiteService.SITE_RESOURCE_TYPE);
-
-    // Add a message store to this site.
-    // TODO Is there any reason this can't be handled by site templates?
-    Node storeNode = site.addNode("store");
-    storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        "sakai/messagestore");
-  }
-  
-  /**
-   * Parse the request to get the destination of the new or moved site.
-   * @param request
-   * @param response
-   * @return null if an error needs to be returned to the user
-   * @throws IOException 
-   */
-  private String getSitePath(SlingHttpServletRequest request, SlingHttpServletResponse response) throws IOException {
-    String resourceType = request.getResource().getResourceType();
-    String sitePath = request.getRequestPathInfo().getResourcePath();
-    // If the current target URL is a parent node for sites, construct the final
-    // site path from it and the ":sitepath" parameter.
-    if (SITES_CONTAINER_RESOURCE_TYPE.equals(resourceType)) {
-      RequestParameter relativePathParam = request.getRequestParameter(PARAM_SITE_PATH);
-      if (relativePathParam == null) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-            + PARAM_SITE_PATH + " must be set to a relative path ");
-        return null;
-      }
-      String relativePath = relativePathParam.getString();
-      if (StringUtils.isEmpty(relativePath)) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-            + PARAM_SITE_PATH + " must be set to a relative path ");
-        return null;
-      }
-      if (sitePath.startsWith("/")) {
-        sitePath = sitePath + relativePath;
-      } else {
-        sitePath = sitePath + "/" + relativePath;
-      }
-    }
-    return sitePath;
-  }
-
-  /**
-   * Versions a node and all its child nodes.
+   * Versions a node and all it's childnodes.
    *
    * @param n
    * @param userID
    * @param createSession
    */
-  private void versionNodeAndChildren(Node n, String userID, Session createSession) {
+  private void versionNode(Node n, String userID, Session createSession) {
     try {
       // TODO do better check
       if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
@@ -511,7 +389,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // Version the childnodes
         while (it.hasNext()) {
           Node childNode = it.nextNode();
-          versionNodeAndChildren(childNode, userID, createSession);
+          versionNode(childNode, userID, createSession);
         }
       }
     } catch (RepositoryException re) {
