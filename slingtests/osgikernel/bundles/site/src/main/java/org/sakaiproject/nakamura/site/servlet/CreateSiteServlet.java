@@ -43,6 +43,8 @@ import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -53,7 +55,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
-import org.sakaiproject.nakamura.site.SiteServiceImpl;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
@@ -61,13 +62,11 @@ import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.caucho.hessian.client.HessianProxyFactory;
-
-import edu.nyu.XythosRemote;
-
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -133,17 +132,11 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private transient SlingRepository slingRepository;
   
-  /**
-   * @scr.property name="xythosHost"
-   *               description="The remote host (and port) of the Xythos instance"
-   *               value="http://localhost:9090"
-   */
-  protected String xythosHost = "http://localhost:9090";
-  
-  protected String remotePath = "/remoting/remoting/XythosService";
-
   /** @scr.reference */
   private transient VersionService versionService;
+  
+  /** @scr.reference */
+  private transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc}
@@ -233,13 +226,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
             MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
         
-//        try {
-//			HessianProxyFactory factory = new HessianProxyFactory();
-//			XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, CreateSiteServlet.class.getClassLoader());
-//			xythosService.createGroup(sitePath, request.getRemoteUser());
-//		} catch (Exception e1) {
-//			LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
-//		}
+        Dictionary<String,String> eventProps = new Hashtable<String,String>();
+        eventProps.put("sitePath", sitePath);
+        eventProps.put("userId", currentUser.getID());
+        eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/api/site/event/create", eventProps));
 
         if (createSession.hasPendingChanges()) {
           LOGGER.info("Saving changes");

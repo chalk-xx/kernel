@@ -53,7 +53,6 @@ public class TestSiteJoinServlet extends AbstractSitePostTest {
   protected void makeRequest() throws ServletException, IOException {
     preRequest();
     SiteJoinServlet servlet = new SiteJoinServlet();
-    siteService.setXythosService(dummyXythoService());
     servlet.bindSiteService(siteService);    
     servlet.doPost(request, response);
     servlet.unbindSiteService(siteService);

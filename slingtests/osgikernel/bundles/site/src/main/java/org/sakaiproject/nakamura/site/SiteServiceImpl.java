@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.site;
 
-import java.net.MalformedURLException;
 import java.util.AbstractCollection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -54,12 +53,9 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.caucho.hessian.client.HessianProxyFactory;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import edu.nyu.XythosRemote;
 
 /**
  * The <code>SiteServiceImpl</code> provides a Site Service implementatoin.
@@ -80,30 +76,6 @@ public class SiteServiceImpl implements SiteService {
    * @scr.reference
    */
   private SlingRepository slingRepository;
-  
-  /**
-   * @scr.property name="xythosHost"
-   *               description="The remote host (and port) of the Xythos instance"
-   *               value="http://localhost:9090"
-   */
-  protected String xythosHost = "http://localhost:9090";
-  
-  protected String remotePath = "/remoting/remoting/XythosService";
-  
-  private XythosRemote xythosService;
-  public void setXythosService(XythosRemote xythosService) {
-    this.xythosService = xythosService;
-  }
-  
-  public SiteServiceImpl() {
-    HessianProxyFactory factory = new HessianProxyFactory();
-    try {
-      this.xythosService = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, SiteServiceImpl.class.getClassLoader());
-    } catch (MalformedURLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
 
   /**
    * The default site template, used when none has been defined.
