@@ -25,14 +25,13 @@ public class GroupEventsPostProcessor implements EventHandler {
   private static final String remotePath = "/remoting/remoting/XythosService";
   
   public void handleEvent(Event event) {
-    String eventTopic = event.getTopic();
-    String sitePath = (String) event.getProperty("sitePath");
+    String siteId = (String) event.getProperty("siteId");
     String userId = (String) event.getProperty("userId");
     try {
       HessianProxyFactory factory = new HessianProxyFactory();
       XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class,
           xythosHost + remotePath, GroupEventsPostProcessor.class.getClassLoader());
-      xythosService.createGroup(sitePath, userId);
+      xythosService.createGroup(siteId, userId);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
     }

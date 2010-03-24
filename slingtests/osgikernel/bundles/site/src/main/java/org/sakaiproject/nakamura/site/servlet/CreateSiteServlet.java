@@ -226,9 +226,12 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, READ_ACL_GRANTED,
             MODIFY_ACL_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED, VERSION_MANAGEMENT_GRANTED);
         
+        siteNode.addMixin("mix:referenceable");
+        
         Dictionary<String,String> eventProps = new Hashtable<String,String>();
         eventProps.put("sitePath", sitePath);
         eventProps.put("userId", currentUser.getID());
+        eventProps.put("siteId", siteNode.getUUID());
         eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/api/site/event/create", eventProps));
 
         if (createSession.hasPendingChanges()) {
