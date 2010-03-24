@@ -21,7 +21,7 @@ public class GroupEventsPostProcessor implements EventHandler {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(GroupEventsPostProcessor.class);
   
-  private static final String xythosHost = "http://localhost:9090";
+  private static final String xythosHost = "http://xtest1.home.nyu.edu:8080";
   private static final String remotePath = "/remoting/remoting/XythosService";
   
   public void handleEvent(Event event) {
