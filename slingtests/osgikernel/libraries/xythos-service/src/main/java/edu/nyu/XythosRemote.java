@@ -47,7 +47,15 @@ public interface XythosRemote {
 	
 	void updateFile(String path, byte[] fileData, Map<String, Object>properties, String userId);
 	
-	void addMember(String groupId, String userId);
+	/**
+	 * Either adds or removes the specified member from the specified group.
+	 * If they're in the group, remove them
+	 * If they're not in the group, add them
+	 * 
+	 * @param groupId
+	 * @param userId
+	 */
+	void toggleMember(String groupId, String userId);
 	
 	
 	void createGroup(String groupId, String userId);

@@ -41,7 +41,7 @@ public class GroupMembershipEventsPostProcessor implements EventHandler {
       HessianProxyFactory factory = new HessianProxyFactory();
       XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class,
           xythosHost + remotePath, GroupMembershipEventsPostProcessor.class.getClassLoader());
-      xythosService.addMember(siteId, userId);
+      xythosService.toggleMember(siteId, userId);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
     }
