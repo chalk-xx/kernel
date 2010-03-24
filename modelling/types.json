@@ -27,6 +27,11 @@
                "reverseLabel": "satisfies",
                "valueType":    "item"
            },
+           "parent": {
+               "label":        "child Of",
+               "reverseLabel": "parent Of",
+               "valueType":    "item"
+           },
            "implementationPhase": {
                "label":        "implementated in",
                "reverseLabel": "contains",

@@ -7554,6 +7554,11 @@
             "reverseLabel": "contains",
             "valueType": "item"
         },
+        "parent": {
+            "label": "child Of",
+            "reverseLabel": "parent Of",
+            "valueType": "item"
+        },
         "requirementPath": {
             "label": "satisfied by",
             "reverseLabel": "satisfies",
