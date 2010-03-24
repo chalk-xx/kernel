@@ -1,0 +1,39 @@
+{
+       "types": {
+           "LearningCapability": {
+               "pluralLabel":  "Learning Capabilities"
+           },
+		   "RequirementPath" : {
+               "pluralLabel":  "Requirement Paths"
+		   },
+		   "PointOfView" : {
+               "pluralLabel":  "Points Of View"
+		   }
+       },
+       "properties": {
+           "age": {
+               "valueType":    "number"
+           },
+		   "sakai:pov" : {
+		     "label": "Point Of View",
+			 "valueType": "item"
+		   },
+           "sakai:requirementPaths": {
+               "label":        "satisfied by",
+               "reverseLabel": "satisfies",
+               "valueType":    "item"
+           }
+       },
+       "items": [
+		{
+			"label" : "Student",
+			"type" : "PointOfView",
+			"description" : "A Student"
+		},
+     	{
+			"label" : "Instructor",
+			"type" : "PointOfView",
+			"description" : "A Student"
+		}
+       ]
+   }
