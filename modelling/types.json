@@ -8,7 +8,11 @@
 		   },
 		   "PointOfView" : {
                "pluralLabel":  "Points Of View"
+		   },
+		   "ImplementationPhase" : {
+               "pluralLabel":  "ImplementationPhases"
 		   }
+
        },
        "properties": {
            "age": {
@@ -18,22 +22,78 @@
 		     "label": "Point Of View",
 			 "valueType": "item"
 		   },
-           "sakai:requirementPaths": {
+           "requirementPath": {
                "label":        "satisfied by",
                "reverseLabel": "satisfies",
+               "valueType":    "item"
+           },
+           "implementationPhase": {
+               "label":        "implementated in",
+               "reverseLabel": "contains",
                "valueType":    "item"
            }
        },
        "items": [
 		{
+			"id" : "student",
 			"label" : "Student",
 			"type" : "PointOfView",
 			"description" : "A Student"
 		},
      	{
+			"id" : "instructor",
 			"label" : "Instructor",
 			"type" : "PointOfView",
 			"description" : "A Student"
+		},
+     	{
+			"id" : "everyone",
+			"label" : "Everyone",
+			"type" : "PointOfView",
+			"description" : "Everyone including non anon"
+		},
+     	{
+			"id" : "administrator",
+			"label" : "Administrator",
+			"type" : "PointOfView",
+			"description" : "A member of the administrators group"
+		},
+     	{
+			"id" : "examiner",
+			"label" : "Examiner",
+			"type" : "PointOfView",
+			"description" : "An Examiner"
+		},
+		{
+			"id" : "researcher",
+			"label" : "Researcher",
+			"type" : "PointOfView",
+			"description" : "An Researcher"
+		},
+		{
+			"id" : "system",
+			"label" : "System",
+			"type" : "PointOfView",
+			"description" : "The System, Automated"
+		},
+		{
+			"id" : "phase1",
+			"label" : "Implementation Phase 1",
+			"type" : "ImplementationPhase",
+			"due" : "2010-06-01"
+		},
+		{
+			"id" : "phase2",
+			"label" : "Implementation Phase 2",
+			"type" : "ImplementationPhase",
+			"due" : "2010-10-01"
+		},
+		{
+			"id" : "phase3",
+			"label" : "Implementation Phase 3",
+			"type" : "ImplementationPhase",
+			"due" : "2011-02-01"
 		}
+
        ]
    }

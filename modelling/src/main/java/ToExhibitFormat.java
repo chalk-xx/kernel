@@ -36,8 +36,8 @@ import java.util.Iterator;
 public class ToExhibitFormat {
 
   public static void main(String[] argv) throws IOException, JSONException {
-    JSONObject out = loadJson("types.json");
-    JSONObject in = loadJson("model.json");
+    JSONObject out = JSONUtil.loadJson("types.json");
+    JSONObject in = JSONUtil.loadJson("model.json");
     JSONArray a = new JSONArray();
     if ( out.has("items") ) {
       a = (JSONArray) out.get("items");
@@ -54,41 +54,24 @@ public class ToExhibitFormat {
       }
       a.put(jo);
     }
-    JSONArray folders = (JSONArray) in.get("folders");
+    JSONObject requirements = JSONUtil.loadJson("requirements.json");
+    JSONArray folders = (JSONArray) requirements.get("requirements");
     for ( int i = 0; i< folders.length(); i++ ) {
-      String name = folders.getString(i);
-      JSONObject jo = new JSONObject();
+      JSONObject jo = (JSONObject) folders.get(i);
+      String name = jo.getString("id");
       jo.put("requirementPath", name);
       int j = name.lastIndexOf('/');
       if ( j > 0 ) {
         String parent = name.substring(0,j);
         jo.put("parent", parent);
       }
-      jo.put("id", name);
       jo.put("label", name);
       jo.put("type", "RequirementPath");
       a.put(jo);
     }
     
-    File fo = new File("exhibit.json");
-    FileWriter fw = new FileWriter(fo);
-    fw.append(out.toString(4));
-    fw.close();
+    JSONUtil.saveJson(out,"exhibit.json");
 
   }
 
-  /**
-   * @param string
-   * @return
-   * @throws IOException 
-   * @throws JSONException 
-   */
-  private static JSONObject loadJson(String file) throws IOException, JSONException {
-    File f = new File(file);
-    FileReader fr = new FileReader(f);
-    JSONTokener j = new JSONTokener(fr);
-    JSONObject in = new JSONObject(j);
-    fr.close();
-    return in;
-  }
 }

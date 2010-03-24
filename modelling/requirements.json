@@ -1,0 +1,1231 @@
+{"requirements": [
+    {
+        "id": "Authorizables",
+        "implementationPhase": "phase1",
+        "label": "Authorizables",
+        "requirementPath": "Authorizables",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Assesments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Feedback",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Feedback",
+        "parent": "Authorizables/Assesments",
+        "requirementPath": "Authorizables/Assesments/Feedback",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Survey",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Survey",
+        "parent": "Authorizables/Assesments",
+        "requirementPath": "Authorizables/Assesments/Survey",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Tests",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Tests",
+        "parent": "Authorizables/Assesments",
+        "requirementPath": "Authorizables/Assesments/Tests",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Tests/Formative",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Tests/Formative",
+        "parent": "Authorizables/Assesments/Tests",
+        "requirementPath": "Authorizables/Assesments/Tests/Formative",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Tests/High_Stakes",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Tests/High_Stakes",
+        "parent": "Authorizables/Assesments/Tests",
+        "requirementPath": "Authorizables/Assesments/Tests/High_Stakes",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assesments/Tests/Low_Stakes",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Assesments/Tests/Low_Stakes",
+        "parent": "Authorizables/Assesments/Tests",
+        "requirementPath": "Authorizables/Assesments/Tests/Low_Stakes",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Assignments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Closed_Assignments",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Closed_Assignments",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Closed_Assignments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Collaborative_Assignments",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Collaborative_Assignments",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Collaborative_Assignments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Log_Data_of_Assignments",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Log_Data_of_Assignments",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Log_Data_of_Assignments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Open_Assignments",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Open_Assignments",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Open_Assignments",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Request_Resubmit",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Request_Resubmit",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Request_Resubmit",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Stored_Student_Questions",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Stored_Student_Questions",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Stored_Student_Questions",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Assignments/Tasks",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Assignments/Tasks",
+        "parent": "Authorizables/Assignments",
+        "requirementPath": "Authorizables/Assignments/Tasks",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Grading",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Grading",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Grading",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Grading/Feedback",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Grading/Feedback",
+        "parent": "Authorizables/Grading",
+        "requirementPath": "Authorizables/Grading/Feedback",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Grading/Feedback/Given_Feedback",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Grading/Feedback/Given_Feedback",
+        "parent": "Authorizables/Grading/Feedback",
+        "requirementPath": "Authorizables/Grading/Feedback/Given_Feedback",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Grading/Feedback/Requested_Feedback",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Grading/Feedback/Requested_Feedback",
+        "parent": "Authorizables/Grading/Feedback",
+        "requirementPath": "Authorizables/Grading/Feedback/Requested_Feedback",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Grading/Group_Ranking",
+        "implementationPhase": "phase3",
+        "label": "Authorizables/Grading/Group_Ranking",
+        "parent": "Authorizables/Grading",
+        "requirementPath": "Authorizables/Grading/Group_Ranking",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Groups",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/External_Sources",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/External_Sources",
+        "parent": "Authorizables/Groups",
+        "requirementPath": "Authorizables/Groups/External_Sources",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/Membership",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/Membership",
+        "parent": "Authorizables/Groups",
+        "requirementPath": "Authorizables/Groups/Membership",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/Membership/Temporary_Banning_Users",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/Membership/Temporary_Banning_Users",
+        "parent": "Authorizables/Groups/Membership",
+        "requirementPath": "Authorizables/Groups/Membership/Temporary_Banning_Users",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/Small_Team_Working",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/Small_Team_Working",
+        "parent": "Authorizables/Groups",
+        "requirementPath": "Authorizables/Groups/Small_Team_Working",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/Small_Team_Working/Groop_Collaborative_Apps",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/Small_Team_Working/Groop_Collaborative_Apps",
+        "parent": "Authorizables/Groups/Small_Team_Working",
+        "requirementPath": "Authorizables/Groups/Small_Team_Working/Groop_Collaborative_Apps",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Groups/Student_Managed_Groups",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Groups/Student_Managed_Groups",
+        "parent": "Authorizables/Groups",
+        "requirementPath": "Authorizables/Groups/Student_Managed_Groups",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Recent_Activity",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Recent_Activity",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Recent_Activity",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Recent_Activity/History",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Recent_Activity/History",
+        "parent": "Authorizables/Recent_Activity",
+        "requirementPath": "Authorizables/Recent_Activity/History",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/TrackingandEvents",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/TrackingandEvents",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/TrackingandEvents",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users",
+        "parent": "Authorizables",
+        "requirementPath": "Authorizables/Users",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Impersonation",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Impersonation",
+        "parent": "Authorizables/Users",
+        "requirementPath": "Authorizables/Users/Impersonation",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Impersonation/into_Group",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Impersonation/into_Group",
+        "parent": "Authorizables/Users/Impersonation",
+        "requirementPath": "Authorizables/Users/Impersonation/into_Group",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Impersonation/into_User",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Impersonation/into_User",
+        "parent": "Authorizables/Users/Impersonation",
+        "requirementPath": "Authorizables/Users/Impersonation/into_User",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Invited_Users",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Invited_Users",
+        "parent": "Authorizables/Users",
+        "requirementPath": "Authorizables/Users/Invited_Users",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Invited_Users/visiting_group_membership",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Invited_Users/visiting_group_membership",
+        "parent": "Authorizables/Users/Invited_Users",
+        "requirementPath": "Authorizables/Users/Invited_Users/visiting_group_membership",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Personal_Space",
+        "implementationPhase": "phase1",
+        "label": "Authorizables/Users/Personal_Space",
+        "parent": "Authorizables/Users",
+        "requirementPath": "Authorizables/Users/Personal_Space",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Authorizables/Users/Recent_Items",
+        "implementationPhase": "phase2",
+        "label": "Authorizables/Users/Recent_Items",
+        "parent": "Authorizables/Users",
+        "requirementPath": "Authorizables/Users/Recent_Items",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content",
+        "implementationPhase": "phase1",
+        "label": "Content",
+        "requirementPath": "Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content",
+        "parent": "Content",
+        "requirementPath": "Content/Access_Control_of_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content/Delegated_Control",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content/Delegated_Control",
+        "parent": "Content/Access_Control_of_Content",
+        "requirementPath": "Content/Access_Control_of_Content/Delegated_Control",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content/Groups",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content/Groups",
+        "parent": "Content/Access_Control_of_Content",
+        "requirementPath": "Content/Access_Control_of_Content/Groups",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content/Rules_based",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content/Rules_based",
+        "parent": "Content/Access_Control_of_Content",
+        "requirementPath": "Content/Access_Control_of_Content/Rules_based",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content/Rules_based/Timed",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content/Rules_based/Timed",
+        "parent": "Content/Access_Control_of_Content/Rules_based",
+        "requirementPath": "Content/Access_Control_of_Content/Rules_based/Timed",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Access_Control_of_Content/Users",
+        "implementationPhase": "phase1",
+        "label": "Content/Access_Control_of_Content/Users",
+        "parent": "Content/Access_Control_of_Content",
+        "requirementPath": "Content/Access_Control_of_Content/Users",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Accessable_Versions_of_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Accessable_Versions_of_Content",
+        "parent": "Content",
+        "requirementPath": "Content/Accessable_Versions_of_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Analytics_of_Use",
+        "implementationPhase": "phase2",
+        "label": "Content/Analytics_of_Use",
+        "parent": "Content",
+        "requirementPath": "Content/Analytics_of_Use",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Archived_material",
+        "implementationPhase": "phase2",
+        "label": "Content/Archived_material",
+        "parent": "Content",
+        "requirementPath": "Content/Archived_material",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Authored_Content",
+        "parent": "Content",
+        "requirementPath": "Content/Authored_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Auto_Created_Pages",
+        "implementationPhase": "phase2",
+        "label": "Content/Authored_Content/Auto_Created_Pages",
+        "parent": "Content/Authored_Content",
+        "requirementPath": "Content/Authored_Content/Auto_Created_Pages",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Auto_Created_Pages/List_of_Files_from_Collection",
+        "implementationPhase": "phase2",
+        "label": "Content/Authored_Content/Auto_Created_Pages/List_of_Files_from_Collection",
+        "parent": "Content/Authored_Content/Auto_Created_Pages",
+        "requirementPath": "Content/Authored_Content/Auto_Created_Pages/List_of_Files_from_Collection",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Graphical_Content",
+        "implementationPhase": "phase3",
+        "label": "Content/Authored_Content/Graphical_Content",
+        "parent": "Content/Authored_Content",
+        "requirementPath": "Content/Authored_Content/Graphical_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages",
+        "implementationPhase": "phase1",
+        "label": "Content/Authored_Content/Pages",
+        "parent": "Content/Authored_Content",
+        "requirementPath": "Content/Authored_Content/Pages",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/Embedding",
+        "implementationPhase": "phase2",
+        "label": "Content/Authored_Content/Pages/Embedding",
+        "parent": "Content/Authored_Content/Pages",
+        "requirementPath": "Content/Authored_Content/Pages/Embedding",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/In_page_Widgets",
+        "implementationPhase": "phase1",
+        "label": "Content/Authored_Content/Pages/In_page_Widgets",
+        "parent": "Content/Authored_Content/Pages",
+        "requirementPath": "Content/Authored_Content/Pages/In_page_Widgets",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/In_page_Widgets/External_Integration_of_Data_Feeds_via_widgets",
+        "implementationPhase": "phase2",
+        "label": "Content/Authored_Content/Pages/In_page_Widgets/External_Integration_of_Data_Feeds_via_widgets",
+        "parent": "Content/Authored_Content/Pages/In_page_Widgets",
+        "requirementPath": "Content/Authored_Content/Pages/In_page_Widgets/External_Integration_of_Data_Feeds_via_widgets",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/In_page_Widgets/Phonetics_and_Equations",
+        "implementationPhase": "phase3",
+        "label": "Content/Authored_Content/Pages/In_page_Widgets/Phonetics_and_Equations",
+        "parent": "Content/Authored_Content/Pages/In_page_Widgets",
+        "requirementPath": "Content/Authored_Content/Pages/In_page_Widgets/Phonetics_and_Equations",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/Name_seperate_from_Link",
+        "implementationPhase": "phase1",
+        "label": "Content/Authored_Content/Pages/Name_seperate_from_Link",
+        "parent": "Content/Authored_Content/Pages",
+        "requirementPath": "Content/Authored_Content/Pages/Name_seperate_from_Link",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Authored_Content/Pages/Page_Components",
+        "implementationPhase": "phase1",
+        "label": "Content/Authored_Content/Pages/Page_Components",
+        "parent": "Content/Authored_Content/Pages",
+        "requirementPath": "Content/Authored_Content/Pages/Page_Components",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Citation_Lists",
+        "implementationPhase": "phase2",
+        "label": "Content/Citation_Lists",
+        "parent": "Content",
+        "requirementPath": "Content/Citation_Lists",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Citation_Lists/Export",
+        "implementationPhase": "phase2",
+        "label": "Content/Citation_Lists/Export",
+        "parent": "Content/Citation_Lists",
+        "requirementPath": "Content/Citation_Lists/Export",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Citation_Lists/Import",
+        "implementationPhase": "phase2",
+        "label": "Content/Citation_Lists/Import",
+        "parent": "Content/Citation_Lists",
+        "requirementPath": "Content/Citation_Lists/Import",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Citation_Lists/Import/Standard_Formats",
+        "implementationPhase": "phase2",
+        "label": "Content/Citation_Lists/Import/Standard_Formats",
+        "parent": "Content/Citation_Lists/Import",
+        "requirementPath": "Content/Citation_Lists/Import/Standard_Formats",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Collected_Content_from_elsewhere",
+        "implementationPhase": "phase1",
+        "label": "Content/Collected_Content_from_elsewhere",
+        "parent": "Content",
+        "requirementPath": "Content/Collected_Content_from_elsewhere",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Commenting_annotations",
+        "implementationPhase": "phase1",
+        "label": "Content/Commenting_annotations",
+        "parent": "Content",
+        "requirementPath": "Content/Commenting_annotations",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/External",
+        "implementationPhase": "phase1",
+        "label": "Content/External",
+        "parent": "Content",
+        "requirementPath": "Content/External",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/External/Proxed",
+        "implementationPhase": "phase1",
+        "label": "Content/External/Proxed",
+        "parent": "Content/External",
+        "requirementPath": "Content/External/Proxed",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/External/URL",
+        "implementationPhase": "phase1",
+        "label": "Content/External/URL",
+        "parent": "Content/External",
+        "requirementPath": "Content/External/URL",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/ImportExport",
+        "implementationPhase": "phase2",
+        "label": "Content/ImportExport",
+        "parent": "Content",
+        "requirementPath": "Content/ImportExport",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal",
+        "parent": "Content",
+        "requirementPath": "Content/Journal",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal/Blog",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal/Blog",
+        "parent": "Content/Journal",
+        "requirementPath": "Content/Journal/Blog",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal/Blog/Aggregated",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal/Blog/Aggregated",
+        "parent": "Content/Journal/Blog",
+        "requirementPath": "Content/Journal/Blog/Aggregated",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal/Blog/Group_Readable",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal/Blog/Group_Readable",
+        "parent": "Content/Journal/Blog",
+        "requirementPath": "Content/Journal/Blog/Group_Readable",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal/Blog/Private",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal/Blog/Private",
+        "parent": "Content/Journal/Blog",
+        "requirementPath": "Content/Journal/Blog/Private",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Journal/Blog/Public",
+        "implementationPhase": "phase2",
+        "label": "Content/Journal/Blog/Public",
+        "parent": "Content/Journal/Blog",
+        "requirementPath": "Content/Journal/Blog/Public",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Managed_Metadata",
+        "implementationPhase": "phase1",
+        "label": "Content/Managed_Metadata",
+        "parent": "Content",
+        "requirementPath": "Content/Managed_Metadata",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Nice_URLS",
+        "implementationPhase": "phase1",
+        "label": "Content/Nice_URLS",
+        "parent": "Content",
+        "requirementPath": "Content/Nice_URLS",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Nice_URLS/Perm_Links",
+        "implementationPhase": "phase1",
+        "label": "Content/Nice_URLS/Perm_Links",
+        "parent": "Content/Nice_URLS",
+        "requirementPath": "Content/Nice_URLS/Perm_Links",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Persistent_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Persistent_Content",
+        "parent": "Content",
+        "requirementPath": "Content/Persistent_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Personal_Space",
+        "implementationPhase": "phase1",
+        "label": "Content/Personal_Space",
+        "parent": "Content",
+        "requirementPath": "Content/Personal_Space",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Personal_Space/Private_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Personal_Space/Private_Content",
+        "parent": "Content/Personal_Space",
+        "requirementPath": "Content/Personal_Space/Private_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Searching",
+        "implementationPhase": "phase1",
+        "label": "Content/Searching",
+        "parent": "Content",
+        "requirementPath": "Content/Searching",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Searching/On_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Searching/On_Content",
+        "parent": "Content/Searching",
+        "requirementPath": "Content/Searching/On_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Searching/On_Metadata",
+        "implementationPhase": "phase1",
+        "label": "Content/Searching/On_Metadata",
+        "parent": "Content/Searching",
+        "requirementPath": "Content/Searching/On_Metadata",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Student_Managed_Content",
+        "implementationPhase": "phase1",
+        "label": "Content/Student_Managed_Content",
+        "parent": "Content",
+        "requirementPath": "Content/Student_Managed_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded",
+        "implementationPhase": "phase1",
+        "label": "Content/Uploaded",
+        "parent": "Content",
+        "requirementPath": "Content/Uploaded",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Media_Objects",
+        "implementationPhase": "phase1",
+        "label": "Content/Uploaded/Media_Objects",
+        "parent": "Content/Uploaded",
+        "requirementPath": "Content/Uploaded/Media_Objects",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Media_Objects/Freedom_and_Flexability",
+        "implementationPhase": "phase1",
+        "label": "Content/Uploaded/Media_Objects/Freedom_and_Flexability",
+        "parent": "Content/Uploaded/Media_Objects",
+        "requirementPath": "Content/Uploaded/Media_Objects/Freedom_and_Flexability",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Media_Objects/Photo_Albums",
+        "implementationPhase": "phase3",
+        "label": "Content/Uploaded/Media_Objects/Photo_Albums",
+        "parent": "Content/Uploaded/Media_Objects",
+        "requirementPath": "Content/Uploaded/Media_Objects/Photo_Albums",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Media_Objects/Streamed_Video_Uploaded",
+        "implementationPhase": "phase3",
+        "label": "Content/Uploaded/Media_Objects/Streamed_Video_Uploaded",
+        "parent": "Content/Uploaded/Media_Objects",
+        "requirementPath": "Content/Uploaded/Media_Objects/Streamed_Video_Uploaded",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Media_Objects/Video_Albums",
+        "implementationPhase": "phase3",
+        "label": "Content/Uploaded/Media_Objects/Video_Albums",
+        "parent": "Content/Uploaded/Media_Objects",
+        "requirementPath": "Content/Uploaded/Media_Objects/Video_Albums",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Uploaded/Online_Handling_of_Office_Formats",
+        "implementationPhase": "phase3",
+        "label": "Content/Uploaded/Online_Handling_of_Office_Formats",
+        "parent": "Content/Uploaded",
+        "requirementPath": "Content/Uploaded/Online_Handling_of_Office_Formats",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/Versioning",
+        "implementationPhase": "phase1",
+        "label": "Content/Versioning",
+        "parent": "Content",
+        "requirementPath": "Content/Versioning",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Content/ManagedWorkflow",
+        "implementationPhase": "phase2",
+        "label": "Content/ManagedWorkflow",
+        "parent": "Content",
+        "requirementPath": "Content/ManagedWorkflow",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking",
+        "implementationPhase": "phase1",
+        "label": "Networking",
+        "requirementPath": "Networking",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/contacts",
+        "implementationPhase": "phase1",
+        "label": "Networking/contacts",
+        "parent": "Networking",
+        "requirementPath": "Networking/contacts",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Events",
+        "implementationPhase": "phase1",
+        "label": "Networking/Events",
+        "parent": "Networking",
+        "requirementPath": "Networking/Events",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Events/Group_Events",
+        "implementationPhase": "phase1",
+        "label": "Networking/Events/Group_Events",
+        "parent": "Networking/Events",
+        "requirementPath": "Networking/Events/Group_Events",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Events/Individual_Events",
+        "implementationPhase": "phase2",
+        "label": "Networking/Events/Individual_Events",
+        "parent": "Networking/Events",
+        "requirementPath": "Networking/Events/Individual_Events",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Events/My_Agenda",
+        "implementationPhase": "phase2",
+        "label": "Networking/Events/My_Agenda",
+        "parent": "Networking/Events",
+        "requirementPath": "Networking/Events/My_Agenda",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Events/ToDo_List",
+        "implementationPhase": "phase2",
+        "label": "Networking/Events/ToDo_List",
+        "parent": "Networking/Events",
+        "requirementPath": "Networking/Events/ToDo_List",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging",
+        "parent": "Networking",
+        "requirementPath": "Networking/messaging",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/chat",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/chat",
+        "parent": "Networking/messaging",
+        "requirementPath": "Networking/messaging/chat",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/chat/Live_Chat",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/chat/Live_Chat",
+        "parent": "Networking/messaging/chat",
+        "requirementPath": "Networking/messaging/chat/Live_Chat",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/Disabling_for_Groups",
+        "implementationPhase": "phase2",
+        "label": "Networking/messaging/Disabling_for_Groups",
+        "parent": "Networking/messaging",
+        "requirementPath": "Networking/messaging/Disabling_for_Groups",
+        "type": "RequirementPath",
+		"requiredBy" : "Assesments"    
+	},
+    {
+        "id": "Networking/messaging/Disabling_for_Groups/rule_based",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/Disabling_for_Groups/rule_based",
+        "parent": "Networking/messaging/Disabling_for_Groups",
+        "requirementPath": "Networking/messaging/Disabling_for_Groups/rule_based",
+        "type": "RequirementPath",
+		"requiredBy" : "Assesments"
+    },
+    {
+        "id": "Networking/messaging/email",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/email",
+        "parent": "Networking/messaging",
+        "requirementPath": "Networking/messaging/email",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/System_Notification",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/System_Notification",
+        "parent": "Networking/messaging",
+        "requirementPath": "Networking/messaging/System_Notification",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/System_Notification/User_Configurable",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/System_Notification/User_Configurable",
+        "parent": "Networking/messaging/System_Notification",
+        "requirementPath": "Networking/messaging/System_Notification/User_Configurable",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/to_groups",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/to_groups",
+        "parent": "Networking/messaging",
+        "requirementPath": "Networking/messaging/to_groups",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/to_groups/Discussion",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/to_groups/Discussion",
+        "parent": "Networking/messaging/to_groups",
+        "requirementPath": "Networking/messaging/to_groups/Discussion",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/to_groups/Discussion/Permissions_on_messages",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/to_groups/Discussion/Permissions_on_messages",
+        "parent": "Networking/messaging/to_groups/Discussion",
+        "requirementPath": "Networking/messaging/to_groups/Discussion/Permissions_on_messages",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/to_groups/email",
+        "implementationPhase": "phase1",
+        "label": "Networking/messaging/to_groups/email",
+        "parent": "Networking/messaging/to_groups",
+        "requirementPath": "Networking/messaging/to_groups/email",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/messaging/to_groups/FAQ",
+        "implementationPhase": "phase2",
+        "label": "Networking/messaging/to_groups/FAQ",
+        "parent": "Networking/messaging/to_groups",
+        "requirementPath": "Networking/messaging/to_groups/FAQ",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Presence",
+        "implementationPhase": "phase1",
+        "label": "Networking/Presence",
+        "parent": "Networking",
+        "requirementPath": "Networking/Presence",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/Presence/Privacy_Controls",
+        "implementationPhase": "phase1",
+        "label": "Networking/Presence/Privacy_Controls",
+        "parent": "Networking/Presence",
+        "requirementPath": "Networking/Presence/Privacy_Controls",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile",
+        "parent": "Networking",
+        "requirementPath": "Networking/profile",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/my_profile",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile/my_profile",
+        "parent": "Networking/profile",
+        "requirementPath": "Networking/profile/my_profile",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/others_profiles",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile/others_profiles",
+        "parent": "Networking/profile",
+        "requirementPath": "Networking/profile/others_profiles",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/others_profiles/Browsing_Profiles_by_Group",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile/others_profiles/Browsing_Profiles_by_Group",
+        "parent": "Networking/profile/others_profiles",
+        "requirementPath": "Networking/profile/others_profiles/Browsing_Profiles_by_Group",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/others_profiles/contacts_profile",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile/others_profiles/contacts_profile",
+        "parent": "Networking/profile/others_profiles",
+        "requirementPath": "Networking/profile/others_profiles/contacts_profile",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/others_profiles/public_profile",
+        "implementationPhase": "phase1",
+        "label": "Networking/profile/others_profiles/public_profile",
+        "parent": "Networking/profile/others_profiles",
+        "requirementPath": "Networking/profile/others_profiles/public_profile",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Networking/profile/others_profiles/x_profile",
+        "implementationPhase": "phase3",
+        "label": "Networking/profile/others_profiles/x_profile",
+        "parent": "Networking/profile/others_profiles",
+        "requirementPath": "Networking/profile/others_profiles/x_profile",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites",
+        "implementationPhase": "phase1",
+        "label": "Sites",
+        "requirementPath": "Sites",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Associated_Authorizables",
+        "implementationPhase": "phase1",
+        "label": "Sites/Associated_Authorizables",
+        "parent": "Sites",
+        "requirementPath": "Sites/Associated_Authorizables",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content",
+        "implementationPhase": "phase1",
+        "label": "Sites/Collection_of_Content",
+        "parent": "Sites",
+        "requirementPath": "Sites/Collection_of_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content/Exportable_Package_of_Content",
+        "implementationPhase": "phase2",
+        "label": "Sites/Collection_of_Content/Exportable_Package_of_Content",
+        "parent": "Sites/Collection_of_Content",
+        "requirementPath": "Sites/Collection_of_Content/Exportable_Package_of_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content/Exportable_Package_of_Content/Offline_Object",
+        "implementationPhase": "phase3",
+        "label": "Sites/Collection_of_Content/Exportable_Package_of_Content/Offline_Object",
+        "parent": "Sites/Collection_of_Content/Exportable_Package_of_Content",
+        "requirementPath": "Sites/Collection_of_Content/Exportable_Package_of_Content/Offline_Object",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content/Exportable_Package_of_Content/PDF",
+        "implementationPhase": "phase3",
+        "label": "Sites/Collection_of_Content/Exportable_Package_of_Content/PDF",
+        "parent": "Sites/Collection_of_Content/Exportable_Package_of_Content",
+        "requirementPath": "Sites/Collection_of_Content/Exportable_Package_of_Content/PDF",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content/Structured_organization",
+        "implementationPhase": "phase1",
+        "label": "Sites/Collection_of_Content/Structured_organization",
+        "parent": "Sites/Collection_of_Content",
+        "requirementPath": "Sites/Collection_of_Content/Structured_organization",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Collection_of_Content/User_generated_Content",
+        "implementationPhase": "phase1",
+        "label": "Sites/Collection_of_Content/User_generated_Content",
+        "parent": "Sites/Collection_of_Content",
+        "requirementPath": "Sites/Collection_of_Content/User_generated_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Copy_entire_structure_and_Content",
+        "implementationPhase": "phase1",
+        "label": "Sites/Copy_entire_structure_and_Content",
+        "parent": "Sites",
+        "requirementPath": "Sites/Copy_entire_structure_and_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Copy_entire_structure_and_Content/By_Copy",
+        "implementationPhase": "phase1",
+        "label": "Sites/Copy_entire_structure_and_Content/By_Copy",
+        "parent": "Sites/Copy_entire_structure_and_Content",
+        "requirementPath": "Sites/Copy_entire_structure_and_Content/By_Copy",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Copy_entire_structure_and_Content/By_Reference",
+        "implementationPhase": "phase3",
+        "label": "Sites/Copy_entire_structure_and_Content/By_Reference",
+        "parent": "Sites/Copy_entire_structure_and_Content",
+        "requirementPath": "Sites/Copy_entire_structure_and_Content/By_Reference",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Messaging__exposed_here_",
+        "implementationPhase": "phase1",
+        "label": "Sites/Messaging__exposed_here_",
+        "parent": "Sites",
+        "requirementPath": "Sites/Messaging__exposed_here_",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Student_Managed_Sites",
+        "implementationPhase": "phase1",
+        "label": "Sites/Student_Managed_Sites",
+        "parent": "Sites",
+        "requirementPath": "Sites/Student_Managed_Sites",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites",
+        "parent": "Sites",
+        "requirementPath": "Sites/Templated_Sites",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Courses",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Courses",
+        "parent": "Sites/Templated_Sites",
+        "requirementPath": "Sites/Templated_Sites/Courses",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Courses/Attendence",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Courses/Attendence",
+        "parent": "Sites/Templated_Sites/Courses",
+        "requirementPath": "Sites/Templated_Sites/Courses/Attendence",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Courses/Consistency_of_simular_courses",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Courses/Consistency_of_simular_courses",
+        "parent": "Sites/Templated_Sites/Courses",
+        "requirementPath": "Sites/Templated_Sites/Courses/Consistency_of_simular_courses",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Courses/Structured_Content",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Courses/Structured_Content",
+        "parent": "Sites/Templated_Sites/Courses",
+        "requirementPath": "Sites/Templated_Sites/Courses/Structured_Content",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Courses/Syllabus",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Courses/Syllabus",
+        "parent": "Sites/Templated_Sites/Courses",
+        "requirementPath": "Sites/Templated_Sites/Courses/Syllabus",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Library_of_templates",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Library_of_templates",
+        "parent": "Sites/Templated_Sites",
+        "requirementPath": "Sites/Templated_Sites/Library_of_templates",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Library_of_templates/House_Style_available",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Library_of_templates/House_Style_available",
+        "parent": "Sites/Templated_Sites/Library_of_templates",
+        "requirementPath": "Sites/Templated_Sites/Library_of_templates/House_Style_available",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Other_Sites",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Other_Sites",
+        "parent": "Sites/Templated_Sites",
+        "requirementPath": "Sites/Templated_Sites/Other_Sites",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Portfolios",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Portfolios",
+        "parent": "Sites/Templated_Sites",
+        "requirementPath": "Sites/Templated_Sites/Portfolios",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Portfolios/Goal_Planning",
+        "implementationPhase": "phase2",
+        "label": "Sites/Templated_Sites/Portfolios/Goal_Planning",
+        "parent": "Sites/Templated_Sites/Portfolios",
+        "requirementPath": "Sites/Templated_Sites/Portfolios/Goal_Planning",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Projects",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Projects",
+        "parent": "Sites/Templated_Sites",
+        "requirementPath": "Sites/Templated_Sites/Projects",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Projects/Collaboration_Site",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Projects/Collaboration_Site",
+        "parent": "Sites/Templated_Sites/Projects",
+        "requirementPath": "Sites/Templated_Sites/Projects/Collaboration_Site",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "Sites/Templated_Sites/Projects/Public_Presence_Site",
+        "implementationPhase": "phase1",
+        "label": "Sites/Templated_Sites/Projects/Public_Presence_Site",
+        "parent": "Sites/Templated_Sites/Projects",
+        "requirementPath": "Sites/Templated_Sites/Projects/Public_Presence_Site",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "UI_Requirements",
+        "implementationPhase": "phase1",
+        "label": "UI_Requirements",
+        "requirementPath": "UI_Requirements",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "UI_Requirements/Keyboard",
+        "implementationPhase": "phase1",
+        "label": "UI_Requirements/Keyboard",
+        "parent": "UI_Requirements",
+        "requirementPath": "UI_Requirements/Keyboard",
+        "type": "RequirementPath"
+    },
+    {
+        "id": "UI_Requirements/Mobile_devices",
+        "implementationPhase": "phase3",
+        "label": "UI_Requirements/Mobile_devices",
+        "parent": "UI_Requirements",
+        "requirementPath": "UI_Requirements/Mobile_devices",
+        "type": "RequirementPath"
+    }
+]}
