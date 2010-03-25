@@ -5,8 +5,7 @@ import org.osgi.service.event.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.caucho.hessian.client.HessianProxyFactory;
-
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 
@@ -24,8 +23,8 @@ public class GroupMembershipEventsPostProcessor implements EventHandler {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(GroupMembershipEventsPostProcessor.class);
   
-  private static final String xythosHost = "http://xtest1.home.nyu.edu:8080";
-  private static final String remotePath = "/remoting/remoting/XythosService";
+  @Reference
+  XythosRemote xythosService;
   
   public void handleEvent(Event event) {
     String principalName = (String) event.getProperty("principal_name");
@@ -38,9 +37,6 @@ public class GroupMembershipEventsPostProcessor implements EventHandler {
     siteId = siteId.replaceAll("-viewers", "");
     try {
       String userId = user.getID();
-      HessianProxyFactory factory = new HessianProxyFactory();
-      XythosRemote xythosService = (XythosRemote) factory.create(XythosRemote.class,
-          xythosHost + remotePath, GroupMembershipEventsPostProcessor.class.getClassLoader());
       xythosService.toggleMember(siteId, userId);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());

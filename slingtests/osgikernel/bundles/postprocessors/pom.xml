@@ -58,14 +58,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.caucho</groupId>
-      <artifactId>hessian</artifactId>
-      <version>3.1.5</version>
-    </dependency>
-    <dependency>
       <groupId>edu.nyu</groupId>
       <artifactId>xythos-service</artifactId>
       <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.scr.annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>

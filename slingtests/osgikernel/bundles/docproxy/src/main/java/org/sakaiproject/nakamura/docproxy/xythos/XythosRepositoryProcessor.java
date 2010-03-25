@@ -17,25 +17,21 @@
  */
 package org.sakaiproject.nakamura.docproxy.xythos;
 
-import com.caucho.hessian.client.HessianProxyFactory;
-
 import edu.nyu.XythosRemote;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,13 +53,12 @@ import javax.jcr.RepositoryException;
     @Property(name = "service.description", value = "Document Proxy implementation for Xythos Repository"),
     @Property(name = "service.note", value = "This service is in alpha") })
 public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
-  
-  @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
-  protected String xythosHost;
-  
-  protected String remotePath = "/remoting/remoting/XythosService";
 
   protected static final String TYPE = "xythos";
+  
+  @Reference
+  XythosRemote xythos;
+  
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor#getDocument(javax.jcr.Node, java.lang.String)
@@ -111,8 +106,6 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
     try {
       String currentUserId = node.getSession().getUserID();
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
-      HessianProxyFactory factory = new HessianProxyFactory();
-      XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
       List<String> searchResultsPaths = xythos.doSearch(searchProperties, currentUserId);
       if (searchResultsPaths == null) {
         searchResultsPaths = new ArrayList<String>();
@@ -125,8 +118,6 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
         searchResults.add(getFile(path, currentUserId));
       }
       return searchResults.iterator();
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("MalformedURLException: " + e.getMessage());
     } catch (RepositoryException e) {
       throw new RuntimeException("RepositoryException: " + e.getMessage());
     }
@@ -149,9 +140,6 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       String contentType = new MimetypesFileTypeMap().getContentType(path.substring(path.lastIndexOf("/") + 1));
       properties.put("contentType", contentType);
       String currentUserId = node.getSession().getUserID();
-      HessianProxyFactory factory = new HessianProxyFactory();
-
-      XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
       byte[] fileData = new byte[documentStream.available()];
       documentStream.read(fileData);
       xythos.updateFile("/" + currentUserId + "/" + path, fileData, properties, currentUserId);
@@ -162,43 +150,18 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
   }
   
   private XythosDocumentResult getFile(String path, String userId) {
-
-    try {
-      HessianProxyFactory factory = new HessianProxyFactory();
-      XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
       String contentType = xythos.getContentType(path, userId);
       long contentLength = xythos.getContentLength(path, userId);
       Map<String, Object> props = xythos.getFileProperties(path, userId);
       String uri = "/xythos" + path;
       byte[] data = xythos.getFileContent(path, userId);
       return new XythosDocumentResult(data, contentLength, contentType, props, uri);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("MalformedURLException: " + e.getMessage());
-    }
   }
   
-  /**
-   * When the component gets activated we retrieve the OSGi properties.
-   *
-   * @param context
-   */
-  @SuppressWarnings("unchecked")
-  protected void activate(ComponentContext context) {
-    // Get the properties from the console.
-    Dictionary props = context.getProperties();
-    if (props.get("xythosHost") != null) {
-      xythosHost = props.get("xythosHost").toString();
-    }
-  }
-
   public void removeDocument(Node node, String path) throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
-      HessianProxyFactory factory = new HessianProxyFactory();
-      XythosRemote xythos = (XythosRemote) factory.create(XythosRemote.class, xythosHost+remotePath, XythosRepositoryProcessor.class.getClassLoader());
       xythos.removeDocument(path, currentUserId);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("MalformedURLException: " + e.getMessage());
     } catch (RepositoryException e) {
       throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
     }
