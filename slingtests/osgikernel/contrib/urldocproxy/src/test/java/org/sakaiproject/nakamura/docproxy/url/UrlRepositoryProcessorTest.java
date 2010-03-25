@@ -19,14 +19,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.http.localserver.LocalTestServer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -52,9 +50,6 @@ public class UrlRepositoryProcessorTest {
 
   @Mock
   private Session session;
-
-  @Mock
-  private HttpClient httpClient;
 
   private LocalTestServer server;
 
@@ -120,8 +115,6 @@ public class UrlRepositoryProcessorTest {
 
     ComponentContext context = mock(ComponentContext.class);
     when(context.getProperties()).thenReturn(props);
-
-    when(httpClient.executeMethod(Mockito.any(HttpMethod.class))).thenReturn(200);
 
     processor = new UrlRepositoryProcessor();
     processor.activate(context);
