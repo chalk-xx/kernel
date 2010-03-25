@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.internal.stubbing.defaultanswers.Answers;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -40,16 +41,12 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import javax.jcr.Node;
-import javax.jcr.Session;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UrlRepositoryProcessorTest {
 
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private Node node;
-
-  @Mock
-  private Session session;
 
   private LocalTestServer server;
 
@@ -75,8 +72,7 @@ public class UrlRepositoryProcessorTest {
 
   @Before
   public void setUp() throws Exception {
-    when(node.getSession()).thenReturn(session);
-    when(session.getUserID()).thenReturn("ch1411");
+    when(node.getSession().getUserID()).thenReturn("ch1411");
 
     HashMap<String, Object> docProps = new HashMap<String, Object>();
     docProps.put("key1", "value1");

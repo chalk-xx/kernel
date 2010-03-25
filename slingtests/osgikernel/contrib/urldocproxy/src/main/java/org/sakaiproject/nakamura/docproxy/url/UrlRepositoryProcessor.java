@@ -33,7 +33,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
@@ -438,84 +437,5 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
         }
       }
     }
-  }
-
-  /**
-   * Parse the results of PROPFIND on a resource in DAV into a
-   * {@link ExternalDocumentResultMetadata}.
-   * 
-   * @param body
-   * @return
-   * @throws IOException
-   */
-  protected ExternalDocumentResultMetadata parseDavPropFind(InputStream body)
-      throws IOException {
-    try {
-      boolean inProp = false;
-      UrlDocumentResult doc = new UrlDocumentResult();
-      XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(body);
-      for (XMLEvent event = eventReader.nextEvent(); eventReader.hasNext(); event = eventReader
-          .nextEvent()) {
-        // process the event if we're starting an element
-        if (event.isStartElement()) {
-
-          StartElement startEl = event.asStartElement();
-          QName startElName = startEl.getName();
-          String startElLocalName = startElName.getLocalPart();
-
-          // process the href element
-          if ("href".equalsIgnoreCase(startElLocalName)) {
-            event = eventReader.nextEvent();
-            Characters chars = event.asCharacters();
-            doc.setUri(chars.getData());
-            continue;
-          }
-
-          // collect the content length
-          if ("getcontentlength".equalsIgnoreCase(startElLocalName)) {
-            event = eventReader.nextEvent();
-            Characters chars = event.asCharacters();
-            doc.setContentLength(Long.parseLong(chars.getData()));
-            continue;
-          }
-
-          // collect the content type
-          if ("getcontenttype".equalsIgnoreCase(startElLocalName)) {
-            event = eventReader.nextEvent();
-            Characters chars = event.asCharacters();
-            doc.setContentType(chars.getData());
-            continue;
-          }
-
-          // mark that we're in the props so we can collect the random ones
-          if ("prop".equalsIgnoreCase(startElLocalName)) {
-            inProp = true;
-            continue;
-          }
-
-          // if in the prop tag, collect the properties we don't explicitly track
-          if (inProp) {
-            event = eventReader.nextEvent();
-            Characters chars = event.asCharacters();
-
-            // if part of
-            if (DAV_NS_URI.equals(startElName.getNamespaceURI())) {
-              doc.addProperty(startElLocalName, chars.getData());
-            } else {
-
-            }
-          }
-        } else if (event.isEndElement()) {
-          EndElement endEl = event.asEndElement();
-          if ("prop".equalsIgnoreCase(endEl.getName().getLocalPart())) {
-            inProp = false;
-          }
-        }
-      }
-      return doc;
-    } catch (XMLStreamException e) {
-      e.printStackTrace();
-    }
-    return null;
   }
 }

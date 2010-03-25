@@ -19,7 +19,10 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +49,23 @@ public class UrlDocumentResultTest {
     assertEquals(contentType, result.getContentType());
     assertEquals(contentLength, result.getContentLength());
     assertEquals(props, result.getProperties());
+  }
+
+  @Test
+  public void testHashCode() {
+    String uri = "http://localhost/file";
+    String contentType = "text/plain";
+    long contentLength = uri.length();
+    HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put("key1", "value1");
+    props.put("key2", "value2");
+    UrlDocumentResult result1 = new UrlDocumentResult(uri, contentType, contentLength, props);
+    UrlDocumentResult result2 = new UrlDocumentResult(uri, contentType, contentLength, null);
+
+    assertFalse(result1.hashCode() == result2.hashCode());
+
+    result2.setProperties(props);
+    assertTrue(result1.hashCode() == result2.hashCode());
   }
 
   @Test
@@ -117,5 +137,19 @@ public class UrlDocumentResultTest {
     result2.setUri("other");
     assertFalse(result1.equals(result2));
     assertFalse(result2.equals(result1));
+  }
+
+  @Test(expected = DocProxyException.class)
+  public void testGetInputStreamBadUri() throws DocProxyException {
+    UrlDocumentResult result1 = new UrlDocumentResult();
+    result1.getDocumentInputStream(0);
+  }
+
+  @Test
+  public void testGetInputStream() throws DocProxyException, IOException {
+    File f = File.createTempFile("urlDocProxyTest", null);
+    UrlDocumentResult result1 = new UrlDocumentResult();
+    result1.setUri("file://" + f.getPath());
+    result1.getDocumentInputStream(0);
   }
 }
