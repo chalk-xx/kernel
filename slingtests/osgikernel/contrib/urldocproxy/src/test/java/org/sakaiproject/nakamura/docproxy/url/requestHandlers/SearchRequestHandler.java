@@ -20,24 +20,67 @@ package org.sakaiproject.nakamura.docproxy.url.requestHandlers;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.sakaiproject.nakamura.docproxy.url.UrlDocumentResult;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 /**
  *
  */
 public class SearchRequestHandler implements HttpRequestHandler {
+  private static final String START_ELEMENT_PATTERN = "<document contentLength=\"%s\" contentType=\"%s\" uri=\"%s\">\n";
+  private static final String DOCUMENT_ELEMENT_PATTERN = "<document contentLength=\"%s\" contentType=\"%s\" uri=\"%s\" />\n";
+
+  private UrlDocumentResult[] docs;
+
+  public SearchRequestHandler(UrlDocumentResult... docs) {
+    this.docs = docs;
+  }
 
   /**
    * {@inheritDoc}
-   * @see org.apache.http.protocol.HttpRequestHandler#handle(org.apache.http.HttpRequest, org.apache.http.HttpResponse, org.apache.http.protocol.HttpContext)
+   * 
+   * @see org.apache.http.protocol.HttpRequestHandler#handle(org.apache.http.HttpRequest,
+   *      org.apache.http.HttpResponse, org.apache.http.protocol.HttpContext)
    */
   public void handle(HttpRequest request, HttpResponse response, HttpContext context)
       throws HttpException, IOException {
-    // TODO Auto-generated method stub
+    response.setStatusCode(200);
+    response.setHeader("Content-type", "text/xml");
 
+    String output = "<search>\n";
+    output += "<documents>\n";
+    for (UrlDocumentResult doc : docs) {
+      if (doc.getProperties() == null || doc.getProperties().size() == 0) {
+        // add the starting element
+        output += String.format(DOCUMENT_ELEMENT_PATTERN, doc.getContentLength(), doc
+            .getContentType(), doc.getUri());
+      } else {
+        // add the starting element
+        output += String.format(START_ELEMENT_PATTERN, doc.getContentLength(), doc
+            .getContentType(), doc.getUri());
+
+        // add property elements
+        output += "<properties>\n";
+        for (Entry<String, Object> entry : doc.getProperties().entrySet()) {
+          output += "<" + entry.getKey() + ">" + entry.getValue() + "</" + entry.getKey()
+              + ">\n";
+        }
+        output += "</properties>\n";
+
+        // add the ending element
+        output += "</document>\n";
+      }
+    }
+    output += "</documents>\n";
+    output += "</search>\n";
+
+    StringEntity entity = new StringEntity(output);
+    response.setEntity(entity);
   }
 
 }

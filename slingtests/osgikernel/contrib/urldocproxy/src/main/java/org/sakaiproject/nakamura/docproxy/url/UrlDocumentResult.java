@@ -38,12 +38,6 @@ public class UrlDocumentResult implements ExternalDocumentResult {
   public UrlDocumentResult() {
   }
 
-  public UrlDocumentResult(String uri, String contentType, long contentLength) {
-    this.uri = uri;
-    this.contentType = contentType;
-    this.contentLength = contentLength;
-  }
-
   public UrlDocumentResult(String uri, String contentType, long contentLength,
       Map<String, Object> properties) {
     this.uri = uri;

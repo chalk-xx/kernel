@@ -1,3 +1,17 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The SF licenses this file to you under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package org.sakaiproject.nakamura.docproxy.url;
 
 import static junit.framework.Assert.assertEquals;
@@ -31,7 +45,7 @@ import javax.jcr.Node;
 import javax.jcr.Session;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UrlDocumentRepositoryProcessorTest {
+public class UrlRepositoryProcessorTest {
 
   @Mock
   private Node node;
@@ -52,19 +66,36 @@ public class UrlDocumentRepositoryProcessorTest {
   private SearchRequestHandler searchHandler;
   private UpdateRequestHandler updateHandler;
 
-  private String docPath = "myDoc.ext";
-  private UrlDocumentResult docResult;
+  private String docPath1 = "myDoc1.ext";
+  private String docPath2 = "myDoc2.ext";
+  private String docPath3 = "myDoc3.ext";
+  private String docPath4 = "myDoc4.ext";
+  private String docPath5 = "myDoc5.ext";
+
+  private UrlDocumentResult docResult1;
+  private UrlDocumentResult docResult2;
+  private UrlDocumentResult docResult3;
+  private UrlDocumentResult docResult4;
+  private UrlDocumentResult docResult5;
 
   @Before
   public void setUp() throws Exception {
     when(node.getSession()).thenReturn(session);
     when(session.getUserID()).thenReturn("ch1411");
 
-    docResult = new UrlDocumentResult(docPath, "text/plain", docPath.length(), null);
-    docHandler = new DocumentRequestHandler(docResult);
-    metadataHandler = new MetadataRequestHandler(docResult);
+    HashMap<String, Object> docProps = new HashMap<String, Object>();
+    docProps.put("key1", "value1");
+    docResult1 = new UrlDocumentResult(docPath1, "text/plain", 1000, docProps);
+    docResult2 = new UrlDocumentResult(docPath2, "text/plain", 2000, null);
+    docResult3 = new UrlDocumentResult(docPath3, "text/plain", 3000, null);
+    docResult4 = new UrlDocumentResult(docPath4, "text/plain", 4000, null);
+    docResult5 = new UrlDocumentResult(docPath5, "text/plain", 5000, null);
+
+    docHandler = new DocumentRequestHandler(docResult1);
+    metadataHandler = new MetadataRequestHandler(docResult1);
     removeHandler = new RemoveRequestHandler();
-    searchHandler = new SearchRequestHandler();
+    searchHandler = new SearchRequestHandler(docResult1, docResult2, docResult3,
+        docResult4, docResult5);
     updateHandler = new UpdateRequestHandler();
 
     // setup the local test server
@@ -102,40 +133,49 @@ public class UrlDocumentRepositoryProcessorTest {
   }
 
   @Test
-  public void getType() {
+  public void testSetHttpClient() {
+    HttpClient client = new HttpClient();
+    UrlRepositoryProcessor processor = new UrlRepositoryProcessor(client);
+    assertEquals(client, processor.getHttpClient());
+  }
+
+  @Test
+  public void testGetType() {
     assertEquals(processor.getType(), UrlRepositoryProcessor.TYPE);
   }
 
   @Test
-  public void getDocument() throws Exception {
+  public void testGetDocument() throws Exception {
     ExternalDocumentResult doc = processor.getDocument(node, "myDoc.ext");
-    assertEquals(docResult, doc);
+    assertEquals(docResult1, doc);
   }
 
   @Test
-  public void getDocumentMetadata() throws Exception {
-    ExternalDocumentResultMetadata metadata = processor
-        .getDocumentMetadata(node, docPath);
-    assertEquals(docResult, metadata);
+  public void testGetDocumentMetadata() throws Exception {
+    ExternalDocumentResultMetadata metadata = processor.getDocumentMetadata(node,
+        docPath1);
+    assertEquals(docResult1, metadata);
   }
 
   @Test
-  public void removeDocument() throws Exception {
-    processor.removeDocument(node, docPath);
+  public void testRemoveDocument() throws Exception {
+    processor.removeDocument(node, docPath1);
   }
 
   @Test
-  public void searchDocument() throws Exception {
+  public void testSearchDocument() throws Exception {
     HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put("key1", "value1");
     processor.search(node, props);
   }
 
   @Test
-  public void updateDocument() throws Exception {
+  public void testUpdateDocument() throws Exception {
     HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put("key1", "value1");
     String output = "Data for document";
     ByteArrayInputStream bais = new ByteArrayInputStream(output.getBytes("UTF-8"));
     long streamLength = output.length();
-    processor.updateDocument(node, docPath, props, bais, streamLength);
+    processor.updateDocument(node, docPath1, props, bais, streamLength);
   }
 }
