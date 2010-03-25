@@ -18,6 +18,7 @@ import com.ctc.wstx.stax.WstxInputFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Iterator;
@@ -49,6 +50,7 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.util.Signature;
 
 /**
  * URL based document repository interactions.
@@ -58,11 +60,13 @@ import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
 public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
   public static final String TYPE = "url";
 
-  private static final String DAV_NS_URI = "DAV:";
+  @Property(value = "X-HMAC")
+  protected static final String HMAC_HEADER = "hmac.header";
+  private String hmacHeader;
 
-  @Property(value = "X-USER")
-  protected static final String USER_HEADER = "user.param";
-  private String userHeader;
+  @Property
+  protected static final String SHARED_KEY = "shared.key";
+  private String sharedKey;
 
   @Property(value = "http://localhost/search/", description = "URL to use via GET for searching.")
   protected static final String SEARCH_URL = "search.url";
@@ -95,19 +99,6 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     client = new HttpClient();
   }
 
-  /**
-   * Constructor with all required dependencies. Used in testing.
-   * 
-   * @param client HttpClient to use.  Usually a mock in this case.
-   */
-  protected UrlRepositoryProcessor(HttpClient client) {
-    this.client = client;
-  }
-
-  public HttpClient getHttpClient() {
-    return client;
-  }
-
   @Activate
   protected void activate(ComponentContext context) {
     xmlInputFactory = new WstxInputFactory();
@@ -118,12 +109,15 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     // process properties into http methods
     Dictionary props = context.getProperties();
 
-    userHeader = (String) props.get(USER_HEADER);
+    hmacHeader = (String) props.get(HMAC_HEADER);
     searchUrl = (String) props.get(SEARCH_URL);
     documentUrl = (String) props.get(DOCUMENT_URL);
     updateUrl = (String) props.get(UPDATE_URL);
     metadataUrl = (String) props.get(METADATA_URL);
     removeUrl = (String) props.get(REMOVE_URL);
+
+    hmacHeader = (String) props.get(HMAC_HEADER);
+    sharedKey = (String) props.get(SHARED_KEY);
   }
 
   /*
@@ -243,8 +237,7 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
    */
   private int executeMethod(HttpMethod method, Node node) throws DocProxyException {
     try {
-      String currentUserId = node.getSession().getUserID();
-//      method.addRequestHeader(userHeader, currentUserId);
+      addHmac(method, node);
       int returnCode = client.executeMethod(method);
       if (returnCode < 200 || returnCode >= 300) {
         throw new DocProxyException(returnCode, "Error occurred while executing method ["
@@ -254,6 +247,8 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     } catch (IOException e) {
       throw new DocProxyException(500, e.getMessage());
     } catch (RepositoryException e) {
+      throw new DocProxyException(500, e.getMessage());
+    } catch (SignatureException e) {
       throw new DocProxyException(500, e.getMessage());
     }
   }
@@ -437,5 +432,21 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
         }
       }
     }
+  }
+
+  /**
+   * Adds an HMAC header with the current user Id attached.
+   * 
+   * @param method
+   * @param node
+   * @throws RepositoryException
+   * @throws SignatureException
+   */
+  private void addHmac(HttpMethod method, Node node) throws RepositoryException,
+      SignatureException {
+    String currentUserId = node.getSession().getUserID();
+    String hmac = Signature.calculateRFC2104HMAC(currentUserId, sharedKey);
+    String hmacHeaderValue = hmac + ";" + currentUserId;
+    method.addRequestHeader(hmacHeader, hmacHeaderValue);
   }
 }

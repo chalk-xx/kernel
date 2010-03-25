@@ -18,7 +18,6 @@ import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.http.localserver.LocalTestServer;
 import org.junit.After;
 import org.junit.Before;
@@ -108,6 +107,8 @@ public class UrlRepositoryProcessorTest {
     props.put(UrlRepositoryProcessor.REMOVE_URL, serverUrl + "/remove?p=");
     props.put(UrlRepositoryProcessor.SEARCH_URL, serverUrl + "/search");
     props.put(UrlRepositoryProcessor.UPDATE_URL, serverUrl + "/update?p=");
+    props.put(UrlRepositoryProcessor.HMAC_HEADER, "X-HMAC");
+    props.put(UrlRepositoryProcessor.SHARED_KEY, "superSecretSharedKey");
 
     ComponentContext context = mock(ComponentContext.class);
     when(context.getProperties()).thenReturn(props);
@@ -119,13 +120,6 @@ public class UrlRepositoryProcessorTest {
   @After
   public void tearDown() throws Exception {
     server.stop();
-  }
-
-  @Test
-  public void testSetHttpClient() {
-    HttpClient client = new HttpClient();
-    UrlRepositoryProcessor processor = new UrlRepositoryProcessor(client);
-    assertEquals(client, processor.getHttpClient());
   }
 
   @Test
