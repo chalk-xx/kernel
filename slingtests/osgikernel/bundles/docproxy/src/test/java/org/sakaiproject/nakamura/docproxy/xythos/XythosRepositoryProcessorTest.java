@@ -54,18 +54,9 @@ public class XythosRepositoryProcessorTest {
   public void setup() {
     processor = new XythosRepositoryProcessor();
   }
-
+  
   @Test
-  public void tryFileUpdate() throws Exception {
-    when(node.getSession()).thenReturn(session);
-    when(session.getUserID()).thenReturn("zach");
-    String path = "/zach/hello.txt";
-    Map<String, Object> properties = new HashMap<String, Object>();
-    String message = "Hello world!";
-    InputStream documentStream = new ByteArrayInputStream(message.getBytes("UTF-8"));
-    long streamLength = message.length();
-    // processor.updateDocument(node, path, properties, documentStream, streamLength);
-    assertTrue(Boolean.TRUE);
+  public void uselessTest() {
+    assertTrue(true);
   }
-
 }
