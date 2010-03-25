@@ -52,34 +52,34 @@ public class SearchRequestHandler implements HttpRequestHandler {
     response.setStatusCode(200);
     response.setHeader("Content-type", "text/xml");
 
-    String output = "<search>\n";
-    output += "<documents>\n";
+    StringBuilder output = new StringBuilder("<search>\n");
+    output.append("<documents>\n");
     for (UrlDocumentResult doc : docs) {
       if (doc.getProperties() == null || doc.getProperties().size() == 0) {
         // add the starting element
-        output += String.format(DOCUMENT_ELEMENT_PATTERN, doc.getContentLength(), doc
-            .getContentType(), doc.getUri());
+        output.append(String.format(DOCUMENT_ELEMENT_PATTERN, doc.getContentLength(), doc
+            .getContentType(), doc.getUri()));
       } else {
         // add the starting element
-        output += String.format(START_ELEMENT_PATTERN, doc.getContentLength(), doc
-            .getContentType(), doc.getUri());
+        output.append(String.format(START_ELEMENT_PATTERN, doc.getContentLength(), doc
+            .getContentType(), doc.getUri()));
 
         // add property elements
-        output += "<properties>\n";
+        output.append("<properties>\n");
         for (Entry<String, Object> entry : doc.getProperties().entrySet()) {
-          output += "<" + entry.getKey() + ">" + entry.getValue() + "</" + entry.getKey()
-              + ">\n";
+          output.append("<" + entry.getKey() + ">" + entry.getValue() + "</" + entry.getKey()
+              + ">\n");
         }
-        output += "</properties>\n";
+        output.append("</properties>\n");
 
         // add the ending element
-        output += "</document>\n";
+        output.append("</document>\n");
       }
     }
-    output += "</documents>\n";
-    output += "</search>\n";
+    output.append("</documents>\n");
+    output.append("</search>\n");
 
-    StringEntity entity = new StringEntity(output);
+    StringEntity entity = new StringEntity(output.toString());
     response.setEntity(entity);
   }
 

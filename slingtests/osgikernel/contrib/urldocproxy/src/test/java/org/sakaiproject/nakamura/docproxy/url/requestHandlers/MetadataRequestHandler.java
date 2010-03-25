@@ -43,29 +43,29 @@ public class MetadataRequestHandler implements HttpRequestHandler {
     response.setStatusCode(200);
     response.setHeader("Content-type", "text/xml");
 
-    String output = null;
+    StringBuilder output = null;
     if (doc.getProperties() == null || doc.getProperties().size() == 0) {
       // add the starting element
-      output = String.format(DOCUMENT_ELEMENT_PATTERN, doc.getContentLength(), doc
-          .getContentType(), doc.getUri());
+      output = new StringBuilder(String.format(DOCUMENT_ELEMENT_PATTERN, doc
+          .getContentLength(), doc.getContentType(), doc.getUri()));
     } else {
       // add the starting element
-      output = String.format(START_ELEMENT_PATTERN, doc.getContentLength(), doc
-          .getContentType(), doc.getUri());
+      output = new StringBuilder(String.format(START_ELEMENT_PATTERN, doc
+          .getContentLength(), doc.getContentType(), doc.getUri()));
 
       // add property elements
-      output += "<properties>\n";
+      output.append("<properties>\n");
       for (Entry<String, Object> entry : doc.getProperties().entrySet()) {
-        output += "<" + entry.getKey() + ">" + entry.getValue() + "</" + entry.getKey()
-            + ">\n";
+        output.append("<" + entry.getKey() + ">" + entry.getValue() + "</"
+            + entry.getKey() + ">\n");
       }
-      output += "</properties>\n";
+      output.append("</properties>\n");
 
       // add the ending element
-      output += "</document>\n";
+      output.append("</document>\n");
     }
 
-    StringEntity entity = new StringEntity(output);
+    StringEntity entity = new StringEntity(output.toString());
     response.setEntity(entity);
   }
 

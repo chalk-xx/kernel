@@ -19,6 +19,8 @@ package org.sakaiproject.nakamura.docproxy.url;
 
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +32,8 @@ import java.util.Map;
  *
  */
 public class UrlDocumentResult implements ExternalDocumentResult {
+  private static final Logger LOG = LoggerFactory.getLogger(UrlDocumentResult.class);
+
   private String uri;
   private String contentType;
   private long contentLength;
@@ -102,7 +106,10 @@ public class UrlDocumentResult implements ExternalDocumentResult {
     try {
       URL url = new URL(uri);
       InputStream is = url.openStream();
-      is.skip(startingAt);
+      long actual = is.skip(startingAt);
+      if (actual != startingAt) {
+        LOG.info("Requested skip: {}, actual: {}", startingAt, actual);
+      }
       return is;
     } catch (IOException e) {
       throw new DocProxyException(500, "Error in getting document input stream: "
