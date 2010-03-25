@@ -30,9 +30,6 @@ import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
-import edu.nyu.XythosDocument;
-import edu.nyu.XythosRemote;
-
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
