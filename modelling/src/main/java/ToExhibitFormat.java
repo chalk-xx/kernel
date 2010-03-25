@@ -54,13 +54,14 @@ public class ToExhibitFormat {
       }
       a.put(jo);
     }
+    
     JSONObject requirements = JSONUtil.loadJson("requirements.json");
     JSONArray folders = (JSONArray) requirements.get("requirements");
     for ( int i = 0; i< folders.length(); i++ ) {
       JSONObject jo = (JSONObject) folders.get(i);
       String name = jo.getString("id");
       jo.put("requirementPath", name);
-      int j = name.lastIndexOf('/');
+      int j = name.lastIndexOf('.');
       if ( j > 0 ) {
         String parent = name.substring(0,j);
         jo.put("parent", parent);
@@ -69,7 +70,20 @@ public class ToExhibitFormat {
       jo.put("type", "RequirementPath");
       a.put(jo);
     }
-    
+
+    JSONObject johnUserMap = JSONUtil.loadJson("johnusermap.json");
+    JSONArray johnUserItems = (JSONArray) johnUserMap.get("items");
+    for ( int i = 0; i< johnUserItems.length(); i++ ) {
+      JSONObject jo = (JSONObject) johnUserItems.get(i);
+      String name = jo.getString("id");
+      int j = name.lastIndexOf('.');
+      if ( j > 0 ) {
+        String parent = name.substring(0,j);
+        jo.put("parent", parent);
+      }
+      a.put(jo);
+    }
+
     JSONUtil.saveJson(out,"exhibit.json");
 
   }
