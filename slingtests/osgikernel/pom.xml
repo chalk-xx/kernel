@@ -103,6 +103,7 @@
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
+        <module>contrib/urldocproxy</module>
        </modules>
     </profile>
     <profile>
