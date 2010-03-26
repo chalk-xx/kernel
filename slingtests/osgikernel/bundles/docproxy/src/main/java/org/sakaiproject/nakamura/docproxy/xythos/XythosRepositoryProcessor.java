@@ -107,8 +107,8 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
     try {
       String currentUserId = node.getSession().getUserID();
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
-      List<XythosDocument> xythosSearchResults = xythos.doSearch(searchProperties, currentUserId);
-      for(XythosDocument doc : xythosSearchResults) {
+      List<Map<String,Object>> xythosSearchResults = xythos.doSearch(searchProperties, currentUserId);
+      for(Map<String,Object> doc : xythosSearchResults) {
         searchResults.add(new XythosDocumentResult(doc));
       }
       return searchResults.iterator();

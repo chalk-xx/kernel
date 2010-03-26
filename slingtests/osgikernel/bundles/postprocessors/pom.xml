@@ -37,8 +37,6 @@
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package> org.sakaiproject.nakamura.postprocessors </Export-Package>
-            <Embed-Transitive>true</Embed-Transitive>
-            <Embed-Dependency>hessian,xythos-service</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>

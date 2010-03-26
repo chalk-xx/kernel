@@ -77,7 +77,7 @@ public class HessianXythosRemote implements XythosRemote {
    xythosService.createGroup(arg0, arg1);
   }
 
-  public List<XythosDocument> doSearch(Map<String, Object> arg0, String arg1) {
+  public List<Map<String,Object>> doSearch(Map<String, Object> arg0, String arg1) {
     return xythosService.doSearch(arg0, arg1);
   }
 
