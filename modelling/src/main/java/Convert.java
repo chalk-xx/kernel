@@ -1,3 +1,4 @@
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,16 +46,25 @@ public class Convert {
    * @throws JSONException 
    */
   public static void main(String[] args) throws IOException, JSONException {
-    CSVReader reader = new CSVReader(new FileReader("test.csv"));
+    CSVReader reader = new CSVReader(new FileReader("nyuedd.csv"));
     String[] nextLine;
     String[] headers = reader.readNext();
     JSONObject jo = new JSONObject();
-    while ((nextLine = reader.readNext()) != null) {
-      for (int i = 2; i < nextLine.length; i++) {
-        outputFile(jo, headers[0], nextLine[0], nextLine[1], headers[i], nextLine[i], i);
-      }
+    JSONArray a = new JSONArray();
+    jo.put("items", a);
+    for (int i = 0; i < headers.length; i++) {
+      headers[i] = JSONUtil.safeId(headers[i]).toLowerCase();
     }
-    File f = new File("model.json");
+    while ((nextLine = reader.readNext()) != null) {
+      JSONObject o = new JSONObject();
+      for (int i = 0; i < nextLine.length && i < headers.length; i++) {
+        o.put(headers[i], nextLine[i]);
+      }
+      o.put("type", "NYUviaEdd");
+      o.put("label", o.getString("id"));
+      a.put(o);
+    }
+    File f = new File("nyuedd.json");
     FileWriter fw = new FileWriter(f);
     fw.append(jo.toString(4));
     fw.close();

@@ -42,10 +42,11 @@ public class JsonToCsv {
    * @throws JSONException 
    */
   public static void main(String[] args) throws IOException, JSONException {
-    convertToCSV("johnsusermap","items");
+    convertToCSV("johnusermap","items");
     convertToCSV("requirements","items");
     convertToCSV("model","items");
-    
+    convertToCSV("screens","items");
+    convertToCSV("types","items");
   }
     
     
