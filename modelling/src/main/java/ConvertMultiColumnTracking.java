@@ -96,7 +96,7 @@ public class ConvertMultiColumnTracking {
         if (name.toLowerCase().equals(ref.toLowerCase())) {
           references.put(name);
         } else {
-          references.put(name + "." + JSONUtil.safeId(ref));
+          references.put(name + "." + ref);
         }
       }
       o.remove(name.toLowerCase());

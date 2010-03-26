@@ -21,7 +21,38 @@ CONTENT="text/html; charset=UTF-8">
     <table width="100%">
         <tr valign="top">
             <td ex:role="viewPanel">
-				 <div ex:role="view" ex:showAll="true" ></div>   
+				 <div ex:role="view"
+                            ex:showAll="true"
+                            ex:orders=".label"
+                            ex:possibleOrders=".label, .tower, .last-name, .group, .floor"> 
+                            <div ex:role="lens" ex:itemTypes="Screens" style="display: none;"> 
+                            	<div class="exhibit-lens-title" title=".label"><span ex:content=".label" ></span></div>
+                            	<div class="exhibit-lens-body">
+                                	<div><span ex:content=".description-of-screen"></span></div>
+                                	<div>
+                                		<ul>
+                               	 			<li>ID: <span ex:content=".label"></span></li>
+                                			<li>In: <span ex:content=".requirementPath"></span></li>
+                                		</ul>
+                                	</div>
+                                	<div><a ex:href-content=".url" target="_blank"><img ex:src-content=".thumbnail" /></a></div>
+                                </div>
+                            </div> 		 
+                            <div ex:role="lens" ex:itemTypes="LearningCapability" style="display: none;"> 
+                            	<div class="exhibit-lens-title" title=".label"><span ex:content=".label" ></span></div>
+                            	<div class="exhibit-lens-body">
+                                	<div><span ex:content=".sakai-capability"></span></div>
+                                	<div>
+                                		<ul>
+                               	 			<li>Point Of View: <span ex:content=".sakai-pov"></span></li>
+                               	 			<li>Goal Type: <span ex:content=".sakai-name"></span></li>
+                               	 			<li>ID: <span ex:content=".label"></span></li>
+                                			<li>In: <span ex:content=".requirementPath"></span></li>
+                                		</ul>
+                                	</div>
+                                </div>
+                            </div> 		 
+				 </div>   
 		    </td>
             <td width="25%">
 				<div ex:role="facet" 
