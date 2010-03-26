@@ -35,7 +35,7 @@ import javax.xml.parsers.ParserConfigurationException;
 /**
  *
  */
-public class ConvertMMap {
+public class ConvertJohnsMMap {
 
   /**
    * @param args
@@ -57,6 +57,12 @@ public class ConvertMMap {
     
     JSONUtil.saveJson(jo, "mmap.json");
   }
+  
+  // <node COLOR="#CCCCCC"  BACKGROUND_COLOR="#" CREATED="1269431911000" ID="Freemind_Link_45603059" MODIFIED="1269598791000" TEXT="Export data">
+  // <node COLOR="#000000"  BACKGROUND_COLOR="#" CREATED="1269448889000" ID="Freemind_Link_45638511" MODIFIED="1269597987000" TEXT="View by personal map/desktop layout">
+  // <font SIZE="12" ITALIC="true"/></node>
+  // </node>
+
 
   /**
    * @param string
@@ -69,12 +75,50 @@ public class ConvertMMap {
       String localName = n.getNodeName();
       if ( "node".equals(localName) ) {
         NamedNodeMap nn = n.getAttributes();
-        String nodeName = path+"."+safeDirName(nn.getNamedItem("TEXT"));
+        String nodeName = path+safeDirName(nn.getNamedItem("TEXT"))+".";
+        
+        Node colorNode = nn.getNamedItem("COLOR");
+        String color = "#000000";
+        if ( colorNode != null ) {
+          color = colorNode.getTextContent();
+        }
+        
+        boolean bold = false;
+        boolean italic = false;
+        NodeList childNodes = n.getChildNodes();
+        for ( int j = 0; j < childNodes.getLength(); j++ ) {
+          Node childNode = childNodes.item(j);
+          if ( "font".equals(childNode.getNodeName()) ) {
+            NamedNodeMap childNodeMap = childNode.getAttributes();
+            Node italicNode = childNodeMap.getNamedItem("ITALIC");
+            italic = ( italicNode != null && "true".equals(italicNode.getTextContent()));
+            Node boldNode = childNodeMap.getNamedItem("BOLD");
+            bold = ( boldNode != null && "true".equals(boldNode.getTextContent()));
+          }
+        }
+        
+        String implementationPhase = "phase1";
+        if ( italic ) {
+          implementationPhase = "phase2";
+        } else if ( "#CCCCCC".equals(color) ) {
+          implementationPhase = "phase3";
+        }
+        
+        
         JSONObject jo = new JSONObject();
+        String finalNodeName = nodeName.substring(0,nodeName.length()-1);
+        System.err.println("Adding "+finalNodeName);
+        jo.put("id", finalNodeName);
+        int j = finalNodeName.lastIndexOf('.');
+        if ( j > 0 ) {
+          String parent = finalNodeName.substring(0,j);
+          jo.put("parent", parent);
+        }
+
+        jo.put("label", finalNodeName);
+        jo.put("type", "UserDesire");
+        jo.put("implementationPhase", implementationPhase);
         ja.put(jo);
-        jo.put("id", nodeName);
-        jo.put("label", nodeName);
-        jo.put("type", "JohnUserMap");
         buildStructure(ja, nodeName,n.getChildNodes());
       } else {
         buildStructure(ja, path,n.getChildNodes());   
@@ -97,6 +141,7 @@ public class ConvertMMap {
     nodeName = nodeName.replace(')','-');
     nodeName = nodeName.replace('.','-');
     nodeName = nodeName.replace('/','-');
+    nodeName = nodeName.replace('?','-');
     return nodeName;
   }
 

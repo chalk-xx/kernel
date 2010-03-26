@@ -1,4 +1,4 @@
-{"requirements": [
+{"items": [
     {
         "id": "Authorizables",
         "implementationPhase": "phase1",
@@ -176,7 +176,7 @@
     },
     {
         "id": "Authorizables.Groups.External-Sources",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Authorizables.Groups.External-Sources",
         "parent": "Authorizables.Groups",
         "requirementPath": "Authorizables.Groups.External-Sources",
@@ -192,7 +192,7 @@
     },
     {
         "id": "Authorizables.Groups.Membership.Temporary-Banning-Users",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Authorizables.Groups.Membership.Temporary-Banning-Users",
         "parent": "Authorizables.Groups.Membership",
         "requirementPath": "Authorizables.Groups.Membership.Temporary-Banning-Users",
@@ -208,7 +208,7 @@
     },
     {
         "id": "Authorizables.Groups.Small-Team-Working.Groop-Collaborative-Apps",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Authorizables.Groups.Small-Team-Working.Groop-Collaborative-Apps",
         "parent": "Authorizables.Groups.Small-Team-Working",
         "requirementPath": "Authorizables.Groups.Small-Team-Working.Groop-Collaborative-Apps",
@@ -232,7 +232,7 @@
     },
     {
         "id": "Authorizables.Recent-Activity.History",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Authorizables.Recent-Activity.History",
         "parent": "Authorizables.Recent-Activity",
         "requirementPath": "Authorizables.Recent-Activity.History",
@@ -304,7 +304,7 @@
     },
     {
         "id": "Authorizables.Users.Recent-Items",
-        "implementationPhase": "phase2",
+        "implementationPhase": "phase1",
         "label": "Authorizables.Users.Recent-Items",
         "parent": "Authorizables.Users",
         "requirementPath": "Authorizables.Users.Recent-Items",
@@ -327,7 +327,7 @@
     },
     {
         "id": "Content.Access-Control-of-Content.Delegated-Control",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Access-Control-of-Content.Delegated-Control",
         "parent": "Content.Access-Control-of-Content",
         "requirementPath": "Content.Access-Control-of-Content.Delegated-Control",
@@ -343,7 +343,7 @@
     },
     {
         "id": "Content.Access-Control-of-Content.Rules-based",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Access-Control-of-Content.Rules-based",
         "parent": "Content.Access-Control-of-Content",
         "requirementPath": "Content.Access-Control-of-Content.Rules-based",
@@ -351,7 +351,7 @@
     },
     {
         "id": "Content.Access-Control-of-Content.Rules-based.Timed",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Access-Control-of-Content.Rules-based.Timed",
         "parent": "Content.Access-Control-of-Content.Rules-based",
         "requirementPath": "Content.Access-Control-of-Content.Rules-based.Timed",
@@ -367,7 +367,7 @@
     },
     {
         "id": "Content.Accessable-Versions-of-Content",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Accessable-Versions-of-Content",
         "parent": "Content",
         "requirementPath": "Content.Accessable-Versions-of-Content",
@@ -431,7 +431,7 @@
     },
     {
         "id": "Content.Authored-Content.Pages.Embedding",
-        "implementationPhase": "phase2",
+        "implementationPhase": "phase1",
         "label": "Content.Authored-Content.Pages.Embedding",
         "parent": "Content.Authored-Content.Pages",
         "requirementPath": "Content.Authored-Content.Pages.Embedding",
@@ -471,7 +471,7 @@
     },
     {
         "id": "Content.Authored-Content.Pages.Page-Components",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Authored-Content.Pages.Page-Components",
         "parent": "Content.Authored-Content.Pages",
         "requirementPath": "Content.Authored-Content.Pages.Page-Components",
@@ -511,7 +511,7 @@
     },
     {
         "id": "Content.Collected-Content-from-elsewhere",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Collected-Content-from-elsewhere",
         "parent": "Content",
         "requirementPath": "Content.Collected-Content-from-elsewhere",
@@ -703,7 +703,7 @@
     },
     {
         "id": "Content.Uploaded.Media-Objects.Freedom-and-Flexability",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Content.Uploaded.Media-Objects.Freedom-and-Flexability",
         "parent": "Content.Uploaded.Media-Objects",
         "requirementPath": "Content.Uploaded.Media-Objects.Freedom-and-Flexability",
@@ -782,7 +782,7 @@
     },
     {
         "id": "Networking.Events.Group-Events",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Networking.Events.Group-Events",
         "parent": "Networking.Events",
         "requirementPath": "Networking.Events.Group-Events",
@@ -841,18 +841,18 @@
         "implementationPhase": "phase2",
         "label": "Networking.messaging.Disabling-for-Groups",
         "parent": "Networking.messaging",
+        "requiredBy": "Assesments",
         "requirementPath": "Networking.messaging.Disabling-for-Groups",
-        "type": "RequirementPath",
-		"requiredBy" : "Assesments"    
-	},
+        "type": "RequirementPath"
+    },
     {
         "id": "Networking.messaging.Disabling-for-Groups.rule-based",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Networking.messaging.Disabling-for-Groups.rule-based",
         "parent": "Networking.messaging.Disabling-for-Groups",
+        "requiredBy": "Assesments",
         "requirementPath": "Networking.messaging.Disabling-for-Groups.rule-based",
-        "type": "RequirementPath",
-		"requiredBy" : "Assesments"
+        "type": "RequirementPath"
     },
     {
         "id": "Networking.messaging.email",
@@ -864,7 +864,7 @@
     },
     {
         "id": "Networking.messaging.System-Notification",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Networking.messaging.System-Notification",
         "parent": "Networking.messaging",
         "requirementPath": "Networking.messaging.System-Notification",
@@ -872,7 +872,7 @@
     },
     {
         "id": "Networking.messaging.System-Notification.User-Configurable",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Networking.messaging.System-Notification.User-Configurable",
         "parent": "Networking.messaging.System-Notification",
         "requirementPath": "Networking.messaging.System-Notification.User-Configurable",
@@ -896,7 +896,7 @@
     },
     {
         "id": "Networking.messaging.to-groups.Discussion.Permissions-on-messages",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Networking.messaging.to-groups.Discussion.Permissions-on-messages",
         "parent": "Networking.messaging.to-groups.Discussion",
         "requirementPath": "Networking.messaging.to-groups.Discussion.Permissions-on-messages",
@@ -984,7 +984,7 @@
     },
     {
         "id": "Networking.profile.others-profiles.x-profile",
-        "implementationPhase": "phase3",
+        "implementationPhase": "phase1",
         "label": "Networking.profile.others-profiles.x-profile",
         "parent": "Networking.profile.others-profiles",
         "requirementPath": "Networking.profile.others-profiles.x-profile",
@@ -1159,7 +1159,7 @@
     },
     {
         "id": "Sites.Templated-Sites.Other-Sites",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "Sites.Templated-Sites.Other-Sites",
         "parent": "Sites.Templated-Sites",
         "requirementPath": "Sites.Templated-Sites.Other-Sites",
@@ -1214,7 +1214,7 @@
     },
     {
         "id": "UI-Requirements.Keyboard",
-        "implementationPhase": "phase1",
+        "implementationPhase": "phase2",
         "label": "UI-Requirements.Keyboard",
         "parent": "UI-Requirements",
         "requirementPath": "UI-Requirements.Keyboard",

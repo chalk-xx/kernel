@@ -11,7 +11,10 @@
 		   },
 		   "ImplementationPhase" : {
                "pluralLabel":  "ImplementationPhases"
-		   }
+		   },
+           "UserDesire": {
+               "pluralLabel":  "Users Desires"
+           }
 
        },
        "properties": {

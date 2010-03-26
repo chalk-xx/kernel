@@ -42,9 +42,22 @@ public class JsonToCsv {
    * @throws JSONException 
    */
   public static void main(String[] args) throws IOException, JSONException {
-    JSONObject jsonObject = JSONUtil.loadJson("requirements.json");
-    JSONArray a = jsonObject.getJSONArray("requirements");
-    File f = new File("requirements.csv");
+    convertToCSV("johnsusermap","items");
+    convertToCSV("requirements","items");
+    
+  }
+    
+    
+    /**
+   * @param string
+   * @param string2
+     * @throws JSONException 
+     * @throws IOException 
+   */
+  private static void convertToCSV(String file, String items) throws JSONException, IOException {
+    JSONObject jsonObject = JSONUtil.loadJson(file+".json");
+    JSONArray a = jsonObject.getJSONArray(items);
+    File f = new File(file+".csv");
     Set<String> nameSet = new HashSet<String>();
     for ( int i = 0; i < a.length(); i++ ) {
       JSONObject o = a.getJSONObject(i);
@@ -72,7 +85,7 @@ public class JsonToCsv {
       sheet.add(row);
     }
     FileWriter fw = new FileWriter(f);
-    CSVWriter writer = new CSVWriter(new FileWriter("requirements.csv"));
+    CSVWriter writer = new CSVWriter(fw);
     writer.writeAll(sheet);
     writer.close();
     fw.close();

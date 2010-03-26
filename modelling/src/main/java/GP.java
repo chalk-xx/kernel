@@ -29,8 +29,63 @@ import java.util.Iterator;
 public class GP {
 
   public static void main(String[] args) throws IOException, JSONException {
-    fixPov();
   }
+
+  
+  
+  /**
+   * @throws JSONException 
+   * @throws IOException 
+   * 
+   */
+  private static void restructureRequrements() throws IOException, JSONException {
+    JSONObject requirements = JSONUtil.loadJson("requirements.json");
+    JSONArray folders = (JSONArray) requirements.get("requirements");
+    JSONObject n = new JSONObject();
+    JSONArray a = new JSONArray();
+    n.put("items", a);
+    for ( int i = 0; i< folders.length(); i++ ) {
+      JSONObject jo = (JSONObject) folders.get(i);
+      String name = jo.getString("id");
+      jo.put("requirementPath", name);
+      int j = name.lastIndexOf('.');
+      if ( j > 0 ) {
+        String parent = name.substring(0,j);
+        jo.put("parent", parent);
+      }
+      jo.put("label", name);
+      jo.put("type", "RequirementPath");
+      a.put(jo);
+    }
+    
+    JSONUtil.saveJson(n, "requirements2.json");
+  }
+
+
+
+  /*/**
+   * 
+   */
+  private static void restructureModel() throws IOException, JSONException {
+    JSONObject o = JSONUtil.loadJson("model.json");
+    JSONObject n = new JSONObject();
+    JSONArray a = new JSONArray();
+    n.put("items", a);
+    for (Iterator<String> k = o.keys(); k.hasNext();) {
+      String key = k.next();
+      Object ox = o.get(key);
+      if (ox instanceof JSONObject) {
+        ((JSONObject) ox).put("id", key);
+        ((JSONObject) ox).put("label",key);
+        ((JSONObject) ox).put("type","LearningCapability");
+        a.put(ox);
+      } else {
+        n.put(key, ox);
+      }
+    }
+    JSONUtil.saveJson(n, "model2.json");
+  }
+
 
   /**
    * @throws JSONException
