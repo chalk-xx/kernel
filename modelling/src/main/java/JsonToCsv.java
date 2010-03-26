@@ -44,6 +44,7 @@ public class JsonToCsv {
   public static void main(String[] args) throws IOException, JSONException {
     convertToCSV("johnsusermap","items");
     convertToCSV("requirements","items");
+    convertToCSV("model","items");
     
   }
     

@@ -1,6 +1,7 @@
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.w3c.dom.Node;
 
 import java.io.File;
 import java.io.FileReader;
@@ -32,8 +33,8 @@ public class JSONUtil {
   /**
    * @param string
    * @return
-   * @throws IOException 
-   * @throws JSONException 
+   * @throws IOException
+   * @throws JSONException
    */
   public static JSONObject loadJson(String file) throws IOException, JSONException {
     File f = new File(file);
@@ -47,14 +48,34 @@ public class JSONUtil {
   /**
    * @param out
    * @param string
-   * @throws IOException 
-   * @throws JSONException 
+   * @throws IOException
+   * @throws JSONException
    */
-  public static void saveJson(JSONObject out, String file) throws IOException, JSONException {
+  public static void saveJson(JSONObject out, String file) throws IOException,
+      JSONException {
     File fo = new File(file);
     FileWriter fw = new FileWriter(fo);
     fw.append(out.toString(4));
     fw.close();
+  }
+
+  /**
+   * @param namedItem
+   * @return
+   */
+  public static String safeId(String nodeName) {
+    nodeName = nodeName.replace(' ', '-');
+    nodeName = nodeName.replace('_', '-');
+    nodeName = nodeName.replace('"', '-');
+    nodeName = nodeName.replace(';', '-');
+    nodeName = nodeName.replace(',', '-');
+    nodeName = nodeName.replace('\'', '-');
+    nodeName = nodeName.replace('(', '-');
+    nodeName = nodeName.replace(')', '-');
+    nodeName = nodeName.replace('.', '-');
+    nodeName = nodeName.replace('/', '-');
+    nodeName = nodeName.replace('?', '-');
+    return nodeName;
   }
 
 }

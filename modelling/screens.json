@@ -1,0 +1,340 @@
+{"items": [
+    {
+        "description-of-screen": "user sign-on details\nuser basic preferences",
+        "id": "account-preferences",
+        "label": "account_preferences",
+        "requirementPath": [
+            "Authorizables.users",
+            "Networking.profile-my-profile"
+        ],
+        "screen-name": "account_preferences",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "chat window\navailable contacts chat list\n(plus being in context of a site while chatting)",
+        "id": "chat-bar",
+        "label": "chat_bar",
+        "requirementPath": ["Networking.messaging-chat-live-chat"],
+        "screen-name": "chat_bar",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "landing page for courses & sites\n(with personal site page shown below)",
+        "id": "courses-and-sites",
+        "label": "courses_and_sites",
+        "requirementPath": [
+            "Content.authored-content-pages",
+            "Sites"
+        ],
+        "screen-name": "courses_and_sites",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "enter new account details screen",
+        "id": "create-new-account",
+        "label": "create_new_account",
+        "requirementPath": ["Authorizables.users-invited-users"],
+        "screen-name": "create_new_account",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "enter new site details page\n(option to create from template, set URL)",
+        "id": "create-site",
+        "label": "create_site",
+        "requirementPath": ["Sites.collection-of-content-user-generated-content"],
+        "screen-name": "create_site",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "login page",
+        "id": "gateway",
+        "label": "gateway",
+        "requirementPath": ["Authorizables.users"],
+        "screen-name": "gateway",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "email - compose new message",
+        "id": "inbox-compose",
+        "label": "inbox_compose",
+        "requirementPath": ["Networking.messaging-email"],
+        "screen-name": "inbox_compose",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "email - view inbox",
+        "id": "inbox-main",
+        "label": "inbox_main",
+        "requirementPath": ["Networking.messaging-email"],
+        "screen-name": "inbox_main",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "email - view inbox, with \"compose new...\" dropdown",
+        "id": "inbox-main2",
+        "label": "inbox_main2",
+        "requirementPath": ["Networking.messaging-email"],
+        "screen-name": "inbox_main2",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "email - view message",
+        "id": "inbox-message-detail",
+        "label": "inbox_message_detail",
+        "requirementPath": ["Networking.messaging-email"],
+        "screen-name": "inbox_message_detail",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "email - view message & reply",
+        "id": "inbox-message-detail-reply",
+        "label": "inbox_message_detail_reply",
+        "requirementPath": ["Networking.messaging-email"],
+        "screen-name": "inbox_message_detail_reply",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "personal dashboard",
+        "id": "my-sakai",
+        "label": "my_sakai",
+        "requirementPath": ["Authorizables.users"],
+        "screen-name": "my_sakai",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "personal dashboard customization",
+        "id": "my-sakai-add-goodies",
+        "label": "my_sakai_add_goodies",
+        "requirementPath": ["Authorizables.users"],
+        "screen-name": "my_sakai_add_goodies",
+        "type": "Screens"
+    },
+    {
+        "id": "page-add-from-template",
+        "label": "page_add_from_template",
+        "requirementPath": [],
+        "screen-name": "page_add_from_template",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Discussion/comments on site page",
+        "id": "page-discussion-vignette",
+        "label": "page_discussion_vignette",
+        "requirementPath": ["Sites.messaging--exposed-here-"],
+        "screen-name": "page_discussion_vignette",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Entering reply to comment on site page",
+        "id": "page-discussion-vignette1",
+        "label": "page_discussion_vignette1",
+        "requirementPath": ["Sites.messaging--exposed-here-"],
+        "screen-name": "page_discussion_vignette1",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Viewing discussion/comments on site page",
+        "id": "page-discussion-vignette2",
+        "label": "page_discussion_vignette2",
+        "requirementPath": ["Sites.messaging--exposed-here-"],
+        "screen-name": "page_discussion_vignette2",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Editing page text\nEmbedding\nIn page widgets\n",
+        "id": "page-edit",
+        "label": "page_edit",
+        "requirementPath": ["Content.authored-content-pages"],
+        "screen-name": "page_edit",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Entering details about new page widget being inserted (e.g. discussion)",
+        "id": "page-edit-post-new-discussion",
+        "label": "page_edit_post_new_discussion",
+        "requirementPath": ["Content.authored-content-pages"],
+        "screen-name": "page_edit_post_new_discussion",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Moving pages around within a site",
+        "id": "page-move",
+        "label": "page_move",
+        "requirementPath": ["Sites.collection-of-content-structured-organization"],
+        "screen-name": "page_move",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Moving pages around within a site, showing drag & drop mechanism",
+        "id": "page-move2",
+        "label": "page_move2",
+        "requirementPath": ["Sites.collection-of-content-structured-organization"],
+        "screen-name": "page_move2",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Saving a template from a user-created site/page(?)",
+        "id": "page-save-as-template",
+        "label": "page_save_as_template",
+        "requirementPath": ["Sites.templated-sites-courses-consistency-of-similar-courses"],
+        "screen-name": "page_save_as_template",
+        "type": "Screens"
+    },
+    {
+        "id": "page-settings-permissions",
+        "label": "page_settings_permissions",
+        "requirementPath": ["Content.access-control-of-content"],
+        "screen-name": "page_settings_permissions",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "landing page (bar?) for \"People\" (with personal site page shown below)",
+        "id": "people",
+        "label": "people",
+        "requirementPath": ["Networking.contacts"],
+        "screen-name": "people",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "enter personal profile details (with LHS navigation for different areas of detail) - lands on Basic Info",
+        "id": "profile-edit",
+        "label": "profile_edit",
+        "requirementPath": ["Networking.profile-my-profile"],
+        "screen-name": "profile_edit",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "enter personal profile details (with LHS navigation for different areas of detail) - selected Educational HIstory",
+        "id": "profile-edit2",
+        "label": "profile_edit2",
+        "requirementPath": ["Networking.profile-my-profile"],
+        "screen-name": "profile_edit2",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Personal Profile preview",
+        "id": "profile-preview",
+        "label": "profile_preview",
+        "requirementPath": ["Networking.profile-my-profile"],
+        "screen-name": "profile_preview",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Versioning - view revision history",
+        "id": "revision-history2",
+        "label": "revision_history2",
+        "requirementPath": [],
+        "screen-name": "revision_history2",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Search results - system-wide",
+        "id": "search",
+        "label": "search",
+        "requirementPath": ["Content.searching"],
+        "screen-name": "search",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Search results - Content & Media",
+        "id": "search-content",
+        "label": "search_content",
+        "requirementPath": ["Content.searching"],
+        "screen-name": "search_content",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Search results - My Contacts",
+        "id": "search-my-contacts",
+        "label": "search_my_contacts",
+        "requirementPath": ["Content.searching"],
+        "screen-name": "search_my_contacts",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Search results - People",
+        "id": "search-people",
+        "label": "search_people",
+        "requirementPath": ["Content.searching"],
+        "screen-name": "search_people",
+        "type": "Screens"
+    },
+    {
+        "id": "search-sites",
+        "label": "search_sites",
+        "requirementPath": ["Content.searching"],
+        "screen-name": "search_sites",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Sending message from a user profile screen pop-up box\nView person's profile",
+        "id": "send-message-lightbox",
+        "label": "send_message_lightbox",
+        "requirementPath": ["Networking.messaging-email\nprofile-others-profiles"],
+        "screen-name": "send_message_lightbox",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Site page with drop-down to add new blank page/page from template/dashboard page/site tool",
+        "id": "site",
+        "label": "site",
+        "requirementPath": ["Sites.collection-of-content-user-generated-content"],
+        "screen-name": "site",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Creating a dashboard page for a site, including adding widgets.",
+        "id": "site-dashboard",
+        "label": "site_dashboard",
+        "requirementPath": [
+            "Content.authored-content-pages",
+            "Sites.collection-of-content-user-generated-content"
+        ],
+        "screen-name": "site_dashboard",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Site Management area - currently on tab for Appearance, but also shows tabs for Basic Settings/Members/Permissions/Edit Sidebar",
+        "id": "site-management-appearance-flat",
+        "label": "site_management_appearance_flat",
+        "requirementPath": [
+            "Content.managed-metadata",
+            "Sites.collection-of-content-user-generated-content"
+        ],
+        "screen-name": "site_management_appearance_flat",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Site Management area - currently on tab for Basic Settings, but also shows tabs for Members/Permissions/Appearance/Edit Sidebar",
+        "id": "site-management-basic-settings",
+        "label": "site_management_basic_settings",
+        "requirementPath": [
+            "Content.managed-metadata",
+            "Sites.collection-of-content-user-generated-content"
+        ],
+        "screen-name": "site_management_basic_settings",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Site Management area - currently on tab for Members, but also shows tabs for Basic Settings/Permissions/Appearance/Edit Sidebar",
+        "id": "site-management-members-add-flat",
+        "label": "site_management_members_add_flat",
+        "requirementPath": [
+            "Content.managed-metadata",
+            "Sites.collection-of-content-user-generated-content"
+        ],
+        "screen-name": "site_management_members_add_flat",
+        "type": "Screens"
+    },
+    {
+        "description-of-screen": "Managing site members, setting additional metadata and membership status for members as appropriate\nSite Management area - currently on tab for Members, but also shows tabs for Basic Settings/Permissions/Appearance/Edit Sidebar",
+        "id": "site-management-members-manage-flat",
+        "label": "site_management_members_manage_flat",
+        "requirementPath": [
+            "Content.managed-metadata",
+            "Sites.collection-of-content-user-generated-content"
+        ],
+        "screen-name": "site_management_members_manage_flat",
+        "type": "Screens"
+    }
+]}
