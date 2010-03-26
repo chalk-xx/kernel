@@ -52,7 +52,7 @@ public class HessianXythosRemote implements XythosRemote {
   private static final Logger LOGGER = LoggerFactory.getLogger(HessianXythosRemote.class);
   
   @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
-  protected String xythosHost = "http://localhost:9090";
+  protected String xythosHost = "http://xtest1.home.nyu.edu:8080";
   
   protected String remotePath = "/remoting/remoting/XythosService";
   
@@ -77,7 +77,7 @@ public class HessianXythosRemote implements XythosRemote {
    xythosService.createGroup(arg0, arg1);
   }
 
-  public List<String> doSearch(Map<String, Object> arg0, String arg1) {
+  public List<XythosDocument> doSearch(Map<String, Object> arg0, String arg1) {
     return xythosService.doSearch(arg0, arg1);
   }
 

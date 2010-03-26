@@ -43,7 +43,7 @@ public interface XythosRemote {
 	
 	XythosDocument getDocument(String path, String userId);
 	
-	List<String> doSearch(Map<String, Object> searchProperties, String userId);
+	List<XythosDocument> doSearch(Map<String, Object> searchProperties, String userId);
 	
 	void updateFile(String path, byte[] fileData, Map<String, Object>properties, String userId);
 	

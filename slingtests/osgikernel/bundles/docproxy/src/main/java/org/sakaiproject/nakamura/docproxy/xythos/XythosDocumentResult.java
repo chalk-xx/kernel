@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.docproxy.xythos;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 
+import edu.nyu.XythosDocument;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
@@ -35,6 +37,13 @@ public class XythosDocumentResult implements ExternalDocumentResult {
   private Map<String, Object> properties;
   private String uri;
 
+  public XythosDocumentResult(XythosDocument document) {
+    this.inputStream = new ByteArrayInputStream(document.getDocumentContent());
+    this.contentLength = document.getContentLength();
+    this.contentType = document.getContentType();
+    this.properties = document.getProperties();
+  }
+  
   public XythosDocumentResult(byte[] data, long contentLength, String contentType, Map<String, Object> props, String uri) {
     this.inputStream = new ByteArrayInputStream(data);
     this.contentLength = contentLength;

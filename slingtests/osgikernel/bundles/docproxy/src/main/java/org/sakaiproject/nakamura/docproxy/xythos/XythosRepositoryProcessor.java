@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.docproxy.xythos;
 
+import edu.nyu.XythosDocument;
 import edu.nyu.XythosRemote;
 
 import org.apache.felix.scr.annotations.Component;
@@ -106,16 +107,9 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
     try {
       String currentUserId = node.getSession().getUserID();
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
-      List<String> searchResultsPaths = xythos.doSearch(searchProperties, currentUserId);
-      if (searchResultsPaths == null) {
-        searchResultsPaths = new ArrayList<String>();
-      }
-      for(String path : searchResultsPaths) {
-        String[] pathStems = path.split("/");
-        if (pathStems.length > 2 && pathStems[2].equals("trash")) {
-          continue;
-        }
-        searchResults.add(getFile(path, currentUserId));
+      List<XythosDocument> xythosSearchResults = xythos.doSearch(searchProperties, currentUserId);
+      for(XythosDocument doc : xythosSearchResults) {
+        searchResults.add(new XythosDocumentResult(doc));
       }
       return searchResults.iterator();
     } catch (RepositoryException e) {
@@ -150,12 +144,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
   }
   
   private XythosDocumentResult getFile(String path, String userId) {
-      String contentType = xythos.getContentType(path, userId);
-      long contentLength = xythos.getContentLength(path, userId);
-      Map<String, Object> props = xythos.getFileProperties(path, userId);
-      String uri = "/xythos" + path;
-      byte[] data = xythos.getFileContent(path, userId);
-      return new XythosDocumentResult(data, contentLength, contentType, props, uri);
+      return new XythosDocumentResult(xythos.getDocument(path, userId));
   }
   
   public void removeDocument(Node node, String path) throws DocProxyException {
