@@ -53,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 
 @SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = {
-    "GET", "POST" }, generateComponent = true, generateService = true)
+    "GET" }, generateComponent = true, generateService = true)
 public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
