@@ -46,7 +46,19 @@ public class Convert {
    * @throws JSONException 
    */
   public static void main(String[] args) throws IOException, JSONException {
-    CSVReader reader = new CSVReader(new FileReader("nyuedd.csv"));
+    
+//    convert("eddmaster1","EddMaster1");
+    convert("nyuedd","NYUviaEdd");
+  }
+
+  /**
+   * @param string
+   * @param string2
+   * @throws IOException 
+   * @throws JSONException 
+   */
+  private static void convert(String file, String type) throws IOException, JSONException {
+    CSVReader reader = new CSVReader(new FileReader(file+".csv"));
     String[] nextLine;
     String[] headers = reader.readNext();
     JSONObject jo = new JSONObject();
@@ -60,11 +72,18 @@ public class Convert {
       for (int i = 0; i < nextLine.length && i < headers.length; i++) {
         o.put(headers[i], nextLine[i]);
       }
-      o.put("type", "NYUviaEdd");
+      o.put("type", type);
       o.put("label", o.getString("id"));
+      JSONUtil.toArray(o,"sakai-pov");
+      JSONUtil.toArray(o,"requirementpath");
+      JSONArray ja = o.getJSONArray("requirementpath");
+      o.remove("requirementpath");
+      o.put("requirementPath", ja);
+      
+      
       a.put(o);
     }
-    File f = new File("nyuedd.json");
+    File f = new File(file+".json");
     FileWriter fw = new FileWriter(f);
     fw.append(jo.toString(4));
     fw.close();

@@ -1,3 +1,5 @@
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -76,6 +78,34 @@ public class JSONUtil {
     nodeName = nodeName.replace('/', '-');
     nodeName = nodeName.replace('?', '-');
     return nodeName;
+  }
+
+  /**
+   * @param o
+   * @param string
+   * @throws JSONException
+   */
+  public static void toArray(JSONObject o, String key) throws JSONException {
+    if (o.has(key)) {
+      Object ob = o.get(key);
+      if (ob instanceof JSONArray) {
+        // no action
+      } else if (ob instanceof JSONObject) {
+        // no action
+      } else {
+        String v = o.getString(key);
+        String[] values = StringUtils.split(v, ',');
+        JSONArray a = new JSONArray();
+        for (String value : values) {
+          a.put(value);
+        }
+        o.put(key, a);
+      }
+    } else {
+      JSONArray a = new JSONArray();
+      o.put(key, a);
+    }
+
   }
 
 }

@@ -24,7 +24,7 @@
            "age": {
                "valueType":    "number"
            },
-		   "sakai:pov" : {
+		   "sakai-pov" : {
 		     "label": "Point Of View",
 			 "valueType": "item"
 		   },
@@ -41,6 +41,11 @@
            "implementationPhase": {
                "label":        "implementated in",
                "reverseLabel": "contains",
+               "valueType":    "item"
+           },
+           "sakai-requirment": {
+               "label":        "references",
+               "reverseLabel": "referenced by",
                "valueType":    "item"
            }
        },

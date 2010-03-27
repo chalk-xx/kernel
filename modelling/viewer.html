@@ -16,6 +16,7 @@ CONTENT="text/html; charset=UTF-8">
             type="text/javascript"></script>
 
     <style>
+    .smaller { font-size:60% }
     </style>
  </head> 
  <body>
@@ -31,7 +32,7 @@ CONTENT="text/html; charset=UTF-8">
                             	<div class="exhibit-lens-title" title=".label"><span ex:content=".label" ></span></div>
                             	<div class="exhibit-lens-body">
                                 	<div><span ex:content=".description-of-screen"></span></div>
-                                	<div>
+                                	<div class="smaller" >
                                 		<ul>
                                	 			<li>ID: <span ex:content=".label"></span></li>
                                 			<li>In: <span ex:content=".requirementPath"></span></li>
@@ -44,7 +45,7 @@ CONTENT="text/html; charset=UTF-8">
                             	<div class="exhibit-lens-title" title=".label"><span ex:content=".label" ></span></div>
                             	<div class="exhibit-lens-body">
                                 	<div><span ex:content=".sakai-capability"></span></div>
-                                	<div>
+                                	<div class="smaller" >
                                 		<ul>
                                	 			<li>Point Of View: <span ex:content=".sakai-pov"></span></li>
                                	 			<li>Goal Type: <span ex:content=".sakai-name"></span></li>
@@ -54,6 +55,40 @@ CONTENT="text/html; charset=UTF-8">
                                 	</div>
                                 </div>
                             </div> 		 
+                            <div ex:role="lens" ex:itemTypes="EddMaster1" style="display: none;"> 
+                            	<div class="exhibit-lens-title" title=".label"> <span ex:content=".label" ></span> <span ex:content=".users-story" ></span></div>
+                            	<div class="exhibit-lens-body">
+                                	<div><p ex:content=".functional-requirement"></p></div>
+                                	<div class="smaller" >
+                                		<ul>
+                               	 			<li>Point Of View: <span ex:content=".sakai-pov"></span></li>
+                               	 			<li>Theme: <span ex:content=".theme"></span></li>
+                               	 			<li>Users: <span ex:content=".users"></span></li>
+                               	 			<li>Website-Section: <span ex:content=".website-section"></span></li>
+                               	 			<li>ID: <span ex:content=".label"></span></li>
+                                			<li>In: <span ex:content=".requirementPath"></span></li>
+                                		</ul>
+                                	</div>
+                                </div>
+                            </div> 		 
+                            <div ex:role="lens" ex:itemTypes="NYUviaEdd" style="display: none;"> 
+                            	<div class="exhibit-lens-title" title=".label"> <span ex:content=".label" ></span> <span ex:content=".users-story" ></span></div>
+                            	<div class="exhibit-lens-body">
+                                	<div><p ex:content=".functional-requirement"></p></div>
+                                	<div class="smaller" >
+                                		<ul>
+                               	 			<li>Point Of View: <span ex:content=".sakai-pov"></span></li>
+                               	 			<li>Theme: <span ex:content=".theme"></span></li>
+                               	 			<li>Users: <span ex:content=".users"></span></li>
+                               	 			<li>Website-Section: <span ex:content=".website-section"></span></li>
+                               	 			<li>References: <span ex:content=".sakai-requirment"></span></li>
+                               	 			<li>ID: <span ex:content=".label"></span></li>
+                                			<li>In: <span ex:content=".requirementPath"></span></li>
+                                		</ul>
+                                	</div>
+                                </div>
+                            </div> 		 
+                          
                             <div ex:role="lens" ex:itemTypes="Persona" style="display: none;"> 
                             	<div class="exhibit-lens-title" title=".label"><span ex:content=".label" ></span></div>
                             	<div class="exhibit-lens-body">
@@ -69,6 +104,7 @@ CONTENT="text/html; charset=UTF-8">
                                 	<div><p ex:content=".as-lecturer" ></p></div>
                                 </div>
                             </div> 		 
+                            
 				 </div>   
 		    </td>
             <td width="25%">

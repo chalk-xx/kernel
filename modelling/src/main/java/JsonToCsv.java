@@ -47,6 +47,8 @@ public class JsonToCsv {
     convertToCSV("model","items");
     convertToCSV("screens","items");
     convertToCSV("types","items");
+    convertToCSV("eddmaster1","items");
+    convertToCSV("nyuedd","items");
   }
     
     
