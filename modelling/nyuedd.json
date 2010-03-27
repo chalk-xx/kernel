@@ -4,7 +4,11 @@
         "functional-requirement": "Users control permission for students joining their Ac. Networking page ",
         "id": "NYU-00001",
         "label": "NYU-00001",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -25,7 +29,11 @@
         "functional-requirement": "Only see sites that user has join rights for",
         "id": "NYU-00002",
         "label": "NYU-00002",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -46,7 +54,11 @@
         "functional-requirement": "Ability for user to grant Read/Write/Edit/Delete options to content; based on user/group",
         "id": "NYU-00003",
         "label": "NYU-00003",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -67,7 +79,11 @@
         "functional-requirement": "Ability for user to grant Read/Write/Edit/Delete options to tool-level rights; based on user/group",
         "id": "NYU-00004",
         "label": "NYU-00004",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -88,7 +104,11 @@
         "functional-requirement": "Ability for user to grant Read/Write/Edit/Delete options to commenting functionality; based on user/group",
         "id": "NYU-00005",
         "label": "NYU-00005",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -109,7 +129,11 @@
         "functional-requirement": "Ability for user to grant Read/Write/Edit/Delete options with content pages that include a WYSIWYG editor",
         "id": "NYU-00006",
         "label": "NYU-00006",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -130,7 +154,11 @@
         "functional-requirement": "Easy user experience to apply user permission templates to the various access privileges available within a site or the larger sakai system",
         "id": "NYU-00007",
         "label": "NYU-00007",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -151,7 +179,11 @@
         "functional-requirement": "set visibility/ editability based on date/time",
         "id": "NYU-00008",
         "label": "NYU-00008",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based.Timed"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based.Timed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -172,7 +204,11 @@
         "functional-requirement": "set visibility/ editability based on a set of user-defined criteria derived from other elements  within a site ",
         "id": "NYU-00009",
         "label": "NYU-00009",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based.Timed"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based.Timed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -193,7 +229,11 @@
         "functional-requirement": "Ability for user to grant Read/Write/Edit/Delete options to comments functionality; based on user/group",
         "id": "NYU-00010",
         "label": "NYU-00010",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -214,7 +254,11 @@
         "functional-requirement": "set visibility/ editability to content based on copyright levels",
         "id": "NYU-00011",
         "label": "NYU-00011",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -235,7 +279,11 @@
         "functional-requirement": "set visibility/ editability to content based on tags",
         "id": "NYU-00012",
         "label": "NYU-00012",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -256,7 +304,11 @@
         "functional-requirement": "Delete files",
         "id": "NYU-00013",
         "label": "NYU-00013",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -277,7 +329,11 @@
         "functional-requirement": "Use user-groups to provide/restrict access to files outside of a site",
         "id": "NYU-00014",
         "label": "NYU-00014",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -298,7 +354,11 @@
         "functional-requirement": "Allow WWW sharing of content",
         "id": "NYU-00015",
         "label": "NYU-00015",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -319,7 +379,11 @@
         "functional-requirement": "Read/Write/Edit/Delete rights for relevant and prioritized uses cases to resources that are housed in departmental servers",
         "id": "NYU-00016",
         "label": "NYU-00016",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -340,7 +404,11 @@
         "functional-requirement": "Read/Write/Edit/Delete rights for relevant and prioritized uses cases to resources that are housed in institutional servers",
         "id": "NYU-00017",
         "label": "NYU-00017",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -361,7 +429,11 @@
         "functional-requirement": "Full replication of system functionality between department and institutional repositories and Sakai",
         "id": "NYU-00018",
         "label": "NYU-00018",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "administrative",
             "supervisor"
@@ -378,7 +450,11 @@
         "functional-requirement": "one login and password for every NYU system",
         "id": "NYU-00019",
         "label": "NYU-00019",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -399,7 +475,11 @@
         "functional-requirement": "NYU login passthrough between NYU systems",
         "id": "NYU-00020",
         "label": "NYU-00020",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -420,7 +500,11 @@
         "functional-requirement": "single NYU login to access NYU-subscribed library databases and other restricted external repositories",
         "id": "NYU-00021",
         "label": "NYU-00021",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -441,7 +525,11 @@
         "functional-requirement": "Open access to all course's syllabi",
         "id": "NYU-00022",
         "label": "NYU-00022",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -462,7 +550,11 @@
         "functional-requirement": "options to have bibliographies default to viewable",
         "id": "NYU-00023",
         "label": "NYU-00023",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -483,7 +575,11 @@
         "functional-requirement": "Inherent permissions from parent group for sub-groups",
         "id": "NYU-00024",
         "label": "NYU-00024",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -504,7 +600,11 @@
         "functional-requirement": "default to no access to course sites; must be a member to have access",
         "id": "NYU-00025",
         "label": "NYU-00025",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -525,7 +625,11 @@
         "functional-requirement": "Delete a Sakai site-created page",
         "id": "NYU-00026",
         "label": "NYU-00026",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -546,7 +650,11 @@
         "functional-requirement": "Set read/write/edit/delete rights for tags based on user/group",
         "id": "NYU-00027",
         "label": "NYU-00027",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -567,7 +675,11 @@
         "functional-requirement": "Controlled access to materials for users outside of the University as well as inside",
         "id": "NYU-00028",
         "label": "NYU-00028",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -588,7 +700,11 @@
         "functional-requirement": "Drag-and-Drop formatting capability dashboard pages",
         "id": "NYU-00029",
         "label": "NYU-00029",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -609,7 +725,11 @@
         "functional-requirement": "Create a blank course content page with WYSIWYG editor",
         "id": "NYU-00030",
         "label": "NYU-00030",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -630,7 +750,11 @@
         "functional-requirement": "Remove a course content page",
         "id": "NYU-00031",
         "label": "NYU-00031",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -651,7 +775,13 @@
         "functional-requirement": "Embed packaged websites (multiple files and folders bundled with directory structure)",
         "id": "NYU-00032",
         "label": "NYU-00032",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -675,7 +805,13 @@
         "functional-requirement": "Reorganize the order/navigation of content pages",
         "id": "NYU-00033",
         "label": "NYU-00033",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -699,7 +835,13 @@
         "functional-requirement": "Define the site links within content pages",
         "id": "NYU-00034",
         "label": "NYU-00034",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -723,7 +865,13 @@
         "functional-requirement": "Add/remove content page links",
         "id": "NYU-00035",
         "label": "NYU-00035",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -747,7 +895,13 @@
         "functional-requirement": "Add/remove tool links",
         "id": "NYU-00036",
         "label": "NYU-00036",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -771,7 +925,11 @@
         "functional-requirement": "Embed/remove entities of Sakai tools",
         "id": "NYU-00037",
         "label": "NYU-00037",
-        "requirementPath": ["Content.Authored-Content.Pages.In-page-Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.In-page-Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -792,7 +950,11 @@
         "functional-requirement": "Embed portions of text/media from other web pages (internal and external) inline in a new content page",
         "id": "NYU-00038",
         "label": "NYU-00038",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -813,7 +975,11 @@
         "functional-requirement": "Update portions of text/media taken from other web pages when changes are made in these other pages",
         "id": "NYU-00039",
         "label": "NYU-00039",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -834,7 +1000,11 @@
         "functional-requirement": "Add/edit/copy, cut, paste/ remove text",
         "id": "NYU-00040",
         "label": "NYU-00040",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -855,7 +1025,11 @@
         "functional-requirement": "Toggle rendering of html code",
         "id": "NYU-00041",
         "label": "NYU-00041",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -876,7 +1050,11 @@
         "functional-requirement": "Standard page formatting abilities",
         "id": "NYU-00042",
         "label": "NYU-00042",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -897,7 +1075,11 @@
         "functional-requirement": "Create dynamically generated navigation links that can be displayed across multiple pages",
         "id": "NYU-00043",
         "label": "NYU-00043",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -918,7 +1100,12 @@
         "functional-requirement": "Use a saved search query to use results as navigation links that can be displayed across multiple pages",
         "id": "NYU-00044",
         "label": "NYU-00044",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Searching",
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Content.Searching"
         ],
@@ -942,7 +1129,12 @@
         "functional-requirement": "Use a tag to generate navigation links that can be displayed across multiple pages",
         "id": "NYU-00045",
         "label": "NYU-00045",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Searching",
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Content.Searching"
         ],
@@ -966,7 +1158,11 @@
         "functional-requirement": "Saved versions of edits to a content page",
         "id": "NYU-00046",
         "label": "NYU-00046",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -987,7 +1183,13 @@
         "functional-requirement": "Remove a course content page",
         "id": "NYU-00047",
         "label": "NYU-00047",
-        "requirementPath": [
+        "requirementpath": [
+            "Sites",
+            "Content",
+            "Sites.Collection-of-Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
             "Sites.Collection-of-Content"
         ],
@@ -1011,7 +1213,11 @@
         "functional-requirement": "Insert a custom copyright notice",
         "id": "NYU-00048",
         "label": "NYU-00048",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1032,7 +1238,11 @@
         "functional-requirement": "Insert a standard copyright notice",
         "id": "NYU-00049",
         "label": "NYU-00049",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1053,7 +1263,11 @@
         "functional-requirement": "Link to resources from any Course Content Page/Tool Page",
         "id": "NYU-00050",
         "label": "NYU-00050",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1074,7 +1288,11 @@
         "functional-requirement": "Ability to resue pages created in Content Editor among sites",
         "id": "NYU-00051",
         "label": "NYU-00051",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1095,7 +1313,11 @@
         "functional-requirement": "Drag-and-Drop formatting capability throughout MP",
         "id": "NYU-00052",
         "label": "NYU-00052",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1116,9 +1338,14 @@
         "functional-requirement": "Link to library resources",
         "id": "NYU-00053",
         "label": "NYU-00053",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.External",
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages",
-            "Content.External.Proxe"
+            "Content.External.Proxed"
         ],
         "sakai-pov": [
             "student",
@@ -1140,7 +1367,11 @@
         "functional-requirement": "automatically resolve relative links within uploaded html documents",
         "id": "NYU-00054",
         "label": "NYU-00054",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1161,7 +1392,12 @@
         "functional-requirement": "link to dynamic collections of resources",
         "id": "NYU-00055",
         "label": "NYU-00055",
-        "requirementPath": ["Content.Authored-Content.Auto-Created-Pages"],
+        "requirementpath": [
+            "Content.Authored-Content.Auto-Created-Pages",
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Auto-Created-Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1182,7 +1418,12 @@
         "functional-requirement": "display content  by chronological entry",
         "id": "NYU-00056",
         "label": "NYU-00056",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1203,7 +1444,12 @@
         "functional-requirement": "display content pages/entries by a tag on the entries",
         "id": "NYU-00057",
         "label": "NYU-00057",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1224,7 +1470,12 @@
         "functional-requirement": "display content in \"journal entry\" type format",
         "id": "NYU-00058",
         "label": "NYU-00058",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1245,7 +1496,12 @@
         "functional-requirement": "commenting options at the blog entry- level",
         "id": "NYU-00059",
         "label": "NYU-00059",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1266,7 +1522,12 @@
         "functional-requirement": "persistent URL for each entry",
         "id": "NYU-00060",
         "label": "NYU-00060",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1287,7 +1548,12 @@
         "functional-requirement": "display/sort entry by the user posting the entry",
         "id": "NYU-00061",
         "label": "NYU-00061",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1308,7 +1574,12 @@
         "functional-requirement": "subscribe to blog entries",
         "id": "NYU-00062",
         "label": "NYU-00062",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1329,7 +1600,12 @@
         "functional-requirement": "full WYSIWYG in blog entry fields",
         "id": "NYU-00063",
         "label": "NYU-00063",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1350,7 +1626,12 @@
         "functional-requirement": "logic to allow or not allow various sorts of entries",
         "id": "NYU-00064",
         "label": "NYU-00064",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1371,7 +1652,12 @@
         "functional-requirement": "non-site specific blogs for sharing/ collaborating across programs",
         "id": "NYU-00065",
         "label": "NYU-00065",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1392,7 +1678,12 @@
         "functional-requirement": "public access to blogs",
         "id": "NYU-00066",
         "label": "NYU-00066",
-        "requirementPath": ["Content.Journal.Blog"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.JournalorBlog",
+            "Content"
+        ],
+        "rpv1": ["Content.Journal.Blog"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1413,7 +1704,11 @@
         "functional-requirement": "Create an event on personal calendar",
         "id": "NYU-00067",
         "label": "NYU-00067",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1434,7 +1729,11 @@
         "functional-requirement": "Schedule appointments with other community members",
         "id": "NYU-00068",
         "label": "NYU-00068",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1455,7 +1754,11 @@
         "functional-requirement": "Invite community members to events/scheduled activities",
         "id": "NYU-00069",
         "label": "NYU-00069",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1476,7 +1779,11 @@
         "functional-requirement": "RSVP/Active acceptance of events",
         "id": "NYU-00070",
         "label": "NYU-00070",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1497,7 +1804,11 @@
         "functional-requirement": "Lock time slots that have already been scheduled",
         "id": "NYU-00071",
         "label": "NYU-00071",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1518,7 +1829,11 @@
         "functional-requirement": "Ability to browse other people's calendar's",
         "id": "NYU-00072",
         "label": "NYU-00072",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1539,7 +1854,11 @@
         "functional-requirement": "Aggregate calendar of University events that have been \"published\"",
         "id": "NYU-00073",
         "label": "NYU-00073",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1560,7 +1879,11 @@
         "functional-requirement": "Subscribe to an appropriate academic calendar",
         "id": "NYU-00074",
         "label": "NYU-00074",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1581,7 +1904,11 @@
         "functional-requirement": "event proposals presented polling style",
         "id": "NYU-00075",
         "label": "NYU-00075",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1602,7 +1929,11 @@
         "functional-requirement": "Calendar tool that automatically updates when there are changes to event input (course syllabus tool changes, advising site calendar, etc.)",
         "id": "NYU-00076",
         "label": "NYU-00076",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1623,7 +1954,11 @@
         "functional-requirement": "Create calendar entries using entities across sites/pages ",
         "id": "NYU-00077",
         "label": "NYU-00077",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1644,7 +1979,11 @@
         "functional-requirement": "taggable calendar entries",
         "id": "NYU-00078",
         "label": "NYU-00078",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1665,7 +2004,11 @@
         "functional-requirement": "List of attendees vs. invitees",
         "id": "NYU-00079",
         "label": "NYU-00079",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1686,7 +2029,11 @@
         "functional-requirement": "Sort invitees by attendance status",
         "id": "NYU-00080",
         "label": "NYU-00080",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1707,7 +2054,11 @@
         "functional-requirement": "Use standard calendar format/protocol to allow for synching between calendars",
         "id": "NYU-00081",
         "label": "NYU-00081",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1728,7 +2079,11 @@
         "functional-requirement": "Link in calendar tool to invitee's profile ",
         "id": "NYU-00082",
         "label": "NYU-00082",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1749,7 +2104,11 @@
         "functional-requirement": "Send ad-hoc email to the invitee list",
         "id": "NYU-00083",
         "label": "NYU-00083",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1770,7 +2129,11 @@
         "functional-requirement": "personal calendar tool that aggregates across all sites, etc.",
         "id": "NYU-00084",
         "label": "NYU-00084",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1791,7 +2154,11 @@
         "functional-requirement": "Mid-term and final exams posted to student's academic calendar",
         "id": "NYU-00085",
         "label": "NYU-00085",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1812,7 +2179,11 @@
         "functional-requirement": "Create calendar entry for events accepted through RSVP",
         "id": "NYU-00086",
         "label": "NYU-00086",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1833,7 +2204,11 @@
         "functional-requirement": "Schedule appointments based on role and affiliation within the University",
         "id": "NYU-00087",
         "label": "NYU-00087",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1854,7 +2229,11 @@
         "functional-requirement": "Create selected scheduling timeframes, and allow subsets of people to schedule meetings within these timeframes that are then recorded in the faculty/advisor's actual personal schedule",
         "id": "NYU-00088",
         "label": "NYU-00088",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1875,7 +2254,12 @@
         "functional-requirement": "Have a shared message board (e.g., craigslist)",
         "id": "NYU-00089",
         "label": "NYU-00089",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1896,7 +2280,12 @@
         "functional-requirement": "have a discussion tool",
         "id": "NYU-00090",
         "label": "NYU-00090",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1917,7 +2306,12 @@
         "functional-requirement": "view by author",
         "id": "NYU-00091",
         "label": "NYU-00091",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1938,7 +2332,12 @@
         "functional-requirement": "Threaded Comments in Memory Palace",
         "id": "NYU-00092",
         "label": "NYU-00092",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1959,7 +2358,12 @@
         "functional-requirement": "modular commenting",
         "id": "NYU-00093",
         "label": "NYU-00093",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1980,7 +2384,12 @@
         "functional-requirement": "annotate text and other media inline on a content page",
         "id": "NYU-00094",
         "label": "NYU-00094",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2001,7 +2410,12 @@
         "functional-requirement": "save versions of annotated documents",
         "id": "NYU-00095",
         "label": "NYU-00095",
-        "requirementPath": ["Networking.messaging.to-groups.Discussion"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.discussion"
+        ],
+        "rpv1": ["Networking.messaging.to-groups.Discussion"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2022,7 +2436,11 @@
         "functional-requirement": "Ability to grade assignments",
         "id": "NYU-00096",
         "label": "NYU-00096",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2043,7 +2461,11 @@
         "functional-requirement": "Ability to calculate midterm and final grades",
         "id": "NYU-00097",
         "label": "NYU-00097",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2064,7 +2486,11 @@
         "functional-requirement": "Ability to post final grades in Sakai site",
         "id": "NYU-00098",
         "label": "NYU-00098",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2085,7 +2511,11 @@
         "functional-requirement": "Port final and midterm grades to central student information system",
         "id": "NYU-00099",
         "label": "NYU-00099",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2106,7 +2536,11 @@
         "functional-requirement": "Ability to establish a course grading rubric/measure",
         "id": "NYU-00100",
         "label": "NYU-00100",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2127,7 +2561,11 @@
         "functional-requirement": "Ability to use multiple grading scales for a grading rubric/measure",
         "id": "NYU-00101",
         "label": "NYU-00101",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2148,7 +2586,11 @@
         "functional-requirement": "Assessment tools of student activities within a course",
         "id": "NYU-00102",
         "label": "NYU-00102",
-        "requirementPath": ["Authorizables.Assesments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assesments"
+        ],
+        "rpv1": ["Authorizables.Assesments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2169,7 +2611,11 @@
         "functional-requirement": "Link assignments to a course-level grading rubric",
         "id": "NYU-00103",
         "label": "NYU-00103",
-        "requirementPath": ["Authorizables.Assesments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assesments"
+        ],
+        "rpv1": ["Authorizables.Assesments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2190,7 +2636,11 @@
         "functional-requirement": "Create an assignment grading rubric/measure",
         "id": "NYU-00104",
         "label": "NYU-00104",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2211,7 +2661,11 @@
         "functional-requirement": "Ability to tag a student activity/work as a record of \"good\" work",
         "id": "NYU-00105",
         "label": "NYU-00105",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2232,7 +2686,11 @@
         "functional-requirement": "Make faculty \"assessment\" tags private",
         "id": "NYU-00106",
         "label": "NYU-00106",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2253,7 +2711,11 @@
         "functional-requirement": "Ability to annotate a student activity/work privately",
         "id": "NYU-00107",
         "label": "NYU-00107",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2274,7 +2736,11 @@
         "functional-requirement": "View comprehensive view of student activities data and faculty's qualitative assessment of student work within gradebook window",
         "id": "NYU-00108",
         "label": "NYU-00108",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2295,7 +2761,11 @@
         "functional-requirement": "Add a categories of assessments to student work",
         "id": "NYU-00109",
         "label": "NYU-00109",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2316,7 +2786,11 @@
         "functional-requirement": "Ability to add ungraded activities and to provide assessment/feedback",
         "id": "NYU-00110",
         "label": "NYU-00110",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2337,7 +2811,11 @@
         "functional-requirement": "Ability to add sub-activities that are ungraded that are linked to large \"graded\" assignment in gradebook",
         "id": "NYU-00111",
         "label": "NYU-00111",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2358,7 +2836,11 @@
         "functional-requirement": "Track student hours logged for internships and clinicals ",
         "id": "NYU-00112",
         "label": "NYU-00112",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2379,7 +2861,11 @@
         "functional-requirement": "Ability for non-NYU supervisors/ intership advisors to access system to log assessments and verify hours",
         "id": "NYU-00113",
         "label": "NYU-00113",
-        "requirementPath": ["Authorizables.Assignments"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assignments"
+        ],
+        "rpv1": ["Authorizables.Assignments"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2400,7 +2886,11 @@
         "functional-requirement": "Pull grade data from external learning modules/systems",
         "id": "NYU-00114",
         "label": "NYU-00114",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2421,7 +2911,11 @@
         "functional-requirement": "Ability for an advisor to view selected SIS data within a student's portfolio",
         "id": "NYU-00115",
         "label": "NYU-00115",
-        "requirementPath": ["Authorizables.Grading"],
+        "requirementpath": [
+            "Authorizables.Grading",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.Grading"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2442,7 +2936,11 @@
         "functional-requirement": "Create a group of users",
         "id": "NYU-00116",
         "label": "NYU-00116",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2463,7 +2961,11 @@
         "functional-requirement": "Allow program/institutional groups to be identified through LDAP and used to determine access to resources",
         "id": "NYU-00117",
         "label": "NYU-00117",
-        "requirementPath": ["Authorizables.Groups.External-Sources"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.External-Sources"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2484,7 +2986,11 @@
         "functional-requirement": "Lists of all clubs, organizations, special interest groups, etc.",
         "id": "NYU-00118",
         "label": "NYU-00118",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2505,7 +3011,11 @@
         "functional-requirement": "group sharing with others outside of group",
         "id": "NYU-00119",
         "label": "NYU-00119",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2526,7 +3036,11 @@
         "functional-requirement": "self-aggregating groups",
         "id": "NYU-00120",
         "label": "NYU-00120",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2547,7 +3061,11 @@
         "functional-requirement": "identify alumni",
         "id": "NYU-00121",
         "label": "NYU-00121",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2568,7 +3086,11 @@
         "functional-requirement": "Course membership equals a group",
         "id": "NYU-00122",
         "label": "NYU-00122",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2589,7 +3111,8 @@
         "functional-requirement": "Open source solutions",
         "id": "NYU-00123",
         "label": "NYU-00123",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2610,7 +3133,12 @@
         "functional-requirement": "Adequate storage capacity 2 GB+ for general media",
         "id": "NYU-00124",
         "label": "NYU-00124",
-        "requirementPath": ["Content.Uploaded.Media-Objects"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2631,7 +3159,12 @@
         "functional-requirement": "Large storage capacity (50 GB) to meet video and other large scale media use cases",
         "id": "NYU-00125",
         "label": "NYU-00125",
-        "requirementPath": ["Content.Uploaded.Media-Objects"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2652,7 +3185,8 @@
         "functional-requirement": "Support [#] of concurrent users at one time",
         "id": "NYU-00126",
         "label": "NYU-00126",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2673,7 +3207,8 @@
         "functional-requirement": "4 second or less system response to standardized use cases",
         "id": "NYU-00127",
         "label": "NYU-00127",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2694,7 +3229,8 @@
         "functional-requirement": "Publicize know issues and their status on the development schedule with Sakai community",
         "id": "NYU-00128",
         "label": "NYU-00128",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2715,7 +3251,8 @@
         "functional-requirement": "Publicize know issues and their status on the development schedule to larger university community",
         "id": "NYU-00129",
         "label": "NYU-00129",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2736,7 +3273,8 @@
         "functional-requirement": "Full client service support, with an applicable service level agreement for rolled-out services on the system",
         "id": "NYU-00130",
         "label": "NYU-00130",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2757,7 +3295,8 @@
         "functional-requirement": "Create using \"green\" principles",
         "id": "NYU-00131",
         "label": "NYU-00131",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2778,7 +3317,8 @@
         "functional-requirement": "System fail-over/disaster recovery",
         "id": "NYU-00132",
         "label": "NYU-00132",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2799,7 +3339,8 @@
         "functional-requirement": "Backup practices active",
         "id": "NYU-00133",
         "label": "NYU-00133",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2820,7 +3361,8 @@
         "functional-requirement": "System maintenance schedule is determined in conjunction with academic units and their know user schedules ",
         "id": "NYU-00134",
         "label": "NYU-00134",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2841,7 +3383,8 @@
         "functional-requirement": "one-stop location to access all materials",
         "id": "NYU-00135",
         "label": "NYU-00135",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2862,7 +3405,8 @@
         "functional-requirement": "Easy setup of ad-hoc/project sites and its multiple tools",
         "id": "NYU-00136",
         "label": "NYU-00136",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2883,7 +3427,8 @@
         "functional-requirement": "Easy setup of course/SIS/HR populated sites and its multiple tools",
         "id": "NYU-00137",
         "label": "NYU-00137",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2904,7 +3449,12 @@
         "functional-requirement": "project sites",
         "id": "NYU-00138",
         "label": "NYU-00138",
-        "requirementPath": ["Sites.Templated-Sites.Projects"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Projects"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Projects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2925,7 +3475,12 @@
         "functional-requirement": "Online space for students to post and share their own work",
         "id": "NYU-00139",
         "label": "NYU-00139",
-        "requirementPath": ["Sites.Templated-Sites.Projects"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Projects"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Projects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2946,7 +3501,12 @@
         "functional-requirement": "Populate course sites with SIS data",
         "id": "NYU-00140",
         "label": "NYU-00140",
-        "requirementPath": ["Sites.Templated-Sites.Courses"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites.Courses",
+            "Sites.Templated-Sites"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Courses"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2967,7 +3527,11 @@
         "functional-requirement": "Seamless integration when linking to library database entries",
         "id": "NYU-00141",
         "label": "NYU-00141",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2988,7 +3552,8 @@
         "functional-requirement": "Cross-platform",
         "id": "NYU-00142",
         "label": "NYU-00142",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3009,7 +3574,11 @@
         "functional-requirement": "Upload/download files to a storage central University storage repositories from within Sakai",
         "id": "NYU-00143",
         "label": "NYU-00143",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3030,7 +3599,11 @@
         "functional-requirement": "Upload/download files to a storage central departmental storage repositories from within Sakai",
         "id": "NYU-00144",
         "label": "NYU-00144",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3051,7 +3624,11 @@
         "functional-requirement": "Share files between central CMS and Sakai",
         "id": "NYU-00145",
         "label": "NYU-00145",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3072,7 +3649,8 @@
         "functional-requirement": "student plagiarism detection service/turn-key",
         "id": "NYU-00146",
         "label": "NYU-00146",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3093,7 +3671,8 @@
         "functional-requirement": "Use SPSS in a course shell (?)",
         "id": "NYU-00147",
         "label": "NYU-00147",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3114,7 +3693,11 @@
         "functional-requirement": "centralized access to code repositories through a course/project site",
         "id": "NYU-00148",
         "label": "NYU-00148",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3135,7 +3718,8 @@
         "functional-requirement": "hands-on training of instructional technology",
         "id": "NYU-00149",
         "label": "NYU-00149",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3156,7 +3740,8 @@
         "functional-requirement": "useful error messages",
         "id": "NYU-00150",
         "label": "NYU-00150",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3177,7 +3762,8 @@
         "functional-requirement": "Accessibility compliance",
         "id": "NYU-00151",
         "label": "NYU-00151",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3198,7 +3784,11 @@
         "functional-requirement": "Create site templates",
         "id": "NYU-00152",
         "label": "NYU-00152",
-        "requirementPath": ["Sites.Templated-Sites"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites"
+        ],
+        "rpv1": ["Sites.Templated-Sites"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3219,7 +3809,11 @@
         "functional-requirement": "Save an existing site as a template",
         "id": "NYU-00153",
         "label": "NYU-00153",
-        "requirementPath": ["Sites.Templated-Sites"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites"
+        ],
+        "rpv1": ["Sites.Templated-Sites"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3240,7 +3834,11 @@
         "functional-requirement": "Create copies of existing sites",
         "id": "NYU-00154",
         "label": "NYU-00154",
-        "requirementPath": ["Sites.Templated-Sites"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites"
+        ],
+        "rpv1": ["Sites.Templated-Sites"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3261,7 +3859,11 @@
         "functional-requirement": "Archive sites",
         "id": "NYU-00155",
         "label": "NYU-00155",
-        "requirementPath": ["Content.Archived-material"],
+        "requirementpath": [
+            "Content.ImportExport",
+            "Content"
+        ],
+        "rpv1": ["Content.Archived-material"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3282,7 +3884,11 @@
         "functional-requirement": "archive/preservation of original/high-quality media files",
         "id": "NYU-00156",
         "label": "NYU-00156",
-        "requirementPath": ["Content.Archived-material"],
+        "requirementpath": [
+            "Content.ImportExport",
+            "Content"
+        ],
+        "rpv1": ["Content.Archived-material"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3303,7 +3909,11 @@
         "functional-requirement": "Maintain link between web-ready files and the archival piece",
         "id": "NYU-00157",
         "label": "NYU-00157",
-        "requirementPath": ["Content.Archived-material"],
+        "requirementpath": [
+            "Content.ImportExport",
+            "Content"
+        ],
+        "rpv1": ["Content.Archived-material"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3324,7 +3934,12 @@
         "functional-requirement": "easy to create streaming video /audio",
         "id": "NYU-00158",
         "label": "NYU-00158",
-        "requirementPath": ["Content.Uploaded.Media-Objects.Streamed-Video-Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects.Streamed-Video-Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3345,7 +3960,12 @@
         "functional-requirement": "ITS hosted academic you-tube",
         "id": "NYU-00159",
         "label": "NYU-00159",
-        "requirementPath": ["Content.Uploaded.Media-Objects.Streamed-Video-Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects.Streamed-Video-Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3366,7 +3986,11 @@
         "functional-requirement": "Embed internally-hosted animations",
         "id": "NYU-00160",
         "label": "NYU-00160",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3387,7 +4011,11 @@
         "functional-requirement": "Embed internally-hosted images",
         "id": "NYU-00161",
         "label": "NYU-00161",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3408,7 +4036,11 @@
         "functional-requirement": "Embed internal public resources",
         "id": "NYU-00162",
         "label": "NYU-00162",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3429,7 +4061,11 @@
         "functional-requirement": "Embed internal streamed video/audio",
         "id": "NYU-00163",
         "label": "NYU-00163",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3450,7 +4086,11 @@
         "functional-requirement": "Embed internal downloadable video",
         "id": "NYU-00164",
         "label": "NYU-00164",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3471,7 +4111,11 @@
         "functional-requirement": "Embed internal web-ready objects/code",
         "id": "NYU-00165",
         "label": "NYU-00165",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3492,7 +4136,11 @@
         "functional-requirement": "Render complex internal web-ready objects/code",
         "id": "NYU-00166",
         "label": "NYU-00166",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3513,7 +4161,11 @@
         "functional-requirement": "Embedd RSS feeds of content in a page",
         "id": "NYU-00167",
         "label": "NYU-00167",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3534,7 +4186,11 @@
         "functional-requirement": "iTunes U integration",
         "id": "NYU-00168",
         "label": "NYU-00168",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3555,7 +4211,11 @@
         "functional-requirement": "Embed recorded lectures from enterprise selected system",
         "id": "NYU-00169",
         "label": "NYU-00169",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3576,9 +4236,14 @@
         "functional-requirement": "Commenting and annotation of  files and media elements",
         "id": "NYU-00170",
         "label": "NYU-00170",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages.Embedding",
-            "Content.Commenting-annotation"
+            "Content.Commenting-annotations"
         ],
         "sakai-pov": [
             "student",
@@ -3600,9 +4265,14 @@
         "functional-requirement": "Multimedia commenting",
         "id": "NYU-00171",
         "label": "NYU-00171",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages.Embedding",
-            "Content.Commenting-annotation"
+            "Content.Commenting-annotations"
         ],
         "sakai-pov": [
             "student",
@@ -3624,7 +4294,12 @@
         "functional-requirement": "Link to media and files",
         "id": "NYU-00172",
         "label": "NYU-00172",
-        "requirementPath": ["Content.Uploaded.Media-Objects"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3645,7 +4320,11 @@
         "functional-requirement": "Link to external content",
         "id": "NYU-00173",
         "label": "NYU-00173",
-        "requirementPath": ["Content.External"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3666,7 +4345,11 @@
         "functional-requirement": "Embed images and other media from  licensed databases",
         "id": "NYU-00174",
         "label": "NYU-00174",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3687,7 +4370,11 @@
         "functional-requirement": "Embed WWW available animations and objects/code",
         "id": "NYU-00175",
         "label": "NYU-00175",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3708,7 +4395,11 @@
         "functional-requirement": "Embed WWW available images",
         "id": "NYU-00176",
         "label": "NYU-00176",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3729,7 +4420,11 @@
         "functional-requirement": "Embed WWW available streamed video/audio",
         "id": "NYU-00177",
         "label": "NYU-00177",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3750,7 +4445,11 @@
         "functional-requirement": "Embed WWW available downloadable video",
         "id": "NYU-00178",
         "label": "NYU-00178",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3771,9 +4470,14 @@
         "functional-requirement": "Annotate video or other time-based media within its timeline",
         "id": "NYU-00179",
         "label": "NYU-00179",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages.Embedding",
-            "Content.Commenting-annotation"
+            "Content.Commenting-annotations"
         ],
         "sakai-pov": [
             "student",
@@ -3795,9 +4499,14 @@
         "functional-requirement": "Jump into a section of a video or ther time based media file",
         "id": "NYU-00180",
         "label": "NYU-00180",
-        "requirementPath": [
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": [
             "Content.Authored-Content.Pages.Embedding",
-            "Content.Commenting-annotation"
+            "Content.Commenting-annotations"
         ],
         "sakai-pov": [
             "student",
@@ -3819,7 +4528,11 @@
         "functional-requirement": "Embed Powerpoint presentations in content pages",
         "id": "NYU-00181",
         "label": "NYU-00181",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3840,7 +4553,11 @@
         "functional-requirement": "Embed  artstor presentations",
         "id": "NYU-00182",
         "label": "NYU-00182",
-        "requirementPath": ["Content.Authored-Content.Pages.Embedding"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.Embedding"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3861,7 +4578,11 @@
         "functional-requirement": "Upload Media/Files from mobile device to Sakai",
         "id": "NYU-00183",
         "label": "NYU-00183",
-        "requirementPath": ["UI-Requirements.Mobile-devices"],
+        "requirementpath": [
+            "UI-Requirements",
+            "UI-Requirements.Mobile-devices"
+        ],
+        "rpv1": ["UI-Requirements.Mobile-devices"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3882,7 +4603,11 @@
         "functional-requirement": "All pages within Sakai degrade nicely for mobile viewing",
         "id": "NYU-00184",
         "label": "NYU-00184",
-        "requirementPath": ["UI-Requirements.Mobile-devices"],
+        "requirementpath": [
+            "UI-Requirements",
+            "UI-Requirements.Mobile-devices"
+        ],
+        "rpv1": ["UI-Requirements.Mobile-devices"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3903,7 +4628,11 @@
         "functional-requirement": "send txt message to post to  Sakai forum",
         "id": "NYU-00185",
         "label": "NYU-00185",
-        "requirementPath": ["UI-Requirements.Mobile-devices"],
+        "requirementpath": [
+            "UI-Requirements",
+            "UI-Requirements.Mobile-devices"
+        ],
+        "rpv1": ["UI-Requirements.Mobile-devices"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3924,7 +4653,11 @@
         "functional-requirement": "Invite any community member to see personal content",
         "id": "NYU-00186",
         "label": "NYU-00186",
-        "requirementPath": ["Content.Personal-Space"],
+        "requirementpath": [
+            "Content.Personal-Space",
+            "Content"
+        ],
+        "rpv1": ["Content.Personal-Space"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3945,7 +4678,11 @@
         "functional-requirement": "Invite people to look at resources",
         "id": "NYU-00187",
         "label": "NYU-00187",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3966,7 +4703,11 @@
         "functional-requirement": "Invite people to join a site",
         "id": "NYU-00188",
         "label": "NYU-00188",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3987,7 +4728,11 @@
         "functional-requirement": "invite non-nyu users",
         "id": "NYU-00189",
         "label": "NYU-00189",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4008,7 +4753,12 @@
         "functional-requirement": "Live chat with contacts currently online",
         "id": "NYU-00190",
         "label": "NYU-00190",
-        "requirementPath": ["Networking.messaging.chat"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.chat"
+        ],
+        "rpv1": ["Networking.messaging.chat"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4029,7 +4779,13 @@
         "functional-requirement": "send a private message or email to a person through their identifier link in a site",
         "id": "NYU-00191",
         "label": "NYU-00191",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4053,7 +4809,13 @@
         "functional-requirement": "Let MP owners and contributors to threads know by email when comments are added to forum threads by email",
         "id": "NYU-00192",
         "label": "NYU-00192",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4077,7 +4839,13 @@
         "functional-requirement": "Let owners and contributors to threads know by email when comments are added to forum threads",
         "id": "NYU-00193",
         "label": "NYU-00193",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4101,7 +4869,13 @@
         "functional-requirement": "Project site mailing lists",
         "id": "NYU-00194",
         "label": "NYU-00194",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4125,7 +4899,13 @@
         "functional-requirement": "Generate an RSVP mailing using the mailing list within a project site",
         "id": "NYU-00195",
         "label": "NYU-00195",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4149,7 +4929,12 @@
         "functional-requirement": "Show \"new\" status for selected content across multiple sites to which a user is joined, from a user's My Sakai landing page",
         "id": "NYU-00196",
         "label": "NYU-00196",
-        "requirementPath": [
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Authorizables.TrackingandEvents",
             "Authorizables.Recent-Activity"
         ],
@@ -4173,7 +4958,12 @@
         "functional-requirement": "Show \u201cNew\u201d status for selected content that is added by other user's within a site's dashboard",
         "id": "NYU-00197",
         "label": "NYU-00197",
-        "requirementPath": [
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Authorizables.TrackingandEvents",
             "Authorizables.Recent-Activity"
         ],
@@ -4197,7 +4987,12 @@
         "functional-requirement": "Show \"new\" status for any new pages created within a site",
         "id": "NYU-00198",
         "label": "NYU-00198",
-        "requirementPath": [
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Authorizables.TrackingandEvents",
             "Authorizables.Recent-Activity"
         ],
@@ -4221,7 +5016,12 @@
         "functional-requirement": "Show \u201cNew\u201d status for all new content of a selected type that is added within a site's dashboard",
         "id": "NYU-00199",
         "label": "NYU-00199",
-        "requirementPath": [
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Authorizables.TrackingandEvents",
             "Authorizables.Recent-Activity"
         ],
@@ -4245,7 +5045,13 @@
         "functional-requirement": "Let user subsribe to notifications",
         "id": "NYU-00200",
         "label": "NYU-00200",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4269,7 +5075,13 @@
         "functional-requirement": "Let users subscribe to digests of selected notifications",
         "id": "NYU-00201",
         "label": "NYU-00201",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4293,7 +5105,13 @@
         "functional-requirement": "Let a user select the types of alerts/updates that he/she will receive based on content type, or group",
         "id": "NYU-00202",
         "label": "NYU-00202",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4317,7 +5135,13 @@
         "functional-requirement": "Let user define alert frequency or occurrance type",
         "id": "NYU-00203",
         "label": "NYU-00203",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4341,7 +5165,13 @@
         "functional-requirement": "Send user email notification when syllabus content or dates change",
         "id": "NYU-00204",
         "label": "NYU-00204",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4365,7 +5195,13 @@
         "functional-requirement": "Send user email notification when event/appointment/activity is added to his/her calendar",
         "id": "NYU-00205",
         "label": "NYU-00205",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4389,7 +5225,13 @@
         "functional-requirement": "email notification when someone has joined his/her site",
         "id": "NYU-00206",
         "label": "NYU-00206",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4413,7 +5255,13 @@
         "functional-requirement": "email notifications sent by a user should include reply-to address of sender",
         "id": "NYU-00207",
         "label": "NYU-00207",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4437,7 +5285,13 @@
         "functional-requirement": "email notifications that have been sent in relation to applicable content changes should include the reply-to address of originator of the content",
         "id": "NYU-00208",
         "label": "NYU-00208",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4461,7 +5315,13 @@
         "functional-requirement": "Option to set notifications to send to a mobile device",
         "id": "NYU-00209",
         "label": "NYU-00209",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4485,7 +5345,13 @@
         "functional-requirement": "Send users a notice when someone has joined Ac. Networking page",
         "id": "NYU-00210",
         "label": "NYU-00210",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Networking.messaging",
             "Authorizables.Recent-Activity"
         ],
@@ -4509,7 +5375,12 @@
         "functional-requirement": "Memory Palace templates that can be provisioned at the School or program level",
         "id": "NYU-00211",
         "label": "NYU-00211",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4530,7 +5401,12 @@
         "functional-requirement": "Multiple floorplans for a user to select for their memory palace",
         "id": "NYU-00212",
         "label": "NYU-00212",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4551,7 +5427,12 @@
         "functional-requirement": "Extend MP metaphor to the room-view",
         "id": "NYU-00213",
         "label": "NYU-00213",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4572,7 +5453,12 @@
         "functional-requirement": "Multiple display metaphors for the Entry page of memory palace",
         "id": "NYU-00214",
         "label": "NYU-00214",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4593,7 +5479,12 @@
         "functional-requirement": "Multiple display metaphors for the room view  of memory palace",
         "id": "NYU-00215",
         "label": "NYU-00215",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4614,7 +5505,12 @@
         "functional-requirement": "Program-specific portfolio content page templates to display data for external review",
         "id": "NYU-00216",
         "label": "NYU-00216",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4635,7 +5531,12 @@
         "functional-requirement": "Ability to limit the list of portfolio templates that are available to a user based on their program, school, etc.",
         "id": "NYU-00217",
         "label": "NYU-00217",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4656,7 +5557,12 @@
         "functional-requirement": "Ability for user to manually archive versions of floorplans",
         "id": "NYU-00218",
         "label": "NYU-00218",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4677,7 +5583,12 @@
         "functional-requirement": "Ability to revert to old versions of floorplans",
         "id": "NYU-00219",
         "label": "NYU-00219",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4698,7 +5609,12 @@
         "functional-requirement": "Automatic archiving of floorplans based on administrative-determined intervals",
         "id": "NYU-00220",
         "label": "NYU-00220",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4719,7 +5635,12 @@
         "functional-requirement": "Store copy of floorplans in Xythos",
         "id": "NYU-00221",
         "label": "NYU-00221",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4740,7 +5661,12 @@
         "functional-requirement": "Memory Palace Conversion",
         "id": "NYU-00222",
         "label": "NYU-00222",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4761,7 +5687,12 @@
         "functional-requirement": "Ability to add different room elements (e.g., a chair, desk, or some other metaphor)",
         "id": "NYU-00223",
         "label": "NYU-00223",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4782,7 +5713,12 @@
         "functional-requirement": "Ability to modify room elements with drag-and-drop",
         "id": "NYU-00224",
         "label": "NYU-00224",
-        "requirementPath": ["Sites.Templated-Sites.Portfolios"],
+        "requirementpath": [
+            "Sites",
+            "Sites.Templated-Sites",
+            "Sites.Templated-Sites.Portfolios"
+        ],
+        "rpv1": ["Sites.Templated-Sites.Portfolios"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4803,7 +5739,11 @@
         "functional-requirement": "fast, easy acccess to academic databases ",
         "id": "NYU-00225",
         "label": "NYU-00225",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4824,7 +5764,11 @@
         "functional-requirement": "fast easy access to library databases",
         "id": "NYU-00226",
         "label": "NYU-00226",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4845,7 +5789,11 @@
         "functional-requirement": "fast easy access to school/program databases",
         "id": "NYU-00227",
         "label": "NYU-00227",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4866,7 +5814,11 @@
         "functional-requirement": "Ability to store a record of any type of resource (e.g., bibliographic record, websites, datasets, etc.)",
         "id": "NYU-00228",
         "label": "NYU-00228",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4887,7 +5839,11 @@
         "functional-requirement": "Ability to bookmark anything (tags, comments, etc.)",
         "id": "NYU-00229",
         "label": "NYU-00229",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4908,7 +5864,11 @@
         "functional-requirement": "Add/remove content page links",
         "id": "NYU-00230",
         "label": "NYU-00230",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4929,7 +5889,11 @@
         "functional-requirement": "Add/remove files links",
         "id": "NYU-00231",
         "label": "NYU-00231",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4950,7 +5914,11 @@
         "functional-requirement": "Add/remove resource records (ie., record of bibliographic record, website, etc.)",
         "id": "NYU-00232",
         "label": "NYU-00232",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4971,7 +5939,11 @@
         "functional-requirement": "Resources can be reused across multiple courses/sites",
         "id": "NYU-00233",
         "label": "NYU-00233",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4992,7 +5964,11 @@
         "functional-requirement": "Ability to analyze the metadata collected on all resources",
         "id": "NYU-00234",
         "label": "NYU-00234",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5013,7 +5989,11 @@
         "functional-requirement": "Assign copyright categories",
         "id": "NYU-00235",
         "label": "NYU-00235",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5034,7 +6014,11 @@
         "functional-requirement": "Create a specialized subset of resource records (e.g., bibliography, reading list, etc.)",
         "id": "NYU-00236",
         "label": "NYU-00236",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5055,7 +6039,11 @@
         "functional-requirement": "import metadata from a library catalog system",
         "id": "NYU-00237",
         "label": "NYU-00237",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5076,7 +6064,11 @@
         "functional-requirement": "upload directory w/ hierarchical structure intact",
         "id": "NYU-00238",
         "label": "NYU-00238",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5097,7 +6089,11 @@
         "functional-requirement": "resolve relative links within uploaded html",
         "id": "NYU-00239",
         "label": "NYU-00239",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5118,7 +6114,11 @@
         "functional-requirement": "include content from a file or another page within a page",
         "id": "NYU-00240",
         "label": "NYU-00240",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5139,7 +6139,11 @@
         "functional-requirement": "bulk download of content files",
         "id": "NYU-00241",
         "label": "NYU-00241",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5160,7 +6164,11 @@
         "functional-requirement": "export content to working HTML",
         "id": "NYU-00242",
         "label": "NYU-00242",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5181,7 +6189,11 @@
         "functional-requirement": "Group files into sub-directories",
         "id": "NYU-00243",
         "label": "NYU-00243",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5202,7 +6214,11 @@
         "functional-requirement": "automatically insert a copyright notice based on copyright category assignment",
         "id": "NYU-00244",
         "label": "NYU-00244",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5223,7 +6239,11 @@
         "functional-requirement": "customize copyright notice text",
         "id": "NYU-00245",
         "label": "NYU-00245",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5244,7 +6264,11 @@
         "functional-requirement": "customize connection of copyright notices to copyright categories",
         "id": "NYU-00246",
         "label": "NYU-00246",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5265,7 +6289,11 @@
         "functional-requirement": "RefWorks, Endnote, Amazon integration",
         "id": "NYU-00247",
         "label": "NYU-00247",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5286,7 +6314,11 @@
         "functional-requirement": "tool to request and track copyright clearance",
         "id": "NYU-00248",
         "label": "NYU-00248",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5307,7 +6339,11 @@
         "functional-requirement": "add copyright clearance status metadata to resource",
         "id": "NYU-00249",
         "label": "NYU-00249",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5328,7 +6364,11 @@
         "functional-requirement": "copyright owner contact link-through",
         "id": "NYU-00250",
         "label": "NYU-00250",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5349,7 +6389,11 @@
         "functional-requirement": "storage of files are not limited by site; can persist outside of site metaphor and beyond various calendars and other types of file persistence determinators",
         "id": "NYU-00251",
         "label": "NYU-00251",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5370,7 +6414,11 @@
         "functional-requirement": "when files are created/modified the dates are attached",
         "id": "NYU-00252",
         "label": "NYU-00252",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5391,7 +6439,11 @@
         "functional-requirement": "create dynamic list of files by folder/tag/category ",
         "id": "NYU-00253",
         "label": "NYU-00253",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5412,7 +6464,11 @@
         "functional-requirement": "Xythos Integration -- First Tier",
         "id": "NYU-00254",
         "label": "NYU-00254",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5433,7 +6489,11 @@
         "functional-requirement": "Xythos Integration -- Second Tier",
         "id": "NYU-00255",
         "label": "NYU-00255",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5454,7 +6514,11 @@
         "functional-requirement": "save versions of annotated documents",
         "id": "NYU-00256",
         "label": "NYU-00256",
-        "requirementPath": ["Content.External.Proxed"],
+        "requirementpath": [
+            "Content.External",
+            "Content"
+        ],
+        "rpv1": ["Content.External.Proxed"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5475,7 +6539,11 @@
         "functional-requirement": "upload directory w/ hierarchical structure intact",
         "id": "NYU-00257",
         "label": "NYU-00257",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5496,7 +6564,11 @@
         "functional-requirement": "export content to PDF",
         "id": "NYU-00258",
         "label": "NYU-00258",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5517,7 +6589,11 @@
         "functional-requirement": "provide print-friendly view of content pages",
         "id": "NYU-00259",
         "label": "NYU-00259",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5538,7 +6614,11 @@
         "functional-requirement": "Ability to save a passage/line within an existing content page or external web site ( a chunk) as a resource",
         "id": "NYU-00260",
         "label": "NYU-00260",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5559,7 +6639,11 @@
         "functional-requirement": "Ability to select whether to create a static reference of a chunk as static or dynamic",
         "id": "NYU-00261",
         "label": "NYU-00261",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5580,7 +6664,11 @@
         "functional-requirement": "browse the site members activities and content across all of a user's sites (active and  inactive)",
         "id": "NYU-00262",
         "label": "NYU-00262",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5601,7 +6689,12 @@
         "functional-requirement": "faculty user performs a query to identify all students that have take a course with him/her",
         "id": "NYU-00263",
         "label": "NYU-00263",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5622,7 +6715,12 @@
         "functional-requirement": "Facilitate browsing of joinable sites by owner, alpha anchors, site type, tags, etc.",
         "id": "NYU-00264",
         "label": "NYU-00264",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5643,7 +6741,11 @@
         "functional-requirement": "search by any various selected criteria about a user or a resource stored within the system",
         "id": "NYU-00265",
         "label": "NYU-00265",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5664,7 +6766,11 @@
         "functional-requirement": "search by combined search criteria",
         "id": "NYU-00266",
         "label": "NYU-00266",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5685,7 +6791,11 @@
         "functional-requirement": "search by keyword in a searchbox",
         "id": "NYU-00267",
         "label": "NYU-00267",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5706,7 +6816,11 @@
         "functional-requirement": "save search queries",
         "id": "NYU-00268",
         "label": "NYU-00268",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5727,7 +6841,8 @@
         "functional-requirement": "web-based video conferencing",
         "id": "NYU-00269",
         "label": "NYU-00269",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5748,7 +6863,8 @@
         "functional-requirement": "video chat",
         "id": "NYU-00270",
         "label": "NYU-00270",
-        "requirementPath": ["todo"],
+        "requirementpath": ["todo"],
+        "rpv1": ["todo"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5769,7 +6885,12 @@
         "functional-requirement": "web chat",
         "id": "NYU-00271",
         "label": "NYU-00271",
-        "requirementPath": ["Networking.messaging.chat"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Networking.messaging.chat"
+        ],
+        "rpv1": ["Networking.messaging.chat"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5790,7 +6911,11 @@
         "functional-requirement": "Library of templates for assignments made available in content creation tool",
         "id": "NYU-00272",
         "label": "NYU-00272",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5811,7 +6936,11 @@
         "functional-requirement": "Create a page based on a template",
         "id": "NYU-00273",
         "label": "NYU-00273",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5832,7 +6961,11 @@
         "functional-requirement": "personal project template",
         "id": "NYU-00274",
         "label": "NYU-00274",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5853,7 +6986,11 @@
         "functional-requirement": "Templates to display data from MP for external review ",
         "id": "NYU-00275",
         "label": "NYU-00275",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5874,7 +7011,11 @@
         "functional-requirement": "Syllabus template",
         "id": "NYU-00276",
         "label": "NYU-00276",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5895,7 +7036,11 @@
         "functional-requirement": "Templates for mobile-friendly pages",
         "id": "NYU-00277",
         "label": "NYU-00277",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5916,7 +7061,11 @@
         "functional-requirement": "case study presentations using video and other media forms",
         "id": "NYU-00278",
         "label": "NYU-00278",
-        "requirementPath": ["Content.Authored-Content.Pages"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5937,7 +7086,11 @@
         "functional-requirement": "online quizzes",
         "id": "NYU-00279",
         "label": "NYU-00279",
-        "requirementPath": ["Authorizables.Assesments.Tests"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assesments"
+        ],
+        "rpv1": ["Authorizables.Assesments.Tests"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5958,7 +7111,11 @@
         "functional-requirement": "online exams/testing",
         "id": "NYU-00280",
         "label": "NYU-00280",
-        "requirementPath": ["Authorizables.Assesments.Tests"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assesments"
+        ],
+        "rpv1": ["Authorizables.Assesments.Tests"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5979,7 +7136,11 @@
         "functional-requirement": "view, aggregate, sort, cluster, correlate, disambiguate, and filter tags",
         "id": "NYU-00281",
         "label": "NYU-00281",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6000,7 +7161,11 @@
         "functional-requirement": "option to make tags private (e.g. student participation credit)",
         "id": "NYU-00282",
         "label": "NYU-00282",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6021,7 +7186,11 @@
         "functional-requirement": "tag \"suggest\" based on bibliographic references, faculty, students, relevant content, etc.",
         "id": "NYU-00283",
         "label": "NYU-00283",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6042,7 +7211,11 @@
         "functional-requirement": "Popular tags listed on home page",
         "id": "NYU-00284",
         "label": "NYU-00284",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6063,7 +7236,11 @@
         "functional-requirement": "Display popular tags ",
         "id": "NYU-00285",
         "label": "NYU-00285",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6084,7 +7261,11 @@
         "functional-requirement": "tag resources/ folksonomy",
         "id": "NYU-00286",
         "label": "NYU-00286",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6105,7 +7286,11 @@
         "functional-requirement": "identify tags created by \"experts in the field\"",
         "id": "NYU-00287",
         "label": "NYU-00287",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6126,7 +7311,11 @@
         "functional-requirement": "ability to sort/differentiate tags by who added them",
         "id": "NYU-00288",
         "label": "NYU-00288",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6147,7 +7336,11 @@
         "functional-requirement": "\"suggest\" based on  hybrid of bibliography & tags",
         "id": "NYU-00289",
         "label": "NYU-00289",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6168,7 +7361,11 @@
         "functional-requirement": "Add tags to others resources",
         "id": "NYU-00290",
         "label": "NYU-00290",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6189,7 +7386,11 @@
         "functional-requirement": "Materials carry metadata tags across sites/systems ",
         "id": "NYU-00291",
         "label": "NYU-00291",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6210,7 +7411,11 @@
         "functional-requirement": "Add links via autolink i.e. while viewing other pages, or resources like those found through Primo (cf. delicious, google notebook)",
         "id": "NYU-00292",
         "label": "NYU-00292",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6231,7 +7436,11 @@
         "functional-requirement": "Add others tag information to your resources",
         "id": "NYU-00293",
         "label": "NYU-00293",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6252,7 +7461,11 @@
         "functional-requirement": "browse similar courses",
         "id": "NYU-00294",
         "label": "NYU-00294",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6273,7 +7486,11 @@
         "functional-requirement": "faculty can tag discussions and other course activities with private assessment data/tag/course credit",
         "id": "NYU-00295",
         "label": "NYU-00295",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6294,7 +7511,11 @@
         "functional-requirement": "Categories/Groupings of tags",
         "id": "NYU-00296",
         "label": "NYU-00296",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6315,7 +7536,11 @@
         "functional-requirement": "create thresholds for what is necessary before something is considered a public tag",
         "id": "NYU-00297",
         "label": "NYU-00297",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6336,7 +7561,11 @@
         "functional-requirement": "prompt users with existing tags",
         "id": "NYU-00298",
         "label": "NYU-00298",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6357,7 +7586,11 @@
         "functional-requirement": "a content author's name is tagged to all of his/her resources and activities within the system",
         "id": "NYU-00299",
         "label": "NYU-00299",
-        "requirementPath": ["Content.Tagging"],
+        "requirementpath": [
+            "Content.Tagging",
+            "Content"
+        ],
+        "rpv1": ["Content.Tagging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6378,7 +7611,11 @@
         "functional-requirement": "blog widget",
         "id": "NYU-00300",
         "label": "NYU-00300",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6399,7 +7636,11 @@
         "functional-requirement": "calendar widget",
         "id": "NYU-00301",
         "label": "NYU-00301",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6420,7 +7661,11 @@
         "functional-requirement": "user profile widget",
         "id": "NYU-00302",
         "label": "NYU-00302",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6441,7 +7686,11 @@
         "functional-requirement": "user activity widget",
         "id": "NYU-00303",
         "label": "NYU-00303",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6462,7 +7711,11 @@
         "functional-requirement": "Add an Assignment widget",
         "id": "NYU-00304",
         "label": "NYU-00304",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6483,7 +7736,11 @@
         "functional-requirement": "My Favorites widget",
         "id": "NYU-00305",
         "label": "NYU-00305",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6504,7 +7761,11 @@
         "functional-requirement": "Search widget",
         "id": "NYU-00306",
         "label": "NYU-00306",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6525,7 +7786,11 @@
         "functional-requirement": "Course tracking widget",
         "id": "NYU-00307",
         "label": "NYU-00307",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6546,7 +7811,11 @@
         "functional-requirement": "Discussion threads widget",
         "id": "NYU-00308",
         "label": "NYU-00308",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6567,7 +7836,11 @@
         "functional-requirement": "Polling / Voting wiget",
         "id": "NYU-00309",
         "label": "NYU-00309",
-        "requirementPath": ["Content.Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Widgets"],
         "sakai-pov": [
             "student",
             "postgraduate",

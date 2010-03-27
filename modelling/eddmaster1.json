@@ -12,7 +12,8 @@
         "label": "EDDM1-00001",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -37,7 +38,11 @@
         "label": "EDDM1-00002",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -69,7 +74,11 @@
         "label": "EDDM1-00003",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -101,7 +110,11 @@
         "label": "EDDM1-00004",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -133,7 +146,11 @@
         "label": "EDDM1-00005",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -165,7 +182,11 @@
         "label": "EDDM1-00006",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -197,7 +218,11 @@
         "label": "EDDM1-00007",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -229,7 +254,11 @@
         "label": "EDDM1-00008",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -261,7 +290,11 @@
         "label": "EDDM1-00009",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -293,7 +326,11 @@
         "label": "EDDM1-00010",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -325,7 +362,11 @@
         "label": "EDDM1-00011",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Assesments.Feedback"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Assesments"
+        ],
+        "rpv1": ["Authorizables.Assesments.Feedback"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -350,7 +391,11 @@
         "label": "EDDM1-00012",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": ["administrative"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -375,7 +420,11 @@
         "label": "EDDM1-00013",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -407,7 +456,11 @@
         "label": "EDDM1-00014",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -432,7 +485,11 @@
         "label": "EDDM1-00015",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.Events"],
+        "requirementpath": [
+            "Networking",
+            "Networking.Events"
+        ],
+        "rpv1": ["Networking.Events"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -464,7 +521,11 @@
         "label": "EDDM1-00016",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Personal-Space.Private-Content"],
+        "requirementpath": [
+            "Content.Personal-Space",
+            "Content"
+        ],
+        "rpv1": ["Content.Personal-Space.Private-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -496,7 +557,11 @@
         "label": "EDDM1-00017",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -528,7 +593,11 @@
         "label": "EDDM1-00018",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -560,7 +629,13 @@
         "label": "EDDM1-00019",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Networking.profile",
+            "Authorizables.Users"
+        ],
+        "rpv1": [
             "Authorizables.Users",
             "Networking.profile"
         ],
@@ -588,7 +663,13 @@
         "label": "EDDM1-00020",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Networking.profile",
+            "Authorizables.Users"
+        ],
+        "rpv1": [
             "Authorizables.Users",
             "Networking.profile"
         ],
@@ -616,7 +697,13 @@
         "label": "EDDM1-00021",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Networking.profile",
+            "Authorizables.Users"
+        ],
+        "rpv1": [
             "Authorizables.Users",
             "Networking.profile"
         ],
@@ -651,7 +738,11 @@
         "label": "EDDM1-00022",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -683,7 +774,13 @@
         "label": "EDDM1-00023",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Networking.profile",
+            "Authorizables.Users"
+        ],
+        "rpv1": [
             "Authorizables.Users",
             "Networking.profile"
         ],
@@ -718,7 +815,13 @@
         "label": "EDDM1-00024",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Networking.profile",
+            "Authorizables.Users"
+        ],
+        "rpv1": [
             "Authorizables.Users",
             "Networking.profile"
         ],
@@ -753,7 +856,8 @@
         "label": "EDDM1-00025",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -785,7 +889,8 @@
         "label": "EDDM1-00026",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -817,7 +922,11 @@
         "label": "EDDM1-00027",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Commenting-annotations"],
+        "requirementpath": [
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": ["Content.Commenting-annotations"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -849,7 +958,11 @@
         "label": "EDDM1-00028",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Commenting-annotations"],
+        "requirementpath": [
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": ["Content.Commenting-annotations"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -881,7 +994,11 @@
         "label": "EDDM1-00029",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching.On-Metadata"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching.On-Metadata"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -913,7 +1030,8 @@
         "label": "EDDM1-00030",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -945,7 +1063,8 @@
         "label": "EDDM1-00031",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -977,7 +1096,11 @@
         "label": "EDDM1-00032",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1009,7 +1132,8 @@
         "label": "EDDM1-00033",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1041,7 +1165,11 @@
         "label": "EDDM1-00034",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1073,7 +1201,11 @@
         "label": "EDDM1-00035",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1105,7 +1237,11 @@
         "label": "EDDM1-00036",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1137,7 +1273,12 @@
         "label": "EDDM1-00037",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1169,7 +1310,12 @@
         "label": "EDDM1-00038",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1201,7 +1347,12 @@
         "label": "EDDM1-00039",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1233,7 +1384,8 @@
         "label": "EDDM1-00040",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1265,7 +1417,8 @@
         "label": "EDDM1-00041",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1297,7 +1450,8 @@
         "label": "EDDM1-00042",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1329,7 +1483,8 @@
         "label": "EDDM1-00043",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1361,7 +1516,11 @@
         "label": "EDDM1-00044",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users.Recent-Items"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": ["Authorizables.Users.Recent-Items"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1393,7 +1552,8 @@
         "label": "EDDM1-00045",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1425,7 +1585,8 @@
         "label": "EDDM1-00046",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1457,7 +1618,8 @@
         "label": "EDDM1-00047",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1489,7 +1651,8 @@
         "label": "EDDM1-00048",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1521,7 +1684,8 @@
         "label": "EDDM1-00049",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1553,7 +1717,11 @@
         "label": "EDDM1-00050",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1585,7 +1753,11 @@
         "label": "EDDM1-00051",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1617,7 +1789,11 @@
         "label": "EDDM1-00052",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1649,7 +1825,11 @@
         "label": "EDDM1-00053",
         "last-edited-and-by-who": "23/02/2010 added thesaures ",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1681,7 +1861,11 @@
         "label": "EDDM1-00054",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1713,7 +1897,11 @@
         "label": "EDDM1-00055",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1745,7 +1933,11 @@
         "label": "EDDM1-00056",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1777,7 +1969,8 @@
         "label": "EDDM1-00057",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1809,7 +2002,8 @@
         "label": "EDDM1-00058",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": ["administrative"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -1834,7 +2028,8 @@
         "label": "EDDM1-00059",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": ["administrative"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -1859,7 +2054,11 @@
         "label": "EDDM1-00060",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Authored-Content"
+        ],
+        "rpv1": ["Content.Authored-Content"],
         "sakai-pov": ["administrative"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -1884,7 +2083,8 @@
         "label": "EDDM1-00061",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["UI-Requirements"],
+        "requirementpath": ["UI-Requirements"],
+        "rpv1": ["UI-Requirements"],
         "sakai-pov": ["administrative"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -1909,7 +2109,11 @@
         "label": "EDDM1-00062",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content.Delegated-Control"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Delegated-Control"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1941,7 +2145,11 @@
         "label": "EDDM1-00063",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Recent-Activity"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": ["Authorizables.Recent-Activity"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -1973,7 +2181,11 @@
         "label": "EDDM1-00064",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2005,7 +2217,8 @@
         "label": "EDDM1-00065",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2037,7 +2250,11 @@
         "label": "EDDM1-00066",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content.Delegated-Control"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Delegated-Control"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2069,7 +2286,11 @@
         "label": "EDDM1-00067",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2098,7 +2319,11 @@
         "label": "EDDM1-00068",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2127,7 +2352,11 @@
         "label": "EDDM1-00069",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2152,7 +2381,11 @@
         "label": "EDDM1-00070",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2177,7 +2410,11 @@
         "label": "EDDM1-00071",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2202,7 +2439,12 @@
         "label": "EDDM1-00072",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2232,7 +2474,11 @@
         "label": "EDDM1-00073",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2257,7 +2503,11 @@
         "label": "EDDM1-00074",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2282,7 +2532,12 @@
         "label": "EDDM1-00075",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2307,7 +2562,8 @@
         "label": "EDDM1-00076",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2339,7 +2595,11 @@
         "label": "EDDM1-00077",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2371,7 +2631,8 @@
         "label": "EDDM1-00078",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2403,7 +2664,8 @@
         "label": "EDDM1-00079",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2433,7 +2695,11 @@
         "label": "EDDM1-00080",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2463,7 +2729,11 @@
         "label": "EDDM1-00081",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2493,7 +2763,11 @@
         "label": "EDDM1-00082",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2518,7 +2792,8 @@
         "label": "EDDM1-00083",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2547,7 +2822,11 @@
         "label": "EDDM1-00084",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Versioning"],
+        "requirementpath": [
+            "Content",
+            "Content.Versioning"
+        ],
+        "rpv1": ["Content.Versioning"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2576,7 +2855,11 @@
         "label": "EDDM1-00085",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2605,7 +2888,8 @@
         "label": "EDDM1-00086",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2637,7 +2921,8 @@
         "label": "EDDM1-00087",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2669,7 +2954,8 @@
         "label": "EDDM1-00088",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2701,7 +2987,11 @@
         "label": "EDDM1-00089",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2731,7 +3021,11 @@
         "label": "EDDM1-00090",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -2763,7 +3057,11 @@
         "label": "EDDM1-00091",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -2788,7 +3086,11 @@
         "label": "EDDM1-00092",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content.Rules-based.Timed"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content.Rules-based.Timed"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2818,7 +3120,11 @@
         "label": "EDDM1-00093",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2848,7 +3154,8 @@
         "label": "EDDM1-00094",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2878,7 +3185,11 @@
         "label": "EDDM1-00095",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2908,7 +3219,11 @@
         "label": "EDDM1-00096",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Authored-Content.Pages.In-page-Widgets"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content"
+        ],
+        "rpv1": ["Content.Authored-Content.Pages.In-page-Widgets"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2938,7 +3253,11 @@
         "label": "EDDM1-00097",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Commenting-annotations"],
+        "requirementpath": [
+            "Content.Commenting-annotations",
+            "Content"
+        ],
+        "rpv1": ["Content.Commenting-annotations"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -2968,7 +3287,11 @@
         "label": "EDDM1-00098",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.TrackingandEvents"],
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables"
+        ],
+        "rpv1": ["Authorizables.TrackingandEvents"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3000,7 +3323,11 @@
         "label": "EDDM1-00099",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3032,7 +3359,8 @@
         "label": "EDDM1-00100",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Managed-Metadata"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content.Managed-Metadata"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3062,7 +3390,11 @@
         "label": "EDDM1-00101",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3092,7 +3424,8 @@
         "label": "EDDM1-00102",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Managed-Metadata"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content.Managed-Metadata"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3124,7 +3457,11 @@
         "label": "EDDM1-00103",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3156,7 +3493,8 @@
         "label": "EDDM1-00104",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3185,7 +3523,11 @@
         "label": "EDDM1-00105",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching.On-Metadata"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching.On-Metadata"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3217,7 +3559,11 @@
         "label": "EDDM1-00106",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3249,7 +3595,11 @@
         "label": "EDDM1-00107",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3278,7 +3628,11 @@
         "label": "EDDM1-00108",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3310,7 +3664,11 @@
         "label": "EDDM1-00109",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -3335,7 +3693,8 @@
         "label": "EDDM1-00110",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3367,7 +3726,8 @@
         "label": "EDDM1-00111",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3397,7 +3757,11 @@
         "label": "EDDM1-00112",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching.On-Content"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching.On-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3429,7 +3793,8 @@
         "label": "EDDM1-00113",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -3454,7 +3819,8 @@
         "label": "EDDM1-00114",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3486,7 +3852,8 @@
         "label": "EDDM1-00115",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3515,7 +3882,8 @@
         "label": "EDDM1-00116",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -3540,7 +3908,8 @@
         "label": "EDDM1-00117",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3570,7 +3939,11 @@
         "label": "EDDM1-00118",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3602,7 +3975,13 @@
         "label": "EDDM1-00119",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking",
+            "Authorizables",
+            "Authorizables.Groups",
+            "Networking.profile"
+        ],
+        "rpv1": [
             "Authorizables.Groups",
             "Networking.profile"
         ],
@@ -3635,7 +4014,11 @@
         "label": "EDDM1-00120",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3665,7 +4048,8 @@
         "label": "EDDM1-00121",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Sites"],
+        "requirementpath": ["Sites"],
+        "rpv1": ["Sites"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3695,7 +4079,11 @@
         "label": "EDDM1-00122",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Recent-Activity"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": ["Authorizables.Recent-Activity"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3727,7 +4115,12 @@
         "label": "EDDM1-00123",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Authorizables.TrackingandEvents",
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": [
             "Authorizables.TrackingandEvents",
             "Authorizables.Recent-Activity.History"
         ],
@@ -3762,7 +4155,11 @@
         "label": "EDDM1-00124",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3794,7 +4191,11 @@
         "label": "EDDM1-00125",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3826,7 +4227,12 @@
         "label": "EDDM1-00126",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users.Impersonation.into-User"],
+        "requirementpath": [
+            "Authorizables.Users.Impersonation",
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users.Impersonation.into-User"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3855,7 +4261,11 @@
         "label": "EDDM1-00127",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3885,7 +4295,12 @@
         "label": "EDDM1-00128",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3917,7 +4332,12 @@
         "label": "EDDM1-00129",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups.Membership"],
+        "requirementpath": [
+            "Authorizables.Groups.Membership",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups.Membership"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -3949,7 +4369,11 @@
         "label": "EDDM1-00130",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -3979,7 +4403,11 @@
         "label": "EDDM1-00131",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4011,7 +4439,11 @@
         "label": "EDDM1-00132",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4043,7 +4475,11 @@
         "label": "EDDM1-00133",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4073,7 +4509,11 @@
         "label": "EDDM1-00134",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4105,7 +4545,11 @@
         "label": "EDDM1-00135",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded"],
+        "requirementpath": [
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4135,7 +4579,8 @@
         "label": "EDDM1-00136",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -4160,7 +4605,8 @@
         "label": "EDDM1-00137",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4190,7 +4636,8 @@
         "label": "EDDM1-00138",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4220,7 +4667,8 @@
         "label": "EDDM1-00139",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4250,7 +4698,11 @@
         "label": "EDDM1-00140",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4280,7 +4732,11 @@
         "label": "EDDM1-00141",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4310,7 +4766,11 @@
         "label": "EDDM1-00142",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4340,7 +4800,11 @@
         "label": "EDDM1-00143",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4370,7 +4834,11 @@
         "label": "EDDM1-00144",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4402,7 +4870,11 @@
         "label": "EDDM1-00145",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4431,7 +4903,11 @@
         "label": "EDDM1-00146",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4463,7 +4939,11 @@
         "label": "EDDM1-00147",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4496,7 +4976,11 @@
         "label": "EDDM1-00148",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4528,7 +5012,11 @@
         "label": "EDDM1-00149",
         "last-edited-and-by-who": "22/2/10  LJ  (renamed Friends)",
         "nyu": "",
-        "requirementPath": ["Networking.contacts"],
+        "requirementpath": [
+            "Networking",
+            "Networking.contacts"
+        ],
+        "rpv1": ["Networking.contacts"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4560,7 +5048,11 @@
         "label": "EDDM1-00150",
         "last-edited-and-by-who": "22/2/10  LJ  (renamed Friends)",
         "nyu": "",
-        "requirementPath": ["Networking.contacts"],
+        "requirementpath": [
+            "Networking",
+            "Networking.contacts"
+        ],
+        "rpv1": ["Networking.contacts"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4592,7 +5084,11 @@
         "label": "EDDM1-00151",
         "last-edited-and-by-who": "23/2/10 added more notes on messaging",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4624,7 +5120,11 @@
         "label": "EDDM1-00152",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.messaging"],
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking"
+        ],
+        "rpv1": ["Networking.messaging"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4656,7 +5156,13 @@
         "label": "EDDM1-00153",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [
+        "requirementpath": [
+            "Networking.messaging",
+            "Networking",
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": [
             "Authorizables.Groups",
             "Networking.messaging.to-groups"
         ],
@@ -4692,7 +5198,11 @@
         "label": "EDDM1-00154",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4722,7 +5232,11 @@
         "label": "EDDM1-00155",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -4747,7 +5261,11 @@
         "label": "EDDM1-00156",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4780,7 +5298,11 @@
         "label": "EDDM1-00157",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Access-Control-of-Content"],
+        "requirementpath": [
+            "Content",
+            "Content.Access-Control-of-Content"
+        ],
+        "rpv1": ["Content.Access-Control-of-Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4812,7 +5334,11 @@
         "label": "EDDM1-00158",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4845,7 +5371,11 @@
         "label": "EDDM1-00159",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4878,7 +5408,8 @@
         "label": "EDDM1-00160",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4910,7 +5441,11 @@
         "label": "EDDM1-00161",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -4942,7 +5477,11 @@
         "label": "EDDM1-00162",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -4972,7 +5511,11 @@
         "label": "EDDM1-00163",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5005,7 +5548,11 @@
         "label": "EDDM1-00164",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5035,7 +5582,11 @@
         "label": "EDDM1-00165",
         "last-edited-and-by-who": "23/02/2010 added clarity",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5067,7 +5618,11 @@
         "label": "EDDM1-00166",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5099,7 +5654,11 @@
         "label": "EDDM1-00167",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5132,7 +5691,11 @@
         "label": "EDDM1-00168",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5165,7 +5728,11 @@
         "label": "EDDM1-00169",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5195,7 +5762,11 @@
         "label": "EDDM1-00170",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5225,7 +5796,11 @@
         "label": "EDDM1-00171",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5255,7 +5830,11 @@
         "label": "EDDM1-00172",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5288,7 +5867,11 @@
         "label": "EDDM1-00173",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Networking.profile"],
+        "requirementpath": [
+            "Networking",
+            "Networking.profile"
+        ],
+        "rpv1": ["Networking.profile"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5320,7 +5903,8 @@
         "label": "EDDM1-00174",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "CSU",
         "technical-complexity--high--medium--low-": "",
@@ -5345,7 +5929,8 @@
         "label": "EDDM1-00175",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5375,7 +5960,11 @@
         "label": "EDDM1-00176",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5405,7 +5994,11 @@
         "label": "EDDM1-00177",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": ["administrator"],
         "source": "CSU",
         "technical-complexity--high--medium--low-": "",
@@ -5430,7 +6023,11 @@
         "label": "EDDM1-00178",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5460,7 +6057,11 @@
         "label": "EDDM1-00179",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5490,7 +6091,11 @@
         "label": "EDDM1-00180",
         "last-edited-and-by-who": "19/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5523,7 +6128,11 @@
         "label": "EDDM1-00181",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5556,7 +6165,11 @@
         "label": "EDDM1-00182",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5589,7 +6202,11 @@
         "label": "EDDM1-00183",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -5622,7 +6239,11 @@
         "label": "EDDM1-00184",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": ["administrator"],
         "source": "",
         "technical-complexity--high--medium--low-": "",
@@ -5647,7 +6268,11 @@
         "label": "EDDM1-00185",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5679,7 +6304,11 @@
         "label": "EDDM1-00186",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5711,7 +6340,11 @@
         "label": "EDDM1-00187",
         "last-edited-and-by-who": "23/02/2010 updated to make more generic",
         "nyu": "",
-        "requirementPath": ["Networking.contacts"],
+        "requirementpath": [
+            "Networking",
+            "Networking.contacts"
+        ],
+        "rpv1": ["Networking.contacts"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5743,7 +6376,11 @@
         "label": "EDDM1-00188",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Users"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Users"
+        ],
+        "rpv1": ["Authorizables.Users"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5775,7 +6412,11 @@
         "label": "EDDM1-00189",
         "last-edited-and-by-who": "22/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5807,7 +6448,11 @@
         "label": "EDDM1-00190",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": ["Content.Searching"],
+        "requirementpath": [
+            "Content.Searching",
+            "Content"
+        ],
+        "rpv1": ["Content.Searching"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5839,7 +6484,8 @@
         "label": "EDDM1-00191",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -5864,7 +6510,8 @@
         "label": "EDDM1-00192",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -5889,7 +6536,8 @@
         "label": "EDDM1-00193",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["everyone"],
         "source": "",
         "technical-complexity--high--medium--low-": "",
@@ -5914,7 +6562,8 @@
         "label": "EDDM1-00194",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["everyone"],
         "source": "",
         "technical-complexity--high--medium--low-": "",
@@ -5939,7 +6588,11 @@
         "label": "EDDM1-00195",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Recent-Activity"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Activity"
+        ],
+        "rpv1": ["Authorizables.Recent-Activity"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -5971,7 +6624,8 @@
         "label": "EDDM1-00196",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "Sakai 3",
         "technical-complexity--high--medium--low-": "",
@@ -5996,7 +6650,8 @@
         "label": "EDDM1-00197",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6028,7 +6683,8 @@
         "label": "EDDM1-00198",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -6058,7 +6714,11 @@
         "label": "EDDM1-00199",
         "last-edited-and-by-who": "23/02/10",
         "nyu": "",
-        "requirementPath": ["Authorizables.Groups"],
+        "requirementpath": [
+            "Authorizables",
+            "Authorizables.Groups"
+        ],
+        "rpv1": ["Authorizables.Groups"],
         "sakai-pov": [
             "administrative",
             "supervisor",
@@ -6088,7 +6748,8 @@
         "label": "EDDM1-00200",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6120,7 +6781,12 @@
         "label": "EDDM1-00201",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded.Media-Objects.Photo-Albums"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects.Photo-Albums"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6152,7 +6818,12 @@
         "label": "EDDM1-00202",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded.Media-Objects"],
+        "requirementpath": [
+            "Content.Uploaded.Media-Objects",
+            "Content.Uploaded",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Media-Objects"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6184,7 +6855,12 @@
         "label": "EDDM1-00203",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content.Uploaded.Online-Handling-of-Office-Formats"],
+        "requirementpath": [
+            "Content.Widgets",
+            "Content.Widgets.Viewers",
+            "Content"
+        ],
+        "rpv1": ["Content.Uploaded.Online-Handling-of-Office-Formats"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6216,7 +6892,8 @@
         "label": "EDDM1-00204",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6248,7 +6925,8 @@
         "label": "EDDM1-00205",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6280,7 +6958,8 @@
         "label": "EDDM1-00206",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6312,7 +6991,8 @@
         "label": "EDDM1-00207",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6344,7 +7024,8 @@
         "label": "EDDM1-00208",
         "last-edited-and-by-who": "01/03/10",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6376,7 +7057,8 @@
         "label": "EDDM1-00209",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": [],
         "source": "",
         "technical-complexity--high--medium--low-": "",
@@ -6401,7 +7083,8 @@
         "label": "EDDM1-00210",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6433,7 +7116,8 @@
         "label": "EDDM1-00211",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": ["Content"],
+        "requirementpath": ["Content"],
+        "rpv1": ["Content"],
         "sakai-pov": [
             "student",
             "postgraduate",
@@ -6465,7 +7149,8 @@
         "label": "EDDM1-00212",
         "last-edited-and-by-who": "",
         "nyu": "",
-        "requirementPath": [],
+        "requirementpath": [],
+        "rpv1": [],
         "sakai-pov": ["administrator"],
         "source": "",
         "technical-complexity--high--medium--low-": "",

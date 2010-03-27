@@ -28,7 +28,7 @@
 		     "label": "Point Of View",
 			 "valueType": "item"
 		   },
-           "requirementPath": {
+           "requirementpath": {
                "label":        "satisfied by",
                "reverseLabel": "satisfies",
                "valueType":    "item"
@@ -38,7 +38,7 @@
                "reverseLabel": "parent Of",
                "valueType":    "item"
            },
-           "implementationPhase": {
+           "implementationphase": {
                "label":        "implementated in",
                "reverseLabel": "contains",
                "valueType":    "item"
