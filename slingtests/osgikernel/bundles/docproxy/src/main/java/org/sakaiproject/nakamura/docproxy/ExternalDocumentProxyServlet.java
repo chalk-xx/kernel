@@ -96,7 +96,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       try {
         // Get actual content.
         ExternalDocumentResult result = processor.getDocument(node, path);
-        InputStream in = result.getDocumentInputStream(0);
+        InputStream in = result.getDocumentInputStream(0, session.getUserID());
 
         // Stream it to the user.
         OutputStream out = response.getOutputStream();

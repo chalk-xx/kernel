@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.xythos;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -33,42 +34,29 @@ import org.slf4j.LoggerFactory;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 
-import edu.nyu.XythosDocument;
 import edu.nyu.XythosRemote;
 
 /**
  * This is a bundle to provide access to Xythos on a remote server
  * 
  * This processor will write/read files to Xythos at a remote URI
- * @scr.component immediate="true" label="XythosRemote"
- *                description="Xythos Remote API implementation"
- * @scr.service interface="edu.nyu.XythosRemote"
- * @scr.property name="service.description"
- *               value="Xythos remote API"
- * @scr.property name="service.vendor" value="New York University"
  */
+@Component(enabled = true, immediate = true, metatype = true)
+@Service(value = XythosRemote.class)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "New York University"),
+    @Property(name = "service.description", value = "Xythos Remote API implementation")})
 public class HessianXythosRemote implements XythosRemote {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(HessianXythosRemote.class);
   
-  @Property(name = "xythosHost", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
+  @Property(name = "xythos.remote.host", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
   protected String xythosHost = "http://xtest1.home.nyu.edu:8080";
   
   protected String remotePath = "/remoting/remoting/XythosService";
   
   XythosRemote xythosService;
 
-  
-  public HessianXythosRemote() {
-    try {
-      HessianProxyFactory factory = new HessianProxyFactory();
-      xythosService = (XythosRemote) factory.create(XythosRemote.class,
-          xythosHost + remotePath, HessianXythosRemote.class.getClassLoader());
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e.getMessage());
-    }
-  }
-  
   public void createDirectory(String arg0, String arg1, String arg2, String arg3) {
     xythosService.createDirectory(arg0, arg1, arg2, arg3);
   }
@@ -101,11 +89,11 @@ public class HessianXythosRemote implements XythosRemote {
     return xythosService.getContentUri(arg0, arg1);
   }
 
-  public XythosDocument getDocument(String arg0, String arg1) {
+  public Map<String, Object> getDocument(String arg0, String arg1) {
     return xythosService.getDocument(arg0, arg1);
   }
 
-  public byte[] getFileContent(String arg0, String arg1) {
+  public InputStream getFileContent(String arg0, String arg1) {
     return xythosService.getFileContent(arg0, arg1);
   }
 
@@ -147,8 +135,16 @@ public class HessianXythosRemote implements XythosRemote {
   protected void activate(ComponentContext context) {
     // Get the properties from the console.
     Dictionary props = context.getProperties();
-    if (props.get("xythosHost") != null) {
-      xythosHost = props.get("xythosHost").toString();
+    if (props.get("xythos.remote.host") != null) {
+      xythosHost = props.get("xythos.remote.host").toString();
+    }
+
+    try {
+      HessianProxyFactory factory = new HessianProxyFactory();
+      xythosService = (XythosRemote) factory.create(XythosRemote.class,
+          xythosHost + remotePath, HessianXythosRemote.class.getClassLoader());
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e.getMessage());
     }
   }
 

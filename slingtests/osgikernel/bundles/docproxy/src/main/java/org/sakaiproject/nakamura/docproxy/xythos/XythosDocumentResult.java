@@ -21,8 +21,10 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 
 import edu.nyu.XythosDocument;
+import edu.nyu.XythosRemote;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -31,45 +33,33 @@ import java.util.Map;
  */
 public class XythosDocumentResult implements ExternalDocumentResult {
 
-  private InputStream inputStream;
   private long contentLength;
   private String contentType;
   private Map<String, Object> properties;
   private String uri;
-
+  private XythosRemote xythosService;
+  
   @SuppressWarnings("unchecked")
-  public XythosDocumentResult(Map<String,Object> document) {
-    this.inputStream = (InputStream)document.get("documentContent");
+  public XythosDocumentResult(Map<String,Object> document, XythosRemote xythosService) {
     this.contentLength = (Long)document.get("contentLength");
     this.contentType = (String)document.get("contentType");
     this.properties = (Map<String,Object>)document.get("properties");
     this.uri = (String)document.get("uri");
-  }
-  
-  public XythosDocumentResult(XythosDocument doc) {
-	  if (doc.getDocumentContent() != null) {
-		  this.inputStream = new ByteArrayInputStream(doc.getDocumentContent());
-	  }
-	  this.contentLength = doc.getContentLength();
-	  this.contentType = doc.getContentType();
-	  this.properties = doc.getProperties();
-	  this.uri = doc.getUri();
-  }
-  
-  public XythosDocumentResult(byte[] data, long contentLength, String contentType, Map<String, Object> props, String uri) {
-    this.inputStream = new ByteArrayInputStream(data);
-    this.contentLength = contentLength;
-    this.contentType = contentType;
-    this.properties = props;
-    this.uri = uri;
-  }
+    this.xythosService = xythosService;
+    }
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult#getDocumentInputStream(long)
    */
-  public InputStream getDocumentInputStream(long startingAt) throws DocProxyException {
-    return inputStream;
+  public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
+    try {
+      InputStream rv = xythosService.getFileContent(uri, userId);
+      rv.skip(startingAt);
+      return rv;
+    } catch (IOException e) {
+      throw new DocProxyException(500, "Could not start reading external repository document at the requested byte position: " + startingAt);
+    }
   }
 
   /**
@@ -109,7 +99,7 @@ public class XythosDocumentResult implements ExternalDocumentResult {
    * @see org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata#getUri()
    */
   public String getUri() {
-    return uri;
+    return "/xythos" + uri;
   }
 
 }

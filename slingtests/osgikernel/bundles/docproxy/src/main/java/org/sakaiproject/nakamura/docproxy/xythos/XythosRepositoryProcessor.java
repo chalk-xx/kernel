@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.docproxy.xythos;
 
-import edu.nyu.XythosDocument;
 import edu.nyu.XythosRemote;
 
 import org.apache.felix.scr.annotations.Component;
@@ -109,7 +108,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
       List<Map<String,Object>> xythosSearchResults = xythos.doSearch(searchProperties, currentUserId);
       for(Map<String,Object> doc : xythosSearchResults) {
-        searchResults.add(new XythosDocumentResult(doc));
+        searchResults.add(new XythosDocumentResult(doc, xythos));
       }
       return searchResults.iterator();
     } catch (RepositoryException e) {
@@ -144,7 +143,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
   }
   
   private XythosDocumentResult getFile(String path, String userId) {
-      return new XythosDocumentResult(xythos.getDocument(path, userId));
+      return new XythosDocumentResult(xythos.getDocument(path, userId), xythos);
   }
   
   public void removeDocument(Node node, String path) throws DocProxyException {

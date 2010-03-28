@@ -84,6 +84,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
         .andThrow(new PathNotFoundException());
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn("zach");
 
     // Request
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README");
@@ -127,6 +128,7 @@ public class DocumentProxyServletTest extends AbstractDocProxyServlet {
     expect(session.getItem("/docproxy/disk/README")).andReturn(documentNode);
     expect(session.getItem("/docproxy/disk")).andReturn(proxyNode);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
+    expect(session.getUserID()).andReturn("zach");
 
     // Request
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README");

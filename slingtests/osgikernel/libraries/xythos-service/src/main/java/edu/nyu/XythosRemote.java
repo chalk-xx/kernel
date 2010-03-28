@@ -1,5 +1,6 @@
 package edu.nyu;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public interface XythosRemote {
 	
 	Map<String,String> getProperties();
 	
-	byte[] getFileContent(String path, String userId);
+	InputStream getFileContent(String path, String userId);
 	
 	String getContentType(String path, String userId);
 	
@@ -41,7 +42,7 @@ public interface XythosRemote {
 	
 	Map<String, Object> getFileProperties(String path, String userId);
 	
-	XythosDocument getDocument(String path, String userId);
+	Map<String, Object> getDocument(String path, String userId);
 	
 	List<Map<String, Object>> doSearch(Map<String, Object> searchProperties, String userId);
 	
