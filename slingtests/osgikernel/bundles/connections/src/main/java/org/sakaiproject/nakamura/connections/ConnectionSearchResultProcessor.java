@@ -46,17 +46,18 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     if (aggregator != null) {
       aggregator.add(node);
     }
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable auMe = um.getAuthorizable(request.getRemoteUser());
-    
     String targetUser = node.getName();
+    
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable au = um.getAuthorizable(targetUser);
+    
     write.object();
     write.key("target");
     write.value(targetUser);
     write.key("profile");
     LOGGER.info("Getting info for {} ", targetUser);
     Node profileNode = (Node) node.getSession().getItem(
-        PersonalUtils.getProfilePath(auMe));
+        PersonalUtils.getProfilePath(au));
     ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);
