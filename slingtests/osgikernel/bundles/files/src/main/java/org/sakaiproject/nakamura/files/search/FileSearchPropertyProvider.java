@@ -94,60 +94,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     // Filter by tags
     propertiesMap.put("_tags", doTags(request));
-
-    // ###########################
-    // TODO /var/search/files/resources.json should be deleted.
-    // Resource types (used in resources.json).
-    // ###########################
-    RequestParameter resourceParam = request.getRequestParameter("resource");
-    String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
-    if (resourceParam != null) {
-      String type = resourceParam.getString();
-      if ("link".equals(type)) {
-        resourceTypes = "@sling:resourceType=\"sakai/link\"";
-      } else if ("folder".equals(type)) {
-        resourceTypes = "@sling:resourceType=\"sakai/folder\"";
-      }
-    }
-    propertiesMap.put("_resourceTypes", resourceTypes);
-
-    // ###########################
-    // Resource types (used in files.json)
-    // ###########################
-    String types[] = request.getParameterValues("type");
-    String typesWhere = "";
-    String search = getSearchValue(request);
-    if (types != null && types.length > 0) {
-      StringBuilder sb = new StringBuilder("");
-      sb.append("(");
-      for (String s : types) {
-        if (s.equals("sakai/file")) {
-          // Every sakai/file with search in it's filename or content.
-          sb.append("(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"").append(
-              search).append("\") or jcr:contains(jcr:content,\"").append(search).append(
-              "\"))) or ");
-        } else if (s.equals("sakai/link")) {
-          // Every link that has the search param in the filename.
-          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"").append(
-              search).append("\")) or ");
-        } else {
-          // Every other file that contains the search param in it's filename or in it's
-          // content.
-          sb.append("jcr:contains(.,\"");
-          sb.append(search);
-          sb.append("\") or ");
-        }
-      }
-
-      typesWhere = sb.toString();
-      typesWhere = typesWhere.substring(0, typesWhere.length() - 4);
-      typesWhere += ")";
-    } else {
-      // Default is sakai/files
-      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search
-          + "*\"))";
-    }
-    propertiesMap.put("_typesWhere", typesWhere);
   }
 
   /**
@@ -304,7 +250,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
         ConnectionState.ACCEPTED);
     StringBuilder sb = new StringBuilder();
     for (String u : connectedUsers) {
-      sb.append("@sakai:user=\"").append(u).append("\" or ");
+      sb.append("@jcr:createdBy=\"").append(u).append("\" or ");
     }
     String usersClause = sb.toString();
     int i = usersClause.lastIndexOf(" or ");
