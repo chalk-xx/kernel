@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
  * The servlet for requesting to delete an external repository document
  */
 
-@SlingServlet(resourceTypes = { "sakai/external-repository" }, methods = { "POST" }, generateComponent = true, generateService = true)
+@SlingServlet(resourceTypes = { "sakai/external-repository" }, selectors = { "delete" }, methods = { "POST" }, generateComponent = true, generateService = true)
 public class DeleteExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
 	private static final long serialVersionUID = -6965132523477790182L;
@@ -58,7 +58,7 @@ public class DeleteExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 			String url = request.getRequestURI();
 			Session session = request.getResourceResolver().adaptTo(
 					Session.class);
-			Node node = JcrUtils.getFirstExistingNode(session, url);
+			Node node = request.getResource().adaptTo(Node.class);
 
 			// for deletes, we look for the resources property
 			String[] resources = request.getParameterValues("resources");
