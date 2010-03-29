@@ -26,7 +26,6 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,6 @@ import java.io.IOException;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,62 +43,56 @@ import javax.servlet.http.HttpServletResponse;
 @SlingServlet(resourceTypes = { "sakai/external-repository" }, selectors = { "delete" }, methods = { "POST" }, generateComponent = true, generateService = true)
 public class DeleteExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
-	private static final long serialVersionUID = -6965132523477790182L;
-	protected ExternalRepositoryProcessorTracker tracker;
-	public static final Logger LOGGER = LoggerFactory
-			.getLogger(ExternalDocumentProxyServlet.class);
+  private static final long serialVersionUID = -6965132523477790182L;
+  protected ExternalRepositoryProcessorTracker tracker;
+  public static final Logger LOGGER = LoggerFactory
+      .getLogger(ExternalDocumentProxyServlet.class);
 
-	@Override
-	protected void doPost(SlingHttpServletRequest request,
-			SlingHttpServletResponse response) throws ServletException,
-			IOException {
-		try {
-			String url = request.getRequestURI();
-			Session session = request.getResourceResolver().adaptTo(
-					Session.class);
-			Node node = request.getResource().adaptTo(Node.class);
+  @Override
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    try {
+      Node node = request.getResource().adaptTo(Node.class);
 
-			// for deletes, we look for the resources property
-			String[] resources = request.getParameterValues("resources");
-			String processorType = node.getProperty(
-					DocProxyConstants.REPOSITORY_PROCESSOR).getString();
-			ExternalRepositoryProcessor processor = tracker
-					.getProcessorByType(processorType);
-			if (processor == null) {
-				response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-						"Unknown repository.");
-				return;
-			}
+      // for deletes, we look for the resources property
+      String[] resources = request.getParameterValues("resources");
+      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
+          .getString();
+      ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
+      if (processor == null) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
+        return;
+      }
 
-			for (String resource : resources) {
-				try {
-					String path = resource.substring(node.getPath().length());
-					processor.removeDocument(node, path);
-				} catch (DocProxyException e) {
-					response.sendError(e.getCode(), e.getMessage());
-				}
-			}
+      for (String resource : resources) {
+        try {
+          String path = resource.substring(node.getPath().length());
+          processor.removeDocument(node, path);
+        } catch (DocProxyException e) {
+          response.sendError(e.getCode(), e.getMessage());
+        }
+      }
 
-		} catch (RepositoryException e) {
-			LOGGER.error("Failed to retrieve document's content", e);
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"Failed to retrieve document's content");
-			return;
-		}
-	}
+    } catch (RepositoryException e) {
+      LOGGER.error("Failed to retrieve document's content", e);
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          "Failed to retrieve document's content");
+      return;
+    }
+  }
 
-	protected void activate(ComponentContext context) {
-		BundleContext bundleContext = context.getBundleContext();
-		tracker = new ExternalRepositoryProcessorTracker(bundleContext,
-				ExternalRepositoryProcessor.class.getName(), null);
-		tracker.open();
-	}
+  protected void activate(ComponentContext context) {
+    BundleContext bundleContext = context.getBundleContext();
+    tracker = new ExternalRepositoryProcessorTracker(bundleContext,
+        ExternalRepositoryProcessor.class.getName(), null);
+    tracker.open();
+  }
 
-	protected void deactivate(ComponentContext context) {
-		if (tracker != null) {
-			tracker.close();
-			tracker = null;
-		}
-	}
+  protected void deactivate(ComponentContext context) {
+    if (tracker != null) {
+      tracker.close();
+      tracker = null;
+    }
+  }
 
 }
