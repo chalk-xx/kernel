@@ -24,6 +24,7 @@ import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractUserPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
@@ -44,16 +45,20 @@ import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
+import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
@@ -243,6 +248,22 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
                     UserConstants.USER_REPO_LOCATION.length())));
               }
               try {
+                InputStream in = this.getClass().getResourceAsStream(userId + ".json");
+                String s = IOUtils.readFully(in, "UTF-8");
+                in.close();
+                JSONObject o = new JSONObject(s);
+                Iterator<String> keys = o.keys();
+                while (keys.hasNext()) {
+                  String key = keys.next();
+                  // TODO We might want to check the type of the json value.
+                  Value val = vf.createValue(o.getString(key));
+                  user.setProperty(key, val);
+                }
+              } catch (Exception e) {
+                log.warn("Failed to get JSON for default user: " + userId);
+              }
+              
+              try {
                 // Let all the processors create the nescecary paths ( home folders, authprofile, ..)
                 List<Modification> changes = new ArrayList<Modification>();
                 SakaiSlingHttpServletRequest request = new SakaiSlingHttpServletRequest(
@@ -261,7 +282,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
           if ( session.hasPendingChanges()) {
             session.save();
           }
-        } catch (RepositoryException e) {
+        } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         } finally {
