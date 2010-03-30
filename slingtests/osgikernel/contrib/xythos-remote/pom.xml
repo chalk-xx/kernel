@@ -39,6 +39,7 @@
 						<Private-Package> org.sakaiproject.nakamura.xythos </Private-Package>
 						<Embed-Transitive>true</Embed-Transitive>
 						<Embed-Dependency>hessian,xythos-service</Embed-Dependency>
+						<Sling-Initial-Content>SLING-INF/content</Sling-Initial-Content>
 					</instructions>
 				</configuration>
 			</plugin>
