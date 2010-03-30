@@ -439,7 +439,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         }
       }
     }
-    System.err.println("\n\n\n\n" + sb.toString());
     return sb.toString();
   }
 
