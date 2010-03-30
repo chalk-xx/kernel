@@ -63,6 +63,8 @@ public interface XythosRemote {
 	
 	void removeDocument(String path, String userId);
 	
+	void shareFileWithGroup(String groupId, String filePath, String userId);
+	
 
 
 }

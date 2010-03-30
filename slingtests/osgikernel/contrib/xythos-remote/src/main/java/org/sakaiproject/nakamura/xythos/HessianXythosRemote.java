@@ -148,4 +148,8 @@ public class HessianXythosRemote implements XythosRemote {
     }
   }
 
+  public void shareFileWithGroup(String groupId, String filePath, String userId) {
+    xythosService.shareFileWithGroup(groupId, filePath, userId);
+  }
+
 }
