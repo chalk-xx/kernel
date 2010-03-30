@@ -11,6 +11,9 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_T
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_LIMIT_RESULTS;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -87,7 +90,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     Row row = createMock(Row.class);
     
     Node queryNode = prepareNodeSessionWithQueryManagerAndResultNode(
-        row, "select * from y where x = 'foo' and u = 'bob' ");
+        row, "select * from y where x = 'foo' and u = 'admin' ");
 
     addStringPropertyToNode(queryNode, SAKAI_QUERY_TEMPLATE, "select * from y where x = 'foo' and u = '{_userId}' ");
     addStringPropertyToNode(queryNode, SAKAI_QUERY_LANGUAGE, Query.SQL);
@@ -100,14 +103,24 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     request = createMock(SlingHttpServletRequest.class);
-    expect(request.getRemoteUser()).andReturn("bob");
+    expect(request.getRemoteUser()).andReturn("admin");
     expect(request.getResource()).andReturn(resource);
     expect(request.getRequestParameter(PARAMS_PAGE)).andReturn(null).anyTimes();
     addStringRequestParameter(request, "items", "25");
     addStringRequestParameter(request, "q", "foo");
     
-    @SuppressWarnings("unused")
-    Session session = createMock(Session.class);
+    Authorizable au = createAuthorizable("admin", false, true);
+    
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable("admin")).andReturn(au);
+    
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    expect(session.getUserManager()).andReturn(um);
+    
+    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
+    expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(resourceResolver);
+    
     executeQuery(queryNode);
   }
 
@@ -232,7 +245,10 @@ public class SearchServletTest extends AbstractEasyMockTest {
       ServletException, RepositoryException {
     stringWriter = new StringWriter();
     response = createMock(SlingHttpServletResponse.class);
-    response.setHeader("Content-Type", "application/json");
+    response.setContentType("application/json");
+    expectLastCall();
+    response.setCharacterEncoding("UTF-8");
+    expectLastCall();
     expect(response.getWriter()).andReturn(new PrintWriter(stringWriter));
     searchServlet = new SearchServlet();
     searchServlet.defaultSearchProcessor = proc;

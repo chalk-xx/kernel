@@ -79,13 +79,13 @@ public class GeneralDocumentationServlet extends SlingSafeMethodsServlet {
     writer.append(DocumentationConstants.HTML_FOOTER);
   }
 
-  public void activate(ComponentContext context) {
+  protected void activate(ComponentContext context) {
     BundleContext bundleContext = context.getBundleContext();
     servletTracker = new ServletDocumentationTracker(bundleContext);
     servletTracker.open();
   }
 
-  public void deactivate(ComponentContext context) {
+  protected void deactivate(ComponentContext context) {
     if (servletTracker != null) {
       servletTracker.close();
       servletTracker = null;

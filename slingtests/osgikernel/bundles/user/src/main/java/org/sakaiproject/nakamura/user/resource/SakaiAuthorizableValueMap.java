@@ -188,7 +188,6 @@ public class SakaiAuthorizableValueMap implements ValueMap {
     protected void readFully() {
         if (!fullyRead) {
             try {
-              
                 Iterator pi = authorizable.getPropertyNames();
                 while (pi.hasNext()) {
                     String key = (String) pi.next();
@@ -206,6 +205,16 @@ public class SakaiAuthorizableValueMap implements ValueMap {
                 // TODO: log !!
             }
         }
+    }
+
+    /**
+     * Reads the authorizable map completely and returns the string
+     * representation of the cached properties.
+     */
+    @Override
+    public String toString() {
+        readFully();
+        return cache.toString();
     }
 
     // ---------- Unsupported Modification methods

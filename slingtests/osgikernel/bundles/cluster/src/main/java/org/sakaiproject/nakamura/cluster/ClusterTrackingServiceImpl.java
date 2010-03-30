@@ -144,7 +144,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @throws Exception
    */
   @SuppressWarnings("unchecked")
-  public void activate(ComponentContext ctx) throws Exception {
+  protected void activate(ComponentContext ctx) throws Exception {
 
     Dictionary<String, Object> properties = ctx.getProperties();
     thisSecureUrl = (String) properties.get(PROP_SECURE_HOST_URL);
@@ -164,7 +164,7 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @param ctx
    * @throws Exception
    */
-  public void deactivate(ComponentContext ctx) throws Exception {
+  protected void deactivate(ComponentContext ctx) throws Exception {
     removeInstance(serverId);
   }
 

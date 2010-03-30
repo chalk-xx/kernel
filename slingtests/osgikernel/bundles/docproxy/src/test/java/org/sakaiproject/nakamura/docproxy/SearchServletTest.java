@@ -84,7 +84,7 @@ public class SearchServletTest extends AbstractDocProxyServlet {
     searchNode.setProperty(REPOSITORY_REF, "uuid");
     searchNode.setSession(session);
     searchNode.setProperty("sakai:search-prop-starts-with", "{starts-with}");
-    expect(session.getNodeByUUID("uuid")).andReturn(proxyNode);
+    expect(session.getNodeByIdentifier("uuid")).andReturn(proxyNode);
     expect(resource.adaptTo(Node.class)).andReturn(searchNode);
     expect(request.getResource()).andReturn(resource);
 
@@ -95,6 +95,8 @@ public class SearchServletTest extends AbstractDocProxyServlet {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PrintWriter write = new PrintWriter(baos);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(write);
     replay();
 

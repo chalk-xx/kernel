@@ -11,8 +11,8 @@ class TC_Kern345Test < SlingTest
 
   def test_asymmetric_relationships
     m = Time.now.to_i.to_s
-    u1 = create_user("testuser#{m}")
-    u2 = create_user("otheruser#{m}")
+    u1 = create_user("testuser1#{m}")
+    u2 = create_user("otheruser1#{m}")
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
     cm.invite_contact(u2.name, [], ["follower"], ["leader"])
@@ -23,20 +23,23 @@ class TC_Kern345Test < SlingTest
 
   def test_shared_and_asymmetric_relationships
     m = Time.now.to_i.to_s
-    u1 = create_user("testuser#{m}")
-    u2 = create_user("otheruser#{m}")
+    u1 = create_user("testuser2#{m}")
+    u2 = create_user("otheruser2#{m}")
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
+	puts("As testuser#{m} inviting otheruser#{m} as a friend, colleque, follower")
     cm.invite_contact(u2.name, ["friend", "colleague"], ["follower"], ["leader"])
+	puts("Checking relationship testuser#{m} invited otheruser#{m} as a friend, colleque, follower")
     check_contact_relationships(cm, "friend", "colleague", "follower")
     @s.switch_user(u2)
+	puts("Checking relationship  otheruser#{m} was invited by testuser#{m} as a friend, colleque, leader")
     check_contact_relationships(cm, "friend", "colleague", "leader")
   end
 
   def test_removed_and_revised_relationships
     m = Time.now.to_i.to_s
-    u1 = create_user("testuser#{m}")
-    u2 = create_user("otheruser#{m}")
+    u1 = create_user("testuser3#{m}")
+    u2 = create_user("otheruser3#{m}")
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
     cm.invite_contact(u2.name, [], ["teacher"], ["student"])
@@ -46,7 +49,6 @@ class TC_Kern345Test < SlingTest
     puts "About to remove contact"
     cm.remove_contact(u1.name)
     puts "Afterwards..."
-    contacts = @s.get_node_props("/_user/contacts/all")
     assert_equal(0, cm.get_all()["results"].length, "Should have removed all contacts")
     @s.switch_user(u1)
     cm.invite_contact(u2.name, ["colleague"])

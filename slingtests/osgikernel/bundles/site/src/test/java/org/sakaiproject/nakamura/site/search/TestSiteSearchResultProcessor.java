@@ -83,7 +83,8 @@ public class TestSiteSearchResultProcessor extends AbstractEasyMockTest {
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);    
     Node resultNode = createMock(Node.class);
-    expect(resultNode.getPath()).andReturn("").times(itemCount);
+    expect(resultNode.getPath()).andReturn("/path/to/node").anyTimes();
+    expect(resultNode.getName()).andReturn("node").anyTimes();
     expect(request.getResourceResolver()).andReturn(resourceResolver).times(itemCount);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session).times(itemCount);
     expect(session.getItem("")).andReturn(resultNode).times(itemCount);

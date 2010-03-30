@@ -19,6 +19,7 @@
 package org.sakaiproject.nakamura.proxy;
 
 import org.apache.commons.collections.ExtendedProperties;
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.HttpMethod;
@@ -32,6 +33,7 @@ import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.velocity.Template;
@@ -56,7 +58,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -85,6 +89,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
 
+
   /**
    * The shared velocity engine, which should cache all the templates. (need to sort out
    * how to invalidate).
@@ -112,7 +117,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  public void activate(ComponentContext ctx) throws Exception {
+  protected void activate(ComponentContext ctx) throws Exception {
     velocityEngine = new VelocityEngine();
     velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
         this.getClass()));
@@ -140,7 +145,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param ctx
    * @throws Exception
    */
-  public void deactivate(ComponentContext ctx) throws Exception {
+  protected void deactivate(ComponentContext ctx) throws Exception {
     httpClientConnectionManager.shutdown();
   }
 
@@ -213,6 +218,31 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
         HttpMethod method = null;
         switch (proxyMethod) {
         case GET:
+          if (node.hasProperty(SAKAI_LIMIT_GET_SIZE)) {
+            long maxSize = node.getProperty(SAKAI_LIMIT_GET_SIZE).getLong();
+            method = new HeadMethod(endpointURL);
+            HttpMethodParams params = new HttpMethodParams(method.getParams());
+            // make certain we reject the body of a head
+            params.setBooleanParameter("http.protocol.reject-head-body", true);
+            method.setParams(params);
+            method.setFollowRedirects(true);
+            populateMethod(method, node, headers);
+            int result = httpClient.executeMethod(method);
+            if (result == 200) {
+              // Check if the content-length is smaller than the maximum (if any).
+              Header contentLengthHeader = method.getResponseHeader("Content-Length");
+              if (contentLengthHeader != null) {
+                long length = Long.parseLong(contentLengthHeader.getValue());
+                if (length > maxSize) {
+                  return new ProxyResponseImpl(
+                      HttpServletResponse.SC_PRECONDITION_FAILED, "Response too large",
+                      method);
+                }
+              }
+            } else {
+              return new ProxyResponseImpl(result, method);
+            }
+          }
           method = new GetMethod(endpointURL);
           // redirects work automatically for get, options and head, but not for put and
           // post
@@ -220,6 +250,10 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           break;
         case HEAD:
           method = new HeadMethod(endpointURL);
+          HttpMethodParams params = new HttpMethodParams(method.getParams());
+          // make certain we reject the body of a head
+          params.setBooleanParameter("http.protocol.reject-head-body", true);
+          method.setParams(params);
           // redirects work automatically for get, options and head, but not for put and
           // post
           method.setFollowRedirects(true);
@@ -243,20 +277,9 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
           method.setFollowRedirects(true);
 
         }
-        // follow redirects, but dont auto process 401's and the like.
-        // credentials should be provided
-        method.setDoAuthentication(false);
 
-        for (Entry<String, String> header : headers.entrySet()) {
-          method.addRequestHeader(header.getKey(), header.getValue());
-        }
+        populateMethod(method,node,headers);
 
-        Value[] additionalHeaders = JcrUtils.getValues(node, SAKAI_PROXY_HEADER);
-        for (Value v : additionalHeaders) {
-          String header = v.getString();
-          String[] keyVal = StringUtils.split(header, ':', 2);
-          method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
-        }
         if (requestInputStream == null && !node.hasProperty(SAKAI_PROXY_REQUEST_TEMPLATE)) {
           if (method instanceof PostMethod) {
             PostMethod postMethod = (PostMethod) method;
@@ -321,6 +344,28 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
     }
     throw new ProxyClientException("The Proxy request specified by " + node
         + " does not contain a valid endpoint specification ");
+  }
+
+  /**
+   * @param method
+   * @throws RepositoryException
+   */
+  private void populateMethod(HttpMethod method, Node node, Map<String, String> headers) throws RepositoryException {
+    // follow redirects, but dont auto process 401's and the like.
+    // credentials should be provided
+    method.setDoAuthentication(false);
+
+    for (Entry<String, String> header : headers.entrySet()) {
+      method.addRequestHeader(header.getKey(), header.getValue());
+    }
+
+    Value[] additionalHeaders = JcrUtils.getValues(node, SAKAI_PROXY_HEADER);
+    for (Value v : additionalHeaders) {
+      String header = v.getString();
+      String[] keyVal = StringUtils.split(header, ':', 2);
+      method.addRequestHeader(keyVal[0].trim(), keyVal[1].trim());
+    }
+
   }
 
   public HttpConnectionManager getHttpConnectionManager() {

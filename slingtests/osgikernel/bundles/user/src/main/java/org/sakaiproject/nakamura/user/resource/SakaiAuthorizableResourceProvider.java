@@ -131,7 +131,7 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                         }
                     }
                 }
-                log.info("Faled to resolve {} ",path);
+                log.debug("Failed to resolve {} ",path);
             } catch (RepositoryException re) {
                 throw new SlingException(
                     "Error looking up Authorizable for principal: " + pid, re);
@@ -176,16 +176,10 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
             }
             if (searchType != -1) {
                 PrincipalIterator principals = null;
-
-                // TODO: this actually does not work correctly since the
-                // jackrabbit findPrincipals API
-                // currently does an exact match of the search filter so it
-                // won't match a wildcard
                 Session session = resourceResolver.adaptTo(Session.class);
                 if (session != null) {
                     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-                    principals = principalManager.findPrincipals(".*",
-                        PrincipalManager.SEARCH_TYPE_NOT_GROUP);
+                    principals = principalManager.getPrincipals(searchType);
                 }
 
                 if (principals != null) {

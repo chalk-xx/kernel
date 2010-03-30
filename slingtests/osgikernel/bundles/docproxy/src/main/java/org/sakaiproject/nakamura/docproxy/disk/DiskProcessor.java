@@ -299,7 +299,7 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
       // Set the reference to the external repository config node.
       documentNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY,
           RT_EXTERNAL_REPOSITORY_DOCUMENT);
-      documentNode.setProperty(REPOSITORY_REF, node.getUUID());
+      documentNode.setProperty(REPOSITORY_REF, node.getIdentifier());
 
       // Write all the properties on the node.
       ValueFactory vf = session.getValueFactory();

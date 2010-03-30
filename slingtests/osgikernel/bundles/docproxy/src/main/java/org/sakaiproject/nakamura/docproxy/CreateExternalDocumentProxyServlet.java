@@ -103,6 +103,8 @@ public class CreateExternalDocumentProxyServlet extends SlingAllMethodsServlet {
         path = filename.getString();
       }
       processor.updateDocument(node, path, null, stream, filebody.getSize());
+      
+      // FIXME: I should respond with something ?
 
     } catch (RepositoryException e) {
       LOGGER.error("Failed to proxy document", e);

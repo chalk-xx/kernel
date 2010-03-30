@@ -225,13 +225,21 @@ module SlingInterface
     end
     
     def create_node(path, params)
-      result = execute_post(url_for(path), params.update("jcr:createdBy" => @user.name))
+      result = execute_post(url_for(path), params)
+    end
+    
+    def get_user()
+      return @user
     end
     
     def get_node_props_json(path)
       puts "Getting props for path: #{path}" if @debug
       result = execute_get(url_for("#{path}.json"))
-      return result.body
+      if ( result.code == "200" ) 
+        return result.body
+      end 
+      puts("Failed to get properties for "+path+" cause "+result.code+"\n"+result.body)
+      return "{}"
     end
     
     def get_node_props(path)

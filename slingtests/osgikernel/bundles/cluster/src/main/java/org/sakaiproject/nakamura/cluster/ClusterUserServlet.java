@@ -21,7 +21,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -189,7 +188,7 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
     initBlacklist();
   }
 
-  public void activate(ComponentContext componentContext) {
+  protected void activate(ComponentContext componentContext) {
     httpClient = new HttpClient(proxyClientService.getHttpConnectionManager());
   }
 
@@ -287,11 +286,6 @@ public class ClusterUserServlet extends SlingSafeMethodsServlet {
       }
       jsonWriter.endObject(); // properties
 
-      jsonWriter.key("principals").array();
-      for (PrincipalIterator pi = user.getPrincipals(); pi.hasNext();) {
-        jsonWriter.value(pi.nextPrincipal().getName());
-      }
-      jsonWriter.endArray();
 
       jsonWriter.key("declaredMembership").array();
       for (Iterator<?> gi = user.declaredMemberOf(); gi.hasNext();) {

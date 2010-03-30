@@ -118,7 +118,7 @@ public class DocProxyUtils {
           retval = (Node) item;
         }
       } else {
-        retval = session.getNodeByUUID(ref);
+        retval = session.getNodeByIdentifier(ref);
       }
       return retval;
     } catch (RepositoryException e) {

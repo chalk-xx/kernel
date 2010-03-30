@@ -218,7 +218,7 @@ public class JcrUtils {
 
       if (data != null) {
         long length = data.getLength();
-        InputStream stream = data.getStream();
+        InputStream stream = data.getBinary().getStream();
         return new NodeInputStream(node, stream, length);
       }
     } catch (RepositoryException re) {

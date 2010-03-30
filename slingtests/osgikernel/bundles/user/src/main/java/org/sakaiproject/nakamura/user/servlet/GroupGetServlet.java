@@ -15,6 +15,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -61,7 +62,6 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 2792407832129918578L;
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
@@ -83,6 +83,10 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
     }
 
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.object();
       ValueMap groupProps = resource.adaptTo(ValueMap.class);
@@ -93,7 +97,7 @@ public class GroupGetServlet extends SlingSafeMethodsServlet {
 
       }
       write.key("profile");
-      write.value("/_group/public/"+authorizable.getPrincipal().getName()+"/authprofile");
+      write.value("/_group"+PathUtils.getSubPath(authorizable)+"/public/authprofile");
       write.key("members");
       write.array();
       

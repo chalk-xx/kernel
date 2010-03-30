@@ -20,8 +20,6 @@ package org.sakaiproject.nakamura.api.user;
 import junit.framework.Assert;
 
 import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
-import org.apache.jackrabbit.core.persistence.obj.ObjectPersistenceManager;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.easymock.EasyMock;

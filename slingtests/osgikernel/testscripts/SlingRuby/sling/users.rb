@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'digest/sha1'
+
 $USERMANAGER_URI="system/userManager/"
 $GROUP_URI="#{$USERMANAGER_URI}group.create.html"
 $USER_URI="#{$USERMANAGER_URI}user.create.html"
@@ -12,6 +14,21 @@ module SlingUsers
 
     def initialize(name)
       @name = name
+    end
+    
+    
+    # Get the public path for a user
+    def public_path_for(sling)
+      return home_path_for(sling) + "/public"
+    end
+    
+    # Get the private path for a user
+    def private_path_for(sling)
+      return home_path_for(sling) + "/private"
+    end
+    
+    def message_path_for(sling,messageid)
+      return home_path_for(sling) + "/message/"+messageid[0,2]+"/"+messageid[2,2]+"/"+messageid[4,2]+"/"+messageid[6,2]+"/"+messageid
     end
 
   end
@@ -82,8 +99,17 @@ module SlingUsers
     end
 
     def members(sling)
-      props = sling.get_node_props("#{group_url}.json")
+      props = sling.get_node_props(group_url)
       return props["members"]
+    end
+
+    # Get the home folder of a group.
+    def home_path_for(sling)
+      if ( @path == nil )
+        props = sling.get_node_props(group_url)
+        @path = props["path"]
+      end
+      return "/_group"+@path
     end
 
     def self.url_for(name)
@@ -134,6 +160,16 @@ module SlingUsers
       sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
     end
 
+    # Get the home folder of a group.
+    def home_path_for(sling)
+      if ( @path == nil )
+        props = sling.get_node_props(user_url)
+        @path = props["path"]
+      end
+      return "/_user"+@path
+    end
+
+    
     def self.url_for(name)
       return "#{$USERMANAGER_URI}user/#{name}"
     end

@@ -102,6 +102,11 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
         return;
       }
       Version version = versionService.saveNode(node, request.getRemoteUser());
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
+
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.object();
       write.key("versionName");

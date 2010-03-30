@@ -152,7 +152,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          the userId to check
    * @return
    */
-  private boolean checkValidUserId(Session session, String userId)
+  private Authorizable checkValidUserId(Session session, String userId)
       throws ConnectionException {
     Authorizable authorizable;
     try {
@@ -162,7 +162,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
       if (authorizable != null && authorizable.getID().equals(userId)) {
-        return true;
+        return authorizable;
       }
     } catch (RepositoryException e) {
       // general repo failure
@@ -216,22 +216,25 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throws ConnectionException {
 
     Session session = resource.getResourceResolver().adaptTo(Session.class);
-    // fail if the supplied users are invalid
-    checkValidUserId(session, thisUserId);
-    checkValidUserId(session, otherUserId);
+    
     if (thisUserId.equals(otherUserId)) {
       throw new ConnectionException(
           400,
           "A user cannot operate on their own connection, this user and the other user are the same");
     }
+    
+    // fail if the supplied users are invalid
+    Authorizable thisAu = checkValidUserId(session, thisUserId);
+    Authorizable otherAu = checkValidUserId(session, otherUserId);
+    
 
     Session adminSession = null;
     try {
       adminSession = slingRepository.loginAdministrative(null);
 
       // get the contact userstore nodes
-      Node thisNode = getOrCreateConnectionNode(adminSession, thisUserId, otherUserId);
-      Node otherNode = getOrCreateConnectionNode(adminSession, otherUserId, thisUserId);
+      Node thisNode = getOrCreateConnectionNode(adminSession, thisAu, otherAu);
+      Node otherNode = getOrCreateConnectionNode(adminSession, otherAu, thisAu);
 
       // check the current states
       ConnectionState thisState = getConnectionState(thisNode);
@@ -290,8 +293,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       Session adminSession = slingRepository.loginAdministrative(null);
       try {
+        UserManager um = AccessControlUtil.getUserManager(adminSession);
+        Authorizable au = um.getAuthorizable(user);
         // this will generate the bigstore path
-        String connectionPath = ConnectionUtils.getConnectionPathBase(user);
+        String connectionPath = ConnectionUtils.getConnectionPathBase(au);
         // create the search query string
         String search = "/jcr:root" + ISO9075.encodePath(connectionPath)
             + "//element(*)[@" + JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY
@@ -319,7 +324,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return l;
   }
 
-  private Node getOrCreateConnectionNode(Session session, String fromUser, String toUser)
+  private Node getOrCreateConnectionNode(Session session, Authorizable fromUser, Authorizable toUser)
       throws RepositoryException {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
     try {
@@ -339,9 +344,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
         session.getItem(basePath);
       } catch (PathNotFoundException pnfe) {
         JcrUtils.deepGetOrCreateNode(session, basePath);
-        Authorizable authorizable = AccessControlUtil.getUserManager(session)
-            .getAuthorizable(fromUser);
-        addEntry(basePath, authorizable, session, WRITE_GRANTED,
+        addEntry(basePath, fromUser, session, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
             ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
         LOGGER.info("Added ACL to [{}]", basePath);
@@ -352,7 +355,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
             ConnectionConstants.SAKAI_CONTACT_RT);
         // Place a reference to the authprofile of the user.
         Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
-        node.setProperty("jcr:reference", profileNode.getUUID(), PropertyType.REFERENCE);
+        node.setProperty("jcr:reference", profileNode.getIdentifier(), PropertyType.REFERENCE);
       }
       return node;
     } finally {

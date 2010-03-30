@@ -75,7 +75,7 @@ public class TestSiteMembershipServlet extends AbstractSiteServiceServletTest {
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     MockNode siteNode = new MockNode(TEST_SITE_PATH);
-    expect(session.getNodeByUUID(TEST_SITE_UUID)).andReturn(siteNode);
+    expect(session.getNodeByIdentifier(TEST_SITE_UUID)).andReturn(siteNode);
     JSONArray sites = makeGetRequestReturningJSON();
     assertEquals("Expected 1 site back", 1, sites.length());
     JSONObject site = (JSONObject) sites.get(0);

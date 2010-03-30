@@ -34,6 +34,7 @@ public class ProxyResponseImpl implements ProxyResponse {
   private int result;
   private HttpMethod method;
   private Map<String, String[]> headers = new HashMap<String, String[]>();
+  private String cause;
 
   /**
    * @param result
@@ -69,6 +70,16 @@ public class ProxyResponseImpl implements ProxyResponse {
         headers.put(name, values);
       }
     }
+  }
+
+  /**
+   * @param scPreconditionFailed
+   * @param string
+   * @param method2
+   */
+  public ProxyResponseImpl(int result, String cause, HttpMethod method) {
+    this(result,method);
+    this.cause = cause;
   }
 
   /**
@@ -119,6 +130,13 @@ public class ProxyResponseImpl implements ProxyResponse {
   public void close() {
     method.releaseConnection();
     method = null;
+  }
+
+  /**
+   * @return the cause
+   */
+  public String getCause() {
+    return cause;
   }
 
 }

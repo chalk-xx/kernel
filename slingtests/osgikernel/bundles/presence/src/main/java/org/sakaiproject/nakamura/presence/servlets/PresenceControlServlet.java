@@ -175,6 +175,10 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       clear = clearParam.getString("UTF-8");
     }
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       JSONWriter jsonWriter = new JSONWriter(response.getWriter());
       jsonWriter.object();
       if ( clear != null  && clear.length() > 0) {

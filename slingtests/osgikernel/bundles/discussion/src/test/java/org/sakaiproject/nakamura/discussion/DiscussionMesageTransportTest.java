@@ -43,6 +43,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.AccessControlPolicy;
+import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.version.VersionException;
 
 /**
@@ -102,6 +105,11 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     expect(auth.getPrincipal()).andReturn(principal);
     expect(userManager.getAuthorizable("johndoe")).andReturn(auth);
     expect(adminSession.getUserManager()).andReturn(userManager);
+    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
+    expect(adminSession.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
+    AccessControlPolicyIterator accessControlPolicyIterator = createNiceMock(AccessControlPolicyIterator.class);
+    expect(accessControlManager.getApplicablePolicies("/sites/site/store/a1b2c3d4e5f6")).andReturn(accessControlPolicyIterator).atLeastOnce();
+    expect(accessControlManager.getPolicies("/sites/site/store/a1b2c3d4e5f6")).andReturn(new AccessControlPolicy[0]).atLeastOnce();
 
     // mockStatic(ACLUtils.class);
     // ACLUtils.addEntry("/sites/site/store/a1b2c3d4e5f6", auth, adminSession,

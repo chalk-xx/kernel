@@ -92,7 +92,7 @@ public class TagOperation extends AbstractSlingPostOperation {
     // Grab the tagNode.
     String uuid = uuidParam.getString();
     try {
-      tagNode = session.getNodeByUUID(uuid);
+      tagNode = session.getNodeByIdentifier(uuid);
       if (!FileUtils.isTag(tagNode)) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
             "Provided UUID doesn't point to a tag.");
@@ -130,7 +130,7 @@ public class TagOperation extends AbstractSlingPostOperation {
           }
 
           // Add the reference from the tag to the node.
-          String tagUuid = tagNode.getUUID();
+          String tagUuid = tagNode.getIdentifier();
           String tagName = tagNode.getName();
           if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
             tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();

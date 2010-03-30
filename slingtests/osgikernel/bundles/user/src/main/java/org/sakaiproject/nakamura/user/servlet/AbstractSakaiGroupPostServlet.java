@@ -18,7 +18,6 @@ package org.sakaiproject.nakamura.user.servlet;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
@@ -29,11 +28,7 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,19 +44,17 @@ import javax.jcr.ValueFactory;
 public abstract class AbstractSakaiGroupPostServlet extends
         AbstractAuthorizablePostServlet {
     private static final long serialVersionUID = 1159063041816944076L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSakaiGroupPostServlet.class);
 
     /**
      * Update the group membership based on the ":member" request parameters. If
      * the ":member" value ends with @Delete it is removed from the group
      * membership, otherwise it is added to the group membership.
-     * @param session 
      * 
      * @param request
      * @param authorizable
      * @throws RepositoryException
      */
-    protected void updateGroupMembership(Session session, SlingHttpServletRequest request,
+    protected void updateGroupMembership(SlingHttpServletRequest request,
             Authorizable authorizable, List<Modification> changes)
             throws RepositoryException {
         if (authorizable.isGroup()) {
@@ -73,66 +66,33 @@ public abstract class AbstractSakaiGroupPostServlet extends
             Resource baseResource = request.getResource();
             boolean changed = false;
             
-            UserManager userManager = AccessControlUtil.getUserManager(session);
-            
-            int addIndex = 0;
-            int removeIndex = 0;
-            List<Modification> userChanges = new ArrayList<Modification>();
+            UserManager userManager = AccessControlUtil.getUserManager(resolver.adaptTo(Session.class));
 
+            // first remove any members posted as ":member@Delete"
             String[] membersToDelete = request.getParameterValues(SlingPostConstants.RP_PREFIX
                 + "member" + SlingPostConstants.SUFFIX_DELETE);
+            if (membersToDelete != null) {
+                for (String member : membersToDelete) {
+                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+                    if (memberAuthorizable != null) {
+                        group.removeMember(memberAuthorizable);
+                        changed = true;
+                    }
+
+                }
+            }
+
+            // second add any members posted as ":member"
             String[] membersToAdd = request.getParameterValues(SlingPostConstants.RP_PREFIX
                 + "member");
-            try {
-              // first remove any members posted as ":member@Delete"
-              if (membersToDelete != null) {
-                  for (removeIndex=0; removeIndex<membersToDelete.length; removeIndex++) {
-                      if (removeMember(group, membersToDelete[removeIndex], baseResource, userManager, resolver)) {
-                        String[] usernameParts = membersToDelete[removeIndex].split("\\/");
-                        Authorizable au = userManager.getAuthorizable(usernameParts[usernameParts.length - 1]);
-                        Modification mod;
-                        if (au.isGroup()) {
-                          mod = GroupModification.onGroupLeave(groupPath + "/members", group, (Group)au);
-                        }
-                        else {
-                          mod = UserModification.onGroupLeave(groupPath + "/members", group, (User)au);
-                        }
-                        userChanges.add(mod);
+            if (membersToAdd != null) {
+                for (String member : membersToAdd) {
+                    Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
+                    if (memberAuthorizable != null) {
+                        group.addMember(memberAuthorizable);
                         changed = true;
-                      }
-                  }
-              }
-
-              // second add any members posted as ":member"
-              if (membersToAdd != null) {
-                for (addIndex=0; addIndex<membersToAdd.length; addIndex++) {
-                    if (addMember(group, membersToAdd[addIndex], baseResource, userManager, resolver)) {
-                      String[] usernameParts = membersToAdd[addIndex].split("\\/");
-                      Authorizable au = userManager.getAuthorizable(usernameParts[usernameParts.length - 1]);
-                      Modification mod;
-                      if (au.isGroup()) {
-                        mod = GroupModification.onGroupLeave(groupPath + "/members", group, (Group)au);
-                      }
-                      else {
-                        mod = UserModification.onGroupLeave(groupPath + "/members", group, (User)au);
-                      }
-                      userChanges.add(mod);
-                      changed = true;
                     }
                 }
-              }
-
-              changes.addAll(userChanges);
-
-            } catch (RepositoryException re) {
-              LOGGER.debug("Group membership modification failed, rolling back");
-              for (int unaddIndex = addIndex - 1; unaddIndex >= 0; unaddIndex--) {
-                removeMember(group, membersToAdd[unaddIndex], baseResource, userManager, resolver);
-              }
-              for (int unremoveIndex = removeIndex - 1; unremoveIndex >= 0; unremoveIndex--) {
-                addMember(group, membersToDelete[unremoveIndex], baseResource, userManager, resolver);
-              }
-              throw re;
             }
 
             if (changed) {
@@ -141,30 +101,6 @@ public abstract class AbstractSakaiGroupPostServlet extends
                 changes.add(Modification.onModified(groupPath + "/members"));
             }
         }
-    }
-
-    private boolean removeMember(Group group, String member, Resource baseResource,
-        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
-      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-      if (memberAuthorizable != null) {
-          if (!group.removeMember(memberAuthorizable)) {
-            throw new RepositoryException("Unable to remove user " + member + " from group " + group.getID());
-          }
-          return true;
-      }
-      return false;
-    }
-
-    private boolean addMember(Group group, String member, Resource baseResource,
-        UserManager userManager, ResourceResolver resolver) throws RepositoryException {
-      Authorizable memberAuthorizable = getAuthorizable(baseResource, member,userManager,resolver);
-      if (memberAuthorizable != null) {
-          if (!group.addMember(memberAuthorizable)) {
-            throw new RepositoryException("Unable to add user " + member + " to group " + group.getID());
-          }
-          return true;
-      }
-      return false;
     }
 
     /**
@@ -178,11 +114,15 @@ public abstract class AbstractSakaiGroupPostServlet extends
         ResourceResolver resolver) {
       Authorizable memberAuthorizable = null;
       try {
-        String memberId = PathUtils.lastElement(member);
-        memberAuthorizable = userManager.getAuthorizable(memberId);
+        memberAuthorizable = userManager.getAuthorizable(member);
       } catch (RepositoryException e) {
         // if we can't find the members then it may be resolvable as a resource.
-        LOGGER.warn("Failed to find member "+member,e);
+      }
+      if ( memberAuthorizable == null ) {
+          Resource res = resolver.getResource(baseResource, member);
+          if (res != null) {
+              memberAuthorizable = res.adaptTo(Authorizable.class);
+          }
       }
       return memberAuthorizable;
     }
@@ -195,7 +135,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
      * @param changes changes made
      * @throws RepositoryException 
      */
-    protected void updateOwnership(Session session, SlingHttpServletRequest request,
+    protected void updateOwnership(SlingHttpServletRequest request,
         Group group, String[] principalChange, List<Modification> changes) throws RepositoryException {
       Set<String> adminPrincipals = new HashSet<String>();
       if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
@@ -223,7 +163,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
         }
       }
       if (changed) {
-        ValueFactory valueFactory = session.getValueFactory();
+        ValueFactory valueFactory = request.getResourceResolver().adaptTo(Session.class).getValueFactory();
         Value[] newAdminPrincipals = new Value[adminPrincipals.size()];
         int i = 0;
         for (String adminPrincipalName : adminPrincipals) {

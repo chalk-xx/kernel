@@ -19,28 +19,39 @@ function install_felix {
      mvn install:install-file -DgroupId=org.apache.felix -DartifactId=${1} -Dversion=${2}-${3} -Dpackaging=jar -Dfile=$repo/org/apache/felix/${1}/${2}-SNAPSHOT/${1}-${2}-SNAPSHOT.jar
    fi
 }
-install "org.apache.sling.extensions.webconsolebranding" "0.0.1" $version
-install "org.apache.sling.jcr.webconsole" "1.0.0" $version
-install "org.apache.sling.commons.json" "2.0.5" $version
+
+install_felix "org.apache.felix.webconsole" "2.0.7" $version
+install_felix "org.apache.felix.webconsole.plugins.event" "1.0.0" $version
+install "maven-launchpad-plugin" "2.0.5" $version
+install "org.apache.sling.api" "2.0.9" $version
 install "org.apache.sling.commons.auth" "0.9.0" $version
+install "org.apache.sling.commons.json" "2.0.5" $version
+install "org.apache.sling.commons.log" "2.0.7" $version
+install "org.apache.sling.commons.osgi" "2.0.5" $version
+install "org.apache.sling.commons.testing" "2.0.5" $version
 install "org.apache.sling.engine" "2.0.7" $version
-install "org.apache.sling.systemstatus" "0.9.0" $version
+install "org.apache.sling.extensions.groovy" "1.0.0" $version
+install "org.apache.sling.extensions.webconsolebranding" "0.0.1" $version
 install "org.apache.sling.httpauth" "2.0.5" $version
+install "org.apache.sling.jcr.api" "2.0.7" $version
+install "org.apache.sling.jcr.base" "2.0.7" $version
+install "org.apache.sling.jcr.contentloader" "2.0.7" $version
+install "org.apache.sling.jcr.jackrabbit.accessmanager" "2.0.5" $version
+install "org.apache.sling.jcr.jackrabbit.server" "2.0.7" $version
+install "org.apache.sling.jcr.jackrabbit.usermanager" "2.0.5" $version
+install "org.apache.sling.jcr.resource" "2.0.7" $version
+install "org.apache.sling.jcr.resource" "2.0.7"  $version
+install "org.apache.sling.jcr.webconsole" "1.0.0" $version
+install "org.apache.sling.jcr.webdav" "2.0.9" $version
+install "org.apache.sling.launchpad.content" "2.0.5" $version
 install "org.apache.sling.openidauth" "0.9.1" $version
+install "org.apache.sling.scripting.core" "2.0.11" $version
+install "org.apache.sling.scripting.jsp" "2.0.9" $version
+install "org.apache.sling.scripting.jsp.taglib" "2.0.7" $version
 install "org.apache.sling.servlets.get" "2.0.9" $version
 install "org.apache.sling.servlets.post" "2.0.5" $version
-install "org.apache.sling.jcr.resource" "2.0.7" $version
-install "org.apache.sling.commons.osgi" 2.0.5 $version
-install "org.apache.sling.scripting.core" 2.0.9 $version
-install "org.apache.sling.scripting.jsp" 2.0.9 $version
-install "org.apache.sling.scripting.jsp.taglib" 2.0.7 $version
-install "org.apache.sling.commons.testing" 2.0.5 $version
-install "maven-launchpad-plugin" 2.0.5 $version
-install "org.apache.sling.launchpad.base" 2.1.1 $version
-install "org.apache.sling.commons.log" 2.0.7 $version
-install_felix "org.apache.felix.webconsole" 2.0.7 $version
-install_felix "org.apache.felix.webconsole.plugins.event" 1.0.0 $version
-install "org.apache.sling.extensions.groovy" 1.0.0 $version
+install "maven-launchpad-plugin" "2.0.5" $version
+
 
 pushd $repo
 vsearch="*${version}*"

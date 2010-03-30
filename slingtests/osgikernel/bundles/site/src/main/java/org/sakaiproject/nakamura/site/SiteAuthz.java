@@ -17,15 +17,7 @@
  */
 package org.sakaiproject.nakamura.site;
 
-import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
-
-import org.apache.jackrabbit.api.jsr283.security.AccessControlEntry;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlList;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicy;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlPolicyIterator;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -38,7 +30,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +50,8 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
 /**
  *
@@ -100,7 +93,7 @@ public class SiteAuthz {
    */
   public SiteAuthz(Node site) throws RepositoryException {
     this.site = site;
-    this.siteRef = site.getUUID();
+    this.siteRef = site.getIdentifier();
     this.roleToGroupMap = new HashMap<String, String>();
     if (site.hasProperty(SITE_ROLES_PROPERTY)
         && site.hasProperty(SITE_ROLE_MEMBERSHIPS_PROPERTY)) {
@@ -192,9 +185,6 @@ public class SiteAuthz {
     JcrResourceUtil.setProperty(site, SiteService.AUTHORIZABLE, membershipGroups
         .toArray(new String[membershipGroups.size()]));
 
-    // Apply standard ACLs to site node.
-    applyStandardAccessRules();
-
     // Apply default access scheme to site node.
     JSONObject defaultProperties = getAuthzConfig().optJSONObject("defaultProperties");
     if (defaultProperties != null) {
@@ -207,6 +197,8 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
       applyAuthzChanges();
+    } else {
+      applyStandardAccessRules();
     }
   }
 
@@ -246,6 +238,11 @@ public class SiteAuthz {
         LOGGER.error("Bad site authz config for site " + site.getPath(), e);
       }
     }
+
+    // Re-apply standard ACLs to site node to position them as most recent.
+    // Otherwise they might be functionally overwritten due to ordered
+    // ACL provision.
+    applyStandardAccessRules();
   }
 
   private boolean applyAccessScheme(String accessSchemeName, JSONObject accessSchemes)
@@ -267,79 +264,6 @@ public class SiteAuthz {
     return isAuthzChanged;
   }
 
-  /**
-   * TODO This is copied from
-   * org.apache.sling.jcr.jackrabbit.accessmanager.post.ModifyAceServlet code which should
-   * instead be refactored into a shared service.
-   */
-  private void replaceAccessControlEntry(Session session, String resourcePath,
-      String principalId, Collection<String> grants, Collection<String> denies)
-      throws RepositoryException {
-    AccessControlManager accessControlManager = AccessControlUtil
-        .getAccessControlManager(session);
-
-    // Get the ACL for the node.
-    AccessControlList acl = null;
-    AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
-    for (AccessControlPolicy policy : policies) {
-      if (policy instanceof AccessControlList) {
-        acl = (AccessControlList) policy;
-        break;
-      }
-    }
-    if (acl == null) {
-      AccessControlPolicyIterator applicablePolicies = accessControlManager
-          .getApplicablePolicies(resourcePath);
-      while (applicablePolicies.hasNext()) {
-        AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-        if (policy instanceof AccessControlList) {
-          acl = (AccessControlList) policy;
-          break;
-        }
-      }
-    }
-    if (acl == null) {
-      throw new RepositoryException("Could not obtain ACL for resource " + resourcePath);
-    }
-
-    // Remove any existing ACE for the specified principal.
-    AccessControlEntry[] accessControlEntries = acl.getAccessControlEntries();
-    for (AccessControlEntry ace : accessControlEntries) {
-      if (principalId.equals(ace.getPrincipal().getName())) {
-        acl.removeAccessControlEntry(ace);
-      }
-    }
-
-    // Add new ACEs (if any) for the specified principal.
-    if (!grants.isEmpty() || !denies.isEmpty()) {
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Principal principal = userManager.getAuthorizable(principalId).getPrincipal();
-      List<Privilege> grantedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : grants) {
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        grantedPrivilegeList.add(privilege);
-      }
-      if (grantedPrivilegeList.size() > 0) {
-        acl.addAccessControlEntry(principal, grantedPrivilegeList
-            .toArray(new Privilege[grantedPrivilegeList.size()]));
-      }
-      List<Privilege> deniedPrivilegeList = new ArrayList<Privilege>();
-      for (String name : denies) {
-        Privilege privilege = accessControlManager.privilegeFromName(name);
-        deniedPrivilegeList.add(privilege);
-      }
-      if (deniedPrivilegeList.size() > 0) {
-        AccessControlUtil.addEntry(acl, principal, deniedPrivilegeList
-            .toArray(new Privilege[deniedPrivilegeList.size()]), false);
-      }
-    }
-
-    // Save the changes.
-    accessControlManager.setPolicy(resourcePath, acl);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-  }
 
   private boolean applyAceModification(JSONObject aceModification)
       throws RepositoryException {
@@ -352,6 +276,9 @@ public class SiteAuthz {
       }
     }
     if (principalId.length() != 0) {
+      Session session = site.getSession();
+      PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+      Principal principal = principalManager.getPrincipal(principalId);
       List<String> grants = new ArrayList<String>();
       List<String> denies = new ArrayList<String>();
       JSONObject aces = aceModification.optJSONObject("aces");
@@ -367,8 +294,10 @@ public class SiteAuthz {
           }
         }
       }
-      replaceAccessControlEntry(site.getSession(), site.getPath(), principalId, grants,
-          denies);
+      // Start with a clean slate for this principal.
+      String[] removes = {"jcr:all"};
+      AccessControlUtil.replaceAccessControlEntry(site.getSession(), site.getPath(), principal,
+          grants.toArray(new String[grants.size()]), denies.toArray(new String[denies.size()]), removes);
       isAuthzChanged = true;
     }
     return isAuthzChanged;
@@ -376,9 +305,11 @@ public class SiteAuthz {
 
   private void applyStandardAccessRules() throws RepositoryException {
     try {
-      JSONArray standardAces = getAuthzConfig().getJSONArray("standardAces");
-      for (int i = 0; i < standardAces.length(); i++) {
-        applyAceModification(standardAces.getJSONObject(i));
+      JSONArray standardAces = getAuthzConfig().optJSONArray("standardAces");
+      if (standardAces != null) {
+        for (int i = 0; i < standardAces.length(); i++) {
+          applyAceModification(standardAces.getJSONObject(i));
+        }
       }
     } catch (JSONException e) {
       LOGGER.error("Bad site authz config for site " + site.getPath(), e);
@@ -404,7 +335,7 @@ public class SiteAuthz {
       public String getName() {
         return principalName;
       }
-    }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
+    });
 
     return group;
   }
@@ -417,7 +348,7 @@ public class SiteAuthz {
       // Site names exist in a hierarchical namespace but group names exist
       // in a flat namespace. To lessen the chance of conflicts, use the
       // node UUID to generate site-dependent group names.
-      String siteId = site.getUUID();
+      String siteId = site.getIdentifier();
       Session session = site.getSession();
       ValueFactory valueFactory = session.getValueFactory();
       String maintenanceRole = getMaintenanceRole();
@@ -513,7 +444,6 @@ public class SiteAuthz {
    * TODO Mostly copied from UpdateSakaiGroupPostServlet, and should be moved to a
    * shared service or utility function. See KERN-580.
    */
-  @SuppressWarnings("unchecked")
   private static boolean isUserGroupMaintainer(Session session, Group group) throws RepositoryException {
     boolean isMaintainer = false;
     UserManager userManager = AccessControlUtil.getUserManager(session);
@@ -526,10 +456,12 @@ public class SiteAuthz {
     } else {
       if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
         Set<String> userPrincipals = new HashSet<String>();
+        /* The following does not exist in JR2
         for (PrincipalIterator iter = currentUser.getPrincipals(); iter.hasNext();) {
           String pname = iter.nextPrincipal().getName();
           userPrincipals.add(pname);
         }
+        */
         for (Iterator<Group> iter = currentUser.declaredMemberOf(); iter.hasNext();) {
           Group userGroup = iter.next();
           userPrincipals.add(userGroup.getID());
@@ -560,7 +492,6 @@ public class SiteAuthz {
    * @param group
    * @throws RepositoryException
    */
-  @SuppressWarnings("unchecked")
   private void deleteGroup(Session session, SlingRepository slingRepository, Group group)
       throws RepositoryException {
     if (!isUserGroupMaintainer(session, group)) {
@@ -569,30 +500,38 @@ public class SiteAuthz {
     }
     // Switch to an administrative session.
     String groupId = group.getID();
-    Session adminSession = slingRepository.loginAdministrative(null);
-    UserManager userManager = AccessControlUtil.getUserManager(adminSession);
-    Authorizable authorizable = userManager.getAuthorizable(groupId);
-    if (authorizable.isGroup()) {
-      Group workingGroup = (Group)authorizable;
-      // Is this group actually dependent on the site?
-      if (group.hasProperty(GROUP_SITE_PROPERTY)) {
-        Value[] groupSiteValues = group.getProperty(GROUP_SITE_PROPERTY);
-        if (groupSiteValues.length == 1) {
-          String groupSiteRef = groupSiteValues[0].getString();
-          if (groupSiteRef.equals(siteRef)) {
-            LOGGER.info("Delete site membership group {}", workingGroup.getID());
-            Iterator<Authorizable> members = workingGroup.getDeclaredMembers();
-            while (members.hasNext()) {
-              Authorizable member = members.next();
-              workingGroup.removeMember(member);
+    Session adminSession = null;
+    try {
+      adminSession = slingRepository.loginAdministrative(null);
+      UserManager userManager = AccessControlUtil.getUserManager(adminSession);
+      Authorizable authorizable = userManager.getAuthorizable(groupId);
+      if (authorizable.isGroup()) {
+        Group workingGroup = (Group)authorizable;
+        // Is this group actually dependent on the site?
+        if (group.hasProperty(GROUP_SITE_PROPERTY)) {
+          Value[] groupSiteValues = group.getProperty(GROUP_SITE_PROPERTY);
+          if (groupSiteValues.length == 1) {
+            String groupSiteRef = groupSiteValues[0].getString();
+            if (groupSiteRef.equals(siteRef)) {
+              LOGGER.info("Delete site membership group {}", workingGroup.getID());
+              Iterator<Authorizable> members = workingGroup.getDeclaredMembers();
+              while (members.hasNext()) {
+                Authorizable member = members.next();
+                workingGroup.removeMember(member);
+              }
+              workingGroup.remove();
+            } else {
+              LOGGER.info("Membership group {} not linked to site {}",
+                  new Object[] {workingGroup.getID(), siteRef});
             }
-            workingGroup.remove();
-          } else {
-            LOGGER.info("Membership group {} not linked to site {}",
-                new Object[] {workingGroup.getID(), siteRef});
           }
         }
       }
+      if ( adminSession.hasPendingChanges() ) {
+        adminSession.save();
+      }
+    } finally {
+      adminSession.logout();
     }
   }
 }

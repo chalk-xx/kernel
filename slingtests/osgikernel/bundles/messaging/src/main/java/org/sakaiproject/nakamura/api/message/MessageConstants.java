@@ -118,12 +118,12 @@ public interface MessageConstants {
    *
    */
   public static final String EVENT_LOCATION = "location";
+  
   /**
    * JCR folder name for messages.
    */
   public static final String FOLDER_MESSAGES = "message";
-  public static final String _USER_MESSAGE = "/_user/message";
-  public static final String _GROUP_MESSAGE = "/_group/message";
+  
   /**
    * JCR folder name for chat logs.
    */

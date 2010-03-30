@@ -24,6 +24,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -43,9 +44,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
@@ -98,7 +101,6 @@ public class SiteMembersServlet extends AbstractSiteServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
 
-  @SuppressWarnings("unchecked")
   @Override
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="Exceptions are caught to ensure that the correct status code gets sent.", value={"REC_CATCH_EXCEPTION"})
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -181,9 +183,29 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         for (; members.hasNext();) {
           User u = members.next();
           Resource resource = request.getResourceResolver().resolve(
-          //    "/system/userManager/user/" + u.getID());
-                  PersonalUtils.getProfilePath(u.getID()));
-          ValueMap map = resource.adaptTo(ValueMap.class);
+              PersonalUtils.getProfilePath(u));
+          ValueMap map = null;
+          if ( resource != null ) {
+            map = resource.adaptTo(ValueMap.class);
+          }
+          if ( map == null ) {
+            Map<String, Object> m = new HashMap<String, Object>();
+            for ( Iterator<String> names = u.getPropertyNames(); names.hasNext(); ) {
+              String n = names.next();
+              Value[] v = u.getProperty(n);
+              if ( v.length == 1 ) {
+                m.put(n, v[0].getString());
+              } else if ( v.length > 1 ) {
+                String[] s = new String[v.length];
+                for ( int i = 0; i < v.length; i++ ) {
+                  s[i] = v[i].getString();
+                }
+                m.put(n, s);
+              }
+            }
+            m.put("rep:userId", u.getID());
+            map = new ValueMapDecorator(m);
+          }
           
           
           // add in the listing of member group names -
@@ -200,7 +222,9 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
           // create the JSON object
           output.object();
-          output.valueMapInternals(map);
+          if ( map != null ) {
+            output.valueMapInternals(map);
+          }
           // add in the extra fields if there are any
           if (groupIds != null && !groupIds.isEmpty()) {
             // filter the group ids so only the ones which are part of this site are shown

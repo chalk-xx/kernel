@@ -19,6 +19,11 @@ package org.sakaiproject.nakamura.testutils.easymock;
 
 import static org.easymock.EasyMock.expect;
 
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.easymock.EasyMock;
@@ -150,6 +155,64 @@ public class AbstractEasyMockTest {
         .andReturn(new ServiceReference[0]).anyTimes();
     EasyMock.replay(bundleContext);
     return bundleContext;
+  }
+  
+  /**
+   * @param id
+   *          The id of the {@link User user} or {@link Group group}.
+   * @param isGroup
+   *          Whether or not this authorizable is a group.
+   * @param doReplay
+   *          Whether or not this mock should be replayed.
+   * @return A mocked {@link Authorizable Authorizable}.
+   * @throws RepositoryException
+   */
+  protected Authorizable createAuthorizable(String id, boolean isGroup, boolean doReplay)
+      throws RepositoryException {
+    Authorizable au = EasyMock.createMock(Authorizable.class);
+    expect(au.getID()).andReturn(id).anyTimes();
+    expect(au.isGroup()).andReturn(isGroup).anyTimes();
+    ItemBasedPrincipal p = EasyMock.createMock(ItemBasedPrincipal.class);
+    String hashedPath = "/"+id.substring(0,1)+"/"+id.substring(0,2)+"/"+id;
+    expect(p.getPath()).andReturn("rep:" + hashedPath).anyTimes();
+    expect(au.getPrincipal()).andReturn(p).anyTimes();
+    expect(au.hasProperty("path")).andReturn(true).anyTimes();
+    Value v = EasyMock.createNiceMock(Value.class);
+    expect(v.getString()).andReturn(hashedPath).anyTimes();
+    expect(au.getProperty("path")).andReturn(new Value[] { v }).anyTimes();
+    EasyMock.replay(p);
+    EasyMock.replay(v);
+    if (doReplay) {
+      EasyMock.replay(au);
+    }
+    return au;
+  }
+
+  /**
+   * Adds a bunch of authorizables to a {@link UserManager user manager}.
+   * 
+   * @param um
+   *          The UserManager where the authorizables should be added to. Pass in null to
+   *          create a new one.
+   * @param doReplay
+   *          Whether the UserManager should be put in replay state.
+   * @param authorizables
+   *          The authorizables that need to be added.
+   * @return
+   * @throws RepositoryException 
+   */
+  protected UserManager createUserManager(UserManager um, boolean doReplay,
+      Authorizable... authorizables) throws RepositoryException {
+    if (um == null) {
+      um = EasyMock.createMock(UserManager.class);
+    }
+    for (Authorizable au : authorizables) {
+      expect(um.getAuthorizable(au.getID())).andReturn(au).anyTimes();
+    }
+    if (doReplay) {
+      EasyMock.replay(um);
+    }
+    return um;
   }
 
 }

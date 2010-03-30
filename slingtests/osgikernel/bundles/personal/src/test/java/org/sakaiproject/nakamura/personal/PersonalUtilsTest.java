@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.expect;
 
 import junit.framework.Assert;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.personal.PersonalConstants;
@@ -38,50 +39,63 @@ import javax.jcr.nodetype.PropertyDefinition;
  */
 public class PersonalUtilsTest extends AbstractEasyMockTest {
 
+  private Authorizable adminUser;
+  private Authorizable myGroup;
   private String groupName = "g-mygroup";
   private String userName = "admin";
-  private String groupPublicPath = "/_group/public/d2/1b/4f/df/g_mygroup";
-  private String userPublicPath = "/_user/public/d0/33/e2/2a/admin";
-  private String groupPrivatePath = "/_group/private/d2/1b/4f/df/g_mygroup";
-  private String userPrivatePath = "/_user/private/d0/33/e2/2a/admin";
+  private String groupPublicPath = "/_group/g/g-/g-mygroup/public";
+  private String userPublicPath = "/_user/a/ad/admin/public";
+  private String groupPrivatePath = "/_group/g/g-/g-mygroup/private";
+  private String userPrivatePath = "/_user/a/ad/admin/private";
 
   @Before
   public void setUp() throws Exception {
     super.setUp();
+
+    adminUser = createAuthorizable(userName, false, true);
+    myGroup = createAuthorizable(groupName, true, true);
   }
 
   @Test
   public void testPublicPath() {
     // Group
-    String result = PersonalUtils.getPublicPath(groupName, "");
+    String result = PersonalUtils.getPublicPath(myGroup);
     Assert.assertEquals(groupPublicPath, result);
 
     // User
-    result = PersonalUtils.getPublicPath(userName, "");
+    result = PersonalUtils.getPublicPath(adminUser);
     Assert.assertEquals(userPublicPath, result);
   }
-  
+
+  @Test
+  public void testProfilePath() {
+    String result = PersonalUtils.getProfilePath(adminUser);
+    Assert.assertEquals(userPublicPath + "/authprofile", result);
+  }
+
   @Test
   public void testPrivatePath() {
     // Group
-    String result = PersonalUtils.getPrivatePath(groupName, "");
+    String result = PersonalUtils.getPrivatePath(myGroup);
     Assert.assertEquals(groupPrivatePath, result);
 
     // User
-    result = PersonalUtils.getPrivatePath(userName, "");
+    result = PersonalUtils.getPrivatePath(adminUser);
     Assert.assertEquals(userPrivatePath, result);
   }
-  
+
   @Test
-  public void testGetPrefferedMailTransport() throws Exception{
+  public void testGetPrefferedMailTransport() throws Exception {
     String pref = "internal";
     Node node = createMock(Node.class);
     Property prop = createMock(Property.class);
-    expect(node.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(true);
-    expect(node.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(prop);
+    expect(node.hasProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+        true);
+    expect(node.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT)).andReturn(
+        prop);
     expect(prop.getString()).andReturn(pref);
     replay();
-    
+
     String result = PersonalUtils.getPreferredMessageTransport(node);
     Assert.assertEquals(pref, result);
   }
@@ -100,8 +114,7 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
-        .times(2);
+    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
     expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);
@@ -128,8 +141,7 @@ public class PersonalUtilsTest extends AbstractEasyMockTest {
 
     expect(propDef.isMultiple()).andReturn(true);
 
-    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true)
-        .times(2);
+    expect(node.hasProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(true).times(2);
     expect(node.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(prop);
     expect(prop.getDefinition()).andReturn(propDef);
     expect(prop.getValues()).andReturn(vals);

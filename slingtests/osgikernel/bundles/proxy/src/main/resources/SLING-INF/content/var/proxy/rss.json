@@ -1,11 +1,12 @@
 {
     "sling:resourceType": "sakai/proxy",
+    "sakai:proxy-limit-length": "102400",
     "sakai:request-proxy-endpoint": "${rss}",
     "sakai:request-proxy-method": "GET",
     "sakai:postprocessor": "rss",
     "sakai:preprocessor": "rss",
     "sakai:title": "RSS.",
-    "sakai:shortDescription": "Get the content of a remote RSS feed.",
+    "sakai:shortDescription": "Get the content of a remote RSS feed. (no more than 100K or RSS)",
     "sakai:parameters" : [
       "{\"name\" : \"rss\", \"description\" : \"The URL of the RSS feed.\"}"
       ],

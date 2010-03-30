@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -123,7 +124,9 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
     Node contentNode = createMock(Node.class);
     expect(contentNode.isNodeType("nt:resource")).andReturn(true);
     Property streamProp = createMock(Property.class);
-    expect(streamProp.getStream()).andReturn(in);
+    Binary bin = createMock(Binary.class);
+    expect(streamProp.getBinary()).andReturn(bin);
+    expect(bin.getStream()).andReturn(in);
     expect(contentNode.getProperty(JCRConstants.JCR_DATA)).andReturn(streamProp);
     createMimeType(contentNode, "image/foo");
     expect(node.getNode(JCRConstants.JCR_CONTENT)).andReturn(contentNode);

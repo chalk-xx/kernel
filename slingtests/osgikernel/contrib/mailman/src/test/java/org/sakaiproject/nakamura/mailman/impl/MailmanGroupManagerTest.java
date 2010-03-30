@@ -6,6 +6,7 @@ import static org.easymock.EasyMock.expect;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.service.event.Event;
@@ -79,8 +80,9 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     Group dummyGroup = createDummyGroup(groupName);
     String user = "testuser";
     User dummyUser = createDummyUser(user);
+    EasyMock.replay(dummyUser);
     String testAddress = "test@test.com";
-    addUserEmailExpectation(user, testAddress);
+    addUserEmailExpectation(dummyUser, testAddress);
     String topic = "org/apache/sling/jackrabbit/usermanager/event/join";
     Dictionary<String,Object> properties = new Hashtable<String, Object>();
     properties.put(AuthorizableEvent.OPERATION, Operation.join);
@@ -102,8 +104,9 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     Group dummyGroup = createDummyGroup(groupName);
     String user = "testuser";
     User dummyUser = createDummyUser(user);
+    EasyMock.replay(dummyUser);
     String testAddress = "test@test.com";
-    addUserEmailExpectation(user, testAddress);
+    addUserEmailExpectation(dummyUser, testAddress);
     String topic = "org/apache/sling/jackrabbit/usermanager/event/part";
     Dictionary<String,Object> properties = new Hashtable<String, Object>();
     properties.put(AuthorizableEvent.OPERATION, Operation.part);
@@ -119,8 +122,8 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
     verify();
   }
 
-  private void addUserEmailExpectation(String username, String testAddress) throws RepositoryException {
-    String profileNodePath = PersonalUtils.getProfilePath(username);
+  private void addUserEmailExpectation(User user, String testAddress) throws RepositoryException {
+    String profileNodePath = PersonalUtils.getProfilePath(user);
     Session session = createMock(Session.class);
     Node node = createMock(Node.class);
     Property property = createMock(Property.class);
@@ -143,12 +146,14 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
   private Group createDummyGroup(String groupName) throws RepositoryException {
     Group group = createMock(Group.class);
     expect(group.getID()).andReturn(groupName).anyTimes();
+    expect(group.isGroup()).andReturn(true).anyTimes();
     return group;
   }
 
   private User createDummyUser(String userName) throws RepositoryException {
-    User user = createMock(User.class);
+    User user = EasyMock.createMock(User.class);
     expect(user.getID()).andReturn(userName).anyTimes();
+    expect(user.isGroup()).andReturn(false).anyTimes();
     return user;
   }
 }

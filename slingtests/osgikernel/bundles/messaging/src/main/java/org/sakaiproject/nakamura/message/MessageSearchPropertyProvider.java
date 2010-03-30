@@ -65,8 +65,6 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
         .encodePath(messagingService.getFullPathToStore(user, session)));
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075
-        .encodePath(MessageConstants._USER_MESSAGE));
 
     RequestParameter address = request.getRequestParameter("address");
     if (address != null && !address.getString().equals("")) {

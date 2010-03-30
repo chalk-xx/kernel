@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -67,13 +68,19 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String user = request.getRemoteUser();
+    Authorizable auUser;
+    try {
+      auUser = PersonalUtils.getAuthorizable(session, user);
+    } catch (RepositoryException e) {
+      throw new RuntimeException(e);
+    }
 
     // Set the userid.
     propertiesMap.put("_me", user);
 
     // Set the public space.
-    propertiesMap.put("_mySpace", ISO9075.encodePath(PersonalUtils
-        .getPublicPath(user, "")));
+    propertiesMap
+        .put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
@@ -82,7 +89,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     propertiesMap.put("_mysites", getMySites(session, user));
 
     // Set all my bookmarks
-    propertiesMap.put("_mybookmarks", getMyBookmarks(session, user));
+    propertiesMap.put("_mybookmarks", getMyBookmarks(session, auUser));
 
     // request specific.
     // Sorting order
@@ -246,8 +253,8 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param user
    * @return
    */
-  private String getMyBookmarks(Session session, String user) {
-    String userPath = PersonalUtils.getPrivatePath(user, "");
+  private String getMyBookmarks(Session session, Authorizable user) {
+    String userPath = PersonalUtils.getPrivatePath(user);
     String bookmarksPath = userPath + "/mybookmarks";
     String ids = "and (@sakai:id=\"somenoneexistingid\")";
     try {

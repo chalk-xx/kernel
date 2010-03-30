@@ -91,6 +91,8 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     addParameterToRequest(request, PresenceService.PRESENCE_LOCATION_PROP,
         "loc");
     addParameterToRequest(request, PresenceService.PRESENCE_STATUS_PROP, "busy");
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
     servlet.doPost(request, response);
@@ -117,6 +119,8 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     addParameterToRequest(request, PresenceService.PRESENCE_LOCATION_PROP,
         "foo");
     addParameterToRequest(request, PresenceService.PRESENCE_STATUS_PROP, "foo");
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
     servlet.doPost(request, response);

@@ -15,11 +15,11 @@
 	<parent>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>base</artifactId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.4</version>
 	</parent>
 	<artifactId>org.sakaiproject.nakamura.xythos</artifactId>
 	<packaging>bundle</packaging>
-	<version>0.4-SNAPSHOT</version>
+	<version>0.4</version>
 	<name>Sakai Nakamura Xythos Remote API</name>
 	<description>Provides a reference to an API for remote calls to a Xythos server.</description>
 	<build>

@@ -26,6 +26,7 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.sakaiproject.nakamura.site.AbstractSiteServiceTest;
 
@@ -52,6 +53,11 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
     session = createMock(JackrabbitSession.class);
     expect(session.getUserManager()).andReturn(userManager).anyTimes();
     expect(slingRepository.loginAdministrative((String) eq(null))).andReturn(session).anyTimes();
+    session.logout();
+    EasyMock.expectLastCall().anyTimes();
+    expect(session.hasPendingChanges()).andReturn(true).anyTimes();
+    session.save();
+    EasyMock.expectLastCall().anyTimes();
   }
 
   public byte[] makeGetRequestReturningBytes() throws IOException, ServletException

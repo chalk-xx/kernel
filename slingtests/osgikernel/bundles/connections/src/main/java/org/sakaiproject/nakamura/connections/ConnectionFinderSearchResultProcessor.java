@@ -21,9 +21,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
@@ -52,11 +55,12 @@ public class ConnectionFinderSearchResultProcessor implements SearchResultProces
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node profileNode = RowUtils.getNode(row, session);
-
     String user = request.getRemoteUser();
     String targetUser = profileNode.getProperty("rep:userId").getString();
-
-    String contactNodePath = ConnectionUtils.getConnectionPath(user, targetUser);
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable auMe = um.getAuthorizable(user);
+    Authorizable auTarget = um.getAuthorizable(targetUser);
+    String contactNodePath = ConnectionUtils.getConnectionPath(auMe, auTarget);
     Node node = (Node) session.getItem(contactNodePath);
     if (aggregator != null) {
       aggregator.add(node);

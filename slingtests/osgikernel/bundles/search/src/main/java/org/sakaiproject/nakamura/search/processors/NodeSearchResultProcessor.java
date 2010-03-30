@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -37,12 +41,13 @@ import javax.jcr.query.Row;
 /**
  * Formats user profile node search results
  * 
- * @scr.component immediate="true" label="NodeSearchResultProcessor"
- *                description="Formatter for user search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Node"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+
+@Component(immediate = true, label = "NodeSearchResultProcessor", description = "Formatter for user search results.")
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.processor", value = "Node") })
+@Service(value = SearchResultProcessor.class)
 public class NodeSearchResultProcessor implements SearchResultProcessor {
 
   /**
