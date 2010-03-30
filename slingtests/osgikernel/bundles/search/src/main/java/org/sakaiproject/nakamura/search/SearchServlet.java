@@ -35,6 +35,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_L
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
@@ -221,6 +222,12 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
+      if (!resource.getPath().startsWith(SEARCH_PATH_PREFIX)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+            "Search templates can only be executed if they are located under " + SEARCH_PATH_PREFIX);
+        return;
+      }
+      
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
