@@ -80,23 +80,26 @@ public class SmtpRouter implements MessageRouter {
         try {
           Session session = slingRepository.loginAdministrative(null);
           Authorizable user = PersonalUtils.getAuthorizable(session, rcpt);
-          String profilePath = PersonalUtils.getProfilePath(user);
-          Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
+          if (user != null) {
+            // We only check the profile is the recipient is a user.
+            String profilePath = PersonalUtils.getProfilePath(user);
+            Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
 
-          boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
-          boolean smtpMessage = isMessageTypeSmtp(n);
-          if (smtpPreferred || smtpMessage) {
-            String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
+            boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
+            boolean smtpMessage = isMessageTypeSmtp(n);
+            if (smtpPreferred || smtpMessage) {
+              String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
 
-            if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
-              LOG.warn("Can't find a primary email address for [" + rcpt
-                  + "]; smtp message will not be sent to user.");
-            } else {
-              AbstractMessageRoute smtpRoute = new AbstractMessageRoute(MessageConstants.TYPE_SMTP
-                  + ":" + rcptEmailAddress) {
-              };
-              rewrittenRoutes.add(smtpRoute);
-              routeIterator.remove();
+              if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
+                LOG.warn("Can't find a primary email address for [" + rcpt
+                    + "]; smtp message will not be sent to user.");
+              } else {
+                AbstractMessageRoute smtpRoute = new AbstractMessageRoute(
+                    MessageConstants.TYPE_SMTP + ":" + rcptEmailAddress) {
+                };
+                rewrittenRoutes.add(smtpRoute);
+                routeIterator.remove();
+              }
             }
           }
         } catch (RepositoryException e) {
