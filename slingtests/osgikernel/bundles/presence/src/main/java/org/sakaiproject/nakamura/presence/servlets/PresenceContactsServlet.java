@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
                  "path.",
                  "<pre>" +
-                 "curl http://ieb:password@localhost:8080/_user/presence.contacts.json\n" +
+                 "curl http://ieb:password@localhost:8080/var/presence.contacts.json\n" +
                  "{\n" +
                  "  \"user\": \"ieb\"  \n" +
                  "  \"sakai:status\": \"online\",\n" +

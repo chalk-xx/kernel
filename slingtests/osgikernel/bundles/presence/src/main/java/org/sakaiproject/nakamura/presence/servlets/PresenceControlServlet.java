@@ -68,7 +68,7 @@ import org.slf4j.LoggerFactory;
              description = {
                  "Pings the user and sets the location and status if specified.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "   \"status\" :\"Online\",\n" +
@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
                  "</pre>",
                  "Clear the status, set the location.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"@clear\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"@clear\" http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "   \"status\" :\"@clear\",\n" +
@@ -84,21 +84,21 @@ import org.slf4j.LoggerFactory;
                  "</pre>",
                  "Set Only the location "+
                  "<pre>"+
-                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the location "+
                  "<pre>"+
-                 "curl -XPOST  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -XPOST  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"null\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the presence "+
                  "<pre>"+
-                 "curl -Fdelete=1  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fdelete=1  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"deleted\" :\"1\",\n" +
                  "}\n" +
