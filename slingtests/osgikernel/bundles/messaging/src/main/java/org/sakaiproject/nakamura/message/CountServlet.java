@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.message;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -89,7 +89,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceParameter(name = "values", description = "Comma seperated list of values for each property."),
           @ServiceParameter(name = "groupedby", description = "Comma seperated list of property names on what to group by.") }))
 
-public class CountServlet extends SlingAllMethodsServlet {
+public class CountServlet extends SlingSafeMethodsServlet {
 
   /**
    * 
@@ -149,6 +149,10 @@ public class CountServlet extends SlingAllMethodsServlet {
           .getQueryManager();
       Query query = queryManager.createQuery(queryString.toString(), "xpath");
       QueryResult result = query.execute();
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       JSONWriter write = new JSONWriter(response.getWriter());
       NodeIterator resultNodes = result.getNodes();
 

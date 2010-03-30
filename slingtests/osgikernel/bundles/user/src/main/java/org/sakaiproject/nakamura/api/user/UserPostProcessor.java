@@ -39,4 +39,9 @@ public interface UserPostProcessor {
   void process(Authorizable authorizable, Session session, SlingHttpServletRequest request, List<Modification> changes)
       throws Exception;
 
+  /**
+   * @return the sequence in which this should be invoked 0 is first.
+   */
+  int getSequence();
+
 }

@@ -1,0 +1,16 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and  @sakai:state!=\"NONE\"]",
+  "sling:resourceType": "sakai/search",
+  "sakai:propertyprovider" : "Connection",
+  "sakai:resultprocessor": "Connection",
+  "sakai:title": "Contacts - All.",
+  "sakai:shortDescription": "Get all the current user's contacts.",
+  "sakai:parameters" : [],
+  "sakai:description": [
+                      "This search will get all the contacts in the current user's contactstore regardless of state."
+                      ],
+  "sakai:response": [
+                   "Standard request.<br /> Example: Request to: /_user/contacts/all.json<br /><pre class=\"json\">{\n   \"query\": \"//_user/contacts/_x0037_9/_x0039_4/ea/_x0034_6/simong//*[@sling:resourceType=\"sakai/contact\" and @sakai:state!=\"NONE\"]\",\n   \"items\": 25,\n   \"total\": 1,\n   \"results\": [\n       {\n           \"target\": \"user5\",\n           \"profile\": {\n               \"firstName\": \"user5\",\n               \"jcr:created\": \"2009-12-22T11:18:23\",\n               \"sling:resourceType\": \"sakai/user-profile\",\n               \"rep:userId\": \"user5\",\n               \"lastName\": \"last-5\",\n               \"jcr:mixinTypes\": [\n                   \"mix:referenceable\"\n               ],\n               \"jcr:primaryType\": \"sling:Folder\",\n               \"jcr:uuid\": \"a7bc6941-78c3-49b6-b03e-fc0d3afe2a0a\"\n           },\n           \"details\": {\n               \"sakai:state\": \"ACCEPTED\",\n               \"jcr:created\": \"2009-12-22T11:18:25\",\n               \"sling:resourceType\": \"sakai/contact\",\n               \"sakai:types\": [\n                   \"Classmate\"\n               ],\n               \"jcr:reference\": \"a7bc6941-78c3-49b6-b03e-fc0d3afe2a0a\",\n               \"jcr:primaryType\": \"sling:Folder\"\n           }\n       }\n   ]</pre>"
+                  ]
+}

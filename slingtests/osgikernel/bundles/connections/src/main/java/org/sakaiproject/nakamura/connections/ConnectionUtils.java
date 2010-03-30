@@ -18,6 +18,10 @@
 
 package org.sakaiproject.nakamura.connections;
 
+import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.CONTACT_STORE_NAME;
+
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 
 /**
@@ -31,8 +35,10 @@ public class ConnectionUtils {
    */
   public static final String CONNECTION_PATH_ROOT = "/_user/contacts";
 
+
+
   /**
-   * Builds a path to the connection node.
+   * Builds the path to the connection node.
    * 
    * @param user
    *          the user who owns the connection
@@ -45,32 +51,39 @@ public class ConnectionUtils {
    *          element. / is not used to separate.
    * @return the path to the connection node or subtree node.
    */
-  public static String getConnectionPath(String user, String targetUser,
+  public static String getConnectionPath(Authorizable user, Authorizable targetUser,
       String remainderPath) {
-    // /_user/contacts.invite.html
-    // /_user/contacts/aaron.accept.html
-
     if (remainderPath == null) {
       remainderPath = "";
     }
-    if (remainderPath.startsWith(targetUser)) {
-      remainderPath = remainderPath.substring(targetUser.length());
-    }
-    String path = getConnectionPathBase(user);
-    return PathUtils.toInternalHashedPath(path, targetUser, "") + remainderPath;
-  }
 
-  public static String getConnectionPath(String user, String targetUser) {
-    return getConnectionPath(user, targetUser, "");
+    StringBuilder sb = new StringBuilder();
+    sb.append(getConnectionPathBase(user));
+    sb.append(PathUtils.getSubPath(targetUser)).append(remainderPath);
+    return PathUtils.normalizePath(sb.toString());
   }
 
   /**
-   * @param path
-   * @param user1
-   * @return
+   * Builds the path to the connection node.
+   * 
+   * @param user
+   *          the user who owns the connection
+   * @param targetUser
+   *          the target user of the connection
+   * @return the path to the connection node or subtree node.
    */
-  public static String getConnectionPathBase(String user1) {
-    return PathUtils.toInternalHashedPath(CONNECTION_PATH_ROOT, user1, "");
+  public static String getConnectionPath(Authorizable user, Authorizable targetUser) {
+    return getConnectionPath(user, targetUser, null);
+  }
+
+  /**
+   * @param au
+   *          The <code>authorizable</code> to get the connection folder for.
+   * @return The absolute path to the connection folder in a user his home folder. ex:
+   *         /_user/j/jo/joh/john/johndoe/contacts
+   */
+  public static String getConnectionPathBase(Authorizable au) {
+    return PersonalUtils.getHomeFolder(au) + "/" + CONTACT_STORE_NAME;
   }
 
 }

@@ -16,12 +16,12 @@ class TC_Kern330Test < SlingTest
     user1 = create_user("user1-"+m)
     
     @s.switch_user(user1)
-    
-    res = @s.execute_post(@s.url_for("_user/private/test/b"), {"foo" => "bar"})
+    path = user1.private_path_for(@s)
+    res = @s.execute_post(@s.url_for("#{path}/test/b"), {"foo" => "bar"})
     
     # Batch post to private store
     str = [{
-          "url" => "/_user/private/test/a",
+          "url" => "#{path}/test/a",
           "method" => "POST",
           "parameters" => {
               "title" => "alfa",
@@ -31,7 +31,7 @@ class TC_Kern330Test < SlingTest
       }
     },
     {
-          "url" => "/_user/private/test/c",
+          "url" => "#{path}/test/c",
           "method" => "POST",
           "parameters" => {
               "title" => "charlie",
@@ -40,7 +40,7 @@ class TC_Kern330Test < SlingTest
       }
     },
     {
-          "url" => "/_user/private/test/c",
+          "url" => "#{path}/test/c",
           "method" => "POST",
           "parameters" => {
               "title" => "charlieRedux",
@@ -49,12 +49,12 @@ class TC_Kern330Test < SlingTest
       }
     },
     {
-          "url" => "/_user/private/test/a.json",
+          "url" => "#{path}/test/a.json",
           "method" => "GET",
           "parameters" => {}
     },
     {
-          "url" => "/_user/private/test/c.json",
+          "url" => "#{path}/test/c.json",
           "method" => "GET",
           "parameters" => {}
     }
@@ -68,13 +68,13 @@ class TC_Kern330Test < SlingTest
     
     jsonRes = JSON.parse(res.body)
     
-    assert_equal(jsonRes[0]["url"], "/_user/private/test/a")
+    assert_equal(jsonRes[0]["url"], "#{path}/test/a")
     assert_equal(jsonRes[0]["status"], 201, "Expexted to get a created statuscode.")
-    assert_equal(jsonRes[1]["url"], "/_user/private/test/c")
+    assert_equal(jsonRes[1]["url"], "#{path}/test/c")
     assert_equal(jsonRes[1]["status"], 201, "Expexted to get a created statuscode.")
-    assert_equal(jsonRes[2]["url"], "/_user/private/test/c")
+    assert_equal(jsonRes[2]["url"], "#{path}/test/c")
     assert_equal(jsonRes[2]["status"], 200, "Expected to be get a modified statuscode.")
-    assert_equal(jsonRes[3]["url"], "/_user/private/test/a.json")
+    assert_equal(jsonRes[3]["url"], "#{path}/test/a.json")
     assert_equal(jsonRes[3]["status"], 200, "Expexted to get a proper statuscode.")
     aBody = JSON.parse(jsonRes[3]["body"])
     assert_equal(aBody["unit"], 10);
@@ -83,11 +83,15 @@ class TC_Kern330Test < SlingTest
   def test_accessdenied
     
     m = Time.now.to_i.to_s
-    user2 = create_user("user2-"+m)
+    user2 = create_user("user12-"+m)
+    adminUser = SlingUsers::User.admin_user()
+    
+    adminHome = adminUser.home_path_for(@s)
+    user2Home = user2.home_path_for(@s)
     
     @s.switch_user(user2)
     str = [{
-          "url" => "/_user/public/admin/foo/bar",
+          "url" => "#{adminHome}/public/foo/bar",
           "method" => "POST",
           "data" => {
               "title" => "alfa",
@@ -97,7 +101,7 @@ class TC_Kern330Test < SlingTest
       }
     },
     {
-          "url" => "/_user/private/foo/bar",
+          "url" => "#{user2Home}/private/foo/bar",
           "method" => "POST",
           "data" => {
               "title" => "beta",
@@ -111,15 +115,18 @@ class TC_Kern330Test < SlingTest
       "requests" => JSON.generate(str)
     }
     
-    
     res = @s.execute_post(@s.url_for("system/batch"), parameters)
     
     jsonRes = JSON.parse(res.body)
     
-    assert_equal(jsonRes[0]["url"], "/_user/public/admin/foo/bar")
-    assert_equal(jsonRes[0]["status"], 500, "Expexted access denied.")
-    assert_equal(jsonRes[1]["url"], "/_user/private/foo/bar")
-    assert_equal(jsonRes[1]["status"], 201, "Expected to get a created statuscode.")
+    assert_equal("#{adminHome}/public/foo/bar", jsonRes[0]["url"])
+    stat = jsonRes[0]["status"]
+    body = jsonRes[0]["body"]
+    assert_equal(500, jsonRes[0]["status"], "Expexted access denied. #{stat} #{body} ")
+    assert_equal("#{user2Home}/private/foo/bar", jsonRes[1]["url"])
+    stat = jsonRes[1]["status"]
+    body = jsonRes[1]["body"]
+    assert_equal(201, jsonRes[1]["status"], "Expected to get a created statuscode. #{stat} #{body} ")
     
   end
   
@@ -127,10 +134,11 @@ class TC_Kern330Test < SlingTest
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
     
+    homefolder = user3.home_path_for(@s)
     @s.switch_user(user3)
     str = [
     {
-          "url" => "/_user/private/foo/bar/a",
+          "url" => "#{homefolder}/private/foo/bar/a",
           "method" => "POST",
           "parameters" => {
               "title" => "alfa",
@@ -138,7 +146,7 @@ class TC_Kern330Test < SlingTest
               "unit@TypeHint" => "Long"
       }
     },{
-          "url" => "/_user/private/foo/bar/b",
+          "url" => "#{homefolder}/private/foo/bar/b",
           "method" => "POST",
           "parameters" => {
               "title" => "beta",
@@ -156,17 +164,17 @@ class TC_Kern330Test < SlingTest
     
     # Check batch post response
     jsonRes = JSON.parse(res.body)
-    assert_equal(jsonRes[0]["url"], "/_user/private/foo/bar/a")
+    assert_equal(jsonRes[0]["url"], "#{homefolder}/private/foo/bar/a")
     assert_equal(jsonRes[0]["status"], 201, "Expexted to get a created statuscode.")
-    assert_equal(jsonRes[1]["url"], "/_user/private/foo/bar/b")
+    assert_equal(jsonRes[1]["url"], "#{homefolder}/private/foo/bar/b")
     assert_equal(jsonRes[1]["status"], 201, "Expected to get a created statuscode.")
     
     # Check individual nodes
-    res = @s.execute_get(@s.url_for("_user/private/foo/bar/a.json"))
+    res = @s.execute_get(@s.url_for("#{homefolder}/private/foo/bar/a.json"))
     result = JSON.parse(res.body);
     assert_equal(result["title"], "alfa", "Expected string value 'alfa'")
     assert_equal(result["unit"], 20, "Expected proper integer value '20'")
-    res = @s.execute_get(@s.url_for("_user/private/foo/bar/b.json"))
+    res = @s.execute_get(@s.url_for("#{homefolder}/private/foo/bar/b.json"))
     result = JSON.parse(res.body);
     assert_equal(result["title"], "beta", "Expected string value 'beta'")
     assert_equal(result["sakai:tags"].length, 2, "Expected multivalued property")
@@ -182,11 +190,12 @@ class TC_Kern330Test < SlingTest
     
     m = Time.now.to_i.to_s
     user3 = create_user("user3-"+m)
+    homefolder = user3.home_path_for(@s)
     
     @s.switch_user(user3)
     str = [
     {
-          "url" => "/_user/private/random/bla",
+          "url" => "#{homefolder}/private/random/bla",
           "method" => "POST",
           "parameters" => {"foo" => "bar"}
     },

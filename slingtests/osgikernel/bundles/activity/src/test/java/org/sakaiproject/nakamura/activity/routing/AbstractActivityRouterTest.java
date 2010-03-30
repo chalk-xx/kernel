@@ -19,6 +19,9 @@ package org.sakaiproject.nakamura.activity.routing;
 
 import static org.easymock.EasyMock.expect;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
@@ -40,12 +43,21 @@ public class AbstractActivityRouterTest extends AbstractEasyMockTest {
   protected String path = "/sites/foo/_pages/welcome/activity";
   protected List<ActivityRoute> routes = new ArrayList<ActivityRoute>();
 
+  protected JackrabbitSession session;
+  protected Authorizable auJack;
+  protected UserManager um;
+
   public void setUp() throws Exception {
     super.setUp();
     activity = createMock(Node.class);
 
+    session = createMock(JackrabbitSession.class);
+    auJack = createAuthorizable(user, false, true);
+    um = createUserManager(null, true, auJack);
     expect(activity.hasProperty(ActivityConstants.ACTIVITY_ITEM_RESOURCE_TYPE))
         .andReturn(true).anyTimes();
+    expect(session.getUserManager()).andReturn(um).anyTimes();
+    expect(activity.getSession()).andReturn(session).anyTimes();
 
     Property actorProperty = createMock(Property.class);
     expect(actorProperty.getString()).andReturn(user).anyTimes();

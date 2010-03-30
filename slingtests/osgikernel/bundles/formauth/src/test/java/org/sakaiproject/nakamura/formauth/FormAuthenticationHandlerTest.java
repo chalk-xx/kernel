@@ -27,7 +27,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
 import org.sakaiproject.nakamura.formauth.FormAuthenticationHandler;
@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * 
+ *
  */
 public class FormAuthenticationHandlerTest {
 
@@ -53,7 +53,7 @@ public class FormAuthenticationHandlerTest {
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
 
-    
+
     expect(session.getCreationTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(session.getLastAccessedTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(request.getMethod()).andReturn("POST");
@@ -66,12 +66,12 @@ public class FormAuthenticationHandlerTest {
     Capture<String> key = new Capture<String>();
     request.setAttribute(capture(key), capture(captured));
     expectLastCall();
-    
+
 
     replay(request, response, session);
-    
-    
-    AuthenticationInfo authenticationInfo = formAuthenticationHandler.authenticate(request, response);
+
+
+    AuthenticationInfo authenticationInfo = formAuthenticationHandler.extractCredentials(request, response);
     assertEquals(
         "org.sakaiproject.nakamura.formauth.FormAuthenticationHandler$FormAuthentication",
         key.getValue());
@@ -80,7 +80,7 @@ public class FormAuthenticationHandlerTest {
         captured.getValue().getClass().getName());
     assertNotNull(authenticationInfo);
     assertEquals(FormAuthenticationHandler.SESSION_AUTH, authenticationInfo.getAuthType());
-    Credentials credentials = authenticationInfo.getCredentials();
+    Credentials credentials = (Credentials) authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
     assertNotNull(credentials);
     SimpleCredentials sc = (SimpleCredentials) credentials;
     assertEquals("user",sc.getUserID());
@@ -88,7 +88,7 @@ public class FormAuthenticationHandlerTest {
     verify(request, response, session);
   }
 
-  
+
   /**
    * Test logout from an existing session.
    */
@@ -107,9 +107,11 @@ public class FormAuthenticationHandlerTest {
     Capture<String> key = new Capture<String>();
     session.removeAttribute(capture(key));
     expectLastCall();
+    request.removeAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
+    expectLastCall();
 
     replay(request, response, session);
-    formAuthenticationHandler.authenticate(request, response);
+    formAuthenticationHandler.extractCredentials(request, response);
     assertEquals(
         "org.sakaiproject.nakamura.formauth.FormAuthenticationHandler$FormAuthentication",
         key.getValue());
@@ -131,12 +133,15 @@ public class FormAuthenticationHandlerTest {
     expect(request.getSession(false)).andReturn(null);
     expect(request.getMethod()).andReturn("POST");
     expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn("1");
+    request.removeAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
+    expectLastCall();
+
 
     replay(request, response, session);
-    formAuthenticationHandler.authenticate(request, response);
+    formAuthenticationHandler.extractCredentials(request, response);
     verify(request, response, session);
   }
-  
-  
+
+
 
 }

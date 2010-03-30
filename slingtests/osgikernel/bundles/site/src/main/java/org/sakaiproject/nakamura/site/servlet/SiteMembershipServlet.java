@@ -86,7 +86,7 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
       output.array();
       for (Entry<String, List<Group>> site : membership.entrySet()) {
-        Node siteNode = session.getNodeByUUID(site.getKey());
+        Node siteNode = session.getNodeByIdentifier(site.getKey());
         output.object();
 
         output.key("groups");

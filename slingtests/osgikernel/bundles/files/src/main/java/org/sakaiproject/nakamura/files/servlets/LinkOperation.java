@@ -125,7 +125,7 @@ public class LinkOperation extends AbstractSlingPostOperation {
 
     if (site != null) {
       try {
-        Node siteNode = (Node) session.getNodeByUUID(site);
+        Node siteNode = (Node) session.getNodeByIdentifier(site);
         if (siteNode == null || !siteService.isSite(siteNode)) {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST,
               "The site parameter doesn't point to a valid site.");
@@ -187,7 +187,7 @@ public class LinkOperation extends AbstractSlingPostOperation {
       linkNode.addMixin(REQUIRED_MIXIN);
       linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
          RT_SAKAI_LINK);
-      linkNode.setProperty(SAKAI_LINK, node.getUUID());
+      linkNode.setProperty(SAKAI_LINK, node.getIdentifier());
 
       // Save link.
       if (session.hasPendingChanges()) {

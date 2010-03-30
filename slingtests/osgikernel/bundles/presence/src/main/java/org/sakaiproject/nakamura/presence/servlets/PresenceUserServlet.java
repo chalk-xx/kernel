@@ -28,9 +28,10 @@ import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
@@ -116,7 +117,7 @@ import org.slf4j.LoggerFactory;
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
         })
-public class PresenceUserServlet extends SlingAllMethodsServlet {
+public class PresenceUserServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PresenceContactsServlet.class);
@@ -169,6 +170,10 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
 	}
 
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       Writer writer = response.getWriter();
       ExtendedJSONWriter output = new ExtendedJSONWriter(writer);
       Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -178,7 +183,8 @@ public class PresenceUserServlet extends SlingAllMethodsServlet {
       PresenceUtils.makePresenceJSON(output, requestedUser, presenceService, true);
       // add in the profile
       output.key("profile");
-      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(requestedUser));
+      Authorizable au = PersonalUtils.getAuthorizable(session, requestedUser);
+      Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(au));
       ExtendedJSONWriter.writeNodeToWriter(output, profileNode);
       // finish it
       output.endObject();

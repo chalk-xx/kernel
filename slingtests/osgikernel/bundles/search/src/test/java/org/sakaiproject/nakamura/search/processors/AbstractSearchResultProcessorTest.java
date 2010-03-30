@@ -48,6 +48,7 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     
     expect(dummyNode.getProperties()).andReturn(propertyIterator).anyTimes();
     expect(dummyNode.getPath()).andReturn("/apath").anyTimes();
+    expect(dummyNode.getName()).andReturn("apath").anyTimes();
     replay();
     JSONWriter write = new JSONWriter(new PrintWriter(new ByteArrayOutputStream()));
     write.array();

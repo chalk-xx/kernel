@@ -39,14 +39,24 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPER
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -80,6 +90,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -91,28 +102,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SearchServlet</code> uses nodes from the
  * 
- * @scr.component immediate="true" label="SearchServlet"
- *                description="a generic resource driven search servlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Perfoms searchs based on the associated node."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/search"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json"
- * @scr.reference name="SearchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="SearchBatchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor"
- *                bind="bindSearchBatchResultProcessor"
- *                unbind="unbindSearchBatchResultProcessor" cardinality="0..n"
- *                policy="dynamic"
- * @scr.reference name="SearchPropertyProvider"
- *                interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
- *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
- *                cardinality="0..n" policy="dynamic"
  */
 @ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -174,7 +163,24 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
-public class SearchServlet extends SlingAllMethodsServlet {
+
+@SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
+@Properties( value={
+    @Property(name="service.description", value={"Perfoms searchs based on the associated node."}),
+    @Property(name="service.vendor", value={"The Sakai Foundation"})
+})
+@References(value={
+    @Reference(name="SearchResultProcessor", referenceInterface=SearchResultProcessor.class,
+        bind="bindSearchResultProcessor", unbind="unbindSearchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchBatchResultProcessor", referenceInterface=SearchBatchResultProcessor.class,
+        bind="bindSearchBatchResultProcessor", unbind="unbindSearchBatchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchPropertyProvider", referenceInterface=SearchPropertyProvider.class,
+        bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+})
+public class SearchServlet extends SlingSafeMethodsServlet {
 
   /**
    *
@@ -196,7 +202,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  /** @scr.property name="maximumResults" value="1000" type="Long" */
+  @Property(name="maximumResults", longValue=1000L  )
   private long maximumResults;
 
   // Default processors
@@ -304,7 +310,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
           return;
         }
 
-        response.setHeader("Content-Type", "application/json");
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
@@ -442,8 +451,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
       String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
-    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
-    propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    try {
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(userId);
+      String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(au);
+      propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    } catch (RepositoryException e) {
+      LOGGER.error("Unable to get the authorizable for this user.", e);
+    }
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);

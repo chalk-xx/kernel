@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -155,8 +154,7 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     propertyNames.add("prop2");
     propertyNames.add("prop3");
 
-    PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
-    Iterator<Object> iterator = createMock(Iterator.class);
+    Iterator<Group> iterator = createMock(Iterator.class);
 
     Group group = createMock(Group.class);
 
@@ -184,14 +182,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     expect(valueA.getString()).andReturn("tokenA");
     expect(user.getProperty("prop3")).andReturn(new Value[]{});
 
-    expect(user.getPrincipals()).andReturn(principalIterator);
-    expect(principalIterator.hasNext()).andReturn(true);
-    expect(principalIterator.nextPrincipal()).andReturn(principal);
-    expect(principal.getName()).andReturn("principal:A");
-    expect(principalIterator.hasNext()).andReturn(true);
-    expect(principalIterator.nextPrincipal()).andReturn(principal);
-    expect(principal.getName()).andReturn("principal:B");
-    expect(principalIterator.hasNext()).andReturn(false);
 
     expect(user.declaredMemberOf()).andReturn(iterator);
     expect(iterator.hasNext()).andReturn(true);
@@ -235,10 +225,6 @@ public class ClusterUserServletTest extends AbstractEasyMockTest {
     assertEquals("tokenA", properties.get("prop2"));
     assertEquals(0, properties.getJSONArray("prop3").length());
 
-    JSONArray principals = userObject.getJSONArray("principals");
-    assertEquals(2, principals.length());
-    assertEquals("principal:A", principals.get(0));
-    assertEquals("principal:B", principals.get(1));
 
     JSONArray declaredMembership = userObject.getJSONArray("declaredMembership");
     assertEquals(2, declaredMembership.length());

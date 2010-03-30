@@ -25,6 +25,8 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +38,7 @@ public class UserPostProcessorRegister {
   private Map<Long, UserPostProcessor> processors = new ConcurrentHashMap<Long, UserPostProcessor>();
   private ComponentContext osgiComponentContext;
   private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
+  private List<UserPostProcessor> processorList = new ArrayList<UserPostProcessor>();
 
   protected void bindUserPostProcessor(ServiceReference serviceReference) {
     
@@ -76,6 +79,13 @@ public class UserPostProcessorRegister {
         USER_POST_PROCESSOR, serviceReference);
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
     processors.put(serviceId, processor);
+    List<UserPostProcessor> newProcessorList = new ArrayList<UserPostProcessor>(processors.values());
+    Collections.sort(newProcessorList, new Comparator<UserPostProcessor>() {
+      public int compare(UserPostProcessor o1, UserPostProcessor o2) {
+        return o1.getSequence() - o2.getSequence();
+      }
+    });
+    processorList = newProcessorList;
   }
 
   /**
@@ -95,7 +105,7 @@ public class UserPostProcessorRegister {
    * @return
    */
   public Iterable<UserPostProcessor> getProcessors() {
-    return processors.values();
+    return processorList;
   }
 
 }

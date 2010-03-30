@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.chat.ChatManagerService;
@@ -51,7 +51,7 @@ import javax.servlet.ServletException;
     @ServiceResponse(code = 200, description = "Normal retrieval."),
     @ServiceResponse(code = 500, description = "Something went wrong trying to look for an update.") }, description = "GETs to this servlet will produce a JSON object with 3 keys. \n"
     + "<ul><li>update: A boolean that states if there is a new chat message.</li><li>time: The current server time in millisecnds.</li><li>pulltime: The current time in a JCR formatted date.<li></ul>", parameters = @ServiceParameter(name = "t", description = "This variable should hold the last time value retrieved from this servet. If this variable is ommitted it uses the current time.")) })
-public class ChatServlet extends SlingAllMethodsServlet {
+public class ChatServlet extends SlingSafeMethodsServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(ChatServlet.class);
   private static final long serialVersionUID = -4011626674940239621L;
   private transient ChatManagerService chatManagerService;
@@ -110,6 +110,10 @@ public class ChatServlet extends SlingAllMethodsServlet {
 
     Calendar cal = Calendar.getInstance();
     cal.setTimeInMillis(time);
+
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
 
     JSONWriter write = new JSONWriter(response.getWriter());
     try {

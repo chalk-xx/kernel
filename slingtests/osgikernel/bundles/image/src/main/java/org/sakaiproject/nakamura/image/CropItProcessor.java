@@ -41,10 +41,12 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 
 public class CropItProcessor {
 
@@ -106,7 +108,7 @@ public class CropItProcessor {
         }
 
         // Read the image
-        in = imgNode.getProperty(JCRConstants.JCR_DATA).getStream();
+        in = imgNode.getProperty(JCRConstants.JCR_DATA).getBinary().getStream();
         try {
 
           // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
@@ -114,16 +116,8 @@ public class CropItProcessor {
           // I've tried using a BufferedInputStream which allows you to reset, but for BMP
           // this doesn't help.
           byte[] bytes = IOUtils.getInputStreamBytes(in);
-
-          // Guess the format and check if it is a valid one.
           ImageInfo info = Sanselan.getImageInfo(bytes);
-          if (info.getFormat() == ImageFormat.IMAGE_FORMAT_UNKNOWN) {
-            // This is not a valid image.
-            LOGGER.error("Can't parse this format.");
-            throw new ImageException(406, "Can't parse this format.");
-          }
-
-          BufferedImage imgBuf = Sanselan.getBufferedImage(bytes);
+          BufferedImage imgBuf = getBufferedImage(bytes, info);
 
           // Set the correct width & height.
           width = (width <= 0) ? info.getWidth() : width;
@@ -203,6 +197,30 @@ public class CropItProcessor {
   }
 
   /**
+   * @param bytes
+   * @param info
+   * @return
+   * @throws IOException
+   * @throws ImageReadException
+   * @throws ImageException 
+   */
+  public static BufferedImage getBufferedImage(byte[] bytes, ImageInfo info)
+      throws ImageReadException, IOException, ImageException {
+    BufferedImage imgBuf;
+    // Guess the format and check if it is a valid one.
+    if (info.getFormat() == ImageFormat.IMAGE_FORMAT_UNKNOWN) {
+      // This is not a valid image.
+      LOGGER.error("Can't parse this format.");
+      throw new ImageException(406, "Can't parse this format.");
+    } else if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
+      imgBuf = ImageIO.read(new ByteArrayInputStream(bytes));
+    } else {
+      imgBuf = Sanselan.getBufferedImage(bytes);
+    }
+    return imgBuf;
+  }
+
+  /**
    * Will save a stream of an image to the JCR.
    * 
    * @param path
@@ -230,7 +248,8 @@ public class CropItProcessor {
       } else {
         contentNode = node.addNode(JCRConstants.JCR_CONTENT, JCRConstants.NT_RESOURCE);
       }
-      contentNode.setProperty(JCRConstants.JCR_DATA, bais);
+      ValueFactory vf = session.getValueFactory();
+      contentNode.setProperty(JCRConstants.JCR_DATA, vf.createBinary(bais));
       contentNode.setProperty(JCRConstants.JCR_MIMETYPE, mimetype);
       contentNode.setProperty(JCRConstants.JCR_LASTMODIFIED, Calendar.getInstance());
 
@@ -283,8 +302,15 @@ public class CropItProcessor {
       out = new ByteArrayOutputStream();
 
       // Write to stream.
-      Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
-    } finally {
+      if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
+        ImageIO.write(imgScaled, "jpg", out);
+      } else {
+        Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
+      }
+    } catch (Exception e) {
+      LOGGER.error("foo", e);
+    }
+    finally {
       if (out != null) {
         out.close();
       }

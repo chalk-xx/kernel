@@ -24,15 +24,21 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 @Component(immediate = true, label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
 @Properties(value = {
@@ -53,15 +59,26 @@ public class ConnectionSearchPropertyProvider implements SearchPropertyProvider 
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-    String user = request.getRemoteUser();
-    String connectionPath = ISO9075.encodePath(ConnectionUtils
-        .getConnectionPathBase(user));
-    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
-    String query = getConnectionQuery(request);
-    if (query == null) {
-      query = "/" + connectionPath + "//*[@sling:resourceType=\"sakai/contact\" and  @sakai:state!=\"NONE\"]";
+    try {
+      String user = request.getRemoteUser();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable auMe = um.getAuthorizable(user);
+      String connectionPath = ISO9075.encodePath(ConnectionUtils
+          .getConnectionPathBase(auMe));
+      if ( connectionPath.startsWith("/"))  {
+        connectionPath = connectionPath.substring(1);
+      }
+      propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
+      String query = getConnectionQuery(request);
+      if (query == null) {
+        query = "/" + connectionPath
+            + "//*[@sling:resourceType=\"sakai/contact\" and  @sakai:state!=\"NONE\"]";
+      }
+      propertiesMap.put("_friendsQuery", query);
+    } catch (RepositoryException e) {
+      throw new RuntimeException(e);
     }
-    propertiesMap.put("_friendsQuery", query);
   }
 
   public String getConnectionQuery(SlingHttpServletRequest request) {

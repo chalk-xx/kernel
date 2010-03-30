@@ -144,7 +144,7 @@ public class MailmanGroupManager implements EventHandler, ManagedService {
 
   private String getEmailForUser(User user) throws RepositoryException {
     Session session = slingRepository.loginAdministrative(null);
-    Node profileNode = (Node)session.getItem(PersonalUtils.getProfilePath(user.getID()));
+    Node profileNode = (Node)session.getItem(PersonalUtils.getProfilePath(user));
     String emailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
     session.logout();
     return emailAddress;

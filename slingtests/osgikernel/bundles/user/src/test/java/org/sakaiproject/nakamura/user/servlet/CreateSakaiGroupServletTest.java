@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -132,9 +133,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
       csgs.handleOperation(request, response, null);
       fail();
     } catch (RepositoryException e) {
-      assertEquals(
-          "Failed to create new group.: A principal already exists with the requested name: g-foo",
-          e.getMessage());
     }
     verify();
   }
@@ -148,6 +146,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     Group group = createMock(Group.class);
     User user = createMock(User.class);
+    ItemBasedPrincipal principal = createNiceMock(ItemBasedPrincipal.class);
 
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver rr = createMock(ResourceResolver.class);
@@ -157,8 +156,8 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     csgs.repository = repository;
     expect(request.getRemoteUser()).andReturn(SecurityConstants.ADMIN_ID);  
 
-    expect(request.getResourceResolver()).andReturn(rr);
-    expect(rr.adaptTo(Session.class)).andReturn(session);
+    expect(request.getResourceResolver()).andReturn(rr).anyTimes();
+    expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
     expect(session.getUserManager()).andReturn(userManager);
     expect(session.getUserID()).andReturn("admin");
     expect(userManager.getAuthorizable("admin")).andReturn(user);
@@ -172,11 +171,16 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
 
     expect(userManager.getAuthorizable("g-foo")).andReturn(null);
     expect(
-        userManager.createGroup((Principal) EasyMock.anyObject(), EasyMock
-            .matches("0d/f7/03/71/g_foo/"))).andReturn(group);
+        userManager.createGroup((Principal) EasyMock.anyObject())).andReturn(group);
     expect(session.getUserManager()).andReturn(userManager).times(1);
     expect(group.getID()).andReturn("g-foo").times(2);
     expect(group.isGroup()).andReturn(true);
+    expect(group.getPrincipal()).andReturn(principal);
+    expect(principal.getPath()).andReturn("/rep:security/rep:authorizables/rep:groups/group/path");
+    expect(session.getValueFactory()).andReturn(valueFactory);
+    expect(valueFactory.createValue("/group/path")).andReturn(value);
+    group.setProperty("path", value);
+    expectLastCall();
 
     expect(rr.map("/system/userManager/group/g-foo")).andReturn("");
     expect(rr.map("/system/userManager/group")).andReturn("");
@@ -187,7 +191,6 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
         new HashSet<Entry<String, RequestParameter[]>>());
 
     expect(request.getParameter(SlingPostConstants.RP_NODE_NAME)).andReturn("g-foo");
-    expect(request.getResourceResolver()).andReturn(rr).times(3);
     expect(request.getParameterNames()).andReturn(parameters.elements());
     expect(request.getRequestParameterMap()).andReturn(requestParameterMap);
     expect(request.getAttribute("javax.servlet.include.context_path")).andReturn("")

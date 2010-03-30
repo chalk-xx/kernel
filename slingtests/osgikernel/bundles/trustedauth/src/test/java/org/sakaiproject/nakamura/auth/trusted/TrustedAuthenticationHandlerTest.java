@@ -148,7 +148,7 @@ public class TrustedAuthenticationHandlerTest {
     
     AuthenticationInfo info = trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    Credentials authCredentials = info.getCredentials();
+    Credentials authCredentials = (Credentials)info.get(AuthenticationInfo.CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     SimpleCredentials simpleCredentials = (SimpleCredentials) authCredentials;
     Object o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
@@ -183,7 +183,7 @@ public class TrustedAuthenticationHandlerTest {
 
     trustedAuthenticationHandler.extractCredentials(request, response);
     Assert.assertNotNull(info);
-    authCredentials = info.getCredentials();
+    authCredentials = (Credentials)info.get(AuthenticationInfo.CREDENTIALS);
     Assert.assertTrue(authCredentials instanceof SimpleCredentials);
     simpleCredentials = (SimpleCredentials) authCredentials;
     o = simpleCredentials.getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);

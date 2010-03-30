@@ -19,6 +19,9 @@ package org.sakaiproject.nakamura.presence.servlets;
 
 import static org.easymock.EasyMock.expect;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -112,13 +115,18 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     // Pick a uuid we have as a friend.
     String contact = "user-10";
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     Node profileNode = createMock(Node.class);
     PropertyIterator propertyIterator = createMock(PropertyIterator.class);
 
+    Authorizable au = createAuthorizable(contact, false, true);
+    UserManager um = createUserManager(null, true, au);
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(propertyIterator.hasNext()).andReturn(false);
     expect(profileNode.getProperties()).andReturn(propertyIterator);
-    expect(session.getItem(PersonalUtils.getProfilePath(contact))).andReturn(
+    expect(profileNode.getPath()).andReturn("/profile/node/path").anyTimes();
+    expect(profileNode.getName()).andReturn("profile_node_name").anyTimes();
+    expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
         profileNode);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
@@ -131,6 +139,8 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
     bindConnectionManager();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
 

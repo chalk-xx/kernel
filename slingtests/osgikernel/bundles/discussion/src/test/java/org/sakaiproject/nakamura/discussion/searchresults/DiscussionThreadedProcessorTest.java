@@ -21,6 +21,8 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
@@ -47,6 +49,7 @@ import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.query.RowIterator;
+import javax.jcr.security.AccessControlManager;
 import javax.jcr.version.VersionException;
 
 /**
@@ -74,7 +77,13 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
-
+    
+    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
+    expect(session.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
+    Authorizable adminUser = createAuthorizable("admin", false, true);
+    Authorizable anonUser = createAuthorizable("anonymous", false, true);
+    UserManager um = createUserManager(null, true, adminUser, anonUser);
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
@@ -89,9 +98,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     // - d
     // - c
 
-    MockNode profileNode = new MockNode("/_user/public/d0/33/e2/2a/2admin/authprofile");
+    MockNode profileNode = new MockNode("/_user/a/ad/admin/public/authprofile");
     MockNode anonProfileNode = new MockNode(
-        "/_user/public/0a/92/fa/b3/anonymous/authprofile");
+        "/_user/a/an/anonymous/public/authprofile");
 
     MockNode nodeA = new MockNode("/msg/a");
     nodeA.setSession(session);
@@ -127,9 +136,9 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     expect(session.getItem("/msg/b")).andReturn(nodeB);
     expect(session.getItem("/msg/c")).andReturn(nodeC);
     expect(session.getItem("/msg/d")).andReturn(nodeD);
-    expect(session.getItem("/_user/public/d0/33/e2/2a/admin/authprofile")).andReturn(
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(
         profileNode).anyTimes();
-    expect(session.getItem("/_user/public/0a/92/fa/b3/anonymous/authprofile")).andReturn(
+    expect(session.getItem("/_user/a/an/anonymous/public/authprofile")).andReturn(
         anonProfileNode).anyTimes();
 
     RowIterator iterator = new MockRowIterator(nodes);

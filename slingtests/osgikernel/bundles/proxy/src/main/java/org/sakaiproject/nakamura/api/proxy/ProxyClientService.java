@@ -57,6 +57,12 @@ public interface ProxyClientService {
   public static final String SAKAI_PROXY_HEADER = "sakai:proxy-header";
 
   /**
+   * The maximum number of bytes that this request will accept.
+   */
+  public static final String SAKAI_LIMIT_GET_SIZE = "sakai:proxy-limit-length";
+
+
+  /**
    * Executes a HTTP call using a path in the JCR to point to a template and a map of
    * properties to populate that template with. An example might be a SOAP call.
    * 

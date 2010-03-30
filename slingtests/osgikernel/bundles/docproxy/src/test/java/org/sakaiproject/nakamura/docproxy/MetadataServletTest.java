@@ -26,6 +26,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
@@ -83,7 +84,10 @@ public class MetadataServletTest extends AbstractDocProxyServlet {
     // Request
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
-
+    response.setContentType("application/json");
+    EasyMock.expectLastCall();
+    response.setCharacterEncoding("UTF-8");
+    EasyMock.expectLastCall();
     expect(response.getWriter()).andReturn(printWriter);
 
     replay();

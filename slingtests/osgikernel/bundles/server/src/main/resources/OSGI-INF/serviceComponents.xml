@@ -40,4 +40,12 @@
         <property name="service.pid" value="org.apache.sling.jcr.base.AbstractSlingRepository"/>
         <reference name="log" interface="org.osgi.service.log.LogService" cardinality="1..1" policy="static" bind="bindLog" unbind="unbindLog"/>
     </scr:component>
+    <scr:component enabled="true" immediate="true" name="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider">
+        <implementation class="org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider"/>
+        <service servicefactory="false">
+            <provide interface="org.apache.jackrabbit.core.security.principal.PrincipalProvider"/>
+        </service>
+        <property name="service.vendor" value="The Sakai Foundation"/>
+        <property name="service.pid" value="org.sakaiproject.nakamura.api.discussion.DiscussionManager"/>
+    </scr:component>
 </components>

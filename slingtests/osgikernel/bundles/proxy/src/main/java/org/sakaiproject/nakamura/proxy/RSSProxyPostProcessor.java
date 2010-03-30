@@ -99,6 +99,11 @@ public class RSSProxyPostProcessor implements ProxyPostProcessor {
 
   public void process(SlingHttpServletResponse response, ProxyResponse proxyResponse)
       throws IOException {
+    if ( proxyResponse.getResultCode() == HttpServletResponse.SC_PRECONDITION_FAILED ) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN,
+          "This RSS feed is too big ");
+    }
+
     Map<String, String[]> headers = proxyResponse.getResponseHeaders();
 
     // Check if the content-length is smaller than the maximum (if any).

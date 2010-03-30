@@ -106,6 +106,10 @@ protected ExternalRepositoryProcessorTracker tracker;
         }
       }
 
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
+
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.array();
       int nitems = SearchUtil.intRequestParameter(request,

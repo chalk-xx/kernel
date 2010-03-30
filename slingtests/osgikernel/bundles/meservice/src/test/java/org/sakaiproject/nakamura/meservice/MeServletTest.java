@@ -17,11 +17,12 @@
  */
 package org.sakaiproject.nakamura.meservice;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -30,6 +31,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import java.io.ByteArrayOutputStream;
@@ -53,10 +55,10 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-public class MeServletTest {
+public class MeServletTest extends AbstractEasyMockTest {
 
   @Test
-  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException {
+  public void testGeneralInfoAdmin() throws JSONException, UnsupportedEncodingException, RepositoryException {
 
     MeServlet servlet = new MeServlet();
 
@@ -64,7 +66,8 @@ public class MeServletTest {
     PrintWriter w = new PrintWriter(baos);
     ExtendedJSONWriter write = new ExtendedJSONWriter(w);
 
-    String user = "admin";
+    Authorizable user = createAuthorizable("admin", false, true);
+    
     Set<String> subjects = new HashSet<String>();
     subjects.add("administrators");
     Map<String, Object> properties = new HashMap<String, Object>();
@@ -79,7 +82,7 @@ public class MeServletTest {
 
     assertEquals("admin", j.getString("userid"));
     assertEquals(true, j.getBoolean("superUser"));
-    assertEquals("d0/33/e2/2a/admin/", j.getString("userStoragePrefix"));
+    assertEquals("a/ad/admin/", j.getString("userStoragePrefix"));
     assertEquals(1, j.getJSONArray("subjects").length());
   }
 
@@ -122,26 +125,32 @@ public class MeServletTest {
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     ResourceResolver resolver = createMock(ResourceResolver.class);
     Node profileNode = createMock(Node.class);
-    String profilePath = PersonalUtils.getProfilePath(UserConstants.ANON_USERID);
+    
+    Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
+    UserManager um = createUserManager(null, true, au);
+    
+    String profilePath = PersonalUtils.getProfilePath(au);
     PropertyIterator propIterator = createMock(PropertyIterator.class);
     NodeIterator nodeIterator = createMock(NodeIterator.class);
     expect(propIterator.hasNext()).andReturn(false);
     expect(nodeIterator.hasNext()).andReturn(false);
     expect(profileNode.getNodes()).andReturn(nodeIterator);
     expect(profileNode.getProperties()).andReturn(propIterator);
+    expect(profileNode.getName()).andReturn("authprofile").anyTimes();
+    expect(profileNode.getPath()).andReturn("/path/to/authprofile").anyTimes();
 
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(session.getItem(profilePath)).andReturn(profileNode).anyTimes();
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
+    expect(session.getUserManager()).andReturn(um).anyTimes();
 
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver).anyTimes();
     expect(response.getWriter()).andReturn(w);
-    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
-    response.setContentType("contenttype");
+    response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
-    replay(session, resolver, profileNode, propIterator, nodeIterator, request, response);
+    replay();
 
     MeServlet servlet = new MeServlet();
 
@@ -167,19 +176,19 @@ public class MeServletTest {
     ResourceResolver resolver = createMock(ResourceResolver.class);
     expect(resolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resolver);
-    String profilePath = PersonalUtils.getProfilePath(UserConstants.ANON_USERID);
+    Authorizable au = createAuthorizable(UserConstants.ANON_USERID, false, true);
+    String profilePath = PersonalUtils.getProfilePath(au);
     expect(session.getUserID()).andReturn(UserConstants.ANON_USERID).anyTimes();
     expect(session.getItem(profilePath)).andThrow(new RepositoryException());
 
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
     expect(response.getWriter()).andReturn(w);
-    expect(request.getResponseContentType()).andReturn("contenttype").anyTimes();
-    response.setContentType("contenttype");
+    response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
 
     response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
         "Failed to get the profile node.");
-    replay(request, response, resolver, session);
+    replay();
 
     MeServlet servlet = new MeServlet();
 

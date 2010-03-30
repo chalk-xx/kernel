@@ -4,9 +4,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
@@ -43,7 +46,9 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     if (aggregator != null) {
       aggregator.add(node);
     }
-
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable auMe = um.getAuthorizable(request.getRemoteUser());
+    
     String targetUser = node.getName();
     write.object();
     write.key("target");
@@ -51,7 +56,7 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
     write.key("profile");
     LOGGER.info("Getting info for {} ", targetUser);
     Node profileNode = (Node) node.getSession().getItem(
-        PersonalUtils.getProfilePath(targetUser));
+        PersonalUtils.getProfilePath(auMe));
     ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);

@@ -22,7 +22,7 @@ import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITOR
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -52,9 +52,8 @@ import javax.servlet.http.HttpServletResponse;
  * processor appropriately, serializing any output onto http.
  */
 
-@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = {
-    "GET" }, generateComponent = true, generateService = true)
-public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
+@SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
+public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
   private static final long serialVersionUID = 1521106164249874441L;
@@ -75,6 +74,16 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Node node = JcrUtils.getFirstExistingNode(session, url);
 
+/*
+      --- this block removed because it yields an unusable path - zathomas
+
+      if (DocProxyUtils.isExternalRepositoryDocument(node)) {
+        // This document should reference the config node.
+        String uuid = node.getProperty(REPOSITORY_REF).getString();
+        node = session.getNodeByIdentifier(uuid);
+      }
+
+*/
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
         response.sendError(HttpServletResponse.SC_NOT_FOUND,
@@ -98,6 +107,8 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
         ExternalDocumentResult result = processor.getDocument(node, path);
         InputStream in = result.getDocumentInputStream(0, session.getUserID());
 
+        // FIXME: what about content type and encoding ?
+        
         // Stream it to the user.
         OutputStream out = response.getOutputStream();
         IOUtils.stream(in, out);
@@ -113,41 +124,6 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       return;
     }
 
-  }
-
-  @Override
-  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-      throws ServletException, IOException {
-    try {
-      String url = request.getRequestURI();
-      Session session = request.getResourceResolver().adaptTo(Session.class);
-      Node node = JcrUtils.getFirstExistingNode(session, url);
-
-      // for deletes, we look for the resources property
-      String[] resources = request.getParameterValues("resources");
-      String processorType = node.getProperty(DocProxyConstants.REPOSITORY_PROCESSOR)
-          .getString();
-      ExternalRepositoryProcessor processor = tracker.getProcessorByType(processorType);
-      if (processor == null) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown repository.");
-        return;
-      }
-
-      for (String resource : resources) {
-        try {
-          String path = resource.substring(node.getPath().length());
-          processor.removeDocument(node, path);
-        } catch (DocProxyException e) {
-          response.sendError(e.getCode(), e.getMessage());
-        }
-      }
-
-    } catch (RepositoryException e) {
-      LOGGER.error("Failed to retrieve document's content", e);
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          "Failed to retrieve document's content");
-      return;
-    }
   }
 
   protected void activate(ComponentContext context) {

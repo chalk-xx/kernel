@@ -20,25 +20,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>felix</artifactId>
-        <version>1.0.4</version>
-        <relativePath>../../pom</relativePath>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>base</artifactId>
+      <version>0.4</version>
     </parent>
-
-    <properties>
-        <pkgArtifactId>commons-pool</pkgArtifactId>
-        <pkgVersion>1.5.2</pkgVersion>
-        <pomVersion>0.4-SNAPSHOT</pomVersion>
-        <osgiVersion>${pkgVersion}</osgiVersion>
-    </properties>
-    <groupId>org.apache.felix.commons</groupId>
-    <artifactId>${pom.groupId}.${pkgArtifactId}</artifactId>
-    <version>${osgiVersion}-${pomVersion}</version>
+    <groupId>org.sakaiproject.nakamura</groupId>
+    <artifactId>org.sakaiproject.nakamura.commons.commons-pool</artifactId>
+    <version>1.5.2-0.4</version>
     <packaging>bundle</packaging>
-    <name>${pkgArtifactId} bundle</name>
+    <name>commons-pool bundle</name>
     <description>
-        This bundle simply wraps ${pkgArtifactId}-${pkgVersion}.jar.
+        This bundle simply wraps commons-pool-1.5.2.jar.
     </description>
     <organization>
         <name>Apache Felix Project</name>
@@ -55,8 +47,8 @@
     <dependencies>
         <dependency>
             <groupId>commons-pool</groupId>
-            <artifactId>${pkgArtifactId}</artifactId>
-            <version>${pkgVersion}</version>
+            <artifactId>commons-pool</artifactId>
+            <version>1.5.2</version>
         </dependency>
     </dependencies>
     <build>
@@ -68,8 +60,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${pom.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>*;version=${pkgVersion}</Export-Package>
+                        <Bundle-SymbolicName>commons-pool</Bundle-SymbolicName>
+                        <Export-Package>*;version=1.5.2</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

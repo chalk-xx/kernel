@@ -63,6 +63,36 @@ public class MockRowIterator implements RowIterator {
             RepositoryException {
           return new MockValue(returnNode.getPath());
         }
+
+        public Node getNode() throws RepositoryException {
+          // TODO Auto-generated method stub
+          return null;
+        }
+
+        public Node getNode(String arg0) throws RepositoryException {
+          // TODO Auto-generated method stub
+          return null;
+        }
+
+        public String getPath() throws RepositoryException {
+          // TODO Auto-generated method stub
+          return null;
+        }
+
+        public String getPath(String arg0) throws RepositoryException {
+          // TODO Auto-generated method stub
+          return null;
+        }
+
+        public double getScore() throws RepositoryException {
+          // TODO Auto-generated method stub
+          return 0;
+        }
+
+        public double getScore(String arg0) throws RepositoryException {
+          // TODO Auto-generated method stub
+          return 0;
+        }
       };
 
       convertedRows.put(node.getPath(), row);

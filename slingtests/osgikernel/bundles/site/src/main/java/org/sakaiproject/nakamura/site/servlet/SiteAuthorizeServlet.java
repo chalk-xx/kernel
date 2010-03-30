@@ -160,7 +160,7 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
         }
       }
       String path = site.getPath();
-      String siteUuid = site.getUUID();
+      String siteUuid = site.getIdentifier();
       if (changes > 0) {
 
         // set the authorizables on the site

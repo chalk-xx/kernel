@@ -65,8 +65,6 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
     Session session = request.getResourceResolver().adaptTo(Session.class);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
         .encodePath(messagingService.getFullPathToStore(user, session)));
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075
-        .encodePath(MessageConstants._USER_MESSAGE));
 
     RequestParameter usersParam = request.getRequestParameter("_from");
     if (usersParam != null && !usersParam.getString().equals("")) {

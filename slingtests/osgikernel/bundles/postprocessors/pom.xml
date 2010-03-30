@@ -16,11 +16,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.postprocessors</artifactId>
   <packaging>bundle</packaging>
-  <version>0.4-SNAPSHOT</version>
+  <version>0.4</version>
   <name>Sakai Nakamura Postprocessors</name>
   <description>This is a bundle for responding however we like to application events within Nakamura.</description>
   <build>
@@ -46,8 +46,6 @@
     <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.jackrabbit</groupId>

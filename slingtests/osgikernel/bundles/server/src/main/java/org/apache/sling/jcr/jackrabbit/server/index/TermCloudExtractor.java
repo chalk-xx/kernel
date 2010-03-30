@@ -81,7 +81,7 @@ public class TermCloudExtractor {
 
     public void add(Node node) throws RepositoryException {
         try {
-            Term idTerm = new Term(FieldNames.UUID, node.getUUID().toString());
+            Term idTerm = new Term(FieldNames.UUID, node.getIdentifier().toString());
             TermDocs tDocs = indexReader.termDocs(idTerm);
             try {
                 if (tDocs.next()) {

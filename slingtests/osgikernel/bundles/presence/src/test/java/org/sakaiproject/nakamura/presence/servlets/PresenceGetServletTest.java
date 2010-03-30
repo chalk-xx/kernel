@@ -88,6 +88,8 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(uuid, status);
 
     expect(request.getRemoteUser()).andReturn(uuid);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
 
