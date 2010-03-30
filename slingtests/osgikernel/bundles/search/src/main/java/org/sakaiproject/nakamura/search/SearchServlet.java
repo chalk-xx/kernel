@@ -161,6 +161,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
     @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
     @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
+    @ServiceResponse(code = 403, description = "The search template is not located under /var "),
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
