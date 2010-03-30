@@ -75,11 +75,6 @@
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.9-20100322</version>
-        </bundle>
-        <bundle>
-            <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.post</artifactId>
             <version>2.0.5-20100322</version>
         </bundle>
@@ -161,6 +156,12 @@
         </bundle>
     </startLevel>
     <startLevel level="1">
+       <!-- moved becuase of dependency on resource in redirect.snd KERN-660 -->
+        <bundle>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.servlets.get</artifactId>
+            <version>2.0.9-20100322</version>
+        </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.commons.log</artifactId>
@@ -367,6 +368,11 @@
       <artifactId>org.eclipse.persistence.core</artifactId>
       <version>1.1.0</version>
     </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </bundle>
    </startLevel>
    <startLevel level="11" >
     <bundle>
@@ -434,11 +440,6 @@
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.batch</artifactId>
-      <version>0.4-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.securityloader</artifactId>
       <version>0.4-SNAPSHOT</version>
     </bundle>
     <bundle>

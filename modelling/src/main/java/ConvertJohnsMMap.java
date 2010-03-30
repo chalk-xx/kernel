@@ -75,7 +75,7 @@ public class ConvertJohnsMMap {
       String localName = n.getNodeName();
       if ( "node".equals(localName) ) {
         NamedNodeMap nn = n.getAttributes();
-        String nodeName = path+safeDirName(nn.getNamedItem("TEXT"))+".";
+        String nodeName = path+JSONUtil.safeId(nn.getNamedItem("TEXT").getTextContent())+".";
         
         Node colorNode = nn.getNamedItem("COLOR");
         String color = "#000000";
@@ -126,23 +126,5 @@ public class ConvertJohnsMMap {
     }
   }
 
-  /**
-   * @param namedItem
-   * @return
-   */
-  private static String safeDirName(Node namedItem) {
-    String nodeName = namedItem.getTextContent();
-    nodeName = nodeName.replace(' ','-');
-    nodeName = nodeName.replace('"','-');
-    nodeName = nodeName.replace(';','-');
-    nodeName = nodeName.replace(',','-');
-    nodeName = nodeName.replace('\'','-');
-    nodeName = nodeName.replace('(','-');
-    nodeName = nodeName.replace(')','-');
-    nodeName = nodeName.replace('.','-');
-    nodeName = nodeName.replace('/','-');
-    nodeName = nodeName.replace('?','-');
-    return nodeName;
-  }
 
 }
