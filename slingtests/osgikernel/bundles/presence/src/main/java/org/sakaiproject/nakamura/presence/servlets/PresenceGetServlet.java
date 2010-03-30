@@ -67,7 +67,7 @@ import javax.servlet.http.HttpServletResponse;
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
                  "path.",
                  "<pre>" +
-                 "curl http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "  \"user\": \"ieb\"  \n" +
                  "  \"sakai:status\": \"online\",\n" +
