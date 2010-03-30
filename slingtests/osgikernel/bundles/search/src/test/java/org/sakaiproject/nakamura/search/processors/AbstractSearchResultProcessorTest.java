@@ -16,7 +16,6 @@ import javax.jcr.Node;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
@@ -35,16 +34,12 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     PropertyIterator propertyIterator = createMock(PropertyIterator.class);
     expect(propertyIterator.hasNext()).andReturn(false).anyTimes();
     Node dummyNode = createMock(Node.class);
-    Value val = createMock(Value.class);
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    expect(val.getString()).andReturn("").times(itemCount);
-    expect(row.getValue("jcr:path")).andReturn(val).times(itemCount);
     Session session = createMock(Session.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver).times(itemCount);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session).times(itemCount);
-    expect(session.getItem("")).andReturn(dummyNode).times(itemCount);
-    
+    expect(row.getNode()).andReturn(dummyNode).anyTimes();
     
     expect(dummyNode.getProperties()).andReturn(propertyIterator).anyTimes();
     expect(dummyNode.getPath()).andReturn("/apath").anyTimes();

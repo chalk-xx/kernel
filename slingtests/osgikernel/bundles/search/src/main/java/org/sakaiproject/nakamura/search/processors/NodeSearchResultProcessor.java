@@ -60,7 +60,7 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node node = RowUtils.getNode(row, session);
+    Node node = row.getNode();
     if (aggregator != null) {
       aggregator.add(node);
     }

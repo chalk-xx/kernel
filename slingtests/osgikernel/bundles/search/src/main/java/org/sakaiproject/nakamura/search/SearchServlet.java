@@ -363,6 +363,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
+      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught RepositoryException {}", e.getMessage());
     } catch (JSONException e) {
@@ -438,6 +439,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         }
       }
     }
+    System.err.println("\n\n\n\n" + sb.toString());
     return sb.toString();
   }
 
@@ -479,7 +481,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
+          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
         escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
             .replaceAll("'", "''");
