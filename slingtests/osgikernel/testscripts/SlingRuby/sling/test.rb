@@ -25,7 +25,7 @@ class SlingTest < Test::Unit::TestCase
 		@created_nodes.reverse.each { |n| @s.delete_node(n) }
 		@created_sites.each { |s| @sm.delete_site(s) }
 		@created_groups.each { |g| @um.delete_group(g) }
-		#@created_users.each { |u| @um.delete_user(u.name) }
+		@created_users.each { |u| @um.delete_user(u.name) }
 	end
   end
 
