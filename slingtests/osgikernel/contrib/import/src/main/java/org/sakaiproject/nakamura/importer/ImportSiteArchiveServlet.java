@@ -17,7 +17,29 @@
  */
 package org.sakaiproject.nakamura.importer;
 
-import com.ctc.wstx.stax.WstxInputFactory;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Properties;
@@ -44,29 +66,7 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import com.ctc.wstx.stax.WstxInputFactory;
 
 @SuppressWarnings("restriction")
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
@@ -344,8 +344,7 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private Node copyFile(String zipEntryName, String fileName, String sitePath,
       String contentType, Session session, ZipFile zip) {
     final String id = uniqueId();
-    final String path = FileUtils.getHashedPath(FilesConstants.USER_FILESTORE,
-        id);
+    final String path = FilesConstants.USER_FILESTORE;
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));

@@ -50,33 +50,6 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEAS
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlException;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.SecurityConstants;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
-import org.imsglobal.basiclti.BasicLTIConstants;
-import org.imsglobal.basiclti.BasicLTIUtil;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.ACLUtils;
-import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.JcrUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.security.Principal;
@@ -103,10 +76,37 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
+import javax.jcr.security.AccessControlException;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 import javax.jcr.version.VersionException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.jackrabbit.core.security.SecurityConstants;
+import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.commons.json.JSONException;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.imsglobal.basiclti.BasicLTIConstants;
+import org.imsglobal.basiclti.BasicLTIUtil;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.ACLUtils;
+import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
+import org.sakaiproject.nakamura.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
