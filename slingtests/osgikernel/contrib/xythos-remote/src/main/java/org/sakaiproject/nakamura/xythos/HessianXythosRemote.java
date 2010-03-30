@@ -50,8 +50,8 @@ public class HessianXythosRemote implements XythosRemote {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(HessianXythosRemote.class);
   
-  @Property(name = "xythos.remote.host", description = "The remote host (and port) of the Xythos instance", value="http://xtest1.home.nyu.edu:8080")
-  protected String xythosHost = "http://xtest1.home.nyu.edu:8080";
+  @Property(name = "xythos.remote.host", description = "The remote host (and port) of the Xythos instance")
+  protected String xythosHost;
   
   protected String remotePath = "/remoting/remoting/XythosService";
   
@@ -133,6 +133,10 @@ public class HessianXythosRemote implements XythosRemote {
    */
   @SuppressWarnings("unchecked")
   protected void activate(ComponentContext context) {
+    String bundleXythos = context.getBundleContext().getProperty("xythos.remote.host");
+    if (bundleXythos != null) {
+      xythosHost = bundleXythos;
+    }
     // Get the properties from the console.
     Dictionary props = context.getProperties();
     if (props.get("xythos.remote.host") != null) {
