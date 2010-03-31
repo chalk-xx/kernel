@@ -99,20 +99,18 @@ public class BasicLTIConstants {
   /**
    * launch_presentation_return_url=http://lmsng.school.edu/portal/123/page/988/
    * <p>
-   * Fully qualified URL where the TP can redirect the user back to the TC
-   * interface. This URL can be used once the TP is finished or if the TP cannot
-   * start or has some technical difficulty. In the case of an error, the TP may
-   * add a parameter called lti_errormsg that includes some detail as to the
-   * nature of the error. The lti_errormsg value should make sense if displayed
-   * to the user. If the tool has displayed a message to the end user and only
-   * wants to give the TC a message to log, use the parameter lti_errorlog
-   * instead of lti_errormsg. If the tool is terminating normally, and wants a
-   * message displayed to the user it can include a text message as the lti_msg
-   * parameter to the return URL. If the tool is terminating normally and wants
-   * to give the TC a message to log, use the parameter lti_log. This data
-   * should be sent on the URL as a GET Ð so the TP should take care to keep the
-   * overall length of the parameters small enough to fit within the limitations
-   * of a GET request.
+   * Fully qualified URL where the TP can redirect the user back to the TC interface. This
+   * URL can be used once the TP is finished or if the TP cannot start or has some
+   * technical difficulty. In the case of an error, the TP may add a parameter called
+   * lti_errormsg that includes some detail as to the nature of the error. The
+   * lti_errormsg value should make sense if displayed to the user. If the tool has
+   * displayed a message to the end user and only wants to give the TC a message to log,
+   * use the parameter lti_errorlog instead of lti_errormsg. If the tool is terminating
+   * normally, and wants a message displayed to the user it can include a text message as
+   * the lti_msg parameter to the return URL. If the tool is terminating normally and
+   * wants to give the TC a message to log, use the parameter lti_log. This data should be
+   * sent on the URL as a GET - so the TP should take care to keep the overall length of
+   * the parameters small enough to fit within the limitations of a GET request.
    */
   public static final String LAUNCH_PRESENTATION_RETURN_URL = "launch_presentation_return_url";
   /**

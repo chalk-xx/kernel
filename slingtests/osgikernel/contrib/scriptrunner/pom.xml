@@ -62,11 +62,6 @@
     </dependency> 
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.session</artifactId>
-      <version>0.4-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.jcr</artifactId>
       <version>0.4-SNAPSHOT</version>
     </dependency>
