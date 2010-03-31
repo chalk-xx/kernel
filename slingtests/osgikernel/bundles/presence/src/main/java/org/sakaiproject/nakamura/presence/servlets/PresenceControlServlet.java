@@ -76,10 +76,10 @@ import org.slf4j.LoggerFactory;
                  "</pre>",
                  "Clear the status, set the location.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"@clear\" http://ieb:password@localhost:8080/var/presence.json\n" +
+                 "curl -Fsakai:location=\"At Home\" -Fdelete=1 http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
-                 "   \"status\" :\"@clear\",\n" +
+                 "   \"delete\" :\"1\",\n" +
                  "}\n" +
                  "</pre>",
                  "Set Only the location "+
