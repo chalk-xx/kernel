@@ -32,7 +32,6 @@ import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * <p>
@@ -71,10 +70,7 @@ import javax.servlet.http.HttpSession;
 })
 public final class FormAuthenticationHandler implements AuthenticationHandler {
 
-  public static final String FORCE_LOGOUT = "sakaiauth:logout";
-  public static final String TRY_LOGIN = "sakaiauth:login";
-  public static final String USERNAME = "sakaiauth:un";
-  public static final String PASSWORD = "sakaiauth:pw";
+
 
   /**
    *
@@ -96,18 +92,14 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
       forceLogout = false;
       valid = false;
       if ("POST".equals(request.getMethod())) {
-        if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
-          LOGGER.debug(" logout");
-          valid = false;
-          forceLogout = true;
-        } else if ("1".equals(request.getParameter(TRY_LOGIN))) {
-          LOGGER.debug(" login as {} ",request.getParameter(USERNAME));
-          String password = request.getParameter(PASSWORD);
+        if ("1".equals(request.getParameter(FormLoginServlet.TRY_LOGIN))) {
+          LOGGER.debug(" login as {} ",request.getParameter(FormLoginServlet.USERNAME));
+          String password = request.getParameter(FormLoginServlet.PASSWORD);
           if (password == null) {
-            credentials = new SimpleCredentials(request.getParameter(USERNAME),
+            credentials = new SimpleCredentials(request.getParameter(FormLoginServlet.USERNAME),
                 new char[0]);
           } else {
-            credentials = new SimpleCredentials(request.getParameter(USERNAME), password
+            credentials = new SimpleCredentials(request.getParameter(FormLoginServlet.USERNAME), password
                 .toCharArray());
           }
           valid = true;
@@ -135,14 +127,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
      * @return
      */
     Credentials getCredentials() {
-      IllegalAccessError e = new IllegalAccessError(
-          "getCredentials() has been invoked from an invalid location ");
-      StackTraceElement[] ste = e.getStackTrace();
-      if (FormAuthenticationHandler.class.getName().equals(ste[1].getClassName())
-          && "extractCredentials".equals(ste[1].getMethodName())) {
-        return credentials;
-      }
-      throw e;
+      return credentials;
     }
 
     /**
@@ -178,37 +163,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
       return authenticatioInfo;
     }
 
-
-    // we probably want to remove reliance of sesion usage.
-    // the first time the FormAuth is used we login with the username and password, so at this point it would be
-    // safe to use a secure token, and would also be ok to use that token from the TrustedTokenService avoiding the session entirely
-    HttpSession session = request.getSession(false);
-    if (authentication.isForceLogout()) {
-      // force logout
-      if (session != null) {
-        session.removeAttribute(FORM_AUTHENTICATION);
-      }
-      request.removeAttribute(FORM_AUTHENTICATION);
-      // no auth info
-      return null;
-    }
-
-    if (session != null) {
-      LOGGER.debug("SessionAuth: Has session {} ",session.getId());
-      FormAuthentication savedCredentials = (FormAuthentication) session
-          .getAttribute(FORM_AUTHENTICATION);
-      LOGGER.debug("SessionAuth: Has session {} with credentials {} ",session.getId(),savedCredentials);
-      if (savedCredentials != null && savedCredentials.isValid()) {
-        LOGGER.debug("SessionAuth: User ID {} ",savedCredentials.getUserId());
-        AuthenticationInfo authenticatioInfo = new AuthenticationInfo(SESSION_AUTH);
-        authenticatioInfo.put(AuthenticationInfo.CREDENTIALS, savedCredentials.getCredentials());
-        return authenticatioInfo;
-      } else {
-        LOGGER.debug("SessionAuth: Saved credentials are not valid ");
-      }
-    } else {
-      LOGGER.debug("SessionAuth: No Session");
-    }
     return null;
   }
 
@@ -219,12 +173,6 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    HttpSession session = request.getSession(false);
-    if (session != null) {
-      session.removeAttribute(FORM_AUTHENTICATION);
-    }
-
-    request.removeAttribute(FORM_AUTHENTICATION);
   }
 
   /**
@@ -234,6 +182,7 @@ public final class FormAuthenticationHandler implements AuthenticationHandler {
   public boolean requestCredentials(HttpServletRequest request,
       HttpServletResponse response) throws IOException {
     // we should send a response that causes the user to login, probably a 401
+    // but we might want to send to a HTML form.
     response.setStatus(401);
     return true;
   }

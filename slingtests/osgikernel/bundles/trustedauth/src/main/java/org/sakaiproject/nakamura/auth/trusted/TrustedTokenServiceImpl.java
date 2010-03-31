@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;
@@ -54,7 +55,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
 
 
-  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceImpl.class);
 
   /** Property to indivate if the session should be used. */
   @Property(boolValue = false, description = "If True the session will be used to track authentication of the user, otherwise a cookie will be used.")
@@ -195,7 +196,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
 
   /**
-   * Remove credentials so that subsequent request dont contain credentials.
+   * Remove credentials so that subsequent request don't contain credentials.
    * 
    * @param request
    * @param response
@@ -216,7 +217,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
 
   /**
-   * Inject a token into the request/response
+   * Inject a token into the request/response, this assumes htat the getUserPrincipal() of the request
+   * or the request.getRemoteUser() contain valid user ID's from which to generate the request.
+   *
    * 
    * @param req
    * @param resp
