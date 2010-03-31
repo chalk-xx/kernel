@@ -20,10 +20,8 @@ package org.sakaiproject.nakamura.docproxy.xythos;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 
-import edu.nyu.XythosDocument;
 import edu.nyu.XythosRemote;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -41,9 +39,15 @@ public class XythosDocumentResult implements ExternalDocumentResult {
   
   @SuppressWarnings("unchecked")
   public XythosDocumentResult(Map<String,Object> document, XythosRemote xythosService) {
-    this.contentLength = (Long)document.get("contentLength");
-    this.contentType = (String)document.get("contentType");
-    this.properties = (Map<String,Object>)document.get("properties");
+    if (document.containsKey("contentLength")) {
+      this.contentLength = (Long) document.get("contentLength");
+    }
+    if (document.containsKey("contentType")) {
+      this.contentType = (String) document.get("contentType");
+    }
+    if (document.containsKey("properties")) {
+      this.properties = (Map<String,Object>) document.get("properties");
+    }
     this.uri = (String)document.get("uri");
     this.xythosService = xythosService;
     }
