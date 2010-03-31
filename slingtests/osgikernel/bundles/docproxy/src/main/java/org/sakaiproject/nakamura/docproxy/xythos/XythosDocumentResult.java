@@ -39,16 +39,20 @@ public class XythosDocumentResult implements ExternalDocumentResult {
   
   @SuppressWarnings("unchecked")
   public XythosDocumentResult(Map<String,Object> document, XythosRemote xythosService) {
-    if (document.containsKey("contentLength")) {
-      this.contentLength = (Long) document.get("contentLength");
+    if (document != null) {
+      if (document.containsKey("contentLength")) {
+        this.contentLength = (Long) document.get("contentLength");
+      }
+      if (document.containsKey("contentType")) {
+        this.contentType = (String) document.get("contentType");
+      }
+      if (document.containsKey("properties")) {
+        this.properties = (Map<String,Object>) document.get("properties");
+      }
+      this.uri = (String)document.get("uri");
+    } else {
+      throw new IllegalArgumentException("Document must not be null.");
     }
-    if (document.containsKey("contentType")) {
-      this.contentType = (String) document.get("contentType");
-    }
-    if (document.containsKey("properties")) {
-      this.properties = (Map<String,Object>) document.get("properties");
-    }
-    this.uri = (String)document.get("uri");
     this.xythosService = xythosService;
     }
 
@@ -59,8 +63,12 @@ public class XythosDocumentResult implements ExternalDocumentResult {
   public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
     try {
       InputStream rv = xythosService.getFileContent(uri, userId);
-      rv.skip(startingAt);
-      return rv;
+      if (rv != null) {
+        rv.skip(startingAt);
+        return rv;
+      } else {
+        throw new DocProxyException(500, "Could not start reading external repository document at the requested byte position: " + startingAt);
+      }
     } catch (IOException e) {
       throw new DocProxyException(500, "Could not start reading external repository document at the requested byte position: " + startingAt);
     }

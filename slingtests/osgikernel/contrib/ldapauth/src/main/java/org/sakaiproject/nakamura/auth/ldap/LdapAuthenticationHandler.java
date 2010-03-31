@@ -29,6 +29,7 @@ import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -199,5 +200,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
     Credentials getCredentials() {
       return cred;
     }
+  }
+
+  public void addPrincipals(Set arg0) {
+    
   }
 }
