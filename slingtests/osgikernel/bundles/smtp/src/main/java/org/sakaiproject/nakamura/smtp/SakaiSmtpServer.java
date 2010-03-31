@@ -37,7 +37,7 @@ import javax.mail.internet.MimeMultipart;
 /**
  * @scr.component immediate="true" label="Sakai SMTP Service"
  *                description="Receives incoming mail." name
- *                ="org.sakaiproject.nakamura.smtp.SmptServer"
+ *                ="org.sakaiproject.nakamura.smtp.SmtpServer"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  */
 public class SakaiSmtpServer implements SimpleMessageListener {

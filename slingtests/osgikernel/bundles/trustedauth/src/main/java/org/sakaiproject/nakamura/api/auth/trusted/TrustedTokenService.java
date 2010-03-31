@@ -15,13 +15,16 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.auth.trusted;
+package org.sakaiproject.nakamura.api.auth.trusted;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /**
  * Marker interface for the private service.
  */
-interface TrustedTokenService {
+public interface TrustedTokenService {
 
   /**
    * Attribute name for the Credentials stored in the session, put there by the
@@ -34,6 +37,13 @@ interface TrustedTokenService {
    * TrustedAuthenticationServlet on login.
    */
   static final String CA_AUTHENTICATION_USER = "sakai-trusted-authentication-user";
+
+  /**
+   * Invalidated any trusted token in the response.
+   * @param request
+   * @param response
+   */
+  void dropCredentials(HttpServletRequest request, HttpServletResponse response);
 
 
 }

@@ -4,6 +4,9 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 # and svn info https://source.caret.cam.ac.uk/camtools
 
+export K2_TAG="0.3"
+export S2_TAG="trunk"
+
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
 
@@ -16,8 +19,8 @@ export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
-export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
-export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+export JAVA_OPTS="-server -Xmx1024m -XX:MaxPermSize=512m -Djava.awt.headless=true -Dsun.lang.ClassLoader.allowArraySyntax=true -Dsakai.demo=true -Dsakai.cookieName=SAKAI2SESSIONID"
+export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
 # ensure logs directory exists
@@ -52,21 +55,25 @@ rm -rf ~/.m2/repository/org/sakaiproject
 #rm -rf sling
 
 # build sakai 3
-echo "Building sakai3/0.2-RC1..."
+echo "Building nakamura@$K2_TAG..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
 cd open-experiments/slingtests/osgikernel/
-git checkout 0.2
+git checkout $K2_TAG
 # work around instance not listening on port 80
-perl -pwi -e 's/localhost/localhost:8080/g' bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/*.json
+#perl -pwi -e 's/localhost/localhost:8080/g' bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/*.json
 mvn clean install -Dmaven.test.skip=true
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.2.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+mkdir -p sling/config/org/sakaiproject/nakamura/proxy
+echo 'port=I"8080"' > sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'sharedSecret="e2KS54H35j6vS5Z38nK40"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+echo 'service.pid="org.sakaiproject.nakamura.proxy.TrustedLoginTokenProxyPreProcessor"' >> sling/config/org/sakaiproject/nakamura/proxy/TrustedLoginTokenProxyPreProcessor.config
+java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.3.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # untar tomcat
 cd $BUILD_DIR
@@ -83,8 +90,8 @@ cd ..
 rm -rf kernel
 
 # build sakai 2
-echo "Building sakai2/trunk..."
-svn checkout -q https://source.sakaiproject.org/svn/sakai/trunk/ sakai
+echo "Building sakai2/$S2_TAG..."
+svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
 cd sakai/
 REPO_REV=`svn info|grep Revision`
 # SAK-17223 K2AuthenticationFilter
@@ -99,9 +106,10 @@ cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
 # work around for broken sed on some systems
 perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
 #
+# find . -name pom.xml -exec perl -pwi -e "s/<version>2\.8-SNAPSHOT<\/version>/<version>2\.6\.2<\/version>/gi" '{}' \;
 mvn clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
 cd ..
-rm -rf sakai
+#rm -rf sakai
 
 # configure sakai 2 instance
 cp -f server.xml sakai2-demo/conf/server.xml 
