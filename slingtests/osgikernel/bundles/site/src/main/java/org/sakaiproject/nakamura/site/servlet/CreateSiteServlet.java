@@ -39,6 +39,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -136,6 +137,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
+  private static final String SITES_ROOT_RESOURCE_TYPE = "sakai/sites";
 
   private transient SlingRepository slingRepository;
 
@@ -162,7 +164,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
       // If the current target URL is a parent node for sites, construct the final
       // site path from it and the ":sitepath" parameter.
-      if ("sakai/sites".equals(resourceType)) {
+      if (SITES_ROOT_RESOURCE_TYPE.equals(resourceType)) {
         RequestParameter relativePathParam = request.getRequestParameter(":sitepath");
         if (relativePathParam == null) {
           response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
@@ -203,13 +205,17 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       }
       LOGGER.debug("The sitePath is: {}", sitePath);
 
-      boolean granted = isCreateSiteGranted(session, sitePath, currentUser);
+      Session adminSession = slingRepository.loginAdministrative(null);
+      boolean granted = isCreateSiteGranted(session, adminSession, sitePath, currentUser);
       Session createSession = session;
       if (granted) {
         // Switch to gain administrative powers for at least long enough
         // to create the site node and give the current user access to
         // it.
-        createSession = slingRepository.loginAdministrative(null);
+        createSession = adminSession;
+      } else {
+        adminSession.logout();
+        adminSession = null;
       }
 
       try {
@@ -258,8 +264,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
           createSession.save();
         }
       } finally {
-        if (granted) {
-          createSession.logout();
+        if (adminSession != null) {
+          adminSession.logout();
         }
       }
 
@@ -285,18 +291,35 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    *
    * @param session
    * @param sitePath
+   * @param adminSession needed to check node paths in case the current user does
+   *   not have read access
    * @param userId
    * @return true if the specified user can create a site at the specified path
    *   regardless of other access restrictions; false if the user needs to rely on
    *   normal security checks
    * @throws RepositoryException
    */
-  private boolean isCreateSiteGranted(Session session, String sitePath, Authorizable currentUser) throws RepositoryException {
+  private boolean isCreateSiteGranted(Session session, Session adminSession, String sitePath, Authorizable currentUser) throws RepositoryException {
     UserManager userManager = AccessControlUtil.getUserManager(session);
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
 
-    Node firstRealNode = JcrUtils.getFirstExistingNode(session, sitePath);
-    // iterate up to the root looking for a site marker.
+    Node firstRealNode = null;
+    for (String firstRealNodePath = sitePath;
+      (firstRealNode == null) && (firstRealNodePath != null);
+      firstRealNodePath = ResourceUtil.getParent(firstRealNodePath)) {
+      if (adminSession.itemExists(firstRealNodePath)) {
+        firstRealNode = (Node)adminSession.getItem(firstRealNodePath);
+      }
+    }
+    if (firstRealNode == null) {
+      return false;
+    }
+    // If the target path already exists, do not circumvent normal access checks.
+    if (firstRealNode.getPath().equals(sitePath)) {
+      return false;
+    }
+
+    // iterate up to (but not including) the root looking for a site marker.
     Node siteMarker = firstRealNode;
     Set<String> principals = new HashSet<String>();
     PrincipalIterator principalIterator = principalManager
@@ -323,6 +346,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             principals.add(principal.getName());
           }
         }
+      } else if (getSiteService().isSite(siteMarker)) {
+        // Do not circumvent normal access checks under an existing site, no matter
+        // what its parent is.
+        return false;
       }
       siteMarker = siteMarker.getParent();
     }
