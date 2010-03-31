@@ -122,7 +122,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
     // nothing to do
@@ -202,7 +202,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
     }
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void addPrincipals(Set arg0) {
     // Nothing to do
   }
