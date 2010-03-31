@@ -28,6 +28,10 @@ import javax.jcr.Session;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -45,27 +49,16 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.presence.PresenceUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This servlet deals with GET and JSON only and outputs the contacts listing presence
- * related to the current user, only includes accepted contacts
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="user"
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
- * @scr.reference name="ConnectionManager"
- *                interface="org.sakaiproject.nakamura.api.connections.ConnectionManager"
- * @scr.reference name="PresenceService"
- *                interface="org.sakaiproject.nakamura.api.presence.PresenceService"
- */
+@SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "GET" }, selectors = {"user"}, extensions = { "json" })
+@Properties(value = {
+    @Property(name = "service.description", value = { "Gets the presence for the current user and named user" }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 @ServiceDocumentation(name = "Presence User Servlet", 
     description = "Gets presence for the current user and a named user including the public profile for the named contact.",
     shortDescription="Gets the presence for the current user and named user",
@@ -124,32 +117,18 @@ public class PresenceUserServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
+  @Reference
   protected transient PresenceService presenceService;
 
-  protected void bindPresenceService(PresenceService presenceService) {
-    this.presenceService = presenceService;
-  }
-
-  protected void unbindPresenceService(PresenceService presenceService) {
-    this.presenceService = null;
-  }
-
+  @Reference
   protected transient ConnectionManager connectionManager;
-
-  protected void bindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  protected void unbindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = null;
-  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     // get current user
     String user = request.getRemoteUser();
-    if (user == null) {
+    if (user.equals(UserConstants.ANON_USERID)) {
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
           "User must be logged in to check their status");
       return;

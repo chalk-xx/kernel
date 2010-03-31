@@ -35,6 +35,7 @@ import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -70,24 +71,23 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     presenceService = test.getPresenceService();
 
     servlet = new PresenceUserServlet();
-    servlet.bindPresenceService(presenceService);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
-    servlet.unbindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
   }
 
   @Test
   public void testAnon() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    expect(request.getRemoteUser()).andReturn(null);
+    expect(request.getRemoteUser()).andReturn(UserConstants.ANON_USERID);
     response.sendError(401, "User must be logged in to check their status");
     replay();
-    PresenceGetServlet servlet = new PresenceGetServlet();
     servlet.doGet(request, response);
   }
 
@@ -178,7 +178,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     }
     expect(connectionManager.getConnectedUsers(CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
         friends);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.connectionManager = connectionManager;
   }
 
 }

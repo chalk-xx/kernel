@@ -94,10 +94,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
       .getLogger(ConnectionManagerImpl.class);
 
   @Reference
-  protected LockManager lockManager;
+  protected transient LockManager lockManager;
 
   @Reference
-  protected SlingRepository slingRepository;
+  protected transient SlingRepository slingRepository;
 
   private static Map<TransitionKey, StatePair> stateMap = new HashMap<TransitionKey, StatePair>();
 
@@ -152,13 +152,13 @@ public class ConnectionManagerImpl implements ConnectionManager {
    *          the userId to check
    * @return
    */
-  private Authorizable checkValidUserId(Session session, String userId)
+  protected Authorizable checkValidUserId(Session session, String userId)
       throws ConnectionException {
     Authorizable authorizable;
+    if ("anonymous".equals(session.getUserID()) || "anonymous".equals(userId)) {
+      throw new ConnectionException(403, "Cant make a connection with anonymous.");
+    }
     try {
-      if ("anonymous".equals(session.getUserID()) || "anonymous".equals(userId)) {
-        throw new ConnectionException(403, "Cant make a connection with anonymous.");
-      }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       authorizable = userManager.getAuthorizable(userId);
       if (authorizable != null && authorizable.getID().equals(userId)) {
@@ -184,7 +184,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @throws ConnectionException
    * @throws RepositoryException
    */
-  private ConnectionState getConnectionState(Node userContactNode)
+  protected ConnectionState getConnectionState(Node userContactNode)
       throws ConnectionException, RepositoryException {
     if (userContactNode == null) {
       throw new IllegalArgumentException(
@@ -324,13 +324,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return l;
   }
 
-  private Node getOrCreateConnectionNode(Session session, Authorizable fromUser, Authorizable toUser)
+  protected Node getOrCreateConnectionNode(Session session, Authorizable fromUser, Authorizable toUser)
       throws RepositoryException {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
-    try {
+    if (session.itemExists(nodePath)) {
       return (Node) session.getItem(nodePath);
-    } catch (PathNotFoundException pnfe) {
-      // Fall through and create node
     }
     String basePath = ConnectionUtils.getConnectionPathBase(fromUser);
     try {
@@ -340,9 +338,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throw new RepositoryException("Unable to get connection node - lock timed out");
     }
     try {
-      try {
-        session.getItem(basePath);
-      } catch (PathNotFoundException pnfe) {
+      if (!session.itemExists(basePath)) {
         JcrUtils.deepGetOrCreateNode(session, basePath);
         addEntry(basePath, fromUser, session, WRITE_GRANTED,
             REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
@@ -363,7 +359,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
     }
   }
 
-  private void handleInvitation(Map<String, String[]> requestProperties, Session session,
+  protected void handleInvitation(Map<String, String[]> requestProperties, Session session,
       Node fromNode, Node toNode) throws RepositoryException {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
@@ -396,7 +392,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
    * @param node
    * @param properties
    */
-  private void addArbitraryProperties(Node node, Map<String, String[]> properties)
+  protected void addArbitraryProperties(Node node, Map<String, String[]> properties)
       throws RepositoryException {
     for (Entry<String, String[]> param : properties.entrySet()) {
       String[] values = param.getValue();
@@ -406,14 +402,6 @@ public class ConnectionManagerImpl implements ConnectionManager {
         node.setProperty(param.getKey(), values);
       }
     }
-  }
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
   }
 
 }
