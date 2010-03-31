@@ -23,6 +23,10 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -39,21 +43,10 @@ import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This servlet deals with HTML inputs only and the presence POST/DELETE requests
- * 
- * Not using the sling selector here ///scr.property name="sling.servlet.selectors"
- * value="current"
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" values.0="POST" 
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
- * @scr.reference name="PresenceService"
- *                interface="org.sakaiproject.nakamura.api.presence.PresenceService"
- */
+@SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "POST" }, extensions = { "json" })
+@Properties(value = {
+    @Property(name = "service.description", value = { "Controls the presence for the current user." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 @ServiceDocumentation(name = "Presence Control Servlet", 
     description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
     shortDescription="Controls the presence for the current user",
@@ -131,15 +124,8 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
+  @Reference
   protected transient PresenceService presenceService;
-
-  protected void bindPresenceService(PresenceService presenceService) {
-    this.presenceService = presenceService;
-  }
-
-  protected void unbindPresenceService(PresenceService presenceService) {
-    this.presenceService = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)

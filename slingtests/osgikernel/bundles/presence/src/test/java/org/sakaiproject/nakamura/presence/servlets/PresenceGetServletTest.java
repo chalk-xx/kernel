@@ -53,12 +53,12 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
     test.setUp();
     presenceService = test.getPresenceService();
     servlet = new PresenceGetServlet();
-    servlet.bindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @Test

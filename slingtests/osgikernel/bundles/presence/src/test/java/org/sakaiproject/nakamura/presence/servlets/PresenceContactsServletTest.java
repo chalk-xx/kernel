@@ -68,13 +68,13 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     presenceService = test.getPresenceService();
 
     servlet = new PresenceContactsServlet();
-    servlet.bindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
-    servlet.unbindConnectionManager(connectionManager);
+    servlet.presenceService = null;
+    servlet.connectionManager = null;
   }
 
   @Test
@@ -129,8 +129,8 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
         connectionManager.getConnectedUsers(CURRENT_USER,
             ConnectionState.ACCEPTED)).andReturn(contacts);
 
-    servlet.bindPresenceService(presenceService);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     replay();
