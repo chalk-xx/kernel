@@ -29,6 +29,7 @@ import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -121,7 +122,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
     // nothing to do
@@ -199,5 +200,10 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
     Credentials getCredentials() {
       return cred;
     }
+  }
+
+  @SuppressWarnings("rawtypes")
+  public void addPrincipals(Set arg0) {
+    
   }
 }

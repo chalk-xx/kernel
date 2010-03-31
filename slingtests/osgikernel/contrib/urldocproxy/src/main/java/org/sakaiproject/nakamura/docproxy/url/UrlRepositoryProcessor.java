@@ -258,16 +258,14 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
    * <p>
    * The expected format of the returned information is:<br/>
    * <code>
-   * <search>
-   *   <documents>
-   *     <document contentLength="%s" contentType="%s" uri="%s">
-   *       <properties>
-   *         <key1>value1</key1>
-   *         <key2>value2</key2>
-   *       </properties>
-   *     </document>
-   *   </documents>
-   * </search>
+   * <documents>
+   *   <document contentLength="%s" contentType="%s" uri="%s">
+   *     <properties>
+   *       <key1>value1</key1>
+   *       <key2>value2</key2>
+   *     </properties>
+   *   </document>
+   * </documents>
    * </code>
    * </p>
    * 
