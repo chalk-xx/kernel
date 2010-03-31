@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -54,7 +53,7 @@ public class ConnectionFinderSearchResultProcessor implements SearchResultProces
   public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node profileNode = RowUtils.getNode(row, session);
+    Node profileNode = row.getNode();
     String user = request.getRemoteUser();
     String targetUser = profileNode.getProperty("rep:userId").getString();
     UserManager um = AccessControlUtil.getUserManager(session);
