@@ -54,7 +54,7 @@ public class XythosDocumentResult implements ExternalDocumentResult {
    */
   public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
     try {
-      InputStream rv = xythosService.getFileContent(uri, userId);
+      InputStream rv = new ByteArrayInputStream(xythosService.getFileContent(uri, userId));
       rv.skip(startingAt);
       return rv;
     } catch (IOException e) {

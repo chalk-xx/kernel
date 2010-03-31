@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.xythos;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -51,7 +52,7 @@ public class HessianXythosRemote implements XythosRemote {
   private static final Logger LOGGER = LoggerFactory.getLogger(HessianXythosRemote.class);
   
   @Property(name = "xythos.remote.host", description = "The remote host (and port) of the Xythos instance")
-  protected String xythosHost;
+  protected String xythosHost = "http://xtest1.home.nyu.edu:8080";
   
   protected String remotePath = "/remoting/remoting/XythosService";
   
@@ -93,10 +94,10 @@ public class HessianXythosRemote implements XythosRemote {
     return xythosService.getDocument(arg0, arg1);
   }
 
-  public InputStream getFileContent(String arg0, String arg1) {
+  public byte[] getFileContent(String arg0, String arg1) {
     return xythosService.getFileContent(arg0, arg1);
   }
-
+  
   public Map<String, Object> getFileProperties(String arg0, String arg1) {
     return xythosService.getFileProperties(arg0, arg1);
   }
@@ -152,8 +153,8 @@ public class HessianXythosRemote implements XythosRemote {
     }
   }
 
-  public void shareFileWithGroup(String groupId, String filePath, String userId) {
-    xythosService.shareFileWithGroup(groupId, filePath, userId);
+  public boolean shareFileWithGroup(String groupId, String filePath, String userId) {
+    return xythosService.shareFileWithGroup(groupId, filePath, userId);
   }
 
 }

@@ -1,6 +1,7 @@
 package org.sakaiproject.nakamura.xythos;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -33,7 +34,12 @@ public class ShareFileServlet extends SlingAllMethodsServlet {
       String resource = request.getParameter("resource");
       String groupId = request.getParameter("groupid");
       
-      xythos.shareFileWithGroup(groupId, resource, currentUserId);
+      boolean success = xythos.shareFileWithGroup(groupId, resource, currentUserId);
+      String status = success ? "success" : "failed";
+      response.setContentType("application/json");
+      PrintWriter out = response.getWriter();
+      out.println("{\"status\":\""+status+"\"}");
+      out.flush();
     } catch (RepositoryException e) {
       response.sendError(500, e.getMessage());
     }
