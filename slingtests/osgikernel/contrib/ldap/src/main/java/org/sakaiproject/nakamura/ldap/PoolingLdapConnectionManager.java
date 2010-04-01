@@ -115,28 +115,26 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   }
 
   @Override
-  public LDAPConnection getBoundConnection() throws LdapException {
-    String user = getConfig().getLdapUser();
-    String pass = getConfig().getLdapPassword();
+  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException {
     log.debug(
         "getBoundConnection():dn=[{}] attempting to borrow connection from pool and bind to dn",
-        user);
+        dn);
     LDAPConnection conn = null;
     try {
       conn = (LDAPConnection) pool.borrowObject();
       log.debug(
-          "getBoundConnection():dn=[{}] successfully borrowed connection from pool", user);
-      conn.bind(LDAPConnection.LDAP_V3, user, pass.getBytes("UTF8"));
-      log.debug("getBoundConnection():dn=[{}] successfully bound to dn", user);
+          "getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
+      conn.bind(LDAPConnection.LDAP_V3, dn, pass.getBytes("UTF8"));
+      log.debug("getBoundConnection():dn=[{}] successfully bound to dn", dn);
       return conn;
     } catch (Exception e) {
       if (conn != null) {
         try {
           log.debug("getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
-              user);
+              dn);
           returnConnection(conn);
         } catch (Exception ee) {
-          log.debug("getBoundConnection():dn=[" + user + "] failed to return connection to pool",
+          log.debug("getBoundConnection():dn=[" + dn + "] failed to return connection to pool",
               ee);
         }
       }

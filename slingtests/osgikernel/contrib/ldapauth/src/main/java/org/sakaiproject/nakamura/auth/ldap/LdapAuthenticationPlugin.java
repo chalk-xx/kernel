@@ -1,25 +1,20 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
-import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
-import com.novell.ldap.LDAPException;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.auth.ldap.PasswordGuard;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
 
 import java.util.Dictionary;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -51,31 +46,16 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   @Property
   static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
 
-  @Property
-  static final String LDAP_ATTR_PASSWORD = "sakai.ldap.attribute.password";
-
   private boolean useSecure;
   private String host;
   private int port;
   private String loginDn;
   private String password;
   private String baseDn;
-  private String passwordAttributeName;
+  private LdapConnectionManager connMgr;
 
   @Reference
   protected LdapConnectionBroker connBroker;
-
-  /** Using a concurrent hash map here to save from using a synchronized block later when we iterate over the password guards. */
-  @Reference(referenceInterface = PasswordGuard.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-  private ConcurrentHashMap<String, PasswordGuard> passwordGuards = new ConcurrentHashMap<String, PasswordGuard>();
-
-  protected void bindPasswordGuards(PasswordGuard guard) {
-    passwordGuards.put(guard.toString(), guard);
-  }
-
-  protected void unbindPasswordGuard(PasswordGuard guard) {
-    passwordGuards.remove(guard.toString());
-  }
 
   @Activate
   protected void activate(ComponentContext ctx) {
@@ -99,11 +79,10 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     config.setLdapPassword(password);
 
     baseDn = (String) props.get(LDAP_BASE_DN);
-    passwordAttributeName = (String) props.get(LDAP_ATTR_PASSWORD);
 
     try {
       // establish the connection to ldap
-      connBroker.create(BROKER_NAME);
+      connMgr = connBroker.create(BROKER_NAME, config);
     } catch (LdapException le) {
       throw new RuntimeException(le.getMessage(), le);
     }
@@ -123,24 +102,20 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
       SimpleCredentials sc = (SimpleCredentials) credentials;
 
       try {
-        LDAPConnection conn = connBroker.getConnection(BROKER_NAME);
-        String password = new String(sc.getPassword());
-        // check credentials against ldap instance
-        for (PasswordGuard guard : passwordGuards.values()) {
-          String guarded = guard.guard(password);
-          LDAPAttribute passwordAttr = new LDAPAttribute(passwordAttributeName, guarded);
-          auth = conn.compare(baseDn + "/" + sc.getUserID(), passwordAttr);
-
-          if (auth) {
-            break;
-          }
-        }
+        String dn = getBaseDn(sc.getUserID());
+        String pass = new String(sc.getPassword());
+        LDAPConnection conn = connMgr.getBoundConnection(dn, pass);
+        auth = true;
+        connMgr.returnConnection(conn);
       } catch (LdapException e) {
-        throw new RepositoryException(e.getMessage(), e);
-      } catch (LDAPException e) {
         throw new RepositoryException(e.getMessage(), e);
       }
     }
     return auth;
+  }
+
+  protected String getBaseDn(String userId) {
+    String dn = baseDn.replace("{}", userId);
+    return dn;
   }
 }
