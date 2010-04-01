@@ -52,7 +52,7 @@ public class ClusterTrackingFilter implements Filter {
 
 
   @Reference
-  private transient ClusterTrackingService clusterTrackingService;
+  protected transient ClusterTrackingService clusterTrackingService;
 
   /**
    * {@inheritDoc}
