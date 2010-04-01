@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.util;
 
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.omg.PortableServer.Servant;
 import org.sakaiproject.nakamura.api.resource.SubPathProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -30,7 +30,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;

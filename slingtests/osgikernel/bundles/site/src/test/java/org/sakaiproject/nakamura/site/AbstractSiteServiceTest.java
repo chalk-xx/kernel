@@ -31,7 +31,6 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
-import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.ArrayList;
 import java.util.List;

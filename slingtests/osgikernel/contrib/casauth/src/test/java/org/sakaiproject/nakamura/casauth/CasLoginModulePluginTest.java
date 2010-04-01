@@ -1,10 +1,17 @@
 package org.sakaiproject.nakamura.casauth;
 
-import javax.security.auth.login.FailedLoginException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.jcr.Credentials;
+import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
+import javax.security.auth.login.FailedLoginException;
 
 public class CasLoginModulePluginTest {
   private CasLoginModulePlugin clmp;
@@ -37,7 +44,7 @@ public class CasLoginModulePluginTest {
   }
 
   @Test
-  public void testImpersonate() throws FailedLoginException {
+  public void testImpersonate() throws FailedLoginException, RepositoryException {
     assertEquals(LoginModulePlugin.IMPERSONATION_DEFAULT, clmp.impersonate(null, null));
   }
 }

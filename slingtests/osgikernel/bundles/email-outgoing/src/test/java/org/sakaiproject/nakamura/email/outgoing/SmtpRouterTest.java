@@ -19,8 +19,6 @@ import org.sakaiproject.nakamura.api.personal.PersonalConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.message.listener.MessageRoutesImpl;
 
-import java.security.Principal;
-
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
