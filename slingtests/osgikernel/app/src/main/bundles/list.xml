@@ -637,6 +637,34 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.xythos</artifactId>
       <version>0.4</version>
     </bundle>
+
+<!-- ldap & ldap authentication -->
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
+      <version>0.4</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
+      <version>0.4</version>
+    </bundle>
+
+<!-- person directory information -->
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
+      <version>0.4</version>
+    </bundle>
+
+<!-- url doc proxy-->
+<!--
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.docproxy.url</artifactId>
+      <version>0.1</version>
+    </bundle>
+-->
    </startLevel>
 
 </bundles>
