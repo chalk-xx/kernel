@@ -32,7 +32,7 @@ public interface XythosRemote {
 	
 	Map<String,String> getProperties();
 	
-	InputStream getFileContent(String path, String userId);
+	byte[] getFileContent(String path, String userId);
 	
 	String getContentType(String path, String userId);
 	
@@ -63,7 +63,15 @@ public interface XythosRemote {
 	
 	void removeDocument(String path, String userId);
 	
-	void shareFileWithGroup(String groupId, String filePath, String userId);
+	/**
+	 * Request to share the specified file path, e.g. /zach/party.png, with the specified group, e.g. partytime
+	 * 
+	 * @param groupId
+	 * @param filePath
+	 * @param userId
+	 * @return whether or not the share was a success 
+	 */
+	boolean shareFileWithGroup(String groupId, String filePath, String userId);
 	
 
 

@@ -4,7 +4,7 @@
   <groupId>edu.nyu</groupId>
   <artifactId>xythos-service</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <name>NYU Xythos Remote API</name>
   <url>http://maven.apache.org</url>
   <build>

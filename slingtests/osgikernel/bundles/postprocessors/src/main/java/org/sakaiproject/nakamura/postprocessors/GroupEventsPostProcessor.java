@@ -26,10 +26,11 @@ public class GroupEventsPostProcessor implements EventHandler {
   XythosRemote xythosService;
   
   public void handleEvent(Event event) {
-    String siteId = (String) event.getProperty("siteId");
+    String sitePath = (String) event.getProperty("sitePath");
+    sitePath = sitePath.replaceFirst("\\/sites\\/", "\\/alex3\\/");
     String userId = (String) event.getProperty("userId");
     try {
-      xythosService.createGroup(siteId, userId);
+      xythosService.createGroup(sitePath, userId);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
     }

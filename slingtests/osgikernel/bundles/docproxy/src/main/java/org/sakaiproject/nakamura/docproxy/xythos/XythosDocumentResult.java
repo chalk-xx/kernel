@@ -22,6 +22,7 @@ import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 
 import edu.nyu.XythosRemote;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class XythosDocumentResult implements ExternalDocumentResult {
    */
   public InputStream getDocumentInputStream(long startingAt, String userId) throws DocProxyException {
     try {
-      InputStream rv = xythosService.getFileContent(uri, userId);
+      InputStream rv = new ByteArrayInputStream(xythosService.getFileContent(uri, userId));
       if (rv != null) {
         rv.skip(startingAt);
         return rv;
