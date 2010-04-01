@@ -79,18 +79,20 @@ public interface LdapConnectionBroker {
   LDAPConnection getConnection(String name) throws LdapException;
 
   /**
-   * Gets a bound connection from a named manager. If the manager does not
-   * already exist, {@link create(String)} is called then a connection taken
-   * from it.
-   *
+   * Gets a bound connection from a named manager. If the manager does not already exist,
+   * {@link create(String)} is called then a connection taken from it.
+   * 
    * @param name
    *          The name of the connection manager.
+   * @param dn
+   *          The distinguished name to user for the bind.
+   * @param password
+   *          The password to user for the bind.
    * @return {@link LDAPConnection} from the named manager.
    * @throws LdapException
-   *           If named connection manager is not found. Also wraps underlying
-   *           exceptions.
+   *           If named connection manager is not found. Also wraps underlying exceptions.
    */
-  LDAPConnection getBoundConnection(String name) throws LdapException;
+  LDAPConnection getBoundConnection(String name, String dn, String password) throws LdapException;
 
   /**
    * Gets a copy of the default configuration settings for LDAP connections.

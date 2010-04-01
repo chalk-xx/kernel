@@ -48,12 +48,12 @@ public interface LdapConnectionManager {
 
 	/**
 	 * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials
-	 * @param dn the distringuished name for binding
-	 * @param pw the password for binding
+	 * @param dn the distinguished name for binding
+	 * @param pass the password for binding
 	 * @return a connected <code>LDAPConnection</code>
 	 * @throws LDAPException if the <code>LDAPConnection</code> allocation fails
 	 */
-  public LDAPConnection getBoundConnection() throws LdapException;
+  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException;
 
 	/**
 	 * Return an <code>LDAPConnection</code>.  This can allow for

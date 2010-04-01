@@ -230,7 +230,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    *
    * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker#getBoundConnection(String)
    */
-  public LDAPConnection getBoundConnection(String name)
+  public LDAPConnection getBoundConnection(String name, String dn, String password)
       throws LdapException {
     // get a connection manager from the local store. if not found, create a
     // new one and store it locally for reuse.
@@ -242,7 +242,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
     }
 
     // get a connection from the manager and return it
-    LDAPConnection conn = mgr.getBoundConnection();
+    LDAPConnection conn = mgr.getBoundConnection(dn, password);
     return conn;
     // } else {
     // throw new LdapException("No factory found for [" + name +
