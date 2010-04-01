@@ -16,9 +16,7 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.site.SortField;
-import org.sakaiproject.nakamura.site.SiteServiceImpl;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
-import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.util.AbstractCollection;
 import java.util.HashSet;
