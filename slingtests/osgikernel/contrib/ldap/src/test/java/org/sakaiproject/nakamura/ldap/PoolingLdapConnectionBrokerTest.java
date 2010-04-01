@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.ldap;
 
+import static org.easymock.EasyMock.isA;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
@@ -62,7 +64,7 @@ public class PoolingLdapConnectionBrokerTest {
       }
 
       @Override
-      public LDAPConnection getBoundConnection() {
+      public LDAPConnection getBoundConnection(String dn, String pass) {
         return new LDAPConnection();
       }
     };
@@ -214,7 +216,7 @@ public class PoolingLdapConnectionBrokerTest {
 
   @Test
   public void testGetBoundConnectionBeforeCreate() throws Exception {
-    LDAPConnection conn = broker.getBoundConnection("whatever");
+    LDAPConnection conn = broker.getBoundConnection("whatever", "dn", "pass");
     assertNotNull(conn);
     boolean exists = broker.exists("whatever");
     assertTrue(exists);
@@ -232,7 +234,7 @@ public class PoolingLdapConnectionBrokerTest {
   public void testGetBoundConnection() throws LdapException {
     String name = "whatever";
     broker.create(name);
-    LDAPConnection conn = broker.getBoundConnection(name);
+    LDAPConnection conn = broker.getBoundConnection(name, "test", "test");
     assertNotNull(conn);
   }
 }
