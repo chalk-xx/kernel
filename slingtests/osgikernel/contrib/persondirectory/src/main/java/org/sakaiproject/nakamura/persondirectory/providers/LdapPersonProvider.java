@@ -154,7 +154,7 @@ public class LdapPersonProvider implements PersonProvider {
             new Object[] { baseDn, filter, attributes });
 
         // get a connection
-        LDAPConnection conn = ldapBroker.getBoundConnection(LDAP_BROKER_NAME);
+        LDAPConnection conn = ldapBroker.getConnection(LDAP_BROKER_NAME);
         LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
             attributes, false, constraints);
         if (searchResults.hasMore()) {

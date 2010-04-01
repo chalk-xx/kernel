@@ -188,7 +188,7 @@ public class LdapPersonProviderTest {
     LdapConnectionBroker broker = createMock(LdapConnectionBroker.class);
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     expect(broker.getDefaultConfig()).andReturn(config);
-    expect(broker.getBoundConnection(isA(String.class))).andThrow(new LdapException("oops"));
+    expect(broker.getConnection(isA(String.class))).andThrow(new LdapException("oops"));
     expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
         .andReturn(null);
     replay(broker);
@@ -214,7 +214,7 @@ public class LdapPersonProviderTest {
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     expect(broker.getDefaultConfig()).andReturn(config);
-    expect(broker.getBoundConnection(isA(String.class))).andReturn(connection);
+    expect(broker.getConnection(isA(String.class))).andReturn(connection);
     expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
         .andReturn(null);
     replay(broker);
@@ -258,7 +258,7 @@ public class LdapPersonProviderTest {
     expect(broker.getDefaultConfig()).andReturn(config);
     expect(broker.create(isA(String.class), isA(LdapConnectionManagerConfig.class)))
         .andReturn(null);
-    expect(broker.getBoundConnection(isA(String.class))).andReturn(connection);
+    expect(broker.getConnection(isA(String.class))).andReturn(connection);
     replay(broker);
     expect(
         connection.search(isA(String.class), anyInt(), isA(String.class), (String[]) anyObject(),
