@@ -16,7 +16,6 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -32,8 +31,7 @@ import javax.servlet.http.HttpSession;
 /**
  * Servlet for handling authentication requests for ldap authentication.
  */
-@Component(enabled = false)
-@SlingServlet(generateComponent = false, paths = "/system/sling/ldaplogin", methods = "POST")
+@SlingServlet(paths = "/system/sling/ldaplogin", methods = "POST")
 public class LdapAuthenticationServlet extends SlingAllMethodsServlet {
   public static final String USER_CREDENTIALS = LdapAuthenticationServlet.class.getName();
   private static final long serialVersionUID = 1L;
