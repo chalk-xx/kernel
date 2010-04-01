@@ -31,6 +31,7 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
@@ -98,17 +99,46 @@ public class ConnectionManagerImplTest {
 
     Value[] fromValues = fromNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES)
         .getValues();
-    assertEquals(3, fromValues.length);
-    assertEquals("foo", fromValues[0].getString());
-    assertEquals("Lecturer", fromValues[1].getString());
-    assertEquals("Supervisor", fromValues[2].getString());
 
     Value[] toValues = toNode.getProperty(ConnectionConstants.SAKAI_CONNECTION_TYPES)
         .getValues();
+    
+    assertEquals(3, fromValues.length);
+    int j = 0;
+    // order may not be what we expect it to be
+    for ( int i = 0; i < 3; i++ ) {
+      if ( "foo".equals(fromValues[i].getString())) {
+        j = j|1;
+      }
+      if ( "Lecturer".equals(fromValues[i].getString())) {
+        j = j|2;        
+      }
+      if ( "Supervisor".equals(fromValues[i].getString())) {
+        j = j|4;        
+      }
+    }
+    
+    Assert.assertTrue((j&1)==1);
+    Assert.assertTrue((j&2)==2);
+    Assert.assertTrue((j&4)==4);
     assertEquals(3, toValues.length);
-    assertEquals("foo", toValues[0].getString());
-    assertEquals("Student", toValues[1].getString());
-    assertEquals("Supervised", toValues[2].getString());
+
+    j = 0;
+    for ( int i = 0; i < 3; i++ ) {
+      if ( "foo".equals(toValues[i].getString())) {
+        j = j|1;
+      }
+      if ( "Student".equals(toValues[i].getString())) {
+        j = j|2;        
+      }
+      if ( "Supervised".equals(toValues[i].getString())) {
+        j = j|4;        
+      }
+    }
+    Assert.assertTrue((j&1)==1);
+    Assert.assertTrue((j&2)==2);
+    Assert.assertTrue((j&4)==4);
+
 
     Value[] fromRandomValues = fromNode.getProperty("random").getValues();
     Value[] toRandomValues = toNode.getProperty("random").getValues();
