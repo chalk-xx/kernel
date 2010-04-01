@@ -21,7 +21,7 @@
     </parent>
 
     <artifactId>org.sakaiproject.nakamura.app</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>0.4-SNAPSHOT</version>
 
     <name>Sakai Nakamura Launchpad Standalone Java Application</name>
@@ -94,25 +94,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>create-standalone-jar</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                                <manifest>
-                                    <addDefaultImplementationEntries>
-                                        true
-                            	    </addDefaultImplementationEntries>
-                                </manifest>
-                            </archive>
-                        </configuration>
-
-                    </execution>
-                </executions>
+                <configuration>
+                   <archive>
+                     <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                     <manifest>
+                        <addDefaultImplementationEntries>
+                              true
+                        </addDefaultImplementationEntries>
+                     </manifest>
+                   </archive>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
