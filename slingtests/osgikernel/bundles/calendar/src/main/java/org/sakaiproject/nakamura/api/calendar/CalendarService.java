@@ -45,6 +45,23 @@ public interface CalendarService {
   Calendar export(Node node) throws CalendarException;
 
   /**
+   * Builds a {@link Calendar calendar} from a {@link Node node}. The node should have a
+   * resource type of sakai/calendar. All subnodes who's resource type match one of the
+   * types in the type array 'sakai/calendar-|type|' will be used to create the calendar
+   * object.
+   * 
+   * @param node
+   *          The JCR node that is a parent of all the underlying event nodes.
+   * @param types
+   *          An array of Strings that should be used to match the subnodes. eg: valarm,
+   *          vavailability, vevent, .. {@see Component Component}
+   * @return A {@link Calendar calendar} that represents the JCR nodes.
+   * @throws CalendarException
+   *           Failed to export a JCR representation to a valid Calendar representation.
+   */
+  Calendar export(Node node, String[] types) throws CalendarException;
+
+  /**
    * Creates a JCR based representation of a {@link Calendar calendar}.
    * 
    * @param calendar

@@ -15,23 +15,29 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.calendar;
+package org.sakaiproject.nakamura.activemq;
+
+import static org.junit.Assert.assertEquals;
+
+import org.apache.activemq.broker.BrokerService;
+import org.junit.Test;
 
 /**
  *
  */
-public interface CalendarConstants {
+public class ActivatorTest {
 
-  /**
-   * The resource type value for a calendar.
-   */
-  public static final String SAKAI_CALENDAR_RT = "sakai/calendar";
+  @Test
+  public void testActivator() throws Exception {
+    Activator activator = new Activator();
 
-  /**
-   * The resource type value for a vevent.
-   */
-  public static final String SAKAI_CALENDAR_EVENT_RT = "sakai/calendar-event";
-  
-  public static final String SAKAI_CALENDAR_PROPERTY_PREFIX = "sakai:vcal-";
+    activator.start(null);
+    BrokerService brokerService = activator.getBrokerService();
+    assertEquals(true, brokerService.isStarted());
+
+    activator.stop(null);
+    brokerService = activator.getBrokerService();
+    assertEquals(false, brokerService.isStarted());
+  }
 
 }

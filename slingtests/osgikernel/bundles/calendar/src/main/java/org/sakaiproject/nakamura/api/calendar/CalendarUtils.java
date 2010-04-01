@@ -20,18 +20,6 @@ package org.sakaiproject.nakamura.api.calendar;
 /**
  *
  */
-public interface CalendarConstants {
-
-  /**
-   * The resource type value for a calendar.
-   */
-  public static final String SAKAI_CALENDAR_RT = "sakai/calendar";
-
-  /**
-   * The resource type value for a vevent.
-   */
-  public static final String SAKAI_CALENDAR_EVENT_RT = "sakai/calendar-event";
-  
-  public static final String SAKAI_CALENDAR_PROPERTY_PREFIX = "sakai:vcal-";
+public class CalendarUtils {
 
 }

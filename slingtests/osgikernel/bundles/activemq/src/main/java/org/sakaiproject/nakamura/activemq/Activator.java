@@ -64,5 +64,14 @@ public class Activator implements BundleActivator {
       broker.stop();
     }
   }
+  
+  /**
+   * ONLY FOR UNIT TEST PURPOSES!
+   * 
+   * @return The {@link BrokerService brokerService}.
+   */
+  protected BrokerService getBrokerService() {
+    return broker;
+  }
 
 }
