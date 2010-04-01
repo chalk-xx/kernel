@@ -79,7 +79,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
 
   /** Reference to web container to register this servlet. */
   @Reference
-  private transient WebContainer webContainer;
+  protected transient WebContainer webContainer;
 
   @Reference
   protected transient TrustedTokenService trustedTokenService;
