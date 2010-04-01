@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
@@ -128,12 +127,12 @@ public class LdapAuthenticationPluginTest {
     when(connBroker.getConnection(anyString())).thenReturn(conn);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private void aContextThatCanReturnProperties() {
     Dictionary props = mock(Dictionary.class);
     when(props.get(LdapAuthenticationPlugin.LDAP_CONNECTION_SECURE)).thenReturn(Boolean.TRUE);
     when(props.get(LdapAuthenticationPlugin.LDAP_PORT)).thenReturn(389);
-    when(props.get(LdapAuthenticationPlugin.LDAP_BASE_DN)).thenReturn("uid=%s");
+    when(props.get(LdapAuthenticationPlugin.LDAP_BASE_DN)).thenReturn("uid={}");
     when(componentContext.getProperties()).thenReturn(props);
   }
 }

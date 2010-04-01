@@ -115,7 +115,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   protected String getBaseDn(String userId) {
-    String dn = String.format(baseDn, userId);
+    String dn = baseDn.replace("{}", userId);
     return dn;
   }
 }

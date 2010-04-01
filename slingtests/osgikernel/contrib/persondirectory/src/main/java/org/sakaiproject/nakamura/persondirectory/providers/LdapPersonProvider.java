@@ -91,7 +91,7 @@ public class LdapPersonProvider implements PersonProvider {
   }
 
   @Activate
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
     allowAdminLookup = (Boolean) props.get(PROP_ALLOW_ADMIN_LOOKUP);
@@ -135,7 +135,7 @@ public class LdapPersonProvider implements PersonProvider {
     return attributesMap;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
     try {
       PersonImpl ldapPerson = null;
