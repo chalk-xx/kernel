@@ -182,6 +182,9 @@ public class PathUtils {
    * @return a normalized path.
    */
   public static String normalizePath(String pathFragment) {
+    if ( pathFragment == null ) {
+      return "";
+    }
     char[] source = pathFragment.toCharArray();
     char[] normalized = new char[source.length + 1];
     int i = 0;
