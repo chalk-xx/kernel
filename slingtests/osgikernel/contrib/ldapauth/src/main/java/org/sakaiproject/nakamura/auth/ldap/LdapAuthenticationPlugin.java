@@ -30,28 +30,20 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   @Property(value = "localhost")
   static final String LDAP_HOST = "sakai.ldap.host";
+  private String host;
 
   @Property(intValue = LDAPConnection.DEFAULT_SSL_PORT)
   static final String LDAP_PORT = "sakai.ldap.port";
+  private Integer port;
 
   @Property(boolValue = true)
   static final String LDAP_CONNECTION_SECURE = "sakai.ldap.connection.secure";
-
-  @Property
-  static final String LDAP_LOGIN_DN = "sakai.ldap.user";
-
-  @Property
-  static final String LDAP_LOGIN_PASSWORD = "sakai.ldap.password";
+  private boolean useSecure;
 
   @Property
   static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
-
-  private boolean useSecure;
-  private String host;
-  private int port;
-  private String loginDn;
-  private String password;
   private String baseDn;
+
   private LdapConnectionManager connMgr;
 
   @Reference
@@ -70,13 +62,14 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     config.setLdapHost(host);
 
     port = (Integer) props.get(LDAP_PORT);
+    if (port == null || port <= 0) {
+      if (useSecure) {
+        port = LDAPConnection.DEFAULT_SSL_PORT;
+      } else {
+        port = LDAPConnection.DEFAULT_PORT;
+      }
+    }
     config.setLdapPort(port);
-
-    loginDn = (String) props.get(LDAP_LOGIN_DN);
-    config.setLdapUser(loginDn);
-
-    password = (String) props.get(LDAP_LOGIN_PASSWORD);
-    config.setLdapPassword(password);
 
     baseDn = (String) props.get(LDAP_BASE_DN);
 
@@ -100,10 +93,10 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {
       SimpleCredentials sc = (SimpleCredentials) credentials;
+      String dn = getBaseDn(sc.getUserID());
+      String pass = new String(sc.getPassword());
 
       try {
-        String dn = getBaseDn(sc.getUserID());
-        String pass = new String(sc.getPassword());
         LDAPConnection conn = connMgr.getBoundConnection(dn, pass);
         auth = true;
         connMgr.returnConnection(conn);
