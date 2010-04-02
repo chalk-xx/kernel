@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.ldap;
 
-import static org.easymock.EasyMock.isA;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
