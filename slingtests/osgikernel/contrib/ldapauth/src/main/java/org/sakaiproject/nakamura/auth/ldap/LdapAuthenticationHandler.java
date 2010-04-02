@@ -47,7 +47,7 @@ import javax.servlet.http.HttpSession;
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
  */
-@Component(enabled = false, label = "%auth.http.name", description = "%auth.http.description")
+@Component
 @Service
 public class LdapAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
   /** Authentication type name */

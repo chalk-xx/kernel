@@ -23,53 +23,61 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(enabled = false, metatype = true)
+@Component(metatype = true)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 
   @Property(value = "localhost")
   static final String LDAP_HOST = "sakai.ldap.host";
-  private String host;
 
   @Property(intValue = LDAPConnection.DEFAULT_SSL_PORT)
   static final String LDAP_PORT = "sakai.ldap.port";
-  private Integer port;
 
   @Property(boolValue = true)
   static final String LDAP_CONNECTION_SECURE = "sakai.ldap.connection.secure";
-  private boolean useSecure;
+
+  @Property
+  protected static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+
+  @Property
+  protected static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
 
   @Property
   static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
   private String baseDn;
 
-  private LdapConnectionManager connMgr;
-
   @Reference
   protected LdapConnectionBroker connBroker;
+
+  private LdapConnectionManager connMgr;
+  private LdapConnectionManagerConfig config;
 
   @Activate
   protected void activate(ComponentContext ctx) {
     Dictionary<?, ?> props = ctx.getProperties();
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    config.setAutoBind(true);
+    config = connBroker.getDefaultConfig();
 
-    useSecure = (Boolean) props.get(LDAP_CONNECTION_SECURE);
-    config.setSecureConnection(useSecure);
-
-    host = (String) props.get(LDAP_HOST);
-    config.setLdapHost(host);
-
-    port = (Integer) props.get(LDAP_PORT);
-    if (port == null || port <= 0) {
-      if (useSecure) {
-        port = LDAPConnection.DEFAULT_SSL_PORT;
-      } else {
-        port = LDAPConnection.DEFAULT_PORT;
-      }
+    Boolean useSecure = (Boolean) props.get(LDAP_CONNECTION_SECURE);
+    if (useSecure != null) {
+      config.setSecureConnection(useSecure);
     }
-    config.setLdapPort(port);
+
+    String host = (String) props.get(LDAP_HOST);
+    if (host != null && host.length() > 0) {
+      config.setLdapHost(host);
+    }
+
+    Integer port = (Integer) props.get(LDAP_PORT);
+    if (port != null) {
+      config.setLdapPort(port);
+    }
+
+    String keystoreLocation = (String) props.get(LDAP_HOST);
+    config.setKeystoreLocation(keystoreLocation);
+
+    String keystorePassword = (String) props.get(LDAP_HOST);
+    config.setKeystorePassword(keystorePassword);
 
     baseDn = (String) props.get(LDAP_BASE_DN);
 
