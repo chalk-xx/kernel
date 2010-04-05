@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.ldap.api;
+package org.sakaiproject.nakamura.api.ldap;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
