@@ -19,19 +19,6 @@ package org.sakaiproject.nakamura.api.files;
 
 
 public interface FilesConstants {
-
-  /**
-   * Resource type for the file store. sakai/files
-   */
-  public static final String RT_FILE_STORE = "sakai/files";
-  /**
-   * The resource type for a sakai file. sakai/file
-   */
-  public static final String RT_SAKAI_FILE = "sakai/file";
-  /**
-   * The resource type for a sakai folder. sakai/folder
-   */
-  public static final String RT_SAKAI_FOLDER = "sakai/folder";
   /**
    * The resource type for a sakai link. sakai/link
    */
@@ -44,14 +31,6 @@ public interface FilesConstants {
    * The path to the filestore for users.
    */
   public static final String USER_FILESTORE = "/_user/files";
-  /**
-   * sakai:user
-   */
-  public static final String SAKAI_USER = "sakai:user";
-  /**
-   * sakai:id
-   */
-  public static final String SAKAI_ID = "sakai:id";
 
   /**
    * sakai:tags
@@ -71,21 +50,9 @@ public interface FilesConstants {
    */
   public static final String SAKAI_FILE = "sakai:file";
   /**
-   * sakai:filename
-   */
-  public static final String SAKAI_FILENAME = "sakai:filename";
-  /**
-   * sakai:mimeType
-   */
-  public static final String SAKAI_MIMETYPE = "sakai:mimeType";
-  /**
    * sakai:link
    */
   public static final String SAKAI_LINK = "sakai:link";
-  /**
-   * sakai:sites
-   */
-  public static final String SAKAI_SITES = "sakai:sites";
   /**
    * The mixin required on the node to do a tag.
    */

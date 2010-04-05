@@ -5,11 +5,11 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_AGGREGATE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_BATCHRESULTPROCESSOR;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_LIMIT_RESULTS;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_LANGUAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
-import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_LIMIT_RESULTS;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -44,6 +45,7 @@ import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 public class SearchServletTest extends AbstractEasyMockTest {
 
@@ -61,6 +63,27 @@ public class SearchServletTest extends AbstractEasyMockTest {
     searchServlet = new SearchServlet();
     searchServlet.init();
   }
+  
+  public void testNotInVar() throws ServletException, IOException {
+    Node node = createMock(Node.class);
+
+    Resource resource = createMock(Resource.class);
+    expect(resource.getPath()).andReturn("/_user/b/bo/bob/private/evilsearchtemplate");
+    expect(resource.adaptTo(Node.class)).andReturn(node);
+
+    request = createMock(SlingHttpServletRequest.class);
+    expect(request.getResource()).andReturn(resource);
+
+    response = createMock(SlingHttpServletResponse.class);
+    response.sendError(HttpServletResponse.SC_FORBIDDEN,
+        "Search templates can only be executed if they are located under "
+            + SearchConstants.SEARCH_PATH_PREFIX);
+    replay();
+
+    searchServlet.doGet(request, response);
+
+    verify();
+  }
 
   @Test
   public void testNoQueryTemplate() throws ValueFormatException,
@@ -69,6 +92,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(node.hasProperty(SAKAI_QUERY_TEMPLATE)).andReturn(false);
 
     Resource resource = createMock(Resource.class);
+    expect(resource.getPath()).andReturn("/var/dummy");
     expect(resource.adaptTo(Node.class)).andReturn(node);
 
     request = createMock(SlingHttpServletRequest.class);
@@ -100,6 +124,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(queryNode.hasProperty(SAKAI_LIMIT_RESULTS)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
+    expect(resource.getPath()).andReturn("/var/dummy");
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     request = createMock(SlingHttpServletRequest.class);
@@ -147,6 +172,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
         new RepositoryException());
 
     Resource resource = createMock(Resource.class);
+    expect(resource.getPath()).andReturn("/var/dummy");
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     request = createMock(SlingHttpServletRequest.class);
@@ -179,6 +205,7 @@ public class SearchServletTest extends AbstractEasyMockTest {
     expect(queryNode.hasProperty(SAKAI_LIMIT_RESULTS)).andReturn(false).anyTimes();
 
     Resource resource = createMock(Resource.class);
+    expect(resource.getPath()).andReturn("/var/dummy");
     expect(resource.adaptTo(Node.class)).andReturn(queryNode);
 
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);

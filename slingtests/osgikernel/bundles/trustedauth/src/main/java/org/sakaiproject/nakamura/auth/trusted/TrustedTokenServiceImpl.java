@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;
@@ -35,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Dictionary;
 
 import javax.jcr.Credentials;
@@ -54,27 +56,27 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
 
 
-  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TrustedTokenServiceImpl.class);
 
   /** Property to indivate if the session should be used. */
   @Property(boolValue = false, description = "If True the session will be used to track authentication of the user, otherwise a cookie will be used.")
-  static final String USE_SESSION = "sakai.auth.trusted.token.usesession";
+  public static final String USE_SESSION = "sakai.auth.trusted.token.usesession";
 
   /** Property to indicate if only cookies should be secure */
   @Property(boolValue = false, description = "If true and cookies are bieng used, then only secure cookies will be accepted.")
-  static final String SECURE_COOKIE = "sakai.auth.trusted.token.securecookie";
+  public static final String SECURE_COOKIE = "sakai.auth.trusted.token.securecookie";
 
   /** Property to indicate the TTL on cookies */
   @Property(longValue = 1200000, description = "The TTL of a cookie based token, in ms")
-  static final String TTL = "sakai.auth.trusted.token.ttl";
+  public static final String TTL = "sakai.auth.trusted.token.ttl";
 
   /** Property to indicate the name of the cookie. */
   @Property(value = "sakai-trusted-authn", description = "The name of the token")
-  static final String COOKIE_NAME = "sakai.auth.trusted.token.name";
+  public static final String COOKIE_NAME = "sakai.auth.trusted.token.name";
 
   /** Property to point to keystore file */
   @Property(value = "sling/cookie-keystore.bin", description = "The name of the token store")
-  static final String TOKEN_FILE_NAME = "sakai.auth.trusted.token.storefile";
+  public static final String TOKEN_FILE_NAME = "sakai.auth.trusted.token.storefile";
 
   /**
    * If True, sessions will be used, if false cookies.
@@ -114,6 +116,17 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   protected CacheManagerService cacheManager;
 
   /**
+   * If this is true the implementation is in test mode to enable external components to
+   * test, without compromising the protection of the class.
+   */
+  private boolean testing = false;
+
+  /**
+   * Contains the calls made during testing.
+   */
+  private ArrayList<Object[]> calls;
+
+  /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
    * @throws UnsupportedEncodingException
@@ -139,6 +152,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     tokenStore.doInit(cacheManager, tokenFile, serverId, ttl);
   }
 
+  public void activateForTesting() {
+    testing = true;
+    calls = new ArrayList<Object[]>();
+  }
+  
+  /**
+   * @return the calls used in testing.
+   */
+  public ArrayList<Object[]> getCalls() {
+    return calls;
+  }
+
   /**
    * Extract credentials from the request.
    * 
@@ -146,6 +171,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @return credentials associated with the request.
    */
   public Credentials getCredentials(HttpServletRequest req, HttpServletResponse response) {
+    if ( testing ) {
+      calls.add(new Object[]{"getCredentials",req,response});
+      return new SimpleCredentials("testing", "testing".toCharArray());
+    }
     Credentials cred = null;
     String userId = null;
     if (usingSession) {
@@ -195,12 +224,16 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
 
   /**
-   * Remove credentials so that subsequent request dont contain credentials.
+   * Remove credentials so that subsequent request don't contain credentials.
    * 
    * @param request
    * @param response
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response) {
+    if ( testing ) {
+      calls.add(new Object[]{"dropCredentials",request,response});
+      return;
+    }
     if (usingSession) {
       HttpSession session = request.getSession(false);
       if (session != null) {
@@ -216,12 +249,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   }
 
   /**
-   * Inject a token into the request/response
+   * Inject a token into the request/response, this assumes htat the getUserPrincipal() of the request
+   * or the request.getRemoteUser() contain valid user ID's from which to generate the request.
+   *
    * 
    * @param req
    * @param resp
    */
   public void injectToken(HttpServletRequest request, HttpServletResponse response) {
+    if ( testing ) {
+      calls.add(new Object[]{"injectToken",request,response});
+      return;
+    }
     String userId = null;
     Principal p = request.getUserPrincipal();
     if (p != null) {

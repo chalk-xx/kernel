@@ -16,11 +16,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.casauth</artifactId>
   <packaging>bundle</packaging>
-  <version>0.4</version>
+  <version>0.4-SNAPSHOT</version>
   <name>Sakai Nakamura CAS Auth Bundle</name>
   <description>Provides CAS based authentication support to the request cycle.</description>
   <build>
@@ -107,17 +107,28 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.base</artifactId>
       <version>2.0.7-20100322</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.api</artifactId>
+      <version>2.0.6</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+      <version>2.0</version>
     </dependency>
   </dependencies>
 </project>

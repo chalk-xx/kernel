@@ -17,7 +17,6 @@ import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,21 +41,22 @@ public class ConnectionSearchResultProcessor implements SearchResultProcessor {
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node node = RowUtils.getNode(row, session);
+    Node node = row.getNode();
     if (aggregator != null) {
       aggregator.add(node);
     }
-    UserManager um = AccessControlUtil.getUserManager(session);
-    Authorizable auMe = um.getAuthorizable(request.getRemoteUser());
-    
     String targetUser = node.getName();
+    
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable au = um.getAuthorizable(targetUser);
+    
     write.object();
     write.key("target");
     write.value(targetUser);
     write.key("profile");
     LOGGER.info("Getting info for {} ", targetUser);
-    Node profileNode = (Node) node.getSession().getItem(
-        PersonalUtils.getProfilePath(auMe));
+    Node profileNode = (Node) session.getItem(
+        PersonalUtils.getProfilePath(au));
     ExtendedJSONWriter.writeNodeToWriter(write, profileNode);
     write.key("details");
     ExtendedJSONWriter.writeNodeToWriter(write, node);

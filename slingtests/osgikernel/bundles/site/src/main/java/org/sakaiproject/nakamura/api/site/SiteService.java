@@ -81,6 +81,14 @@ public interface SiteService {
   public static final String PARAM_SORT = "sort";
   public static final String PARAM_ADD_GROUP = "addauth";
   public static final String PARAM_REMOVE_GROUP = "removeauth";
+  
+  /**
+   * Request parameters used when creating a site.
+   */
+  public static final String PARAM_SITE_PATH = ":sitepath";
+  public static final String PARAM_MOVE_FROM = ":moveFrom";
+  public static final String PARAM_COPY_FROM = ":copyFrom";
+  public static final String SITES_CONTAINER_RESOURCE_TYPE = "sakai/sites";
 
   /**
    * The joinable property

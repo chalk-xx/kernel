@@ -29,34 +29,33 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 
   @Property(value = "localhost")
-  static final String LDAP_HOST = "sakai.ldap.host";
+  static final String LDAP_HOST = "sakai.auth.ldap.host";
 
-  @Property(intValue = LDAPConnection.DEFAULT_SSL_PORT)
-  static final String LDAP_PORT = "sakai.ldap.port";
+  @Property(intValue = LDAPConnection.DEFAULT_PORT)
+  static final String LDAP_PORT = "sakai.auth.ldap.port";
 
-  @Property(boolValue = true)
-  static final String LDAP_CONNECTION_SECURE = "sakai.ldap.connection.secure";
-
-  @Property
-  protected static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+  @Property(boolValue = false)
+  static final String LDAP_CONNECTION_SECURE = "sakai.auth.ldap.connection.secure";
 
   @Property
-  protected static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
+  static final String KEYSTORE_LOCATION = "sakai.auth.ldap.keystore.location";
 
   @Property
-  static final String LDAP_BASE_DN = "sakai.ldap.baseDn";
+  static final String KEYSTORE_PASSWORD = "sakai.auth.ldap.keystore.password";
+
+  @Property
+  static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
   private String baseDn;
 
   @Reference
   protected LdapConnectionBroker connBroker;
 
   private LdapConnectionManager connMgr;
-  private LdapConnectionManagerConfig config;
 
   @Activate
   protected void activate(ComponentContext ctx) {
     Dictionary<?, ?> props = ctx.getProperties();
-    config = connBroker.getDefaultConfig();
+    LdapConnectionManagerConfig config = connBroker.getDefaultConfig();
 
     Boolean useSecure = (Boolean) props.get(LDAP_CONNECTION_SECURE);
     if (useSecure != null) {

@@ -35,6 +35,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_L
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
@@ -160,6 +161,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
     @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
     @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
+    @ServiceResponse(code = 403, description = "The search template is not located under /var "),
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
@@ -221,6 +223,12 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
+      if (!resource.getPath().startsWith(SEARCH_PATH_PREFIX)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+            "Search templates can only be executed if they are located under " + SEARCH_PATH_PREFIX);
+        return;
+      }
+      
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
@@ -363,6 +371,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
+      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught RepositoryException {}", e.getMessage());
     } catch (JSONException e) {
@@ -479,7 +488,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
+          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
         escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
             .replaceAll("'", "''");

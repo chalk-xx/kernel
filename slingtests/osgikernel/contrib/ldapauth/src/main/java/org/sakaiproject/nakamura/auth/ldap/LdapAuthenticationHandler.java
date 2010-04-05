@@ -17,15 +17,6 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.engine.auth.AuthenticationHandler;
-import org.apache.sling.engine.auth.AuthenticationInfo;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
@@ -42,12 +33,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.engine.auth.AuthenticationHandler;
+import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+
 /**
  * Authentication handler for trusted authentication sources. These sources will
  * authenticate users externally and eventually pass through this handler to
  * establish a trusted relationship continuing into the container.
  */
-@Component
+@Component(metatype = true, enabled = false)
 @Service
 public class LdapAuthenticationHandler implements AuthenticationHandler, LoginModulePlugin {
   /** Authentication type name */
@@ -66,7 +66,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
   @Property(value = "/")
   static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
 
-  @Property(value = "Trusted Authentication Handler")
+  @Property(value = "LDAP Authentication Handler")
   static final String DESCRIPTION_PROPERTY = "service.description";
 
   @Property(value = "The Sakai Foundation")
@@ -204,6 +204,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
 
   @SuppressWarnings("rawtypes")
   public void addPrincipals(Set arg0) {
-    
+    // Nothing to do
   }
 }

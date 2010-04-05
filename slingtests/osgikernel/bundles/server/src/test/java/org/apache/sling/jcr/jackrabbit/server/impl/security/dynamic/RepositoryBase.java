@@ -19,7 +19,6 @@
 package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.config.RepositoryConfig;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipalProvider;

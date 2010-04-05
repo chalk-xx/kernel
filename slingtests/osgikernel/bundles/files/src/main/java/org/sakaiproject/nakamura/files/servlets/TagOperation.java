@@ -17,9 +17,6 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
-import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
-import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
 import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
 
 import org.apache.felix.scr.annotations.Component;
@@ -35,13 +32,13 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.sakaiproject.nakamura.api.files.FileUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.util.List;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -73,6 +70,14 @@ public class TagOperation extends AbstractSlingPostOperation {
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
 
+    // Check if the user has the required minimum privilege.
+    String user = request.getRemoteUser();
+    if (UserConstants.ANON_USERID.equals(user)) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN,
+          "Anonymous users can't tag things.");
+      return;
+    }
+
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node tagNode = null;
     Node node = request.getResource().adaptTo(Node.class);
@@ -87,6 +92,7 @@ public class TagOperation extends AbstractSlingPostOperation {
     RequestParameter uuidParam = request.getRequestParameter("uuid");
     if (uuidParam == null) {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST, "Missing uuid parameter");
+      return;
     }
 
     // Grab the tagNode.
@@ -104,14 +110,6 @@ public class TagOperation extends AbstractSlingPostOperation {
     }
 
     try {
-      // Check if the user has the required minimum privilege.
-      String user = request.getRemoteUser();
-      if ("anon".equals(user)) {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN,
-            "Anonymous users can't tag things.");
-        return;
-      }
-
       // We check if the node already has this tag.
       // If it does, we ignore it..
       if (!hasUuid(node, uuid)) {
@@ -119,26 +117,10 @@ public class TagOperation extends AbstractSlingPostOperation {
         try {
           adminSession = slingRepository.loginAdministrative(null);
 
-          // Grab the node via the adminSession
-          String path = node.getPath();
-          node = (Node) adminSession.getItem(path);
+          // Add the tag on the file.
+          FileUtils.addTag(adminSession, node, tagNode);
 
-          // Check if the mixin is on the node.
-          // This is nescecary for nt:file nodes.
-          if (!JcrUtils.hasMixin(node, REQUIRED_MIXIN)) {
-            node.addMixin(REQUIRED_MIXIN);
-          }
-
-          // Add the reference from the tag to the node.
-          String tagUuid = tagNode.getIdentifier();
-          String tagName = tagNode.getName();
-          if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
-            tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
-          }
-          JcrUtils.addValue(adminSession, node, SAKAI_TAG_UUIDS, tagUuid,
-              PropertyType.STRING);
-          JcrUtils.addValue(adminSession, node, SAKAI_TAGS, tagName, PropertyType.STRING);
-
+          // Save our modifications.
           if (adminSession.hasPendingChanges()) {
             adminSession.save();
           }

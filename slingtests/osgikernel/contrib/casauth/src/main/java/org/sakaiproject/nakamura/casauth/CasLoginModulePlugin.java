@@ -72,29 +72,20 @@ public class CasLoginModulePlugin implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#impersonate(java.security.Principal,
    *      javax.jcr.Credentials)
    */
-  public int impersonate(Principal arg0, Credentials arg1) throws RepositoryException,
+  public int impersonate(Principal principal, Credentials credentials)
+      throws RepositoryException,
       FailedLoginException {
     return LoginModulePlugin.IMPERSONATION_DEFAULT;
   }
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#addPrincipals(java.util.Set)
-   */
   @SuppressWarnings("unchecked")
-  public void addPrincipals(Set arg0) {
+  public void addPrincipals(Set principals) {
     // Nothing to do
   }
 
-  /**
-   * {@inheritDoc}
-   * 
-   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
-   *      javax.jcr.Session, java.util.Map)
-   */
   @SuppressWarnings("unchecked")
-  public void doInit(CallbackHandler arg0, Session arg1, Map arg2) throws LoginException {
+  public void doInit(CallbackHandler callback, Session session, Map arg2)
+      throws LoginException {
     // Nothing to do
   }
 }

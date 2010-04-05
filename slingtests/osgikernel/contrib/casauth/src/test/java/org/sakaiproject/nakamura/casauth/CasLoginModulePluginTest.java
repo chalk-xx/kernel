@@ -4,14 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.junit.Before;
+import org.junit.Test;
+
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
 import javax.security.auth.login.FailedLoginException;
-
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.junit.Before;
-import org.junit.Test;
 
 public class CasLoginModulePluginTest {
   private CasLoginModulePlugin clmp;

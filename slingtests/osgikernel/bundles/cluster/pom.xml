@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
   <packaging>bundle</packaging>
-  <version>0.4</version>
+  <version>0.4-SNAPSHOT</version>
   <name>Sakai Cluster Tracking</name>
   <description>Cluster Tracking support for app servers and users.</description>
   <build>
@@ -65,19 +65,19 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
-      <version>5.3.0-0.4</version>
+      <version>5.3.0-0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -112,7 +112,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -123,7 +123,7 @@
 	<dependency>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>org.sakaiproject.nakamura.doc</artifactId>
-		<version>0.4</version>
+		<version>0.4-SNAPSHOT</version>
 	</dependency>
       <dependency>
       <groupId>org.apache.geronimo.specs</groupId>

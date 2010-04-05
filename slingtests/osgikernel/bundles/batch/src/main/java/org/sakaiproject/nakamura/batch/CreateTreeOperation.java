@@ -51,7 +51,7 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
    * 
    */
   private static final long serialVersionUID = 9207596135556346980L;
-  private static final String TREE_PARAM = "tree";
+  public static final String TREE_PARAM = "tree";
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
@@ -139,7 +139,7 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
     }
   }
 
-  private Node addNode(Node node, String key) throws ItemExistsException,
+  protected Node addNode(Node node, String key) throws ItemExistsException,
       PathNotFoundException, VersionException, ConstraintViolationException,
       LockException, RepositoryException {
     if (node.hasNode(key)) {

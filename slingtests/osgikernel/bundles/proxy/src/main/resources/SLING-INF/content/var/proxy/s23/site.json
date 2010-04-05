@@ -1,6 +1,6 @@
 {
     "sling:resourceType": "sakai/proxy",
-    "sakai:request-proxy-endpoint": "http://localhost:${port}/sakai-hybrid/site?siteId=${siteid}",
+    "sakai:request-proxy-endpoint": "http://${hostname}:${port}/sakai-hybrid/site?siteId=${siteid}",
     "sakai:request-proxy-method": "GET",
     "sakai:preprocessor" : "trusted-token",
     "sakai:title" : "Sakai2: get site information",

@@ -257,6 +257,22 @@ public class JcrUtils {
     node.setProperty(propertyName, newVals);
   }
 
+  /**
+   * Add a value on a multi-valued property. Only when it's not already in there.
+   * 
+   * @param session
+   *          The session to create the {@link Value value}.
+   * @param node
+   *          The {@link Node node} to set the property on.
+   * @param propertyName
+   *          The name of the property.
+   * @param value
+   *          The actual value that will be stored on the property.
+   * @param type
+   *          The {@link PropertyType type} that this value has.
+   * @throws RepositoryException
+   *           Something went wrong.
+   */
   public static void addUniqueValue(Session session, Node node, String propertyName,
       String value, int type) throws RepositoryException {
     boolean containsValue = false;
@@ -272,9 +288,9 @@ public class JcrUtils {
       newVals[i] = v;
     }
 
-    // Create a value that points to the tag node.
-    // We create a soft reference (aka set uuid of tag node on file)
+    // Create a value.
     newVals[oldVals.length] = session.getValueFactory().createValue(value, type);
+    // store it on property.
     node.setProperty(propertyName, newVals);
   }
 

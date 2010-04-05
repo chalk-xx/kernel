@@ -30,10 +30,13 @@ import java.util.Locale;
 public class DateUtils {
   private final static FastDateFormat rfc3339;
   private final static FastDateFormat rfc2822;
+  private final static FastDateFormat rfc2445;
 
   static {
     rfc3339 = FastDateFormat.getInstance("yyyy-MM-dd hh:mm:ssZ");
     rfc2822 = FastDateFormat.getInstance("EEE, dd MMM yyyy HH:mm:ss Z", new Locale("en"));
+    //20100401T140000Z
+    rfc2445 = FastDateFormat.getInstance("yyyyMMdd'T'HHmmssZ");
   }
 
   /**
@@ -117,6 +120,31 @@ public class DateUtils {
    */
   public static String iso8601(Calendar c) {
     return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(c);
+  }
+  
+  /**
+   * Returns an <a href="http://www.ietf.org/rfc/rfc2445.txt">RFC 2445</a> compliant time
+   * stamp.
+   * 
+   * @return yyyy-MM-dd hh:mm:ssZ
+   * @see java.text.SimpleDateFormat
+   */
+  public static String rfc2445() {
+    Date d = new Date();
+    return rfc2445(d);
+  }
+
+  /**
+   * Returns an <a href="http://www.ietf.org/rfc/rfc2445.txt">RFC 2445</a> compliant time
+   * stamp.
+   * 
+   *@param
+   * @return yyyy-MM-dd hh:mm:ssZ
+   * @see java.text.SimpleDateFormat
+   */
+  public static String rfc2445(Date d) {
+    String s = rfc2445.format(d);
+    return s;
   }
 
 }

@@ -58,6 +58,7 @@ public class LdapAuthenticationPluginTest {
   @Before
   public void setup() throws Exception {
     when(connBroker.create(isA(String.class), isA(LdapConnectionManagerConfig.class))).thenReturn(connMgr);
+    when(connBroker.getDefaultConfig()).thenReturn(new LdapConnectionManagerConfig());
     when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(null);
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
     ldapAuthenticationPlugin.connBroker = connBroker;

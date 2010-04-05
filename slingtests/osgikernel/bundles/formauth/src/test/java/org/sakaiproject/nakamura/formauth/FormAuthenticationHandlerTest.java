@@ -30,7 +30,6 @@ import static org.junit.Assert.assertNotNull;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.easymock.Capture;
 import org.junit.Test;
-import org.sakaiproject.nakamura.formauth.FormAuthenticationHandler;
 
 import javax.jcr.Credentials;
 import javax.jcr.SimpleCredentials;
@@ -57,10 +56,9 @@ public class FormAuthenticationHandlerTest {
     expect(session.getCreationTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(session.getLastAccessedTime()).andReturn(System.currentTimeMillis()).anyTimes();
     expect(request.getMethod()).andReturn("POST");
-    expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn(null);
-    expect(request.getParameter(FormAuthenticationHandler.TRY_LOGIN)).andReturn("1");
-    expect(request.getParameter(FormAuthenticationHandler.USERNAME)).andReturn("user").atLeastOnce();
-    expect(request.getParameter(FormAuthenticationHandler.PASSWORD))
+    expect(request.getParameter(FormLoginServlet.TRY_LOGIN)).andReturn("1");
+    expect(request.getParameter(FormLoginServlet.USERNAME)).andReturn("user").atLeastOnce();
+    expect(request.getParameter(FormLoginServlet.PASSWORD))
         .andReturn("password").atLeastOnce();
     Capture<Object> captured = new Capture<Object>();
     Capture<String> key = new Capture<String>();
@@ -97,50 +95,15 @@ public class FormAuthenticationHandlerTest {
     FormAuthenticationHandler formAuthenticationHandler = new FormAuthenticationHandler();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
-    HttpSession session = createMock(HttpSession.class);
-    expect(session.getId()).andReturn("123").anyTimes();
 
-    // session already exists
-    expect(request.getSession(false)).andReturn(session);
     expect(request.getMethod()).andReturn("POST");
-    expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn("1");
-    Capture<String> key = new Capture<String>();
-    session.removeAttribute(capture(key));
-    expectLastCall();
-    request.removeAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
-    expectLastCall();
+    expect(request.getParameter(FormLoginServlet.TRY_LOGIN)).andReturn(null);
 
-    replay(request, response, session);
+    replay(request, response);
     formAuthenticationHandler.extractCredentials(request, response);
-    assertEquals(
-        "org.sakaiproject.nakamura.formauth.FormAuthenticationHandler$FormAuthentication",
-        key.getValue());
-    verify(request, response, session);
+    verify(request, response);
   }
 
-  /**
-   * Test that the logout doesnt create a session.
-   */
-  @Test
-  public void testLogoutDOS() {
-    FormAuthenticationHandler formAuthenticationHandler = new FormAuthenticationHandler();
-    HttpServletRequest request = createMock(HttpServletRequest.class);
-    HttpServletResponse response = createMock(HttpServletResponse.class);
-    HttpSession session = createMock(HttpSession.class);
-    expect(session.getId()).andReturn("123").anyTimes();
-
-    // session already exists
-    expect(request.getSession(false)).andReturn(null);
-    expect(request.getMethod()).andReturn("POST");
-    expect(request.getParameter(FormAuthenticationHandler.FORCE_LOGOUT)).andReturn("1");
-    request.removeAttribute(FormAuthenticationHandler.FORM_AUTHENTICATION);
-    expectLastCall();
-
-
-    replay(request, response, session);
-    formAuthenticationHandler.extractCredentials(request, response);
-    verify(request, response, session);
-  }
 
 
 

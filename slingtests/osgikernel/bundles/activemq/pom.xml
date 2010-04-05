@@ -2,13 +2,13 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.4</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura ActiveMQ Bundle</name>
-  <version>5.3.0-0.4</version>
+  <version>5.3.0-0.4-SNAPSHOT</version>
 
   <build>
     <plugins>
@@ -113,6 +113,22 @@ org.apache.geronimo.transaction.manager*;resolution:=optional,
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+    </dependency>
+    <dependency>
+    	<groupId>org.mockito</groupId>
+    	<artifactId>mockito-all</artifactId>
+    	<version>1.8.2</version>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.5.4</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

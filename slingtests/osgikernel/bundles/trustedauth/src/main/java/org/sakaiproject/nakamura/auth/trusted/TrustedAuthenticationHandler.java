@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 
 import java.io.IOException;
 

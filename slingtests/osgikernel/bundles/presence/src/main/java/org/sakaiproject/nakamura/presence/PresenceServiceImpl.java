@@ -23,6 +23,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -34,17 +39,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-/**
- * The <code>PresenceServiceImpl</code>
- * 
- * @scr.component immediate="true" label="Sakai Presence Service"
- *                description="Service for getting info about the presence status and locations of current users" 
- *                name="org.sakaiproject.nakamura.api.presence.PresenceService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.presence.PresenceService"
- * @scr.reference name="cacheManagerService"
- *                interface="org.sakaiproject.nakamura.api.memory.CacheManagerService"
- **/
+@Component(immediate = true,label = "Sakai Presence Service", description = "Service for getting info about the presence status and locations of current users", name = "org.sakaiproject.nakamura.api.presence.PresenceService")
+@Service(value = PresenceService.class)
+@Properties(value = {
+    @Property(name = "service.description", value = { "Gets the presence status and locations for users." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 public class PresenceServiceImpl implements PresenceService {
 
   private Logger LOGGER = LoggerFactory.getLogger(PresenceServiceImpl.class);
@@ -61,7 +60,8 @@ public class PresenceServiceImpl implements PresenceService {
   private Cache<String> userStatusCache;
   private Cache<Map<String, String>> locationCache;
 
-  private CacheManagerService cacheManagerService;
+  @Reference
+  protected transient CacheManagerService cacheManagerService;
 
   protected void bindCacheManagerService(CacheManagerService cacheManagerService) {
     this.cacheManagerService = cacheManagerService;

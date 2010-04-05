@@ -151,6 +151,7 @@ public class ConnectionServlet extends SlingAllMethodsServlet {
 
       // Nearly impossible to get a noop, but we'll check it anyway..
       if (operation == ConnectionOperation.noop) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid operation selector");
         return;
       }
       

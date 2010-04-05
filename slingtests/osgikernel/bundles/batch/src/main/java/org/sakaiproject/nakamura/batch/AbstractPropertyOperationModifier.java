@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
@@ -70,16 +69,6 @@ public abstract class AbstractPropertyOperationModifier extends
       log.info("Changing one item.");
       Resource resource = request.getResource();
       Item item = resource.adaptTo(Item.class);
-      if (item == null) {
-        // resources are all refenced by path, there is no path expansion as before.
-        String path = resource.getPath();
-        if (session.itemExists(path)) {
-          item = session.getItem(path);
-        } else {
-          throw new ResourceNotFoundException("Missing source " + resource
-              + " for modifying property.");
-        }
-      }
       modifyProperties(operation, item, params);
       changes.add(Modification.onModified(resource.getPath()));
     } else {
@@ -91,6 +80,9 @@ public abstract class AbstractPropertyOperationModifier extends
           changes.add(Modification.onModified(path));
         }
       }
+    }
+    if (session.hasPendingChanges()) {
+      session.save();
     }
   }
 
@@ -160,9 +152,6 @@ public abstract class AbstractPropertyOperationModifier extends
           }
           node.setProperty(prop, newValues);
         }
-      }
-      if (node.isModified()) {
-        node.save();
       }
     }
   }
