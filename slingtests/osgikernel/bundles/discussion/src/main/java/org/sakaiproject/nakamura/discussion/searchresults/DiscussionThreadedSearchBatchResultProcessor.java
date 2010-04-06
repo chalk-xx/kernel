@@ -112,7 +112,7 @@ public class DiscussionThreadedSearchBatchResultProcessor implements
       RowIterator iterator = qr.getRows();
 
       // Get the hits
-      int hits = SearchUtil.getHits(qr);
+      long hits = SearchUtil.getHits(qr);
 
       // Return the result set.
       return new AbstractSearchResultSet(iterator, hits);
