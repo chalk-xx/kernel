@@ -109,9 +109,9 @@ public class ExternalDocumentSearchServlet extends SlingSafeMethodsServlet {
 
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
       write.array();
-      int nitems = SearchUtil.intRequestParameter(request,
+      long nitems = SearchUtil.intRequestParameter(request,
           SearchConstants.PARAMS_ITEMS_PER_PAGE, SearchConstants.DEFAULT_PAGED_ITEMS);
-      for (int i = 0; i < nitems && results.hasNext(); i++) {
+      for (long i = 0; i < nitems && results.hasNext(); i++) {
         ExternalDocumentResult result = results.next();
         DocProxyUtils.writeMetaData(write, result);
       }

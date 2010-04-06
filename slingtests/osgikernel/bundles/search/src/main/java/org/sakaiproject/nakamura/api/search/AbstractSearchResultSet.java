@@ -26,7 +26,7 @@ public class AbstractSearchResultSet implements SearchResultSet {
   /**
    * The size of the result set.
    */
-  private int size;
+  private long size;
 
   /**
    * The iterator that should be used.
@@ -38,7 +38,7 @@ public class AbstractSearchResultSet implements SearchResultSet {
    */
   private ValueMap properties;
 
-  public AbstractSearchResultSet(RowIterator rowIterator, int size) {
+  public AbstractSearchResultSet(RowIterator rowIterator, long size) {
     setRowIterator(rowIterator);
     setSize(size);
   }
@@ -48,7 +48,7 @@ public class AbstractSearchResultSet implements SearchResultSet {
    * 
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#getSize()
    */
-  public int getSize() {
+  public long getSize() {
     return size;
   }
 
@@ -58,7 +58,7 @@ public class AbstractSearchResultSet implements SearchResultSet {
    * 
    * @see org.sakaiproject.nakamura.api.search.SearchResultSet#setSize(long)
    */
-  public void setSize(int size) {
+  public void setSize(long size) {
     this.size = size;
   }
 

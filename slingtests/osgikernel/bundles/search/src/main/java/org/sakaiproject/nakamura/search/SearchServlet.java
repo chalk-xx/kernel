@@ -162,6 +162,7 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
     @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
     @ServiceResponse(code = 403, description = "The search template is not located under /var "),
+    @ServiceResponse(code = 406, description = "There are too many results that need to be paged. "),
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
@@ -204,7 +205,7 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  @Property(name="maximumResults", longValue=1000L  )
+  @Property(name="maximumResults", longValue=2500L  )
   private long maximumResults;
 
   // Default processors
@@ -265,12 +266,12 @@ public class SearchServlet extends SlingSafeMethodsServlet {
         // If we wouldn't do this, the user could ask for the 1000th page
         // This would result in iterating over (at least) 25.000 lucene indexes and
         // checking if the user has READ access on it.
-        int nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+        long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
             DEFAULT_PAGED_ITEMS);
-        int page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
-        int offset = page * nitems;
+        long page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
+        long offset = page * nitems;
         if (limitResults && offset > maximumResults) {
-          response.sendError(HttpServletResponse.SC_FORBIDDEN,
+          response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
               "There are too many results.");
           return;
         }
