@@ -93,7 +93,17 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   }
 
   public boolean canHandle(Credentials credentials) {
-    return credentials instanceof SimpleCredentials;
+    boolean isSimple = credentials instanceof SimpleCredentials;
+    boolean hasAllData = false;
+
+    if (isSimple) {
+      SimpleCredentials creds = (SimpleCredentials) credentials;
+      if (creds.getUserID() != null && creds.getUserID().length() > 0
+              && creds.getPassword() != null && creds.getPassword().length > 0) {
+        hasAllData = true;
+      }
+    }
+    return isSimple && hasAllData;
   }
 
   public boolean authenticate(Credentials credentials) throws RepositoryException {
