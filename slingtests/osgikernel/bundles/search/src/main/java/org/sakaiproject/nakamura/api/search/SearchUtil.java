@@ -54,7 +54,7 @@ public class SearchUtil {
       QueryResult rs = query.execute();
 
       // Extract the total hits from lucene
-      int hits = getHits(rs);
+      long hits = getHits(rs);
 
       // Do the paging on the iterator.
       RowIterator iterator = rs.getRows();
@@ -75,7 +75,7 @@ public class SearchUtil {
    * @param rs
    * @return
    */
-  public static int getHits(QueryResult rs) throws SearchException {
+  public static long getHits(QueryResult rs) throws SearchException {
     QueryHitsExtractor extr = new QueryHitsExtractor(rs);
     return extr.getHits();
   }
@@ -89,10 +89,10 @@ public class SearchUtil {
    *          The name of the parameter that holds the integer value.
    * @param defaultVal
    *          The default value in case the parameter is not found or is not an integer
-   * @return The integer value.
+   * @return The long value.
    */
-  public static int intRequestParameter(SlingHttpServletRequest request,
-      String paramName, int defaultVal) {
+  public static long intRequestParameter(SlingHttpServletRequest request,
+      String paramName, long defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -114,9 +114,9 @@ public class SearchUtil {
    */
   public static long getPaging(SlingHttpServletRequest request, long total) {
 
-    int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
-    int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
+    long offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
     if (total < 0) {
       total = Long.MAX_VALUE;

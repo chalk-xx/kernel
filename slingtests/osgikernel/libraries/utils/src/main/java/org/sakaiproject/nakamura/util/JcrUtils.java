@@ -199,7 +199,12 @@ public class JcrUtils {
 
   public static NodeInputStream getInputStreamForNode(Node node) {
     try {
-      Node content = node.isNodeType("nt:file") ? node.getNode("jcr:content") : node;
+      Node content = node;
+      if (node.isNodeType("nt:file")
+          || (node.hasProperty("jcr:frozenPrimaryType") && "nt:file".equals(node
+              .getProperty("jcr:frozenPrimaryType").getString()))) {
+        content = node.getNode("jcr:content");
+      }
       Property data;
 
       if (content.hasProperty("jcr:data")) {

@@ -91,7 +91,7 @@ module SlingInterface
     end
     
     def file_to_multipart(key,filename,mime_type,content)
-      return "Content-Disposition: form-data; name=\"#{CGI::escape(key)}\"; filename=\"#{filename}\"\r\n" +
+      return "Content-Disposition: form-data; name=\"*\"; filename=\"#{filename}\"\r\n" +
              "Content-Transfer-Encoding: binary\r\n" +
              "Content-Type: #{mime_type}\r\n" + 
              "\r\n" + 
@@ -100,7 +100,10 @@ module SlingInterface
     
     def execute_file_post(path, fieldname, filename, data, content_type)
       uri = URI.parse(path)
-      params = [file_to_multipart(fieldname, filename, content_type, data)]
+      fileTypeHint = "Content-Disposition: form-data; name=\"*@TypeHint\"\r\n\r\n" +
+                     "nt:file\r\n"
+
+      params = [fileTypeHint,file_to_multipart(fieldname, filename, content_type, data)]
       boundary = '349832898984244898448024464570528145'
       query = params.collect {|p| '--' + boundary + "\r\n" + p}.join('') + "--" + boundary + "--\r\n"
       req = Net::HTTP::Post.new(uri.path)
