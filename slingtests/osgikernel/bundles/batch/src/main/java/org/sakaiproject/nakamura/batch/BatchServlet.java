@@ -65,7 +65,7 @@ import javax.servlet.http.HttpServletResponse;
         parameters = @ServiceParameter(
             name = "requests",
             description = "JSON string that represents a request. <br />Example:" +
-                "<pre>{\n\"url\" : \"/foo/bar.json\",\n\"method\" : \"GET\",\n\"parameters : {\n\"val\" : 123,\n\"val@TypeHint\" : \"Long\"\n}\n}</pre>"
+                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,

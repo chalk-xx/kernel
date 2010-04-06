@@ -51,14 +51,20 @@ public class RequestInfo {
    * form of
    * 
    * <pre>
+   * [
    * {
-   *   "url" : "/foo/bar.json",
-   *   "method" : "GET",
+   *   "url" : "/foo/bar",
+   *   "method" : "POST",
    *   "parameters : {
    *     "val" : 123,
    *     "val@TypeHint" : "Long"
    *   }
+   * },
+   * {
+   *   "url" : "/_user/a/ad/admin/public/authprofile.json",
+   *   "method" : "GET"
    * }
+   * ]
    * </pre>
    * 
    * @param obj
