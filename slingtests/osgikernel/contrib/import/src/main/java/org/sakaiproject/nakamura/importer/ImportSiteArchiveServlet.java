@@ -58,9 +58,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -350,9 +352,11 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       node = makeNode(path, session);
       node.setProperty(JcrConstants.JCR_NAME, fileName);
       node.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-      node.setProperty(JcrConstants.JCR_CONTENT, in);
+      ValueFactory valueFactory = session.getValueFactory();
+      Binary content = valueFactory.createBinary(in);
+      node.setProperty(JcrConstants.JCR_CONTENT, content);
       final String linkPath = sitePath + "/_files/" + fileName;
-      FileUtils.createLink(node, linkPath, sitePath, slingRepository);
+      FileUtils.createLink(session, node, linkPath, sitePath, slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
     } catch (IOException e) {
