@@ -17,29 +17,7 @@
  */
 package org.sakaiproject.nakamura.importer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import com.ctc.wstx.stax.WstxInputFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.felix.scr.annotations.Properties;
@@ -66,9 +44,30 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ctc.wstx.stax.WstxInputFactory;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
-@SuppressWarnings("restriction")
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
 @Properties(value = {
     @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),
@@ -344,14 +343,16 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private Node copyFile(String zipEntryName, String fileName, String sitePath,
       String contentType, Session session, ZipFile zip) {
     final String id = uniqueId();
-    final String path = FilesConstants.USER_FILESTORE;
+    final String path = FilesConstants.USER_FILESTORE + "/" + id;
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      node = FileUtils.saveFile(session, path, id, in, fileName, contentType,
-          slingRepository);
+      node = makeNode(path, session);
+      node.setProperty(JcrConstants.JCR_NAME, fileName);
+      node.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+      node.setProperty(JcrConstants.JCR_CONTENT, in);
       final String linkPath = sitePath + "/_files/" + fileName;
-      FileUtils.createLink(session, node, linkPath, sitePath, slingRepository);
+      FileUtils.createLink(node, linkPath, sitePath, slingRepository);
     } catch (RepositoryException e) {
       throw new Error(e);
     } catch (IOException e) {
@@ -369,10 +370,10 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       if (!isNtFile) { // only set these properties if not nt:file; i.e. they
         // will already be set otherwise.
         // sakai:id
-        node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+        // node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
 
         // sakai:user
-        node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
+        // node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
         // jcr:mimeType
         final String mimeType = resource.attributes.get("content-type");
