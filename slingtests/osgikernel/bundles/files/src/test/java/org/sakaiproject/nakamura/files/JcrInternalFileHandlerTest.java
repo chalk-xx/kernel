@@ -117,5 +117,19 @@ public class JcrInternalFileHandlerTest {
     verify(response).sendError(HttpServletResponse.SC_NOT_FOUND,
         "This file has been removed.");
   }
+  
+  @Test
+  public void testException() throws ServletException, IOException, ItemNotFoundException, RepositoryException {
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
+    String to = UUID.randomUUID().toString();
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    Session session = mock(Session.class);
+    when(session.getNodeByIdentifier(to)).thenThrow(new RepositoryException("test exception"));
+    when(request.getResourceResolver()).thenReturn(resolver);
+    
+    handler.handleFile(request, response, to);
+    verify(response).sendRedirect(to);
+  }
 
 }

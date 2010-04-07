@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
+import static org.mockito.Mockito.verify;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -29,6 +31,7 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.commons.testing.jcr.MockProperty;
 import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.site.SiteService;
 
@@ -41,11 +44,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.ValueFormatException;
+import javax.jcr.nodetype.NodeType;
 
 /**
  *
@@ -155,4 +160,58 @@ public class FilesUtilsTest {
     result = FileUtils.isTag(node);
     assertEquals(false, result);
   }
+
+  @Test
+  public void testCreateLinkNode() throws AccessDeniedException, RepositoryException {
+
+    Node fileNode = createFileNode();
+    Session session = mock(Session.class);
+    Session adminSession = mock(Session.class);
+    SlingRepository slingRepository = mock(SlingRepository.class);
+    String linkPath = "/path/to/link";
+    String sitePath = "/path/to/site";
+
+    when(session.getUserID()).thenReturn("alice");
+    when(fileNode.getSession()).thenReturn(session);
+    NodeType[] nodeTypes = new NodeType[0];
+    when(fileNode.getMixinNodeTypes()).thenReturn(nodeTypes);
+
+    when(session.getItem(fileNode.getPath())).thenReturn(fileNode);
+    when(adminSession.getItem(fileNode.getPath())).thenReturn(fileNode);
+    when(slingRepository.loginAdministrative(null)).thenReturn(adminSession);
+    when(adminSession.hasPendingChanges()).thenReturn(true);
+    when(session.hasPendingChanges()).thenReturn(true);
+
+    // link
+    Node linkNode = mock(Node.class);
+    when(session.itemExists(linkPath)).thenReturn(true);
+    when(session.getItem(linkPath)).thenReturn(linkNode);
+
+    FileUtils.createLink(fileNode, linkPath, null, slingRepository);
+
+    verify(fileNode).addMixin(FilesConstants.REQUIRED_MIXIN);
+    verify(session).save();
+    verify(adminSession).save();
+    verify(adminSession).logout();
+  }
+
+  @Test
+  public void testWriteSiteInfo() throws JSONException, RepositoryException, IOException {
+    Node siteNode = new MockNode("/sites/foo");
+    SiteService siteService = mock(SiteService.class);
+    when(siteService.getMemberCount(siteNode)).thenReturn(11);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Writer w = new PrintWriter(baos);
+    JSONWriter write = new JSONWriter(w);
+
+    FileUtils.writeSiteInfo(siteNode, write, siteService);
+    w.flush();
+
+    String s = baos.toString("UTF-8");
+    JSONObject o = new JSONObject(s);
+    assertEquals("11", o.get("member-count"));
+    assertEquals(siteNode.getPath(), o.get("path"));
+
+  }
+
 }

@@ -26,7 +26,11 @@ import org.apache.sling.api.request.RequestParameter;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
+import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.site.SiteService;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -91,4 +95,23 @@ public class FileSearchPropertyProviderTest {
     assertEquals("term", result);
   }
 
+  @Test
+  public void testContacts() {
+    List<String> connections = Arrays.asList(new String[] { "bob", "jack" });
+    when(connectionManager.getConnectedUsers("alice", ConnectionState.ACCEPTED))
+        .thenReturn(connections);
+
+    String query = provider.getMyContacts("alice");
+    assertEquals(" and (@jcr:createdBy=\"bob\" or @jcr:createdBy=\"jack\")", query);
+  }
+
+  @Test
+  public void testNoContacts() {
+    List<String> connections = Arrays.asList(new String[] {});
+    when(connectionManager.getConnectedUsers("alice", ConnectionState.ACCEPTED))
+        .thenReturn(connections);
+
+    String query = provider.getMyContacts("alice");
+    assertEquals("", query);
+  }
 }
