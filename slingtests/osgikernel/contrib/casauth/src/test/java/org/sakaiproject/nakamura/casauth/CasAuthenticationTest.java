@@ -8,18 +8,16 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertTrue;
 
-import java.security.Principal;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.SimpleCredentials;
-
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
+
+import java.security.Principal;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
 
 public class CasAuthenticationTest {
 
@@ -55,8 +53,7 @@ public class CasAuthenticationTest {
     UserManager um = createMock(UserManager.class);
     expect(um.getAuthorizable("foo")).andReturn(null);
     expect(
-        um.createUser(eq("foo"), isA(String.class), isA(Principal.class), eq(PathUtils
-            .getUserPrefix("foo", UserConstants.DEFAULT_HASH_LEVELS)))).andReturn(null);
+um.createUser(eq("foo"), isA(String.class))).andReturn(null);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     session.logout();
