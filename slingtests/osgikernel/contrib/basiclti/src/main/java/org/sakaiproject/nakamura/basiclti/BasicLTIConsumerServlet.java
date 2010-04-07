@@ -1010,8 +1010,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         || userSettings == null) {
       throw new IllegalArgumentException();
     }
-    final boolean locked = (Boolean) adminSettings.get(applicationSettings
+    final Object adminSetting = adminSettings.get(applicationSettings
         .get(setting));
+    boolean locked = false; // default to unlocked
+    if (adminSetting != null) {
+      locked = (Boolean) adminSetting;
+    }
     if (locked) { // the locked admin setting takes precedence
       effectiveSettings.put(setting, adminSettings.get(setting));
     } else {
