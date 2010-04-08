@@ -504,7 +504,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         settings.put(property.getName(), property.getValue().getString());
         break;
       case PropertyType.BOOLEAN:
-        settings.put(property.getName(), new Boolean(property.getValue()
+        settings.put(property.getName(), Boolean.valueOf(property.getValue()
             .getBoolean()));
         break;
       default:
