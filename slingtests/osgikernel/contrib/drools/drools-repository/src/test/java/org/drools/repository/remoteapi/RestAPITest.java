@@ -382,7 +382,7 @@ public class RestAPITest extends TestCase {
 		RestAPI api = new RestAPI(repo);
 		api.delete("packages/testRestDelete/asset1.drl");
 
-		List l = RulesRepositoryTest.iteratorToList(pkg.listAssetsByFormat(new String[] {"drl"}));
+		List<AssetItem> l = RulesRepositoryTest.iteratorToList(pkg.listAssetsByFormat(new String[] {"drl"}));
 		assertEquals(0, l.size());
 
 		l = RulesRepositoryTest.iteratorToList(pkg.listArchivedAssets());

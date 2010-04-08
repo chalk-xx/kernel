@@ -203,7 +203,7 @@ public class AssetItemTest extends TestCase {
             assertFalse("yeah !".equals(prev.getCheckinComment()));
 
 
-            assertEquals(prev, ruleItem1.getPrecedingVersion());
+            assertEquals(prev.toString(), ruleItem1.getPrecedingVersion().toString());
 
 
             ruleItem1 = getDefaultPackage().loadAsset( "testUpdateContent" );

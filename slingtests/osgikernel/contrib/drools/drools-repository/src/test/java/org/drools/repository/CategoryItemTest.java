@@ -3,7 +3,6 @@ package org.drools.repository;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.jcr.ItemNotFoundException;
 
 import org.drools.repository.RulesRepository;
 import org.drools.repository.CategoryItem;
@@ -29,9 +28,9 @@ public class CategoryItemTest extends TestCase {
             CategoryItem tagItem2 = getRepo().loadCategory("TestTag");
             assertNotNull(tagItem2);
             assertEquals("TestTag", tagItem2.getName());
-            assertEquals(tagItem1, tagItem2);
+            assertEquals(tagItem1.getFullPath(), tagItem2.getFullPath());
 
-            List originalCats = getRepo().loadCategory( "/" ).getChildTags(); //listCategoryNames();
+            List<CategoryItem> originalCats = getRepo().loadCategory( "/" ).getChildTags(); //listCategoryNames();
             assertTrue(originalCats.size() > 0);
 
             CategoryItem rootCat = (CategoryItem) originalCats.get( 0 );
@@ -40,11 +39,11 @@ public class CategoryItemTest extends TestCase {
 
             root.addCategory( "FootestTagItem", "nothing" );
 
-            List cats = root.getChildTags();
+            List<CategoryItem> cats = root.getChildTags();
             assertEquals(originalCats.size() + 1, cats.size());
 
             boolean found = false;
-            for ( Iterator iter = cats.iterator(); iter.hasNext(); ) {
+            for ( Iterator<CategoryItem> iter = cats.iterator(); iter.hasNext(); ) {
                 CategoryItem element = (CategoryItem) iter.next();
                 if (element.getName().equals( "FootestTagItem" )) {
                     found = true; break;
@@ -84,7 +83,7 @@ public class CategoryItemTest extends TestCase {
             assertNotNull(tagItem1);
             assertEquals("TestTag", tagItem1.getName());
 
-            List childTags = tagItem1.getChildTags();
+            List<CategoryItem> childTags = tagItem1.getChildTags();
             assertNotNull(childTags);
             assertEquals(0, childTags.size());
 
@@ -109,7 +108,7 @@ public class CategoryItemTest extends TestCase {
             assertEquals("testGetChildTag", tagItem1.getName());
 
             //test that child is added if not already in existence
-            List childTags = tagItem1.getChildTags();
+            List<CategoryItem> childTags = tagItem1.getChildTags();
             assertNotNull(childTags);
             assertEquals(0, childTags.size());
 
@@ -121,7 +120,7 @@ public class CategoryItemTest extends TestCase {
             CategoryItem childTagItem2 = getRepo().loadCategory( "testGetChildTag/TestChildTag1");
             assertNotNull(childTagItem2);
             assertEquals("TestChildTag1", childTagItem2.getName());
-            assertEquals(childTagItem1, childTagItem2);
+            assertEquals(childTagItem1.getFullPath(), childTagItem2.getFullPath());
     }
 
     public void testGetFullPath() {

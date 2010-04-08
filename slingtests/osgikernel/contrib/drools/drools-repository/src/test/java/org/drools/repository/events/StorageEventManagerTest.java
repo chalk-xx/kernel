@@ -1,12 +1,11 @@
 package org.drools.repository.events;
 
 import junit.framework.TestCase;
-import org.drools.repository.RulesRepository;
-import org.drools.repository.PackageItem;
-import org.drools.repository.AssetItem;
-import org.drools.repository.RepositorySessionUtil;
 
-import java.io.ByteArrayInputStream;
+import org.drools.repository.AssetItem;
+import org.drools.repository.PackageItem;
+import org.drools.repository.RepositorySessionUtil;
+import org.drools.repository.RulesRepository;
 
 /**
  * @author Michael Neale

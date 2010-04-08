@@ -1,7 +1,6 @@
 package org.drools.repository;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -9,13 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
@@ -29,7 +22,7 @@ public class RulesRepositoryTest extends TestCase {
     public void testDefaultPackage() throws Exception {
         RulesRepository repo = RepositorySessionUtil.getRepository();
 
-        Iterator it = repo.listPackages();
+        Iterator<PackageItem> it = repo.listPackages();
         boolean foundDefault = false;
         while ( it.hasNext() ) {
             PackageItem item = (PackageItem) it.next();
@@ -50,7 +43,7 @@ public class RulesRepositoryTest extends TestCase {
 
         MigrateDroolsPackage mig = new MigrateDroolsPackage();
         assertFalse( mig.needsMigration( repo ) );
-        assertTrue( repo.initialized );
+        assertTrue( RulesRepository.initialized );
 
     }
 
@@ -122,7 +115,7 @@ public class RulesRepositoryTest extends TestCase {
 
         PackageItem pack2 = repo.loadPackage( "testAddVersionARule" );
 
-        Iterator it = pack2.getAssets();
+        Iterator<AssetItem> it = pack2.getAssets();
 
         it.next();
         it.next();
@@ -171,7 +164,7 @@ public class RulesRepositoryTest extends TestCase {
                                             "X" );
         repo.save();
 
-        List list = iteratorToList( repo.findAssetsByName( "findRulesByNamex1" ) );
+        List<AssetItem> list = iteratorToList( repo.findAssetsByName( "findRulesByNamex1" ) );
         assertEquals( 1,
                       list.size() );
 
@@ -415,7 +408,7 @@ public class RulesRepositoryTest extends TestCase {
 
         repo.save();
 
-        String uuid = rule.getNode().getUUID();
+        String uuid = rule.getNode().getIdentifier();
 
         AssetItem loaded = repo.loadAssetByUUID( uuid );
         assertNotNull( loaded );
@@ -555,7 +548,7 @@ public class RulesRepositoryTest extends TestCase {
         assertTrue( rulesRepository.containsPackage( "testListPackages" ) );
         assertFalse( rulesRepository.containsPackage( "XXXXXXX" ) );
 
-        Iterator it = rulesRepository.listPackages();
+        Iterator<PackageItem> it = rulesRepository.listPackages();
         assertTrue( it.hasNext() );
 
         boolean found = false;
@@ -630,7 +623,7 @@ public class RulesRepositoryTest extends TestCase {
 
         repo.save();
 
-        List items = repo.findAssetsByCategory( "/testFindAssetsByCategoryUsingFilterCat",
+        List<AssetItem> items = repo.findAssetsByCategory( "/testFindAssetsByCategoryUsingFilterCat",
                                                 0,
                                                 -1 ).assets;
         assertEquals( 2,
@@ -768,7 +761,7 @@ public class RulesRepositoryTest extends TestCase {
                       "drl" );
         repo.save();
 
-        List items = repo.findAssetsByCategory( "/testCategoriesAndSnapshots",
+        List<AssetItem> items = repo.findAssetsByCategory( "/testCategoriesAndSnapshots",
                                                 0,
                                                 -1 ).assets;
         assertEquals( 2,
@@ -811,7 +804,7 @@ public class RulesRepositoryTest extends TestCase {
         repo.createPackage( "testMove2",
                             "description" );
         repo.moveRuleItemPackage( "testMove2",
-                                  r.node.getUUID(),
+                                  r.node.getIdentifier(),
                                   "explanation" );
 
         pkg = repo.loadPackage( "testMove" );
@@ -884,7 +877,7 @@ public class RulesRepositoryTest extends TestCase {
         assertEquals( "testRename2",
                       item.getTitle() );
 
-        List assets = iteratorToList( repo.loadPackage( "testRenameAsset" ).getAssets() );
+        List<AssetItem> assets = iteratorToList( repo.loadPackage( "testRenameAsset" ).getAssets() );
         assertEquals( 1,
                       assets.size() );
         item = (AssetItem) assets.get( 0 );
@@ -899,7 +892,7 @@ public class RulesRepositoryTest extends TestCase {
         RulesRepository repo = RepositorySessionUtil.getRepository();
         PackageItem original = repo.createPackage( "testRenamePackage",
                                                    "asset" );
-        List packagesOriginal = iteratorToList( repo.listPackages() );
+        List<PackageItem> packagesOriginal = iteratorToList( repo.listPackages() );
         AssetItem item = repo.loadPackage( "testRenamePackage" ).addAsset( "testRenameAssetSource",
                                                                            "desc" );
         item.updateContent( "la" );
@@ -912,7 +905,7 @@ public class RulesRepositoryTest extends TestCase {
         assertEquals( "testRenamePackage2",
                       pkg.getName() );
 
-        List assets = iteratorToList( repo.loadPackage( "testRenamePackage2" ).getAssets() );
+        List<AssetItem> assets = iteratorToList( repo.loadPackage( "testRenamePackage2" ).getAssets() );
         assertEquals( 1,
                       assets.size() );
         item = (AssetItem) assets.get( 0 );
@@ -923,7 +916,7 @@ public class RulesRepositoryTest extends TestCase {
         assertEquals( "testRenamePackage2",
                       item.getPackageName() );
 
-        List packageFinal = iteratorToList( repo.listPackages() );
+        List<PackageItem> packageFinal = iteratorToList( repo.listPackages() );
         assertEquals( packagesOriginal.size(),
                       packageFinal.size() );
 

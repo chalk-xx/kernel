@@ -12,7 +12,7 @@ pushd ${TOOLSDIR}/..
 if [[ "a$1" == "aall" ]]
 then
    ## if "all" is on the CLI, build everythign
-   mvn clean install
+   mvn $BUILD_OPT clean install
 else 
    ## otherwise, just rebundle
    tools/rebundle.sh $*

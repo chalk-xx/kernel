@@ -1,7 +1,6 @@
 package org.drools.repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class PackageItemTest extends TestCase {
         assertEquals("goo", item.getStringProperty( "whee" ));
         assertFalse(item.getCreator().equals( "" ));
 
-        List list = iteratorToList( repo.listPackages() );
+        List<PackageItem> list = iteratorToList( repo.listPackages() );
         int prevSize = list.size();
         repo.createPackage( "testListPackages2", "abc" );
 
@@ -93,7 +92,7 @@ public class PackageItemTest extends TestCase {
         assertNotNull(rulePackageItem1);
         assertEquals("testRulePackage", rulePackageItem1.getName());
 
-        Iterator it = getRepo().listPackages();
+        Iterator<PackageItem> it = getRepo().listPackages();
         assertTrue(it.hasNext());
 
         while (it.hasNext()) {
@@ -127,7 +126,7 @@ public class PackageItemTest extends TestCase {
         it2.checkin( "c" );
 
         it1 = pkg.loadAsset( "testPackageCopy1" );
-        List hist1 = iteratorToList( it1.getHistory() );
+        List<AssetItem> hist1 = iteratorToList( it1.getHistory() );
         System.out.println(hist1.size());
 
 
@@ -181,8 +180,8 @@ public class PackageItemTest extends TestCase {
         assertEquals(pkgLoaded.getCreatedDate(), _pkgLoaded.getCreatedDate());
         assertEquals(pkgLoaded.getName(), _pkgLoaded.getName());
         //assertEquals("testPackageSnapshot", pkgLoaded.getName());
-        List loadedAssets = iteratorToList( pkgLoaded.getAssets() );
-        List _loadedAssets = iteratorToList( _pkgLoaded.getAssets() );
+        List<AssetItem> loadedAssets = iteratorToList( pkgLoaded.getAssets() );
+        List<AssetItem> _loadedAssets = iteratorToList( _pkgLoaded.getAssets() );
         assertEquals(loadedAssets.size(), _loadedAssets.size());
 
         //now make some changes on the main line
@@ -198,7 +197,7 @@ public class PackageItemTest extends TestCase {
 
         PackageItem pkg2 = repo.loadPackageSnapshot( "testPackageSnapshot", "PROD 2.0" );
         assertNotNull(pkg2);
-        List snapAssets = iteratorToList( pkg2.getAssets() );
+        List<AssetItem> snapAssets = iteratorToList( pkg2.getAssets() );
         assertEquals(2, snapAssets.size());
         assertFalse(pkg2.getUUID().equals( pkg.getUUID() ));
         assertTrue(snapAssets.get( 0 ) instanceof AssetItem);
@@ -300,7 +299,7 @@ public class PackageItemTest extends TestCase {
         getRepo().save();
 
         pack = getRepo().loadPackage( "package extractor" );
-        List rules = iteratorToList( pack.getAssets() );
+        List<AssetItem> rules = iteratorToList( pack.getAssets() );
         assertEquals(3, rules.size());
 
         getRepo().createState( "foobar" );
@@ -370,8 +369,8 @@ public class PackageItemTest extends TestCase {
         getRepo().save();
 
 
-        Iterator result = pack.getAssetsWithStatus( getRepo().getState( "x" ), getRepo().getState( "disabled" ) );
-        List l = iteratorToList( result );
+        Iterator<AssetItem> result = pack.getAssetsWithStatus( getRepo().getState( "x" ), getRepo().getState( "disabled" ) );
+        List<AssetItem> l = iteratorToList( result );
         assertEquals(2, l.size());
     }
 
@@ -407,7 +406,7 @@ public class PackageItemTest extends TestCase {
         PackageItem rulePackageItem = getRepo().createPackage("testLoadRuleRuleItemByUUID", "desc");
 
         String uuid = null;
-            uuid = rulePackageItem.getNode().getUUID();
+            uuid = rulePackageItem.getNode().getIdentifier();
 
 
         rulePackageItem = getRepo().loadPackageByUUID(uuid);
@@ -439,7 +438,7 @@ public class PackageItemTest extends TestCase {
             ruleItem1.updateContent( "test content" );
             ruleItem1.checkin( "updated the rule content" );
 
-            Iterator rulesIt = rulePackageItem1.getAssets();
+            Iterator<AssetItem> rulesIt = rulePackageItem1.getAssets();
             assertNotNull(rulesIt);
             AssetItem first = (AssetItem) rulesIt.next();
             assertFalse(rulesIt.hasNext());
@@ -451,11 +450,12 @@ public class PackageItemTest extends TestCase {
             rulesIt = rulePackageItem1.getAssets();
             assertNotNull(rulesIt);
 
-            List rules = iteratorToList( rulesIt );
+            List<AssetItem> rules = iteratorToList( rulesIt );
             assertEquals(1, rules.size());
             assertEquals("testAddRuleRuleItem", ((AssetItem)rules.get(0)).getName());
             assertEquals("new lhs", ((AssetItem)rules.get(0)).getContent());
 
+            @SuppressWarnings("unused")
             AssetItem ruleItem2 = rulePackageItem1.addAsset("testAddRuleRuleItem2", "test content");
 
             rules = iteratorToList(rulePackageItem1.getAssets());
@@ -465,8 +465,8 @@ public class PackageItemTest extends TestCase {
     }
 
 
-    List iteratorToList(Iterator it) {
-        List list = new ArrayList();
+    <T> List<T> iteratorToList(Iterator<T> it) {
+        List<T> list = new ArrayList<T>();
         while(it.hasNext()) {
             list.add( it.next() );
         }
@@ -493,7 +493,7 @@ public class PackageItemTest extends TestCase {
             assertFalse(rulePackageItem1.containsAsset( "XXXXYYYYZZZZ" ));
 
 
-            List rules = iteratorToList(rulePackageItem1.getAssets());
+            List<AssetItem> rules = iteratorToList(rulePackageItem1.getAssets());
             assertNotNull(rules);
             assertEquals(1, rules.size());
             assertEquals("testGetRules", ((AssetItem)rules.get(0)).getName());
@@ -532,7 +532,7 @@ public class PackageItemTest extends TestCase {
 
 
 
-            Iterator rulesIt = rulePackageItem1.getAssets();
+            Iterator<AssetItem> rulesIt = rulePackageItem1.getAssets();
             AssetItem next = (AssetItem) rulesIt.next();
 
             assertFalse(rulesIt.hasNext());
@@ -541,7 +541,7 @@ public class PackageItemTest extends TestCase {
 
 
             ruleItem1.updateContent("new lhs");
-            List rules = iteratorToList(rulePackageItem1.getAssets());
+            List<AssetItem> rules = iteratorToList(rulePackageItem1.getAssets());
             assertNotNull(rules);
             assertEquals(1, rules.size());
             assertEquals("testRemoveRule", ((AssetItem)rules.get(0)).getName());
@@ -584,14 +584,14 @@ public class PackageItemTest extends TestCase {
         Thread.sleep( 150 );
 
         AssetItemIterator it = pkg.queryAssets( "drools:format='xyz'" );
-        List list = iteratorToList( it );
+        List<AssetItem> list = iteratorToList( it );
         assertEquals(2, list.size());
         assertTrue(list.get( 0 ) instanceof AssetItem);
         assertTrue(list.get( 1 ) instanceof AssetItem);
 
 
         AssetItemIterator it2 = pkg.listAssetsByFormat( new String[] {"xyz"} );
-        List list2 = iteratorToList( it2 );
+        List<AssetItem> list2 = iteratorToList( it2 );
         assertEquals(2, list2.size());
         assertTrue(list2.get( 0 ) instanceof AssetItem);
         assertTrue(list2.get( 1 ) instanceof AssetItem);
@@ -630,7 +630,7 @@ public class PackageItemTest extends TestCase {
 
         AssetItemIterator it = pkg.listArchivedAssets();
 
-        List list = iteratorToList( it );
+        List<AssetItem> list = iteratorToList( it );
         assertEquals(3, list.size());
         assertTrue(list.get( 0 ) instanceof AssetItem);
         assertTrue(list.get( 1 ) instanceof AssetItem);
@@ -660,7 +660,7 @@ public class PackageItemTest extends TestCase {
 
 
         AssetItemIterator it = pkg.listAssetsNotOfFormat(new String[] {"drl"});
-        List ls = iteratorToList(it);
+        List<AssetItem> ls = iteratorToList(it);
         assertEquals(1, ls.size());
         AssetItem as = (AssetItem) ls.get(0);
         assertEquals("a2", as.getName());
@@ -680,7 +680,7 @@ public class PackageItemTest extends TestCase {
 
     public void testSortHistoryByVersionNumber() {
         PackageItem item = new PackageItem();
-        List l = new ArrayList();
+        List<AssetItem> l = new ArrayList<AssetItem>();
 
         AssetItem i1 = new MockAssetItem(42);
         AssetItem i2 = new MockAssetItem(1);

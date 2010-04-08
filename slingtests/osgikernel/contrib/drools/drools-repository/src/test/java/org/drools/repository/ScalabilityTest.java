@@ -1,23 +1,13 @@
 package org.drools.repository;
 
+import junit.framework.TestCase;
+
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.jcr.Node;
-import javax.jcr.Repository;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.UnsupportedRepositoryOperationException;
-
-import org.apache.jackrabbit.core.TransientRepository;
-import org.drools.repository.AssetItem;
-import org.drools.repository.RulesRepository;
-import org.drools.repository.RulesRepositoryException;
-import org.drools.repository.VersionableItem;
-
-import junit.framework.TestCase;
 
 
 /**
@@ -47,7 +37,7 @@ public class ScalabilityTest extends TestCase {
         long start = System.currentTimeMillis();
         //setupData( repo );
         System.out.println("time to add, version and tag 5000: " + (System.currentTimeMillis() - start));
-        List list = listACat(repo);
+        List<AssetItem> list = listACat(repo);
         System.out.println("list size is: " + list.size());
 
         start = System.currentTimeMillis();
@@ -70,13 +60,14 @@ public class ScalabilityTest extends TestCase {
 //        hackit();
 //    }
 
-    private List listACat(RulesRepository repo) {
+    private List<AssetItem> listACat(RulesRepository repo) {
         long start = System.currentTimeMillis();
-        List results = repo.findAssetsByCategory( "HR/CAT_1", 0, -1  ).assets;
+        List<AssetItem> results = repo.findAssetsByCategory( "HR/CAT_1", 0, -1  ).assets;
         System.out.println("Time for listing a cat: " + (System.currentTimeMillis() - start));
 
         start = System.currentTimeMillis();
-        List results2 = repo.findAssetsByCategory( "HR/CAT_1", 0, -1  ).assets;
+        @SuppressWarnings("unused")
+        List<AssetItem> results2 = repo.findAssetsByCategory( "HR/CAT_1", 0, -1  ).assets;
         System.out.println("Time for listing a cat: " + (System.currentTimeMillis() - start));
 
 
@@ -93,12 +84,13 @@ public class ScalabilityTest extends TestCase {
     }
 
     /** To run this, need to hack the addRule method to not save a session */
+    @SuppressWarnings({ "unused", "deprecation" })
     private void setupData(RulesRepository repo) throws Exception {
 
 
         int count = 1;
 
-        List list = new ArrayList();
+        List<AssetItem> list = new ArrayList<AssetItem>();
 
         String prefix = "HR/";
         String cat = prefix + "CAT_1";
@@ -106,7 +98,7 @@ public class ScalabilityTest extends TestCase {
 
             if (i % 500 == 0) {
                 repo.getSession().save();
-                for ( Iterator iter = list.iterator(); iter.hasNext(); ) {
+                for ( Iterator<AssetItem> iter = list.iterator(); iter.hasNext(); ) {
                     AssetItem element = (AssetItem) iter.next();
                     element.getNode().checkin();
                 }

@@ -6,8 +6,6 @@ import javax.jcr.Repository;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 //import junit.framework.Assert;
 
@@ -64,6 +62,7 @@ public class RepositorySessionUtil {
                 config.setupRulesRepository( session );
                 repoInstance = new RulesRepository( session );
 
+                @SuppressWarnings("unused")
                 Session adminSession = repository.login(new SimpleCredentials("ADMINISTRATOR", "password".toCharArray()));
                 repo.set( repoInstance );
             } catch ( Exception e) {
