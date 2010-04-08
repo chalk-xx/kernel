@@ -59,13 +59,13 @@ public class JackrabbitRepositoryConfigurator implements JCRRepositoryConfigurat
                 ws.getNamespaceRegistry().registerNamespace("drools", RulesRepository.DROOLS_URI);
                 
                 //Note, the order in which they are registered actually does matter !
-                this.registerNodeTypesFromCndFile("/node_type_definitions/tag_node_type.cnd", session);
-                this.registerNodeTypesFromCndFile("/node_type_definitions/state_node_type.cnd", session);
-                this.registerNodeTypesFromCndFile("/node_type_definitions/versionable_node_type.cnd", session);
-                this.registerNodeTypesFromCndFile("/node_type_definitions/versionable_asset_folder_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/tag_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/state_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/versionable_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/versionable_asset_folder_node_type.cnd", session);
                 
-                this.registerNodeTypesFromCndFile("/node_type_definitions/rule_node_type.cnd", session);
-                this.registerNodeTypesFromCndFile("/node_type_definitions/rulepackage_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/rule_node_type.cnd", session);
+                this.registerNodeTypesFromCndFile("/SLING-INF/nodetypes/rulepackage_node_type.cnd", session);
              
             }
             

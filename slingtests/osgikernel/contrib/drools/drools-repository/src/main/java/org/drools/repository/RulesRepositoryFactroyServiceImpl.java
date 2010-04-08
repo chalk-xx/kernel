@@ -19,27 +19,16 @@ package org.drools.repository;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.jackrabbit.commons.cnd.CndImporter;
-import org.apache.jackrabbit.commons.cnd.ParseException;
-import org.apache.jackrabbit.core.nodetype.InvalidNodeTypeDefException;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Workspace;
-import javax.jcr.nodetype.InvalidNodeTypeDefinitionException;
-import javax.jcr.nodetype.NodeTypeExistsException;
 
 /**
  * Initializes the Drools area of the the repository.
@@ -94,30 +83,6 @@ public class RulesRepositoryFactroyServiceImpl implements JCRRepositoryConfigura
     System.out.println("Setting up the repository, registering node types etc.");
     try {
       Node root = session.getRootNode();
-      Workspace ws = session.getWorkspace();
-
-      // no need to set it up again, skip it if it has.
-      boolean registered = RulesRepositoryAdministrator.isNamespaceRegistered(session);
-
-      if (!registered) {
-        ws.getNamespaceRegistry().registerNamespace("drools", RulesRepository.DROOLS_URI);
-
-        // Note, the order in which they are registered actually does matter !
-        this.registerNodeTypesFromCndFile("/node_type_definitions/tag_node_type.cnd",
-            session);
-        this.registerNodeTypesFromCndFile("/node_type_definitions/state_node_type.cnd",
-            session);
-        this.registerNodeTypesFromCndFile(
-            "/node_type_definitions/versionable_node_type.cnd", session);
-        this.registerNodeTypesFromCndFile(
-            "/node_type_definitions/versionable_asset_folder_node_type.cnd", session);
-
-        this.registerNodeTypesFromCndFile("/node_type_definitions/rule_node_type.cnd",
-            session);
-        this.registerNodeTypesFromCndFile(
-            "/node_type_definitions/rulepackage_node_type.cnd", session);
-
-      }
 
       // Setup the rule repository node
       Node repositoryNode = RulesRepository.addNodeIfNew(root,
@@ -150,27 +115,4 @@ public class RulesRepositoryFactroyServiceImpl implements JCRRepositoryConfigura
     }
   }
 
-  private void registerNodeTypesFromCndFile(String cndFileName, Session session)
-      throws RulesRepositoryException, InvalidNodeTypeDefException {
-
-    LOGGER.info("Loading " + cndFileName);
-    InputStream instream = this.getClass().getResourceAsStream(cndFileName);
-    LOGGER.info("Got {} ", instream);
-    Reader in = new InputStreamReader(instream);
-    try {
-      CndImporter.registerNodeTypes(in, session);
-    } catch (InvalidNodeTypeDefinitionException e) {
-      LOGGER.error("Caught Exception", e);
-    } catch (NodeTypeExistsException e) {
-      LOGGER.error("Caught Exception", e);
-    } catch (UnsupportedRepositoryOperationException e) {
-      LOGGER.error("Caught Exception", e);
-    } catch (ParseException e) {
-      LOGGER.error("Caught Exception", e);
-    } catch (RepositoryException e) {
-      LOGGER.error("Caught Exception", e);
-    } catch (IOException e) {
-      LOGGER.error("Caught Exception", e);
-    }
-  }
 }
