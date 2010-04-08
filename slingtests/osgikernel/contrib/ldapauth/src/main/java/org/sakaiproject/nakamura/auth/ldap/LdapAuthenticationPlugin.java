@@ -92,20 +92,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     connBroker.destroy(BROKER_NAME);
   }
 
-  public boolean canHandle(Credentials credentials) {
-    boolean isSimple = credentials instanceof SimpleCredentials;
-    boolean hasAllData = false;
-
-    if (isSimple) {
-      SimpleCredentials creds = (SimpleCredentials) credentials;
-      if (creds.getUserID() != null && creds.getUserID().length() > 0
-              && creds.getPassword() != null && creds.getPassword().length > 0) {
-        hasAllData = true;
-      }
-    }
-    return isSimple && hasAllData;
-  }
-
   public boolean authenticate(Credentials credentials) throws RepositoryException {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {

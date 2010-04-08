@@ -17,10 +17,6 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import static org.mockito.Matchers.anyBoolean;
-
-import static org.mockito.Mockito.when;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.testing.sling.MockSlingHttpServletRequest;
@@ -62,34 +58,13 @@ public class LdapAuthenticationServletTest {
   }
 
   @Test
-  public void ensureWeCheckForAuthentication() throws Exception {
-    // when
-    servlet.doPost(request, response);
-
-    // then
-    verify(request).getAttribute(LdapAuthenticationHandler.USER_AUTH);
+  public void doGet() throws Exception {
+    servlet.doGet(request, response);
   }
 
   @Test
-  public void whenAuthIsPresentSetItOnTheSession() throws Exception {
-    // given
-    aRequestThatCanGiveBackASession();
-    aRequestThatHasAnAuthObject();
-
-    // when
+  public void doPost() throws Exception {
     servlet.doPost(request, response);
-
-    // then
-    verify(httpSession).setAttribute(eq(LdapAuthenticationServlet.USER_CREDENTIALS),
-        any());
-  }
-
-  private void aRequestThatHasAnAuthObject() {
-    when(request.getParameter(LdapAuthenticationHandler.PARAM_USERNAME)).thenReturn(
-        "zach");
-    when(request.getParameter(LdapAuthenticationHandler.PARAM_PASSWORD)).thenReturn(
-        "secret");
-    new LdapAuthenticationHandler().authenticate(request, response);
   }
 
   private void aRequestThatCanGiveBackASession() {

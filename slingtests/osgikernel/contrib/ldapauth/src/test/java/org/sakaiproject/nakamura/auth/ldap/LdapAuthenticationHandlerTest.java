@@ -17,105 +17,75 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import static org.junit.Assert.*;
-
-import static org.mockito.Mockito.*;
-
-import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.ComponentContext;
 
-import java.security.Principal;
-import java.util.Map;
-
-import javax.jcr.Credentials;
-import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import javax.security.auth.callback.CallbackHandler;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LdapAuthenticationHandlerTest {
 
   @Mock
   private HttpServletRequest request;
+
   @Mock
   private HttpServletResponse response;
-  @Mock
-  private HttpSession httpSession;
 
   @Mock
-  private CallbackHandler callbackHandler;
+  private ComponentContext context;
 
   @Mock
-  private Session jcrSession;
-
-  @SuppressWarnings("unchecked")
-  @Mock
-  private Map options;
+  private BundleContext bundleContext;
 
   private LdapAuthenticationHandler authHandler;
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
+    when(context.getProperties()).thenReturn(new Properties());
+    when(context.getBundleContext()).thenReturn(bundleContext);
+    when(bundleContext.getDataFile(isA(String.class))).thenReturn(
+        File.createTempFile("test", "tmp"));
+    
     authHandler = new LdapAuthenticationHandler();
-  }
-
-  @Test
-  public void canGetAuthenticationInfoFromASuitableRequest() {
-    // given
-    aRequestWithUsernameAndPasswordInIt();
-    aRequestThatCanReturnASessionObject();
-
-    // when
-    AuthenticationInfo authInfo = authHandler.authenticate(request, response);
-
-    // then
-    assertEquals(LdapAuthenticationHandler.class.getName(), authInfo.getAuthType());
-    verify(request).setAttribute(eq(LdapAuthenticationHandler.USER_AUTH), any());
+    authHandler.activate(context);
   }
 
   @Test
   public void authenticationRequestDenied() throws Exception {
-    assertFalse(authHandler.requestAuthentication(request, response));
+    assertTrue(authHandler.requestCredentials(request, response));
   }
 
   @Test
-  public void initDoesNothing() throws Exception {
-    // when
-    authHandler.doInit(callbackHandler, jcrSession, options);
-
-    // then
-    verifyZeroInteractions(callbackHandler, jcrSession, options);
-  }
-  
-  @Test
-  public void returnsPrincipalWithSameNameAsCredentials() throws Exception {
+  public void canGetAuthenticationInfoFromPostFields() {
     // given
-    String name = "joe";
-    char[] password = {'f','o','o'};
-    Credentials credentials = new SimpleCredentials(name, password);
-    // when
-    Principal principal = authHandler.getPrincipal(credentials);
-    // then
-    assertEquals(principal.getName(), name);
-  }
-
-  private void aRequestWithUsernameAndPasswordInIt() {
-    when(request.getParameter(LdapAuthenticationHandler.PARAM_USERNAME)).thenReturn(
+    when(request.getParameter(LdapAuthenticationHandler.PAR_J_USERNAME)).thenReturn(
         "zach");
-    when(request.getParameter(LdapAuthenticationHandler.PARAM_PASSWORD)).thenReturn(
+    when(request.getParameter(LdapAuthenticationHandler.PAR_J_PASSWORD)).thenReturn(
         "secret");
-  }
+    when(request.getMethod()).thenReturn("POST");
+    when(request.getRequestURI()).thenReturn(LdapAuthenticationHandler.REQUEST_URL_SUFFIX);
 
-  private void aRequestThatCanReturnASessionObject() {
-    when(request.getSession(anyBoolean())).thenReturn(httpSession);
-    when(request.getSession()).thenReturn(httpSession);
-  }
+    // when
+    AuthenticationInfo authInfo = authHandler.extractCredentials(request, response);
 
+    // then
+    assertEquals(LdapAuthenticationHandler.LDAP_AUTH, authInfo.getAuthType());
+    assertEquals("zach", authInfo.getUser());
+    assertEquals("secret", new String(authInfo.getPassword()));
+  }
 }

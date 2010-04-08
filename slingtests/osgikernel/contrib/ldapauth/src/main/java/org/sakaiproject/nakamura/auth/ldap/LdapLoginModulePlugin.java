@@ -1,23 +1,31 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
 import java.security.Principal;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import javax.jcr.Credentials;
-import javax.jcr.LoginException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.FailedLoginException;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 
 /**
- *
- * @author chall
+ * The <code>FormLoginModulePlugin</code> is a LoginModulePlugin which handles
+ * <code>SimpleCredentials</code> attributed with the special authentication
+ * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
 public class LdapLoginModulePlugin implements LoginModulePlugin {
+  @Reference
+  private LdapAuthenticationPlugin authPlugin;
+
   /**
    * {@inheritDoc}
    *
@@ -34,8 +42,7 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
   public boolean canHandle(Credentials cred) {
-    boolean canHandle = ldapAuthenticationPlugin.canHandle(cred);
-    return canHandle;
+    return cred instanceof SimpleCredentials;
   }
 
   /**
@@ -47,7 +54,6 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
   @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options) {
     // nothing to do
-    return;
   }
 
   /**
@@ -58,7 +64,7 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
    */
   public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
       throws RepositoryException {
-    return ldapAuthenticationPlugin;
+    return authPlugin;
   }
 
   /**

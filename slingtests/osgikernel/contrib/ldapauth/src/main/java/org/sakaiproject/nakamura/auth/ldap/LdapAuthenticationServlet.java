@@ -16,32 +16,50 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
+import javax.servlet.Servlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
-import org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler.LdapAuthentication;
+import org.apache.felix.scr.annotations.Service;
+import org.osgi.framework.Constants;
 
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpSession;
 
 /**
  * Servlet for handling authentication requests for ldap authentication.
  */
-@SlingServlet(paths = "/system/sling/ldaplogin", methods = "POST")
-public class LdapAuthenticationServlet extends SlingAllMethodsServlet {
-  public static final String USER_CREDENTIALS = LdapAuthenticationServlet.class.getName();
+@Component
+@Service(value = Servlet.class)
+public class LdapAuthenticationServlet extends HttpServlet {
   private static final long serialVersionUID = 1L;
 
-  @Property(value = "Form Login Servlet")
-  static final String DESCRIPTION = "service.description";
+  @Property(value = "/system/sling/ldap/login")
+  static final String SERVLET_PATH = "sling.servlet.paths";
+
+  @Property(value = "Ldap Login Servlet")
+  static final String DESCRIPTION = Constants.SERVICE_DESCRIPTION;
 
   @Property(value = "The Sakai Foundation")
-  static final String VENDOR = "service.vendor";
+  static final String VENDOR = Constants.SERVICE_VENDOR;
 
+  /**
+   * {@inheritDoc}
+   *
+   * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
+   *      org.apache.sling.api.SlingHttpServletResponse)
+   */
+  @Override
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    response.setContentType("text/plain");
+    response.setCharacterEncoding("UTF-8");
+  }
+  
   /**
    * {@inheritDoc}
    *
@@ -49,17 +67,7 @@ public class LdapAuthenticationServlet extends SlingAllMethodsServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doPost(SlingHttpServletRequest req, SlingHttpServletResponse resp)
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
-    HttpSession session = req.getSession(true);
-
-    LdapAuthentication auth = (LdapAuthentication) req
-        .getAttribute(LdapAuthenticationHandler.USER_AUTH);
-    // check for authentication on request. if found, store on request
-    if (auth != null && auth.getCredentials() != null) {
-      session.setAttribute(USER_CREDENTIALS, auth.getCredentials());
-
-      // TODO Should this forward to a landing page or some other resource?
-    }
   }
 }

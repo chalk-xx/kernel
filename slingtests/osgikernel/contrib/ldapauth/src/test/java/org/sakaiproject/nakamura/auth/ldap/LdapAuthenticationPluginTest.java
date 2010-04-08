@@ -65,17 +65,6 @@ public class LdapAuthenticationPluginTest {
   }
 
   @Test
-  public void canHandleSimpleCredentials() {
-    assertTrue(ldapAuthenticationPlugin.canHandle(simpleCredentials()));
-  }
-  
-  @Test
-  public void canNotHandleOtherThanSimpleCredentials() {
-    Credentials credentials = mock(Credentials.class);
-    assertFalse(ldapAuthenticationPlugin.canHandle(credentials));
-  }
-  
-  @Test
   public void createsAConnectionBrokerUponActivation() throws Exception {
     // given
     aContextThatCanReturnProperties();
