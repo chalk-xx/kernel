@@ -35,12 +35,15 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 
 /**
  *
@@ -126,6 +129,23 @@ public class CreateTreeOperationTest {
     when(resource.getPath()).thenReturn("/path/to/tree");
     when(request.getResource()).thenReturn(resource);
 
+    // Mock the values
+    Value fooVal = new MockValue("bar");
+    MockValue intVal = new MockValue();
+    intVal.setValue(25);
+    MockValue boolVal = new MockValue();
+    boolVal.setValue(true);
+    MockValue[] arrVals = new MockValue[2];
+    arrVals[0] = new MockValue("alfa");
+    arrVals[1] = new MockValue("beta");
+    ValueFactory vf = mock(ValueFactory.class);
+    when(vf.createValue(25)).thenReturn(intVal);
+    when(vf.createValue("bar")).thenReturn(fooVal);
+    when(vf.createValue(true)).thenReturn(boolVal);
+    when(vf.createValue("alfa")).thenReturn(arrVals[0]);
+    when(vf.createValue("beta")).thenReturn(arrVals[1]);
+    when(session.getValueFactory()).thenReturn(vf);
+
     // Handle the node mocks.
     Node topNode = mock(Node.class);
     Node childNode = mock(Node.class);
@@ -136,11 +156,11 @@ public class CreateTreeOperationTest {
 
     operation.doRun(request, null, null);
 
-    verify(topNode).setProperty("foo", "bar");
-    verify(topNode).setProperty("intVal", 25.0);
-    verify(topNode).setProperty("boolVal", true);
-    verify(topNode).setProperty("arrVal", new String[] { "alfa", "beta" });
-    verify(childNode).setProperty("isChild", true);
+    verify(topNode).setProperty("foo", fooVal);
+    verify(topNode).setProperty("intVal", intVal);
+    verify(topNode).setProperty("boolVal", boolVal);
+    verify(topNode).setProperty("arrVal", arrVals);
+    verify(childNode).setProperty("isChild", boolVal);
     verify(session).save();
 
   }

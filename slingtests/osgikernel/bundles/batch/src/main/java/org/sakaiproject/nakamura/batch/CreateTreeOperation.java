@@ -28,6 +28,8 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,6 +38,8 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
@@ -107,36 +111,55 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
             // This represents a multivalued property
 
             JSONArray arr = (JSONArray) obj;
-            String[] values = new String[arr.length()];
+            Value[] values = new Value[arr.length()];
             for (int i = 0; i < arr.length(); i++) {
-              values[i] = (String) arr.get(i);
+              values[i] = getValue(arr.get(i), session);
             }
             node.setProperty(key, values);
 
           } else {
-            // Single property
-            // Be smart, and check Number etc
-            if (obj instanceof JSONString) {
-              Object o = ((JSONString) obj).toJSONString();
-              if (o instanceof String) {
-                node.setProperty(key, (String) obj);
-              }
-            }
-            if (obj instanceof String) {
-              node.setProperty(key, (String) obj);
-            }
-            if (obj instanceof Number) {
-              node.setProperty(key, json.getDouble(key));
-            }
-            if (obj instanceof Boolean) {
-              node.setProperty(key, json.getBoolean(key));
-            }
+            node.setProperty(key, getValue(obj, session));
           }
         }
       }
     } catch (JSONException e) {
       // TODO
     }
+  }
+
+  /**
+   * Get the {@link Value JCR Value} for an object. If none is found, it will default o a
+   * string value.
+   *
+   * @param obj
+   * @param session
+   * @return
+   * @throws RepositoryException
+   */
+  protected Value getValue(Object obj, Session session)
+      throws RepositoryException {
+    Value value = null;
+    ValueFactory vf = session.getValueFactory();
+    if (obj instanceof JSONString) {
+      value = vf.createValue(((JSONString) obj).toJSONString());
+    } else if (obj instanceof String) {
+      value = vf.createValue(obj.toString());
+    } else if (obj instanceof BigDecimal) {
+      value = vf.createValue((BigDecimal) obj);
+    } else if (obj instanceof Boolean) {
+      value = vf.createValue(Boolean.valueOf(obj.toString()));
+    } else if (obj instanceof Double) {
+      value = vf.createValue((Double) obj);
+    } else if (obj instanceof Long) {
+      value = vf.createValue((Long) obj);
+    } else if (obj instanceof Integer) {
+      value = vf.createValue((Integer) obj);
+    } else if (obj instanceof Calendar) {
+      value = vf.createValue((Calendar) obj);
+    } else {
+      value = vf.createValue(obj.toString());
+    }
+    return value;
   }
 
   protected Node addNode(Node node, String key) throws ItemExistsException,
