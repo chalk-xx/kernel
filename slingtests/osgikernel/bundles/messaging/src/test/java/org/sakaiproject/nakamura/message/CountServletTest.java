@@ -67,12 +67,12 @@ public class CountServletTest {
     servlet = new CountServlet();
     messagingService = mock(MessagingService.class);
 
-    servlet.bindMessagingService(messagingService);
+    servlet.messagingService = messagingService;
   }
 
   @After
   public void tearDown() {
-    servlet.unbindMessagingService(messagingService);
+    servlet.messagingService = messagingService;
   }
 
   @Test

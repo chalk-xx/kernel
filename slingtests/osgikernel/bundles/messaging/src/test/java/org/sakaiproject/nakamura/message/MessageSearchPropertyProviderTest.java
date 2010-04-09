@@ -68,9 +68,9 @@ public class MessageSearchPropertyProviderTest extends AbstractEasyMockTest {
 
     MessageSearchPropertyProvider provider = new MessageSearchPropertyProvider();
     MessagingService messagingService = new MessagingServiceImpl();
-    provider.bindMessagingService(messagingService);
+    provider.messagingService = messagingService;
     provider.loadUserProperties(request, pMap);
-    provider.unbindMessagingService(messagingService);
+    provider.messagingService = null;
 
     assertEquals("/_user/a/ad/admin/message", pMap
         .get(MessageConstants.SEARCH_PROP_MESSAGESTORE));

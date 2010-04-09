@@ -28,6 +28,10 @@ import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -51,16 +55,12 @@ import javax.jcr.Session;
 /**
  * This PostProcessor listens to post operations on User objects and creates a message
  * store.
- * 
- * @scr.service interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="MessageUserPostProcessor" description=
- *                "Post Processor for User and Group operations to create a message stores"
- *                metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes User and Group operations"
- * 
  */
+@Component(immediate = true, label = "MessageUserPostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Creates the message stores for users and groups.") })
 public class MessageUserPostProcessor implements UserPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
