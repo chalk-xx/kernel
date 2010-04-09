@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.ldap;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
-
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
@@ -30,48 +29,69 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Allocates connected, constrained, bound and optionally secure
- * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of
- * connections instead of creating a new connection for each request. Originally
- * tried implementing this with
- * <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
- * recovering connections that had suffered a network error or connections that
- * were never returned but dropped out of scope.
+ * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of connections
+ * instead of creating a new connection for each request. Originally tried implementing
+ * this with <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
+ * recovering connections that had suffered a network error or connections that were never
+ * returned but dropped out of scope.
  *
+ * @author John Lewis, Unicon Inc [development for Sakai 2]
+ * @author Carl Hall, Georgia Tech [development changes for OSGi]
  * @see LdapConnectionManagerConfig
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
- * @author John Lewis, Unicon Inc
- * @author Carl Hall, Georgia Tech
  */
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
   /** Class-specific logger */
   private static Logger log = LoggerFactory.getLogger(PoolingLdapConnectionManager.class);
 
+  private LdapConnectionBroker broker;
+
   /** LDAP connection pool */
   private ObjectPool pool;
 
   private PooledLDAPConnectionFactory factory;
 
-  /**
-   * How long to block waiting for an available connection before throwing an exception
-   */
+  /** How long to block waiting for an available connection before throwing an exception */
   private static final int POOL_MAX_WAIT = 60000;
 
-  private LdapConnectionBroker broker;
-  private String poolName;
-
-  public PoolingLdapConnectionManager() {
+  public PoolingLdapConnectionManager(LdapConnectionManagerConfig config) {
+    super(config);
   }
-
-  protected PoolingLdapConnectionManager(LdapConnectionBroker broker, String poolName) {
+  
+  public PoolingLdapConnectionManager(LdapConnectionManagerConfig config,
+                                      PoolingLdapConnectionBroker broker) {
+    super(config);
     this.broker = broker;
-    this.poolName = poolName;
   }
 
   /**
-   * {@inheritDoc}
+   * Assign a pool implementation. If not specified, one will be constructed by {@link
+   * #init()}. <p> This method exists almost entirely for testing purposes. </p>
+   *
+   * @param pool the pool to cache; accepts <code>null</code>
    */
+  public PoolingLdapConnectionManager(LdapConnectionManagerConfig config,
+                                      ObjectPool pool) {
+    super(config);
+    this.pool = pool;
+  }
+
+  /**
+   * Assign a factory implementation. If not specified, one will be constructed by {@link
+   * #init()}. <p> This method exists almost entirely for testing purposes. </p>
+   *
+   * @param config 
+   * @param factory the facotry to cache; accepts <code>null</code>
+   */
+  public PoolingLdapConnectionManager(LdapConnectionManagerConfig config,
+                                      PooledLDAPConnectionFactory factory) {
+    super(config);
+    this.factory = factory;
+  }
+
+  /** {@inheritDoc} */
   @Override
   public void init() throws LdapException {
     super.init();
@@ -82,9 +102,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
     if (factory == null) {
       factory = new PooledLDAPConnectionFactory();
-      if (broker != null) {
-        factory.setLivenessValidators(broker.getLivenessValidators());
-      }
+      factory.setLivenessValidators(super.validators);
       factory.setConnectionManager(this);
     }
 
@@ -97,9 +115,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     );
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LDAPConnection getConnection() throws LdapException {
     log.debug("getConnection(): attempting to borrow connection from pool");
@@ -130,11 +146,13 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     } catch (Exception e) {
       if (conn != null) {
         try {
-          log.debug("getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
+          log.debug(
+              "getBoundConnection():dn=[{}]; error occurred, returning connection to pool",
               dn);
           returnConnection(conn);
         } catch (Exception ee) {
-          log.debug("getBoundConnection():dn=[" + dn + "] failed to return connection to pool",
+          log.debug(
+              "getBoundConnection():dn=[" + dn + "] failed to return connection to pool",
               ee);
         }
       }
@@ -146,9 +164,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void returnConnection(LDAPConnection conn) {
     if (conn == null) {
@@ -166,46 +182,17 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void destroy() {
-    if (broker != null && poolName != null) {
-      broker.destroy(poolName);
-    } else {
-      try {
-        log.debug("destroy(): closing connection pool");
-        pool.close();
-        log.debug("destroy(): successfully closed connection pool");
-      } catch (Exception e) {
-        throw new RuntimeException("failed to shutdown connection pool", e);
-      }
-      log.debug("destroy(): delegating to parent destroy() impl");
+    broker.destroy(getClass().getName());
+    try {
+      log.debug("destroy(): closing connection pool");
+      pool.close();
+      log.debug("destroy(): successfully closed connection pool");
+    } catch (Exception e) {
+      throw new RuntimeException("failed to shutdown connection pool", e);
     }
-  }
-
-  public PooledLDAPConnectionFactory getFactory() {
-    return factory;
-  }
-
-  public void setFactory(PooledLDAPConnectionFactory factory) {
-    this.factory = factory;
-  }
-
-  /**
-   * Assign a pool implementation. If not specified, one will be constructed by
-   * {@link #init()}. If specified, {@link #setFactory(PooledLDAPConnectionFactory)} will
-   * have no effect.
-   *
-   * <p>
-   * This method exists almost entirely for testing purposes.
-   * </p>
-   *
-   * @param pool
-   *          the pool to cache; accepts <code>null</code>
-   */
-  protected void setPool(ObjectPool pool) {
-    this.pool = pool;
+    log.debug("destroy(): delegating to parent destroy() impl");
   }
 }

@@ -46,9 +46,7 @@ public class PoolingLdapConnectionManagerTest {
     // some white box awkwardness
     config.setSecureConnection(false);
 
-    poolingConnMgr = new PoolingLdapConnectionManager();
-    poolingConnMgr.setConfig(config);
-    poolingConnMgr.setPool(pool);
+    poolingConnMgr = new PoolingLdapConnectionManager(config, pool);
   }
 
   @After

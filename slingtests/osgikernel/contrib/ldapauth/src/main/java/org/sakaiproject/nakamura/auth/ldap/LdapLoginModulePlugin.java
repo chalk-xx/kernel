@@ -10,7 +10,10 @@ import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.FailedLoginException;
+
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.osgi.framework.BundleContext;
@@ -22,6 +25,8 @@ import org.osgi.framework.ServiceRegistration;
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
+@Component
+@Service
 public class LdapLoginModulePlugin implements LoginModulePlugin {
   @Reference
   private LdapAuthenticationPlugin authPlugin;

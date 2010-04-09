@@ -23,6 +23,7 @@ import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPJSSEStartTLSFactory;
 
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
@@ -38,6 +39,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
+import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -62,8 +64,14 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   private static Logger log = LoggerFactory.getLogger(SimpleLdapConnectionManager.class);
 
   /** connection allocation configuration */
-  private LdapConnectionManagerConfig config;
+  protected LdapConnectionManagerConfig config;
 
+  protected List<LdapConnectionLivenessValidator> validators;
+
+  public SimpleLdapConnectionManager(LdapConnectionManagerConfig config) {
+    this.config = config;
+  }
+  
   /**
    * {@inheritDoc}
    */
@@ -174,6 +182,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
   /**
    * {@inheritDoc}
+   * 
+   * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
    */
   public void setConfig(LdapConnectionManagerConfig config) {
     this.config = config;
@@ -187,10 +197,20 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   /**
+   * {@inheritDoc}
+   * 
+   * @param validators List of validators to use.
+   */
+  public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
+    this.validators = validators;
+  }
+
+  /**
    * Loads a keystore and sets up an SSL context that can be used to create
    * socket factories that use the suggested keystore.
    *
-   * @param config
+   * @param keystoreLocation
+   * @param keystorePassword
    * @throws CertificateException
    * @throws KeyStoreException
    * @throws NoSuchProviderException

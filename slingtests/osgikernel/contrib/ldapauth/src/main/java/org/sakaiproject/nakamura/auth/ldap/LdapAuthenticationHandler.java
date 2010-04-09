@@ -27,7 +27,6 @@ import org.apache.sling.commons.auth.spi.AuthenticationInfo;
 import org.apache.sling.commons.auth.spi.DefaultAuthenticationFeedbackHandler;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,83 +65,83 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    */
   static final String REQUEST_LOGIN_PARAMETER = "sling:authRequestLogin";
 
+  /** The name of the parameter providing the login form URL. */
+    @Property(value = LdapAuthenticationServlet.SERVLET_PATH)
+    static final String PAR_LOGIN_FORM = "sakai.auth.ldap.login.form";
+
   /**
    * The default Cookie or session attribute name
    *
    * @see #PAR_AUTH_NAME
    */
-  private static final String DEFAULT_AUTH_NAME = "sakai.ldapauth";
+  static final String DEFAULT_AUTH_NAME = "sakai.ldapauth";
 
   /**
    * The value of the {@link #PAR_AUTH_STORAGE} parameter indicating the use of a Cookie
    * to store the authentication data.
    */
-  private static final String AUTH_STORAGE_COOKIE = "cookie";
-  
-  /**
-   * To be used to determine if the auth has value comes from a cookie or from a session
-   * attribute.
-   */
-  private static final String DEFAULT_AUTH_STORAGE = AUTH_STORAGE_COOKIE;
-
-  /** The name of the parameter providing the login form URL. */
-  @Property(value = LdapAuthenticationServlet.SERVLET_PATH)
-  private static final String PAR_LOGIN_FORM = "form.login.form";
-
-  /** Options for auth storage values */
-  @Property(value = DEFAULT_AUTH_STORAGE,
-      options = {@PropertyOption(name = "cooke", value = "Cookie"),
-          @PropertyOption(name = "session", value = "Session Attribute")})
-  private static final String PAR_AUTH_STORAGE = "ldap.auth.storage";
+  static final String AUTH_STORAGE_COOKIE = "cookie";
 
   /**
    * The value of the {@link #PAR_AUTH_STORAGE} parameter indicating the use of a session
    * attribute to store the authentication data.
    */
-  private static final String AUTH_STORAGE_SESSION_ATTRIBUTE = "session";
+  static final String AUTH_STORAGE_SESSION_ATTRIBUTE = "session";
+
+  /**
+   * To be used to determine if the auth has value comes from a cookie or from a session
+   * attribute.
+   */
+  static final String DEFAULT_AUTH_STORAGE = AUTH_STORAGE_COOKIE;
+
+  /** Options for auth storage values */
+  @Property(value = DEFAULT_AUTH_STORAGE,
+      options = {@PropertyOption(name = "cooke", value = "Cookie"),
+          @PropertyOption(name = "session", value = "Session Attribute")})
+  static final String PAR_AUTH_STORAGE = "sakai.auth.ldap.storage";
 
   /**
    * The name of the configuration parameter providing the Cookie or session attribute
    * name.
    */
   @Property(value = DEFAULT_AUTH_NAME)
-  private static final String PAR_AUTH_NAME = "ldap.auth.name";
+  static final String PAR_AUTH_NAME = "sakai.auth.ldap.param.name";
 
   /** Default value for the {@link #PAR_CREDENTIALS_ATTRIBUTE_NAME} property */
-  private static final String DEFAULT_CREDENTIALS_ATTRIBUTE_NAME = DEFAULT_AUTH_NAME;
+  static final String DEFAULT_CREDENTIALS_ATTRIBUTE_NAME = DEFAULT_AUTH_NAME;
   
   /**
    * This is the name of the SimpleCredentials attribute that holds the auth info
    * extracted from the cookie value.
    */
   @Property(value = DEFAULT_CREDENTIALS_ATTRIBUTE_NAME)
-  private static final String PAR_CREDENTIALS_ATTRIBUTE_NAME = "ldap.credentials.name";
+  static final String PAR_CREDENTIALS_ATTRIBUTE_NAME = "sakai.auth.ldap.credentials.name";
 
   /**
    * The default authentication data time out value.
    *
    * @see #PAR_AUTH_TIMEOUT
    */
-  private static final int DEFAULT_AUTH_TIMEOUT = 30;
+  static final int DEFAULT_AUTH_TIMEOUT = 30;
 
   /**
    * The number of minutes after which a login session times out. This value is used as
    * the expiry time set in the authentication data.
    */
   @Property(intValue = DEFAULT_AUTH_TIMEOUT)
-  public static final String PAR_AUTH_TIMEOUT = "ldap.auth.timeout";
+  static final String PAR_AUTH_TIMEOUT = "sakai.auth.ldap.login.timeout";
 
-  private static final String DEFAULT_TOKEN_FILE = "cookie-tokens.bin";
+  static final String DEFAULT_TOKEN_FILE = "cookie-tokens.bin";
   
   /** The name of the file used to persist the security tokens */
   @Property(value = DEFAULT_TOKEN_FILE)
-  private static final String PAR_TOKEN_FILE = "ldap.token.file";
+  static final String PAR_TOKEN_FILE = "sakai.auth.ldap.token.file";
 
   /**
    * The request method required for user name and password submission by the form (value
    * is "POST").
    */
-  private static final String REQUEST_METHOD = "POST";
+  static final String REQUEST_METHOD = "POST";
 
   /**
    * The last segment of the request URL for the user name and password submission by the
@@ -153,7 +152,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * appropriately, the action of the login form must always be set to
    * <code>j_security_check</code>.</i>
    */
-  protected static final String REQUEST_URL_SUFFIX = "/j_security_check";
+  static final String REQUEST_URL_SUFFIX = "/j_security_check";
 
   /**
    * The name of the form submission parameter providing the name of the user to
@@ -162,7 +161,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * This name is prescribed by the Servlet API 2.4 Specification, Section SRV.12.5.3 Form
    * Based Authentication.
    */
-  protected static final String PAR_J_USERNAME = "j_username";
+  static final String PAR_J_USERNAME = "j_username";
 
   /**
    * The name of the form submission parameter providing the password of the user to
@@ -171,14 +170,14 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * This name is prescribed by the Servlet API 2.4 Specification, Section SRV.12.5.3 Form
    * Based Authentication.
    */
-  protected static final String PAR_J_PASSWORD = "j_password";
+  static final String PAR_J_PASSWORD = "j_password";
 
   /**
    * The name of the form submission parameter indicating that the submitted username and
    * password should just be checked and a status code be set for success (200/OK) or
    * failure (403/FORBIDDEN).
    */
-  private static final String PAR_J_VALIDATE = "j_validate";
+  static final String PAR_J_VALIDATE = "j_validate";
 
   /**
    * The name of the request parameter indicating to the login form why the form is being
@@ -724,10 +723,10 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
 
   /**
    * The <code>AuthenticationStorage</code> interface abstracts the API required to store
-   * the {@link CookieAuthData} in an HTTP cookie or in an HTTP Session. The concrete
-   * class -- {@link CookieExtractor} or {@link SessionExtractor} -- is selected using the
-   * {@link CookieAuthenticationHandler#PAR_AUTH_HASH_STORAGE} configuration parameter,
-   * {@link CookieExtractor} by default.
+   * auth data in an HTTP cookie or in an HTTP Session. The concrete
+   * class -- {@link CookieStorage} or {@link SessionStorage} -- is selected using the
+   * {@link LdapAuthenticationHandler#PAR_AUTH_STORAGE} configuration parameter,
+   * {@link CookieStorage} by default.
    */
   private static interface AuthenticationStorage {
     String extractAuthenticationInfo(HttpServletRequest request);
@@ -738,7 +737,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   }
 
   /**
-   * The <code>CookieExtractor</code> class supports storing the {@link CookieAuthData} in
+   * The <code>CookieExtractor</code> class supports storing the auth data in
    * an HTTP Cookie.
    */
   private static class CookieStorage implements AuthenticationStorage {
@@ -820,8 +819,8 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   }
 
   /**
-   * The <code>SessionExtractor</code> class provides support to store the {@link
-   * CookieAuthData} in an HTTP Session.
+   * The <code>SessionStorage</code> class provides support to store the auth
+   * data in an HTTP Session.
    */
   private static class SessionStorage implements AuthenticationStorage {
     private final String sessionAttributeName;

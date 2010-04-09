@@ -18,7 +18,7 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>cd sr
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
@@ -41,8 +41,7 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Export-Package>org.sakaiproject.nakamura.api.auth.ldap</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.auth.ldap.*</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.auth.ldap</Private-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -53,13 +52,6 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.scr.annotations</artifactId>
-    </dependency>
-
-<!-- trusted token service -->
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
-      <version>0.4-SNAPSHOT</version>
     </dependency>
 
 <!-- osgi -->
@@ -114,6 +106,10 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

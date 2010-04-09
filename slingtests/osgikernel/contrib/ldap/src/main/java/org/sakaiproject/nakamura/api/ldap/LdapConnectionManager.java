@@ -20,6 +20,8 @@ package org.sakaiproject.nakamura.api.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
+import java.util.List;
+
 /**
  * Implementations manage <code>LDAPConnection</code> allocation.
  *
@@ -31,12 +33,6 @@ import com.novell.ldap.LDAPException;
 public interface LdapConnectionManager {
 
   /**
-   * Initializes an instance for use, typically by digesting the contents of the
-   * assigned {@link LdapConnectionManagerConfig}.
-   */
-  // public void init() throws LdapException;
-
-  /**
    * Retrieve an <code>LDAPConnection</code> -- the connection may already be
    * bound depending on the configuration
    *
@@ -44,7 +40,7 @@ public interface LdapConnectionManager {
    * @throws LDAPException
    *           if the <code>LDAPConnection</code> allocation fails
    */
-  public LDAPConnection getConnection() throws LdapException;
+  LDAPConnection getConnection() throws LdapException;
 
 	/**
 	 * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials
@@ -53,14 +49,14 @@ public interface LdapConnectionManager {
 	 * @return a connected <code>LDAPConnection</code>
 	 * @throws LDAPException if the <code>LDAPConnection</code> allocation fails
 	 */
-  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException;
+  LDAPConnection getBoundConnection(String dn, String pass) throws LdapException;
 
 	/**
 	 * Return an <code>LDAPConnection</code>.  This can allow for
 	 * connections to be pooled instead of just destroyed.
 	 * @param conn an <code>LDAPConnection</code> that you no longer need
 	 */
-	public void returnConnection(LDAPConnection conn);
+	void returnConnection(LDAPConnection conn);
 
 	/**
 	 * Assign the LDAPConnection management configuration.
@@ -68,13 +64,20 @@ public interface LdapConnectionManager {
 	 * call to init().
 	 * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
 	 */
-	public void setConfig(LdapConnectionManagerConfig config);
+	void setConfig(LdapConnectionManagerConfig config);
 
 	/**
 	 * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
 	 * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
 	 */
-	public LdapConnectionManagerConfig getConfig();
+	LdapConnectionManagerConfig getConfig();
+
+  /**
+   * Set the liveness validators used to verify connections.
+   *
+   * @param validators List of validators to use.
+   */
+  void setLivenessValidators(List<LdapConnectionLivenessValidator> validators);
 
   /**
    * Shuts down an instance.

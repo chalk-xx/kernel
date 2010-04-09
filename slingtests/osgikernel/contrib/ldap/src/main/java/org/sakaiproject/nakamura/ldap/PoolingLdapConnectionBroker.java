@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
@@ -49,46 +50,59 @@ import java.util.List;
 @Service
 public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   private Hashtable<String, LdapConnectionManager> factories;
-  private LdapConnectionManagerConfig defaults;
+  private LdapConnectionManagerConfig defaultConfig;
 
-  @Property(boolValue = false)
-  protected static final String AUTO_BIND = "sakai.ldap.autobind";
+  static final boolean DEFAULT_AUTO_BIND = false;
+  @Property(boolValue = DEFAULT_AUTO_BIND)
+  static final String AUTO_BIND = "sakai.ldap.autobind";
 
-  @Property(boolValue = false)
-  protected static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
+  static final boolean DEFAULT_FOLLOW_REFERRALS = false;
+  @Property(boolValue = DEFAULT_FOLLOW_REFERRALS)
+  static final String FOLLOW_REFERRALS = "sakai.ldap.referrals.follow";
 
-  @Property
-  protected static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
+  static final String DEFAULT_KEYSTORE_LOCATION = "";
+  @Property(value = DEFAULT_KEYSTORE_LOCATION)
+  static final String KEYSTORE_LOCATION = "sakai.ldap.keystore.location";
 
-  @Property
-  protected static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
+  static final String DEFAULT_KEYSTORE_PASSWORD = "";
+  @Property(value = DEFAULT_KEYSTORE_PASSWORD)
+  static final String KEYSTORE_PASSWORD = "sakai.ldap.keystore.password";
 
-  @Property
-  protected static final String HOST = "sakai.ldap.host";
+  static final String DEFAULT_HOST = "localhost";
+  @Property(value = DEFAULT_HOST)
+  static final String HOST = "sakai.ldap.host";
 
-  @Property(intValue = LDAPConnection.DEFAULT_PORT)
-  protected static final String PORT = "sakai.ldap.port";
+  static final int DEFAULT_PORT = LDAPConnection.DEFAULT_PORT;
+  @Property(intValue = DEFAULT_PORT)
+  static final String PORT = "sakai.ldap.port";
 
-  @Property
-  protected static final String USER = "sakai.ldap.user";
+  static final String DEFAULT_USER = "";
+  @Property(value = DEFAULT_USER)
+  static final String USER = "sakai.ldap.user";
 
-  @Property
-  protected static final String PASSWORD = "sakai.ldap.password";
+  static final String DEFAULT_PASSWORD = "";
+  @Property(value = DEFAULT_PASSWORD)
+  static final String PASSWORD = "sakai.ldap.password";
 
-  @Property(boolValue = false)
-  protected static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
+  static final boolean DEFAULT_SECURE_CONNECTION = false;
+  @Property(boolValue = DEFAULT_SECURE_CONNECTION)
+  static final String SECURE_CONNECTION = "sakai.ldap.connection.secure";
 
-  @Property(intValue = 5000)
-  protected static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
+  static final int DEFAULT_OPERATION_TIMEOUT = 5000;
+  @Property(intValue = DEFAULT_OPERATION_TIMEOUT)
+  static final String OPERATION_TIMEOUT = "sakai.ldap.operation.timeout";
 
-  @Property(boolValue = true)
-  protected static final String POOLING = "sakai.ldap.pooling";
+  static final boolean DEFAULT_POOLING = true;
+  @Property(boolValue = DEFAULT_POOLING)
+  static final String POOLING = "sakai.ldap.pooling";
 
-  @Property(intValue = 10)
-  protected static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
+  static final int DEFAULT_POOLING_MAX_CONNS = 10;
+  @Property(intValue = DEFAULT_POOLING_MAX_CONNS)
+  static final String POOLING_MAX_CONNS = "sakai.ldap.pooling.maxConns";
 
-  @Property(boolValue = false)
-  protected static final String TLS = "sakai.ldap.tls";
+  static final boolean DEFAULT_TLS = false;
+  @Property(boolValue = DEFAULT_TLS)
+  static final String TLS = "sakai.ldap.tls";
 
   @Reference(referenceInterface = LdapConnectionLivenessValidator.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindLivenessValidator", unbind = "unbindLivenessValidator")
   private List<LdapConnectionLivenessValidator> livenessValidators = new LinkedList<LdapConnectionLivenessValidator>();
@@ -131,7 +145,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
       destroy(mgr);
     }
     factories = null;
-    defaults = null;
+    defaultConfig = null;
   }
 
   public List<LdapConnectionLivenessValidator> getLivenessValidators() {
@@ -144,7 +158,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
    * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker#create(java.lang.String)
    */
   public LdapConnectionManager create(String name) throws LdapException {
-    LdapConnectionManager mgr = create(name, defaults);
+    LdapConnectionManager mgr = create(name, defaultConfig);
     return mgr;
   }
 
@@ -173,8 +187,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
 
   protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName,
       LdapConnectionManagerConfig config) throws LdapException {
-    PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager(this, poolName);
-    mgr.setConfig(config);
+    PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager(config, this);
     mgr.init();
     return mgr;
   }
@@ -228,7 +241,7 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   /**
    * {@inheritDoc}
    *
-   * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker#getBoundConnection(String)
+   * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionManager#getBoundConnection(String, String)
    */
   public LDAPConnection getBoundConnection(String name, String dn, String password)
       throws LdapException {
@@ -251,59 +264,30 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
   }
 
   public LdapConnectionManagerConfig getDefaultConfig() {
-    return defaults.copy();
+    return defaultConfig.copy();
   }
 
   @SuppressWarnings("unchecked")
   public void update(Dictionary props) {
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     if (props != null && !props.isEmpty()) {
-      Boolean autoBind = (Boolean) props.get(AUTO_BIND);
-      Boolean followReferrals = (Boolean) props.get(FOLLOW_REFERRALS);
-      String keystoreLocation = (String) props.get(KEYSTORE_LOCATION);
-      String keystorePassword = (String) props.get(KEYSTORE_PASSWORD);
-      Boolean secureConnection = (Boolean) props.get(SECURE_CONNECTION);
-      String host = (String) props.get(HOST);
-      Integer port = (Integer) props.get(PORT);
-      String user = (String) props.get(USER);
-      String password = (String) props.get(PASSWORD);
-      Integer operationTimeout = (Integer) props.get(OPERATION_TIMEOUT);
-      Boolean pooling = (Boolean) props.get(POOLING);
-      Integer maxConns = (Integer) props.get(POOLING_MAX_CONNS);
-      Boolean tls = (Boolean) props.get(TLS);
+      LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
 
-      if (autoBind != null) {
-        config.setAutoBind(autoBind);
-      }
-      if (followReferrals != null) {
-        config.setFollowReferrals(followReferrals);
-      }
-      config.setKeystoreLocation(keystoreLocation);
-      config.setKeystorePassword(keystorePassword);
-      config.setLdapHost(host);
-      config.setLdapPassword(password);
-      if (port != null) {
-        config.setLdapPort(port);
-      }
-      config.setLdapUser(user);
-      if (operationTimeout != null) {
-        config.setOperationTimeout(operationTimeout);
-      }
-      if (pooling != null) {
-        config.setPooling(pooling);
-      }
-      if (maxConns != null) {
-        config.setPoolMaxConns(maxConns);
-      }
-      if (secureConnection != null) {
-        config.setSecureConnection(secureConnection);
-      }
-      if (tls != null) {
-        config.setTLS(tls);
-      }
+      config.setAutoBind(OsgiUtil.toBoolean(props.get(AUTO_BIND), DEFAULT_AUTO_BIND));
+      config.setFollowReferrals(OsgiUtil.toBoolean(props.get(FOLLOW_REFERRALS), DEFAULT_FOLLOW_REFERRALS));
+      config.setKeystoreLocation(OsgiUtil.toString(props.get(KEYSTORE_LOCATION), DEFAULT_KEYSTORE_LOCATION));
+      config.setKeystorePassword(OsgiUtil.toString(props.get(KEYSTORE_PASSWORD), DEFAULT_KEYSTORE_PASSWORD));
+      config.setSecureConnection(OsgiUtil.toBoolean(props.get(SECURE_CONNECTION), DEFAULT_SECURE_CONNECTION));
+      config.setLdapHost(OsgiUtil.toString(props.get(HOST), DEFAULT_HOST));
+      config.setLdapPort(OsgiUtil.toInteger(props.get(PORT), DEFAULT_PORT));
+      config.setLdapUser(OsgiUtil.toString(props.get(USER), DEFAULT_USER));
+      config.setLdapPassword(OsgiUtil.toString(props.get(PASSWORD), DEFAULT_PASSWORD));
+      config.setOperationTimeout(OsgiUtil.toInteger(props.get(OPERATION_TIMEOUT), DEFAULT_OPERATION_TIMEOUT));
+      config.setPooling(OsgiUtil.toBoolean(props.get(POOLING), DEFAULT_POOLING));
+      config.setPoolMaxConns(OsgiUtil.toInteger(props.get(POOLING_MAX_CONNS), DEFAULT_POOLING_MAX_CONNS));
+      config.setTLS(OsgiUtil.toBoolean(props.get(TLS), DEFAULT_TLS));
+
+      // set the default configuration
+      defaultConfig = config;
     }
-
-    // set the default configuration
-    defaults = config;
   }
 }
