@@ -10,7 +10,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.drools-repository</artifactId>
   <version>0.4-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <name>Nakamura Drools :: Repository</name>
   <build>
     <plugins>
@@ -27,9 +27,9 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package> org.drools.* </Export-Package>
             <Sling-Nodetypes>
+                SLING-INF/nodetypes/versionable_node_type.cnd,
                 SLING-INF/nodetypes/tag_node_type.cnd,
                 SLING-INF/nodetypes/state_node_type.cnd,
-`               SLING-INF/nodetypes/versionable_node_type.cnd,
                 SLING-INF/nodetypes/versionable_asset_folder_node_type.cnd,
                 SLING-INF/nodetypes/rule_node_type.cnd,
                 SLING-INF/nodetypes/rulepackage_node_type.cnd
