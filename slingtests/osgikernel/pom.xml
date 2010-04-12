@@ -135,6 +135,10 @@
               <goals>
                 <goal>install</goal>
               </goals>
+              <configuration>
+                <user>admin</user>
+                <password>alexFTW++</password>
+              </configuration>
             </execution>
           </executions>
          </plugin>

@@ -18,3 +18,5 @@ activemq-data
 /sling
 *.iml
 .idea
+*.ipr
+*.iws
