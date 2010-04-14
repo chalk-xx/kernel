@@ -55,14 +55,14 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(
     name = "BatchGetServlet",
     shortDescription = "Bundles multiple resource requests into a single response.",
-    description = "Allows you to fetch multiple resources in one single request.",
+    description = "Allows fetching of multiple resources in one request.",
     bindings = @ServiceBinding(
         type = BindingType.PATH,
         bindings = "/system/batch/get"
     ),
     methods = @ServiceMethod(
         name = "GET",
-        description = "Get multiple resource requests into a single response.",
+        description = "Get multiple resource requests in a single response.",
         parameters = @ServiceParameter(
             name = "resources",
             description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
@@ -70,8 +70,8 @@ import javax.servlet.http.HttpServletResponse;
         ),
         response = {@ServiceResponse(
             code = 200,
-            description = "All requests are succesfull. <br />" +
-                "A JSON array is returning which holds an object for each resource. Example:" +
+            description = "All requests are successful. <br />" +
+                "A JSON array is returned containing an object for each resource. Example:" +
                 "<pre>[\n" +
                 "{\"path\": \"/dev/.json\", \"data\": \"{\"user\"...\"}, \n" +
                 "{\"path\": \"/devwidgets.json\", \"data\": \"{\"jcr:created\":\"Wed Dec 16 2009 10:39:19 GMT+0000\",\"jcr:primaryType\":\"sling:Folder\"}\"},\n" +
@@ -79,11 +79,11 @@ import javax.servlet.http.HttpServletResponse;
           ),
           @ServiceResponse(
             code = 400,
-            description = "Either there was no 'resources' parameter found or it contained a non-absolute path."
+            description = "Either no 'resources' parameter was found or it contained a non-absolute path."
           ),
           @ServiceResponse(
             code = 500,
-            description = "Unable to get and parse all the requests."
+            description = "Unable to get and parse all requests."
           )
         }
     )

@@ -56,13 +56,13 @@ import javax.servlet.http.HttpServletResponse;
   shortDescription="Manage personal connections/contacts",
   bindings=@ServiceBinding(type=BindingType.PATH,bindings="/_user/contacts/OTHER_USER",
       selectors={
-      @ServiceSelector(name="invite",description="Invite the other user to connect"),
-      @ServiceSelector(name="accept",description="Accept the invitation from the other user"),
-      @ServiceSelector(name="reject",description="Refuse the invitation from the other user"),
-      @ServiceSelector(name="ignore",description="Ignore the invitation from the other user"),
-      @ServiceSelector(name="block",description="Ignore this and any future invitations from the other user"),
-      @ServiceSelector(name="remove",description="Remove the invitation or connection, allowing future connections"),
-      @ServiceSelector(name="cancel",description="Cancel the pending invitation to the other user")
+      @ServiceSelector(name="invite",description="Invite other user to connect"),
+      @ServiceSelector(name="accept",description="Accept invitation from other user"),
+      @ServiceSelector(name="reject",description="Refuse invitation from other user"),
+      @ServiceSelector(name="ignore",description="Ignore invitation from other user"),
+      @ServiceSelector(name="block",description="Ignore this and any future invitations from other user"),
+      @ServiceSelector(name="remove",description="Remove invitation or connection, allowing future connections"),
+      @ServiceSelector(name="cancel",description="Cancel pending invitation to other user")
   },
   extensions={
     @ServiceExtension(name="html", description="All POST operations produce HTML")
