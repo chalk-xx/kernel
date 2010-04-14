@@ -55,7 +55,8 @@ public class CalendarUserPostProcessor implements UserPostProcessor {
    * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
    */
   public int getSequence() {
-    return 0;
+    // We make sure that the home folders get created before we run ours.
+    return 10;
   }
 
   /**
