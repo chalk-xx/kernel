@@ -53,7 +53,7 @@ public class ChatMessageSearchResultProviderTest {
     messagingService = createMock(MessagingService.class);
 
     propProvider = new ChatMessageSearchPropertyProvider();
-    propProvider.bindMessagingService(messagingService);
+    propProvider.messagingService = messagingService;
     session = createMock(Session.class);
     resourceResolver = createMock(ResourceResolver.class);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session)
@@ -68,7 +68,7 @@ public class ChatMessageSearchResultProviderTest {
 
   @After
   public void tearDown() {
-    propProvider.unbindMessagingService(messagingService);
+    propProvider.messagingService = null;
     verify(messagingService);
   }
 

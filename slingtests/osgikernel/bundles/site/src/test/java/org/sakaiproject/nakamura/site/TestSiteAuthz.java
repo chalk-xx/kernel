@@ -19,7 +19,7 @@ package org.sakaiproject.nakamura.site;
 
 import static org.junit.Assert.assertNull;
 
-import org.apache.jackrabbit.api.jsr283.Session;
+import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
@@ -34,7 +34,7 @@ public class TestSiteAuthz {
   @Mock
   private SlingRepository repository;
   @Mock
-  private Session session;
+  private JackrabbitSession session;
 
   @Test
   public void testNoAuthzConf() throws RepositoryException {

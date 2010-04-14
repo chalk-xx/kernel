@@ -17,6 +17,12 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestDispatcherOptions;
 import org.apache.sling.api.request.RequestParameter;
@@ -29,8 +35,6 @@ import org.apache.sling.api.wrappers.SlingHttpServletResponseWrapper;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -50,9 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,29 +67,20 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Will create a message under the user's _private folder. If the box is set to outbox and
+ * Will create a message in the user his mesagestore (/_user/s/si/simong/messages/... folder. If the box is set to outbox and
  * the sendstate property to pending or none it will be picked up by the
  * MessagePostProcessor who will then send an OSGi event that feeds it to the correct
  * MessageHandler.
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="create"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
- * @scr.reference name="CreateMessagePreProcessor"
- *                interface="org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor"
- *                bind="bindCreateMessagePreProcessor"
- *                unbind="unbindCreateMessagePreProcessor" cardinality="0..n"
- *                policy="dynamic"
  */
+@SlingServlet(resourceTypes = { "sakai/messagestore" }, selectors = { "create" }, methods = { "POST" }, generateComponent = true, generateService = true)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Endpoint to create a message") })
+@Reference(name = "createMessagePreProcessor", referenceInterface = CreateMessagePreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
     name = "CreateMessageServlet",
     shortDescription = "Create a message.",
-    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/message and /_group/message",
+    description = "Create a message by doing a POST to messagestore.create.html . By default there are stores under each site and at /_user/u/us/user/message and /_group/g/gr/group/message",
     bindings = @ServiceBinding(type = BindingType.TYPE, 
         bindings = "sakai/messagestore", 
         selectors = @ServiceSelector(name = "create")), 
@@ -117,23 +110,11 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 3813877071190736742L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateMessageServlet.class);
+  
+  protected Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
 
-  private transient ComponentContext osgiComponentContext;
-  private List<ServiceReference> delayedReferences = new ArrayList<ServiceReference>();
-  private Map<String, CreateMessagePreProcessor> processors = new ConcurrentHashMap<String, CreateMessagePreProcessor>();
-
-  /*
-   * Bind the messaging service.
-   */
-  private transient MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -317,6 +298,10 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     response.reset();
     try {
       Node messageNode = (Node) session.getItem(path);
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       JSONWriter write = new JSONWriter(response.getWriter());
       write.object();
       write.key("id");
@@ -331,54 +316,11 @@ public class CreateMessageServlet extends SlingAllMethodsServlet {
     }
   }
 
-  /*
-   * Binds the preprocessors to this servlet.
-   */
-  protected void bindCreateMessagePreProcessor(ServiceReference serviceReference) {
-    synchronized (delayedReferences) {
-      if (osgiComponentContext == null) {
-        delayedReferences.add(serviceReference);
-      } else {
-        addProcessor(serviceReference);
-      }
-    }
+  protected void bindCreateMessagePreProcessor(CreateMessagePreProcessor preProcessor) {
+    processors.put(preProcessor.getType(), preProcessor);
   }
 
-  protected void unbindCreateMessagePreProcessor(ServiceReference serviceReference) {
-    synchronized (delayedReferences) {
-      if (osgiComponentContext == null) {
-        delayedReferences.remove(serviceReference);
-      } else {
-        removeProcessor(serviceReference);
-      }
-    }
+  protected void unbindCreateMessagePreProcessor(CreateMessagePreProcessor preProcessor) {
+    processors.remove(preProcessor.getType());
   }
-
-  private void addProcessor(ServiceReference serviceReference) {
-    CreateMessagePreProcessor processor = (CreateMessagePreProcessor) osgiComponentContext
-        .locateService(MessageConstants.MESSAGE_CREATE_PREPROCESSOR, serviceReference);
-    if (processor != null) {
-      processors.put(processor.getType(), processor);
-    }
-  }
-
-  private void removeProcessor(ServiceReference serviceReference) {
-    CreateMessagePreProcessor processor = (CreateMessagePreProcessor) osgiComponentContext
-        .locateService(MessageConstants.MESSAGE_CREATE_PREPROCESSOR, serviceReference);
-    if (processor != null) {
-      processors.put(processor.getType(), processor);
-    }
-  }
-
-  // Find all the processors.
-  protected void activate(ComponentContext componentContext) {
-    synchronized (delayedReferences) {
-      osgiComponentContext = componentContext;
-      for (ServiceReference ref : delayedReferences) {
-        addProcessor(ref);
-      }
-      delayedReferences.clear();
-    }
-  }
-
 }

@@ -21,7 +21,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -88,7 +88,7 @@ import javax.servlet.http.HttpServletResponse;
         }
     )
 )
-public class BatchGetServlet extends SlingAllMethodsServlet {
+public class BatchGetServlet extends SlingSafeMethodsServlet {
  
   /**
 *
@@ -127,6 +127,8 @@ public class BatchGetServlet extends SlingAllMethodsServlet {
         return;
       }
     }
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
  
     ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
     try {

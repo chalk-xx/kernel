@@ -35,18 +35,29 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_L
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_QUERY_TEMPLATE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_RESULTPROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_BATCH_RESULT_PROCESSOR;
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PATH_PREFIX;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -80,6 +91,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -91,28 +103,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SearchServlet</code> uses nodes from the
  * 
- * @scr.component immediate="true" label="SearchServlet"
- *                description="a generic resource driven search servlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Perfoms searchs based on the associated node."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/search"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="json"
- * @scr.reference name="SearchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
- *                bind="bindSearchResultProcessor" unbind="unbindSearchResultProcessor"
- *                cardinality="0..n" policy="dynamic"
- * @scr.reference name="SearchBatchResultProcessor"
- *                interface="org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor"
- *                bind="bindSearchBatchResultProcessor"
- *                unbind="unbindSearchBatchResultProcessor" cardinality="0..n"
- *                policy="dynamic"
- * @scr.reference name="SearchPropertyProvider"
- *                interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
- *                bind="bindSearchPropertyProvider" unbind="unbindSearchPropertyProvider"
- *                cardinality="0..n" policy="dynamic"
  */
 @ServiceDocumentation(name = "Search Servlet", shortDescription = "The Search servlet provides search results.", description = {
     "The Search Servlet responds with search results in json form in response to GETs on search urls. Those URLs are resolved "
@@ -171,10 +161,29 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceParameter(name = "page", description = { "The page number to start listing the results on." }),
     @ServiceParameter(name = "*", description = { "Any other parameters may be used by the template." }) }, response = {
     @ServiceResponse(code = 200, description = "A search response simular to the above will be emitted "),
+    @ServiceResponse(code = 403, description = "The search template is not located under /var "),
+    @ServiceResponse(code = 406, description = "There are too many results that need to be paged. "),
     @ServiceResponse(code = 500, description = "Any error with the html containing the error")
 
 }) })
-public class SearchServlet extends SlingAllMethodsServlet {
+
+@SlingServlet(extensions={"json"}, methods={"GET"}, resourceTypes={"sakai/search"} )
+@Properties( value={
+    @Property(name="service.description", value={"Perfoms searchs based on the associated node."}),
+    @Property(name="service.vendor", value={"The Sakai Foundation"})
+})
+@References(value={
+    @Reference(name="SearchResultProcessor", referenceInterface=SearchResultProcessor.class,
+        bind="bindSearchResultProcessor", unbind="unbindSearchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchBatchResultProcessor", referenceInterface=SearchBatchResultProcessor.class,
+        bind="bindSearchBatchResultProcessor", unbind="unbindSearchBatchResultProcessor",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC),
+    @Reference(name="SearchPropertyProvider", referenceInterface=SearchPropertyProvider.class,
+        bind="bindSearchPropertyProvider", unbind="unbindSearchPropertyProvider",
+        cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+})
+public class SearchServlet extends SlingSafeMethodsServlet {
 
   /**
    *
@@ -196,7 +205,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  /** @scr.property name="maximumResults" value="1000" type="Long" */
+  @Property(name="maximumResults", longValue=2500L  )
   private long maximumResults;
 
   // Default processors
@@ -215,6 +224,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
       throws ServletException, IOException {
     try {
       Resource resource = request.getResource();
+      if (!resource.getPath().startsWith(SEARCH_PATH_PREFIX)) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+            "Search templates can only be executed if they are located under " + SEARCH_PATH_PREFIX);
+        return;
+      }
+      
       Node node = resource.adaptTo(Node.class);
       if (node != null && node.hasProperty(SAKAI_QUERY_TEMPLATE)) {
         String queryTemplate = node.getProperty(SAKAI_QUERY_TEMPLATE).getString();
@@ -251,12 +266,12 @@ public class SearchServlet extends SlingAllMethodsServlet {
         // If we wouldn't do this, the user could ask for the 1000th page
         // This would result in iterating over (at least) 25.000 lucene indexes and
         // checking if the user has READ access on it.
-        int nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+        long nitems = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
             DEFAULT_PAGED_ITEMS);
-        int page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
-        int offset = page * nitems;
+        long page = SearchUtil.intRequestParameter(request, PARAMS_PAGE, 0);
+        long offset = page * nitems;
         if (limitResults && offset > maximumResults) {
-          response.sendError(HttpServletResponse.SC_FORBIDDEN,
+          response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE,
               "There are too many results.");
           return;
         }
@@ -304,7 +319,10 @@ public class SearchServlet extends SlingAllMethodsServlet {
           return;
         }
 
-        response.setHeader("Content-Type", "application/json");
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
         ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
         write.object();
         write.key(PARAMS_ITEMS_PER_PAGE);
@@ -354,6 +372,7 @@ public class SearchServlet extends SlingAllMethodsServlet {
         write.endObject();
       }
     } catch (RepositoryException e) {
+      e.printStackTrace();
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       LOGGER.info("Caught RepositoryException {}", e.getMessage());
     } catch (JSONException e) {
@@ -442,8 +461,15 @@ public class SearchServlet extends SlingAllMethodsServlet {
       String propertyProviderName) {
     Map<String, String> propertiesMap = new HashMap<String, String>();
     String userId = request.getRemoteUser();
-    String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(userId, "");
-    propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    Session session = request.getResourceResolver().adaptTo(Session.class);
+    try {
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable au = um.getAuthorizable(userId);
+      String userPrivatePath = "/jcr:root" + PersonalUtils.getPrivatePath(au);
+      propertiesMap.put("_userPrivatePath", ISO9075.encodePath(userPrivatePath));
+    } catch (RepositoryException e) {
+      LOGGER.error("Unable to get the authorizable for this user.", e);
+    }
     propertiesMap.put("_userId", userId);
     if (propertyProviderName != null) {
       LOGGER.debug("Trying Provider Name {} ", propertyProviderName);
@@ -463,7 +489,8 @@ public class SearchServlet extends SlingAllMethodsServlet {
   private String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
+          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
         // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
         escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
             .replaceAll("'", "''");

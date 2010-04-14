@@ -57,8 +57,8 @@ public class InternalMessageHandlerTest {
     slingRepository = mock(SlingRepository.class);
     session = mock(Session.class);
     handler = new InternalMessageHandler();
-    handler.bindMessagingService(messagingService);
-    handler.bindSlingRepository(slingRepository);
+    handler.messagingService = messagingService;
+    handler.slingRepository = slingRepository;
   }
 
   @Test

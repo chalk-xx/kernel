@@ -105,5 +105,8 @@ public interface SearchConstants {
    * Property that defines whether the results should have a limit on it.
    */
   public static final String SAKAI_LIMIT_RESULTS = "sakai:limit-results";
-
+  /**
+   * The path where the search templates have to be under to be executable.
+   */
+  public static final String SEARCH_PATH_PREFIX = "/var";
 }

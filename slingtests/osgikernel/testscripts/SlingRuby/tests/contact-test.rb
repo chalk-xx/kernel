@@ -32,25 +32,27 @@ class TC_MyContactTest < SlingTest
     puts("Checking that The invitation to Nico is pending")
     contacts = @cm.get_pending()
     assert_not_nil(contacts, "Expected to get contacts back")
-    assert_equal(contacts["results"].size, 1, "Expected single request back")
+    assert_equal(1, contacts["results"].size, "Expected single pending request back")
     contact = contacts["results"][0]
     assert_equal("nico"+m, contact["target"], "Expected nico to be my friend")
     assert_equal("PENDING", contact["details"]["sakai:state"], "Expected state to be 'PENDING'")
+    puts("Invitation from Aaron to Nico is present ")
    
 
     @s.switch_user(n)
     puts("Operating as Nico")
     contacts = @cm.get_invited()
     assert_not_nil(contacts, "Expected to get an invite back ")
-    assert_equal(contacts["results"].size, 1, "Only expecting a single invite ")
+    assert_equal(1, contacts["results"].size, "Only expecting a single invite for Nico ")
     contact = contacts["results"][0]
     assert_equal("aaron"+m,contact["target"], "Expected Aaron to be asking ")
     assert_equal("INVITED", contact["details"]["sakai:state"], "Expected state to be 'INVITED'") 
+    puts("Nico is accpting invitation from Aaron")
     res = @cm.accept_contact("aaron"+m)
     assert_equal("200", res.code, "Expecting acceptance of the contact")
     contacts = @cm.get_accepted()
     assert_not_nil(contacts, "Expected to get an accepted back ")
-    assert_equal(contacts["results"].size, 1, "Only expecting a single acceptance ")
+    assert_equal(1, contacts["results"].size, "Only expecting a single acceptance ")
     contact = contacts["results"][0]
     assert_equal("aaron"+m,contact["target"], "Expected Nico to have been accepted ")
     assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
@@ -59,7 +61,7 @@ class TC_MyContactTest < SlingTest
     puts("Operating as Aaron")
     contacts = @cm.get_accepted()
     assert_not_nil(contacts, "Expected to get an accepted back ")
-    assert_equal(contacts["results"].size, 1, "Only expecting a single acceptance ")
+    assert_equal(1, contacts["results"].size, "Only expecting a single acceptance ")
     contact = contacts["results"][0]
     assert_equal("nico"+m,contact["target"], "Expected Aaron to have been accepted ")
     assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 

@@ -109,7 +109,7 @@ public class DocProxyUtils {
     try {
       String uuid = node.getProperty(DocProxyConstants.REPOSITORY_REF).getString();
       Session session = node.getSession();
-      return session.getNodeByUUID(uuid);
+      return session.getNodeByIdentifier(uuid);
     } catch (RepositoryException e) {
       throw new DocProxyException(500,
           "This node holds no reference to an external repository node.");

@@ -26,6 +26,11 @@ import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NONE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_PENDING;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostProcessor;
@@ -47,42 +52,18 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-/**
- * 
- * @scr.service interface="org.apache.sling.servlets.post.SlingPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="MessagePostProcessor"
- *                description="Post Processor for Message operations"
- *                metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes message operations"
- * @scr.reference name="EventAdmin"
- *                interface="org.osgi.service.event.EventAdmin"
- *                bind="bindEventAdmin" unbind="unbindEventAdmin"
- * 
- */
+@Component(immediate = true, label = "MessagePostProcessor", description = "Post Processor for Message operations", metatype = false)
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Processess changes on sakai/message nodes. If the messagebox and sendstate are set to respectively outbox and pending, a message will be copied to the recipients.") })
 public class MessagePostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagePostProcessor.class);
 
-  private EventAdmin eventAdmin;
-
-  /**
-   * @param eventAdmin
-   *          the new EventAdmin service to bind to this service.
-   */
-  protected void bindEventAdmin(EventAdmin eventAdmin) {
-    this.eventAdmin = eventAdmin;
-  }
-
-  /**
-   * @param eventAdmin
-   *          the EventAdminService to be unbound from this service.
-   */
-  protected void unbindEventAdmin(EventAdmin eventAdmin) {
-    this.eventAdmin = null;
-  }
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   /**
    * {@inheritDoc} This post processor is only interested in posts to messages,

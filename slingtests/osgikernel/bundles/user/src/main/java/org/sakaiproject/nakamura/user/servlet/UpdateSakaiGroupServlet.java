@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -219,11 +218,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
         if (authorizable.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
           Set<String> userPrincipals = new HashSet<String>();
-          for (PrincipalIterator pi = currentUser.getPrincipals(); pi.hasNext();) {
-            String pname = pi.nextPrincipal().getName();
-            userPrincipals.add(pname);
-            LOGGER.info("Adding principal to the set for the user. [{}]  ", pname);
-          }
+          userPrincipals.add(currentUser.getID());
           for (Iterator pi = currentUser.declaredMemberOf(); pi.hasNext();) {
             Group group = (Group)pi.next();
             userPrincipals.add(group.getID());
@@ -262,7 +257,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
         // update the group memberships
         if (authorizable.isGroup()) {
-          updateGroupMembership(session, request, authorizable, changes);
+          updateGroupMembership(request, authorizable, changes);
         }
       } catch (RepositoryException re) {
         throw new RepositoryException("Failed to update group.", re);
@@ -270,7 +265,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
 
       try {
         for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-          userPostProcessor.process(session, request, changes);
+          userPostProcessor.process(authorizable, session, request, changes);
         }
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);

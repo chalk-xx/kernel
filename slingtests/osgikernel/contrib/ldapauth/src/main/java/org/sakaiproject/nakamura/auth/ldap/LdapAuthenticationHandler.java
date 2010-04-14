@@ -17,18 +17,10 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.sling.engine.auth.AuthenticationHandler;
-import org.apache.sling.engine.auth.AuthenticationInfo;
-import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
@@ -40,6 +32,15 @@ import javax.security.auth.login.LoginException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.engine.auth.AuthenticationHandler;
+import org.apache.sling.engine.auth.AuthenticationInfo;
+import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 
 /**
  * Authentication handler for trusted authentication sources. These sources will
@@ -121,7 +122,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public void doInit(CallbackHandler callbackHandler, Session session, Map options)
       throws LoginException {
     // nothing to do
@@ -199,5 +200,10 @@ public class LdapAuthenticationHandler implements AuthenticationHandler, LoginMo
     Credentials getCredentials() {
       return cred;
     }
+  }
+
+  @SuppressWarnings("rawtypes")
+  public void addPrincipals(Set arg0) {
+    // Nothing to do
   }
 }

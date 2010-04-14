@@ -45,7 +45,7 @@ public class ClusterUserMessageListener implements MessageListener {
   @Reference
   protected ConnectionFactoryService connFactoryService;
   @Reference
-  private ClusterTrackingService clusterTrackingService;
+  protected ClusterTrackingService clusterTrackingService;
 
   private Connection connection;
   private ClusterTrackingServiceImpl clusterTrackingServiceImpl;

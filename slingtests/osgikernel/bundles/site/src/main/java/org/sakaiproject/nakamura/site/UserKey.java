@@ -20,11 +20,20 @@ public class UserKey extends AuthorizableKey {
   public UserKey(User user, Node profileNode) throws RepositoryException {
     super(user);
     this.user = user;
-    if (profileNode.hasProperty(SortField.firstName.toString())) {
-      setFirstName(profileNode.getProperty(SortField.firstName.toString()).getString());
-    }
-    if (profileNode.hasProperty(SortField.lastName.toString())) {
-      setLastName(profileNode.getProperty(SortField.lastName.toString()).getString());
+    if ( profileNode == null ) {
+      if (user.hasProperty(SortField.firstName.toString())) {
+        setFirstName(user.getProperty(SortField.firstName.toString())[0].getString());
+      }
+      if (user.hasProperty(SortField.lastName.toString())) {
+        setLastName(user.getProperty(SortField.lastName.toString())[0].getString());
+      }
+    } else {
+      if (profileNode.hasProperty(SortField.firstName.toString())) {
+        setFirstName(profileNode.getProperty(SortField.firstName.toString()).getString());
+      }
+      if (profileNode.hasProperty(SortField.lastName.toString())) {
+        setLastName(profileNode.getProperty(SortField.lastName.toString()).getString());
+      }
     }
   }
 

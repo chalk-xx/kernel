@@ -40,7 +40,12 @@ import javax.servlet.ServletResponse;
  * @scr.property name="sling.servlet.methods" value="GET"
  */
 public class ScriptRunnerServlet extends SlingAllMethodsServlet {
-	
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = -2592752610533380047L;
+
   /**
    * Perform the actual request. {@inheritDoc}
    * 

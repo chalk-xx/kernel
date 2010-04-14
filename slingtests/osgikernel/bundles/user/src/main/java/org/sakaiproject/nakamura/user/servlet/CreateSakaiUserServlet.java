@@ -1,30 +1,30 @@
 /*
- * Licensed to the Sakai Foundation (SF) under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. The SF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.sakaiproject.nakamura.user.servlet;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-import static org.sakaiproject.nakamura.api.user.UserConstants.DEFAULT_HASH_LEVELS;
 
-import org.apache.jackrabbit.api.security.user.Authorizable;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
+import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jackrabbit.usermanager.impl.post.AbstractUserPostServlet;
 import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
@@ -42,19 +42,24 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
-import org.sakaiproject.nakamura.util.PathUtils;
+import org.sakaiproject.nakamura.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.Principal;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -152,192 +157,258 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code=200,description="Success, a redirect is sent to the users resource locator with HTML describing status."),
     @ServiceResponse(code=500,description="Failure, including user already exists. HTML explains failure.")
         }))		
+
 public class CreateSakaiUserServlet extends AbstractUserPostServlet {
 
-  /**
-   *
-   */
-  private static final long serialVersionUID = -5060795742204221361L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5060795742204221361L;
 
-  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+    private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
-  /**
-   * default log
-   */
-  private static final Logger log = LoggerFactory.getLogger(CreateSakaiUserServlet.class);
+    /**
+     * default log
+     */
+    private static final Logger log = LoggerFactory.getLogger(CreateSakaiUserServlet.class);
 
-  private static final String PROP_SELF_REGISTRATION_ENABLED = "self.registration.enabled";
-  private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
+    private static final String PROP_SELF_REGISTRATION_ENABLED = "self.registration.enabled";
 
-  private Boolean selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
+    private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
 
-  /**
-   * The JCR Repository we access to resolve resources
-   * 
-   * @scr.reference
-   */
-  private transient SlingRepository repository;
+    private Boolean selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
 
-  /** Returns the JCR repository used by this service. */
-  @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
-  protected SlingRepository getRepository() {
-    return repository;
-  }
+    /**
+     * The JCR Repository we access to resolve resources
+     *
+     * @scr.reference
+     */
+    private transient SlingRepository repository;
 
-  /**
-   * Returns an administrative session to the default workspace.
-   */
-  private Session getSession() throws RepositoryException {
-    return getRepository().loginAdministrative(null);
-  }
+    private String adminUserId = null;
 
-  /**
-   * Return the administrative session and close it.
-   */
-  private void ungetSession(final Session session) {
-    if (session != null) {
-      try {
-        session.logout();
-      } catch (Throwable t) {
-        log.error("Unable to log out of session: " + t.getMessage(), t);
-      }
-    }
-  }
+    private Object lock = new Object();
 
-  // ---------- SCR integration ---------------------------------------------
-
-  /**
-   * Activates this component.
-   * 
-   * @param componentContext
-   *          The OSGi <code>ComponentContext</code> of this component.
-   */
-  protected void activate(ComponentContext componentContext) {
-    super.activate(componentContext);
-    Dictionary<?, ?> props = componentContext.getProperties();
-    Object propValue = props.get(PROP_SELF_REGISTRATION_ENABLED);
-    if (propValue instanceof String) {
-      selfRegistrationEnabled = Boolean.parseBoolean((String) propValue);
-    } else {
-      selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
-    }
-    postProcessorTracker.setComponentContext(componentContext);
-
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @seeorg.apache.sling.jackrabbit.usermanager.post.AbstractAuthorizablePostServlet#
-   * handleOperation(org.apache.sling.api.SlingHttpServletRequest,
-   * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
-   */
-  @Override
-  protected void handleOperation(SlingHttpServletRequest request, HtmlResponse response,
-      List<Modification> changes) throws RepositoryException {
-    // make sure user self-registration is enabled
-    boolean administrator = false;
-    try {
-      Session currentSession = request.getResourceResolver().adaptTo(Session.class);
-      UserManager um = AccessControlUtil.getUserManager(currentSession);
-      User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
-      administrator = currentUser.isAdmin();
-    } catch ( Exception ex ) {
-      log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
-      administrator = false;
-    }
-    
-    if (!administrator && !selfRegistrationEnabled) {
-      throw new RepositoryException(
-          "Sorry, registration of new users is not currently enabled.  Please try again later.");
+    /** Returns the JCR repository used by this service. */
+    @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
+    protected SlingRepository getRepository() {
+        return repository;
     }
 
-    Session session = request.getResourceResolver().adaptTo(Session.class);
-    if (session == null) {
-      throw new RepositoryException("JCR Session not found");
+    /**
+     * Returns an administrative session to the default workspace.
+     */
+    private Session getSession() throws RepositoryException {
+        return getRepository().loginAdministrative(null);
     }
 
-    // check that the submitted parameter values have valid values.
-    final String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
-    if (principalName == null) {
-      throw new RepositoryException("User name was not submitted");
+    /**
+     * Return the administrative session and close it.
+     */
+    private void ungetSession(final Session session) {
+        if (session != null) {
+            try {
+                session.logout();
+            } catch (Throwable t) {
+                log.error("Unable to log out of session: " + t.getMessage(), t);
+            }
+        }
     }
 
-    NameSanitizer san = new NameSanitizer(principalName, true);
-    san.validate();
+    // ---------- SCR integration ---------------------------------------------
 
-    String pwd = request.getParameter("pwd");
-    if (pwd == null) {
-      throw new RepositoryException("Password was not submitted");
-    }
-    String pwdConfirm = request.getParameter("pwdConfirm");
-    if (!pwd.equals(pwdConfirm)) {
-      throw new RepositoryException(
-          "Password value does not match the confirmation password");
-    }
+    /**
+     * Activates this component.
+     *
+     * @param componentContext The OSGi <code>ComponentContext</code> of this
+     *            component.
+     */
+    protected void activate(ComponentContext componentContext) {
+        super.activate(componentContext);
+        Dictionary<?, ?> props = componentContext.getProperties();
+        Object propValue = props.get(PROP_SELF_REGISTRATION_ENABLED);
+        if (propValue instanceof String) {
+            selfRegistrationEnabled = Boolean.parseBoolean((String) propValue);
+        } else {
+            selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
+        }
+        postProcessorTracker.setComponentContext(componentContext);
 
-    Session selfRegSession = null;
-    try {
-      selfRegSession = getSession();
-
-      UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
-      Authorizable authorizable = userManager.getAuthorizable(principalName);
-
-      if (authorizable != null) {
-        // user already exists!
-        throw new RepositoryException(
-            "A principal already exists with the requested name: " + principalName);
-      } else {
-        Map<String, RequestProperty> reqProperties = collectContent(request, response);
-
-        User user = userManager.createUser(principalName, digestPassword(pwd),
-            new Principal() {
-              public String getName() {
-                return principalName;
-              }
-            }, PathUtils.getUserPrefix(principalName, DEFAULT_HASH_LEVELS));
-        String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
-            + user.getID();
-
-        log.debug("The user path is: {} ", userPath);
-
-        response.setPath(userPath);
-        response.setLocation(externalizePath(request, userPath));
-        response.setParentLocation(externalizePath(request,
-            AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH));
-        changes.add(Modification.onCreated(userPath));
-
-        // write content from form
-        writeContent(selfRegSession, user, reqProperties, changes);
-
+        // check that the admin and anon users are setup correctly
+        Session session = null;
         try {
-          log.debug("Looping all the post processors");
-          for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-            log.debug("Processor: {}", userPostProcessor);
-            userPostProcessor.process(selfRegSession, request, changes);
+          session = getSession();
+          ValueFactory vf = session.getValueFactory();
+          UserManager userManager = AccessControlUtil.getUserManager(session);
+          for (String userId : UserConstants.DEFAULT_USERS) {
+            User user = (User) userManager.getAuthorizable(userId);
+              if (user != null && !user.hasProperty("path")) {
+                user.setProperty("path", vf.createValue(((ItemBasedPrincipal) user
+                    .getPrincipal()).getPath().substring(
+                    UserConstants.USER_REPO_LOCATION.length())));
+              }
+              try {
+                InputStream in = this.getClass().getResourceAsStream(userId + ".json");
+                String s = IOUtils.readFully(in, "UTF-8");
+                in.close();
+                JSONObject o = new JSONObject(s);
+                Iterator<String> keys = o.keys();
+                while (keys.hasNext()) {
+                  String key = keys.next();
+                  // TODO We might want to check the type of the json value.
+                  Value val = vf.createValue(o.getString(key));
+                  user.setProperty(key, val);
+                }
+              } catch (Exception e) {
+                log.warn("Failed to get JSON for default user: " + userId);
+              }
+              
+              try {
+                // Let all the processors create the nescecary paths ( home folders, authprofile, ..)
+                List<Modification> changes = new ArrayList<Modification>();
+                SakaiSlingHttpServletRequest request = new SakaiSlingHttpServletRequest(
+                    session, UserConstants.SYSTEM_USER_MANAGER_USER_PATH);
+                log.debug("Looping all the post processors");
+                for (UserPostProcessor userPostProcessor : postProcessorTracker
+                    .getProcessors()) {
+                  log.debug("Processor: {}", userPostProcessor);
+                  userPostProcessor.process(user, session, request, changes);
+                }
+                log.debug("Finished Looping all the post processors");
+              } catch (Exception e) {
+                log.warn(e.getMessage(), e);
+              }
           }
-          log.debug("Finished Looping all the post processors");
+          if ( session.hasPendingChanges()) {
+            session.save();
+          }
         } catch (Exception e) {
-          log.warn(e.getMessage(), e);
-          response
-              .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } finally {
+          ungetSession(session);
         }
-        if (selfRegSession.hasPendingChanges()) {
-          selfRegSession.save();
-        }
-      }
-    } finally {
-      ungetSession(selfRegSession);
     }
-  }
 
-  protected void bindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.bindUserPostProcessor(serviceReference);
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.apache.sling.jackrabbit.usermanager.post.AbstractAuthorizablePostServlet
+     * #handleOperation(org.apache.sling.api.SlingHttpServletRequest,
+     * org.apache.sling.api.servlets.HtmlResponse, java.util.List)
+     */
+    @Override
+    protected void handleOperation(SlingHttpServletRequest request,
+            HtmlResponse response, List<Modification> changes)
+            throws RepositoryException {
 
-  }
+        // check for an administrator
+        boolean administrator = false;
+        try {
+            Session currentSession = request.getResourceResolver().adaptTo(Session.class);
+            if ( adminUserId == null ) {
+              synchronized (lock) {
+                UserManager um = AccessControlUtil.getUserManager(currentSession);
+                User currentUser = (User) um.getAuthorizable(currentSession.getUserID());
+                administrator = currentUser.isAdmin();
+                if ( administrator ) {
+                  adminUserId = currentUser.getID();
+                }
+              }
+            } else {
+              administrator = adminUserId.equals(currentSession.getUserID());
+            }
+          } catch ( Exception ex ) {
+            log.warn("Failed to determin if the user is an admin, assuming not. Cause: "+ex.getMessage());
+            administrator = false;
+          }
 
-  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.unbindUserPostProcessor(serviceReference);
-  }
+
+        // make sure user self-registration is enabled
+        if (!administrator && !selfRegistrationEnabled) {
+            throw new RepositoryException(
+                "Sorry, registration of new users is not currently enabled.  Please try again later.");
+        }
+
+        Session session = request.getResourceResolver().adaptTo(Session.class);
+        if (session == null) {
+            throw new RepositoryException("JCR Session not found");
+        }
+
+        // check that the submitted parameter values have valid values.
+        String principalName = request.getParameter(SlingPostConstants.RP_NODE_NAME);
+        if (principalName == null) {
+            throw new RepositoryException("User name was not submitted");
+        }
+
+        NameSanitizer san = new NameSanitizer(principalName, true);
+        san.validate();
+
+        String pwd = request.getParameter("pwd");
+        if (pwd == null) {
+            throw new RepositoryException("Password was not submitted");
+        }
+        String pwdConfirm = request.getParameter("pwdConfirm");
+        if (!pwd.equals(pwdConfirm)) {
+            throw new RepositoryException(
+                "Password value does not match the confirmation password");
+        }
+
+        Session selfRegSession = null;
+        try {
+            selfRegSession = getSession();
+
+            UserManager userManager = AccessControlUtil.getUserManager(selfRegSession);
+
+                Map<String, RequestProperty> reqProperties = collectContent(
+                    request, response);
+
+                User user = userManager.createUser(principalName,
+                    digestPassword(pwd));
+                ItemBasedPrincipal p = (ItemBasedPrincipal) user.getPrincipal();
+                ValueFactory vf = selfRegSession.getValueFactory();
+                user.setProperty("path", vf.createValue(p.getPath().substring(UserConstants.USER_REPO_LOCATION.length())));
+                log.info("User {} created at {} ",p.getName(), p.getPath());
+
+                String userPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+                    + user.getID();
+
+                response.setPath(userPath);
+                response.setLocation(userPath);
+                response.setParentLocation(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PATH);
+                changes.add(Modification.onCreated(userPath));
+
+                // write content from form
+                writeContent(selfRegSession, user, reqProperties, changes);
+
+                try {
+                    log.debug("Looping all the post processors");
+                    for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
+                        log.debug("Processor: {}", userPostProcessor);
+                        userPostProcessor.process(user, selfRegSession, request, changes);
+                    }
+                    log.debug("Finished Looping all the post processors");
+                } catch (Exception e) {
+                    log.warn(e.getMessage(), e);
+                    response
+                      .setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+                }
+                if (selfRegSession.hasPendingChanges()) {
+                    selfRegSession.save();
+                }
+        } finally {
+            ungetSession(selfRegSession);
+        }
+    }
+
+
+    protected void bindUserPostProcessor(ServiceReference serviceReference) {
+        postProcessorTracker.bindUserPostProcessor(serviceReference);
+
+    }
+
+    protected void unbindUserPostProcessor(ServiceReference serviceReference) {
+        postProcessorTracker.unbindUserPostProcessor(serviceReference);
+    }
 
 }

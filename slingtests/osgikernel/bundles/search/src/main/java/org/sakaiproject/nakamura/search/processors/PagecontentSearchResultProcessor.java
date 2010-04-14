@@ -2,6 +2,10 @@ package org.sakaiproject.nakamura.search.processors;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -22,13 +26,14 @@ import javax.jcr.query.Row;
 /**
  * Formats user profile node search results
  * 
- * @scr.component immediate="true" label="PagecontentSearchResultProcessor"
- *                description="Formatter for pagecontent search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Pagecontent"
- * @scr.property name="sakai.seach.resourcetype" value="sakai/pagecontent"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, label = "PagecontentSearchResultProcessor", description = "Formatter for pagecontent search results.")
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.processor", value = "Pagecontent"),
+    @Property(name = "sakai.seach.resourcetype", value = "sakai/pagecontent")
+    })
+@Service(value = SearchResultProcessor.class)
 public class PagecontentSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,

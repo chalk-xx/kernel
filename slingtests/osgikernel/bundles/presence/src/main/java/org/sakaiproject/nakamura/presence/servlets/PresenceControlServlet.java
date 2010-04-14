@@ -23,6 +23,10 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -39,21 +43,10 @@ import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This servlet deals with HTML inputs only and the presence POST/DELETE requests
- * 
- * Not using the sling selector here ///scr.property name="sling.servlet.selectors"
- * value="current"
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" values.0="POST" 
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
- * @scr.reference name="PresenceService"
- *                interface="org.sakaiproject.nakamura.api.presence.PresenceService"
- */
+@SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "POST" }, extensions = { "json" })
+@Properties(value = {
+    @Property(name = "service.description", value = { "Controls the presence for the current user." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 @ServiceDocumentation(name = "Presence Control Servlet", 
     description = "Controls the presence, and location for the current user using standard HTTP verbs to perform the control",
     shortDescription="Controls the presence for the current user",
@@ -68,7 +61,7 @@ import org.slf4j.LoggerFactory;
              description = {
                  "Pings the user and sets the location and status if specified.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"Online\" http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "   \"status\" :\"Online\",\n" +
@@ -76,29 +69,29 @@ import org.slf4j.LoggerFactory;
                  "</pre>",
                  "Clear the status, set the location.",
                  "<pre>" +
-                 "curl -Fsakai:location=\"At Home\" -Fsakai:status=\"@clear\" http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Home\" -Fdelete=1 http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
-                 "   \"status\" :\"@clear\",\n" +
+                 "   \"delete\" :\"1\",\n" +
                  "}\n" +
                  "</pre>",
                  "Set Only the location "+
                  "<pre>"+
-                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fsakai:location=\"At Work\"  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"At Home\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the location "+
                  "<pre>"+
-                 "curl -XPOST  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -XPOST  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"location\" :\"null\",\n" +
                  "}\n" +
                  "</pre>",
                  "Clear the presence "+
                  "<pre>"+
-                 "curl -Fdelete=1  http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl -Fdelete=1  http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "   \"deleted\" :\"1\",\n" +
                  "}\n" +
@@ -131,15 +124,8 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 11111111L;
 
+  @Reference
   protected transient PresenceService presenceService;
-
-  protected void bindPresenceService(PresenceService presenceService) {
-    this.presenceService = presenceService;
-  }
-
-  protected void unbindPresenceService(PresenceService presenceService) {
-    this.presenceService = null;
-  }
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -175,6 +161,10 @@ public class PresenceControlServlet extends SlingAllMethodsServlet {
       clear = clearParam.getString("UTF-8");
     }
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       JSONWriter jsonWriter = new JSONWriter(response.getWriter());
       jsonWriter.object();
       if ( clear != null  && clear.length() > 0) {

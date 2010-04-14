@@ -53,12 +53,12 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
     test.setUp();
     presenceService = test.getPresenceService();
     servlet = new PresenceGetServlet();
-    servlet.bindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @Test
@@ -88,6 +88,8 @@ public class PresenceGetServletTest extends AbstractEasyMockTest {
     presenceService.setStatus(uuid, status);
 
     expect(request.getRemoteUser()).andReturn(uuid);
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
 

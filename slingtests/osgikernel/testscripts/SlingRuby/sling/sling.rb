@@ -91,7 +91,7 @@ module SlingInterface
     end
     
     def file_to_multipart(key,filename,mime_type,content)
-      return "Content-Disposition: form-data; name=\"#{CGI::escape(key)}\"; filename=\"#{filename}\"\r\n" +
+      return "Content-Disposition: form-data; name=\"*\"; filename=\"#{filename}\"\r\n" +
              "Content-Transfer-Encoding: binary\r\n" +
              "Content-Type: #{mime_type}\r\n" + 
              "\r\n" + 
@@ -100,7 +100,10 @@ module SlingInterface
     
     def execute_file_post(path, fieldname, filename, data, content_type)
       uri = URI.parse(path)
-      params = [file_to_multipart(fieldname, filename, content_type, data)]
+      fileTypeHint = "Content-Disposition: form-data; name=\"*@TypeHint\"\r\n\r\n" +
+                     "nt:file\r\n"
+
+      params = [fileTypeHint,file_to_multipart(fieldname, filename, content_type, data)]
       boundary = '349832898984244898448024464570528145'
       query = params.collect {|p| '--' + boundary + "\r\n" + p}.join('') + "--" + boundary + "--\r\n"
       req = Net::HTTP::Post.new(uri.path)
@@ -225,13 +228,21 @@ module SlingInterface
     end
     
     def create_node(path, params)
-      result = execute_post(url_for(path), params.update("jcr:createdBy" => @user.name))
+      result = execute_post(url_for(path), params)
+    end
+    
+    def get_user()
+      return @user
     end
     
     def get_node_props_json(path)
       puts "Getting props for path: #{path}" if @debug
       result = execute_get(url_for("#{path}.json"))
-      return result.body
+      if ( result.code == "200" ) 
+        return result.body
+      end 
+      puts("Failed to get properties for "+path+" cause "+result.code+"\n"+result.body)
+      return "{}"
     end
     
     def get_node_props(path)

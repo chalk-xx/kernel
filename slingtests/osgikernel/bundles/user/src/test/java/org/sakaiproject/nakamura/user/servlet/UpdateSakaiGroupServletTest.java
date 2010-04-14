@@ -4,7 +4,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -42,9 +41,7 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     Group authorizable = createMock(Group.class);
     Principal principal = createMock(Principal.class);
     User currentUser = createMock(User.class);
-    PrincipalIterator principalIterator = createMock(PrincipalIterator.class);
     Iterator<Group> groupIterator = createMock(Iterator.class);
-    Principal gprincipal = createMock(Principal.class);
     Group dummyGroup = createMock(Group.class);
     Value group = createMock(Value.class);
     Value[] values = new Value[] { group, group };
@@ -62,17 +59,12 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     UserManager userManager = createMock(UserManager.class);
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
-    expect(session.getUserManager()).andReturn(userManager);
+    expect(session.getUserManager()).andReturn(userManager).anyTimes();
     expect(session.getUserID()).andReturn("notadmin");
     expect(userManager.getAuthorizable("notadmin")).andReturn(currentUser);
     expect(currentUser.isAdmin()).andReturn(false);
+    expect(currentUser.getID()).andReturn("notadmin").anyTimes();
     expect(currentUser.declaredMemberOf()).andReturn(groupIterator);
-    expect(currentUser.getPrincipals()).andReturn(principalIterator);
-
-    expect(principalIterator.hasNext()).andReturn(true);
-    expect(principalIterator.nextPrincipal()).andReturn(gprincipal);
-    expect(gprincipal.getName()).andReturn("1");
-    expect(principalIterator.hasNext()).andReturn(false);
     
     expect(groupIterator.hasNext()).andReturn(true);
     expect(groupIterator.next()).andReturn(dummyGroup);
@@ -85,17 +77,15 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(group.getString()).andReturn("matches2");
     
     expect(slingRepository.loginAdministrative(null)).andReturn(adminSession);
-    expect(adminSession.getUserManager()).andReturn(userManager);
+    expect(adminSession.getUserManager()).andReturn(userManager).anyTimes();
     expect(userManager.getAuthorizable(principal)).andReturn(authorizable);
-    
-    expect(adminSession.getUserManager()).andReturn(userManager);
     
     expect(adminSession.hasPendingChanges()).andReturn(true);
     adminSession.save();
     expectLastCall();
 
     ResourceResolver rr = createMock(ResourceResolver.class);
-    expect(rr.adaptTo(Session.class)).andReturn(session).times(1);
+    expect(rr.adaptTo(Session.class)).andReturn(session).anyTimes();
     
 
     Vector<String> params = new Vector<String>();

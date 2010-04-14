@@ -22,6 +22,8 @@
     }
   }],
   // Standard site-wide schemes for site availability and access rights.
+  // The default ACL provider considers ordering when deciding permissions,
+  // and so it's important that "everyone" ACEs always be set first.
   accessSchemes: {
     "online": {
       description: "Online",
@@ -72,14 +74,14 @@
     "invite": {
       description: "Only people I invite",
       aceModifications: [{
-        role: "Viewer",
-        aces: {
-          "jcr:read": "granted"
-        }
-      }, {
         principal: "everyone",
         aces: {
           "jcr:read": "denied"
+        }
+      }, {
+        role: "Viewer",
+        aces: {
+          "jcr:read": "granted"
         }
       }, {
         principal: "anonymous"

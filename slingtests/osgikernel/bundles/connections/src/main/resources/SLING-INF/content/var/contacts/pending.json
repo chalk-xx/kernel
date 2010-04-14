@@ -1,0 +1,16 @@
+{
+  "sakai:query-language": "xpath",
+  "sakai:query-template": "/jcr:root/{_connectionstore}//*[@sling:resourceType=\"sakai/contact\" and @sakai:state=\"PENDING\"]",
+  "sling:resourceType": "sakai/search",
+  "sakai:propertyprovider" : "Connection",
+  "sakai:resultprocessor": "Connection",
+  "sakai:title": "Contacts - Pending.",
+  "sakai:shortDescription": "Get all the current user's pending contacts.",
+  "sakai:parameters" : [],
+  "sakai:description": [
+                      "This search will get all the pending contacts in the current user's contactstore."
+                      ],
+  "sakai:response": [
+                   "Standard request.<br /> Example: Request to: /_user/contacts/pending.json<br /><pre class=\"json\">{\n   \"query\": \"//_user/contacts/_x0037_9/_x0039_4/ea/_x0034_6/simong//*[@sling:resourceType=\"sakai/contact\" and @sakai:state!=\"PENDING\"]\",\n   \"items\": 25,\n   \"total\": 0,\n   \"results\": []}</pre>"
+                  ]
+}

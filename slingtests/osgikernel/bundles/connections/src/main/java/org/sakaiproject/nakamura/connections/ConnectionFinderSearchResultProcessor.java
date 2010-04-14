@@ -17,16 +17,22 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.RowUtils;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -37,24 +43,23 @@ import javax.jcr.query.Row;
 /**
  * Formats connection search results. We get profile nodes from the query and make a
  * uniformed result.
- * 
- * @scr.component immediate="true" label="ConnectionSearchResultProcessor"
- *                description="Formatter for connection search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="ConnectionFinder"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, description = "Formatter for connection search results", label = "ConnectionFinderSearchResultProcessor")
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.processor", value = "ConnectionFinder") })
+@Service(value = SearchResultProcessor.class)
 public class ConnectionFinderSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write, Aggregator aggregator, Row row)
       throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    Node profileNode = RowUtils.getNode(row, session);
-
+    Node profileNode = row.getNode();
     String user = request.getRemoteUser();
     String targetUser = profileNode.getProperty("rep:userId").getString();
-
-    String contactNodePath = ConnectionUtils.getConnectionPath(user, targetUser);
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Authorizable auMe = um.getAuthorizable(user);
+    Authorizable auTarget = um.getAuthorizable(targetUser);
+    String contactNodePath = ConnectionUtils.getConnectionPath(auMe, auTarget);
     Node node = (Node) session.getItem(contactNodePath);
     if (aggregator != null) {
       aggregator.add(node);

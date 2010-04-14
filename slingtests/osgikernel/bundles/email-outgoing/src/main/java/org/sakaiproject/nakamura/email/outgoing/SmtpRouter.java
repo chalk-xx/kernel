@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.email.outgoing;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -76,25 +77,29 @@ public class SmtpRouter implements MessageRouter {
       if (rcptNotNull && transportNullOrInternal) {
         // check the user's profile for message delivery preference. if the
         // preference is set to smtp, change the transport to 'smtp'.
-        String profilePath = PersonalUtils.getProfilePath(rcpt);
         try {
           Session session = slingRepository.loginAdministrative(null);
-          Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
+          Authorizable user = PersonalUtils.getAuthorizable(session, rcpt);
+          if (user != null) {
+            // We only check the profile is the recipient is a user.
+            String profilePath = PersonalUtils.getProfilePath(user);
+            Node profileNode = JcrUtils.deepGetOrCreateNode(session, profilePath);
 
-          boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
-          boolean smtpMessage = isMessageTypeSmtp(n);
-          if (smtpPreferred || smtpMessage) {
-            String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
+            boolean smtpPreferred = isPreferredTransportSmtp(profileNode);
+            boolean smtpMessage = isMessageTypeSmtp(n);
+            if (smtpPreferred || smtpMessage) {
+              String rcptEmailAddress = PersonalUtils.getPrimaryEmailAddress(profileNode);
 
-            if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
-              LOG.warn("Can't find a primary email address for [" + rcpt
-                  + "]; smtp message will not be sent to user.");
-            } else {
-              AbstractMessageRoute smtpRoute = new AbstractMessageRoute(MessageConstants.TYPE_SMTP
-                  + ":" + rcptEmailAddress) {
-              };
-              rewrittenRoutes.add(smtpRoute);
-              routeIterator.remove();
+              if (rcptEmailAddress == null || rcptEmailAddress.trim().length() == 0) {
+                LOG.warn("Can't find a primary email address for [" + rcpt
+                    + "]; smtp message will not be sent to user.");
+              } else {
+                AbstractMessageRoute smtpRoute = new AbstractMessageRoute(
+                    MessageConstants.TYPE_SMTP + ":" + rcptEmailAddress) {
+                };
+                rewrittenRoutes.add(smtpRoute);
+                routeIterator.remove();
+              }
             }
           }
         } catch (RepositoryException e) {

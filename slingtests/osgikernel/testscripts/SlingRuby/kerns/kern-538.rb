@@ -17,10 +17,10 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create foo node in private store
-    @s.execute_post(@s.url_for("_user/private/foo"), {"foo" => "bar"})
+    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
     
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "_user/private/foo")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/foo")
     
     #Assertions
     default_asserts(jsonRes)
@@ -32,12 +32,12 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create foo node in private store
-    @s.execute_post(@s.url_for("_user/private/foo"), {"foo" => "bar"})
+    @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/foo"), {"foo" => "bar"})
     
     # Create the default tree
     tree = default_tree()
     tree["foo"]["jcr:primaryType"] = "nt:file"
-    jsonRes = create_tree(tree, "_user/private/foo")
+    jsonRes = create_tree(tree, "#{treeuser.private_path_for(@s)}/foo")
     
     #Assertions
     default_asserts(jsonRes)
@@ -49,7 +49,7 @@ class TC_Kern538Test < SlingTest
     @s.switch_user(treeuser)
     
     # Create the default tree
-    jsonRes = create_tree(default_tree(), "_user/private/test")
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/test")
     
     #Assertions
     default_asserts(jsonRes)    
@@ -77,6 +77,10 @@ class TC_Kern538Test < SlingTest
   end
   
   def default_asserts(jsonRes)
+    assert_not_nil(jsonRes, "Expected to have some properties ")
+    assert_not_nil(jsonRes["foo"], "Expected to find the Foo Element" )
+    assert_not_nil(jsonRes["foo"]["bar1"], "Expected to find the Bar1 Element" )
+    assert_not_nil(jsonRes["foo"]["bar2"], "Expected to find the Bar2 Element" )
     assert_equal(jsonRes["foo"]["title"], "Foo", "Expected to get 'Foo' as title.")
     assert_equal(jsonRes["foo"]["bar1"]["unit"], 1, "Expexted to get a childnode 'bar1' with property unit of '1.5'.")
     assert_equal(jsonRes["foo"]["bar1"]["title"], "First bar", "Expexted to get a childnode 'bar1' with property title of 'First bar'.")
@@ -116,7 +120,11 @@ class TC_Kern538Test < SlingTest
     
     # Return the result of that node
     res = @s.execute_get(@s.url_for("#{url}.#{levels}.json"))
-    return JSON.parse(res.body)
+    if ( res.code == "200" ) 
+       return JSON.parse(res.body)
+    else
+       return JSON.parse("{}")
+    end
   end
   
 end

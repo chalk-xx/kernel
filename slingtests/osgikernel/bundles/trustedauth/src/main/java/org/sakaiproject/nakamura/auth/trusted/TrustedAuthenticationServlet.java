@@ -25,6 +25,7 @@ import org.ops4j.pax.web.service.WebContainer;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.http.NamespaceException;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +51,14 @@ import javax.servlet.http.HttpServletResponse;
 @Component(immediate = true, metatype = true)
 @Service
 public final class TrustedAuthenticationServlet extends HttpServlet {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 4265672306115024805L;
+
   private static final Logger LOG = LoggerFactory
       .getLogger(TrustedAuthenticationServlet.class);
-  private static final long serialVersionUID = 1L;
+  
   private static final String PARAM_DESTINATION = "d";
 
   @Property(value = "Trusted Authentication Servlet", propertyPrivate = true)
@@ -73,7 +79,7 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
 
   /** Reference to web container to register this servlet. */
   @Reference
-  private transient WebContainer webContainer;
+  protected transient WebContainer webContainer;
 
   @Reference
   protected transient TrustedTokenService trustedTokenService;
@@ -112,16 +118,16 @@ public final class TrustedAuthenticationServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     
-    if ( trustedTokenService instanceof TrustedTokenServiceImpl ) {
-      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req,resp);
+    if (trustedTokenService instanceof TrustedTokenServiceImpl) {
+      ((TrustedTokenServiceImpl) trustedTokenService).injectToken(req, resp);
 
-    String destination = req.getParameter(PARAM_DESTINATION);
-    
-    if (destination == null) {
-      destination = defaultDestination;
-    }
-    // ensure that the redirect is safe and not susceptible to 
-    resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+      String destination = req.getParameter(PARAM_DESTINATION);
+
+      if (destination == null) {
+        destination = defaultDestination;
+      }
+      // ensure that the redirect is safe and not susceptible to
+      resp.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
     }
   }
 

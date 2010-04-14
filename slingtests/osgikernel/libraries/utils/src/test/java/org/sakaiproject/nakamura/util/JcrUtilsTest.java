@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
@@ -125,10 +126,13 @@ public class JcrUtilsTest {
     expect(property.getLength()).andReturn(100L);
     byte[] buf = new byte[100];
     ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-    expect(property.getStream()).andReturn(bais);
-    replay(node, jcrContentNode, property);
+    Binary binary = createMock(Binary.class);
+    expect(property.getBinary()).andReturn(binary);
+    expect(binary.getStream()).andReturn(bais);
+
+    replay(node, jcrContentNode, property, binary);
     assertNotNull(JcrUtils.getInputStreamForNode(node));
-    verify(node, jcrContentNode, property);
+    verify(node, jcrContentNode, property, binary);
   }
 
   @Test
@@ -138,6 +142,7 @@ public class JcrUtilsTest {
     Property property = createMock(Property.class);
     expect(node.isNodeType("nt:file")).andReturn(false);
     expect(node.hasProperty("jcr:data")).andReturn(false);
+    expect(node.hasProperty("jcr:frozenPrimaryType")).andReturn(false);
     expect(node.getPrimaryItem()).andReturn(jcrContentNode);
     expect(jcrContentNode.isNode()).andReturn(true);
     expect(jcrContentNode.getPrimaryItem()).andReturn(property);
@@ -145,10 +150,13 @@ public class JcrUtilsTest {
     expect(property.getLength()).andReturn(100L);
     byte[] buf = new byte[100];
     ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-    expect(property.getStream()).andReturn(bais);
-    replay(node, jcrContentNode, property);
+    Binary binary = createMock(Binary.class);
+    expect(property.getBinary()).andReturn(binary);
+    expect(binary.getStream()).andReturn(bais);
+
+    replay(node, jcrContentNode, property, binary);
     assertNotNull(JcrUtils.getInputStreamForNode(node));
-    verify(node, jcrContentNode, property);
+    verify(node, jcrContentNode, property, binary);
   }
 
   @Test

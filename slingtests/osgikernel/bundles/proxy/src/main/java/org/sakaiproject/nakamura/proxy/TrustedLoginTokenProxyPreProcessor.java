@@ -63,6 +63,9 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
 
   @Property(name = "port", description = "This is the port where sakai2 runs on (default = 80).", intValue = 80)
   private int port;
+  
+  @Property(name = "hostname", description = "This is the hostname where sakai2 runs on.", value = {"localhost"})
+  private String hostname;
 
   public String getName() {
     return "trusted-token";
@@ -88,6 +91,7 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
     headers.put("X-SAKAI-TOKEN", full);
 
     templateParams.put("port", port);
+    templateParams.put("hostname", hostname);
   }
 
   protected String byteArrayToHexStr(byte[] data) {
@@ -113,6 +117,10 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
     Dictionary props = context.getProperties();
     if (props.get("sharedSecret") != null) {
       sharedSecret = props.get("sharedSecret").toString();
+    }
+    if (props.get("hostname") != null) {
+      hostname = props.get("hostname").toString();
+      LOGGER.info("Sakai 2 hostname: " + hostname);
     }
     if (props.get("port") != null) {
       try {

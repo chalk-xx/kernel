@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.events;
 
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -78,7 +76,7 @@ public class OsgiJmsBridgeTest {
 
     // mock a connection factory service
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
+    expect(connFactoryService.getDefaultPooledConnectionFactory()).andReturn(connFactory).anyTimes();
   }
 
   /**
@@ -136,8 +134,8 @@ public class OsgiJmsBridgeTest {
     setUpFullProcess(false);
 
     // expect to have exceptions when closing the session and connection
-    sess.close();
-    expectLastCall().andThrow(new JMSException("can't close session"));
+    //sess.close();
+    //expectLastCall().andThrow(new JMSException("can't close session"));
     conn.close();
     expectLastCall().andThrow(new JMSException("can't close connection"));
 
@@ -171,7 +169,7 @@ public class OsgiJmsBridgeTest {
     connFactory = createMock(ConnectionFactory.class);
 
     connFactoryService = createMock(ConnectionFactoryService.class);
-    expect(connFactoryService.getDefaultConnectionFactory()).andReturn(connFactory);
+    expect(connFactoryService.getDefaultPooledConnectionFactory()).andReturn(connFactory).anyTimes();
 
     expect(connFactory.createConnection()).andThrow(new JMSException("can't create connection"));
 
@@ -180,45 +178,11 @@ public class OsgiJmsBridgeTest {
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
-    try {
-      sendMessage(props);
-      fail("Should fail when can't create connection");
-    } catch (RuntimeException e) {
-      // verify that all expected calls were made.
-      verify(ctx, connFactory);
-
-      assertTrue(e.getCause() instanceof JMSException);
-    }
-  }
-
-  @Test
-  public void testJmsExceptionWhenCreatingSession() throws JMSException {
-    setUpConnection(true);
-
-    // mock a session to be returned by the connection and expect it to throw an
-    // exception. this causes extra checking to happen in the exception
-    // handling.
-    expect(conn.createSession(false, Session.AUTO_ACKNOWLEDGE)).andThrow(
-        new JMSException("can't create session"));
-
-    // start the mocks
-    replay(ctx, connFactoryService, connFactory, conn);
-
-    // construct and send the message
-    Dictionary<Object, Object> props = buildEventProperties();
-    try {
-      sendMessage(props);
-      fail("Should fail when can't create session");
-    } catch (RuntimeException e) {
-      // verify that all expected calls were made.
-      verify(ctx, connFactory);
-
-      assertTrue(e.getCause() instanceof JMSException);
-    }
-
-    // verify that all expected calls were made.
+    sendMessage(props);
+    // should log the message, but not fail
     verify(ctx, connFactory);
   }
+
 
   @Test
   public void testJmsExceptionWhenCreatingTopic() throws JMSException {
@@ -230,8 +194,6 @@ public class OsgiJmsBridgeTest {
     sess = createMock(Session.class);
     expect(conn.createSession(false, Session.AUTO_ACKNOWLEDGE)).andReturn(sess);
     sess.run();
-    expectLastCall();
-    conn.start();
     expectLastCall();
     sess.close();
     expectLastCall();
@@ -305,13 +267,12 @@ public class OsgiJmsBridgeTest {
       conn = createMock(Connection.class);
       expect(connFactory.createConnection()).andReturn(conn);
 
-      // expect the client id to be set
-      conn.setClientID((String) anyObject());
 
       if (closeConnection) {
         // expect the connection to get closed
         conn.close();
       }
+      
     } catch (JMSException e) {
       // this should never happen because the calls are on mock objects
     }
@@ -326,16 +287,14 @@ public class OsgiJmsBridgeTest {
     try {
       setUpConnection(closeConnection);
 
-      // expect the connection to get started
-      conn.start();
 
       // mock a session to be returned by the connection and expect it
       sess = createMock(Session.class);
       expect(conn.createSession(false, Session.AUTO_ACKNOWLEDGE)).andReturn(sess);
 
       // expect the session to get run
-      sess.run();
-      expectLastCall();
+      //sess.run();
+      //expectLastCall();
 
       // mock a destination as a topic from the session and expect it
       topic = createMock(Topic.class);
@@ -351,10 +310,9 @@ public class OsgiJmsBridgeTest {
 
       // expect the message to be sent
       prod.send(message);
+      
 
-      if (closeConnection) {
-        sess.close();
-      }
+      sess.close();
     } catch (JMSException e) {
       // this should never happen because the calls are on mock objects
     }

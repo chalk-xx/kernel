@@ -106,27 +106,6 @@ public interface MessagingService {
   public String getFullPathToStore(String rcpt, Session session) throws MessagingException;
 
   /**
-   * Returns the URI to a message.
-   * @param rcpt
-   * @param messageId
-   * @param session
-   * @return The URI to a message. ex: /_user/message/user1/a123fd4564ed15468641
-   * @throws MessagingException
-   */
-  public String getUriToMessage(String rcpt, String messageId, Session session) throws MessagingException;
-
-  /**
-   * Gets the URI to a message store for a certain rcpt.
-   * @param rcpt
-   * @param session
-   * @return The URI to a message store. ex: /_group/message/g-dummygroup
-   * @throws MessagingException
-   */
-  public String getUriToStore(String rcpt, Session session) throws MessagingException;
-
-
-
-  /**
    * Copies a message with id <em>messageId</em> from <em>source</em> to <em>target</em>
    * 
    * @param adminSession

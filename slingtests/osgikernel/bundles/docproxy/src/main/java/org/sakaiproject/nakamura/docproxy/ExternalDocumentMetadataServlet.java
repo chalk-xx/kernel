@@ -77,7 +77,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       if (DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This document should reference the config node.
         String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
+        node = session.getNodeByIdentifier(uuid);
       }
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
@@ -98,6 +98,10 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       // Get the meta data.
       String path = url.substring(node.getPath().length());
       ExternalDocumentResultMetadata meta = processor.getDocumentMetadata(node, path);
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
 
       // Give a JSON representation.
       ExtendedJSONWriter write = new ExtendedJSONWriter(response.getWriter());
@@ -157,6 +161,9 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       // Write the meta data.
       String path = url.substring(node.getPath().length());
       processor.updateDocument(node, path, request.getParameterMap(), null, -1);
+
+      // FIXME: what is the response ?
+
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Could not lookup file information.");

@@ -17,7 +17,6 @@ import org.subethamail.smtp.server.SMTPServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import javax.mail.internet.MimeMultipart;
 /**
  * @scr.component immediate="true" label="Sakai SMTP Service"
  *                description="Receives incoming mail." name
- *                ="org.sakaiproject.nakamura.smtp.SmptServer"
+ *                ="org.sakaiproject.nakamura.smtp.SmtpServer"
  * @scr.property name="service.vendor" value="The Sakai Foundation"
  */
 public class SakaiSmtpServer implements SimpleMessageListener {

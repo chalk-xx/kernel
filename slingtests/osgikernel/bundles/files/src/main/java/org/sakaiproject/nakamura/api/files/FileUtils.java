@@ -17,22 +17,15 @@
  */
 package org.sakaiproject.nakamura.api.files;
 
-import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAGS;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_NAME;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_TAG_UUIDS;
+
+import static org.sakaiproject.nakamura.api.files.FilesConstants.REQUIRED_MIXIN;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.RT_SAKAI_LINK;
+import static org.sakaiproject.nakamura.api.files.FilesConstants.SAKAI_LINK;
 
 import org.apache.jackrabbit.JcrConstants;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.value.ValueFactoryImpl;
-import org.apache.jackrabbit.value.ValueHelper;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -40,14 +33,12 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.DateUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,284 +47,101 @@ import java.util.List;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
-// TODO: Javadoc
+/**
+ * Some utility function regarding file management.
+ */
 public class FileUtils {
 
   public static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
   /**
-   * Save a file.
+   * Create a link to a file. There is no need to call a session.save, the change is
+   * persistent.
    * 
-   * @param session
-   * @param path
-   * @param id
-   * @param is
-   * @param fileName
-   * @param contentType
-   * @param slingRepository
-   * @return
-   * @throws RepositoryException
-   * @throws IOException
-   */
-  public static Node saveFile(Session session, String path, String id,
-      InputStream is, String fileName, String contentType, SlingRepository slingRepository)
-      throws RepositoryException, IOException {
-    if (fileName != null && !fileName.equals("")) {
-      // Clean the filename.
-
-      String userId = session.getUserID();
-      if ( "anonymous".equals(userId)  ) {
-        throw new AccessDeniedException();
-      }
-
-      log.info("Trying to save file {} to {} for user {}", new Object[] { fileName, path,
-          userId });
-
-      // Create or get the file.
-      if ( !session.itemExists(path) ) {
-        // create the node administratively, and set permissions
-        Session adminSession = null;
-        try {
-          adminSession = slingRepository.loginAdministrative(null);
-
-          Node fileNode = JcrUtils.deepGetOrCreateNode(adminSession, path, JcrConstants.NT_FILE);
-          Node content = null;
-          UserManager userManager = AccessControlUtil.getUserManager(adminSession);
-          Authorizable authorizable = userManager.getAuthorizable(userId);
-          // configure the ACL for this node.
-          addEntry(fileNode.getPath(), authorizable, adminSession, READ_GRANTED, WRITE_GRANTED,
-              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED,
-              REMOVE_NODE_GRANTED);
-          if (fileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
-            fileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
-          }
-          fileNode.addMixin("sakai:propertiesmix");
-          fileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              FilesConstants.RT_SAKAI_FILE);
-          fileNode.setProperty(FilesConstants.SAKAI_ID, id);
-
-          // Create the content node.
-          content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
-          content.setProperty(JcrConstants.JCR_DATA, is);
-          content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-          content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-          // Set the person who last modified it.s
-          fileNode.setProperty(FilesConstants.SAKAI_USER, userId);
-
-          fileNode.setProperty("sakai:filename", fileName);
-          if (adminSession.hasPendingChanges()) {
-            adminSession.save();
-          }
-        } finally {
-          adminSession.logout();
-        }
-        return (Node) session.getItem(path);
-      } else {
-        Node fileNode = (Node) session.getItem(path);
-        // This is not a new node, so we should already have a content node.
-        // Just in case.. catch it
-        Node content = null;
-        try {
-          content = fileNode.getNode(JcrConstants.JCR_CONTENT);
-        } catch (PathNotFoundException pnfe) {
-          content = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
-        }
-
-        content.setProperty(JcrConstants.JCR_DATA, is);
-        content.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
-        content.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-        // Set the person who last modified it.
-        fileNode.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
-
-        fileNode.setProperty("sakai:filename", fileName);
-        if (session.hasPendingChanges()) {
-          session.save();
-        }
-        return fileNode;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Save a file.
-   * 
-   * @param session
-   * @param path
-   * @param id
-   * @param file
-   * @param contentType
-   * @param slingRepository
-   * @return
-   * @throws RepositoryException
-   * @throws IOException
-   */
-  public static Node saveFile(Session session, String path, String id,
-      RequestParameter file, String contentType, SlingRepository slingRepository)
-      throws RepositoryException, IOException {
-    return saveFile(session, path, id, file.getInputStream(), file
-        .getFileName(), contentType, slingRepository);
-  }
-
-  /**
-   * Create a link to a file.
-   * 
-   * @param session
-   *          The current session.
    * @param fileNode
-   *          The node for the file we are linking to.
+   *          The node that represents the file. This node has to be retrieved via the
+   *          normal user his {@link Session session}. If the userID equals
+   *          {@link UserConstants.ANON_USERID} an AccessDeniedException will be thrown.
    * @param linkPath
-   *          The absolute path were the node should be created that will contain the
-   *          link.
+   *          The absolute path in JCR where the link should be placed.
+   * @param sitePath
+   *          An optional absolute path in JCR to a site. If this parameter is null, it
+   *          will be ignored.
+   * @param slingRepository
+   *          The {@link SlingRepository} to use to login as an administrative.
+   * @return The newly created node.
+   * @throws AccessDeniedException
+   *           When the user is anonymous.
    * @throws RepositoryException
+   *           Something else went wrong.
    */
-  public static String createLink(Session session, Node fileNode, String linkPath,
-      String sitePath, SlingRepository slingRepository) throws RepositoryException {
+  public static Node createLink(Node fileNode, String linkPath, String sitePath,
+      SlingRepository slingRepository) throws AccessDeniedException, RepositoryException {
+    Session session = fileNode.getSession();
     String userId = session.getUserID();
-    if ( "anonymous".equals(userId)  ) {
+    if (UserConstants.ANON_USERID.equals(userId)) {
       throw new AccessDeniedException();
     }
-    
-    
-    String fileUUID = fileNode.getUUID();
-    Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
-    // linkNode.addMixin("sakai:propertiesmix");
-    linkNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-        FilesConstants.RT_SAKAI_LINK);
-    String fileName = fileNode.getProperty(FilesConstants.SAKAI_FILENAME).getString();
-    linkNode.setProperty(FilesConstants.SAKAI_FILENAME, fileName);
-    String uri = FileUtils.getDownloadPath(fileNode);
-    linkNode.setProperty(FilesConstants.SAKAI_LINK, "jcrinternal:" + uri);
-    linkNode.setProperty("jcr:reference", fileUUID);
 
-    // Make sure we can reference this node.
-    if (linkNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
-      linkNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
+    boolean hasMixin = JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN);
+    // If the fileNode doesn't have the required referenceable mixin, we need to set it.
+    // Also, if we want to link this file into a site. We have to be
+    if (!hasMixin || sitePath != null) {
+      // The required mixin is not on the node.
+      // Set it.
+      Session adminSession = null;
+      try {
+        adminSession = slingRepository.loginAdministrative(null);
+
+        // Grab the node via the adminSession
+        String path = fileNode.getPath();
+        Node adminFileNode = (Node) adminSession.getItem(path);
+        if (!hasMixin) {
+          adminFileNode.addMixin(REQUIRED_MIXIN);
+        }
+
+        // Used in a site.
+        if (sitePath != null) {
+          Node siteNode = (Node) session.getItem(sitePath);
+          String site = siteNode.getIdentifier();
+          JcrUtils.addUniqueValue(adminSession, adminFileNode, "sakai:sites", site,
+              PropertyType.STRING);
+        }
+
+        if (adminSession.hasPendingChanges()) {
+          adminSession.save();
+        }
+      } finally {
+        adminSession.logout();
+      }
     }
-    // Save the linkNode.
+
+    // Now that the file is referenceable, it has a uuid.
+    // Use it for the link.
+    // Grab the (updated) node via the user's session id.
+    fileNode = (Node) session.getItem(fileNode.getPath());
+
+    // Create the link
+    Node linkNode = JcrUtils.deepGetOrCreateNode(session, linkPath);
+    linkNode.addMixin(REQUIRED_MIXIN);
+    linkNode
+        .setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, RT_SAKAI_LINK);
+    linkNode.setProperty(SAKAI_LINK, fileNode.getIdentifier());
+
+    // Save link.
     if (session.hasPendingChanges()) {
       session.save();
     }
 
-    Session adminSession = null;
-    try {
-      // Login as admin.
-      // This way we can set an ACL on the fileNode even if it is read only.
-      adminSession = slingRepository.loginAdministrative(null);
-
-      // Get the node trough the admin session.
-      Node adminFileNode = adminSession.getNodeByUUID(fileUUID);
-
-      addValue(adminFileNode, "jcr:reference", linkNode.getUUID());
-      addValue(adminFileNode, "sakai:sites", sitePath);
-      addValue(adminFileNode, "sakai:linkpaths", linkPath);
-
-      // Save the reference.
-      if (adminSession.hasPendingChanges()) {
-        adminSession.save();
-      }
-    } finally {
-      if (adminSession != null)
-        adminSession.logout();
-    }
-
-    return linkNode.getPath();
-
-  }
-
-  /**
-   * Add a value to to a multi-valued property.
-   * 
-   * @param adminFileNode
-   * @param property
-   * @param value
-   * @throws RepositoryException
-   */
-  private static void addValue(Node adminFileNode, String property, String value)
-      throws RepositoryException {
-    // Add a reference on the fileNode.
-    Value[] references = JcrUtils.getValues(adminFileNode, property);
-    if (references.length == 0) {
-      Value[] vals = { ValueHelper.convert(value, PropertyType.STRING, ValueFactoryImpl
-          .getInstance()) };
-      adminFileNode.setProperty(property, vals);
-    } else {
-      Value[] newReferences = new Value[references.length + 1];
-      for (int i = 0; i < references.length; i++) {
-        newReferences[i] = references[i];
-      }
-      newReferences[references.length] = ValueHelper.convert(value, PropertyType.STRING,
-          ValueFactoryImpl.getInstance());
-      adminFileNode.setProperty(property, newReferences);
-    }
-  }
-
-  public static String getHashedPath(String store, String id) {
-    return PathUtils.toInternalHashedPath(store, id, "");
-  }
-
-  /**
-   * Get the download path.
-   * 
-   * @param store
-   * @param id
-   * @return
-   */
-  public static String getDownloadPath(String store, String id) {
-    return store + "/" + id;
-  }
-
-  /**
-   * Looks at a sakai/file node and returns the download path for it.
-   * 
-   * @param node
-   * @return
-   * @throws RepositoryException
-   */
-  public static String getDownloadPath(Node node) throws RepositoryException {
-    Session session = node.getSession();
-    String path = node.getPath();
-    String store = findStore(path, session);
-
-    if (node.hasProperty(FilesConstants.SAKAI_ID)) {
-      String id = node.getProperty(FilesConstants.SAKAI_ID).getString();
-      return getDownloadPath(store, id);
-    }
-
-    return path;
-  }
-
-  /**
-   * Looks at a path and returns the store (or null if none is found)
-   * 
-   * @param path
-   * @param session
-   * @return
-   * @throws RepositoryException
-   */
-  public static String findStore(String path, Session session) throws RepositoryException {
-
-    if (session.itemExists(path)) {
-      Node node = (Node) session.getItem(path);
-      while (!node.getPath().equals("/")) {
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-                .getString().equals(FilesConstants.RT_FILE_STORE)) {
-          return node.getPath();
-        }
-
-        node = node.getParent();
-
-      }
-    }
-
-    return null;
+    return linkNode;
   }
 
   /**
@@ -355,18 +163,21 @@ public class FileUtils {
 
     // The download path to this file.
     write.key("path");
-    write.value(FileUtils.getDownloadPath(node));
+    write.value(node.getPath());
+
+    write.key("name");
+    write.value(node.getName());
 
     if (node.hasNode(JcrConstants.JCR_CONTENT)) {
       Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
       write.key(JcrConstants.JCR_LASTMODIFIED);
       Calendar cal = contentNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
       write.value(DateUtils.iso8601(cal));
-      write.key(FilesConstants.SAKAI_MIMETYPE);
+      write.key(JcrConstants.JCR_MIMETYPE);
       write.value(contentNode.getProperty(JcrConstants.JCR_MIMETYPE).getString());
 
       if (contentNode.hasProperty(JcrConstants.JCR_DATA)) {
-        write.key("filesize");
+        write.key(JcrConstants.JCR_DATA);
         write.value(contentNode.getProperty(JcrConstants.JCR_DATA).getLength());
       }
     }
@@ -401,11 +212,11 @@ public class FileUtils {
     writePermissions(node, session, write);
 
     // Write the actual file.
-    if (node.hasProperty("jcr:reference")) {
-      String uuid = node.getProperty("jcr:reference").getString();
+    if (node.hasProperty(SAKAI_LINK)) {
+      String uuid = node.getProperty(SAKAI_LINK).getString();
       write.key("file");
       try {
-        Node fileNode = session.getNodeByUUID(uuid);
+        Node fileNode = session.getNodeByIdentifier(uuid);
         writeFileNode(fileNode, session, write, siteService);
       } catch (ItemNotFoundException e) {
         write.value(false);
@@ -487,7 +298,7 @@ public class FileUtils {
         String path = v.getString();
         if (!handledSites.contains(path)) {
           handledSites.add(path);
-          Node siteNode = (Node) session.getNodeByUUID(v.getString());
+          Node siteNode = (Node) session.getNodeByIdentifier(v.getString());
 
           boolean hasAccess = acm.hasPrivileges(path, privs);
           if (siteService.isSite(siteNode) && hasAccess) {
@@ -515,7 +326,7 @@ public class FileUtils {
    * @throws JSONException
    * @throws RepositoryException
    */
-  private static void writeSiteInfo(Node siteNode, JSONWriter write,
+  protected static void writeSiteInfo(Node siteNode, JSONWriter write,
       SiteService siteService) throws JSONException, RepositoryException {
     write.object();
     write.key("member-count");
@@ -541,5 +352,41 @@ public class FileUtils {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Add's a tag on a node. If the tag has a name defined in the {@link Property property}
+   * sakai:tag-name it will be added in the fileNode as well.
+   * 
+   * @param adminSession
+   *          The session that can be used to modify the fileNode.
+   * @param fileNode
+   *          The node that needs to be tagged.
+   * @param tagNode
+   *          The node that represents the tag.
+   */
+  public static void addTag(Session adminSession, Node fileNode, Node tagNode)
+      throws RepositoryException {
+    // Grab the node via the adminSession
+    String path = fileNode.getPath();
+    fileNode = (Node) adminSession.getItem(path);
+
+    // Check if the mixin is on the node.
+    // This is nescecary for nt:file nodes.
+    if (!JcrUtils.hasMixin(fileNode, REQUIRED_MIXIN)) {
+      fileNode.addMixin(REQUIRED_MIXIN);
+    }
+
+    // Add the reference from the tag to the node.
+    String tagUuid = tagNode.getIdentifier();
+    String tagName = tagNode.getName();
+    if (tagNode.hasProperty(SAKAI_TAG_NAME)) {
+      tagName = tagNode.getProperty(SAKAI_TAG_NAME).getString();
+    }
+    JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAG_UUIDS, tagUuid,
+        PropertyType.STRING);
+    JcrUtils.addUniqueValue(adminSession, fileNode, SAKAI_TAGS, tagName,
+        PropertyType.STRING);
+
   }
 }

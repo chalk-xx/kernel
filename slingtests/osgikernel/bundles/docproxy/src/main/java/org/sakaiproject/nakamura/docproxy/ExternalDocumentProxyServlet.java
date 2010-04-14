@@ -22,7 +22,7 @@ import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITOR
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyConstants;
@@ -53,7 +53,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 
 @SlingServlet(resourceTypes = { "sling/nonexisting", "sakai/external-repository-document" }, methods = { "GET" }, generateComponent = true, generateService = true)
-public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
+public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
 
   protected ExternalRepositoryProcessorTracker tracker;
   private static final long serialVersionUID = 1521106164249874441L;
@@ -77,7 +77,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
       if (DocProxyUtils.isExternalRepositoryDocument(node)) {
         // This document should reference the config node.
         String uuid = node.getProperty(REPOSITORY_REF).getString();
-        node = session.getNodeByUUID(uuid);
+        node = session.getNodeByIdentifier(uuid);
       }
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
@@ -102,6 +102,8 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
         ExternalDocumentResult result = processor.getDocument(node, path);
         InputStream in = result.getDocumentInputStream(0);
 
+        // FIXME: what about content type and encoding ?
+        
         // Stream it to the user.
         OutputStream out = response.getOutputStream();
         IOUtils.stream(in, out);

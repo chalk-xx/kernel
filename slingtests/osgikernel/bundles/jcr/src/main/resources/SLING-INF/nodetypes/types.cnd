@@ -15,3 +15,6 @@
   
 // Node type for the Site objects
 [sakai:site] > nt:unstructured
+
+// Node type for files
+[sakai:file] > nt:file, sakai:propertiesmix

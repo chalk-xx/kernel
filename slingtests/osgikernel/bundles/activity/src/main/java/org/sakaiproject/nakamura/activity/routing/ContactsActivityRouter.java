@@ -17,18 +17,16 @@
  */
 package org.sakaiproject.nakamura.activity.routing;
 
-import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_FEED_NAME;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.activity.AbstractActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
 import org.sakaiproject.nakamura.api.activity.ActivityRoute;
 import org.sakaiproject.nakamura.api.activity.ActivityRouter;
+import org.sakaiproject.nakamura.api.activity.ActivityUtils;
 import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
@@ -41,6 +39,8 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
 /**
  * This router will deliver an activity to the feed of all the contacts of the actor. It
@@ -106,8 +106,8 @@ public class ContactsActivityRouter implements ActivityRouter {
 
           if (allowCopy) {
             // Get the activity feed for this contact and deliver it.
-            activityFeedPath = PersonalUtils.getPrivatePath(connection, "/"
-                + ACTIVITY_FEED_NAME);
+            Authorizable au = PersonalUtils.getAuthorizable(activity.getSession(), connection);
+            activityFeedPath = ActivityUtils.getUserFeed(au);
             ActivityRoute route = new AbstractActivityRoute(activityFeedPath) {
             };
             routes.add(route);

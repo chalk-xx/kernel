@@ -21,6 +21,9 @@ import static org.easymock.EasyMock.expect;
 
 import junit.framework.Assert;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -65,13 +68,13 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     presenceService = test.getPresenceService();
 
     servlet = new PresenceContactsServlet();
-    servlet.bindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
-    servlet.unbindConnectionManager(connectionManager);
+    servlet.presenceService = null;
+    servlet.connectionManager = null;
   }
 
   @Test
@@ -94,7 +97,7 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     PrintWriter printWriter = new PrintWriter(baos);
 
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
 
@@ -102,6 +105,7 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
     List<String> contacts = new ArrayList<String>();
     connectionManager = createMock(ConnectionManager.class);
 
+    List<Authorizable> authorizables = new ArrayList<Authorizable>();    
     for (int i = 0; i < 50; i++) {
       String uuid = "user-" + i;
       contacts.add(uuid);
@@ -110,15 +114,25 @@ public class PresenceContactsServletTest extends AbstractEasyMockTest {
       PropertyIterator propertyIterator = createMock(PropertyIterator.class);
       expect(propertyIterator.hasNext()).andReturn(false);
       expect(profileNode.getProperties()).andReturn(propertyIterator);
-      expect(session.getItem(PersonalUtils.getProfilePath(uuid))).andReturn(
+      expect(profileNode.getPath()).andReturn("/profile"+i+"/nodepath").anyTimes();
+      expect(profileNode.getName()).andReturn("profile"+i+"nodename").anyTimes();
+      Authorizable au = createAuthorizable(uuid, false, true);
+      authorizables.add(au);
+      expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
           profileNode);
     }
+
+    Authorizable[] auths = new Authorizable[authorizables.size()];
+    UserManager um = createUserManager(null, true, authorizables.toArray(auths));
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(
         connectionManager.getConnectedUsers(CURRENT_USER,
             ConnectionState.ACCEPTED)).andReturn(contacts);
 
-    servlet.bindPresenceService(presenceService);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     replay();
     servlet.doGet(request, response);
 

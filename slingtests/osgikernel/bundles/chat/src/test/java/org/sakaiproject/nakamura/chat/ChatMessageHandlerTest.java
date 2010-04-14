@@ -89,16 +89,16 @@ public class ChatMessageHandlerTest {
     chatManagerService.bindCacheManagerService(cacheManagerService);
 
     handler = new ChatMessageHandler();
-    handler.bindChatManagerService(chatManagerService);
-    handler.bindMessagingService(messagingService);
-    handler.bindSlingRepository(slingRepository);
+    handler.chatManagerService = chatManagerService;
+    handler.messagingService = messagingService;
+    handler.slingRepository = slingRepository;
   }
 
   @After
   public void tearDown() {
-    handler.unbindChatManagerService(chatManagerService);
-    handler.unbindMessagingService(messagingService);
-    handler.unbindSlingRepository(slingRepository);
+    handler.chatManagerService = null;
+    handler.messagingService = null;
+    handler.slingRepository = null;
     verify(cacheManagerService, messagingService, slingRepository);
   }
 

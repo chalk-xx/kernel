@@ -30,8 +30,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
-import org.sakaiproject.nakamura.auth.ldap.guards.PlainTextPasswordGuard;
 
 import java.util.Dictionary;
 
@@ -50,9 +51,14 @@ public class LdapAuthenticationPluginTest {
   
   @Mock
   private LdapConnectionBroker connBroker;
+
+  @Mock
+  private LdapConnectionManager connMgr;
   
   @Before
-  public void setup() {
+  public void setup() throws Exception {
+    when(connBroker.create(isA(String.class), isA(LdapConnectionManagerConfig.class))).thenReturn(connMgr);
+    when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(null);
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
     ldapAuthenticationPlugin.connBroker = connBroker;
   }
@@ -77,7 +83,7 @@ public class LdapAuthenticationPluginTest {
     ldapAuthenticationPlugin.activate(componentContext);
     
     // then
-    verify(connBroker).create(anyString());
+    verify(connBroker).create(isA(String.class), isA(LdapConnectionManagerConfig.class));
   }
   
   @Test
@@ -103,7 +109,6 @@ public class LdapAuthenticationPluginTest {
     // given
     connectionBrokerWillAllowAnything();
     aContextThatCanReturnProperties();
-    ldapAuthenticationPlugin.bindPasswordGuards(new PlainTextPasswordGuard());
     ldapAuthenticationPlugin.activate(componentContext);
     
     // then
@@ -122,12 +127,12 @@ public class LdapAuthenticationPluginTest {
     when(connBroker.getConnection(anyString())).thenReturn(conn);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private void aContextThatCanReturnProperties() {
     Dictionary props = mock(Dictionary.class);
     when(props.get(LdapAuthenticationPlugin.LDAP_CONNECTION_SECURE)).thenReturn(Boolean.TRUE);
     when(props.get(LdapAuthenticationPlugin.LDAP_PORT)).thenReturn(389);
-    when(props.get(LdapAuthenticationPlugin.LDAP_ATTR_PASSWORD)).thenReturn("pw");
+    when(props.get(LdapAuthenticationPlugin.LDAP_BASE_DN)).thenReturn("uid={}");
     when(componentContext.getProperties()).thenReturn(props);
   }
 }

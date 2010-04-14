@@ -73,7 +73,10 @@ public class RowIteratorImpl implements RowIterator {
    * @see javax.jcr.RangeIterator#skip(long)
    */
   public void skip(long skipNum) {
-    throw new NotImplementedException();
+    while (skipNum > 0) {
+      iterator.next();
+      skipNum--;
+    }
   }
 
   /**

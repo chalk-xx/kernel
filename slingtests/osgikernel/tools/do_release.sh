@@ -52,7 +52,7 @@ else
   tagversion="$cversion-$rc"
 fi
 
-echo "Creating tagged version: $nversion at tag $tagversion "
+echo "Creating tagged version: $cversion at tag $tagversion "
 
 mkdir -p last-release
 

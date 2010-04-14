@@ -19,6 +19,9 @@ package org.sakaiproject.nakamura.presence.servlets;
 
 import static org.easymock.EasyMock.expect;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -32,6 +35,7 @@ import org.sakaiproject.nakamura.api.connections.ConnectionManager;
 import org.sakaiproject.nakamura.api.connections.ConnectionState;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.presence.PresenceServiceImplTest;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -67,24 +71,23 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     presenceService = test.getPresenceService();
 
     servlet = new PresenceUserServlet();
-    servlet.bindPresenceService(presenceService);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
-    servlet.unbindConnectionManager(connectionManager);
+    servlet.presenceService = presenceService;
+    servlet.connectionManager = connectionManager;
   }
 
   @Test
   public void testAnon() throws ServletException, IOException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     SlingHttpServletResponse response = createMock(SlingHttpServletResponse.class);
-    expect(request.getRemoteUser()).andReturn(null);
+    expect(request.getRemoteUser()).andReturn(UserConstants.ANON_USERID);
     response.sendError(401, "User must be logged in to check their status");
     replay();
-    PresenceGetServlet servlet = new PresenceGetServlet();
     servlet.doGet(request, response);
   }
 
@@ -112,13 +115,18 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     // Pick a uuid we have as a friend.
     String contact = "user-10";
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);
+    JackrabbitSession session = createMock(JackrabbitSession.class);
     Node profileNode = createMock(Node.class);
     PropertyIterator propertyIterator = createMock(PropertyIterator.class);
 
+    Authorizable au = createAuthorizable(contact, false, true);
+    UserManager um = createUserManager(null, true, au);
+    expect(session.getUserManager()).andReturn(um).anyTimes();
     expect(propertyIterator.hasNext()).andReturn(false);
     expect(profileNode.getProperties()).andReturn(propertyIterator);
-    expect(session.getItem(PersonalUtils.getProfilePath(contact))).andReturn(
+    expect(profileNode.getPath()).andReturn("/profile/node/path").anyTimes();
+    expect(profileNode.getName()).andReturn("profile_node_name").anyTimes();
+    expect(session.getItem(PersonalUtils.getProfilePath(au))).andReturn(
         profileNode);
     expect(resourceResolver.adaptTo(Session.class)).andReturn(session);
     expect(request.getResourceResolver()).andReturn(resourceResolver);
@@ -131,6 +139,8 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     expect(request.getRemoteUser()).andReturn(CURRENT_USER);
     expect(request.getParameter("userid")).andReturn(contact);
     bindConnectionManager();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
 
@@ -168,7 +178,7 @@ public class PresenceUserServletTest extends AbstractEasyMockTest {
     }
     expect(connectionManager.getConnectedUsers(CURRENT_USER, ConnectionState.ACCEPTED)).andReturn(
         friends);
-    servlet.bindConnectionManager(connectionManager);
+    servlet.connectionManager = connectionManager;
   }
 
 }

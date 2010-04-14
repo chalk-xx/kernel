@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.search.processors;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -39,13 +43,14 @@ import javax.jcr.query.Row;
  * - properties: list of properties you want to filter on. - values: list of values for
  * the properties - operators: list of operators: > = <
  * 
- * @scr.component immediate="true" label="PageSearchResultProcessor"
- *                description="Formatter for pages search results."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Page"
- * @scr.property name="sakai.seach.resourcetype" value="sakai/page"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, label = "PageSearchResultProcessor", description = "Formatter for pages search results.")
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.processor", value = "Page"),
+    @Property(name = "sakai.seach.resourcetype", value = "sakai/page")
+    })
+@Service(value = SearchResultProcessor.class)
 public class PageSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,

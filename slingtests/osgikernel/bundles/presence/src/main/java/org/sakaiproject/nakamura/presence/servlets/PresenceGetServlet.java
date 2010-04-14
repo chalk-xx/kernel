@@ -18,9 +18,13 @@
 
 package org.sakaiproject.nakamura.presence.servlets;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -39,18 +43,10 @@ import java.io.Writer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * This servlet deals with JSON output only and the presence GET requests
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" value="sakai/presence"
- * @scr.property name="sling.servlet.methods" value="GET" 
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
- * @scr.reference name="PresenceService"
- *                interface="org.sakaiproject.nakamura.api.presence.PresenceService"
- */
+@SlingServlet(resourceTypes = { "sakai/presence" }, generateComponent = true, generateService = true, methods = { "GET" }, extensions = { "json" })
+@Properties(value = {
+    @Property(name = "service.description", value = { "Gets the presence for the current user only." }),
+    @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 @ServiceDocumentation(name = "Presence Servlet", 
     description = "Gets presence for the current user only.",
     shortDescription="Gets the presence for the current user only.",
@@ -67,7 +63,7 @@ import javax.servlet.http.HttpServletResponse;
                  "to a node of type sakai/presence although at the moment, there does not appear to be any information used from that " +
                  "path.",
                  "<pre>" +
-                 "curl http://ieb:password@localhost:8080/_user/presence.json\n" +
+                 "curl http://ieb:password@localhost:8080/var/presence.json\n" +
                  "{\n" +
                  "  \"user\": \"ieb\"  \n" +
                  "  \"sakai:status\": \"online\",\n" +
@@ -83,21 +79,18 @@ import javax.servlet.http.HttpServletResponse;
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
         })
-public class PresenceGetServlet extends SlingAllMethodsServlet {
+public class PresenceGetServlet extends SlingSafeMethodsServlet {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 919177623558565626L;
+
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PresenceGetServlet.class);
 
-  private static final long serialVersionUID = 11111111L;
-
+  @Reference
   protected transient PresenceService presenceService;
-
-  protected void bindPresenceService(PresenceService presenceService) {
-    this.presenceService = presenceService;
-  }
-
-  protected void unbindPresenceService(PresenceService presenceService) {
-    this.presenceService = null;
-  }
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -112,6 +105,10 @@ public class PresenceGetServlet extends SlingAllMethodsServlet {
     LOGGER.info("GET to PresenceServlet (" + user + ")");
 
     try {
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       Writer writer = response.getWriter();
       PresenceUtils.makePresenceJSON(writer, user, presenceService);
     } catch (JSONException e) {

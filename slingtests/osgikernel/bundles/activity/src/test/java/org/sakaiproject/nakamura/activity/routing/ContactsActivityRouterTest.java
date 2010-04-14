@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 /**
  *
@@ -41,8 +40,6 @@ public class ContactsActivityRouterTest extends AbstractActivityRouterTest {
   
   @Test
   public void testAdding() throws RepositoryException {
-    Session session = createNiceMock(Session.class);
-    EasyMock.expect(activity.getSession()).andReturn(session);
     ConnectionManager connectionManager = createNiceMock(ConnectionManager.class);
     List<String> connections = new ArrayList<String>();
     EasyMock.expect(connectionManager.getConnectedUsers(user, ConnectionState.ACCEPTED)).andReturn(connections);

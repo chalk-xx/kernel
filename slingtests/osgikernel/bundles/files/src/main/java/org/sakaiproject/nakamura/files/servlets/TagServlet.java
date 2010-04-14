@@ -101,7 +101,7 @@ public class TagServlet extends SlingSafeMethodsServlet {
       throws RepositoryException, JSONException, SearchException {
     // We expect tags to be referencable, if this tag is not..
     // it will throw an exception.
-    String uuid = tag.getUUID();
+    String uuid = tag.getIdentifier();
 
     // Tagging on any item will be performed by adding a weak reference to the content
     // item. Put simply a sakai:tag-uuid property with the UUID of the tag node. We use
@@ -119,8 +119,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
     }
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);
+    write.array();
     proc.writeNodes(request, write, null, rs.getRowIterator());
-
+    write.endArray();
   }
 
   /**

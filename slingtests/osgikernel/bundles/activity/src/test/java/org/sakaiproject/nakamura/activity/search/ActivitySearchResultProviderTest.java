@@ -21,14 +21,22 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.activity.ActivityConstants;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  *
@@ -36,17 +44,25 @@ import java.util.Map;
 public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
 
   @Test
-  public void testLoadProperties() {
+  public void testLoadProperties() throws RepositoryException {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     expect(request.getRemoteUser()).andReturn("admin");
     addStringRequestParameter(request, "site", "/sites/mysite");
 
+    JackrabbitSession session = createMock(JackrabbitSession.class);
+    Authorizable admin = createAuthorizable("admin", false, true);
+    UserManager um = createUserManager(null, true, admin);
+    ResourceResolver resolver = createMock(ResourceResolver.class);
+    expect(session.getUserManager()).andReturn(um);
+    expect(request.getResourceResolver()).andReturn(resolver);
+    expect(resolver.adaptTo(Session.class)).andReturn(session);
+    
     replay();
     ActivitySearchPropertyProvider provider = new ActivitySearchPropertyProvider();
     Map<String, String> propertiesMap = new HashMap<String, String>();
     provider.loadUserProperties(request, propertiesMap);
     String actual = propertiesMap.get("_myFeed");
-    String expected = ISO9075.encodePath("/_user/private/d0/33/e2/2a/admin/"
+    String expected = ISO9075.encodePath("/_user/a/ad/admin/private/"
         + ActivityConstants.ACTIVITY_FEED_NAME);
     assertEquals(expected, actual);
     String siteFeed = propertiesMap.get("_siteFeed");
@@ -57,7 +73,7 @@ public class ActivitySearchResultProviderTest extends AbstractEasyMockTest {
   @Test
   public void testAnonLoadPRoperties() {
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    expect(request.getRemoteUser()).andReturn("anon");
+    expect(request.getRemoteUser()).andReturn(UserConstants.ANON_USERID);
 
     replay();
     ActivitySearchPropertyProvider provider = new ActivitySearchPropertyProvider();

@@ -91,7 +91,7 @@ public class LdapPersonProvider implements PersonProvider {
   }
 
   @Activate
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   protected void activate(ComponentContext ctx) {
     Dictionary props = ctx.getProperties();
     allowAdminLookup = (Boolean) props.get(PROP_ALLOW_ADMIN_LOOKUP);
@@ -135,7 +135,7 @@ public class LdapPersonProvider implements PersonProvider {
     return attributesMap;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
     try {
       PersonImpl ldapPerson = null;
@@ -154,7 +154,7 @@ public class LdapPersonProvider implements PersonProvider {
             new Object[] { baseDn, filter, attributes });
 
         // get a connection
-        LDAPConnection conn = ldapBroker.getBoundConnection(LDAP_BROKER_NAME);
+        LDAPConnection conn = ldapBroker.getConnection(LDAP_BROKER_NAME);
         LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
             attributes, false, constraints);
         if (searchResults.hasMore()) {

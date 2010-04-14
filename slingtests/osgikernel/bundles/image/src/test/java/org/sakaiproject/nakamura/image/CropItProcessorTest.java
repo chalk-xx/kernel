@@ -21,6 +21,11 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.apache.sanselan.ImageFormat;
+import org.apache.sanselan.ImageInfo;
+import org.apache.sanselan.ImageReadException;
+import org.apache.sanselan.ImageWriteException;
+import org.apache.sanselan.Sanselan;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.jcr.JCRConstants;
@@ -36,8 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.jcr.Binary;
 import javax.jcr.Node;
-import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -70,16 +75,6 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
     expect(session.getItem(img)).andReturn(node);
   }
 
-  @Test
-  public void testGetMimeTypeForNodeProp() throws PathNotFoundException,
-      ValueFormatException, RepositoryException {
-    Node node = createMock(Node.class);
-    createMimeType(node, "image/jpg");
-    replay();
-    String result = CropItProcessor.getMimeTypeForNode(node, "test.jpg");
-    assertEquals("image/jpg", result);
-  }
-
   /**
    * @param node
    * @param string
@@ -95,29 +90,10 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testGetMimeTypeForNodeName() throws PathNotFoundException,
-      ValueFormatException, RepositoryException {
-    Node node = createMock(Node.class);
-    expect(node.hasProperty(JCRConstants.JCR_MIMETYPE)).andReturn(false);
-    String result = CropItProcessor.getMimeTypeForNode(node, "test.gif");
-    assertEquals("image/gif", result);
-  }
-
-  @Test
-  public void testGetMimeTypeForNodeInvalid() throws PathNotFoundException,
-      ValueFormatException, RepositoryException {
-    Node node = createMock(Node.class);
-    expect(node.hasProperty(JCRConstants.JCR_MIMETYPE)).andReturn(false);
-    String result = CropItProcessor.getMimeTypeForNode(node, "test.foo");
-    assertEquals("text/plain", result);
-  }
-
-  @Test
-  public void testGetScaledInstance() throws IOException {
+  public void testGetScaledInstance() throws IOException, ImageReadException {
     InputStream is = getClass().getResourceAsStream("people.png");
-    BufferedImage bufImg = ImageIO.read(is);
-    BufferedImage croppedImg = CropItProcessor.getScaledInstance(bufImg, 50,
-        50, BufferedImage.TYPE_INT_ARGB_PRE);
+    BufferedImage bufImg = Sanselan.getBufferedImage(is);
+    BufferedImage croppedImg = CropItProcessor.getScaledInstance(bufImg, 50, 50);
     assertEquals(50, croppedImg.getWidth());
     assertEquals(50, croppedImg.getHeight());
   }
@@ -143,10 +119,15 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
     expect(node.getName()).andReturn("foo.bar").anyTimes();
     expect(node.isNodeType("nt:file")).andReturn(true);
     expect(node.hasNode(JCRConstants.JCR_CONTENT)).andReturn(true);
-    expect(node.hasProperty(JCRConstants.JCR_DATA)).andReturn(false);
 
+    InputStream in = getClass().getResourceAsStream("not.an.image");
     Node contentNode = createMock(Node.class);
     expect(contentNode.isNodeType("nt:resource")).andReturn(true);
+    Property streamProp = createMock(Property.class);
+    Binary bin = createMock(Binary.class);
+    expect(streamProp.getBinary()).andReturn(bin);
+    expect(bin.getStream()).andReturn(in);
+    expect(contentNode.getProperty(JCRConstants.JCR_DATA)).andReturn(streamProp);
     createMimeType(contentNode, "image/foo");
     expect(node.getNode(JCRConstants.JCR_CONTENT)).andReturn(contentNode);
 
@@ -160,12 +141,15 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testscaleAndWriteToStream() throws IOException {
+  public void testscaleAndWriteToStream() throws IOException, ImageWriteException,
+      ImageReadException {
     InputStream is = getClass().getResourceAsStream("people.png");
-    BufferedImage imgBuf = ImageIO.read(is);
+    BufferedImage imgBuf = Sanselan.getBufferedImage(is);
     BufferedImage subImage = imgBuf.getSubimage(0, 0, 100, 100);
-    ByteArrayOutputStream baos = CropItProcessor.scaleAndWriteToStream(50, 50,
-        subImage, "image/png", "people.png");
+    ImageInfo info = new ImageInfo("PNG", 8, null, ImageFormat.IMAGE_FORMAT_PNG, "PNG",
+        256, "image/png", 1, 76, 76, 76, 76, 256, true, true, false, 2, "ZIP");
+    ByteArrayOutputStream baos = CropItProcessor.scaleAndWriteToStream(50, 50, subImage,
+        "people.png", info);
     InputStream scaledIs = new ByteArrayInputStream(baos.toByteArray());
     BufferedImage scaledImage = ImageIO.read(scaledIs);
     assertEquals(scaledImage.getWidth(), 50);

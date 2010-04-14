@@ -17,10 +17,11 @@
  */
 package org.sakaiproject.nakamura.ldap;
 
+import static org.easymock.EasyMock.isA;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
@@ -48,7 +49,7 @@ public class SimpleLdapConnectionManagerTest {
   private String keystorePassword = "keystore123";
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     URL url = getClass().getResource("server_keystore.jks");
     keystoreLocation = url.getPath();
 
@@ -66,11 +67,12 @@ public class SimpleLdapConnectionManagerTest {
         return conn;
       }
     };
+
     mgr.setConfig(config);
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     mgr.destroy();
   }
 
@@ -86,36 +88,37 @@ public class SimpleLdapConnectionManagerTest {
 
   @Test
   public void testConnection() throws Exception {
+    conn.setConstraints(isA(LDAPConstraints.class));
+
+    conn.connect(isA(String.class), anyInt());
+
+    replay(conn);
+
     mgr.init();
     mgr.getConnection();
   }
 
-  @Test
+  @Test(expected = LdapException.class)
   public void testConnectionCantConnect() throws Exception {
-    try {
-      conn.setConstraints((LDAPConstraints) anyObject());
-      expectLastCall();
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-      conn.connect((String) anyObject(), anyInt());
-      expectLastCall().andThrow(new LDAPException());
-      replay(conn);
+    conn.connect(isA(String.class), anyInt());
+    expectLastCall().andThrow(new LDAPException());
+    replay(conn);
 
-      mgr.init();
-      mgr.getConnection();
-      fail("Should throw an exception when can't connect.");
-    } catch (LdapException e) {
-      // expected
-    }
+    mgr.init();
+    mgr.getConnection();
+    fail("Should throw an exception when can't connect.");
   }
 
-  @Test
+  @Test(expected = LdapException.class)
   public void testConnectionLdapFailPostConnect() throws Exception {
     config.setSecureConnection(true);
     config.setTLS(true);
 
-    conn.setConstraints((LDAPConstraints) anyObject());
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
+    conn.connect(isA(String.class), anyInt());
 
     conn.startTLS();
     expectLastCall().andThrow(new LDAPException());
@@ -123,22 +126,18 @@ public class SimpleLdapConnectionManagerTest {
     conn.disconnect();
 
     replay(conn);
-    try {
-      mgr.getConnection();
-      fail("Should throw an exception when can't start TLS.");
-    } catch (LdapException e) {
-      // expected
-    }
+    mgr.getConnection();
+    fail("Should throw an exception when can't start TLS.");
   }
 
-  @Test
+  @Test(expected = LdapException.class)
   public void testConnectionLdapFailPostConnectFailDisconnect() throws Exception {
     config.setSecureConnection(true);
     config.setTLS(true);
 
-    conn.setConstraints((LDAPConstraints) anyObject());
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
+    conn.connect(isA(String.class), anyInt());
 
     conn.startTLS();
     expectLastCall().andThrow(new LDAPException());
@@ -147,22 +146,18 @@ public class SimpleLdapConnectionManagerTest {
     expectLastCall().andThrow(new LDAPException());
 
     replay(conn);
-    try {
-      mgr.getConnection();
-      fail("Should throw an exception when can't start TLS.");
-    } catch (LdapException e) {
-      // expected
-    }
+    mgr.getConnection();
+    fail("Should throw an exception when can't start TLS.");
   }
 
-  @Test
-  public void testConnectionRuntimeFailPostConnect() throws Exception {
+  @Test(expected = RuntimeException.class)
+  public void testConnectionRuntimeFailPostConnect() throws LDAPException, LdapException {
     config.setSecureConnection(true);
     config.setTLS(true);
 
-    conn.setConstraints((LDAPConstraints) anyObject());
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
+    conn.connect(isA(String.class), anyInt());
 
     conn.startTLS();
     expectLastCall().andThrow(new RuntimeException());
@@ -170,22 +165,18 @@ public class SimpleLdapConnectionManagerTest {
     conn.disconnect();
 
     replay(conn);
-    try {
-      mgr.getConnection();
-      fail("Should throw an exception when can't start TLS.");
-    } catch (RuntimeException e) {
-      // expected
-    }
+    mgr.getConnection();
+    fail("Should throw an exception when can't start TLS.");
   }
 
-  @Test
+  @Test(expected = RuntimeException.class)
   public void testConnectionRuntimeFailPostConnectDisconnect() throws Exception {
     config.setSecureConnection(true);
     config.setTLS(true);
 
-    conn.setConstraints((LDAPConstraints) anyObject());
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
+    conn.connect(isA(String.class), anyInt());
 
     conn.startTLS();
     expectLastCall().andThrow(new RuntimeException());
@@ -194,58 +185,43 @@ public class SimpleLdapConnectionManagerTest {
     expectLastCall().andThrow(new LDAPException());
 
     replay(conn);
-    try {
-      mgr.getConnection();
-      fail("Should throw an exception when can't start TLS.");
-    } catch (RuntimeException e) {
-      // expected
-    }
+    mgr.getConnection();
+    fail("Should throw an exception when can't start TLS.");
   }
 
   @Test
   public void testBoundConnection() throws Exception {
-    conn.setConstraints((LDAPConstraints) anyObject());
-    expectLastCall();
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
-    expectLastCall();
+    conn.connect(isA(String.class), anyInt());
 
-    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
-    expectLastCall();
+    conn.bind(anyInt(), isA(String.class), isA(byte[].class));
     replay(conn);
 
-    mgr.getBoundConnection();
+    mgr.getBoundConnection("dn=people", "password");
   }
 
-  @Test
+  @Test(expected = LdapException.class)
   public void testBoundConnectionCantBind() throws Exception {
-    conn.setConstraints((LDAPConstraints) anyObject());
-    expectLastCall();
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
-    expectLastCall();
+    conn.connect(isA(String.class), anyInt());
 
-    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
+    conn.bind(anyInt(), isA(String.class), isA(byte[].class));
     expectLastCall().andThrow(new LDAPException());
     replay(conn);
 
-    try {
-      mgr.getBoundConnection();
-      fail("Should throw an exception when bind throws an exception.");
-    } catch (LdapException e) {
-      // expected
-    }
+    mgr.getBoundConnection("dn=people", "password");
+    fail("Should throw an exception when bind throws an exception.");
   }
 
   @Test
   public void testConnectionAutoBind() throws Exception {
-    conn.setConstraints((LDAPConstraints) anyObject());
-    expectLastCall();
+    conn.setConstraints(isA(LDAPConstraints.class));
 
-    conn.connect((String) anyObject(), anyInt());
-    expectLastCall();
+    conn.connect(isA(String.class), anyInt());
 
-    conn.bind(anyInt(), (String) anyObject(), (byte[]) anyObject());
+    conn.bind(anyInt(), isA(String.class), isA(byte[].class));
 
     config.setAutoBind(true);
     mgr.init();
@@ -270,16 +246,12 @@ public class SimpleLdapConnectionManagerTest {
     mgr.init();
   }
 
-  @Test
-  public void testInitKeystoreMissing() {
-    try {
-      config.setKeystoreLocation(keystoreLocation + "xxx");
-      config.setSecureConnection(true);
-      mgr.init();
-      fail("Should throw exception if the keystore location is invalid.");
-    } catch (LdapException e) {
-      // expected exception
-    }
+  @Test(expected = LdapException.class)
+  public void testInitKeystoreMissing() throws Exception {
+    config.setKeystoreLocation(keystoreLocation + "xxx");
+    config.setSecureConnection(true);
+    mgr.init();
+    fail("Should throw exception if the keystore location is invalid.");
   }
 
   @Test
@@ -299,7 +271,6 @@ public class SimpleLdapConnectionManagerTest {
   @Test
   public void testReturnLiveConnection() throws Exception {
     conn.disconnect();
-    expectLastCall();
     replay(conn);
     mgr.returnConnection(conn);
   }

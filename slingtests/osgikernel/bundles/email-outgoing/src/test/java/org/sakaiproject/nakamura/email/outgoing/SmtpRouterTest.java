@@ -5,6 +5,10 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,24 +16,24 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.personal.PersonalConstants;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.message.listener.MessageRoutesImpl;
-import org.sakaiproject.nakamura.util.PathUtils;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
-import javax.jcr.Session;
+import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
 public class SmtpRouterTest {
   private SmtpRouter smtpRouter;
-  private Session session;
+  private JackrabbitSession session;
 
   @Before
   public void setup() throws Exception {
     smtpRouter = new SmtpRouter();
 
-    session = createMock(Session.class);
+    session = createMock(JackrabbitSession.class);
 
     SlingRepository slingRepository = createMock(SlingRepository.class);
     expect(slingRepository.loginAdministrative(null)).andReturn(session);
@@ -41,6 +45,8 @@ public class SmtpRouterTest {
   @Test
   public void testRewriteSmtp() throws Exception {
     String username = "foo";
+    
+    Authorizable au = addAuthorizable(username, session);
     Property toProp = createMock(Property.class);
     expect(toProp.getString()).andReturn(username);
 
@@ -69,8 +75,7 @@ public class SmtpRouterTest {
         .times(2);
     expect(authProfile.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(emailProp);
 
-    String authProfilePath = PathUtils.toInternalHashedPath("/_user/public", username,
-        PersonalConstants.AUTH_PROFILE);
+    String authProfilePath = PersonalUtils.getProfilePath(au);
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
 
@@ -83,7 +88,34 @@ public class SmtpRouterTest {
       assertEquals(username + "@localhost", route.getRcpt());
       assertEquals(MessageConstants.TYPE_SMTP, route.getTransport());
     }
+  }/**
+   * @param username
+   * @param sess
+   * @throws RepositoryException 
+   */
+  private Authorizable addAuthorizable(String username, Object sess) throws RepositoryException {
+    Authorizable au = createMock(Authorizable.class);
+    expect(au.getID()).andReturn(username).anyTimes();
+    expect(au.isGroup()).andReturn(false).anyTimes();
+
+    UserManager um = createMock(UserManager.class);
+    expect(um.getAuthorizable(username)).andReturn(au).anyTimes();
+    ItemBasedPrincipal principal = createMock(ItemBasedPrincipal.class);
+    expect(au.getPrincipal()).andReturn(principal).anyTimes();
+    expect(principal.getPath()).andReturn("/rep:system/rep:authorizables/rep:users/f/fo/foo").anyTimes();
+    expect(au.hasProperty("path")).andReturn(true).anyTimes();
+    Value value = createMock(Value.class);
+    expect(au.getProperty("path")).andReturn(new Value[]{value}).anyTimes();
+    expect(value.getString()).andReturn("/f/fo/foo").anyTimes();
+    
+    expect(session.getUserManager()).andReturn(um).anyTimes();
+
+    replay(um, au, principal, value);
+    
+    return au;
   }
+
+
 
   @Test
   public void testSkipInternal() throws Exception {
@@ -91,6 +123,7 @@ public class SmtpRouterTest {
     expect(messageNode.hasProperty(MessageConstants.PROP_SAKAI_TYPE)).andReturn(false);
 
     String username = "foo";
+    Authorizable au = addAuthorizable(username, session);
     Property toProp = createMock(Property.class);
     expect(toProp.getString()).andReturn(username);
 
@@ -106,8 +139,7 @@ public class SmtpRouterTest {
     expect(authProfile.getProperty(PersonalConstants.PREFERRED_MESSAGE_TRANSPORT))
         .andReturn(transportProp);
 
-    String authProfilePath = PathUtils.toInternalHashedPath("/_user/public", username,
-        PersonalConstants.AUTH_PROFILE);
+    String authProfilePath = PersonalUtils.getProfilePath(au);
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
 
@@ -131,6 +163,7 @@ public class SmtpRouterTest {
     expect(messageNode.getProperty(MessageConstants.PROP_SAKAI_TYPE)).andReturn(typeProp);
 
     String username = "foo";
+    Authorizable au = addAuthorizable(username, session);
     Property toProp = createMock(Property.class);
     expect(toProp.getString()).andReturn(username);
 
@@ -159,8 +192,7 @@ public class SmtpRouterTest {
         .times(2);
     expect(authProfile.getProperty(PersonalConstants.EMAIL_ADDRESS)).andReturn(emailProp);
 
-    String authProfilePath = PathUtils.toInternalHashedPath("/_user/public", username,
-        PersonalConstants.AUTH_PROFILE);
+    String authProfilePath = PersonalUtils.getProfilePath(au);
     expect(session.itemExists(authProfilePath)).andReturn(true);
     expect(session.getItem(authProfilePath)).andReturn(authProfile);
 

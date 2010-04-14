@@ -18,13 +18,22 @@
 
 package org.sakaiproject.nakamura.message.internal;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,52 +45,24 @@ import javax.jcr.Session;
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
  * started immediately to make sure it registers with JCR as soon as possible.
- * 
- * @scr.component label="InternalMessageHandler"
- *                description="Handler for internally delivered messages."
- *                immediate="true"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageTransport"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository"
- * @scr.reference interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                name="MessagingService"
  */
-public class InternalMessageHandler implements MessageTransport {
+@Component(immediate = true, label = "InternalMessageHandler", description = "Handler for internally delivered messages.")
+@Services(value = {
+    @Service(value = MessageTransport.class),
+    @Service(value = MessageProfileWriter.class)
+})
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Handler for internally delivered messages.")})
+public class InternalMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
-  /**
-   * The JCR Repository we access.
-   * 
-   */
-  private SlingRepository slingRepository;
+  @Reference
+  protected transient SlingRepository slingRepository;
 
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to unset
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * Default constructor
@@ -110,7 +91,8 @@ public class InternalMessageHandler implements MessageTransport {
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node into the user his folder.
-          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath.lastIndexOf("/")));
+          JcrUtils.deepGetOrCreateNode(session, toPath.substring(0, toPath
+              .lastIndexOf("/")));
           session.save();
           session.getWorkspace().copy(originalMessage.getPath(), toPath);
           Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
@@ -119,11 +101,12 @@ public class InternalMessageHandler implements MessageTransport {
           n.setProperty(MessageConstants.PROP_SAKAI_READ, false);
           n.setProperty(MessageConstants.PROP_SAKAI_MESSAGEBOX,
               MessageConstants.BOX_INBOX);
-          n.setProperty(MessageConstants.PROP_SAKAI_TO, rcpt);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
-          n.save();
+          if (session.hasPendingChanges()) {
+            session.save();
+          }
         }
       }
     } catch (RepositoryException e) {
@@ -138,6 +121,16 @@ public class InternalMessageHandler implements MessageTransport {
    */
   public String getType() {
     return TYPE;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.message.MessageProfileWriter#writeProfileInformation(javax.jcr.Session,
+   *      java.lang.String, org.apache.sling.commons.json.io.JSONWriter)
+   */
+  public void writeProfileInformation(Session session, String recipient, JSONWriter write) {
+    PersonalUtils.writeCompactUserInfo(session, recipient, write);
   }
 
 }

@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -34,16 +35,13 @@ import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
-import org.sakaiproject.nakamura.util.JcrUtils;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Value;
 import javax.jcr.query.Query;
 
 /**
@@ -57,32 +55,35 @@ import javax.jcr.query.Query;
 public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
   @Reference
-  private SiteService siteService;
+  protected SiteService siteService;
 
   @Reference
-  private ConnectionManager connectionManager;
+  protected ConnectionManager connectionManager;
 
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     String user = request.getRemoteUser();
+    Authorizable auUser;
+    try {
+      auUser = PersonalUtils.getAuthorizable(session, user);
+    } catch (RepositoryException e) {
+      throw new RuntimeException(e);
+    }
 
     // Set the userid.
     propertiesMap.put("_me", user);
 
     // Set the public space.
-    propertiesMap.put("_mySpace", ISO9075.encodePath(PersonalUtils
-        .getPublicPath(user, "")));
+    propertiesMap
+        .put("_mySpace", ISO9075.encodePath(PersonalUtils.getPublicPath(auUser)));
 
     // Set the contacts.
     propertiesMap.put("_mycontacts", getMyContacts(user));
 
     // Set all mysites.
     propertiesMap.put("_mysites", getMySites(session, user));
-
-    // Set all my bookmarks
-    propertiesMap.put("_mybookmarks", getMyBookmarks(session, user));
 
     // request specific.
     // Sorting order
@@ -93,60 +94,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
 
     // Filter by tags
     propertiesMap.put("_tags", doTags(request));
-
-    // ###########################
-    // TODO /var/search/files/resources.json should be deleted.
-    // Resource types (used in resources.json).
-    // ###########################
-    RequestParameter resourceParam = request.getRequestParameter("resource");
-    String resourceTypes = "@sling:resourceType=\"sakai/link\" or @sling:resourceType=\"sakai/folder\"";
-    if (resourceParam != null) {
-      String type = resourceParam.getString();
-      if ("link".equals(type)) {
-        resourceTypes = "@sling:resourceType=\"sakai/link\"";
-      } else if ("folder".equals(type)) {
-        resourceTypes = "@sling:resourceType=\"sakai/folder\"";
-      }
-    }
-    propertiesMap.put("_resourceTypes", resourceTypes);
-
-    // ###########################
-    // Resource types (used in files.json)
-    // ###########################
-    String types[] = request.getParameterValues("type");
-    String typesWhere = "";
-    String search = getSearchValue(request);
-    if (types != null && types.length > 0) {
-      StringBuilder sb = new StringBuilder("");
-      sb.append("(");
-      for (String s : types) {
-        if (s.equals("sakai/file")) {
-          // Every sakai/file with search in it's filename or content.
-          sb.append("(sling:resourceType=\"sakai/file\" and (jcr:contains(.,\"").append(
-              search).append("\") or jcr:contains(jcr:content,\"").append(search).append(
-              "\"))) or ");
-        } else if (s.equals("sakai/link")) {
-          // Every link that has the search param in the filename.
-          sb.append("(sling:resourceType=\"sakai/link\" and jcr:contains(., \"").append(
-              search).append("\")) or ");
-        } else {
-          // Every other file that contains the search param in it's filename or in it's
-          // content.
-          sb.append("jcr:contains(.,\"");
-          sb.append(search);
-          sb.append("\") or ");
-        }
-      }
-
-      typesWhere = sb.toString();
-      typesWhere = typesWhere.substring(0, typesWhere.length() - 4);
-      typesWhere += ")";
-    } else {
-      // Default is sakai/files
-      typesWhere = "(sling:resourceType=\"sakai/file\" and jcr:contains(.,\"*" + search
-          + "*\"))";
-    }
-    propertiesMap.put("_typesWhere", typesWhere);
   }
 
   /**
@@ -155,7 +102,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doUsedIn(SlingHttpServletRequest request) {
+  protected String doUsedIn(SlingHttpServletRequest request) {
     String usedin[] = request.getParameterValues("usedin");
     if (usedin != null && usedin.length > 0) {
       StringBuilder sb = new StringBuilder();
@@ -177,7 +124,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
     return "";
   }
 
-  private String getSearchValue(SlingHttpServletRequest request) {
+  protected String getSearchValue(SlingHttpServletRequest request) {
     RequestParameter searchParam = request.getRequestParameter("search");
     String search = "*";
     if (searchParam != null) {
@@ -194,7 +141,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doSortOrder(SlingHttpServletRequest request) {
+  protected String doSortOrder(SlingHttpServletRequest request) {
     RequestParameter sortOnParam = request.getRequestParameter("sortOn");
     RequestParameter sortOrderParam = request.getRequestParameter("sortOrder");
     String sortOn = "sakai:filename";
@@ -216,7 +163,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @return
    */
-  private String doTags(SlingHttpServletRequest request) {
+  protected String doTags(SlingHttpServletRequest request) {
     String[] tags = request.getParameterValues("sakai:tags");
     if (tags != null) {
       StringBuilder sb = new StringBuilder();
@@ -240,44 +187,6 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
   }
 
   /**
-   * Gets the user his bookmarks in a string that can be used in a query.
-   * 
-   * @param session
-   * @param user
-   * @return
-   */
-  private String getMyBookmarks(Session session, String user) {
-    String userPath = PersonalUtils.getPrivatePath(user, "");
-    String bookmarksPath = userPath + "/mybookmarks";
-    String ids = "and (@sakai:id=\"somenoneexistingid\")";
-    try {
-      if (session.itemExists(bookmarksPath)) {
-        Node node = (Node) session.getItem(bookmarksPath);
-        Value[] values = JcrUtils.getValues(node, "files");
-
-        StringBuilder sb = new StringBuilder("");
-
-        for (Value val : values) {
-          sb.append("@sakai:id=\"").append(val.getString()).append("\" or ");
-        }
-
-        String bookmarks = sb.toString();
-        int i = bookmarks.lastIndexOf(" or ");
-        if (i > -1) {
-          bookmarks = bookmarks.substring(0, i);
-        }
-        if (bookmarks.length() > 0) {
-          bookmarks = " and (" + bookmarks + ")";
-          return bookmarks;
-        }
-      }
-    } catch (RepositoryException e) {
-      // Well, we failed..
-    }
-    return ids;
-  }
-
-  /**
    * Get a user his sites.
    * 
    * @param session
@@ -286,7 +195,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   @SuppressWarnings(justification = "siteService is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  private String getMySites(Session session, String user) {
+  protected String getMySites(Session session, String user) {
     try {
       StringBuilder sb = new StringBuilder();
       Map<String, List<Group>> membership = siteService.getMembership(session, user);
@@ -315,7 +224,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    * @param queryLanguage
    * @return
    */
-  private String escapeString(String value, String queryLanguage) {
+  protected String escapeString(String value, String queryLanguage) {
     String escaped = null;
     if (value != null) {
       if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
@@ -336,12 +245,12 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
    */
   @SuppressWarnings(justification = "connectionManager is OSGi managed", value = {
       "NP_UNWRITTEN_FIELD", "UWF_UNWRITTEN_FIELD" })
-  private String getMyContacts(String user) {
+  protected String getMyContacts(String user) {
     List<String> connectedUsers = connectionManager.getConnectedUsers(user,
         ConnectionState.ACCEPTED);
     StringBuilder sb = new StringBuilder();
     for (String u : connectedUsers) {
-      sb.append("@sakai:user=\"").append(u).append("\" or ");
+      sb.append("@jcr:createdBy=\"").append(u).append("\" or ");
     }
     String usersClause = sb.toString();
     int i = usersClause.lastIndexOf(" or ");

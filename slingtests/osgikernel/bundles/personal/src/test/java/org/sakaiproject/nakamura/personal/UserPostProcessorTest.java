@@ -1,15 +1,14 @@
 package org.sakaiproject.nakamura.personal;
 
-import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -18,9 +17,10 @@ import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
+import org.easymock.classextension.EasyMock;
 import org.junit.Test;
+import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.nodetype.PropertyDefinition;
 
-public class UserPostProcessorTest {
+public class UserPostProcessorTest extends AbstractEasyMockTest {
 
   @Test
   public void testProcessEmptyPath() throws Exception {
@@ -60,18 +60,13 @@ public class UserPostProcessorTest {
   private void testProcess(String path) throws Exception {
     UserPostProcessorImpl uppi = new UserPostProcessorImpl();
 
-    Principal principal = createMock(Principal.class);
-    expect(principal.getName()).andReturn("foo");
-
     ArrayList<String> propNames = new ArrayList<String>();
     propNames.add("rep:userId");
 
-    Authorizable authorizable = createMock(Authorizable.class);
-    expect(authorizable.getID()).andReturn("bar").times(3);
-    expect(authorizable.isGroup()).andReturn(false);
-    expect(authorizable.getPrincipal()).andReturn(principal);
+    Authorizable authorizable = createAuthorizable("admin", false, false);
     expect(authorizable.getPropertyNames()).andReturn(propNames.iterator());
     expect(authorizable.getProperty("rep:userId")).andReturn(new Value[] {});
+    EasyMock.replay(authorizable);
 
     UserManager userManager = createMock(UserManager.class);
     expect(userManager.getAuthorizable(isA(String.class))).andReturn(authorizable);
@@ -97,23 +92,31 @@ public class UserPostProcessorTest {
 
     JackrabbitSession session = createMock(JackrabbitSession.class);
     
-    expect(session.itemExists("/_user/private/62/cd/b7/02/bar/created")).andReturn(
-        true);
-    Node createdNode = createMock(Node.class);
-    expect(session.getItem("/_user/private/62/cd/b7/02/bar/created")).andReturn(
-        createdNode);
+    Node underHome = createMock(Node.class);
     
+    // Home folder
+    expect(session.itemExists("/_user/a")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/private")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/public")).andReturn(true).anyTimes();
+    expect(session.itemExists("/_user/a/ad/admin/public/authprofile")).andReturn(true).anyTimes();
+
+    Node homeNode = createMock(Node.class);
     Node privateNode = createMock(Node.class);
-    expect(createdNode.getParent()).andReturn(privateNode);
+    Node publicNode = createMock(Node.class);
+    
+    
+    expect(session.getItem("/_user/a/ad")).andReturn(underHome).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin")).andReturn(homeNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/private")).andReturn(privateNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public")).andReturn(publicNode).anyTimes();
+    expect(session.getItem("/_user/a/ad/admin/public/authprofile")).andReturn(
+        profileNode).anyTimes();
 
     expect(session.getUserManager()).andReturn(userManager);
-    expect(session.itemExists("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
-        true);
-    expect(session.getItem("/_user/public/62/cd/b7/02/bar/authprofile")).andReturn(
-        profileNode);
-
     
-
+    PrincipalManager principalManager = createNiceMock(PrincipalManager.class);
+    expect(session.getPrincipalManager()).andReturn(principalManager);
 
     ResourceResolver rr = createMock(ResourceResolver.class);
     expect(rr.adaptTo(Session.class)).andReturn(session);
@@ -136,8 +139,8 @@ public class UserPostProcessorTest {
 
     List<Modification> changes = new ArrayList<Modification>();
 
-    replay(principal, authorizable, userManager, uidDef, userId, profileNode, node,
+    EasyMock.replay(userManager, uidDef, userId, profileNode, node,
         session, rr, requestPathInfo, requestParameter, request);
-    uppi.process(session, request, changes);
+    uppi.process(authorizable, session, request, changes);
   }
 }

@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.api.discussion;
 
-import org.apache.jackrabbit.api.jsr283.security.AccessControlManager;
-import org.apache.jackrabbit.api.jsr283.security.Privilege;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -26,7 +24,6 @@ import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.util.ACLUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +33,10 @@ import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.security.AccessControlManager;
+import javax.jcr.security.Privilege;
 
 public class Post {
 
@@ -170,6 +170,8 @@ public class Post {
       writer.key("canDelete");
       writer.value(canDelete);
 
+      Session session = node.getSession();
+
       // Show profile of editters.
       if (node.hasProperty(DiscussionConstants.PROP_EDITEDBY)) {
 
@@ -179,24 +181,24 @@ public class Post {
         writer.key(DiscussionConstants.PROP_EDITEDBYPROFILES);
         writer.array();
         for (int i = 0; i < edittedBy.length; i++) {
-          writer.object();
-          PersonalUtils.writeUserInfo(getNode().getSession(), edittedBy[i], writer,
-              "editter");
-          writer.endObject();
+          PersonalUtils.writeCompactUserInfo(session, edittedBy[i], writer);
         }
         writer.endArray();
       }
 
+      // Show some profile info.
       writer.key("profile");
-      String profilePath = PersonalUtils.getProfilePath(getNode().getProperty(
-          MessageConstants.PROP_SAKAI_FROM).getString());
-      Node profileNode = JcrUtils.getFirstExistingNode(getNode().getSession(),
-          profilePath);
-      ExtendedJSONWriter.writeNodeToWriter(writer, profileNode);
-
+      String fromVal = node.getProperty(MessageConstants.PROP_SAKAI_FROM).getString();
+      String[] senders = StringUtils.split(fromVal, ',');
+      writer.array();
+      for (String sender : senders) {
+        PersonalUtils.writeCompactUserInfo(session, sender, writer);
+      }
+      writer.endArray();
       writer.endObject();
-      writer.key("replies");
 
+      // All the replies on this post.
+      writer.key("replies");
       writer.array();
       outputChildrenAsJSON(writer);
       writer.endArray();

@@ -58,9 +58,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.ValueFactory;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -68,7 +70,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-@SuppressWarnings("restriction")
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default" }, selectors = { "sitearchive" })
 @Properties(value = {
     @Property(name = "service.description", value = "Imports one or more SiteArchive ZIP files from Sakai 2"),
@@ -344,13 +345,16 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
   private Node copyFile(String zipEntryName, String fileName, String sitePath,
       String contentType, Session session, ZipFile zip) {
     final String id = uniqueId();
-    final String path = FileUtils.getHashedPath(FilesConstants.USER_FILESTORE,
-        id);
+    final String path = FilesConstants.USER_FILESTORE + "/" + id;
     Node node = null;
     try {
       final InputStream in = zip.getInputStream(zip.getEntry(zipEntryName));
-      node = FileUtils.saveFile(session, path, id, in, fileName, contentType,
-          slingRepository);
+      node = makeNode(path, session);
+      node.setProperty(JcrConstants.JCR_NAME, fileName);
+      node.setProperty(JcrConstants.JCR_MIMETYPE, contentType);
+      ValueFactory valueFactory = session.getValueFactory();
+      Binary content = valueFactory.createBinary(in);
+      node.setProperty(JcrConstants.JCR_CONTENT, content);
       final String linkPath = sitePath + "/_files/" + fileName;
       FileUtils.createLink(session, node, linkPath, sitePath, slingRepository);
     } catch (RepositoryException e) {
@@ -370,10 +374,10 @@ public class ImportSiteArchiveServlet extends SlingAllMethodsServlet {
       if (!isNtFile) { // only set these properties if not nt:file; i.e. they
         // will already be set otherwise.
         // sakai:id
-        node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
+        // node.setProperty(FilesConstants.SAKAI_ID, uniqueId());
 
         // sakai:user
-        node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
+        // node.setProperty(FilesConstants.SAKAI_USER, session.getUserID());
 
         // jcr:mimeType
         final String mimeType = resource.attributes.get("content-type");

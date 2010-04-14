@@ -113,6 +113,10 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                 return null; // something bogus on the end of the path so bail
                              // out now.
             }
+            if ( "jcr:content".equals(pid) ) {
+              return null; // dont try and resolve the content subnode and waste 6ms
+            }
+            long start = System.currentTimeMillis();
             try {
                 Session session = resourceResolver.adaptTo(Session.class);
                 if (session != null) {
@@ -127,9 +131,12 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
                         }
                     }
                 }
+                log.debug("Failed to resolve {} ",path);
             } catch (RepositoryException re) {
                 throw new SlingException(
                     "Error looking up Authorizable for principal: " + pid, re);
+            } finally {
+              log.debug("Resolution took {} ms {} ",System.currentTimeMillis()-start,path);
             }
         }
         return null;
@@ -169,16 +176,10 @@ public class SakaiAuthorizableResourceProvider implements ResourceProvider {
             }
             if (searchType != -1) {
                 PrincipalIterator principals = null;
-
-                // TODO: this actually does not work correctly since the
-                // jackrabbit findPrincipals API
-                // currently does an exact match of the search filter so it
-                // won't match a wildcard
                 Session session = resourceResolver.adaptTo(Session.class);
                 if (session != null) {
                     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-                    principals = principalManager.findPrincipals(".*",
-                        PrincipalManager.SEARCH_TYPE_NOT_GROUP);
+                    principals = principalManager.getPrincipals(searchType);
                 }
 
                 if (principals != null) {

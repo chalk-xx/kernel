@@ -106,9 +106,9 @@ public class SiteContentSearchResultProcessor implements
       MergedRowIterator mergedIterator = new MergedRowIterator(iterator,
           filesIterator);
 
-      int siteHits = SearchUtil.getHits(qr);
-      int filesHits = SearchUtil.getHits(filesQueryResult);
-      int totalHits = siteHits + filesHits;
+      long siteHits = SearchUtil.getHits(qr);
+      long filesHits = SearchUtil.getHits(filesQueryResult);
+      long totalHits = siteHits + filesHits;
 
       return new AbstractSearchResultSet(mergedIterator, totalHits);
 

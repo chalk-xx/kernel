@@ -71,6 +71,12 @@ public class ExtendedJSONWriter extends JSONWriter {
   }
 
   public static void writeNodeContentsToWriter(JSONWriter write, Node node) throws RepositoryException, JSONException {
+    // Since removal of bigstore we add in jcr:path and jcr:name
+    write.key("jcr:path");
+    write.value(node.getPath());
+    write.key("jcr:name");
+    write.value(node.getName());
+    
     PropertyIterator properties = node.getProperties();
     while (properties.hasNext()) {
       Property prop = properties.nextProperty();

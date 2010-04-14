@@ -19,12 +19,19 @@ package org.sakaiproject.nakamura.message;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.sakaiproject.nakamura.api.message.MessagingService;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -48,25 +55,17 @@ import javax.jcr.ValueFormatException;
 
 /**
  * Service for doing operations with messages.
- * 
- * @scr.component immediate="true" label="Sakai Messaging Service"
- *                description="Service for doing operations with messages."
- *                name="org.sakaiproject.nakamura.api.message.MessagingService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessagingService"
- * @scr.reference interface="org.sakaiproject.nakamura.api.site.SiteService" name="SiteService"
  */
+@Component(immediate = true, label = "Sakai Messaging Service", description = "Service for doing operations with messages.", name = "org.sakaiproject.nakamura.api.message.MessagingService")
+@Service
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class MessagingServiceImpl implements MessagingService {
 
-  /** @scr.reference */
-  protected LockManager lockManager;
-  private SiteService siteService;
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
+  @Reference
+  protected transient LockManager lockManager;
+
+  @Reference
+  protected transient SiteService siteService;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);
@@ -127,7 +126,7 @@ public class MessagingServiceImpl implements MessagingService {
     }
     try {
       //String messagePath = MessageUtils.getMessagePath(user, ISO9075.encodePath(messageId));
-      String messagePath = PathUtils.toInternalHashedPath(messagePathBase, messageId, "");
+      String messagePath = PathUtils.toSimpleShardPath(messagePathBase, messageId, "");
       try {
         msg = JcrUtils.deepGetOrCreateNode(session, messagePath);
         
@@ -191,7 +190,7 @@ public class MessagingServiceImpl implements MessagingService {
   public void copyMessageNode(Node sourceMessage, String targetStore) throws PathNotFoundException, RepositoryException {
     Session session = sourceMessage.getSession();
     String messageId = sourceMessage.getName();
-    String targetNodePath = PathUtils.toInternalHashedPath(targetStore, messageId, "");
+    String targetNodePath = PathUtils.toSimpleShardPath(targetStore, messageId, "");
     String parent = targetNodePath.substring(0, targetNodePath.lastIndexOf('/'));
     Node parentNode = JcrUtils.deepGetOrCreateNode(session, parent);
     LOGGER.info("Created parent node at: " + parentNode.getPath());
@@ -228,7 +227,7 @@ public class MessagingServiceImpl implements MessagingService {
    */
   public String getFullPathToMessage(String rcpt, String messageId, Session session) throws MessagingException {
     String storePath = getFullPathToStore(rcpt, session);
-    return PathUtils.toInternalHashedPath(storePath, messageId, "");
+    return PathUtils.toSimpleShardPath(storePath, messageId, "");
   }
 
   /**
@@ -244,12 +243,9 @@ public class MessagingServiceImpl implements MessagingService {
         // This is a site.
         Node n = siteService.findSiteByName(session, rcpt.substring(2));
         path = n.getPath() + "/store";
-      } else if (rcpt.startsWith("g-")) {
-        // This is a group.
-        path = PathUtils.toInternalHashedPath(MessageConstants._GROUP_MESSAGE, rcpt, "");
       } else {
-        // Assume that it is a user.
-        path = PathUtils.toInternalHashedPath(MessageConstants._USER_MESSAGE, rcpt, "");
+        Authorizable au = PersonalUtils.getAuthorizable(session, rcpt);
+        path = PersonalUtils.getHomeFolder(au) + "/" + MessageConstants.FOLDER_MESSAGES;
       }
     } catch (SiteException e) {
       LOGGER.warn("Caught SiteException when trying to get the full path to {} store.", rcpt,e);
@@ -262,46 +258,7 @@ public class MessagingServiceImpl implements MessagingService {
     return path;
   }
 
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getUriToMessage(java.lang.String,
-   *      java.lang.String)
-   */
-  public String getUriToMessage(String rcpt, String messageId, Session session) throws MessagingException {
-    String storePath = getUriToStore(rcpt, session);
-    return storePath + "/" + messageId;
-  }
 
-  /**
-   * 
-   * {@inheritDoc}
-   * 
-   * @see org.sakaiproject.nakamura.api.message.MessagingService#getUriToStore(java.lang.String)
-   */
-  public String getUriToStore(String rcpt, Session session) throws MessagingException {
-    String path = "";
-    try {
-      if (rcpt.startsWith("s-")) {
-        // This is a site.
-        Node n = siteService.findSiteByName(session, rcpt.substring(2));
-        path = n.getPath() + "/store";
-      } else if (rcpt.startsWith("g-")) {
-        // This is a group.
-        path = MessageConstants._GROUP_MESSAGE + "/" + rcpt;
-      } else {
-        // Assume that it is a user.
-        path = MessageConstants._USER_MESSAGE + "/" + rcpt;
-      }
-    } catch (SiteException e) {
-      throw new MessagingException(e.getStatusCode(), e.getMessage());
-    } catch (RepositoryException e) {
-      throw new MessagingException(500, e.getMessage());
-    }
-
-    return path;
-  }
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.message.MessagingService#expandAliases(java.lang.String)

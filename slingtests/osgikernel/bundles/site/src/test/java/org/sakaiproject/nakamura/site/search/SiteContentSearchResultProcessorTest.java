@@ -81,6 +81,7 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
     expect(row.getValue("rep:excerpt(jcr:content)")).andReturn(valExcerpt);
     Node resultNode = createMock(Node.class);
     expect(resultNode.getPath()).andReturn("/sites/physics-101").anyTimes();
+    expect(resultNode.getName()).andReturn("physics-101").anyTimes();
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);

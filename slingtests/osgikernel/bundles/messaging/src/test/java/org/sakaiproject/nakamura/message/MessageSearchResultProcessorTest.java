@@ -58,12 +58,12 @@ public class MessageSearchResultProcessorTest {
     messagingService = mock(MessagingService.class);
 
     proc = new MessageSearchResultProcessor();
-    proc.bindMessagingService(messagingService);
+    proc.messagingService = messagingService;
   }
 
   @After
   public void tearDown() {
-    proc.unbindMessagingService(messagingService);
+    proc.messagingService = null;
   }
 
   @Test
@@ -99,7 +99,9 @@ public class MessageSearchResultProcessorTest {
         MessageConstants.BOX_INBOX);
     assertEquals(2, o.getJSONArray("foo").length());
 
-    JSONObject prev = o.getJSONObject(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE);
+    assertEquals(previousId, o.getString(MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE));
+
+    JSONObject prev = o.getJSONObject("previousMessage");
     assertEquals(prev.getString("id"), previousId);
   }
 

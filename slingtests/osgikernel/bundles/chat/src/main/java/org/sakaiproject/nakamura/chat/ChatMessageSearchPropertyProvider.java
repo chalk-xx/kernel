@@ -17,6 +17,11 @@
  */
 package org.sakaiproject.nakamura.chat;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -29,29 +34,16 @@ import java.util.Map;
 
 import javax.jcr.Session;
 
-/**
- * Provides properties to process the search
- * 
- * @scr.component immediate="true" label="MessageSearchPropertyProvider"
- *                description="Formatter for connection search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.provider" value="ChatMessage"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
- */
+@Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "sakai.search.provider", value = "ChatMessage"),
+    @Property(name = "service.description", value = "Provides properties to process the chat message searches.") })
 public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider {
 
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -65,8 +57,6 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
     Session session = request.getResourceResolver().adaptTo(Session.class);
     propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGESTORE, ISO9075
         .encodePath(messagingService.getFullPathToStore(user, session)));
-    propertiesMap.put(MessageConstants.SEARCH_PROP_MESSAGEROOT, ISO9075
-        .encodePath(MessageConstants._USER_MESSAGE));
 
     RequestParameter usersParam = request.getRequestParameter("_from");
     if (usersParam != null && !usersParam.getString().equals("")) {

@@ -59,7 +59,7 @@ public class NodeSearchBatchResultProcessor implements
     long total = iterator.getSize();
     long start = SearchUtil.getPaging(request, total);
     
-    int nitems = SearchUtil.intRequestParameter(request,
+    long nitems = SearchUtil.intRequestParameter(request,
         PARAMS_ITEMS_PER_PAGE, DEFAULT_PAGED_ITEMS);
 
     iterator.skip(start);

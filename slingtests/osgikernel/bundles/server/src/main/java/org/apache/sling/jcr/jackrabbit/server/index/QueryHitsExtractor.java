@@ -17,24 +17,24 @@
  */
 package org.apache.sling.jcr.jackrabbit.server.index;
 
-import org.apache.jackrabbit.core.query.lucene.SingleColumnQueryResult;
+import org.apache.jackrabbit.core.query.lucene.QueryResultImpl;
 
 import javax.jcr.query.QueryResult;
 
 public class QueryHitsExtractor {
 
-  private SingleColumnQueryResult result;
+  private QueryResultImpl result;
 
   public QueryHitsExtractor(QueryResult result) {
-    this.result = getSingleColumnQueryResult(result);
+    this.result = getQueryResult(result);
     if (result == null) {
       throw new IllegalArgumentException(
           "Failed to get the QueryHits from this result.");
     }
   }
 
-  private SingleColumnQueryResult getSingleColumnQueryResult(QueryResult result) {
-    return ((SingleColumnQueryResult) result);
+  private QueryResultImpl getQueryResult(QueryResult result) {
+    return ((QueryResultImpl) result);
   }
 
   /**

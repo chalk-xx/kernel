@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationInfo;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 
 import java.io.IOException;
 
@@ -90,7 +91,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
         Object authInfo = request.getAttribute(RA_AUTHENTICATION_INFO);
         if ( authInfo instanceof AuthenticationInfo ) {
           AuthenticationInfo authenticationInfo = (AuthenticationInfo) authInfo;
-          Credentials credentials = authenticationInfo.getCredentials();
+          Credentials credentials = (Credentials)authenticationInfo.get(AuthenticationInfo.CREDENTIALS);
           if ( credentials instanceof SimpleCredentials ) {
             return authenticationInfo;
           }
@@ -104,7 +105,7 @@ public final class TrustedAuthenticationHandler implements AuthenticationHandler
 
       // construct the authentication info and store credentials on the request
       AuthenticationInfo authInfo = new AuthenticationInfo(TRUSTED_AUTH);
-      authInfo.setCredentials(trustedAuthentication.getCredentials());
+      authInfo.put(AuthenticationInfo.CREDENTIALS, trustedAuthentication.getCredentials());
       request.setAttribute(RA_AUTHENTICATION_INFO, authInfo);
       return authInfo;
     } else {

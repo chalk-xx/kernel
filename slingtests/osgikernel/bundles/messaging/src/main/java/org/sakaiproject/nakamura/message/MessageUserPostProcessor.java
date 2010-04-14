@@ -28,23 +28,25 @@ import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
 import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.SlingPostConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -53,64 +55,58 @@ import javax.jcr.Session;
 /**
  * This PostProcessor listens to post operations on User objects and creates a message
  * store.
- * 
- * @scr.service interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="MessageUserPostProcessor" description=
- *                "Post Processor for User and Group operations to create a message stores"
- *                metatype="no"
- * @scr.property name="service.description"
- *               value="Post Processes User and Group operations"
- * 
  */
+@Component(immediate = true, label = "MessageUserPostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Creates the message stores for users and groups.") })
 public class MessageUserPostProcessor implements UserPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessageUserPostProcessor.class);
 
-  public void process(Session session, SlingHttpServletRequest request,
-      List<Modification> changes) throws Exception {
+  public void process(Authorizable authorizable, Session session,
+      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
     LOGGER.debug("Starting MessageUserPostProcessor process");
     String resourcePath = request.getRequestPathInfo().getResourcePath();
     if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-      String principalName = null;
-      UserManager userManager = AccessControlUtil.getUserManager(session);
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-      RequestParameter rpid = request
-          .getRequestParameter(SlingPostConstants.RP_NODE_NAME);
-      if (rpid != null) {
-        principalName = rpid.getString();
-        Authorizable authorizable = userManager.getAuthorizable(principalName);
-        if (authorizable != null) {
+      String pathPrivate = PersonalUtils.getHomeFolder(authorizable) + "/"
+          + MessageConstants.FOLDER_MESSAGES;
+      LOGGER
+          .debug("Getting/creating private profile node with messages: {}", pathPrivate);
 
-          String pathPrivate = PathUtils.toInternalHashedPath(
-              MessageConstants._USER_MESSAGE, principalName, "");
-          LOGGER.debug("Getting/creating private profile node with messages: {}",
-              pathPrivate);
+      Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
+      messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+          MessageConstants.SAKAI_MESSAGESTORE_RT);
+      // ACL's are managed by the Personal User Post processor.
+      Principal anon = new Principal() {
 
-          /*
-           * Node messageStore = null; if (session.itemExists(pathPrivate)) { messageStore
-           * = (Node) session.getItem(pathPrivate); }
-           */
-          Node messageStore = JcrUtils.deepGetOrCreateNode(session, pathPrivate);
-          messageStore.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-              MessageConstants.SAKAI_MESSAGESTORE_RT);
-          // ACL's are managed by the Personal User Post processor.
-          Authorizable anon = userManager.getAuthorizable(UserConstants.ANON_USERID);
-          Authorizable everyone = userManager.getAuthorizable(principalManager.getEveryone());
-
-          addEntry(messageStore.getPath(), authorizable, session, READ_GRANTED, WRITE_GRANTED,
-              REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-              ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
-          
-          // explicitly deny anon and everyone, this is private space.
-          addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED );
-          addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED );
-          
+        public String getName() {
+          return UserConstants.ANON_USERID;
         }
-      }
-    }
 
+      };
+      Principal everyone = principalManager.getEveryone();
+
+      addEntry(messageStore.getPath(), authorizable.getPrincipal(), session,
+          READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
+          MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+
+      // explicitly deny anon and everyone, this is private space.
+      addEntry(messageStore.getPath(), anon, session, READ_DENIED, WRITE_DENIED);
+      addEntry(messageStore.getPath(), everyone, session, READ_DENIED, WRITE_DENIED);
+
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   */
+  public int getSequence() {
+    return 10;
   }
 
 }

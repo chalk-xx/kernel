@@ -58,12 +58,12 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     presenceService = test.getPresenceService();
 
     servlet = new PresenceControlServlet();
-    servlet.bindPresenceService(presenceService);
+    servlet.presenceService = presenceService;
   }
 
   @After
   public void tearDown() throws Exception {
-    servlet.unbindPresenceService(presenceService);
+    servlet.presenceService = null;
   }
 
   @Test
@@ -91,6 +91,8 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     addParameterToRequest(request, PresenceService.PRESENCE_LOCATION_PROP,
         "loc");
     addParameterToRequest(request, PresenceService.PRESENCE_STATUS_PROP, "busy");
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
     servlet.doPost(request, response);
@@ -117,6 +119,8 @@ public class PresenceControlServletTest extends AbstractEasyMockTest {
     addParameterToRequest(request, PresenceService.PRESENCE_LOCATION_PROP,
         "foo");
     addParameterToRequest(request, PresenceService.PRESENCE_STATUS_PROP, "foo");
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     expect(response.getWriter()).andReturn(printWriter);
     replay();
     servlet.doPost(request, response);

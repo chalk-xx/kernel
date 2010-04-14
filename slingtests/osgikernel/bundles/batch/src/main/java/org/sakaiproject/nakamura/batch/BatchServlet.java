@@ -65,14 +65,14 @@ import javax.servlet.http.HttpServletResponse;
         parameters = @ServiceParameter(
             name = "requests",
             description = "JSON string that represents a request. <br />Example:" +
-                "<pre>{\n\"url\" : \"/foo/bar.json\",\n\"method\" : \"GET\",\n\"parameters : {\n\"val\" : 123,\n\"val@TypeHint\" : \"Long\"\n}\n}</pre>"
+                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
             description = "All requests are succesfull. <br />" +
                 "A JSON array is returning which holds an object for each resource. Example:" +
                 "<pre>[\n" +
-                "{\"url\": \"/_user/public/admin/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
+                "{\"url\": \"/_user/a/ad/admin/public/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
           ),
           @ServiceResponse(
             code = 400,
@@ -177,7 +177,8 @@ public class BatchServlet extends SlingAllMethodsServlet {
         doRequest(request, response, r, write);
       }
       write.endArray();
-      response.setHeader("Content-Type", "application/json");
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
       response.getWriter().write(sw.getBuffer().toString());
     } catch (JSONException e) {
       LOGGER.warn("Failed to create a JSON response");

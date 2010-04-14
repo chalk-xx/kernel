@@ -19,13 +19,10 @@ package org.sakaiproject.nakamura.batch;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.sakaiproject.nakamura.util.StringUtils;
-import org.sakaiproject.nakamura.util.URIExpander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,15 +69,6 @@ public abstract class AbstractPropertyOperationModifier extends
       log.info("Changing one item.");
       Resource resource = request.getResource();
       Item item = resource.adaptTo(Item.class);
-      if (item == null) {
-        String path = URIExpander.expandStorePath(session, resource.getPath());
-        if (session.itemExists(path)) {
-          item = session.getItem(path);
-        } else {
-          throw new ResourceNotFoundException("Missing source " + resource
-              + " for modifying property.");
-        }
-      }
       modifyProperties(operation, item, params);
       changes.add(Modification.onModified(resource.getPath()));
     } else {
@@ -92,6 +80,9 @@ public abstract class AbstractPropertyOperationModifier extends
           changes.add(Modification.onModified(path));
         }
       }
+    }
+    if (session.hasPendingChanges()) {
+      session.save();
     }
   }
 
@@ -111,13 +102,6 @@ public abstract class AbstractPropertyOperationModifier extends
     if (applyTo == null) {
       return null;
     }
-
-    for (String uri : applyTo) {
-      String path = URIExpander.expandStorePath(session, uri);
-      applyTo = StringUtils.removeString(applyTo, uri);
-      applyTo = StringUtils.addString(applyTo, path);
-    }
-
     return applyTo;
   }
 
@@ -168,9 +152,6 @@ public abstract class AbstractPropertyOperationModifier extends
           }
           node.setProperty(prop, newValues);
         }
-      }
-      if (node.isModified()) {
-        node.save();
       }
     }
   }

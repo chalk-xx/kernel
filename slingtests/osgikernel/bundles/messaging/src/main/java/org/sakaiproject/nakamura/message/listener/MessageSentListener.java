@@ -18,6 +18,13 @@ package org.sakaiproject.nakamura.message.listener;
  * specific language governing permissions and limitations under the License.
  */
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
@@ -38,21 +45,13 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-/**
- * 
- * @scr.component inherit="true" label="%sakai-event.name" immediate="true"
- * @scr.service interface="org.osgi.service.event.EventHandler"
- * @scr.property name="service.description"
- *               value="Event Handler Listening to Pending Messages Events"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="event.topics" value="org/sakaiproject/nakamura/message/pending"
- * @scr.reference name="MessageTransport"
- *                interface="org.sakaiproject.nakamura.api.message.MessageTransport"
- *                policy="dynamic" cardinality="0..n" bind="addTransport"
- *                unbind="removeTransport"
- * @scr.reference name="MessageRouterManager" interface="org.sakaiproject.nakamura.api.message.MessageRouterManager"
- * @scr.reference name="SlingRepository" interface="org.apache.sling.jcr.api.SlingRepository"
- */
+@Component(inherit = true, label = "%sakai-event.name", immediate = true)
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Event Handler Listening to Pending Messages Events."),
+    @Property(name = "event.topics", value = "org/sakaiproject/nakamura/message/pending")})
+@Reference(name = "MessageTransport", referenceInterface = MessageTransport.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addTransport", unbind = "removeTransport")
 public class MessageSentListener implements EventHandler {
   private static final Logger LOG = LoggerFactory.getLogger(MessageSentListener.class);
 
@@ -61,22 +60,13 @@ public class MessageSentListener implements EventHandler {
    */
   private Map<MessageTransport, MessageTransport> transports = new ConcurrentHashMap<MessageTransport, MessageTransport>();
 
-  private MessageRouterManager messageRouterManager;
-  private SlingRepository slingRepository;
-  protected void bindMessageRouterManager(MessageRouterManager messageRouterManager) {
-    this.messageRouterManager = messageRouterManager;
-  }
-  protected void unbindMessageRouterManager(MessageRouterManager messageRouterManager) {
-    this.messageRouterManager = null;
-  }
-
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
+  @Reference
+  protected transient MessageRouterManager messageRouterManager;
+  
+  @Reference
+  protected transient SlingRepository slingRepository;
+  
+  
   private Session session;
   /**
    * Allows us to bind a session (for junit)

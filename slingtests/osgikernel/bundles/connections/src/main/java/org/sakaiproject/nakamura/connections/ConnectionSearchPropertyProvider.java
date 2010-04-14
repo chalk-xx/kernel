@@ -22,17 +22,18 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionConstants.SEAR
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.request.RequestParameter;
-import org.sakaiproject.nakamura.api.connections.ConnectionManager;
-import org.sakaiproject.nakamura.api.connections.ConnectionState;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
-import java.util.List;
 import java.util.Map;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 @Component(immediate = true, label = "ConnectionSearchPropertyProvider", description= "Provides properties to handle connection searches.")
 @Properties(value = {
@@ -42,9 +43,6 @@ import java.util.Map;
 @Service(value = SearchPropertyProvider.class)
 public class ConnectionSearchPropertyProvider implements SearchPropertyProvider {
 
-  @Reference
-  protected ConnectionManager connectionManager;
-
   /**
    * {@inheritDoc}
    * 
@@ -53,48 +51,19 @@ public class ConnectionSearchPropertyProvider implements SearchPropertyProvider 
    */
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
-    String user = request.getRemoteUser();
-    String connectionPath = ISO9075.encodePath(ConnectionUtils
-        .getConnectionPathBase(user));
-    propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
-    String query = getConnectionQuery(request);
-    if (query == null) {
-      query = "/" + connectionPath + "//*[@sling:resourceType=\"sakai/contact\" and  @sakai:state!=\"NONE\"]";
-    }
-    propertiesMap.put("_friendsQuery", query);
-  }
-
-  public String getConnectionQuery(SlingHttpServletRequest request) {
-    String user = request.getRemoteUser();
-    List<String> friends = connectionManager.getConnectedUsers(user,
-        ConnectionState.ACCEPTED);
-
-    RequestParameter param = request.getRequestParameter("s");
-    String s = (param != null) ? param.getString() : "";
-    // If our friends list is < 500 then we construct a query.
-    int size = friends.size();
-    if (size > 0 && size < 500) {
-      StringBuilder sbQuery = new StringBuilder();
-      sbQuery.append("//_user/public//*[@sling:resourceType=\"sakai/user-profile\" and ");
-      sbQuery.append("(jcr:contains(@firstName, \"*").append(s).append("*\") or ");
-      sbQuery.append("jcr:contains(@lastName, \"*").append(s).append("*\") or ");
-      sbQuery.append("jcr:contains(@email, \"*").append(s).append("*\")) and (");
-      for (String friend : friends) {
-        sbQuery.append("@rep:userId=\"").append(friend).append("\" or ");
+    try {
+      String user = request.getRemoteUser();
+      Session session = request.getResourceResolver().adaptTo(Session.class);
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Authorizable auMe = um.getAuthorizable(user);
+      String connectionPath = ISO9075.encodePath(ConnectionUtils
+          .getConnectionPathBase(auMe));
+      if ( connectionPath.startsWith("/"))  {
+        connectionPath = connectionPath.substring(1);
       }
-      String query = sbQuery.toString();
-      query = query.substring(0, sbQuery.lastIndexOf(" or "));
-      query += ")] order by @firstName, @lastName ascending";
-      return query;
+      propertiesMap.put(SEARCH_PROP_CONNECTIONSTORE, connectionPath);
+    } catch (RepositoryException e) {
+      throw new RuntimeException(e);
     }
-    return null;
-  }
-  
-  protected void bindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = connectionManager;
-  }
-
-  protected void unbindConnectionManager(ConnectionManager connectionManager) {
-    this.connectionManager = null;
   }
 }

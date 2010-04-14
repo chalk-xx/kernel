@@ -67,15 +67,15 @@ public class MessageSentListenerTest {
 
 
     msl = new MessageSentListener();
-    msl.bindMessageRouterManager(messageRouterManager);
-    msl.bindSlingRepository(slingRepository);
+    msl.messageRouterManager = messageRouterManager;
+    msl.slingRepository = slingRepository;
     msl.activate(null);
   }
 
   @After
   public void cleanup() {
-    msl.unbindMessageRouterManager(messageRouterManager);
-    msl.unbindSlingRepository(slingRepository);
+    msl.messageRouterManager = null;
+    msl.slingRepository = null;
   }
 
   @Test

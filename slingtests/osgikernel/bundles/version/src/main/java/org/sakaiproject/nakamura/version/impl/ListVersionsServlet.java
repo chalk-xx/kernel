@@ -22,7 +22,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -88,7 +88,7 @@ import javax.servlet.http.HttpServletResponse;
     )) 
         
 
-public class ListVersionsServlet extends SlingAllMethodsServlet {
+public class ListVersionsServlet extends SlingSafeMethodsServlet {
 
   /**
    *
@@ -146,6 +146,10 @@ public class ListVersionsServlet extends SlingAllMethodsServlet {
       while (i < nitems && versionIterator.hasNext()) {
         versions[i++] = versionIterator.nextVersion();
       }   
+
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
 
       Writer writer = response.getWriter();
       ExtendedJSONWriter write = new ExtendedJSONWriter(writer);

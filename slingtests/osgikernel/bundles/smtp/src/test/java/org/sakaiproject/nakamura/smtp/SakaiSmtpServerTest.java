@@ -95,7 +95,6 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     SlingRepository slingRepository = createNiceMock(SlingRepository.class);
     JackrabbitSession session = createMock(JackrabbitSession.class);
     MessagingService messagingService = createMock(MessagingService.class);
-    Node messageNode = createMock(Node.class);
     Node myMessageNode = createMock(Node.class);
     Property property = createMock(Property.class);
 
