@@ -1,5 +1,9 @@
 package org.sakaiproject.nakamura.site.search;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -22,23 +26,25 @@ import javax.jcr.query.Row;
 
 /**
  * Formats user profile node search results
- * 
- * @scr.component immediate="true" label="SiteSearchResultProcessor"
- *                description="Formatter for user search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Site"
- * @scr.property name="sakai.seach.resourcetype" value="sakai/site"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, label = "%siteSearch.result.processor.label", description = "%siteSearch.result.processor.desc")
+@Service
 public class SiteSearchResultProcessor implements SearchResultProcessor {
 
-  /**
-   * @scr.reference
-   */
+  @Reference
   private SiteService siteService;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteSearchResultProcessor.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Site")
+  static final String SEARCH_PROCESSOR = "sakai.search.processor";
+
+  @Property(value = "sakai/site")
+  static final String RESOURCE_TYPE = "sakai.search.resourcetype";
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {

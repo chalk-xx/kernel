@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -59,17 +62,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGetServlet</code>
- * 
- * @scr.component immediate="true" label="SiteMembersServlet"
- *                description="Get members servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Gets lists of members for a site"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="members"
- * 
  */
+@Component(immediate = true, label = "%site.membersServlet.label", description = "%site.membersServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "GET", selectors = "members", generateComponent = false)
 @ServiceDocumentation(name="Site Members Servlet",
     description=" Gets the members of a site, both groups and users",
     shortDescription="Get the members of a site.",
@@ -100,6 +95,12 @@ public class SiteMembersServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteMembersServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Gets lists of members for a site")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   @Override
   @edu.umd.cs.findbugs.annotations.SuppressWarnings(justification="Exceptions are caught to ensure that the correct status code gets sent.", value={"REC_CATCH_EXCEPTION"})

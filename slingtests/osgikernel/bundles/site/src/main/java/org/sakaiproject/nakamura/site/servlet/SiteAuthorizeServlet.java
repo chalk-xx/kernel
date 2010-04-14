@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -53,17 +55,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGroupServlet</code> supports add and remove groups from the site.
- * 
- * @scr.component immediate="true" label="SiteAuthorizeServlet"
- *                description="Group authorize servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Supports Group association with the site."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="authorize"
  */
+@Component(immediate = true, label = "%site.authorizeServlet.label", description = "site.authorizeServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "authorize", generateComponent = false)
 @ServiceDocumentation(name="Site Authorize Servlet",
     description=" The <code>SiteServiceGroupServlet</code> supports add and remove groups from the site.",
     shortDescription="Adds or removes groups from a site.",
@@ -104,6 +98,12 @@ public class SiteAuthorizeServlet extends AbstractSiteServlet {
    */
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteAuthorizeServlet.class);;
+
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @org.apache.felix.scr.annotations.Property(value = "Supports Group association with the site.")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   /**
    * {@inheritDoc}

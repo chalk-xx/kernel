@@ -21,6 +21,9 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -60,23 +63,21 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceImpl</code> provides a Site Service implementatoin.
- * 
- * @scr.component immediate="true" label="SiteService"
- *                description="Sakai Site Service implementation"
- * @scr.service interface="org.sakaiproject.nakamura.api.site.SiteService"
- * @scr.property name="service.description"
- *               value="Provides a site service to manage sites."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="eventAdmin" interface="org.osgi.service.event.EventAdmin"
  */
+@Component(immediate = true, label = "%siteService.impl.label", description = "%siteService.impl.desc")
+@Service
 public class SiteServiceImpl implements SiteService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
 
-  /**
-   * @scr.reference
-   */
+  @Reference
   private SlingRepository slingRepository;
+
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @org.apache.felix.scr.annotations.Property(value = "Provides a site service to manage sites.")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   /**
    * The default site template, used when none has been defined.
@@ -91,6 +92,7 @@ public class SiteServiceImpl implements SiteService {
   /**
    * The OSGi Event Admin Service.
    */
+  @Reference
   private EventAdmin eventAdmin;
 
   /**

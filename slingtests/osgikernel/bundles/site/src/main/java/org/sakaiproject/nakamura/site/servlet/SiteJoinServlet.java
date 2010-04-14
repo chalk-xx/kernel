@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -42,17 +45,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SiteServiceJoinServlet</code> supports Join for joinable
  * sites and initiates authorized Joining workflow.
- * 
- * @scr.component immediate="true" label="SiteJoinServlet"
- *                description="Join servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Supports Join functionality on the site."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="join"
  */
+@Component(immediate = true, label = "%site.joinServlet.label", description = "%site.joinServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "join", generateComponent = false)
 @ServiceDocumentation(name="Site Join Servlet",
     description=" The <code>SiteServiceJoinServlet</code> supports Join for joinable sites and initiates authorized Joining workflow.",
     shortDescription="Supports site Join operations.",
@@ -90,6 +85,12 @@ public class SiteJoinServlet extends AbstractSiteServlet {
   private static final long serialVersionUID = 7673360724593565303L;
   private static final Logger LOG = LoggerFactory
       .getLogger(SiteJoinServlet.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Supports Join functionality on the site.")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   /**
    * {@inheritDoc}
