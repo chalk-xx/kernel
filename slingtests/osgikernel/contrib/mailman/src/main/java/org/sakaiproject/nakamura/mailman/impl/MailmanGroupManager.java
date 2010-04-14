@@ -16,6 +16,10 @@
  */
 package org.sakaiproject.nakamura.mailman.impl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -37,29 +41,34 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-/**
- * @scr.component immediate="true" label="MailManagerImpl"
- *                description="Interface to mailman"
- * @scr.property name="service.description"
- *                value="Handles management of mailman integration"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="event.topics" values.0="org/apache/sling/jackrabbit/usermanager/event/create"
- *                                   values.1="org/apache/sling/jackrabbit/usermanager/event/delete"
- *                                   values.2="org/apache/sling/jackrabbit/usermanager/event/join"
- *                                   values.3="org/apache/sling/jackrabbit/usermanager/event/part"
- * @scr.service interface="org.osgi.service.event.EventHandler"
- */
+@Component(immediate = true, metatype = true, label = "%mail.manager.impl.label", description = "%mail.manager.impl.desc")
+@Service(value = EventHandler.class)
 public class MailmanGroupManager implements EventHandler, ManagedService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MailmanGroupManager.class);
 
-  /** @scr.property value="password" type="String" */
+  @SuppressWarnings("unused")
+  @Property(value = "The Sakai Foundation")
+  private static final String SERVICE_VENDOR = "service.vendor";
+
+  @SuppressWarnings("unused")
+  @Property(value = "Handles management of mailman integration")
+  private static final String SERVICE_DESCRIPTION = "service.description";
+
+  @SuppressWarnings("unused")
+  @Property(value = { "org/apache/sling/jackrabbit/usermanager/event/create",
+      "org/apache/sling/jackrabbit/usermanager/event/delete",
+      "org/apache/sling/jackrabbit/usermanager/event/join",
+      "org/apache/sling/jackrabbit/usermanager/event/part" })
+  private static final String EVENT_TOPICS = "event.topics";
+
+  @Property(value = "password")
   private static final String LIST_MANAGEMENT_PASSWORD = "mailman.listmanagement.password";
 
-  /** @scr.reference */
+  @Reference
   private MailmanManager mailmanManager;
 
-  /** @scr.reference */
+  @Reference
   private SlingRepository slingRepository;
 
   private String listManagementPassword;
