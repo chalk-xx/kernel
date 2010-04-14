@@ -31,12 +31,14 @@ public class DateUtils {
   private final static FastDateFormat rfc3339;
   private final static FastDateFormat rfc2822;
   private final static FastDateFormat rfc2445;
+  private final static FastDateFormat iso8601jcr;
 
   static {
     rfc3339 = FastDateFormat.getInstance("yyyy-MM-dd hh:mm:ssZ");
     rfc2822 = FastDateFormat.getInstance("EEE, dd MMM yyyy HH:mm:ss Z", new Locale("en"));
     //20100401T140000Z
     rfc2445 = FastDateFormat.getInstance("yyyyMMdd'T'HHmmssZ");
+    iso8601jcr = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZZ");
   }
 
   /**
@@ -120,6 +122,40 @@ public class DateUtils {
    */
   public static String iso8601(Calendar c) {
     return DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(c);
+  }
+  
+  /**
+   * Jackrabbit uses a subset of 8601 (8601:2000) for their datetimes. This method returns
+   * the datetime in this subset format.
+   * 
+   * @return yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+   */
+  public static String iso8601jcr() {
+    return iso8601(new Date());
+  }
+
+  /**
+   * Jackrabbit uses a subset of 8601 (8601:2000) for their datetimes. This method returns
+   * the specified {@link Date date} in this subset format.
+   * 
+   * @param d
+   *          The date to format.
+   * @return yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+   */
+  public static String iso8601jcr(Date d) {
+    return iso8601jcr.format(d);
+  }
+
+  /**
+   * Jackrabbit uses a subset of 8601 (8601:2000) for their datetimes. This method returns
+   * the specified {@link Calendar calendar} in this subset format.
+   * 
+   * @param c
+   *          The date to format.
+   * @return yyyy-MM-dd'T'HH:mm:ss.SSSZZ
+   */
+  public static String iso8601jcr(Calendar c) {
+    return iso8601jcr.format(c);
   }
   
   /**

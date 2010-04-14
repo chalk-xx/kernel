@@ -52,7 +52,12 @@ public class CalendarTestServlet extends SlingAllMethodsServlet {
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     System.err.println("Trying store");
-    InputStream in = this.getClass().getClassLoader().getResourceAsStream("basic.ics");
+    String r = "basic.ics";
+    RequestParameter rParam = request.getRequestParameter("r");
+    if (rParam != null) {
+      r = rParam.getString();
+    }
+    InputStream in = this.getClass().getClassLoader().getResourceAsStream(r);
     Session session = request.getResourceResolver().adaptTo(Session.class);
     RequestParameter p = request.getRequestParameter("p");
     String path = p.getString();

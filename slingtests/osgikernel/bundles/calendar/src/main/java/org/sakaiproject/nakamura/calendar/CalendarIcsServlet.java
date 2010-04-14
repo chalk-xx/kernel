@@ -72,11 +72,11 @@ import javax.servlet.ServletException;
     description = "Serializes an underlying JCR structure into valid icalendar data",
     shortDescription = "Serializes an underlying JCR structure into valid icalendar data"
 )
-@SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/calendar" }, extensions = { "ics" }, generateComponent = true, generateService = true)
+@SlingServlet(methods = { "GET" }, resourceTypes = { "sakai/calendar" }, extensions = { "ics" }, selectors = {}, generateComponent = true, generateService = true)
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Serializes a JCR node structure into ical.") })
-public class CalendarServlet extends SlingSafeMethodsServlet {
+public class CalendarIcsServlet extends SlingSafeMethodsServlet {
 
   private static final long serialVersionUID = -3279889579407055346L;
 

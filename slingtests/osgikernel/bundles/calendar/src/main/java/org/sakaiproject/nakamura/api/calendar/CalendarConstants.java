@@ -28,10 +28,47 @@ public interface CalendarConstants {
   public static final String SAKAI_CALENDAR_RT = "sakai/calendar";
 
   /**
+   * The nodename for the default calendar the gets created in a user his home folder.
+   */
+  public static final String SAKAI_CALENDAR_NODENAME = "calendar";
+
+  /**
    * The resource type value for a vevent.
    */
   public static final String SAKAI_CALENDAR_EVENT_RT = "sakai/calendar-event";
-  
+
   public static final String SAKAI_CALENDAR_PROPERTY_PREFIX = "sakai:vcal-";
 
+  /*
+   * Signup related constants*******
+   */
+
+  /**
+   * The node name for the signup node that is located under a calendar event node
+   */
+  public static final String SIGNUP_NODE_NAME = "signup";
+  /**
+   * The sling resource type value for a signup node.
+   */
+  public static final String SIGNUP_NODE_RT = "sakai/calendar-signup";
+
+  /**
+   * The node name for the particpants node that is located under signup node
+   */
+  public static final String PARTICIPANTS_NODE_NAME = "participants";
+
+  /**
+   * The sling resourceType for a participant.
+   */
+  public static final String SAKAI_EVENT_SIGNUP_PARTICIPANT_RT = "sakai/event-signup-participant";
+
+  /**
+   * The property name for the signed up user.
+   */
+  public static final String SAKAI_USER = "sakai:user";
+
+  /**
+   * The property name for the signed up date.
+   */
+  public static final String SAKAI_SIGNEDUP_DATE = "sakai:event-signupdate";
 }

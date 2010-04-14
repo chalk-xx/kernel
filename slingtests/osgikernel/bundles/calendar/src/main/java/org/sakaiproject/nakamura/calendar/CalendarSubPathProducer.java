@@ -26,13 +26,20 @@ import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.component.VToDo;
 import net.fortuna.ical4j.model.property.DateProperty;
 
+import org.apache.commons.lang.time.FastDateFormat;
 import org.sakaiproject.nakamura.api.resource.SubPathProducer;
 import org.sakaiproject.nakamura.util.DateUtils;
+
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  *
  */
 public class CalendarSubPathProducer implements SubPathProducer {
+
+  public static final FastDateFormat format = FastDateFormat
+      .getInstance("/yyyy/MM/dd/hh/mm-ss");
 
   private String subPath;
   private String name;
@@ -40,7 +47,15 @@ public class CalendarSubPathProducer implements SubPathProducer {
 
   public CalendarSubPathProducer(CalendarComponent c) {
     if (c instanceof VEvent) {
-      name = ((VEvent) c).getUid().getValue();
+      VEvent event = (VEvent) c;
+      if (event.getStartDate() != null) {
+        name = getDateHashed(event.getStartDate());
+        if (event.getUid() != null) {
+          name += "-" + event.getUid().getValue();
+        }
+      } else {
+        name = ((VEvent) c).getUid().getValue();
+      }
       type = VEvent.VEVENT;
     } else if (c instanceof VFreeBusy) {
       DateProperty p = ((VFreeBusy) c).getStartDate();
@@ -54,14 +69,32 @@ public class CalendarSubPathProducer implements SubPathProducer {
       name = ((VTimeZone) c).getTimeZoneId().getValue();
       type = Component.VTIMEZONE;
     } else if (c instanceof VToDo) {
-      DateProperty p = ((VToDo) c).getStartDate();
-      name = DateUtils.rfc2445(p.getDate());
+      VToDo todo = (VToDo) c;
+      if (todo.getStartDate() != null) {
+        name = getDateHashed(todo.getStartDate());
+        name += "-" + todo.getName();
+      } else {
+        name = todo.getUid().getValue();
+      }
       type = Component.VTODO;
     } else {
       name = "" + c.hashCode();
     }
-    
+
     subPath = name;
+  }
+
+  /**
+   * creates the following hash: /yyyy/mm/dd/hh/MM-ss
+   * 
+   * @param p
+   * @return
+   */
+  public String getDateHashed(DateProperty p) {
+    Date d = p.getDate();
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(d.getTime());
+    return format.format(cal);
   }
 
   /**
@@ -72,7 +105,7 @@ public class CalendarSubPathProducer implements SubPathProducer {
   public String getSubPath() {
     return subPath;
   }
-  
+
   public String getName() {
     return name;
   }

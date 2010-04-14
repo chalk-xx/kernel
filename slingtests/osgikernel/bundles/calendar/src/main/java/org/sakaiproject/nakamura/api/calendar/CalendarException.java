@@ -29,8 +29,8 @@ public class CalendarException extends Exception {
 
   public CalendarException(int code, String message) {
     super();
-    this.code = code;
-    this.message = message;
+    setCode(code);
+    setMessage(message);
   }
 
   /**

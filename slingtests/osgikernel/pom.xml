@@ -84,6 +84,7 @@
         <module>bundles/docproxy</module>
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
+        <module>bundles/calendar</module>
       </modules>
     </profile>
     <profile>
