@@ -22,6 +22,7 @@ import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CAL
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIGNEDUP_DATE;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_SIGNEDUP_ORIGINAL_EVENT;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_USER;
 
 import org.apache.felix.scr.annotations.Reference;
@@ -60,6 +61,10 @@ import javax.servlet.http.HttpServletResponse;
 @Reference(referenceInterface = SignupPreProcessor.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "bindPreProcessor", unbind = "unbindPreProcessor")
 public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
+  /**
+   * 
+   */
+  private static final String SAKAI_CALENDAR_PROFILE_LINK = "sakai:calendar-profile-link";
   private static final long serialVersionUID = 2770138417371548411L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CalendarSignupServlet.class);
@@ -186,6 +191,7 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
           ownEventNode.setProperty(p.getName(), p.getValue());
         }
       }
+      ownEventNode.setProperty(SAKAI_SIGNEDUP_ORIGINAL_EVENT, eventNode.getIdentifier());
 
       // Save the changes.
       if (session.hasPendingChanges()) {
@@ -218,27 +224,32 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
 
       // Construct the absolute path in JCR from the signup node and the authorizable
       // hash.
-      String hash = getAuthorizableHash(signupNode);
+      Session session = signupNode.getSession();
+      Authorizable au = getAuthorizable(session);
+      String hash = PersonalUtils.getUserHashedPath(au);
+      String profilePath = PersonalUtils.getProfilePath(au);
+      Node profileNode = (Node) session.getItem(profilePath);
       String path = signupNode.getPath() + "/" + PARTICIPANTS_NODE_NAME + "/" + hash;
       path = PathUtils.normalizePath(path);
 
-      Session session = null;
+      Session adminSession = null;
       try {
         // login as admin so we can create a subnode.
-        session = slingRepository.loginAdministrative(null);
+        adminSession = slingRepository.loginAdministrative(null);
 
         // Create the participant node.
-        Node particpantNode = JcrUtils.deepGetOrCreateNode(session, path);
-        particpantNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
+        Node participantNode = JcrUtils.deepGetOrCreateNode(adminSession, path);
+        participantNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             SAKAI_EVENT_SIGNUP_PARTICIPANT_RT);
-        particpantNode.setProperty(SAKAI_USER, signupNode.getSession().getUserID());
-        particpantNode.setProperty(SAKAI_SIGNEDUP_DATE, Calendar.getInstance());
-        if (session.hasPendingChanges()) {
-          session.save();
+        participantNode.setProperty(SAKAI_USER, signupNode.getSession().getUserID());
+        participantNode.setProperty(SAKAI_SIGNEDUP_DATE, Calendar.getInstance());
+        participantNode.setProperty(SAKAI_CALENDAR_PROFILE_LINK, profileNode);
+        if (adminSession.hasPendingChanges()) {
+          adminSession.save();
         }
       } finally {
         // Destroy the admin session.
-        session.logout();
+        adminSession.logout();
       }
 
     } catch (RepositoryException e) {
@@ -248,27 +259,17 @@ public class CalendarSignupServlet extends SlingAllMethodsServlet {
           "Failed to add current user to the participant list.");
     }
   }
-
+  
   /**
-   * Get the hash that is associated with an authorizable. This is done by getting the
-   * {@link Session session} from the passed in {@link Node node}, getting the userid from
-   * the session and then finding the {@link Authorizable authorizable}. If the userid
-   * would be simong, the hash would be /s/si/simong .
-   * 
-   * @param node
+   * Gets the authorizable for a session
+   * @param session
    * @return
    * @throws RepositoryException
    */
-  protected String getAuthorizableHash(Node node) throws RepositoryException {
+  protected Authorizable getAuthorizable(Session session) throws RepositoryException {
     // Get the authorizable.
-    String user = node.getSession().getUserID();
-    Session session = node.getSession();
-    Authorizable au = PersonalUtils.getAuthorizable(session, user);
-
-    // Construct the absolute path in JCR from the signup node and the authorizable
-    // hash.
-    String hash = PersonalUtils.getUserHashedPath(au);
-    return hash;
+    String user = session.getUserID();
+    return PersonalUtils.getAuthorizable(session, user);
   }
 
   protected void bindPreProcessor(SignupPreProcessor preProcessor) {

@@ -71,4 +71,9 @@ public interface CalendarConstants {
    * The property name for the signed up date.
    */
   public static final String SAKAI_SIGNEDUP_DATE = "sakai:event-signupdate";
+  /**
+   * The property name for the original event that a user signs up for. This property will
+   * hold the uuid of that original node.
+   */
+  public static final String SAKAI_SIGNEDUP_ORIGINAL_EVENT = "sakai:original-event";
 }

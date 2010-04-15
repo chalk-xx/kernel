@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
@@ -67,10 +68,34 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
       Map<String, String> propertiesMap) {
 
     // Add the path.
-    addPath(request, propertiesMap);
+    addCalendarPath(request, propertiesMap);
 
     // Add the day.
     addStartEnd(request, propertiesMap);
+
+    // Participants stuff
+    addCalendarEventPath(request, propertiesMap);
+  }
+
+  /**
+   * @param request
+   * @param propertiesMap
+   */
+  protected void addCalendarEventPath(SlingHttpServletRequest request,
+      Map<String, String> propertiesMap) {
+    try {
+      RequestParameter eventParam = request.getRequestParameter("event-path");
+      if (eventParam != null) {
+        String eventPath = eventParam.getString("UTF-8");
+        eventPath = ISO9075.encodePath(eventPath);
+        propertiesMap.put("_event-path", eventPath);
+      }
+    } catch (UnsupportedEncodingException e) {
+      LOGGER
+          .error(
+              "Caught an UnsupportedEncodingException when trying to provide properties for the calendar search templates.",
+              e);
+    }
   }
 
   /**
@@ -146,7 +171,7 @@ public class CalenderSearchPropertyProvider implements SearchPropertyProvider {
    * @param request
    * @param propertiesMap
    */
-  protected void addPath(SlingHttpServletRequest request,
+  protected void addCalendarPath(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
     try {
       String user = request.getRemoteUser();

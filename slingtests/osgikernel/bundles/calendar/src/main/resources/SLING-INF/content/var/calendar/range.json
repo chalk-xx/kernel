@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template" : "/{_calendar-path}//*[(@sakai:vcal-DTSTART >= xs:dateTime('{_date-start}') and @sakai:vcal-DTEND <= xs:dateTime('{_date-end}')) and jcr:like(@sling:resourceType, 'sakai/calendar%')] order by @{sortOn|sakai:vcal-DTSTART} {sortOrder|ascending}",
+  "sakai:query-template" : "/jcr:root{_calendar-path}//*[(@sakai:vcal-DTSTART >= xs:dateTime('{_date-start}') and @sakai:vcal-DTSTART <= xs:dateTime('{_date-end}')) and jcr:like(@sling:resourceType, 'sakai/calendar%')] order by @{sortOn|sakai:vcal-DTSTART} {sortOrder|ascending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Calendar",
   "sakai:propertyprovider" : "Calendar",

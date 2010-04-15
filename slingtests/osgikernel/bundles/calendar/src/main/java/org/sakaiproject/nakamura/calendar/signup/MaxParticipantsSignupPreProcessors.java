@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 @Component(immediate = true)
 public class MaxParticipantsSignupPreProcessors implements SignupPreProcessor {
 
-  protected static final String SAKAI_EVENT_MAX_PARTICIPANTS = "SAKAI_EVENT_MAX_PARTICIPANTS";
+  protected static final String SAKAI_EVENT_MAX_PARTICIPANTS = "sakai:event-max-participants";
   public static final Logger LOGGER = LoggerFactory
       .getLogger(MaxParticipantsSignupPreProcessors.class);
 
