@@ -62,22 +62,22 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * This rest end point is restricted to users that can read the resource and optionally to
+ * This REST end point is restricted to users that can read the resource and optionally to
  * requests that have embeded a shared trusted token in their request. It is presented
  * with a user cookie, and responds with the user object for that cookie.
  * </p>
  * <p>
  * Trusted tokens are stored in the multi value property
- * <code>sakai:shared-token<code> and if this is present
+ * <code>sakai:shared-token<code> and, if this is present,
  * requests must provide one of those tokens in the http header <code>Sakai-Trust-Token</code>
  * .
  * </p>
  * <p>
- * The servlet translated the cookie SAKAI-TRACKING on client requests into a User object.
+ * The servlet translates the cookie SAKAI-TRACKING on client requests into a User object.
  * This cookie is provided in a request parameter <code>c</code>
  * </p>
  * <p>
- * The response is of the form
+ * The response is of the form:
  * </p>
  *
  * <pre>
@@ -115,7 +115,7 @@ import javax.servlet.http.HttpServletResponse;
  * </pre>
  */
 @SlingServlet(generateComponent = true, generateService = true, selectors = { "cookie" }, extensions = { "json" }, resourceTypes = { "sakai/cluster-users" })
-@ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This rest end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and if this is present requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "<p>Sample JSON response</p><pre>"
+@ServiceDocumentation(name = "ClusterUserServlet", shortDescription = "Translates the value of cookie SAKAI-TRACKING into a User object.", description = "Translates the value of cookie SAKAI-TRACKING into a User object. This REST end point is restricted to users that can read the resource and optionally to requests that have embeded a shared trusted token in their request. It is presented with a user cookie, and responds with the user object for that cookie. Trusted tokens are stored in the multi value property sakai:shared-token and, if this is present, requests must provide one of those tokens in the http header Sakai-Trust-Token.", bindings = { @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/cluster-users", selectors = { @ServiceSelector(name = "cookie", description = "") }, extensions = { @ServiceExtension(name = "json", description = "") }) }, methods = { @ServiceMethod(name = "GET", description = "<p>Sample JSON response:</p><pre>"
     + "curl http://localhost:8080/var/cluster/user.cookie.json?c=8070-10-87-32-111.localhost.indiana.edu-c8029d4b68a88a0e3aa3d0f60ff7de5530295cf1"
     + "{\n"
     + "  \"server\": \"8070-10-87-32-111.localhost.indiana.edu\",\n"
@@ -144,9 +144,9 @@ import javax.servlet.http.HttpServletResponse;
     + "    ]\n"
     + "}"
     + "</pre>", parameters = { @ServiceParameter(name = "c", description = { "The value of cookie SAKAI-TRACKING." }) }, response = {
-    @ServiceResponse(code = 200, description = "On sucess a json tree of the User object."),
+    @ServiceResponse(code = 200, description = "On sucess a JSON tree of the User object."),
     @ServiceResponse(code = 404, description = "Cookie is not registered."),
-    @ServiceResponse(code = 0, description = "Any other status codes emmitted have the meaning prescribed in the RFC") }) })
+    @ServiceResponse(code = 0, description = "Any other status codes returned have meanings as per the RFC") }) })
 public class ClusterUserServlet extends SlingSafeMethodsServlet {
 
   // TODO: deny doesnt work on the /var/cluster/user node for some reason, check the acl

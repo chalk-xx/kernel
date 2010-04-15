@@ -25,6 +25,10 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.cyberneko.html.parsers.DOMParser;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
@@ -52,28 +56,30 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * @scr.component immediate="true" label="MailManagerImpl"
- *                description="Interface to mailman"
- * @scr.property name="service.description"
- *                value="Handles management of mailman integration"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.mailman.MailmanManager"
- */
+@Component(immediate = true, metatype = true, label = "%mail.manager.impl.label", description = "%mail.manager.impl.desc")
+@Service(value = MailmanManager.class)
 public class MailmanManagerImpl implements MailmanManager, ManagedService {
   
   private static final Logger LOGGER = LoggerFactory.getLogger(MailmanManagerImpl.class);
+
+  @SuppressWarnings("unused")
+  @Property(value = "The Sakai Foundation")
+  private static final String SERVICE_VENDOR = "service.vendor";
+
+  @SuppressWarnings("unused")
+  @Property(value = "Handles management of mailman integration")
+  private static final String SERVICE_DESCRIPTION = "service.description";
   
-  /** @scr.reference */
+  @Reference
   private ProxyClientService proxyClientService;
   
-  /** @scr.property value="example.com" type="String" */
+  @Property(value = "example.com")
   private static final String MAILMAN_HOST = "mailman.host";
   
-  /** @scr.property value="/cgi-bin/mailman" type="String" */
+  @Property(value = "/cgi-bin/mailman")
   private static final String MAILMAN_PATH = "mailman.path";
   
-  /** @scr.property value="password" type="String" */
+  @Property(value = "password")
   private static final String LIST_ADMIN_PASSWORD = "mailman.listadmin.password";
 
   private ImmutableMap<String, String> configMap = ImmutableMap.of();
