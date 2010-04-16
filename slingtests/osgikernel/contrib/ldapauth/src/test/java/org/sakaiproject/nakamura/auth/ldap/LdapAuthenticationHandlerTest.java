@@ -73,12 +73,13 @@ public class LdapAuthenticationHandlerTest {
   @Test
   public void canGetAuthenticationInfoFromPostFields() {
     // given
-    when(request.getParameter(LdapAuthenticationHandler.PAR_J_USERNAME)).thenReturn(
+    when(request.getParameter(LdapAuthenticationHandler.PAR_USERNAME)).thenReturn(
         "zach");
-    when(request.getParameter(LdapAuthenticationHandler.PAR_J_PASSWORD)).thenReturn(
+    when(request.getParameter(LdapAuthenticationHandler.PAR_PASSWORD)).thenReturn(
         "secret");
     when(request.getMethod()).thenReturn("POST");
     when(request.getRequestURI()).thenReturn(LdapAuthenticationHandler.REQUEST_URL_SUFFIX);
+    when(request.getParameter(LdapAuthenticationHandler.PAR_LOGIN)).thenReturn("1");
 
     // when
     AuthenticationInfo authInfo = authHandler.extractCredentials(request, response);

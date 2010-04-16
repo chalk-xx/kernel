@@ -19,7 +19,11 @@ package org.sakaiproject.nakamura.auth.ldap;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.*;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.PropertyOption;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.auth.Authenticator;
 import org.apache.sling.commons.auth.spi.AuthenticationFeedbackHandler;
 import org.apache.sling.commons.auth.spi.AuthenticationHandler;
@@ -55,7 +59,7 @@ import java.util.Dictionary;
 public class LdapAuthenticationHandler implements AuthenticationHandler,
     AuthenticationFeedbackHandler {
   public static final String LDAP_AUTH = "ldap";
-  
+
   /**
    * The request parameter causing a 401/UNAUTHORIZED status to be sent back in the {@link
    * #authenticate(HttpServletRequest, HttpServletResponse)} method if no credentials are
@@ -66,8 +70,8 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   static final String REQUEST_LOGIN_PARAMETER = "sling:authRequestLogin";
 
   /** The name of the parameter providing the login form URL. */
-    @Property(value = LdapAuthenticationServlet.SERVLET_PATH)
-    static final String PAR_LOGIN_FORM = "sakai.auth.ldap.login.form";
+  @Property(value = LdapAuthenticationServlet.SERVLET_PATH)
+  static final String PAR_LOGIN_FORM = "sakai.auth.ldap.login.form";
 
   /**
    * The default Cookie or session attribute name
@@ -152,7 +156,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * appropriately, the action of the login form must always be set to
    * <code>j_security_check</code>.</i>
    */
-  static final String REQUEST_URL_SUFFIX = "/j_security_check";
+//  static final String REQUEST_URL_SUFFIX = "/j_security_check";
+  /** override to match sakai nakamura formauth */
+  static final String REQUEST_URL_SUFFIX = "/system/sling/formlogin";
 
   /**
    * The name of the form submission parameter providing the name of the user to
@@ -161,7 +167,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * This name is prescribed by the Servlet API 2.4 Specification, Section SRV.12.5.3 Form
    * Based Authentication.
    */
-  static final String PAR_J_USERNAME = "j_username";
+//  static final String PAR_USERNAME = "j_username";
+  /** override to match sakai nakamura formauth */
+  static final String PAR_USERNAME = "sakaiauth:un";
 
   /**
    * The name of the form submission parameter providing the password of the user to
@@ -170,14 +178,15 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * This name is prescribed by the Servlet API 2.4 Specification, Section SRV.12.5.3 Form
    * Based Authentication.
    */
-  static final String PAR_J_PASSWORD = "j_password";
-
+//  static final String PAR_J_PASSWORD = "j_password";
+  /** override to match sakai nakamura formauth */
+  static final String PAR_PASSWORD = "sakaiauth:pw";
   /**
    * The name of the form submission parameter indicating that the submitted username and
    * password should just be checked and a status code be set for success (200/OK) or
    * failure (403/FORBIDDEN).
    */
-  static final String PAR_J_VALIDATE = "j_validate";
+  static final String PAR_VALIDATE = "j_validate";
 
   /**
    * The name of the request parameter indicating to the login form why the form is being
@@ -185,8 +194,13 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * implied reason is that the authenticator just requests credentials. Otherwise the
    * parameter is set to a {@link FormReason} value.
    */
-  static final String PAR_J_REASON = "j_reason";
+  static final String PAR_REASON = "j_reason";
 
+  /**
+   * The name of the request parameter indicating that we should try to login
+   */
+  static final String PAR_LOGIN = "sakaiauth:login";
+  
   /** The factor to convert minute numbers into milliseconds used internally */
   private static final long MINUTES = 60L * 1000L;
 
@@ -229,7 +243,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
           info = createAuthInfo(authData);
         } else {
           // signal the requestCredentials method a previous login failure
-          request.setAttribute(PAR_J_REASON, FormReason.TIMEOUT);
+          request.setAttribute(PAR_REASON, FormReason.TIMEOUT);
         }
       }
     }
@@ -284,9 +298,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
     }
 
     // append indication of previous login failure
-    if (request.getAttribute(PAR_J_REASON) != null) {
-      final String reason = String.valueOf(request.getAttribute(PAR_J_REASON));
-      targetBuilder.append(parSep).append(PAR_J_REASON);
+    if (request.getAttribute(PAR_REASON) != null) {
+      final String reason = String.valueOf(request.getAttribute(PAR_REASON));
+      targetBuilder.append(parSep).append(PAR_REASON);
       targetBuilder.append("=").append(URLEncoder.encode(reason, "UTF-8"));
     }
 
@@ -329,7 +343,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
     authStorage.clear(request, response);
 
     // signal the requestCredentials method a previous login failure
-    request.setAttribute(PAR_J_REASON, FormReason.INVALID_CREDENTIALS);
+    request.setAttribute(PAR_REASON, FormReason.INVALID_CREDENTIALS);
   }
 
   /**
@@ -427,17 +441,17 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * username/password credentials.
    * <p/>
    * This implementation returns <code>true</code> if the request parameter {@link
-   * #PAR_J_VALIDATE} is set to <code>true</code> (case-insensitve). If the request
+   * #PAR_VALIDATE} is set to <code>true</code> (case-insensitve). If the request
    * parameter is not set or to any value other than <code>true</code> this method returns
    * <code>false</code>.
    *
    * @param request The request to provide the parameter to check
    *
-   * @return <code>true</code> if the {@link #PAR_J_VALIDATE} parameter is set to
+   * @return <code>true</code> if the {@link #PAR_VALIDATE} parameter is set to
    *         <code>true</code>.
    */
   private boolean isValidateRequest(final HttpServletRequest request) {
-    return "true".equalsIgnoreCase(request.getParameter(PAR_J_VALIDATE));
+    return "true".equalsIgnoreCase(request.getParameter(PAR_VALIDATE));
   }
 
   /**
@@ -523,10 +537,11 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
     // only consider login form parameters if this is a POST request
     // to the j_security_check URL
     if (REQUEST_METHOD.equals(request.getMethod())
-        && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)) {
+        && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)
+        && "1".equals(request.getParameter(PAR_LOGIN))) {
 
-      String user = request.getParameter(PAR_J_USERNAME);
-      String pwd = request.getParameter(PAR_J_PASSWORD);
+      String user = request.getParameter(PAR_USERNAME);
+      String pwd = request.getParameter(PAR_PASSWORD);
 
       if (user != null && pwd != null) {
         info = new AuthenticationInfo(LDAP_AUTH, user, pwd.toCharArray());
