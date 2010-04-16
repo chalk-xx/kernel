@@ -17,19 +17,7 @@
  */
 package org.sakaiproject.nakamura.ldap;
 
-import static org.easymock.EasyMock.isA;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertTrue;
-
 import com.novell.ldap.LDAPConnection;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +30,11 @@ import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Properties;
 
-/**
- * Unit test for {@link PoolingLdapConnectionBroker}
- */
+import static junit.framework.Assert.*;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertTrue;
+
+/** Unit test for {@link PoolingLdapConnectionBroker} */
 public class PoolingLdapConnectionBrokerTest {
   private LdapConnectionManagerConfig config;
   private PoolingLdapConnectionBroker broker;
@@ -56,8 +46,14 @@ public class PoolingLdapConnectionBrokerTest {
     ConfigurationService configService = createMock(ConfigurationService.class);
     expect(configService.getProperties()).andReturn(new HashMap<String, String>());
 
+    config = new LdapConnectionManagerConfig();
+    config.setLdapHost("localhost");
+    config.setLdapPort(LDAPConnection.DEFAULT_PORT + 1000);
+    config.setLdapUser("dude");
+    config.setLdapPassword("sweet");
+
     // don't mock this. we just need to inject the connection.
-    final PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager() {
+    final PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager(config) {
       @Override
       public LDAPConnection getConnection() {
         return new LDAPConnection();
@@ -68,19 +64,14 @@ public class PoolingLdapConnectionBrokerTest {
         return new LDAPConnection();
       }
     };
-    config = new LdapConnectionManagerConfig();
-    config.setLdapHost("localhost");
-    config.setLdapPort(LDAPConnection.DEFAULT_PORT + 1000);
-    config.setLdapUser("dude");
-    config.setLdapPassword("sweet");
 
-    mgr.setConfig(config);
     mgr.init();
 
     // don't mock this. we just need to inject the manager.
     broker = new PoolingLdapConnectionBroker() {
       @Override
-      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(String poolName,
+      protected PoolingLdapConnectionManager newPoolingLdapConnectionManager(
+          String poolName,
           LdapConnectionManagerConfig config) {
         return mgr;
       }
@@ -140,24 +131,30 @@ public class PoolingLdapConnectionBrokerTest {
 
   @Test
   public void testEmptyUpdate() throws Exception {
-    LdapConnectionManagerConfig realDefaults = new LdapConnectionManagerConfig();
     Properties m = new Properties();
     broker.update(m);
-
     LdapConnectionManagerConfig defaults = broker.getDefaultConfig();
-    assertEquals(realDefaults.isAutoBind(), defaults.isAutoBind());
-    assertEquals(realDefaults.isFollowReferrals(), defaults.isFollowReferrals());
-    assertEquals(realDefaults.isPooling(), defaults.isPooling());
-    assertEquals(realDefaults.isSecureConnection(), defaults.isSecureConnection());
-    assertEquals(realDefaults.isTLS(), defaults.isTLS());
-    assertEquals(realDefaults.getKeystoreLocation(), defaults.getKeystoreLocation());
-    assertEquals(realDefaults.getKeystorePassword(), defaults.getKeystorePassword());
-    assertEquals(realDefaults.getLdapHost(), defaults.getLdapHost());
-    assertEquals(realDefaults.getLdapPassword(), realDefaults.getLdapPassword());
-    assertEquals(realDefaults.getLdapPort(), defaults.getLdapPort());
-    assertEquals(realDefaults.getLdapUser(), defaults.getLdapUser());
-    assertEquals(realDefaults.getOperationTimeout(), defaults.getOperationTimeout());
-    assertEquals(realDefaults.getPoolMaxConns(), defaults.getPoolMaxConns());
+
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_AUTO_BIND, defaults.isAutoBind());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_FOLLOW_REFERRALS,
+        defaults.isFollowReferrals());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_HOST, defaults.getLdapHost());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_KEYSTORE_LOCATION,
+        defaults.getKeystoreLocation());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_KEYSTORE_PASSWORD,
+        defaults.getKeystorePassword());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_OPERATION_TIMEOUT,
+        defaults.getOperationTimeout());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_PASSWORD,
+        defaults.getLdapPassword());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_POOLING, defaults.isPooling());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_POOLING_MAX_CONNS,
+        defaults.getPoolMaxConns());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_PORT, defaults.getLdapPort());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_SECURE_CONNECTION,
+        defaults.isSecureConnection());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_TLS, defaults.isTLS());
+    assertEquals(PoolingLdapConnectionBroker.DEFAULT_USER, defaults.getLdapUser());
   }
 
   @Test
@@ -181,9 +178,10 @@ public class PoolingLdapConnectionBrokerTest {
     broker.update(m);
 
     LdapConnectionManagerConfig defaults = broker.getDefaultConfig();
-    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.AUTO_BIND)).booleanValue(), defaults
-        .isAutoBind());
-    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.FOLLOW_REFERRALS)).booleanValue(),
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.AUTO_BIND)).booleanValue(),
+        defaults.isAutoBind());
+    assertEquals(
+        ((Boolean) m.get(PoolingLdapConnectionBroker.FOLLOW_REFERRALS)).booleanValue(),
         defaults.isFollowReferrals());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.HOST), defaults.getLdapHost());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.KEYSTORE_LOCATION), defaults
@@ -192,17 +190,20 @@ public class PoolingLdapConnectionBrokerTest {
         .getKeystorePassword());
     assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.OPERATION_TIMEOUT))
         .intValue(), defaults.getOperationTimeout());
-    assertEquals(m.getProperty(PoolingLdapConnectionBroker.PASSWORD), defaults.getLdapPassword());
-    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.POOLING)).booleanValue(), defaults
-        .isPooling());
-    assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.POOLING_MAX_CONNS)).intValue(),
+    assertEquals(m.getProperty(PoolingLdapConnectionBroker.PASSWORD),
+        defaults.getLdapPassword());
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.POOLING)).booleanValue(),
+        defaults.isPooling());
+    assertEquals(
+        ((Integer) m.get(PoolingLdapConnectionBroker.POOLING_MAX_CONNS)).intValue(),
         defaults.getPoolMaxConns());
     assertEquals(((Integer) m.get(PoolingLdapConnectionBroker.PORT)).intValue(), defaults
         .getLdapPort());
-    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.SECURE_CONNECTION)).booleanValue(),
+    assertEquals(
+        ((Boolean) m.get(PoolingLdapConnectionBroker.SECURE_CONNECTION)).booleanValue(),
         defaults.isSecureConnection());
-    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.TLS)).booleanValue(), defaults
-        .isTLS());
+    assertEquals(((Boolean) m.get(PoolingLdapConnectionBroker.TLS)).booleanValue(),
+        defaults.isTLS());
     assertEquals(m.getProperty(PoolingLdapConnectionBroker.USER), defaults.getLdapUser());
   }
 

@@ -18,6 +18,10 @@
 package org.sakaiproject.nakamura.ldap;
 
 import com.novell.ldap.LDAPConnection;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -34,11 +38,6 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Simple implementation of an {@link LdapConnectionBroker}. Maintains an
@@ -269,25 +268,25 @@ public class PoolingLdapConnectionBroker implements LdapConnectionBroker {
 
   @SuppressWarnings("unchecked")
   public void update(Dictionary props) {
-    if (props != null && !props.isEmpty()) {
-      LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
+    if (props == null) props = new Properties();
 
-      config.setAutoBind(OsgiUtil.toBoolean(props.get(AUTO_BIND), DEFAULT_AUTO_BIND));
-      config.setFollowReferrals(OsgiUtil.toBoolean(props.get(FOLLOW_REFERRALS), DEFAULT_FOLLOW_REFERRALS));
-      config.setKeystoreLocation(OsgiUtil.toString(props.get(KEYSTORE_LOCATION), DEFAULT_KEYSTORE_LOCATION));
-      config.setKeystorePassword(OsgiUtil.toString(props.get(KEYSTORE_PASSWORD), DEFAULT_KEYSTORE_PASSWORD));
-      config.setSecureConnection(OsgiUtil.toBoolean(props.get(SECURE_CONNECTION), DEFAULT_SECURE_CONNECTION));
-      config.setLdapHost(OsgiUtil.toString(props.get(HOST), DEFAULT_HOST));
-      config.setLdapPort(OsgiUtil.toInteger(props.get(PORT), DEFAULT_PORT));
-      config.setLdapUser(OsgiUtil.toString(props.get(USER), DEFAULT_USER));
-      config.setLdapPassword(OsgiUtil.toString(props.get(PASSWORD), DEFAULT_PASSWORD));
-      config.setOperationTimeout(OsgiUtil.toInteger(props.get(OPERATION_TIMEOUT), DEFAULT_OPERATION_TIMEOUT));
-      config.setPooling(OsgiUtil.toBoolean(props.get(POOLING), DEFAULT_POOLING));
-      config.setPoolMaxConns(OsgiUtil.toInteger(props.get(POOLING_MAX_CONNS), DEFAULT_POOLING_MAX_CONNS));
-      config.setTLS(OsgiUtil.toBoolean(props.get(TLS), DEFAULT_TLS));
+    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
 
-      // set the default configuration
-      defaultConfig = config;
-    }
+    config.setAutoBind(OsgiUtil.toBoolean(props.get(AUTO_BIND), DEFAULT_AUTO_BIND));
+    config.setFollowReferrals(OsgiUtil.toBoolean(props.get(FOLLOW_REFERRALS), DEFAULT_FOLLOW_REFERRALS));
+    config.setKeystoreLocation(OsgiUtil.toString(props.get(KEYSTORE_LOCATION), DEFAULT_KEYSTORE_LOCATION));
+    config.setKeystorePassword(OsgiUtil.toString(props.get(KEYSTORE_PASSWORD), DEFAULT_KEYSTORE_PASSWORD));
+    config.setSecureConnection(OsgiUtil.toBoolean(props.get(SECURE_CONNECTION), DEFAULT_SECURE_CONNECTION));
+    config.setLdapHost(OsgiUtil.toString(props.get(HOST), DEFAULT_HOST));
+    config.setLdapPort(OsgiUtil.toInteger(props.get(PORT), DEFAULT_PORT));
+    config.setLdapUser(OsgiUtil.toString(props.get(USER), DEFAULT_USER));
+    config.setLdapPassword(OsgiUtil.toString(props.get(PASSWORD), DEFAULT_PASSWORD));
+    config.setOperationTimeout(OsgiUtil.toInteger(props.get(OPERATION_TIMEOUT), DEFAULT_OPERATION_TIMEOUT));
+    config.setPooling(OsgiUtil.toBoolean(props.get(POOLING), DEFAULT_POOLING));
+    config.setPoolMaxConns(OsgiUtil.toInteger(props.get(POOLING_MAX_CONNS), DEFAULT_POOLING_MAX_CONNS));
+    config.setTLS(OsgiUtil.toBoolean(props.get(TLS), DEFAULT_TLS));
+
+    // set the default configuration
+    defaultConfig = config;
   }
 }

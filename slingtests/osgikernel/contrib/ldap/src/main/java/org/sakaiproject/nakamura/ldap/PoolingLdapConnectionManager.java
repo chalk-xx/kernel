@@ -185,7 +185,10 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   /** {@inheritDoc} */
   @Override
   public void destroy() {
-    broker.destroy(getClass().getName());
+    if (broker != null) {
+      broker.destroy(getClass().getName());
+    }
+    
     try {
       log.debug("destroy(): closing connection pool");
       pool.close();

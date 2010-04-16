@@ -61,14 +61,12 @@ public class SimpleLdapConnectionManagerTest {
 
     conn = createMock(LDAPConnection.class);
 
-    mgr = new SimpleLdapConnectionManager() {
+    mgr = new SimpleLdapConnectionManager(config) {
       @Override
       protected LDAPConnection newLDAPConnection() {
         return conn;
       }
     };
-
-    mgr.setConfig(config);
   }
 
   @After
@@ -83,7 +81,7 @@ public class SimpleLdapConnectionManagerTest {
 
   @Test
   public void testNewLdapConnection() {
-    new SimpleLdapConnectionManager().newLDAPConnection();
+    new SimpleLdapConnectionManager(config).newLDAPConnection();
   }
 
   @Test
