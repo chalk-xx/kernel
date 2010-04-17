@@ -30,6 +30,12 @@ import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -55,6 +61,45 @@ import javax.jcr.Value;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(
+    name = "MeServlet",
+    shortDescription = "Returns information about the current active user.",
+    description = "Presents information about current user in JSON format.",
+    bindings = @ServiceBinding(
+        type = BindingType.PATH,
+        bindings = "/system/me"
+    ),
+    methods = @ServiceMethod(
+        name = "GET",
+        description = "Get information about current user.",
+        response = {@ServiceResponse(
+            code = 200,
+            description = "Request for information was successful. <br />" +
+                "A JSON representation of the current user is returned. E.g. for an anonymous user:" +
+                "<pre>{\"user\":\n" +
+                "{\"anon\":true,\"subjects\":[],\"superUser\":false},\n" +
+                "\"profile\":{\n" +
+                "\"jcr:path\":\"/_user/a/an/anonymous/public/authprofile\",\n" +
+                "\"jcr:name\":\"authprofile\",\n" +
+                "\"rep:userId\":\"anonymous\",\n" +
+                "\"sling:resourceType\":\"sakai/user-profile\",\n" +
+                "\"jcr:uuid\":\"4af50bac-dca3-4517-81e0-1b83208f3f1d\",\n" +
+                "\"jcr:mixinTypes\":[\"mix:referenceable\"],\n" +
+                "\"path\":\"/a/an/anonymous\",\n" +
+                "\"jcr:primaryType\":\"nt:unstructured\"}\n" +
+                "}<pre>"
+          ),
+          @ServiceResponse(
+            code = 401,
+            description = "Unauthorized: credentials provided were not acceptable to return information for."
+          ),
+          @ServiceResponse(
+            code = 500,
+            description = "Unable to return information about current user."
+          )
+        }
+    )
+)
 @SlingServlet(paths = { "/system/me" }, generateComponent = true, generateService = true, methods = { "GET" })
 public class MeServlet extends SlingSafeMethodsServlet {
 
