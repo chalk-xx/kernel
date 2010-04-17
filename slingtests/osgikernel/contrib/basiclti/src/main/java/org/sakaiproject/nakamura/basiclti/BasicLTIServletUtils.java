@@ -55,10 +55,12 @@ public class BasicLTIServletUtils {
     sensitiveKeys.add(LTI_SECRET);
     sensitiveKeys = Collections.unmodifiableSet(sensitiveKeys);
 
-    unsupportedKeys = new HashSet<String>(3);
+    unsupportedKeys = new HashSet<String>(5);
     unsupportedKeys.add("jcr:primaryType");
     unsupportedKeys.add("jcr:created");
+    unsupportedKeys.add("jcr:createdBy");
     unsupportedKeys.add(":operation");
+    unsupportedKeys.add("_MODIFIERS"); // TrimPath stuff
     unsupportedKeys = Collections.unmodifiableSet(unsupportedKeys);
   }
 
