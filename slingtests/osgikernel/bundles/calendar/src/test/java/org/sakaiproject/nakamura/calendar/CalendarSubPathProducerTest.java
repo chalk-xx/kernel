@@ -35,22 +35,22 @@ public class CalendarSubPathProducerTest {
 
   @Test
   public void test() throws ParseException {
-    // 1271245657000L = 2010-04-14T12:47:37+00:00
+    // 1271245657000L = 2010-04-14T11:47:37+00:00  NB this is GMT,UTC,Z
     DateTime dateTime = new DateTime(1271245657000L);
     DtStart start = new DtStart(dateTime);
     VEvent event = new VEvent();
     event.getProperties().add(start);
     CalendarSubPathProducer producer = new CalendarSubPathProducer(event);
     String actual = producer.getSubPath();
-    assertEquals("/2010/04/14/12/47-37", actual);
+    assertEquals("/2010/04/14/11/47-37", actual); // in GMT/UTC/Z
     assertEquals("vevent", producer.getType());
 
-    // Test with a UID
+    // Test with a UID  
     Uid uid = new Uid("AAAAAOZGb44G2IVChIfhT3gnN6ZkoCAA");
     event.getProperties().add(uid);
     producer = new CalendarSubPathProducer(event);
     actual = producer.getSubPath();
-    assertEquals("/2010/04/14/12/47-37-AAAAAOZGb44G2IVChIfhT3gnN6ZkoCAA", actual);
+    assertEquals("/2010/04/14/11/47-37-AAAAAOZGb44G2IVChIfhT3gnN6ZkoCAA", actual);
     assertEquals("vevent", producer.getType());
   }
 }
