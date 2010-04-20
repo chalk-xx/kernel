@@ -62,7 +62,6 @@
         <module>bundles/discussion</module>
         <module>bundles/smtp</module>
         <module>bundles/user</module>
-        <module>bundles/uxloader</module>
         <module>bundles/events</module>
         <module>bundles/batch</module>
         <module>bundles/activation-mail</module>
