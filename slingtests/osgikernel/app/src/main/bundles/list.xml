@@ -645,11 +645,11 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
       <version>0.4</version>
     </bundle>
-    <bundle>
+    <!-- <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
       <version>0.4</version>
-    </bundle>
+    </bundle> -->
 
 <!-- person directory information -->
     <bundle>

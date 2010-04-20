@@ -87,10 +87,10 @@
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
         <!-- NYU contrib needs -->
-        <module>contrib/ldapauth</module>
+        <!-- <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
         <module>contrib/persondirectory</module>
-        <module>contrib/urldocproxy</module>
+        <module>contrib/urldocproxy</module> -->
         <module>contrib/xythos-remote</module>
       </modules>
     </profile>
