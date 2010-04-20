@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.util.DateUtils;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  *
@@ -39,7 +40,7 @@ import java.util.Date;
 public class CalendarSubPathProducer implements SubPathProducer {
 
   public static final FastDateFormat format = FastDateFormat
-      .getInstance("/yyyy/MM/dd/hh/mm-ss");
+      .getInstance("/yyyy/MM/dd/hh/mm-ss",TimeZone.getTimeZone("GMT")); // Must format in GMT
 
   private String subPath;
   private String name;
@@ -93,7 +94,7 @@ public class CalendarSubPathProducer implements SubPathProducer {
   public String getDateHashed(DateProperty p) {
     Date d = p.getDate();
     Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(d.getTime());
+    cal.setTimeInMillis(d.getTime());    
     return format.format(cal);
   }
 
