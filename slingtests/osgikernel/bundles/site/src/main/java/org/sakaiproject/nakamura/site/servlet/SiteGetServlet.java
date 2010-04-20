@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -44,16 +47,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceGetServlet</code>
- *
- * @scr.component immediate="true" label="SiteGetServlet"
- *                description="Get servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value="Renders sites"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.extensions" value="html"
  */
+@Component(immediate = true, label = "%site.getServlet.label", description = "%site.getServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "GET", extensions = "html", generateComponent = false)
 @ServiceDocumentation(name="Get Site Servlet",
     description=" Gets the site container or the site definition depending on serialization ",
     shortDescription="Get site.",
@@ -84,6 +80,12 @@ public class SiteGetServlet extends AbstractSiteServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(SiteGetServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Renders sites")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

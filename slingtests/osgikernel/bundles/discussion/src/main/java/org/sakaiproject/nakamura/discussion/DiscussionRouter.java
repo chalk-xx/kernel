@@ -18,6 +18,10 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
@@ -36,19 +40,18 @@ import javax.jcr.RepositoryException;
  * checks the settings for this discussion. If there is a property that states all
  * discussion messages should be re-routed to an email address, this router will take care
  * of it.
- * 
- * @scr.component inherit="true" label="DiscussionRouter" immediate="true"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageRouter"
- * @scr.property name="service.description"
- *               value="Manages Routing for the discussion posts."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="DiscussionManager"
- *                interface="org.sakaiproject.nakamura.api.discussion.DiscussionManager"
  */
+@Component(immediate = true, inherit = true, label = "%discussion.router.label", description = "%discussion.router.desc")
+@Service
 public class DiscussionRouter implements MessageRouter {
 
+  @Reference
   private DiscussionManager discussionManager;
+
   private static final Logger logger = LoggerFactory.getLogger(DiscussionRouter.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
 
   protected void bindDiscussionManager(DiscussionManager discussionManager) {
     this.discussionManager = discussionManager;
@@ -75,7 +78,7 @@ public class DiscussionRouter implements MessageRouter {
 
           // TODO: I have a feeling that this is really part of something more generic
           // and not specific to discussion. If we make it specific to discussion we
-          // will loose unified messaging and control of that messaging.
+          // will lose unified messaging and control of that messaging.
 
           // This is a discussion message, find the settings file for it.
 

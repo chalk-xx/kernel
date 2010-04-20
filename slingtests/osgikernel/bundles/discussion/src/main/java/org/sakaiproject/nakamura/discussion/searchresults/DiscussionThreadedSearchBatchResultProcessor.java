@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.discussion.searchresults;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -47,18 +50,20 @@ import javax.jcr.query.RowIterator;
 
 /**
  * Formats message node search results
- * 
- * @scr.component immediate="true" label="DiscussionSearchBatchResultProcessor"
- *                description="Formatter for discussion search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.batchprocessor" value="DiscussionThreaded"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor"
  */
+@Component(immediate = true, label = "%discussion.threadedSearchBatch.label", description = "%discussion.threadedSearchBatch.desc")
+@Service
 public class DiscussionThreadedSearchBatchResultProcessor implements
     SearchBatchResultProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionThreadedSearchBatchResultProcessor.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "DiscussionThreaded")
+  static final String SEARCH_BATCHPROCESSOR = "sakai.search.batchprocessor";
 
   public void writeNodes(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, RowIterator iterator) throws JSONException,

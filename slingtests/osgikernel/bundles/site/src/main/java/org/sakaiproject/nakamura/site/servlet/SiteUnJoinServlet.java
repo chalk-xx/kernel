@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
@@ -42,17 +45,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * The <code>SiteServiceJoinServlet</code> supports Join, UnJoin for joinable sites and
  * initiates authorized Joining workflow.
- * 
- * @scr.component immediate="true" label="SiteJoinServlet"
- *                description="Join servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Supports Join functionality on the site."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="unjoin"
  */
+@Component(immediate = true, label = "%site.joinServlet.label", description = "%site.joinServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "unjoin", generateComponent = false)
 @ServiceDocumentation(name="Site UnJoin Servlet",
     description=" The <code>SiteServiceJoinServlet</code> supports UnJoin for sites.",
     shortDescription="Supports site UnJoin operations.",
@@ -94,6 +89,11 @@ public class SiteUnJoinServlet extends AbstractSiteServlet {
    */
   private static final Logger LOG = LoggerFactory.getLogger(SiteUnJoinServlet.class);
 
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Supports Join functionality on the site.")
+  static final String SERVICE_DESCRIPTION = "Post Processes site operations";
 
   /**
    * {@inheritDoc}

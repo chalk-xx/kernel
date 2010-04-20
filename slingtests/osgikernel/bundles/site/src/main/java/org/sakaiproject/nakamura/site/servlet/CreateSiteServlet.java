@@ -25,6 +25,9 @@ import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE
 import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -76,20 +79,9 @@ import javax.servlet.http.HttpServletResponse;
  * /site/container/site.createsite If the node is of type of sakai/sites, then create the
  * site based on a request property If the note is not of type sakai/sites, and exists
  * make it a sakai/site
- *
- * @scr.component immediate="true" label="CreateSiteServlet"
- *                description="Create site servlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value=
- *               "Supports creation of sites, either from existing folders, or new folders."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
- *               values.1="sakai/sites"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="createsite"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@Component(immediate = true, label = "%site.createSiteServlet.label", description = "%site.createSiteServlet.desc")
+@SlingServlet(resourceTypes = { "sling/servlet/default", "sakai/sites" }, methods = "POST", selectors = "createsite", generateComponent = false)
 @ServiceDocumentation(name="Create a Site",
     description="The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite " +
     		"/site/container/site.createsite If the node is of type " + SITES_CONTAINER_RESOURCE_TYPE + ", then create the " +
@@ -131,11 +123,18 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @org.apache.felix.scr.annotations.Property(value = "Supports creation of sites, either from existing folders, or new folders.")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
 
+  @Reference
   private transient SlingRepository slingRepository;
 
-  /** @scr.reference */
+  @Reference
   private transient VersionService versionService;
 
   /**
