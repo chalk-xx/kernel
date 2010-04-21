@@ -55,7 +55,7 @@ public class AntiXssServlet extends SlingSafeMethodsServlet {
       throws ServletException, IOException {
     
     Resource resource = request.getResource();
-    if (ResourceUtil.isNonExistingResource(resource)) {
+    if (resource == null || ResourceUtil.isNonExistingResource(resource)) {
       throw new ResourceNotFoundException("No data to render.");
     }
     Node node = resource.adaptTo(Node.class);
