@@ -40,7 +40,22 @@
           <instructions>
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.antixss.*</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.antixss.*</Private-Package>
+            <Private-Package>
+               org.sakaiproject.nakamura.antixss.*,
+               org.owasp.*,
+               org.apache.xerces.*,
+               org.apache.batik.*,
+               org.w3c.dom.*,
+               org.w3c.css.*,
+               org.w3c.dom.smil.*,
+               org.w3c.dom.svc.*,
+               org.cyberneko.*
+            </Private-Package>
+            <Import-Package>!sun.io.*,!org.apache.xml.resolver,!org.apache.xml.resolver.readers,*</Import-Package>
+            <DynamicImport-Package>sun.io,org.apache.xml.resolver,org.apache.xml.resolver.readers,</DynamicImport-Package>        
+            <Embed-Transitive>true</Embed-Transitive>
+            <!--  these are all deps of antisamy  -->
+            <Embed-Dependency>antisamy,nekohtml,xercesImpl,batik-css,batik-ext,batik-util,xml-apis,xml-apis-ext</Embed-Dependency>
           </instructions>
         </configuration>
       </plugin>
