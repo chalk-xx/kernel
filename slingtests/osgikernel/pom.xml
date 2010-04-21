@@ -84,6 +84,7 @@
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
         <module>bundles/calendar</module>
+        <module>bundles/antixss</module>
       </modules>
     </profile>
     <profile>
