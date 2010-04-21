@@ -42,7 +42,7 @@ public class AntiXssServiceImpl implements AntiXssService {
 
   
   @Property(value = "res://org/sakaiproject/nakamura/antixss/defaultpolicy.xml")
-  private static final String POLICY_FILE_LOCATION = "sakai.antixss.policyurl";
+  protected static final String POLICY_FILE_LOCATION = "sakai.antixss.policyurl";
   private AntiSamy antiSammy;
   private Policy policy;
 
