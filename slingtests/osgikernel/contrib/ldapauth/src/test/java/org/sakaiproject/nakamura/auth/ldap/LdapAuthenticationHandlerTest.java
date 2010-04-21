@@ -78,8 +78,7 @@ public class LdapAuthenticationHandlerTest {
     when(request.getParameter(LdapAuthenticationHandler.PAR_PASSWORD)).thenReturn(
         "secret");
     when(request.getMethod()).thenReturn("POST");
-    when(request.getRequestURI()).thenReturn(LdapAuthenticationHandler.REQUEST_URL_SUFFIX);
-    when(request.getParameter(LdapAuthenticationHandler.PAR_LOGIN)).thenReturn("1");
+    when(request.getParameter(LdapAuthenticationHandler.REQUEST_LOGIN_PARAMETER)).thenReturn("1");
 
     // when
     AuthenticationInfo authInfo = authHandler.extractCredentials(request, response);

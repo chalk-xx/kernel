@@ -63,13 +63,16 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
 
   private List<LdapConnectionLivenessValidator> validators;
 
-  public PooledLDAPConnectionFactory() {
+  public PooledLDAPConnectionFactory(LdapConnectionManager connMgr,
+      List<LdapConnectionLivenessValidator> validators) {
+    setConnectionManager(connMgr);
+    setLivenessValidators(validators);
   }
 
   public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
     this.validators = validators;
   }
-
+  
   /**
    * Constructs a new PooledLDAPConnection object, including: passing it the
    * connection manager so it can return itself to the pool if it falls out of
@@ -250,7 +253,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   /**
    * Sets the LdapConnectionManager that the Factory will use to configure and
    * manage its PooledLDAPConnections. This includes gathering all the
-   * connection information (host, port, user, passord), setting the
+   * connection information (host, port, user, password), setting the
    * SocketFactory, determining if we are using TLS, and creating the default
    * constraints.
    *

@@ -66,16 +66,16 @@ public class PooledLDAPConnectionFactoryTest {
     List<LdapConnectionLivenessValidator> validators = new LinkedList<LdapConnectionLivenessValidator>();
     validators.add(livenessValidator);
 
-    factory = new PooledLDAPConnectionFactory() {
+    connMgr = createMock(LdapConnectionManager.class);
+    connMgrConfig = createMock(LdapConnectionManagerConfig.class);
+    
+    factory = new PooledLDAPConnectionFactory(connMgr, validators) {
       @Override
       protected PooledLDAPConnection newConnection() {
         return conn;
       }
     };
     factory.setLivenessValidators(validators);
-
-    connMgr = createMock(LdapConnectionManager.class);
-    connMgrConfig = createMock(LdapConnectionManagerConfig.class);
   }
 
   @Test

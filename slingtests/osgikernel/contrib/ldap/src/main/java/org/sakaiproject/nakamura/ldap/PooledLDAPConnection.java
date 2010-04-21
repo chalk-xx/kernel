@@ -103,28 +103,28 @@ public class PooledLDAPConnection extends LDAPConnection {
 		super.bind(i, s, abyte0);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, Map map, Object obj, LDAPConstraints ldapconstraints) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, map, obj, ldapconstraints);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, Map map, Object obj) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, map, obj);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, String[] as, Map map, Object obj, LDAPConstraints ldapconstraints) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, as, map, obj, ldapconstraints);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, String[] as, Map map, Object obj) throws LDAPException {
 		bindAttempted = true;

@@ -30,7 +30,6 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
@@ -61,17 +60,12 @@ public class SimpleLdapConnectionManagerTest {
 
     conn = createMock(LDAPConnection.class);
 
-    mgr = new SimpleLdapConnectionManager(config) {
+    mgr = new SimpleLdapConnectionManager() {
       @Override
       protected LDAPConnection newLDAPConnection() {
         return conn;
       }
     };
-  }
-
-  @After
-  public void tearDown() {
-    mgr.destroy();
   }
 
   @Test
@@ -81,7 +75,7 @@ public class SimpleLdapConnectionManagerTest {
 
   @Test
   public void testNewLdapConnection() {
-    new SimpleLdapConnectionManager(config).newLDAPConnection();
+    new SimpleLdapConnectionManager().newLDAPConnection();
   }
 
   @Test
@@ -92,7 +86,7 @@ public class SimpleLdapConnectionManagerTest {
 
     replay(conn);
 
-    mgr.init();
+    mgr.init(config);
     mgr.getConnection();
   }
 
@@ -104,7 +98,7 @@ public class SimpleLdapConnectionManagerTest {
     expectLastCall().andThrow(new LDAPException());
     replay(conn);
 
-    mgr.init();
+    mgr.init(config);
     mgr.getConnection();
     fail("Should throw an exception when can't connect.");
   }
@@ -222,7 +216,7 @@ public class SimpleLdapConnectionManagerTest {
     conn.bind(anyInt(), isA(String.class), isA(byte[].class));
 
     config.setAutoBind(true);
-    mgr.init();
+    mgr.init(config);
 
     replay(conn);
 
@@ -233,7 +227,7 @@ public class SimpleLdapConnectionManagerTest {
   public void testInitKeystoreNoPassword() throws Exception {
     config.setKeystoreLocation(keystoreLocation);
     config.setSecureConnection(true);
-    mgr.init();
+    mgr.init(config);
   }
 
   @Test
@@ -241,14 +235,14 @@ public class SimpleLdapConnectionManagerTest {
     config.setKeystoreLocation(keystoreLocation);
     config.setKeystorePassword(keystorePassword);
     config.setSecureConnection(true);
-    mgr.init();
+    mgr.init(config);
   }
 
   @Test(expected = LdapException.class)
   public void testInitKeystoreMissing() throws Exception {
     config.setKeystoreLocation(keystoreLocation + "xxx");
     config.setSecureConnection(true);
-    mgr.init();
+    mgr.init(config);
     fail("Should throw exception if the keystore location is invalid.");
   }
 
@@ -257,7 +251,7 @@ public class SimpleLdapConnectionManagerTest {
     config.setKeystoreLocation(keystoreLocation);
     config.setSecureConnection(true);
     config.setTLS(true);
-    mgr.init();
+    mgr.init(config);
     mgr.getConnection();
   }
 

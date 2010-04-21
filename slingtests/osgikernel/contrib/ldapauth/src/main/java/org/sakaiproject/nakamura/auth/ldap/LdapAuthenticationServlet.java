@@ -28,6 +28,8 @@ import org.osgi.framework.Constants;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet for handling authentication requests for ldap authentication.
@@ -35,9 +37,12 @@ import javax.servlet.ServletException;
 @Component
 @Service(value = Servlet.class)
 public class LdapAuthenticationServlet extends HttpServlet {
-  private static final long serialVersionUID = 1L;
+  
+  static final String LOGOUT = "sakaiauth:logout";
+  static final String PARAM_DESTINATION = "d";
 
-  @Property(value = "/system/sling/ldap/login")
+  static final String DEFAULT_SERVLET_PATH = "/system/sling/ldap/login";
+  @Property(value = DEFAULT_SERVLET_PATH)
   static final String SERVLET_PATH = "sling.servlet.paths";
 
   @Property(value = "Ldap Login Servlet")
@@ -46,6 +51,10 @@ public class LdapAuthenticationServlet extends HttpServlet {
   @Property(value = "The Sakai Foundation")
   static final String VENDOR = Constants.SERVICE_VENDOR;
 
+  private static final Logger log = LoggerFactory.getLogger(LdapAuthenticationServlet.class);
+
+  private static final long serialVersionUID = 1L;
+  
   /**
    * {@inheritDoc}
    *
@@ -56,6 +65,7 @@ public class LdapAuthenticationServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
 
+    log.debug("doGet of LdapAuthenticationServlet");
     response.setContentType("text/plain");
     response.setCharacterEncoding("UTF-8");
   }
@@ -67,7 +77,18 @@ public class LdapAuthenticationServlet extends HttpServlet {
    *      javax.servlet.http.HttpServletResponse)
    */
   @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    
+    log.debug("doPost of LdapAuthenticationServlet");
+    if ("true".equals(request.getAttribute(LOGOUT))) {
+      String destination = request.getParameter(PARAM_DESTINATION);
+
+      if (destination != null) {
+        // ensure that the redirect is safe and not susceptible to hacking
+        response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+        return;
+      }
+    }
   }
 }

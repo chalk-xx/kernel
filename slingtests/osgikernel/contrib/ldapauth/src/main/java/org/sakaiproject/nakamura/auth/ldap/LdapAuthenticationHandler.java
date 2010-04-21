@@ -44,7 +44,6 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Dictionary;
@@ -60,18 +59,8 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
     AuthenticationFeedbackHandler {
   public static final String LDAP_AUTH = "ldap";
 
-  /**
-   * The request parameter causing a 401/UNAUTHORIZED status to be sent back in the {@link
-   * #authenticate(HttpServletRequest, HttpServletResponse)} method if no credentials are
-   * present in the request (value is "sling:authRequestLogin").
-   *
-   * @see #requestCredentials(HttpServletRequest, HttpServletResponse)
-   */
-  static final String REQUEST_LOGIN_PARAMETER = "sling:authRequestLogin";
-
-  /** The name of the parameter providing the login form URL. */
-  @Property(value = LdapAuthenticationServlet.SERVLET_PATH)
-  static final String PAR_LOGIN_FORM = "sakai.auth.ldap.login.form";
+  @Property(value="/")
+  static final String PATH = AuthenticationHandler.PATH_PROPERTY;
 
   /**
    * The default Cookie or session attribute name
@@ -148,19 +137,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   static final String REQUEST_METHOD = "POST";
 
   /**
-   * The last segment of the request URL for the user name and password submission by the
-   * form (value is "/j_security_check").
-   * <p/>
-   * This name is derived from the prescription in the Servlet API 2.4 Specification,
-   * Section SRV.12.5.3.1 Login Form Notes: <i>In order for the authentication to proceeed
-   * appropriately, the action of the login form must always be set to
-   * <code>j_security_check</code>.</i>
-   */
-//  static final String REQUEST_URL_SUFFIX = "/j_security_check";
-  /** override to match sakai nakamura formauth */
-  static final String REQUEST_URL_SUFFIX = "/system/sling/formlogin";
-
-  /**
    * The name of the form submission parameter providing the name of the user to
    * authenticate (value is "j_username").
    * <p/>
@@ -181,12 +157,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
 //  static final String PAR_J_PASSWORD = "j_password";
   /** override to match sakai nakamura formauth */
   static final String PAR_PASSWORD = "sakaiauth:pw";
-  /**
-   * The name of the form submission parameter indicating that the submitted username and
-   * password should just be checked and a status code be set for success (200/OK) or
-   * failure (403/FORBIDDEN).
-   */
-  static final String PAR_VALIDATE = "j_validate";
 
   /**
    * The name of the request parameter indicating to the login form why the form is being
@@ -197,9 +167,11 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   static final String PAR_REASON = "j_reason";
 
   /**
-   * The name of the request parameter indicating that we should try to login
+   * The name of the request parameter indicating that we should try to login.
+   * Field overrides AuthenticationHandler.REQUEST_LOGIN_PARAMETER to use a Sakai specific
+   * value.
    */
-  static final String PAR_LOGIN = "sakaiauth:login";
+  static final String REQUEST_LOGIN_PARAMETER = "sakaiauth:login";
   
   /** The factor to convert minute numbers into milliseconds used internally */
   private static final long MINUTES = 60L * 1000L;
@@ -208,8 +180,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private AuthenticationStorage authStorage;
-
-  private String loginForm;
 
   /**
    * The timeout of a login session in milliseconds, converted from the configuration
@@ -232,6 +202,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
                                                HttpServletResponse response) {
 
+    log.debug("Extracting credentials...");
     // 1. try credentials from POST'ed request parameters
     AuthenticationInfo info = this.extractRequestParameterAuthentication(request);
 
@@ -240,6 +211,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
       String authData = authStorage.extractAuthenticationInfo(request);
       if (authData != null) {
         if (tokenStore.isValid(authData)) {
+          log.debug("Found valid token");
           info = createAuthInfo(authData);
         } else {
           // signal the requestCredentials method a previous login failure
@@ -248,6 +220,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
       }
     }
 
+    log.debug("Returning credentials [{}]", info);
     return info;
   }
 
@@ -264,53 +237,54 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   public boolean requestCredentials(HttpServletRequest request,
                                     HttpServletResponse response) throws IOException {
 
+    log.debug("Requesting credentials?");
     // 0. ignore this handler if an authentication handler is requested
-    if (ignoreRequestCredentials(request)) {
-      // consider this handler is not used
-      return false;
-    }
-
-    // 1. check whether we short cut for a failed log in with validation
-    if (isValidateRequest(request)) {
-      try {
-        response.setStatus(403);
-        response.flushBuffer();
-      } catch (IOException ioe) {
-        log.error("Failed to send 403/FORBIDDEN response", ioe);
-      }
-
-      // consider credentials requested
-      return true;
-    }
-
-    // prepare the login form redirection target
-    final StringBuilder targetBuilder = new StringBuilder();
-    targetBuilder.append(request.getContextPath());
-    targetBuilder.append(loginForm);
-
-    // append originally requested resource (for redirect after login)
-    char parSep = '?';
-    final String resource = getLoginResource(request);
-    if (resource != null) {
-      targetBuilder.append(parSep).append(Authenticator.LOGIN_RESOURCE);
-      targetBuilder.append("=").append(URLEncoder.encode(resource, "UTF-8"));
-      parSep = '&';
-    }
-
-    // append indication of previous login failure
-    if (request.getAttribute(PAR_REASON) != null) {
-      final String reason = String.valueOf(request.getAttribute(PAR_REASON));
-      targetBuilder.append(parSep).append(PAR_REASON);
-      targetBuilder.append("=").append(URLEncoder.encode(reason, "UTF-8"));
-    }
-
-    // finally redirect to the login form
-    final String target = targetBuilder.toString();
-    try {
-      response.sendRedirect(target);
-    } catch (IOException e) {
-      log.error("Failed to redirect to the page: " + target, e);
-    }
+//    if (ignoreRequestCredentials(request)) {
+//      // consider this handler is not used
+//      return false;
+//    }
+//
+//    // 1. check whether we short cut for a failed log in with validation
+//    if (isValidateRequest(request)) {
+//      try {
+//        response.setStatus(403);
+//        response.flushBuffer();
+//      } catch (IOException ioe) {
+//        log.error("Failed to send 403/FORBIDDEN response", ioe);
+//      }
+//
+//      // consider credentials requested
+//      return true;
+//    }
+//
+//    // prepare the login form redirection target
+//    final StringBuilder targetBuilder = new StringBuilder();
+//    targetBuilder.append(request.getContextPath());
+//    targetBuilder.append(loginForm);
+//
+//    // append originally requested resource (for redirect after login)
+//    char parSep = '?';
+//    final String resource = getLoginResource(request);
+//    if (resource != null) {
+//      targetBuilder.append(parSep).append(Authenticator.LOGIN_RESOURCE);
+//      targetBuilder.append("=").append(URLEncoder.encode(resource, "UTF-8"));
+//      parSep = '&';
+//    }
+//
+//    // append indication of previous login failure
+//    if (request.getAttribute(PAR_REASON) != null) {
+//      final String reason = String.valueOf(request.getAttribute(PAR_REASON));
+//      targetBuilder.append(parSep).append(PAR_REASON);
+//      targetBuilder.append("=").append(URLEncoder.encode(reason, "UTF-8"));
+//    }
+//
+//    // finally redirect to the login form
+//    final String target = targetBuilder.toString();
+//    try {
+//      response.sendRedirect(target);
+//    } catch (IOException e) {
+//      log.error("Failed to redirect to the page: " + target, e);
+//    }
 
     return true;
   }
@@ -320,7 +294,9 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
    * handler.
    */
   public void dropCredentials(HttpServletRequest request, HttpServletResponse response) {
+    log.debug("Dropping credentials");
     authStorage.clear(request, response);
+    request.setAttribute(LdapAuthenticationServlet.LOGOUT, "true");
   }
 
   // ---------- AuthenticationFeedbackHandler
@@ -334,10 +310,11 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
                                    HttpServletResponse response,
                                    AuthenticationInfo authInfo) {
 
+    log.debug("Handling authentication failure");
     /*
-         * Note: This method is called if this handler provided credentials which cause a
-         * login failure
-         */
+     * Note: This method is called if this handler provided credentials which cause a
+     * login failure
+     */
 
     // clear authentication data from Cookie or Http Session
     authStorage.clear(request, response);
@@ -362,28 +339,17 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
                                          HttpServletResponse response,
                                          AuthenticationInfo authInfo) {
 
+    log.debug("Handling authentication success");
     /*
-         * Note: This method is called if this handler provided credentials which succeeded
-         * loging into the repository
-         */
+     * Note: This method is called if this handler provided credentials which succeeded
+     * loging into the repository
+     */
 
     // ensure fresh authentication data
     refreshAuthData(request, response, authInfo);
 
     final boolean result;
-    if (isValidateRequest(request)) {
-
-      try {
-        response.setStatus(200);
-        response.flushBuffer();
-      } catch (IOException ioe) {
-        log.error("Failed to send 200/OK response", ioe);
-      }
-
-      // terminate request, all done
-      result = true;
-
-    } else if (DefaultAuthenticationFeedbackHandler.handleRedirect(request, response)) {
+    if (DefaultAuthenticationFeedbackHandler.handleRedirect(request, response)) {
 
       // terminate request, all done in the default handler
       result = false;
@@ -419,41 +385,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
   }
 
   // --------- Force HTTP Basic Auth ---------
-
-  /**
-   * Returns <code>true</code> if this authentication handler should ignore the call to
-   * {@link #requestCredentials(HttpServletRequest, HttpServletResponse)}.
-   * <p/>
-   * This method returns <code>true</code> if the {@link #REQUEST_LOGIN_PARAMETER} is set
-   * to any value other than "Form" (HttpServletRequest.FORM_AUTH).
-   *
-   * @param request Request to check for credentials
-   *
-   * @return true if login parameter is "form", otherwise false.
-   */
-  private boolean ignoreRequestCredentials(final HttpServletRequest request) {
-    final String requestLogin = request.getParameter(REQUEST_LOGIN_PARAMETER);
-    return requestLogin != null && !HttpServletRequest.FORM_AUTH.equals(requestLogin);
-  }
-
-  /**
-   * Returns <code>true</code> if the the client just asks for validation of submitted
-   * username/password credentials.
-   * <p/>
-   * This implementation returns <code>true</code> if the request parameter {@link
-   * #PAR_VALIDATE} is set to <code>true</code> (case-insensitve). If the request
-   * parameter is not set or to any value other than <code>true</code> this method returns
-   * <code>false</code>.
-   *
-   * @param request The request to provide the parameter to check
-   *
-   * @return <code>true</code> if the {@link #PAR_VALIDATE} parameter is set to
-   *         <code>true</code>.
-   */
-  private boolean isValidateRequest(final HttpServletRequest request) {
-    return "true".equalsIgnoreCase(request.getParameter(PAR_VALIDATE));
-  }
-
   /**
    * Ensures the authentication data is set (if not set yet) and the expiry time is
    * prolonged (if auth data already existed).
@@ -537,8 +468,7 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
     // only consider login form parameters if this is a POST request
     // to the j_security_check URL
     if (REQUEST_METHOD.equals(request.getMethod())
-        && request.getRequestURI().endsWith(REQUEST_URL_SUFFIX)
-        && "1".equals(request.getParameter(PAR_LOGIN))) {
+        && "1".equals(request.getParameter(REQUEST_LOGIN_PARAMETER))) {
 
       String user = request.getParameter(PAR_USERNAME);
       String pwd = request.getParameter(PAR_PASSWORD);
@@ -619,10 +549,6 @@ public class LdapAuthenticationHandler implements AuthenticationHandler,
       NoSuchAlgorithmException, IllegalStateException, UnsupportedEncodingException {
 
     Dictionary properties = componentContext.getProperties();
-
-    this.loginForm = OsgiUtil.toString(properties.get(PAR_LOGIN_FORM),
-        LdapAuthenticationServlet.SERVLET_PATH);
-    log.info("Login Form URL {}", loginForm);
 
     final String authName = OsgiUtil.toString(properties.get(PAR_AUTH_NAME),
         DEFAULT_AUTH_NAME);

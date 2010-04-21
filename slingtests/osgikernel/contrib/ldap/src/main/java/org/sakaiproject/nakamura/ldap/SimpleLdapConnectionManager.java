@@ -22,8 +22,8 @@ import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPJSSEStartTLSFactory;
+import com.novell.ldap.LDAPSocketFactory;
 
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
@@ -39,7 +39,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
-import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -55,60 +54,22 @@ import javax.net.ssl.TrustManager;
  */
 public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
-  // public static final String KEYSTORE_LOCATION_SYS_PROP_KEY =
-  // "javax.net.ssl.trustStore";
-  // public static final String KEYSTORE_PASSWORD_SYS_PROP_KEY =
-  // "javax.net.ssl.trustStorePassword";
-
   /** Class-specific logger */
   private static Logger log = LoggerFactory.getLogger(SimpleLdapConnectionManager.class);
 
   /** connection allocation configuration */
   protected LdapConnectionManagerConfig config;
 
-  protected List<LdapConnectionLivenessValidator> validators;
-
-  public SimpleLdapConnectionManager(LdapConnectionManagerConfig config) {
-    this.config = config;
-  }
-  
   /**
    * {@inheritDoc}
    */
-  public void init() throws LdapException {
+  public void init(LdapConnectionManagerConfig config) {
 
     log.debug("init()");
 
-    if (config.isSecureConnection()) {
-      log.debug("init(): initializing secure socket factory");
-      try {
-        // initialize the keystore which will create an SSL context by which
-        // socket factories can be created. this allows for multiple keystores
-        // to be managed without the use of system properties.
-        SSLContext ctx = initKeystore(config.getKeystoreLocation(), config.getKeystorePassword());
-        SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
-        if (config.isTLS()) {
-          LDAPConnection.setSocketFactory(new LDAPJSSEStartTLSFactory(sslSocketFactory));
-        } else {
-          LDAPConnection.setSocketFactory(new LDAPJSSESecureSocketFactory(sslSocketFactory));
-        }
-      } catch (GeneralSecurityException e) {
-        log.error(e.getMessage(), e);
-        throw new LdapException(e.getMessage(), e);
-      } catch (IOException e) {
-        log.error(e.getMessage(), e);
-        throw new LdapException(e.getMessage(), e);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionManager#destroy()
-   */
-  public void destroy() {
-    // nothing to do
+    this.config = config;
+    
+    verifySetup();
   }
 
   /**
@@ -116,6 +77,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    */
   public LDAPConnection getConnection() throws LdapException {
     log.debug("getConnection()");
+
+    verifySetup();
 
     try {
       LDAPConnection conn = newLDAPConnection();
@@ -137,6 +100,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    * {@inheritDoc}
    */
   public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException {
+    verifySetup();
+    
     log.debug("getBoundConnection(): [dn = {}]", config.getLdapUser());
 
     try {
@@ -152,7 +117,36 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   protected LDAPConnection newLDAPConnection() {
-    LDAPConnection conn = new LDAPConnection();
+    
+    LDAPConnection conn = null;
+    
+    if (config.isSecureConnection()) {
+      log.debug("init(): initializing secure socket factory");
+      try {
+        // initialize the keystore which will create an SSL context by which
+        // socket factories can be created. this allows for multiple keystores
+        // to be managed without the use of system properties.
+        SSLContext ctx = initKeystore(config.getKeystoreLocation(), config.getKeystorePassword());
+        SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
+        LDAPSocketFactory socketFactory = null;
+        if (config.isTLS()) {
+          socketFactory = new LDAPJSSEStartTLSFactory(sslSocketFactory);
+        } else {
+          socketFactory = new LDAPJSSESecureSocketFactory(sslSocketFactory);
+        }
+        // create connection to return below
+        conn = new LDAPConnection(socketFactory);
+      } catch (GeneralSecurityException e) {
+        log.error(e.getMessage(), e);
+        throw new RuntimeException(e.getMessage(), e);
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+        throw new RuntimeException(e.getMessage(), e);
+      }
+    } else {
+      // create connection to return below
+      conn = new LDAPConnection();
+    }
     return conn;
   }
 
@@ -197,15 +191,6 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   /**
-   * {@inheritDoc}
-   * 
-   * @param validators List of validators to use.
-   */
-  public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
-    this.validators = validators;
-  }
-
-  /**
    * Loads a keystore and sets up an SSL context that can be used to create
    * socket factories that use the suggested keystore.
    *
@@ -239,6 +224,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    * @param conn
    */
   protected void applyConstraints(LDAPConnection conn) {
+    verifySetup();
+    
     int timeout = config.getOperationTimeout();
     boolean followReferrals = config.isFollowReferrals();
     log.debug("applyConstraints(): values [timeout = {}][follow referrals = {}]", timeout,
@@ -261,6 +248,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   protected void connect(LDAPConnection conn) throws LDAPException {
     log.debug("connect()");
 
+    verifySetup();
+    
     conn.connect(config.getLdapHost(), config.getLdapPort());
 
     try {
@@ -298,9 +287,17 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
     log.debug("postConnect()");
 
+    verifySetup();
+    
     if (config.isSecureConnection() && config.isTLS()) {
       log.debug("postConnect(): starting TLS");
       conn.startTLS();
+    }
+  }
+  
+  private void verifySetup() throws IllegalStateException {
+    if (config == null) {
+      throw new IllegalStateException("Configuration not available for this connection manager.");
     }
   }
 }
