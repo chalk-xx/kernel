@@ -45,6 +45,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
@@ -60,31 +61,37 @@ import org.sakaiproject.nakamura.util.Signature;
 public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
   public static final String TYPE = "url";
 
-  @Property(value = "X-HMAC")
-  protected static final String HMAC_HEADER = "hmac.header";
+  public static final String DEFAULT_HMAC_HEADER = "X-HMAC";
+  @Property(value = DEFAULT_HMAC_HEADER)
+  static final String HMAC_HEADER = "hmac.header";
   private String hmacHeader;
 
   @Property
-  protected static final String SHARED_KEY = "shared.key";
+  static final String SHARED_KEY = "shared.key";
   private String sharedKey;
 
-  @Property(value = "http://localhost/search/", description = "URL to use via GET for searching.")
-  protected static final String SEARCH_URL = "search.url";
+  public static final String DEFAULT_SEARCH_URL = "http://localhost/search/";
+  @Property(value = DEFAULT_SEARCH_URL)
+  static final String SEARCH_URL = "search.url";
   private String searchUrl;
 
-  @Property(value = "http://localhost/doc?p=", description = "URL to use via GET for retrieving a document.")
-  protected static final String DOCUMENT_URL = "document.url";
+  public static final String DEFAULT_DOCUMENT_URL = "http://localhost/doc?p=";
+  @Property(value = DEFAULT_DOCUMENT_URL)
+  static final String DOCUMENT_URL = "document.url";
   private String documentUrl;
 
-  @Property(value = "http://localhost/metadata?p=", description = "URL to use via GET for retrieving metadata of a document.")
-  protected static final String METADATA_URL = "metadata.url";
+  public static final String DEFAULT_METADATA_URL = "http://localhost/metadata?p=";
+  @Property(value = DEFAULT_METADATA_URL)
+  static final String METADATA_URL = "metadata.url";
   private String metadataUrl;
 
-  @Property(value = "http://localhost/update?p=", description = "URL to use via POST for updating a document.")
-  protected static final String UPDATE_URL = "update.url";
+  public static final String DEFAULT_UPDATE_URL = "http://localhost/update?p=";
+  @Property(value = DEFAULT_UPDATE_URL)
+  static final String UPDATE_URL = "update.url";
   private String updateUrl;
 
-  @Property(value = "http://localhost/doc?p=", description = "URL to use via DELETE for deleting a document.")
+  public static final String DEFAULT_REMOVE_URL = "http://localhost/doc?p=";
+  @Property(value = DEFAULT_REMOVE_URL)
   protected static final String REMOVE_URL = "remove.url";
   private String removeUrl;
 
@@ -109,15 +116,15 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     // process properties into http methods
     Dictionary props = context.getProperties();
 
-    hmacHeader = (String) props.get(HMAC_HEADER);
-    searchUrl = (String) props.get(SEARCH_URL);
-    documentUrl = (String) props.get(DOCUMENT_URL);
-    updateUrl = (String) props.get(UPDATE_URL);
-    metadataUrl = (String) props.get(METADATA_URL);
-    removeUrl = (String) props.get(REMOVE_URL);
+    hmacHeader = OsgiUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
+    searchUrl = OsgiUtil.toString(props.get(SEARCH_URL), DEFAULT_SEARCH_URL);
+    documentUrl = OsgiUtil.toString(props.get(DOCUMENT_URL), DEFAULT_DOCUMENT_URL);
+    updateUrl = OsgiUtil.toString(props.get(UPDATE_URL), DEFAULT_UPDATE_URL);
+    metadataUrl = OsgiUtil.toString(props.get(METADATA_URL), DEFAULT_METADATA_URL);
+    removeUrl = OsgiUtil.toString(props.get(REMOVE_URL), DEFAULT_REMOVE_URL);
 
-    hmacHeader = (String) props.get(HMAC_HEADER);
-    sharedKey = (String) props.get(SHARED_KEY);
+    hmacHeader = OsgiUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
+    sharedKey = OsgiUtil.toString(props.get(SHARED_KEY), null);
   }
 
   /*

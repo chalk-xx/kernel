@@ -64,7 +64,7 @@ import java.util.List;
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  */
-@Component
+@Component(policy = ConfigurationPolicy.IGNORE)
 @Service
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager implements
     ManagedServiceFactory {
@@ -320,7 +320,8 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
   
   ObjectPool newConnectionPool(PoolableObjectFactory factory, int maxConns,
       byte whenExhausted, int maxWait, int maxIdle, boolean testOnBorrow, boolean testOnReturn) {
-    GenericObjectPool pool = new GenericObjectPool(factory, maxConns, // maxActive
+    GenericObjectPool pool = new GenericObjectPool(factory,
+        maxConns, // maxActive
         whenExhausted, // whenExhaustedAction
         maxWait, // maxWait (millis)
         maxIdle, // maxIdle
