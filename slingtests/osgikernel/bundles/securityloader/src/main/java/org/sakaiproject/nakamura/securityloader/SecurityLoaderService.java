@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.securityloader;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.engine.SlingSettingsService;
@@ -54,17 +57,18 @@ import javax.jcr.lock.LockException;
 /**
  * Load Security related items. Much of this code is based on the ContentLoader in sling,
  * no point in creating something different just for the sake of it.
- * 
- * 
- * @scr.component metatype="no"
- * @scr.property name="service.description" value="Sakai
- *               Security Loader Implementation"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
  */
+@Component(metatype = true)
 public class SecurityLoaderService implements SynchronousBundleListener {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SecurityLoaderService.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Sakai Security Loader Implementation")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   public static final String PROPERTY_SECURITY_LOADED = "security-loaded";
   private static final String PROPERTY_SECURITY_LOADED_AT = "security-load-time";
@@ -78,26 +82,22 @@ public class SecurityLoaderService implements SynchronousBundleListener {
   /**
    * To be used for the encryption. E.g. for passwords in
    * {@link javax.jcr.SimpleCredentials#getPassword()}  SimpleCredentials} 
-   * @scr.property valueRef="DEFAULT_PASSWORD_DIGEST_ALGORITHM"
    */
-  private static final String PROP_PASSWORD_DIGEST_ALGORITHM = "password.digest.algorithm";
   private static final String DEFAULT_PASSWORD_DIGEST_ALGORITHM = "sha1";
+
+  @Property(value = DEFAULT_PASSWORD_DIGEST_ALGORITHM)
+  private static final String PROP_PASSWORD_DIGEST_ALGORITHM = "password.digest.algorithm";
   
-  /**
-   * @scr.reference Sling settings service.
-   */
+  @Reference
   protected SlingSettingsService settingsService;
 
   /**
    * The JCR Repository we access to resolve resources
-   * 
-   * @scr.reference
    */
+  @Reference
   protected SlingRepository repository;
-  /**
-   * @scr.reference bind="bindEventAdmin" unbind="bindEventAdmin"
-   *                interface="org.osgi.service.event.EventAdmin"
-   */
+
+  @Reference(bind = "bindEventAdmin", unbind = "bindEventAdmin")
   protected EventAdmin eventAdmin;
 
   /**
