@@ -16,7 +16,6 @@ class TC_Kern458Test < SlingTest
     m = Time.now.to_i.to_s
     testnode = "/test"+m
     res = @s.execute_post(@s.url_for(testnode),
-      "okcontent" => "<h1>SomeOkHTML</h1>",
       "badContent1" => "<script",
       "badContent2" => "<script>alert('gotya');</script>",
       "badContent3" => " >alert('gotya'); ",
@@ -25,8 +24,8 @@ class TC_Kern458Test < SlingTest
 
     res = @s.execute_get(@s.url_for(testnode+".json"))
     assert_equal("200",res.code)
+    puts(res.body)
     props = JSON.parse(res.body)
-    assert_equal("<h1>SomeOkHTML</h1>",props["okcontent"])
     assert_equal("<script",props["badContent1"])
     assert_equal("<script>alert('gotya');</script>",props["badContent2"])
     assert_equal(" >alert('gotya'); ",props["badContent3"])
@@ -35,11 +34,9 @@ class TC_Kern458Test < SlingTest
     res = @s.execute_get(@s.url_for(testnode+".noxss.json"))
     assert_equal("200",res.code)
     props = JSON.parse(res.body)
-    assert_equal("<h1>SomeOkHTML</h1>",props["okcontent"],"Good Content bad filtering "+res.body)
-    assert_equal("<script",props["badContent1"],"XSS can happen "+res.body)
-    assert_equal("<script>alert('gotya');</script>",props["badContent2"],"XSS can happen "+res.body)
-    assert_equal(" >alert('gotya'); ",props["badContent3"],"XSS can happen "+res.body)    
-    assert_equal("</script>",props["badContent4"],"XSS can happen "+res.body)
+    assert_equal("",props["badContent1"],"XSS can happen "+res.body)
+    assert_equal("",props["badContent2"],"XSS can happen "+res.body)
+    assert_equal(" &gt;alert('gotya');",props["badContent3"],"XSS can happen "+res.body)    
 
   end
 

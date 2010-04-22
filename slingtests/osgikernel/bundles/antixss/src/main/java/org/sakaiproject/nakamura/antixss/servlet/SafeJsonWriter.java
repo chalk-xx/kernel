@@ -45,8 +45,12 @@ public class SafeJsonWriter extends ExtendedJSONWriter {
    * @see org.apache.sling.commons.json.io.JSONWriter#value(java.lang.Object)
    */
   @Override
-  public JSONWriter value(Object o) throws JSONException {
-    return super.value(antiXssService.cleanHtml(JSONObject.valueToString(0)));
+  public JSONWriter value(Object val) throws JSONException {
+    String v = JSONObject.valueToString(val);
+    if ( v.charAt(0) == '"' && v.charAt(v.length()-1) == '"' ) {
+      v = v.substring(1, v.length()-2);
+    }
+    return super.value(antiXssService.cleanHtml(v));
   }
   
   
