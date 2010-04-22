@@ -17,6 +17,10 @@
 */
 package org.sakaiproject.nakamura.batch;
  
+
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -33,24 +37,15 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.ResponseWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
- 
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
- 
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
  
 /**
 * The <code>SearchServlet</code> uses nodes from the
-*
-* @scr.component immediate="true" label="BatchGetServlet"
-* description="servlet to return multiple resources"
-* @scr.service interface="javax.servlet.Servlet"
-* @scr.property name="service.description"
-* value="Bundles multiple resource requests into a single response."
-* @scr.property name="service.vendor" value="The Sakai Foundation"
-* @scr.property name="sling.servlet.paths" value="/system/batch/get"
-* @scr.property name="sling.servlet.methods" value="GET"
 */
 @ServiceDocumentation(
     name = "BatchGetServlet",
@@ -88,15 +83,20 @@ import javax.servlet.http.HttpServletResponse;
         }
     )
 )
+@Component(immediate = true, label = "BatchGetServlet", description = "servlet to return multiple resources")
+@SlingServlet(generateComponent = false, paths = "/system/batch/get", methods = "GET")
 public class BatchGetServlet extends SlingSafeMethodsServlet {
  
-  /**
-*
-*/
   private static final long serialVersionUID = 9159034894038200948L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(BatchGetServlet.class);
- 
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Bundles multiple resource requests into a single response.")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
   public static final String RESOURCE_PATH_PARAMETER = "resources";
  
   @Override

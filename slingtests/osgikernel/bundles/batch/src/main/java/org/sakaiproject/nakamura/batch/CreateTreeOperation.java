@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.batch;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -44,18 +47,15 @@ import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
 
-/**
- * @scr.component metatype="no" immediate="true"
- * @scr.service
- * @scr.property name="sling.post.operation" value="createTree"
- */
+@Component(immediate = true)
+@Service
 public class CreateTreeOperation extends AbstractSlingPostOperation {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 9207596135556346980L;
   public static final String TREE_PARAM = "tree";
+
+  @Property(value = "createTree")
+  static final String SLING_POST_OPERATION = "sling.post.operation";
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
