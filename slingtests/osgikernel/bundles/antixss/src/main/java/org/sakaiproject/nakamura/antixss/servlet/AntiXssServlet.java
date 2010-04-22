@@ -27,6 +27,12 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.antixss.AntiXssService;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 
 import java.io.IOException;
 
@@ -37,6 +43,23 @@ import javax.servlet.ServletException;
 /**
  *
  */
+@ServiceDocumentation(
+    name = "AntiXssServlet",
+    shortDescription = "Filter all properties",
+    description = "Filter all properties on output to remove any user generated content that might be bad or cause XSS.",
+    bindings = @ServiceBinding(type = BindingType.TYPE,
+        bindings = "sling/servlet/default",
+        selectors = @ServiceSelector(name = "noxss")),
+    methods = @ServiceMethod(name = "GET",
+        description = "Gets the node in json format" +
+        "Example:<br />" +
+        "curl http://admin:admin@localhost:8080/some/user/generated/content.noxss.json",
+        response = {
+          @ServiceResponse(code = 200, description = "The servlet will send a JSON response tree of the node."),
+          @ServiceResponse(code = 404, description = "The URL did not point to a node."),
+          @ServiceResponse(code = 401, description = "The user is not logged in and needs to be to access the resource."),
+          @ServiceResponse(code = 500, description = "The server had a problem processing the request.")}
+))
 @SlingServlet(methods={"GET"},selectors={"noxss"},extensions={"json"},resourceTypes={"sling/servlet/default"})
 public class AntiXssServlet extends SlingSafeMethodsServlet {
   /**
