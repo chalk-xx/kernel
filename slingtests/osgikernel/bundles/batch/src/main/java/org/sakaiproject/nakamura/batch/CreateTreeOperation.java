@@ -56,12 +56,14 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
    */
   private static final long serialVersionUID = 9207596135556346980L;
   public static final String TREE_PARAM = "tree";
+  public static final String DELETE_PARAM = "delete";
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     // Check parameters
     RequestParameter treeParam = request.getRequestParameter(TREE_PARAM);
+    RequestParameter deleteParam = request.getRequestParameter(DELETE_PARAM);
     Session session = request.getResourceResolver().adaptTo(Session.class);
     JSONObject json = null;
     Node node = null;
@@ -81,6 +83,16 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
     // Get node
     String path = request.getResource().getPath();
     node = JcrUtils.deepGetOrCreateNode(session, path);
+
+    // Check if we want to delete the entire tree before creating a new node.
+    if (deleteParam != null && !node.isNew() && "1".equals(deleteParam.getString())) {
+      // Remove the node (we could get all the child nodes and remove the tree)
+      node.remove();
+      // Save the session so the node is actually removed
+      session.save();
+      // Create a brand new one.
+      node = JcrUtils.deepGetOrCreateNode(session, path);
+    }
 
     // Start creating the tree.
     createTree(session, json, node);

@@ -17,15 +17,13 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import static org.mockito.Mockito.verify;
-
-import static org.junit.Assert.fail;
-
-import static org.mockito.Mockito.when;
-
-import static org.mockito.Mockito.mock;
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.batch.CreateTreeOperation.TREE_PARAM;
 
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -38,10 +36,12 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
@@ -105,30 +105,71 @@ public class CreateTreeOperationTest {
   }
 
   @Test
-  public void testCreateTree() throws RepositoryException, JSONException {
-    RequestParameter jsonParam = mock(RequestParameter.class);
-    JSONObject top = new JSONObject();
-    top.put("foo", "bar");
-    top.put("intVal", 25);
-    top.put("boolVal", true);
-    JSONArray arr = new JSONArray();
-    arr.put("alfa");
-    arr.put("beta");
-    top.put("arrVal", arr);
-    // Child node
-    JSONObject child = new JSONObject();
-    child.put("isChild", true);
-    top.put("child", child);
-
-    String json = top.toString(2);
-    System.err.println(top);
-    when(jsonParam.getString()).thenReturn(json);
-    when(request.getRequestParameter(TREE_PARAM)).thenReturn(jsonParam);
-
+  public void testWithDelete() throws RepositoryException, JSONException {
+    RequestParameter deleteParam = mock(RequestParameter.class);
+    when(deleteParam.getString()).thenReturn("1");
+    when(request.getRequestParameter("delete")).thenReturn(deleteParam);
+    mockTreeParameter();
+    mockTreeValues();
     Resource resource = mock(Resource.class);
     when(resource.getPath()).thenReturn("/path/to/tree");
     when(request.getResource()).thenReturn(resource);
 
+    // Handle the node mocks.
+    Node topNode = mock(Node.class);
+    when(topNode.isNew()).thenReturn(false);
+    Node childNode = mock(Node.class);
+    when(topNode.addNode("child")).thenReturn(childNode);
+    when(session.getItem(resource.getPath())).thenReturn(topNode);
+    when(session.itemExists(resource.getPath())).thenReturn(true);
+    when(session.hasPendingChanges()).thenReturn(true);
+
+    operation.doRun(request, null, null);
+
+    verify(topNode).remove();
+    verify(topNode).setProperty(Mockito.eq("foo"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("intVal"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("boolVal"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("arrVal"), any(Value[].class));
+    verify(childNode).setProperty(Mockito.eq("isChild"), any(Value.class));
+    verify(session, times(2)).save();
+
+  }
+
+  @Test
+  public void testCreateTree() throws RepositoryException, JSONException {
+    mockTreeParameter();
+    mockTreeValues();
+    Resource resource = mock(Resource.class);
+    when(resource.getPath()).thenReturn("/path/to/tree");
+    when(request.getResource()).thenReturn(resource);
+
+    // Handle the node mocks.
+    Node topNode = mock(Node.class);
+    Node childNode = mock(Node.class);
+    when(topNode.addNode("child")).thenReturn(childNode);
+    when(session.getItem(resource.getPath())).thenReturn(topNode);
+    when(session.itemExists(resource.getPath())).thenReturn(true);
+    when(session.hasPendingChanges()).thenReturn(true);
+
+    operation.doRun(request, null, null);
+
+    verify(topNode).setProperty(Mockito.eq("foo"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("intVal"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("boolVal"), any(Value.class));
+    verify(topNode).setProperty(Mockito.eq("arrVal"), any(Value[].class));
+    verify(childNode).setProperty(Mockito.eq("isChild"), any(Value.class));
+    verify(session).save();
+
+  }
+
+  /**
+   * @throws RepositoryException
+   * @throws UnsupportedRepositoryOperationException
+   *
+   */
+  private void mockTreeValues() throws UnsupportedRepositoryOperationException,
+      RepositoryException {
     // Mock the values
     Value fooVal = new MockValue("bar");
     MockValue intVal = new MockValue();
@@ -145,24 +186,32 @@ public class CreateTreeOperationTest {
     when(vf.createValue("alfa")).thenReturn(arrVals[0]);
     when(vf.createValue("beta")).thenReturn(arrVals[1]);
     when(session.getValueFactory()).thenReturn(vf);
+  }
 
-    // Handle the node mocks.
-    Node topNode = mock(Node.class);
-    Node childNode = mock(Node.class);
-    when(topNode.addNode("child")).thenReturn(childNode);
-    when(session.getItem(resource.getPath())).thenReturn(topNode);
-    when(session.itemExists(resource.getPath())).thenReturn(true);
-    when(session.hasPendingChanges()).thenReturn(true);
+  /**
+   * @return
+   * @throws JSONException
+   */
+  private RequestParameter mockTreeParameter() throws JSONException {
+    RequestParameter jsonParam = mock(RequestParameter.class);
+    JSONObject top = new JSONObject();
+    top.put("foo", "bar");
+    top.put("intVal", 25);
+    top.put("boolVal", true);
+    JSONArray arr = new JSONArray();
+    arr.put("alfa");
+    arr.put("beta");
+    top.put("arrVal", arr);
+    // Child node
+    JSONObject child = new JSONObject();
+    child.put("isChild", true);
+    top.put("child", child);
 
-    operation.doRun(request, null, null);
+    String json = top.toString(2);
+    when(jsonParam.getString()).thenReturn(json);
+    when(request.getRequestParameter(TREE_PARAM)).thenReturn(jsonParam);
 
-    verify(topNode).setProperty("foo", fooVal);
-    verify(topNode).setProperty("intVal", intVal);
-    verify(topNode).setProperty("boolVal", boolVal);
-    verify(topNode).setProperty("arrVal", arrVals);
-    verify(childNode).setProperty("isChild", boolVal);
-    verify(session).save();
-
+    return jsonParam;
   }
 
 }

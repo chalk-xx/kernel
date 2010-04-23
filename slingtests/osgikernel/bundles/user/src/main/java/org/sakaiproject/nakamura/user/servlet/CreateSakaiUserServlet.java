@@ -248,7 +248,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
                     UserConstants.USER_REPO_LOCATION.length())));
               }
               try {
-                InputStream in = this.getClass().getResourceAsStream(userId + ".json");
+                InputStream in = this.getClass().getClassLoader().getResourceAsStream(userId + ".json");
                 String s = IOUtils.readFully(in, "UTF-8");
                 in.close();
                 JSONObject o = new JSONObject(s);
@@ -260,7 +260,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
                   user.setProperty(key, val);
                 }
               } catch (Exception e) {
-                log.warn("Failed to get JSON for default user: " + userId);
+                log.error("Failed to get JSON for default user: " + userId,e);
               }
               
               try {
