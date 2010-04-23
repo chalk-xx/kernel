@@ -18,6 +18,9 @@
 
 package org.sakaiproject.nakamura.batch;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
@@ -26,12 +29,12 @@ import java.util.List;
 
 import javax.jcr.RepositoryException;
 
-/**
- * @scr.component metatype="no" immediate="true"
- * @scr.service
- * @scr.property name="sling.post.operation" value="removeProperty"
- */
+@Component(immediate = true)
+@Service
 public class RemovePropertyOperation extends AbstractPropertyOperationModifier {
+
+  @Property(value = "removeProperty")
+  static final String SLING_POST_OPERATION = "sling.post.operation";
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
