@@ -50,6 +50,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -148,6 +149,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       throws ServletException, IOException {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      if ( UserConstants.ANON_USERID.equals(session.getUserID()) ) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        return;
+      }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable currentUser = userManager.getAuthorizable(request.getRemoteUser());
 
