@@ -120,11 +120,7 @@ module SlingInterface
         res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Cookie" => @trustedcookie) }
       else 
         @user.do_request_auth(req)
-        p = "testuser"
-        if @user.name == "admin"
-          p = "admin"
-        end
-        pwd = "#{@user.name}:#{p}"
+        pwd = "#{@user.name}:#{@user.password}"
         pwd = pwd.base64_encode()
         res = Net::HTTP.new(uri.host, uri.port).start {|http| http.request_post(path,query,"Content-type" => "multipart/form-data; boundary=" + boundary, "Authorization" => "Basic #{pwd}") }
       end
@@ -231,11 +227,7 @@ module SlingInterface
 	  path = url_for("/system/sling/formlogin")
       req = Net::HTTP::Post.new(path)
       uri = URI.parse(path)
-      p = "testuser"
-      if @user.name == "admin"
-        p = "admin"
-      end
-      req.set_form_data({ "sakaiauth:un" => @user.name, "sakaiauth:pw" => p, "sakaiauth:login" => 1 })
+      req.set_form_data({ "sakaiauth:un" => @user.name, "sakaiauth:pw" => @user.password, "sakaiauth:login" => 1 })
       res = Net::HTTP.new(uri.host, uri.port).start{ |http| http.request(req) }
       if ( res.code == "200" ) 
         @trustedcookie = res["Set-Cookie"]
