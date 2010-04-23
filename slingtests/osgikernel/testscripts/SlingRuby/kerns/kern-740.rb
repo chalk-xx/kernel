@@ -33,20 +33,148 @@ class TC_Kern740Test < SlingTest
 	puts("Done Changing Admin Password with Basic Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Basic_AuthTest"))
   end
-  
+
+  def test_change_password_basicAuthNewUser
+    m = Time.now.to_i.to_s
+    @s.trustedauth = false
+	
+	u = "user"+m
+	testUser = create_user(u)
+	
+	@s.switch_user(testUser)
+	
+	# Can this new user update content in their own space.
+	res = @s.execute_get(@s.url_for("/system/me"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	puts(res.body)
+	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
+	assert_equal(testUser.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
+	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
+	
+	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
+	assert_equal("201",res.code, res.body)
+	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	# check the node really was last modified by the correct user.
+	assert_equal(testUser.name, props["jcr:lastModifiedBy"])
+
+	
+	
+	res = testUser.change_password(@s,"testpass2")
+	assert_equal("200",res.code,res.body)
+
+	testUser2 = User.new(testUser.name,"testpass2")
+	
+	@s.switch_user(testUser2)
+	res = testUser2.change_password(@s,"testpass")
+	assert_equal("200",res.code,res.body)
+	
+	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
+  end
+
+
+  def test_change_password_basicAuthNewUser
+    m = Time.now.to_i.to_s
+    @s.trustedauth = false
+	
+	u = "userbasic"+m
+	
+	runChangePasswordForUser(u)
+  end
+
+  def test_change_password_trustedAuthNewUser
+    m = Time.now.to_i.to_s
+    @s.trustedauth = true
+	
+	u = "usertrusted"+m
+	
+	runChangePasswordForUser(u)
+  end
+
   def test_change_password_trustedAuth
     m = Time.now.to_i.to_s
     @s.trustedauth = true
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Trusted_AuthTest"))
+	
+
+	
 	puts("Changing Admin Password with Trusted Auth")
 	runChangePassword()
 	puts("Done Changing Admin Password with Trusted Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
   end
 
+
+  def runChangePasswordForUser(u)
+  
+	testUser = create_user(u)
+	
+	@s.switch_user(testUser)
+	
+	
+	checkPersonalSpace(u)
+
+	
+	
+	res = testUser.change_password(@s,"testpass2")
+	assert_equal("200",res.code,res.body)
+
+	testUser2 = User.new(testUser.name,"testpass2")
+	
+	@s.switch_user(testUser2)
+	res = testUser2.change_password(@s,"testpass")
+	assert_equal("200",res.code,res.body)
+	
+	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
+  end
+
+  def checkPersonalSpace(u)
+  	# Can this new user update content in their own space.
+	res = @s.execute_get(@s.url_for("/system/me"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	puts(res.body)
+	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
+	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
+	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u
+	
+	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
+	assert_equal("201",res.code, res.body)
+	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	# check the node really was last modified by the correct user.
+	assert_equal(u, props["jcr:lastModifiedBy"])
+
+  end
+  
+
   def runChangePassword
     admin = User.new("admin","admin")
 	@s.switch_user(admin)
+	
+	# Can the user add stuff to their personal space ?
+	checkPersonalSpace("admin")
+	
+	
+	
+	# check basic node update functionallity and make certain that the user we think is performing the operation.
+	# this should check that the session is correctly authenticated inside JCR since if not the lastModifiedBy wont be 
+	# correct.
+    m = Time.now.to_i.to_s
+	homeFolderTestFile = "/testarea/"+m
+	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
+	assert_equal("201",res.code, res.body+"\n Failed to create a node logged in as admin, must be a problem with the login, ie not really admin ?")
+	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	# check the node really was last modified by the correct user.
+	assert_equal(admin.name, props["jcr:lastModifiedBy"])
+
+
+
     res = admin.update_properties(@s,"testproperty" => "newvalue")
 	assert_equal("200",res.code,res.body)
 
