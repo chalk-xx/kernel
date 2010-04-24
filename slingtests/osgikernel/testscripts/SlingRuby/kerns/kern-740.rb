@@ -117,7 +117,7 @@ class TC_Kern740Test < SlingTest
 	checkPersonalSpace(u)
 
 	
-	
+	## This failes here for a trusted user other than admin
 	res = testUser.change_password(@s,"testpass2")
 	assert_equal("200",res.code,res.body)
 
@@ -130,33 +130,11 @@ class TC_Kern740Test < SlingTest
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
   end
 
-  def checkPersonalSpace(u)
-  	# Can this new user update content in their own space.
-	res = @s.execute_get(@s.url_for("/system/me"))
-	assert_equal("200",res.code)
-	props = JSON.parse(res.body)
-	puts(res.body)
-	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
-	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
-	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u
-	
-	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
-	assert_equal("201",res.code, res.body)
-	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
-	assert_equal("200",res.code)
-	props = JSON.parse(res.body)
-	# check the node really was last modified by the correct user.
-	assert_equal(u, props["jcr:lastModifiedBy"])
-
-  end
-  
 
   def runChangePassword
     admin = User.new("admin","admin")
 	@s.switch_user(admin)
 	
-	# Can the user add stuff to their personal space ?
-	checkPersonalSpace("admin")
 	
 	
 	
@@ -193,6 +171,28 @@ class TC_Kern740Test < SlingTest
     res = admin.update_properties(@s,"testproperty" => "newvalue2")
 	assert_equal("200",res.code,res.body)
   end
+  
+  def checkPersonalSpace(u)
+  	# Can this new user update content in their own space.
+	res = @s.execute_get(@s.url_for("/system/me"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	puts(res.body)
+	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
+	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
+	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u
+	
+	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
+	assert_equal("201",res.code, res.body)
+	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
+	assert_equal("200",res.code)
+	props = JSON.parse(res.body)
+	# check the node really was last modified by the correct user.
+	assert_equal(u, props["jcr:lastModifiedBy"])
+
+  end
+  
+
   
 end
 
