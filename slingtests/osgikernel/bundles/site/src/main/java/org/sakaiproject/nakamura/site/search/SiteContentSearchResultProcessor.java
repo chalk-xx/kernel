@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.site.search;
 
+import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import org.apache.felix.scr.annotations.Component;
@@ -33,6 +35,7 @@ import org.sakaiproject.nakamura.api.search.AbstractSearchResultSet;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.MergedRowIterator;
 import org.sakaiproject.nakamura.api.search.SearchBatchResultProcessor;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -57,12 +60,10 @@ import javax.jcr.query.RowIterator;
     @Property(name = "sakai.search.batchprocessor", value = "SiteContent") })
 @Service(value = SearchBatchResultProcessor.class)
 @Reference(referenceInterface = SiteService.class, name = "SiteService")
-public class SiteContentSearchResultProcessor implements
-    SearchBatchResultProcessor {
+public class SiteContentSearchResultProcessor implements SearchBatchResultProcessor {
 
   private SiteService siteService;
   protected SearchResultProcessorTracker tracker;
-  private SiteSearchResultProcessor siteSearchResultProcessor;
 
   /**
    * {@inheritDoc}
@@ -75,9 +76,16 @@ public class SiteContentSearchResultProcessor implements
       Aggregator aggregator, RowIterator iterator) throws JSONException,
       RepositoryException {
 
-    while (iterator.hasNext()) {
+    long toSkip = SearchUtil.getPaging(request, -1);
+    iterator.skip(toSkip);
+    long items = SearchUtil.intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+        SearchConstants.DEFAULT_PAGED_ITEMS);
+
+    long i = 0;
+    while (iterator.hasNext() && i < items) {
       Row row = iterator.nextRow();
       writeNode(request, write, aggregator, row);
+      i++;
     }
 
   }
@@ -88,8 +96,8 @@ public class SiteContentSearchResultProcessor implements
    * @see org.sakaiproject.nakamura.api.search.SearchResultProcessor#getSearchResultSet(org.apache.sling.api.SlingHttpServletRequest,
    *      javax.jcr.query.Query)
    */
-  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
-      Query query) throws SearchException {
+  public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
+      throws SearchException {
     try {
       // Perform the query
       QueryResult qr = query.execute();
@@ -98,13 +106,12 @@ public class SiteContentSearchResultProcessor implements
       // Do another query to get the files.
       Session session = request.getResourceResolver().adaptTo(Session.class);
       QueryManager qm = session.getWorkspace().getQueryManager();
-      String statement = "//element(*, sakai:site)//*[@sling:resourceType='sakai/link']/jcr:deref(@jcr:reference, '*')[jcr:contains(.,'*u*')]";
+      String statement = "//element(*, sakai:site)//*[@sling:resourceType='sakai/link']/jcr:deref(@jcr:reference, '*')[jcr:contains(.,'*u*')] order by @jcr:score descending";
       Query q = qm.createQuery(statement, Query.XPATH);
       QueryResult filesQueryResult = q.execute();
       RowIterator filesIterator = filesQueryResult.getRows();
 
-      MergedRowIterator mergedIterator = new MergedRowIterator(iterator,
-          filesIterator);
+      MergedRowIterator mergedIterator = new MergedRowIterator(iterator, filesIterator);
 
       long siteHits = SearchUtil.getHits(qr);
       long filesHits = SearchUtil.getHits(filesQueryResult);
@@ -117,18 +124,16 @@ public class SiteContentSearchResultProcessor implements
     }
   }
 
-  private void writeDefaultNode(JSONWriter write, Aggregator aggregator,
-      Row row, Node siteNode, Session session) throws JSONException,
-      RepositoryException {
+  private void writeDefaultNode(JSONWriter write, Aggregator aggregator, Row row,
+      Node siteNode, Session session) throws JSONException, RepositoryException {
     Node node = RowUtils.getNode(row, session);
     if (aggregator != null) {
       aggregator.add(node);
     }
     write.object();
-    write.key("path");
-    write.value(node.getPath());
+    // We don't dump the member-count, since that is very expensive.
     write.key("site");
-    siteSearchResultProcessor.writeNode(write, siteNode);
+    ExtendedJSONWriter.writeNodeToWriter(write, siteNode);
     write.key("excerpt");
     write.value(RowUtils.getDefaultExcerpt(row));
     write.key("data");
@@ -153,21 +158,16 @@ public class SiteContentSearchResultProcessor implements
     }
     if (foundSite) {
       if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
-        String type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
-            .getString();
+        String type = node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
 
         // From looking at the type we determine how we should represent this node.
-        SearchResultProcessor processor = tracker
-            .getSearchResultProcessorByType(type);
+        SearchResultProcessor processor = tracker.getSearchResultProcessorByType(type);
         if (processor != null) {
           write.object();
-          write.key("path");
-          write.value(node.getPath());
           write.key("site");
-          siteSearchResultProcessor.writeNode(write, siteNode);
+          ExtendedJSONWriter.writeNodeToWriter(write, siteNode);
           write.key("type");
-          write.value(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY)
-              .getString());
+          write.value(node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString());
           write.key("excerpt");
           write.value(RowUtils.getDefaultExcerpt(row));
           write.key("data");
@@ -189,9 +189,6 @@ public class SiteContentSearchResultProcessor implements
     BundleContext bundleContext = context.getBundleContext();
     tracker = new SearchResultProcessorTracker(bundleContext);
     tracker.open();
-
-    siteSearchResultProcessor = new SiteSearchResultProcessor();
-    siteSearchResultProcessor.bindSiteService(siteService);
   }
 
   protected void deactivate(ComponentContext context) {

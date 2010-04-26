@@ -451,7 +451,7 @@ public class SiteServiceImpl implements SiteService {
    */
   public Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort)
       throws SiteException {
-    MembershipTree membership = getMembershipTree(site);
+    MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
       Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
       List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(), comparitor);
@@ -490,7 +490,7 @@ public class SiteServiceImpl implements SiteService {
    *      int, org.sakaiproject.nakamura.api.site.Sort[])
    */
   public AbstractCollection<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
-    MembershipTree membership = getMembershipTree(site);
+    MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
       Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
       List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(), comparitor);
@@ -537,7 +537,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   public int getMemberCount(Node site) {
-    return getMembershipTree(site).getUsers().size();
+    return getMembershipTree(site, false).getUsers().size();
   }
 
   /**
@@ -552,9 +552,12 @@ public class SiteServiceImpl implements SiteService {
    * 
    * @param site
    *          the site
+   * @param lookupProfile
+   *          If a profile should be looked up for all the users of this site. (true will
+   *          be much slower!)
    * @return a membership tree
    */
-  private MembershipTree getMembershipTree(Node site) {
+  private MembershipTree getMembershipTree(Node site, boolean lookupProfile) {
     Map<GroupKey, Membership> groups = Maps.newLinkedHashMap();
     Map<UserKey, Membership> users = Maps.newLinkedHashMap();
     try {
@@ -574,12 +577,14 @@ public class SiteServiceImpl implements SiteService {
           } else if (a instanceof User) {
             // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
-              String profilePath = PersonalUtils.getProfilePath(a);
               Node profileNode = null;
-              try {
-                profileNode = (Node) session.getItem(profilePath);
-              } catch ( PathNotFoundException e ) {
-                LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+              if (lookupProfile) {
+                String profilePath = PersonalUtils.getProfilePath(a);
+                try {
+                  profileNode = (Node) session.getItem(profilePath);
+                } catch ( PathNotFoundException e ) {
+                  LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+                }
               }
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
             }
@@ -718,7 +723,7 @@ public class SiteServiceImpl implements SiteService {
           } catch ( PathNotFoundException e ) {
             LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
           }
-          LOGGER.info("Populate Members adding profile {} {} ",profileNode,profilePath);
+          LOGGER.debug("Populate Members adding profile {} {} ",profileNode,profilePath);
           users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }
       }

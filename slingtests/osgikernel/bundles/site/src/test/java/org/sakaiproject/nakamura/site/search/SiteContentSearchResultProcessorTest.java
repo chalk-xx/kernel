@@ -17,12 +17,13 @@
  */
 package org.sakaiproject.nakamura.site.search;
 
-import junit.framework.Assert;
-
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.fail;
 
+import junit.framework.Assert;
+
 import org.apache.sling.api.SlingHttpServletRequest;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -68,6 +69,10 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
       InvalidSyntaxException {
 
     String excerpt = "foobar";
+    RequestParameter itemsParam = createMock(RequestParameter.class);
+    expect(itemsParam.getString()).andReturn("5").anyTimes();
+    RequestParameter pageParam = createMock(RequestParameter.class);
+    expect(pageParam.getString()).andReturn("0").anyTimes();
 
     SiteContentSearchResultProcessor siteContentSearchResultProcessor = new SiteContentSearchResultProcessor();
     SiteService siteService = createMock(SiteService.class);
@@ -83,6 +88,8 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
     expect(resultNode.getPath()).andReturn("/sites/physics-101").anyTimes();
     expect(resultNode.getName()).andReturn("physics-101").anyTimes();
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
+    expect(request.getRequestParameter("items")).andReturn(itemsParam).anyTimes();
+    expect(request.getRequestParameter("page")).andReturn(pageParam).anyTimes();
     ResourceResolver resourceResolver = createMock(ResourceResolver.class);
     Session session = createMock(Session.class);
     expect(request.getResourceResolver()).andReturn(resourceResolver)
@@ -136,6 +143,7 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
     expect(iterator.hasNext()).andReturn(true);
     expect(iterator.nextRow()).andReturn(row);
     expect(iterator.hasNext()).andReturn(false);
+    iterator.skip(0);
 
     replay();
 
@@ -145,7 +153,7 @@ public class SiteContentSearchResultProcessorTest extends AbstractEasyMockTest {
 
       JSONObject o = new JSONObject(w.toString());
       JSONObject site = o.getJSONObject("site");
-      Assert.assertEquals(site.get("path"), "/sites/physics-101");
+      Assert.assertEquals(site.get("jcr:path"), "/sites/physics-101");
       Assert.assertEquals(o.get("excerpt"), excerpt);
       Assert.assertNotNull(site);
 
