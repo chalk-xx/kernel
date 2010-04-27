@@ -116,7 +116,10 @@ public class SiteContentSearchResultProcessor implements SearchBatchResultProces
       long siteHits = SearchUtil.getHits(qr);
       long filesHits = SearchUtil.getHits(filesQueryResult);
       long totalHits = siteHits + filesHits;
-
+      if (totalHits == -2) {
+        totalHits = Long.MAX_VALUE;
+      }
+      
       return new AbstractSearchResultSet(mergedIterator, totalHits);
 
     } catch (RepositoryException e) {
