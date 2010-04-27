@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -33,6 +35,7 @@ import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import java.util.Map;
 
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -76,7 +79,7 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
       String[] users = StringUtils.split(usersParam.getString(), ',');
 
       for (String u : users) {
-        sql += "@sakai:from=\"" + u + "\" or ";
+        sql += "@sakai:from=\"" + escapeString(u, Query.XPATH) + "\" or ";
       }
       sql = sql.substring(0, sql.length() - 4);
       sql += ")";

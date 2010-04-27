@@ -18,6 +18,8 @@
 
 package org.sakaiproject.nakamura.discussion.searchresults;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
@@ -27,6 +29,8 @@ import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
 import java.util.Map;
+
+import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -54,7 +58,7 @@ public class DiscussionInitialPostPropertyProvider implements SearchPropertyProv
       path = path.substring(0, path.length() - 1);
     }
     
-    propertiesMap.put("_path", ISO9075.encodePath(path));
+    propertiesMap.put("_path", escapeString(ISO9075.encodePath(path), Query.XPATH));
   }
 
 }

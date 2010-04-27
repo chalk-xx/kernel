@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.chat;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -33,6 +35,7 @@ import org.sakaiproject.nakamura.util.StringUtils;
 import java.util.Map;
 
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 
 @Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides properties to process the chat message searches.")
 @Service
@@ -64,14 +67,14 @@ public class ChatMessageSearchPropertyProvider implements SearchPropertyProvider
       String[] users = StringUtils.split(usersParam.getString(), ',');
 
       for (String u : users) {
-        sql.append("@sakai:from=\"").append(u).append("\" or ");
+        sql.append("@sakai:from=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
       }
-      sql.append("@sakai:from=\"").append(user).append("\") or (");
+      sql.append("@sakai:from=\"").append(escapeString(user, Query.XPATH)).append("\") or (");
 
       for (String u : users) {
-        sql.append("@sakai:to=\"").append(u).append("\" or ");
+        sql.append("@sakai:to=\"").append(escapeString(u, Query.XPATH)).append("\" or ");
       }
-      sql.append("@sakai:to=\"").append(user).append("\"))");
+      sql.append("@sakai:to=\"").append(escapeString(user, Query.XPATH)).append("\"))");
 
       propertiesMap.put("_from", sql.toString());
     }

@@ -20,9 +20,10 @@ package org.sakaiproject.nakamura.api.search;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
+import org.apache.jackrabbit.core.query.lucene.QueryHitsExtractor;
+import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
-import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +48,8 @@ public class SearchUtil {
    * @return
    * @throws SearchException
    */
-  public static SearchResultSet getSearchResultSet(
-      SlingHttpServletRequest request, Query query) throws SearchException {
+  public static SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
     try {
       // Get the query result.
       QueryResult rs = query.execute();
@@ -72,6 +73,7 @@ public class SearchUtil {
 
   /**
    * Get the hits from a Lucene queryResult.
+   * 
    * @param rs
    * @return
    */
@@ -123,5 +125,30 @@ public class SearchUtil {
     }
     long start = Math.min(offset, total);
     return start;
+  }
+
+  /**
+   * Assumes value is the value of a parameter in a where constraint and escapes it
+   * according to the spec.
+   * 
+   * @param value
+   * @param queryLanguage
+   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2 or JCR_JQOM.
+   *          Look at {@link Query Query}.
+   * @return
+   */
+  public static String escapeString(String value, String queryLanguage) {
+    String escaped = null;
+    if (value != null) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
+          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
+        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''").replaceAll("\"", "\\\\\"");
+      } else {
+        LOGGER.error("Unknown query language: " + queryLanguage);
+      }
+    }
+    return escaped;
   }
 }

@@ -39,6 +39,7 @@ import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PATH_P
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_PROPERTY_PROVIDER;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.SEARCH_RESULT_PROCESSOR;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.TOTAL;
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -484,21 +485,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
       LOGGER.debug("No Provider ");
     }
     return propertiesMap;
-  }
-
-  private String escapeString(String value, String queryLanguage) {
-    String escaped = null;
-    if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
-          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
-        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
-        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
-            .replaceAll("'", "''");
-      } else {
-        LOGGER.error("Unknown query language: " + queryLanguage);
-      }
-    }
-    return escaped;
   }
 
   protected void bindSearchResultProcessor(ServiceReference serviceReference) {
