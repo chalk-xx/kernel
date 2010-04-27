@@ -29,7 +29,7 @@ class TC_Kern740Test < SlingTest
     @s.trustedauth = false
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Basic_AuthTest"))
 	puts("Changing Admin Password with Basic Auth")
-	runChangePassword()
+	runChangePassword("c")
 	puts("Done Changing Admin Password with Basic Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Basic_AuthTest"))
   end
@@ -81,7 +81,7 @@ class TC_Kern740Test < SlingTest
 	
 	u = "userbasic"+m
 	
-	runChangePasswordForUser(u)
+	runChangePasswordForUser(u,"a")
   end
 
   def test_change_password_trustedAuthNewUser
@@ -90,7 +90,7 @@ class TC_Kern740Test < SlingTest
 	
 	u = "usertrusted"+m
 	
-	runChangePasswordForUser(u)
+	runChangePasswordForUser(u,"b")
   end
 
   def test_change_password_trustedAuth
@@ -101,20 +101,20 @@ class TC_Kern740Test < SlingTest
 
 	
 	puts("Changing Admin Password with Trusted Auth")
-	runChangePassword()
+	runChangePassword("d")
 	puts("Done Changing Admin Password with Trusted Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
   end
 
 
-  def runChangePasswordForUser(u)
+  def runChangePasswordForUser(u,v)
   
 	testUser = create_user(u)
 	
 	@s.switch_user(testUser)
 	
 	
-	checkPersonalSpace(u)
+	checkPersonalSpace(u,v)
 
 	
 	## This failes here for a trusted user other than admin
@@ -131,7 +131,7 @@ class TC_Kern740Test < SlingTest
   end
 
 
-  def runChangePassword
+  def runChangePassword(v)
     admin = User.new("admin","admin")
 	@s.switch_user(admin)
 	
@@ -141,8 +141,8 @@ class TC_Kern740Test < SlingTest
 	# check basic node update functionallity and make certain that the user we think is performing the operation.
 	# this should check that the session is correctly authenticated inside JCR since if not the lastModifiedBy wont be 
 	# correct.
-    m = Time.now.to_i.to_s
-	homeFolderTestFile = "/testarea/"+m
+        m = Time.now.to_i.to_s
+	homeFolderTestFile = "/testarea/"+m+v
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body+"\n Failed to create a node logged in as admin, must be a problem with the login, ie not really admin ?")
 	res = @s.execute_get(@s.url_for(homeFolderTestFile+".json"))
@@ -172,7 +172,7 @@ class TC_Kern740Test < SlingTest
 	assert_equal("200",res.code,res.body)
   end
   
-  def checkPersonalSpace(u)
+  def checkPersonalSpace(u,v)
   	# Can this new user update content in their own space.
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
@@ -180,7 +180,7 @@ class TC_Kern740Test < SlingTest
 	puts(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
-	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u
+	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u+v
 	
 	res = @s.execute_post(@s.url_for(homeFolderTestFile),"testprop" => "testvalue",  "jcr:mixinTypes" => "mix:lastModified" )
 	assert_equal("201",res.code, res.body)
