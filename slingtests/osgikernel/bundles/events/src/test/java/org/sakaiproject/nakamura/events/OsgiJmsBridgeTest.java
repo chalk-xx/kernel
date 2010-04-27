@@ -199,7 +199,7 @@ public class OsgiJmsBridgeTest {
     expectLastCall();
 
     // mock a destination as a topic from the session and expect it
-    expect(sess.createTopic((String) anyObject())).andThrow(new JMSException("can't create topic"));
+    expect(sess.createMessage()).andThrow(new JMSException("can't create topic"));
 
     // start the mocks
     replay(ctx, connFactoryService, connFactory, conn, sess);
