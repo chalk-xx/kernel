@@ -17,24 +17,18 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import com.novell.ldap.LDAPAttribute;
-import com.novell.ldap.LDAPConnection;
-import com.novell.ldap.LDAPException;
+import static junit.framework.Assert.assertTrue;
 
-import static org.junit.Assert.*;
+import static junit.framework.Assert.assertFalse;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 
-import java.util.Dictionary;
+import java.util.HashMap;
 
 import static org.mockito.Mockito.*;
 
@@ -47,44 +41,14 @@ public class LdapAuthenticationPluginTest {
   private LdapAuthenticationPlugin ldapAuthenticationPlugin;
   
   @Mock
-  private ComponentContext componentContext;
-  
-  @Mock
-  private LdapConnectionBroker connBroker;
-
-  @Mock
   private LdapConnectionManager connMgr;
   
   @Before
   public void setup() throws Exception {
-    when(connBroker.create(isA(String.class), isA(LdapConnectionManagerConfig.class))).thenReturn(connMgr);
-    when(connBroker.getDefaultConfig()).thenReturn(new LdapConnectionManagerConfig());
     when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(null);
-    ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
-    ldapAuthenticationPlugin.connBroker = connBroker;
+    ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr);
   }
 
-  @Test
-  public void createsAConnectionBrokerUponActivation() throws Exception {
-    // given
-    aContextThatCanReturnProperties();
-    
-    // when
-    ldapAuthenticationPlugin.activate(componentContext);
-    
-    // then
-    verify(connBroker).create(isA(String.class), isA(LdapConnectionManagerConfig.class));
-  }
-  
-  @Test
-  public void destroysConnectionBrokerOnDeactivation() throws Exception {
-    // when
-    ldapAuthenticationPlugin.deactivate(componentContext);
-    
-    // then
-    verify(connBroker).destroy(anyString());
-  }
-  
   @Test
   public void authenticationFailsIfNotSimpleCredentials() throws Exception {
     // given
@@ -97,9 +61,9 @@ public class LdapAuthenticationPluginTest {
   @Test
   public void canAuthenticateWithValidCredentials() throws Exception {
     // given
-    connectionBrokerWillAllowAnything();
-    aContextThatCanReturnProperties();
-    ldapAuthenticationPlugin.activate(componentContext);
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, "uid={}");
+    ldapAuthenticationPlugin.activate(props);
     
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
@@ -109,20 +73,5 @@ public class LdapAuthenticationPluginTest {
     String name = "joe";
     char[] password = {'p','a','s','s'};
     return new SimpleCredentials(name, password);
-  }
-
-  private void connectionBrokerWillAllowAnything() throws LdapException, LDAPException {
-    LDAPConnection conn = mock(LDAPConnection.class);
-    when(conn.compare(anyString(), (LDAPAttribute)anyObject())).thenReturn(Boolean.TRUE);
-    when(connBroker.getConnection(anyString())).thenReturn(conn);
-  }
-
-  @SuppressWarnings("rawtypes")
-  private void aContextThatCanReturnProperties() {
-    Dictionary props = mock(Dictionary.class);
-    when(props.get(LdapAuthenticationPlugin.LDAP_CONNECTION_SECURE)).thenReturn(Boolean.TRUE);
-    when(props.get(LdapAuthenticationPlugin.LDAP_PORT)).thenReturn(389);
-    when(props.get(LdapAuthenticationPlugin.LDAP_BASE_DN)).thenReturn("uid={}");
-    when(componentContext.getProperties()).thenReturn(props);
   }
 }

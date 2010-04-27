@@ -29,5 +29,7 @@ public interface LdapConnectionManagerFactory {
    * @param config
    * @return 
    */
-  LdapConnectionManager newInstance(LdapConnectionManagerConfig config);
+  LdapConnectionManager create(LdapConnectionManagerConfig config);
+  
+  void destroy(LdapConnectionManager mgr);
 }

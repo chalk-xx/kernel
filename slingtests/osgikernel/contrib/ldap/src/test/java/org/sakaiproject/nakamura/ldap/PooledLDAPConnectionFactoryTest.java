@@ -16,6 +16,8 @@
  */
 package org.sakaiproject.nakamura.ldap;
 
+import static org.easymock.EasyMock.isA;
+
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
@@ -30,6 +32,7 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
@@ -67,7 +70,8 @@ public class PooledLDAPConnectionFactoryTest {
     validators.add(livenessValidator);
 
     connMgr = createMock(LdapConnectionManager.class);
-    connMgrConfig = createMock(LdapConnectionManagerConfig.class);
+    connMgrConfig = new LdapConnectionManagerConfig();
+    setConnectionManagerConfigExpectations();
     
     factory = new PooledLDAPConnectionFactory(connMgr, validators) {
       @Override
@@ -87,13 +91,11 @@ public class PooledLDAPConnectionFactoryTest {
   public void testMakeObjectConnectsAndOtherwiseInitializesConnections() throws LDAPException,
       UnsupportedEncodingException {
 
-    setConnectionManagerConfigExpectations();
-    replay(connMgr, connMgrConfig);
 
     factory.setConnectionManager(connMgr);
     conn.setConnectionManager(connMgr);
 
-    conn.setConstraints((LDAPConstraints) anyObject());
+    conn.setConstraints(isA(LDAPConstraints.class));
     expectLastCall().once();
     // make more specific
     conn.connect(connMgrConfig.getLdapHost(), connMgrConfig.getLdapPort());
@@ -123,15 +125,18 @@ public class PooledLDAPConnectionFactoryTest {
     final boolean LDAP_FOLLOW_REFERRALS = true;
 
     expect(connMgr.getConfig()).andReturn(connMgrConfig).anyTimes();
-    expect(connMgrConfig.getLdapHost()).andReturn(LDAP_HOST).anyTimes();
-    expect(connMgrConfig.getLdapPort()).andReturn(LDAP_PORT).anyTimes();
-    expect(connMgrConfig.isAutoBind()).andReturn(true).anyTimes();
-    expect(connMgrConfig.getLdapUser()).andReturn(LDAP_USER).anyTimes();
-    expect(connMgrConfig.getLdapPassword()).andReturn(LDAP_PASS).anyTimes();
-    expect(connMgrConfig.isSecureConnection()).andReturn(true).anyTimes();
-    expect(connMgrConfig.getOperationTimeout()).andReturn(LDAP_TIMEOUT).anyTimes();
-    expect(connMgrConfig.isFollowReferrals()).andReturn(LDAP_FOLLOW_REFERRALS).anyTimes();
-    expect(connMgrConfig.isTLS()).andReturn(false).anyTimes();
+    connMgrConfig.setLdapHost(LDAP_HOST);
+    connMgrConfig.setLdapHost(LDAP_HOST);
+    connMgrConfig.setLdapPort(LDAP_PORT);
+    connMgrConfig.setAutoBind(true);
+    connMgrConfig.setLdapUser(LDAP_USER);
+    connMgrConfig.setLdapPassword(LDAP_PASS);
+    connMgrConfig.setSecureConnection(true);
+    connMgrConfig.setOperationTimeout(LDAP_TIMEOUT);
+    connMgrConfig.setFollowReferrals(LDAP_FOLLOW_REFERRALS);
+    connMgrConfig.setTLS(false);
+    
+    replay(connMgr);
   }
 
   /**
@@ -160,11 +165,15 @@ public class PooledLDAPConnectionFactoryTest {
    * auto-bind mode, the connection must be invalidated.
    */
   @Test
-  public void testValidateObjectLowersActiveFlagIfConnectionHasBeenBoundButAutoBindIsNotSet() {
+  public void testValidateObjectLowersActiveFlagIfConnectionHasBeenBoundButAutoBindIsNotSet() throws Exception {
     expect(conn.isBindAttempted()).andReturn(true);
     // we assume autoBind defaults to false (we'd rather not go through the
     // whole process of mocking up the connection manager again)
     conn.setActive(false);
+    expectLastCall().once();
+    conn.bind(anyInt(), isA(String.class), isA(byte[].class));
+    expectLastCall().once();
+    conn.setBindAttempted(false);
     expectLastCall().once();
     replay(conn);
     assertFalse(factory.validateObject(conn));
@@ -180,8 +189,6 @@ public class PooledLDAPConnectionFactoryTest {
   public void testValidateObjectRebindsAsAutoBindUserIfNecessaryPriorToTestingConnectionLiveness()
       throws Exception {
 
-    setConnectionManagerConfigExpectations();
-    replay(connMgr, connMgrConfig);
     factory.setConnectionManager(connMgr);
 
     expect(conn.isBindAttempted()).andReturn(true);
@@ -209,8 +216,6 @@ public class PooledLDAPConnectionFactoryTest {
   @Test
   public void testValidateObjectLowersActiveFlagIfRebindFails() throws Exception {
 
-    setConnectionManagerConfigExpectations();
-    replay(connMgr, connMgrConfig);
     factory.setConnectionManager(connMgr);
     LDAPException bindFailure = new LDAPException();
 

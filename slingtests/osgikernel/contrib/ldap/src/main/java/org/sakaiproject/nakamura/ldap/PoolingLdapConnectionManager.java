@@ -24,7 +24,6 @@ import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -33,27 +32,22 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.osgi.framework.Constants;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedServiceFactory;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Allocates connected, constrained, bound and optionally secure
  * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of connections
  * instead of creating a new connection for each request. Originally tried implementing
- * this with <code>om.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
+ * this with <code>com.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
  * recovering connections that had suffered a network error or connections that were never
  * returned but dropped out of scope.
  * 
@@ -64,20 +58,17 @@ import java.util.List;
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  */
-@Component(policy = ConfigurationPolicy.IGNORE)
+@Component(metatype = true)
 @Service
-public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager implements
-    ManagedServiceFactory {
+public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
-  private HashMap<String, PoolingLdapConnectionManager> managers = new HashMap<String, PoolingLdapConnectionManager>();
+//  public static final String PID = "org.sakaiproject.nakamura.ldap.LdapConnectionManager";
+//  @Property(value = PID)
+//  static final String SERVICE_PID = Constants.SERVICE_PID;
 
-  public static final String PID = "org.sakaiproject.nakamura.ldap.LdapConnectionManager";
-  @Property(value = PID)
-  static final String SERVICE_PID = Constants.SERVICE_PID;
-
-  public static final String FACTORY_PID = PID + ".factory";
-  @Property(value = FACTORY_PID)
-  static final String SERVICE_FACTORY_PID = "service.factoryPid";
+//  public static final String FACTORY_PID = PID + ".factory";
+//  @Property(value = FACTORY_PID)
+//  static final String SERVICE_FACTORY_PID = "service.factoryPid";
 
   static final boolean DEFAULT_AUTO_BIND = false;
   @Property(boolValue = DEFAULT_AUTO_BIND)
@@ -130,6 +121,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
   static final boolean DEFAULT_TLS = false;
   @Property(boolValue = DEFAULT_TLS)
   static final String TLS = "sakai.ldap.tls";
+  
   /** Class-specific logger */
   private static Logger log = LoggerFactory.getLogger(PoolingLdapConnectionManager.class);
 
@@ -156,12 +148,6 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
 
   protected void unbindLivenessValidator(LdapConnectionLivenessValidator validator) {
     livenessValidators.remove(validator);
-  }
-
-  public PoolingLdapConnectionManager newInstance(LdapConnectionManagerConfig config) {
-    PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager();
-    mgr.init(config);
-    return mgr;
   }
 
   /**
@@ -231,45 +217,22 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
       throw new RuntimeException("failed to return pooled connection", e);
     }
   }
-
-  // ---------- ManagedServiceFactory
-  public String getName() {
-    return getClass().getName();
-  }
-
-  public void deleted(String pid) {
-    managers.remove(pid);
-  }
-
-  @SuppressWarnings("rawtypes")
-  public void updated(String pid, Dictionary properties) throws ConfigurationException {
-    if (managers.containsKey(pid)) {
-      PoolingLdapConnectionManager mgr = managers.get(pid);
-      mgr.init(config);
-    } else {
-      PoolingLdapConnectionManager mgr = new PoolingLdapConnectionManager();
-      mgr.init(config);
-      managers.put(pid, mgr);
-    }
-  }
-
+  
   // ---------- SCR integration
   /**
    * Activate/initialize the instance. Normally called by OSGi.
    * 
-   * @param ctx
+   * @param context
    */
   @Activate
-  protected void activate(ComponentContext ctx) {
-    Dictionary<?, ?> properties = ctx.getProperties();
-
+  protected void activate(Map<?, ?> properties) {
     // set the default configuration
-    LdapConnectionManagerConfig config = createConfig(properties);
-    init(config);
+    LdapConnectionManagerConfig lconfig = PoolingLdapConnectionManager.createConfig(properties);
+    init(lconfig);
   }
 
   @Deactivate
-  protected void deactivate(ComponentContext context) {
+  protected void deactivate() {
     try {
       log.debug("deactivate(): closing connection pool");
       pool.close();
@@ -284,11 +247,12 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
   }
 
   @Modified
-  protected void update(Dictionary<?, ?> dict) {
-    LdapConnectionManagerConfig config = createConfig(dict);
-    init(config);
+  protected void modified(Map<?, ?> props) {
+    LdapConnectionManagerConfig lconfig = PoolingLdapConnectionManager.createConfig(props);
+    init(lconfig);
   }
 
+  @Override
   public void init(LdapConnectionManagerConfig config) {
     super.init(config);
 
@@ -301,26 +265,46 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
       pool = null;
     }
 
-   factory = newPooledLDAPConnectionFactory(this, livenessValidators);
-    
+    factory = newPooledLDAPConnectionFactory(this, livenessValidators);
+
     pool = newConnectionPool(factory, getConfig().getPoolMaxConns(), // maxActive
         GenericObjectPool.WHEN_EXHAUSTED_BLOCK, // whenExhaustedAction
         POOL_MAX_WAIT, // maxWait (millis)
         getConfig().getPoolMaxConns(), // maxIdle
         true, // testOnBorrow
         false // testOnReturn
-      );
+    );
   }
-  
+
+  /**
+   * Creates a new {@link PooledLDAPConnectionFactory}. Provided to be overridden when
+   * testing.
+   * 
+   * @param manager
+   * @param livenessValidators
+   * @return
+   */
   PooledLDAPConnectionFactory newPooledLDAPConnectionFactory(
       PoolingLdapConnectionManager manager,
       List<LdapConnectionLivenessValidator> livenessValidators) {
     return new PooledLDAPConnectionFactory(manager, livenessValidators);
   }
-  
+
+  /**
+   * Creates a new {@link GenericObjectPool}. Provided to be overridden when testing.
+   * 
+   * @param factory
+   * @param maxConns
+   * @param whenExhausted
+   * @param maxWait
+   * @param maxIdle
+   * @param testOnBorrow
+   * @param testOnReturn
+   * @return
+   */
   ObjectPool newConnectionPool(PoolableObjectFactory factory, int maxConns,
       byte whenExhausted, int maxWait, int maxIdle, boolean testOnBorrow, boolean testOnReturn) {
-    GenericObjectPool pool = new GenericObjectPool(factory,
+    GenericObjectPool gpool = new GenericObjectPool(factory,
         maxConns, // maxActive
         whenExhausted, // whenExhaustedAction
         maxWait, // maxWait (millis)
@@ -328,34 +312,40 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager im
         testOnBorrow, // testOnBorrow
         testOnReturn // testOnReturn
     );
-    return pool;
+    return gpool;
   }
   
-  LdapConnectionManagerConfig createConfig(Dictionary<?, ?> dict) {
-    if (dict == null)
-      dict = new Hashtable<String, String>();
+  /**
+   * Given a dictionary of properties, creates an {@link LdapConnectionManagerConfig}.
+   * 
+   * @param props
+   * @return
+   */
+  public static LdapConnectionManagerConfig createConfig(Map<?, ?> props) {
+    if (props == null)
+      props = new Hashtable<String, String>();
 
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
 
-    config.setAutoBind(OsgiUtil.toBoolean(dict.get(AUTO_BIND), DEFAULT_AUTO_BIND));
-    config.setFollowReferrals(OsgiUtil.toBoolean(dict.get(FOLLOW_REFERRALS),
+    config.setAutoBind(OsgiUtil.toBoolean(props.get(AUTO_BIND), DEFAULT_AUTO_BIND));
+    config.setFollowReferrals(OsgiUtil.toBoolean(props.get(FOLLOW_REFERRALS),
         DEFAULT_FOLLOW_REFERRALS));
-    config.setKeystoreLocation(OsgiUtil.toString(dict.get(KEYSTORE_LOCATION),
+    config.setKeystoreLocation(OsgiUtil.toString(props.get(KEYSTORE_LOCATION),
         DEFAULT_KEYSTORE_LOCATION));
-    config.setKeystorePassword(OsgiUtil.toString(dict.get(KEYSTORE_PASSWORD),
+    config.setKeystorePassword(OsgiUtil.toString(props.get(KEYSTORE_PASSWORD),
         DEFAULT_KEYSTORE_PASSWORD));
-    config.setSecureConnection(OsgiUtil.toBoolean(dict.get(SECURE_CONNECTION),
+    config.setSecureConnection(OsgiUtil.toBoolean(props.get(SECURE_CONNECTION),
         DEFAULT_SECURE_CONNECTION));
-    config.setLdapHost(OsgiUtil.toString(dict.get(HOST), DEFAULT_HOST));
-    config.setLdapPort(OsgiUtil.toInteger(dict.get(PORT), DEFAULT_PORT));
-    config.setLdapUser(OsgiUtil.toString(dict.get(USER), DEFAULT_USER));
-    config.setLdapPassword(OsgiUtil.toString(dict.get(PASSWORD), DEFAULT_PASSWORD));
-    config.setOperationTimeout(OsgiUtil.toInteger(dict.get(OPERATION_TIMEOUT),
+    config.setLdapHost(OsgiUtil.toString(props.get(HOST), DEFAULT_HOST));
+    config.setLdapPort(OsgiUtil.toInteger(props.get(PORT), DEFAULT_PORT));
+    config.setLdapUser(OsgiUtil.toString(props.get(USER), DEFAULT_USER));
+    config.setLdapPassword(OsgiUtil.toString(props.get(PASSWORD), DEFAULT_PASSWORD));
+    config.setOperationTimeout(OsgiUtil.toInteger(props.get(OPERATION_TIMEOUT),
         DEFAULT_OPERATION_TIMEOUT));
-    config.setPooling(OsgiUtil.toBoolean(dict.get(POOLING), DEFAULT_POOLING));
-    config.setPoolMaxConns(OsgiUtil.toInteger(dict.get(POOLING_MAX_CONNS),
+    config.setPooling(OsgiUtil.toBoolean(props.get(POOLING), DEFAULT_POOLING));
+    config.setPoolMaxConns(OsgiUtil.toInteger(props.get(POOLING_MAX_CONNS),
         DEFAULT_POOLING_MAX_CONNS));
-    config.setTLS(OsgiUtil.toBoolean(dict.get(TLS), DEFAULT_TLS));
+    config.setTLS(OsgiUtil.toBoolean(props.get(TLS), DEFAULT_TLS));
 
     return config;
   }

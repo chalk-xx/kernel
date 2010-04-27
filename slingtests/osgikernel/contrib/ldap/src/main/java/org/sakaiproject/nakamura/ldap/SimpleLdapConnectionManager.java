@@ -20,8 +20,6 @@ package org.sakaiproject.nakamura.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPJSSESecureSocketFactory;
-import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
@@ -30,19 +28,7 @@ import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.cert.CertificateException;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
 
 /**
  * Allocates connected, constrained, and optionally bound and secure
@@ -117,36 +103,10 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   protected LDAPConnection newLDAPConnection() {
+    verifySetup();
     
-    LDAPConnection conn = null;
-    
-    if (config.isSecureConnection()) {
-      log.debug("init(): initializing secure socket factory");
-      try {
-        // initialize the keystore which will create an SSL context by which
-        // socket factories can be created. this allows for multiple keystores
-        // to be managed without the use of system properties.
-        SSLContext ctx = initKeystore(config.getKeystoreLocation(), config.getKeystorePassword());
-        SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
-        LDAPSocketFactory socketFactory = null;
-        if (config.isTLS()) {
-          socketFactory = new LDAPJSSEStartTLSFactory(sslSocketFactory);
-        } else {
-          socketFactory = new LDAPJSSESecureSocketFactory(sslSocketFactory);
-        }
-        // create connection to return below
-        conn = new LDAPConnection(socketFactory);
-      } catch (GeneralSecurityException e) {
-        log.error(e.getMessage(), e);
-        throw new RuntimeException(e.getMessage(), e);
-      } catch (IOException e) {
-        log.error(e.getMessage(), e);
-        throw new RuntimeException(e.getMessage(), e);
-      }
-    } else {
-      // create connection to return below
-      conn = new LDAPConnection();
-    }
+    LDAPSocketFactory ldapSocketFactory = LdapUtil.chooseLDAPSocketFactory(config);
+    LDAPConnection conn = new LDAPConnection(ldapSocketFactory);
     return conn;
   }
 
@@ -188,31 +148,6 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    */
   public LdapConnectionManagerConfig getConfig() {
     return config;
-  }
-
-  /**
-   * Loads a keystore and sets up an SSL context that can be used to create
-   * socket factories that use the suggested keystore.
-   *
-   * @param keystoreLocation
-   * @param keystorePassword
-   * @throws CertificateException
-   * @throws KeyStoreException
-   * @throws NoSuchProviderException
-   * @throws NoSuchAlgorithmException
-   * @throws IOException
-   * @throws KeyManagementException
-   * @throws NullPointerException
-   *           if a non-null keystore location cannot be resolved
-   */
-  protected SSLContext initKeystore(String keystoreLocation, String keystorePassword)
-      throws GeneralSecurityException, IOException {
-    FileInputStream fis = new FileInputStream(keystoreLocation);
-    char[] passChars = (keystorePassword != null) ? keystorePassword.toCharArray() : null;
-    TrustManager[] myTM = new TrustManager[] { new LdapX509TrustManager(fis, passChars) };
-    SSLContext ctx = SSLContext.getInstance("TLS");
-    ctx.init(null, myTM, null);
-    return ctx;
   }
 
   /**

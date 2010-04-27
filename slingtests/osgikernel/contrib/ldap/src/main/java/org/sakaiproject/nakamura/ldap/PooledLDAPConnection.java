@@ -21,6 +21,7 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPResponseQueue;
+import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.slf4j.Logger;
@@ -52,6 +53,13 @@ public class PooledLDAPConnection extends LDAPConnection {
 
 	private long birthdate = new Date().getTime();
 
+	public PooledLDAPConnection() {
+	}
+	
+	public PooledLDAPConnection(LDAPSocketFactory socketFactory) {
+	  super(socketFactory);
+	}
+	
 	/**
 	 * protect against pooled connections leaking out of the pool
 	 */

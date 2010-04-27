@@ -7,10 +7,8 @@ package org.sakaiproject.nakamura.auth.ldap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
 
 import java.security.Principal;
 import java.util.Map;
@@ -39,9 +37,8 @@ public class LdapLoginModulePluginTest {
   @Mock
   private Session jcrSession;
 
-  @SuppressWarnings("unchecked")
   @Mock
-  private Map options;
+  private Map<?, ?> options;
 
   @Before
   public void setUp() {

@@ -1,7 +1,6 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
 import java.security.Principal;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import javax.jcr.Credentials;
@@ -16,12 +15,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
 
 /**
- * The <code>FormLoginModulePlugin</code> is a LoginModulePlugin which handles
+ * The <code>LdapLoginModulePlugin</code> is a LoginModulePlugin which handles
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */

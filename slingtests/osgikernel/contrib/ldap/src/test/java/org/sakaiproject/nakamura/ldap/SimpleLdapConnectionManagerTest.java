@@ -66,6 +66,7 @@ public class SimpleLdapConnectionManagerTest {
         return conn;
       }
     };
+    mgr.init(config);
   }
 
   @Test
@@ -73,9 +74,16 @@ public class SimpleLdapConnectionManagerTest {
     assertEquals(mgr.getConfig(), config);
   }
 
-  @Test
-  public void testNewLdapConnection() {
+  @Test(expected = IllegalStateException.class)
+  public void testNewLdapConnectionNoConfig() {
     new SimpleLdapConnectionManager().newLDAPConnection();
+  }
+  
+  public void testNewLdapConnection() {
+    SimpleLdapConnectionManager mgr = new SimpleLdapConnectionManager();
+    mgr.init(config);
+    LDAPConnection conn = mgr.newLDAPConnection();
+    assertEquals(this.conn, conn);
   }
 
   @Test
@@ -86,7 +94,6 @@ public class SimpleLdapConnectionManagerTest {
 
     replay(conn);
 
-    mgr.init(config);
     mgr.getConnection();
   }
 
@@ -98,7 +105,6 @@ public class SimpleLdapConnectionManagerTest {
     expectLastCall().andThrow(new LDAPException());
     replay(conn);
 
-    mgr.init(config);
     mgr.getConnection();
     fail("Should throw an exception when can't connect.");
   }
@@ -238,11 +244,13 @@ public class SimpleLdapConnectionManagerTest {
     mgr.init(config);
   }
 
-  @Test(expected = LdapException.class)
+  @Test(expected = RuntimeException.class)
   public void testInitKeystoreMissing() throws Exception {
     config.setKeystoreLocation(keystoreLocation + "xxx");
     config.setSecureConnection(true);
+    SimpleLdapConnectionManager mgr = new SimpleLdapConnectionManager();
     mgr.init(config);
+    mgr.getConnection();
     fail("Should throw exception if the keystore location is invalid.");
   }
 
