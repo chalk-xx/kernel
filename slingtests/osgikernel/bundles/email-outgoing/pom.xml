@@ -63,6 +63,12 @@
       <version>0.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.events</artifactId>
+      <version>0.4-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- commons -->
     <dependency>
