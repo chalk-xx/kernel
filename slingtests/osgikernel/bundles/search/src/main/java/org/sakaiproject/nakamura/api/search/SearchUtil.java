@@ -20,10 +20,10 @@ package org.sakaiproject.nakamura.api.search;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
-import org.apache.jackrabbit.core.query.lucene.QueryHitsExtractor;
 import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
+import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
