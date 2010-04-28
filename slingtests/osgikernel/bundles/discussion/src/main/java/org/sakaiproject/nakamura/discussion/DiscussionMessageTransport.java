@@ -18,6 +18,11 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import static javax.jcr.security.Privilege.JCR_READ;
+import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
+import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -31,7 +36,6 @@ import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
-import org.sakaiproject.nakamura.util.ACLUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +66,12 @@ public class DiscussionMessageTransport implements MessageTransport {
   static final String SERVICE_VENDOR = "service.vendor";
 
   /**
+   * Due to the fact that we are setting ACLs it is hard to unit test this class.
+   * If this variable is set to true, than the ACL settings will be omitted.
+   */
+  private boolean testing = false;
+
+  /**
    * {@inheritDoc}
    * 
    * @see org.sakaiproject.nakamura.api.message.MessageTransport#send(org.sakaiproject.nakamura.api.message.MessageRoutes,
@@ -82,10 +92,7 @@ public class DiscussionMessageTransport implements MessageTransport {
           String toPath = messagingService.getFullPathToMessage(rcpt, messageId, session);
 
           // Copy the node to the destination
-          JcrUtils.deepGetOrCreateNode(session, toPath);
-          session.save();
-
-          Node n = (Node) session.getItem(toPath);
+          Node n = JcrUtils.deepGetOrCreateNode(session, toPath);
 
           PropertyIterator pi = originalMessage.getProperties();
           while (pi.hasNext()) {
@@ -101,19 +108,18 @@ public class DiscussionMessageTransport implements MessageTransport {
               MessageConstants.BOX_INBOX);
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
-          // Save it so we can place an ACL on it.
-          n.save();
 
-          // This will probably be saved in a site store. Not all the users will have
-          // access to their message. So we add an ACL that allows the user to edit and
-          // delete it later on.
-          String from = originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM)
-              .getString();
-          Authorizable authorizable = AccessControlUtil.getUserManager(session)
-              .getAuthorizable(from);
-          ACLUtils.addEntry(n.getPath(), authorizable, session, ACLUtils.WRITE_GRANTED,
-              ACLUtils.READ_GRANTED, ACLUtils.REMOVE_NODE_GRANTED);
-
+          if (!testing) {
+            // This will probably be saved in a site store. Not all the users will have
+            // access to their message. So we add an ACL that allows the user to edit and
+            // delete it later on.
+            String from = originalMessage.getProperty(MessageConstants.PROP_SAKAI_FROM)
+                .getString();
+            Authorizable authorizable = AccessControlUtil.getUserManager(session)
+                .getAuthorizable(from);
+            replaceAccessControlEntry(session, toPath, authorizable.getPrincipal(),
+                new String[] { JCR_WRITE, JCR_READ, JCR_REMOVE_NODE }, null, null);
+          }
           if (session.hasPendingChanges()) {
             session.save();
           }
@@ -151,6 +157,14 @@ public class DiscussionMessageTransport implements MessageTransport {
 
   protected void unbindSlingRepository(SlingRepository slingRepository) {
     this.slingRepository = null;
+  }
+
+  /**
+   * This method should only be called for unit testing purposses. It will disable the ACL
+   * settings.
+   */
+  protected void activateTesting() {
+    testing = true;
   }
 
 }

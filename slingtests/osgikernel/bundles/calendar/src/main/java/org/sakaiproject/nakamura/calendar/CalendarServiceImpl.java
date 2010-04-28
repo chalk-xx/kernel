@@ -17,13 +17,6 @@
  */
 package org.sakaiproject.nakamura.calendar;
 
-import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_PROPERTY_PREFIX;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
