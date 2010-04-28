@@ -82,7 +82,7 @@ public class ExternalDocumentProxyServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
-        LOGGER.info("Disregarding a request to sling/nonexisting - {}", url);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 
