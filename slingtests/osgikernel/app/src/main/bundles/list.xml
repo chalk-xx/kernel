@@ -643,20 +643,22 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
-      <version>0.4</version>
+      <version>0.4-SNAPSHOT</version>
     </bundle>
     <!-- <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
-      <version>0.4</version>
-    </bundle> -->
+      <version>0.4-SNAPSHOT</version>
+    </bundle>
 
 <!-- person directory information -->
+<!--
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
       <version>0.4</version>
     </bundle>
+-->
 
 <!-- url doc proxy-->
 <!--

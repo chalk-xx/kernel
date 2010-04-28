@@ -20,8 +20,6 @@ package org.sakaiproject.nakamura.api.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 
-import java.util.List;
-
 /**
  * Implementations manage <code>LDAPConnection</code> allocation.
  *
@@ -59,28 +57,8 @@ public interface LdapConnectionManager {
 	void returnConnection(LDAPConnection conn);
 
 	/**
-	 * Assign the LDAPConnection management configuration.
-	 * Should typically be invoked once and followed by a
-	 * call to init().
-	 * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
-	 */
-	void setConfig(LdapConnectionManagerConfig config);
-
-	/**
 	 * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
 	 * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
 	 */
 	LdapConnectionManagerConfig getConfig();
-
-  /**
-   * Set the liveness validators used to verify connections.
-   *
-   * @param validators List of validators to use.
-   */
-  void setLivenessValidators(List<LdapConnectionLivenessValidator> validators);
-
-  /**
-   * Shuts down an instance.
-   */
-  public void destroy();
 }

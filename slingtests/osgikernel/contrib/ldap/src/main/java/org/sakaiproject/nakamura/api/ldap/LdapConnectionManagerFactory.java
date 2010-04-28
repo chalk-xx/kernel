@@ -15,34 +15,21 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.auth.ldap;
 
-enum FormReason {
+package org.sakaiproject.nakamura.api.ldap;
 
+/**
+ * Factory for create {@link LdapConnectionManager}s
+ */
+public interface LdapConnectionManagerFactory {
   /**
-   * The login form is request because the credentials previously entered very not valid
-   * to login to the repository.
+   * Create a new instance of an {@link LdapConnectionManager} using the provided
+   * configuration.
+   * 
+   * @param config
+   * @return 
    */
-  INVALID_CREDENTIALS {
-    @Override
-    public String getMessage() {
-      return "Username and Password do not match";
-    }
-  },
-
-  /**
-   * The login form is requested because an existing session has timed out and the
-   * credentials have to be entered again.
-   */
-  TIMEOUT {
-    @Override
-    public String getMessage() {
-      return "Session timed out, please login again";
-    }
-  };
-
-  /**
-   * Returns an english indicative message of the reason to request the login form.
-   */
-  abstract String getMessage();
+  LdapConnectionManager create(LdapConnectionManagerConfig config);
+  
+  void destroy(LdapConnectionManager mgr);
 }

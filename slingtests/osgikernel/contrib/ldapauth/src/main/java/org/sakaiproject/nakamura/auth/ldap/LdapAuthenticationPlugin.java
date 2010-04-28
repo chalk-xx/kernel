@@ -1,24 +1,35 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
 import com.novell.ldap.LDAPConnection;
+import javax.jcr.Session;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.commons.osgi.OsgiUtil;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
-import org.osgi.service.component.ComponentContext;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.sakaiproject.nakamura.api.ldap.LdapException;
+import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.PathUtils;
 
-import java.util.Dictionary;
+import java.security.Principal;
+import java.util.Map;
+import java.util.logging.Level;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
@@ -26,70 +37,40 @@ import javax.jcr.SimpleCredentials;
 @Component(metatype = true)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
-  private static final String BROKER_NAME = LdapAuthenticationPlugin.class.getName();
 
-  @Property(value = "localhost")
-  static final String LDAP_HOST = "sakai.auth.ldap.host";
+  private static final Logger log = LoggerFactory
+      .getLogger(LdapAuthenticationPlugin.class);
 
-  @Property(intValue = LDAPConnection.DEFAULT_PORT)
-  static final String LDAP_PORT = "sakai.auth.ldap.port";
-
-  @Property(boolValue = false)
-  static final String LDAP_CONNECTION_SECURE = "sakai.auth.ldap.connection.secure";
-
-  @Property
-  static final String KEYSTORE_LOCATION = "sakai.auth.ldap.keystore.location";
-
-  @Property
-  static final String KEYSTORE_PASSWORD = "sakai.auth.ldap.keystore.password";
-
-  @Property
+  public static final String DEFAULT_LDAP_BASE_DN = "uid={}";
+  @Property(value = DEFAULT_LDAP_BASE_DN)
   static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
   private String baseDn;
 
-  @Reference
-  protected LdapConnectionBroker connBroker;
+  @Property(cardinality = Integer.MAX_VALUE)
+  static final String REQUIRED_ATTRIBUTES = "sakai.auth.ldap.reqattrs";
 
+  @Reference
   private LdapConnectionManager connMgr;
 
-  @Activate
-  protected void activate(ComponentContext ctx) {
-    Dictionary<?, ?> props = ctx.getProperties();
-    LdapConnectionManagerConfig config = connBroker.getDefaultConfig();
+  @Reference
+  private SlingRepository repository;
 
-    Boolean useSecure = (Boolean) props.get(LDAP_CONNECTION_SECURE);
-    if (useSecure != null) {
-      config.setSecureConnection(useSecure);
-    }
-
-    String host = (String) props.get(LDAP_HOST);
-    if (host != null && host.length() > 0) {
-      config.setLdapHost(host);
-    }
-
-    Integer port = (Integer) props.get(LDAP_PORT);
-    if (port != null) {
-      config.setLdapPort(port);
-    }
-
-    String keystoreLocation = (String) props.get(LDAP_HOST);
-    config.setKeystoreLocation(keystoreLocation);
-
-    String keystorePassword = (String) props.get(LDAP_HOST);
-    config.setKeystorePassword(keystorePassword);
-
-    baseDn = (String) props.get(LDAP_BASE_DN);
-
-    try {
-      // establish the connection to ldap
-      connMgr = connBroker.create(BROKER_NAME, config);
-    } catch (LdapException le) {
-      throw new RuntimeException(le.getMessage(), le);
-    }
+  public LdapAuthenticationPlugin() {
   }
 
-  protected void deactivate(ComponentContext ctx) {
-    connBroker.destroy(BROKER_NAME);
+  LdapAuthenticationPlugin(LdapConnectionManager connMgr) {
+    this.connMgr = connMgr;
+  }
+
+  @Activate
+  protected void activate(Map<?, ?> props) {
+    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
+    String attrs = OsgiUtil.toString(props.get(REQUIRED_ATTRIBUTES), "");
+  }
+
+  @Modified
+  protected void modified(Map<?, ?> props) {
+    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), null);
   }
 
   public boolean authenticate(Credentials credentials) throws RepositoryException {
@@ -103,6 +84,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         LDAPConnection conn = connMgr.getBoundConnection(dn, pass);
         auth = true;
         connMgr.returnConnection(conn);
+
+        ensureUserExists(sc.getUserID());
       } catch (LdapException e) {
         throw new RepositoryException(e.getMessage(), e);
       }
@@ -113,5 +96,36 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   protected String getBaseDn(String userId) {
     String dn = baseDn.replace("{}", userId);
     return dn;
+  }
+
+  private void ensureUserExists(final String principalName) {
+    Session session = null;
+
+    try {
+      session = repository.loginAdministrative(null);
+      
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      Authorizable authorizable = userManager.getAuthorizable(principalName);
+
+      if (authorizable == null) {
+        // create user
+        log.debug("Createing user {}", principalName);
+        userManager.createUser(principalName,
+            RandomStringUtils.random(32),
+            new Principal() {
+              public String getName() {
+                return principalName;
+              }
+            },
+            PathUtils
+                .getUserPrefix(principalName, UserConstants.DEFAULT_HASH_LEVELS));
+      }
+    } catch (RepositoryException e) {
+      log.error(e.getMessage(), e);
+    } finally {
+      if (session != null) {
+        session.logout();
+      }
+    }
   }
 }
