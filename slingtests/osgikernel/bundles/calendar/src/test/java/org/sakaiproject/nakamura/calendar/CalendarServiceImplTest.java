@@ -17,21 +17,15 @@
  */
 package org.sakaiproject.nakamura.calendar;
 
-import static org.junit.Assert.fail;
-
-import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_EVENT_RT;
-
-import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_NAME;
-
-import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_RT;
-
-import static org.mockito.Mockito.verify;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_NAME;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_RT;
 
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -45,8 +39,6 @@ import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.FileReader;
-import java.io.IOError;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.text.ParseException;
