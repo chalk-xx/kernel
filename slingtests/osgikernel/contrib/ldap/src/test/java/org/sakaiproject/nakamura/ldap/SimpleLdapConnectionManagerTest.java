@@ -33,7 +33,6 @@ import com.novell.ldap.LDAPException;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 
 import java.net.URL;
 
@@ -78,7 +77,7 @@ public class SimpleLdapConnectionManagerTest {
   public void testNewLdapConnectionNoConfig() {
     new SimpleLdapConnectionManager().newLDAPConnection();
   }
-  
+
   public void testNewLdapConnection() {
     SimpleLdapConnectionManager mgr = new SimpleLdapConnectionManager();
     mgr.init(config);
@@ -97,7 +96,7 @@ public class SimpleLdapConnectionManagerTest {
     mgr.getConnection();
   }
 
-  @Test(expected = LdapException.class)
+  @Test(expected = LDAPException.class)
   public void testConnectionCantConnect() throws Exception {
     conn.setConstraints(isA(LDAPConstraints.class));
 
@@ -109,7 +108,7 @@ public class SimpleLdapConnectionManagerTest {
     fail("Should throw an exception when can't connect.");
   }
 
-  @Test(expected = LdapException.class)
+  @Test(expected = LDAPException.class)
   public void testConnectionLdapFailPostConnect() throws Exception {
     config.setSecureConnection(true);
     config.setTLS(true);
@@ -128,7 +127,7 @@ public class SimpleLdapConnectionManagerTest {
     fail("Should throw an exception when can't start TLS.");
   }
 
-  @Test(expected = LdapException.class)
+  @Test(expected = LDAPException.class)
   public void testConnectionLdapFailPostConnectFailDisconnect() throws Exception {
     config.setSecureConnection(true);
     config.setTLS(true);
@@ -149,7 +148,7 @@ public class SimpleLdapConnectionManagerTest {
   }
 
   @Test(expected = RuntimeException.class)
-  public void testConnectionRuntimeFailPostConnect() throws LDAPException, LdapException {
+  public void testConnectionRuntimeFailPostConnect() throws LDAPException, LDAPException {
     config.setSecureConnection(true);
     config.setTLS(true);
 
@@ -199,7 +198,7 @@ public class SimpleLdapConnectionManagerTest {
     mgr.getBoundConnection("dn=people", "password");
   }
 
-  @Test(expected = LdapException.class)
+  @Test(expected = LDAPException.class)
   public void testBoundConnectionCantBind() throws Exception {
     conn.setConstraints(isA(LDAPConstraints.class));
 

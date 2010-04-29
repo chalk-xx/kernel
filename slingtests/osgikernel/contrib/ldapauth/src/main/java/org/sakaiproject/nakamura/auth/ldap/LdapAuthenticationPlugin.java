@@ -1,35 +1,27 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
 import com.novell.ldap.LDAPConnection;
-import javax.jcr.Session;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSearchResults;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.osgi.OsgiUtil;
-import org.apache.sling.jcr.api.SlingRepository;
-import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
-import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.security.Principal;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
-import java.util.logging.Level;
 
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
@@ -46,14 +38,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
   static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
   private String baseDn;
 
-  @Property(cardinality = Integer.MAX_VALUE)
-  static final String REQUIRED_ATTRIBUTES = "sakai.auth.ldap.reqattrs";
+  /**
+   * Filter applied to make sure user has the required authorization (ie. attributes).
+   */
+  @Property
+  static final String FILTER = "sakai.auth.ldap.filter";
+  private String filter;
 
   @Reference
   private LdapConnectionManager connMgr;
-
-  @Reference
-  private SlingRepository repository;
 
   public LdapAuthenticationPlugin() {
   }
@@ -64,68 +57,85 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
-    String attrs = OsgiUtil.toString(props.get(REQUIRED_ATTRIBUTES), "");
+    processProps(props);
   }
 
   @Modified
   protected void modified(Map<?, ?> props) {
-    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), null);
+    processProps(props);
+  }
+
+  private void processProps(Map<?, ?> props) {
+    baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
+    filter = OsgiUtil.toString(props.get(FILTER), null);
   }
 
   public boolean authenticate(Credentials credentials) throws RepositoryException {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {
+      // get application user credentials
+      String appUser = connMgr.getConfig().getLdapUser();
+      String appPass = connMgr.getConfig().getLdapPassword();
+
+      // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-      String dn = getBaseDn(sc.getUserID());
-      String pass = new String(sc.getPassword());
+      String user = sc.getUserID();
+      String userDn = buildBaseDn(user);
+      String userPass = new String(sc.getPassword());
 
+      LDAPConnection conn = null;
       try {
-        LDAPConnection conn = connMgr.getBoundConnection(dn, pass);
-        auth = true;
-        connMgr.returnConnection(conn);
+        // 1) Bind as app user
+        conn = connMgr.getBoundConnection(appUser, appPass);
 
-        ensureUserExists(sc.getUserID());
-      } catch (LdapException e) {
+        // 2) Search for username (not authz).
+        // If search fails, log/report invalid username or password.
+        LDAPSearchResults results = conn.search(userDn, LDAPConnection.SCOPE_ONE, null,
+            null, false);
+        if (results.getCount() == 0) {
+          log.warn("Invalid username when check LDAP [{}]", user);
+        } else {
+          try {
+            // 3) Bind as username.
+            // If bind fails, log/report invalid username or password.
+            conn.bind(LDAPConnection.LDAP_V3, userDn, userPass.getBytes("UTF-8"));
+
+            // 4) Return to app user
+            conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes("UTF-8"));
+
+            // 5) Search user DN with authz filter
+            // If search fails, log/report that user is not authorized
+            results = conn.search(userDn, LDAPConnection.SCOPE_ONE, filter, null, false);
+
+            if (results.getCount() == 0) {
+              log.warn("User not authorized to login [{}]", user);
+            } else {
+              // FINALLY!
+              auth = true;
+            }
+          } catch (LDAPException e) {
+            log.warn(e.getMessage(), e);
+          } catch (UnsupportedEncodingException e) {
+            throw new RepositoryException(e.getMessage(), e);
+          }
+        }
+      } catch (LDAPException e) {
         throw new RepositoryException(e.getMessage(), e);
+      } finally {
+        connMgr.returnConnection(conn);
       }
     }
     return auth;
   }
 
-  protected String getBaseDn(String userId) {
+  /**
+   * Builds the DN needed to search for the specified user.
+   * 
+   * @param userId
+   * @return
+   */
+  protected String buildBaseDn(String userId) {
     String dn = baseDn.replace("{}", userId);
     return dn;
-  }
-
-  private void ensureUserExists(final String principalName) {
-    Session session = null;
-
-    try {
-      session = repository.loginAdministrative(null);
-      
-      UserManager userManager = AccessControlUtil.getUserManager(session);
-      Authorizable authorizable = userManager.getAuthorizable(principalName);
-
-      if (authorizable == null) {
-        // create user
-        log.debug("Createing user {}", principalName);
-        userManager.createUser(principalName,
-            RandomStringUtils.random(32),
-            new Principal() {
-              public String getName() {
-                return principalName;
-              }
-            },
-            PathUtils
-                .getUserPrefix(principalName, UserConstants.DEFAULT_HASH_LEVELS));
-      }
-    } catch (RepositoryException e) {
-      log.error(e.getMessage(), e);
-    } finally {
-      if (session != null) {
-        session.logout();
-      }
-    }
   }
 }

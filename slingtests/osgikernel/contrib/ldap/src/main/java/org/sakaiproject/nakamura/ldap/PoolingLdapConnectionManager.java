@@ -34,7 +34,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,21 +153,19 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
    * {@inheritDoc}
    */
   @Override
-  public LDAPConnection getConnection() throws LdapException {
+  public LDAPConnection getConnection() throws LDAPException {
     log.debug("getConnection(): attempting to borrow connection from pool");
     try {
       LDAPConnection conn = (LDAPConnection) pool.borrowObject();
       log.debug("getConnection(): successfully to borrowed connection from pool");
       return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
     } catch (Exception e) {
       throw new RuntimeException("failed to get pooled connection", e);
     }
   }
 
   @Override
-  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException {
+  public LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException {
     log.debug(
         "getBoundConnection():dn=[{}] attempting to borrow connection from pool and bind to dn",
         dn);
@@ -177,6 +174,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
       conn = (LDAPConnection) pool.borrowObject();
       log.debug(
           "getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
+      
       conn.bind(LDAPConnection.LDAP_V3, dn, pass.getBytes("UTF8"));
       log.debug("getBoundConnection():dn=[{}] successfully bound to dn", dn);
       return conn;
@@ -193,7 +191,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
         }
       }
       if (e instanceof LDAPException) {
-        throw new LdapException(e.getMessage(), e);
+        throw (LDAPException) e;
       } else {
         throw new RuntimeException("failed to get pooled connection", e);
       }

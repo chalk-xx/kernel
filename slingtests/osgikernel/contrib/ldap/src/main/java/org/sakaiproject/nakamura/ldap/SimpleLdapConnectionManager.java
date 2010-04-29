@@ -24,7 +24,6 @@ import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,45 +60,34 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   /**
    * {@inheritDoc}
    */
-  public LDAPConnection getConnection() throws LdapException {
+  public LDAPConnection getConnection() throws LDAPException {
     log.debug("getConnection()");
 
     verifySetup();
 
-    try {
-      LDAPConnection conn = newLDAPConnection();
-      applyConstraints(conn);
-      connect(conn);
+    LDAPConnection conn = newLDAPConnection();
+    applyConstraints(conn);
+    connect(conn);
 
-      if (config.isAutoBind()) {
-        log.debug("getConnection(): auto-binding");
-        bind(conn, config.getLdapUser(), config.getLdapPassword());
-      }
-
-      return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
+    if (config.isAutoBind()) {
+      log.debug("getConnection(): auto-binding");
+      bind(conn, config.getLdapUser(), config.getLdapPassword());
     }
+
+    return conn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException {
+  public LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException {
     verifySetup();
     
     log.debug("getBoundConnection(): [dn = {}]", config.getLdapUser());
 
-    try {
-      LDAPConnection conn = newLDAPConnection();
-      applyConstraints(conn);
-      connect(conn);
-      bind(conn, dn, pass);
+    LDAPConnection conn = newLDAPConnection();
+    applyConstraints(conn);
+    connect(conn);
+    bind(conn, dn, pass);
 
-      return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
-    }
+    return conn;
   }
 
   protected LDAPConnection newLDAPConnection() {

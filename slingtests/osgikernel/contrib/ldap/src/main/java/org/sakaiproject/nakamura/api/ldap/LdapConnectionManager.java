@@ -22,43 +22,52 @@ import com.novell.ldap.LDAPException;
 
 /**
  * Implementations manage <code>LDAPConnection</code> allocation.
- *
+ * 
  * @see LdapConnectionManager
  * @author Dan McCallum, Unicon Inc
  * @author John Lewis, Unicon Inc
- *
+ * 
  */
 public interface LdapConnectionManager {
 
   /**
-   * Retrieve an <code>LDAPConnection</code> -- the connection may already be
-   * bound depending on the configuration
-   *
+   * Retrieve an <code>LDAPConnection</code> -- the connection may already be bound
+   * depending on the configuration
+   * 
    * @return a connected <code>LDAPConnection</code>
    * @throws LDAPException
    *           if the <code>LDAPConnection</code> allocation fails
    */
-  LDAPConnection getConnection() throws LdapException;
+  LDAPConnection getConnection() throws LDAPException;
 
-	/**
-	 * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials
-	 * @param dn the distinguished name for binding
-	 * @param pass the password for binding
-	 * @return a connected <code>LDAPConnection</code>
-	 * @throws LDAPException if the <code>LDAPConnection</code> allocation fails
-	 */
-  LDAPConnection getBoundConnection(String dn, String pass) throws LdapException;
+  /**
+   * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials. If null
+   * is passed for the dn, the default dn and password will be used. If null is provided
+   * but no 
+   * 
+   * @param dn
+   *          The distinguished name for binding.
+   * @param pass
+   *          the password for binding
+   * @return a connected <code>LDAPConnection</code>
+   * @throws LDAPException
+   *           if the <code>LDAPConnection</code> allocation fails
+   */
+  LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException;
 
-	/**
-	 * Return an <code>LDAPConnection</code>.  This can allow for
-	 * connections to be pooled instead of just destroyed.
-	 * @param conn an <code>LDAPConnection</code> that you no longer need
-	 */
-	void returnConnection(LDAPConnection conn);
+  /**
+   * Return an <code>LDAPConnection</code>. This can allow for connections to be pooled
+   * instead of just destroyed.
+   * 
+   * @param conn
+   *          an <code>LDAPConnection</code> that you no longer need
+   */
+  void returnConnection(LDAPConnection conn);
 
-	/**
-	 * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
-	 * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
-	 */
-	LdapConnectionManagerConfig getConfig();
+  /**
+   * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
+   * 
+   * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
+   */
+  LdapConnectionManagerConfig getConfig();
 }

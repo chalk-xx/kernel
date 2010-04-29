@@ -20,8 +20,6 @@ package org.sakaiproject.nakamura.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPJSSESecureSocketFactory;
-import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPSocketFactory;
 
 import org.apache.commons.pool.PoolableObjectFactory;
@@ -31,13 +29,8 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
 import java.util.List;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 
 /**
  * An object factory for managing <code>PooledLDAPConnection<code>s

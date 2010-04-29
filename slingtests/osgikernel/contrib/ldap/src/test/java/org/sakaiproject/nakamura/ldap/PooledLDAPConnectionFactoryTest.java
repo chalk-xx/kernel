@@ -32,7 +32,6 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 
-import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
