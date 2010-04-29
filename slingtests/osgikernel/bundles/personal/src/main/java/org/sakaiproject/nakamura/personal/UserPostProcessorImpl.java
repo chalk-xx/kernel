@@ -17,25 +17,20 @@
  */
 package org.sakaiproject.nakamura.personal;
 
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_DENIED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_DENIED;
-
+import static javax.jcr.security.Privilege.JCR_ALL;
+import static javax.jcr.security.Privilege.JCR_READ;
+import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
-import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.NODE_TYPE_MANAGEMENT_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -255,12 +250,19 @@ public class UserPostProcessorImpl implements UserPostProcessor {
 
     Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
     LOGGER.debug("Created Home Node for {} at   {} ",authorizable.getID(), homeNode);
-    addEntry(homeFolderPath, authorizable.getPrincipal(), session, READ_GRANTED,
-        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
-    // explicitly deny anon and everyone, this is private space.
-    addEntry(homeFolderPath, anon, session, READ_GRANTED, WRITE_DENIED);
-    addEntry(homeFolderPath, everyone, session, READ_GRANTED, WRITE_DENIED);
+
+    // The user can do everything on this node.
+    replaceAccessControlEntry(session, homeFolderPath, authorizable.getPrincipal(),
+        new String[] { JCR_ALL }, null, null);
+
+    // everyone can read the home folder.
+    // This is to accomodate the fact that we have a public folder in there.
+    // All childfolders who need to be private will have to be explicitly made private!
+    // ie: Messages, Activity, Contacts, ...
+    replaceAccessControlEntry(session, homeFolderPath, anon, new String[] { JCR_READ },
+        new String[] { JCR_WRITE }, null);
+    replaceAccessControlEntry(session, homeFolderPath, everyone,
+        new String[] { JCR_READ }, new String[] { JCR_WRITE }, null);
     LOGGER.debug("Set ACL on Node for {} at   {} ",authorizable.getID(), homeNode);
 
     // Create the public, private, authprofile
@@ -295,12 +297,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
       profileNode.addMixin(JcrConstants.MIX_REFERENCEABLE);
     }
-
-    // The user can update his own profile.
-    addEntry(profileNode.getParent().getPath(), authorizable.getPrincipal(), session,
-        READ_GRANTED, WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED,
-        MODIFY_PROPERTIES_GRANTED, ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED,
-        NODE_TYPE_MANAGEMENT_GRANTED);
     return profileNode;
   }
 
@@ -314,31 +310,32 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @return The {@link Node node} that represents the private folder.
    * @throws RepositoryException
    */
-  private Node createPrivate(Session session, Authorizable athorizable)
+  private Node createPrivate(Session session, Authorizable authorizable)
       throws RepositoryException {
-    String privatePath = PersonalUtils.getPrivatePath(athorizable);
+    String privatePath = PersonalUtils.getPrivatePath(authorizable);
     LOGGER.debug("creating private at {} ",privatePath);
     if (session.itemExists(privatePath)) {
       return (Node) session.getItem(privatePath);
     }
-    // No need to set ACL's on the private folder.
-    // Everyting is private in the user's folder anyway.
+
+    Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+    // Make sure that this folder is completely private.
     
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal everyone = principalManager.getEveryone();
     Principal anon = new Principal() {
       public String getName() {
         return UserConstants.ANON_USERID;
       }
     };
-    Principal everyone = principalManager.getEveryone();
 
-    Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
-    addEntry(privatePath, athorizable.getPrincipal(), session, READ_GRANTED,
-        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
-    // Anonymous can see the public space but they can't write.
-    addEntry(privatePath, anon, session, READ_DENIED, WRITE_DENIED);
-    addEntry(privatePath, everyone, session, READ_DENIED, WRITE_DENIED);
+    replaceAccessControlEntry(session, privatePath, authorizable.getPrincipal(),
+        new String[] { JCR_ALL }, null, null);
+    replaceAccessControlEntry(session, privatePath, anon, null, new String[] { JCR_READ,
+        JCR_WRITE }, null);
+    replaceAccessControlEntry(session, privatePath, everyone, null, new String[] {
+        JCR_READ, JCR_WRITE }, null);
+
     LOGGER.debug("Done creating private at {} ",privatePath);
     
     return privateNode;
@@ -361,22 +358,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     if (session.itemExists(publicPath)) {
       return (Node) session.getItem(publicPath);
     }
-    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-    Principal anon = new Principal() {
-      public String getName() {
-        return UserConstants.ANON_USERID;
-      }
-    };
-    Principal everyone = principalManager.getEveryone();
-
     Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
-    String publicNodePath = publicNode.getPath();
-    addEntry(publicNodePath, athorizable.getPrincipal(), session, READ_GRANTED,
-        WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-        ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED, NODE_TYPE_MANAGEMENT_GRANTED);
-    // Anonymous can see the public space but they can't write.
-    addEntry(publicNodePath, anon, session, READ_GRANTED, WRITE_DENIED);
-    addEntry(publicNodePath, everyone, session, READ_GRANTED, WRITE_DENIED);
     return publicNode;
   }
   

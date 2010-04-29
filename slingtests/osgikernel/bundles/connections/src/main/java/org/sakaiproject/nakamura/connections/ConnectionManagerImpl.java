@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.accept;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.block;
 import static org.sakaiproject.nakamura.api.connections.ConnectionOperation.cancel;
@@ -31,12 +32,6 @@ import static org.sakaiproject.nakamura.api.connections.ConnectionState.INVITED;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.NONE;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.PENDING;
 import static org.sakaiproject.nakamura.api.connections.ConnectionState.REJECTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -215,17 +210,16 @@ public class ConnectionManagerImpl implements ConnectionManager {
       throws ConnectionException {
 
     Session session = resource.getResourceResolver().adaptTo(Session.class);
-    
+
     if (thisUserId.equals(otherUserId)) {
       throw new ConnectionException(
           400,
           "A user cannot operate on their own connection, this user and the other user are the same");
     }
-    
+
     // fail if the supplied users are invalid
     Authorizable thisAu = checkValidUserId(session, thisUserId);
     Authorizable otherAu = checkValidUserId(session, otherUserId);
-    
 
     Session adminSession = null;
     try {
@@ -323,8 +317,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     return l;
   }
 
-  protected Node getOrCreateConnectionNode(Session session, Authorizable fromUser, Authorizable toUser)
-      throws RepositoryException {
+  protected Node getOrCreateConnectionNode(Session session, Authorizable fromUser,
+      Authorizable toUser) throws RepositoryException {
     String nodePath = ConnectionUtils.getConnectionPath(fromUser, toUser);
     if (session.itemExists(nodePath)) {
       return (Node) session.getItem(nodePath);
@@ -339,9 +333,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     try {
       if (!session.itemExists(basePath)) {
         JcrUtils.deepGetOrCreateNode(session, basePath);
-        addEntry(basePath, fromUser, session, WRITE_GRANTED,
-            REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-            ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+        AccessControlUtil.replaceAccessControlEntry(session, basePath, fromUser
+            .getPrincipal(), new String[] { JCR_ALL }, null, null);
         LOGGER.info("Added ACL to [{}]", basePath);
       }
       Node node = JcrUtils.deepGetOrCreateNode(session, nodePath);
@@ -350,7 +343,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
             ConnectionConstants.SAKAI_CONTACT_RT);
         // Place a reference to the authprofile of the user.
         Node profileNode = (Node) session.getItem(PersonalUtils.getProfilePath(toUser));
-        node.setProperty("jcr:reference", profileNode.getIdentifier(), PropertyType.REFERENCE);
+        node.setProperty("jcr:reference", profileNode.getIdentifier(),
+            PropertyType.REFERENCE);
       }
       return node;
     } finally {
@@ -358,8 +352,8 @@ public class ConnectionManagerImpl implements ConnectionManager {
     }
   }
 
-  protected void handleInvitation(Map<String, String[]> requestProperties, Session session,
-      Node fromNode, Node toNode) throws RepositoryException {
+  protected void handleInvitation(Map<String, String[]> requestProperties,
+      Session session, Node fromNode, Node toNode) throws RepositoryException {
     Set<String> toRelationships = new HashSet<String>();
     Set<String> fromRelationships = new HashSet<String>();
     Map<String, String[]> sharedProperties = new HashMap<String, String[]>();

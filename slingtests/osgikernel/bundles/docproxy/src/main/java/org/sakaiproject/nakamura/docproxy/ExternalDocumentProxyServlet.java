@@ -86,8 +86,7 @@ public class ExternalDocumentProxyServlet extends SlingSafeMethodsServlet {
 */
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
-        response.sendError(HttpServletResponse.SC_NOT_FOUND,
-            "Requested resource does not exist here: " + url);
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 

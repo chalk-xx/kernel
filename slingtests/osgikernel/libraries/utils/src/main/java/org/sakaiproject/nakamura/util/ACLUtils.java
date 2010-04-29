@@ -36,7 +36,9 @@ import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.security.Privilege;
 
 /**
- * 
+ * @deprecated The functionality and constants in this class is deprecated. All this
+ *             functionality can be found in {@link AccessControlUtil} and
+ *             {@link Privilege}.
  */
 public class ACLUtils {
 

@@ -18,19 +18,15 @@
 package org.sakaiproject.nakamura.calendar.signup;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
+import static org.sakaiproject.nakamura.calendar.signup.MaxParticipantsSignupPreProcessors.SAKAI_EVENT_MAX_PARTICIPANTS;
 
 import junit.framework.Assert;
 
-import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_EVENT_SIGNUP_PARTICIPANT_RT;
-
-import static org.mockito.Mockito.when;
-
-import static org.junit.Assert.fail;
-
-import static org.mockito.Mockito.mock;
-
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
@@ -92,8 +88,8 @@ public class MaxParticipantsSignupPreProcesserTest {
     // Mock the signup node.
     when(signupNode.getSession()).thenReturn(session);
     when(signupNode.getPath()).thenReturn(signupPath);
-    when(signupNode.hasProperty(processor.SAKAI_EVENT_MAX_PARTICIPANTS)).thenReturn(true);
-    when(signupNode.getProperty(processor.SAKAI_EVENT_MAX_PARTICIPANTS)).thenReturn(
+    when(signupNode.hasProperty(SAKAI_EVENT_MAX_PARTICIPANTS)).thenReturn(true);
+    when(signupNode.getProperty(SAKAI_EVENT_MAX_PARTICIPANTS)).thenReturn(
         maxParticipantsProp);
 
     // Mock the query
@@ -119,7 +115,7 @@ public class MaxParticipantsSignupPreProcesserTest {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     Node signupNode = mock(Node.class);
 
-    when(signupNode.hasProperty(processor.SAKAI_EVENT_MAX_PARTICIPANTS)).thenThrow(
+    when(signupNode.hasProperty(SAKAI_EVENT_MAX_PARTICIPANTS)).thenThrow(
         new RepositoryException());
 
     try {
