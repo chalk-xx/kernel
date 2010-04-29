@@ -18,6 +18,12 @@
 
 package org.sakaiproject.nakamura.message.internal;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
@@ -39,53 +45,24 @@ import javax.jcr.Session;
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
  * started immediately to make sure it registers with JCR as soon as possible.
- * 
- * @scr.component label="InternalMessageHandler"
- *                description="Handler for internally delivered messages."
- *                immediate="true"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageTransport"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageProfileWriter"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository"
- * @scr.reference interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                name="MessagingService"
  */
+@Component(immediate = true, label = "InternalMessageHandler", description = "Handler for internally delivered messages.")
+@Services(value = {
+    @Service(value = MessageTransport.class),
+    @Service(value = MessageProfileWriter.class)
+})
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Handler for internally delivered messages.")})
 public class InternalMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(InternalMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_INTERNAL;
 
-  /**
-   * The JCR Repository we access.
-   * 
-   */
-  private SlingRepository slingRepository;
+  @Reference
+  protected transient SlingRepository slingRepository;
 
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to unset
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * Default constructor
@@ -127,7 +104,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
           n.setProperty(MessageConstants.PROP_SAKAI_SENDSTATE,
               MessageConstants.STATE_NOTIFIED);
 
-          n.save();
+          if (session.hasPendingChanges()) {
+            session.save();
+          }
         }
       }
     } catch (RepositoryException e) {

@@ -22,10 +22,13 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.apache.jackrabbit.JcrConstants;
+import org.apache.jackrabbit.core.query.lucene.MultiColumnQueryResult;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.Resource;
+import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -34,7 +37,9 @@ import org.apache.sling.commons.testing.jcr.MockNodeIterator;
 import org.apache.sling.commons.testing.jcr.MockProperty;
 import org.apache.sling.commons.testing.jcr.MockPropertyIterator;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sakaiproject.nakamura.api.files.FilesConstants;
+import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,8 +48,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Workspace;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
+import javax.jcr.query.RowIterator;
 import javax.servlet.ServletException;
 
 /**
@@ -120,6 +133,70 @@ public class TagServletTest {
     JSONObject parent = j.getJSONObject("parent");
     assertEquals("tagA", parent.getString("jcr:name"));
     assertEquals("/tags/tagA", parent.getString("jcr:path"));
+  }
+
+  @Test
+  public void testFiles() throws RepositoryException, IOException, ServletException,
+      JSONException {
+    // We create a tree of nodes and take one out of the middle.
+    Node tag = createTagTree();
+    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
+    RequestPathInfo pathInfo = mock(RequestPathInfo.class);
+    when(pathInfo.getSelectorString()).thenReturn("tagged");
+    when(request.getRequestPathInfo()).thenReturn(pathInfo);
+    Resource resource = mock(Resource.class);
+    when(resource.adaptTo(Node.class)).thenReturn(tag);
+    when(request.getResource()).thenReturn(resource);
+    ResourceResolver resolver = mock(ResourceResolver.class);
+    when(request.getResourceResolver()).thenReturn(resolver);
+
+    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintWriter w = new PrintWriter(baos);
+    when(response.getWriter()).thenReturn(w);
+
+    // Mock the query
+    Session session = mock(Session.class);
+    Workspace workspace = mock(Workspace.class);
+    QueryManager qm = mock(QueryManager.class);
+    Query q = mock(Query.class);
+    MultiColumnQueryResult result = mock(MultiColumnQueryResult.class);
+    when(resolver.adaptTo(Session.class)).thenReturn(session);
+
+    // Mock the query result
+    List<Node> nodes = new ArrayList<Node>();
+    createNode("/path/to/fileA.doc", session, nodes);
+    createNode("/path/to/fileB.doc", session, nodes);
+
+    RowIterator iterator = new MockRowIterator(nodes);
+    when(result.getTotalSize()).thenReturn(-1);
+    when(result.getRows()).thenReturn(iterator);
+
+    when(tag.getIdentifier()).thenReturn("uuid-tagB");
+    when(tag.getSession()).thenReturn(session);
+    when(session.getWorkspace()).thenReturn(workspace);
+    when(workspace.getQueryManager()).thenReturn(qm);
+    when(qm.createQuery(Mockito.anyString(), Mockito.eq(Query.XPATH))).thenReturn(q);
+    when(q.execute()).thenReturn(result);
+
+    TagServlet servlet = new TagServlet();
+    servlet.doGet(request, response);
+    w.flush();
+
+    String s = baos.toString("UTF-8");
+    System.err.println(s);
+    JSONArray arr = new JSONArray(s);
+    assertEquals(2, arr.length());
+    assertEquals("/path/to/fileA.doc", arr.getJSONObject(0).getString("jcr:path"));
+  }
+
+  protected Node createNode(String path, Session session, List<Node> nodes)
+      throws PathNotFoundException, RepositoryException {
+    Node node = new MockNode(path);
+    node.setProperty(JcrConstants.JCR_PRIMARYTYPE, "nt:file");
+    when(session.getItem(path)).thenReturn(node);
+    nodes.add(node);
+    return node;
   }
 
   /**

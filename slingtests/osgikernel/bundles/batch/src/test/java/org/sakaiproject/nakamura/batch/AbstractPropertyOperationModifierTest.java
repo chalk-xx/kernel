@@ -17,13 +17,10 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import static org.mockito.Mockito.verify;
-
 import static org.junit.Assert.assertEquals;
-
-import static org.mockito.Mockito.when;
-
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -40,14 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.jcr.Item;
-import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 /**
  *

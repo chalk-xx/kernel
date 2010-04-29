@@ -26,13 +26,13 @@ public interface SearchResultSet {
   /**
    * @return the number of results
    */
-  public int getSize();
+  public long getSize();
 
   /**
    * @param size
    *          the number of results to set
    */
-  public void setSize(int size);
+  public void setSize(long size);
 
   /**
    * @return the rowIterator

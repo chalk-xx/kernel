@@ -58,12 +58,12 @@ public class MessageSearchResultProcessorTest {
     messagingService = mock(MessagingService.class);
 
     proc = new MessageSearchResultProcessor();
-    proc.bindMessagingService(messagingService);
+    proc.messagingService = messagingService;
   }
 
   @After
   public void tearDown() {
-    proc.unbindMessagingService(messagingService);
+    proc.messagingService = null;
   }
 
   @Test

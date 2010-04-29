@@ -18,24 +18,32 @@
 
 package org.sakaiproject.nakamura.discussion.searchresults;
 
-import java.util.Map;
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 
+import java.util.Map;
+
+import javax.jcr.query.Query;
+
 /**
  * Provides properties to process the search
- * 
- * @scr.component immediate="true" label="DiscussionInitialPostPropertyProvider"
- *                description="Formatter for initial posts of discussion search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.provider" value="DiscussionInitialPost"
- * @scr.service 
- *              interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
  */
+@Component(immediate = true, label = "%discussion.initialPostProperty.label", description = "discussion.initialPostProperty.desc")
+@Service
 public class DiscussionInitialPostPropertyProvider implements SearchPropertyProvider {
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "DiscussionInitialPost")
+  static final String SEARCH_PROVIDER = "sakai.search.provider";
 
   public void loadUserProperties(SlingHttpServletRequest request, Map<String, String> propertiesMap) {
     // Make sure we don't go trough the entire repository..
@@ -50,7 +58,7 @@ public class DiscussionInitialPostPropertyProvider implements SearchPropertyProv
       path = path.substring(0, path.length() - 1);
     }
     
-    propertiesMap.put("_path", ISO9075.encodePath(path));
+    propertiesMap.put("_path", escapeString(ISO9075.encodePath(path), Query.XPATH));
   }
 
 }

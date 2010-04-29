@@ -142,6 +142,7 @@ public class JcrUtilsTest {
     Property property = createMock(Property.class);
     expect(node.isNodeType("nt:file")).andReturn(false);
     expect(node.hasProperty("jcr:data")).andReturn(false);
+    expect(node.hasProperty("jcr:frozenPrimaryType")).andReturn(false);
     expect(node.getPrimaryItem()).andReturn(jcrContentNode);
     expect(jcrContentNode.isNode()).andReturn(true);
     expect(jcrContentNode.getPrimaryItem()).andReturn(property);

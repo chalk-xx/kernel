@@ -17,8 +17,11 @@
  */
 package org.sakaiproject.nakamura.calendar;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_PROPERTY_PREFIX;
 import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SAKAI_CALENDAR_RT;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_NAME;
+import static org.sakaiproject.nakamura.api.calendar.CalendarConstants.SIGNUP_NODE_RT;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
@@ -29,21 +32,28 @@ import net.fortuna.ical4j.model.PropertyFactory;
 import net.fortuna.ical4j.model.PropertyFactoryImpl;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.Clazz;
 import net.fortuna.ical4j.model.property.DateProperty;
 
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.DateUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URISyntaxException;
+import java.security.Principal;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
@@ -66,8 +76,16 @@ import javax.jcr.query.QueryResult;
 @Service(value = CalendarService.class)
 public class CalendarServiceImpl implements CalendarService {
 
+  public static final Logger LOGGER = LoggerFactory.getLogger(CalendarServiceImpl.class);
+
+  /**
+   * 
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.calendar.CalendarService#export(javax.jcr.Node)
+   */
   public Calendar export(Node node) throws CalendarException {
-    return null;
+    return export(node, new String[] { VEvent.VEVENT });
   }
 
   /**
@@ -136,12 +154,16 @@ public class CalendarServiceImpl implements CalendarService {
       }
 
     } catch (RepositoryException e) {
+      LOGGER.error("Caught a repositoryException when trying to export a calendar", e);
       throw new CalendarException(500, e.getMessage());
     } catch (IOException e) {
+      LOGGER.error("Caught an IOException when trying to export a calendar", e);
       throw new CalendarException(500, e.getMessage());
     } catch (URISyntaxException e) {
+      LOGGER.error("Caught a URISyntaxException when trying to export a calendar", e);
       throw new CalendarException(500, e.getMessage());
     } catch (ParseException e) {
+      LOGGER.error("Caught a ParseException when trying to export a calendar", e);
       throw new CalendarException(500, e.getMessage());
     }
 
@@ -159,8 +181,7 @@ public class CalendarServiceImpl implements CalendarService {
     Node calendarNode = null;
     try {
       calendarNode = JcrUtils.deepGetOrCreateNode(session, path);
-      calendarNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
-          SAKAI_CALENDAR_RT);
+      calendarNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, SAKAI_CALENDAR_RT);
 
       // Store all the properties of the calendar on the node.
       Iterator it = calendar.getProperties().iterator();
@@ -185,6 +206,7 @@ public class CalendarServiceImpl implements CalendarService {
         session.save();
       }
     } catch (RepositoryException e) {
+      LOGGER.error("Caught a repositoryException when trying to store a calendar", e);
       throw new CalendarException(500, e.getMessage());
     }
 
@@ -221,6 +243,53 @@ public class CalendarServiceImpl implements CalendarService {
         eventNode.setProperty(SAKAI_CALENDAR_PROPERTY_PREFIX + p.getName(), p.getValue());
       }
     }
+
+    handlePrivacy(eventNode, component);
+
+    // If this is an event, we add a signup node.
+    if (component instanceof VEvent && !eventNode.hasNode(SIGNUP_NODE_NAME)) {
+      Node signupNode = eventNode.addNode(SIGNUP_NODE_NAME);
+      signupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, SIGNUP_NODE_RT);
+    }
+  }
+
+  /**
+   * @param eventNode
+   * @param component
+   * @throws RepositoryException
+   */
+  protected void handlePrivacy(Node eventNode, CalendarComponent component)
+      throws RepositoryException {
+    // Default = public.
+    if (component.getProperty(Clazz.CLASS) != null) {
+      Clazz c = (Clazz) component.getProperty(Clazz.CLASS);
+      if (c == Clazz.PRIVATE) {
+        Session session = eventNode.getSession();
+        PrincipalManager principalManager = AccessControlUtil
+            .getPrincipalManager(session);
+        Principal user = principalManager.getPrincipal(session.getUserID());
+        Principal everyone = principalManager.getEveryone();
+        Principal anon = new Principal() {
+          public String getName() {
+            return UserConstants.ANON_USERID;
+          }
+        };
+
+        String[] granted = new String[] { "jcr:read", "jcr:write",
+            "jcr:removeChildNodes", "jcr:modifyProperties", "jcr:addChildNodes",
+            "jcr:removeNode" };
+
+        // Grant access to the current user.
+        AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(), user,
+            granted, null, null);
+
+        // Deny everybody else
+        AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(),
+            everyone, null, new String[] { "jcr:all" }, null);
+        AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(), anon,
+            null, new String[] { "jcr:all" }, null);
+      }
+    }
   }
 
   /**
@@ -249,8 +318,12 @@ public class CalendarServiceImpl implements CalendarService {
       Calendar calendar = builder.build(in);
       return store(calendar, session, path);
     } catch (IOException e) {
+      LOGGER.error(
+          "Caught an IOException when trying to store a Calendar (InputStream).", e);
       throw new CalendarException(500, e.getMessage());
     } catch (ParserException e) {
+      LOGGER.error(
+          "Caught a ParserException when trying to store a Calendar (InputStream).", e);
       throw new CalendarException(500, e.getMessage());
     }
   }
@@ -267,8 +340,11 @@ public class CalendarServiceImpl implements CalendarService {
       Calendar calendar = builder.build(reader);
       return store(calendar, session, path);
     } catch (IOException e) {
+      LOGGER.error("Caught an IOException when trying to store a Calendar (Reader).", e);
       throw new CalendarException(500, e.getMessage());
     } catch (ParserException e) {
+      LOGGER.error("Caught a ParserException when trying to store a Calendar (Reader).",
+          e);
       throw new CalendarException(500, e.getMessage());
     }
   }

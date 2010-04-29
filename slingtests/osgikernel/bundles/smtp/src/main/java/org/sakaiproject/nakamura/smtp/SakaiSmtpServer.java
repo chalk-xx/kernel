@@ -2,6 +2,9 @@ package org.sakaiproject.nakamura.smtp;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.osgi.service.component.ComponentContext;
@@ -34,12 +37,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetHeaders;
 import javax.mail.internet.MimeMultipart;
 
-/**
- * @scr.component immediate="true" label="Sakai SMTP Service"
- *                description="Receives incoming mail." name
- *                ="org.sakaiproject.nakamura.smtp.SmtpServer"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- */
+@Component(immediate = true, metatype = true, label = "Receives incoming mail.", name = "org.sakaiproject.nakamura.smtp.SmtpServer")
 public class SakaiSmtpServer implements SimpleMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServer.class);
@@ -47,14 +45,17 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   private SMTPServer server;
 
-  /** @scr.reference */
+  @Reference
   protected MessagingService messagingService;
 
-  /** @scr.reference */
+  @Reference
   protected SlingRepository slingRepository;
 
-  /** @scr.property */
+  @Property
   private static String LOCAL_DOMAINS = "smtp.localdomains";
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
 
   private Set<String> domains = new HashSet<String>();
 

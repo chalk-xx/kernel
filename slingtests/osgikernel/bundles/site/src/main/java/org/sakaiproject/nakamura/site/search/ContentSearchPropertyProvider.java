@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.site.search;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -27,18 +29,8 @@ public class ContentSearchPropertyProvider implements SearchPropertyProvider {
       Map<String, String> propertiesMap) {
     RequestParameter siteParam = request.getRequestParameter(SITE_PARAM);
     if (siteParam != null) {
-      String site = " AND @id = \"" + escapeString(siteParam.getString(), Query.XPATH) + "\"";
+      String site = " AND @id = '" + escapeString(siteParam.getString(), Query.XPATH) + "'";
       propertiesMap.put("_site", site);
     }
-  }
-
-  private String escapeString(String value, String queryLanguage) {
-    String escaped = null;
-    if (value != null) {
-      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)) {
-        escaped = value.replaceAll("\"", "\\\"\"");
-      }
-    }
-    return escaped;
   }
 }

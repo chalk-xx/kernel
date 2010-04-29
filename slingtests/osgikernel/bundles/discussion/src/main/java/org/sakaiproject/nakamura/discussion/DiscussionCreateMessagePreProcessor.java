@@ -18,6 +18,10 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
@@ -32,21 +36,22 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Checks if the message the user wants to create has all the right properties on it.
- * 
- * @scr.component immediate="true" label="DiscussionCreateMessagePreProcessor"
- *                description="Checks request for Discussion messages"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.message.createpreprocessor" value="discussion"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor"
- * @scr.reference name="DiscussionManager"
- *                interface="org.sakaiproject.nakamura.api.discussion.DiscussionManager"
  */
+@Component(immediate = true, label = "%discussion.createMessagePreProcessor.label", description = "%discussion.createMessagePreProcessor.desc")
+@Service
 public class DiscussionCreateMessagePreProcessor implements CreateMessagePreProcessor {
 
   public static final Logger LOG = LoggerFactory
       .getLogger(DiscussionCreateMessagePreProcessor.class);
 
+  @Reference
   private DiscussionManager discussionManager;
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "discussion")
+  static final String CREATE_PREPROCESSOR = "sakai.message.createpreprocessor";
 
   protected void bindDiscussionManager(DiscussionManager discussionManager) {
     this.discussionManager = discussionManager;

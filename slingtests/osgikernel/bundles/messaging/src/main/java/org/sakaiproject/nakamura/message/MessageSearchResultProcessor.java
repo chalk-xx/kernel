@@ -21,6 +21,11 @@ import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_PREVIOUS_MESSAGE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_TO;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -46,29 +51,19 @@ import javax.jcr.query.Row;
 
 /**
  * Formats message node search results
- * 
- * @scr.component immediate="true" label="MessageSearchResultProcessor"
- *                description="Procsessor for message search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Message"
- * @scr.property name="sakai.seach.resourcetype" value="sakai/message"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
+@Component(immediate = true, label = "MessageSearchResultProcessor", description = "Processor for message search results.")
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Processor for message search results."),
+    @Property(name = "sakai.search.processor", value = "Message"),
+    @Property(name = "sakai.seach.resourcetype", value = "sakai/message") })
 public class MessageSearchResultProcessor implements SearchResultProcessor {
 
-  protected MessagingService messagingService;
+  @Reference
+  protected transient MessagingService messagingService;
   protected MessageProfileWriterTracker tracker;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
 
   protected void activate(ComponentContext context) {
     BundleContext bundleContext = context.getBundleContext();

@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -44,17 +48,9 @@ import javax.servlet.http.HttpServletResponse;
  * Any special node-deletion handling based on properties cannot be implemented via
  * a SlingPostProcessor or an event observer because the node will no longer be
  * available when the code executes.
- *
- * @scr.component immediate="true" label="SiteDeleteServlet"
- *                description="Servlet to handle site deletion"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Supports special handling of site deletion"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sakai/site"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="delete"
  */
+@Component(immediate = true, label = "%site.deleteServlet.label", description = "%site.deleteServlet.desc")
+@SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "delete", generateComponent = false)
 @ServiceDocumentation(name="Site Delete Servlet",
     description=" Deletes the specified site and any dependent resources",
     shortDescription="Delete site",
@@ -72,10 +68,15 @@ import javax.servlet.http.HttpServletResponse;
 public class SiteDeleteServlet extends AbstractSiteServlet {
   private static final long serialVersionUID = -7070401970431158659L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteDeleteServlet.class);
-  /**
-   * @scr.reference
-   */
+
+  @Reference
   protected transient SlingRepository slingRepository;
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Supports special handling of site deletion")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   /**
    * {@inheritDoc}

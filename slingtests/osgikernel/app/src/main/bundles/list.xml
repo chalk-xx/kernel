@@ -160,7 +160,7 @@
         <bundle>
             <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.servlets.get</artifactId>
-            <version>2.0.9-20100322</version>
+            <version>2.0.9-20100422</version>
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
@@ -589,7 +589,7 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.uxloader</artifactId>
-      <version>0.4-SNAPSHOT</version>
+      <version>0.4.0_snapshot</version>
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -626,6 +626,16 @@ org.sakaiproject.nakamura.jpaprovider
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.content</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.calendar</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.antixss</artifactId>
       <version>0.4-SNAPSHOT</version>
     </bundle>
     <bundle>
@@ -669,5 +679,4 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
 -->
    </startLevel>
-
 </bundles>

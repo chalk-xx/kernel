@@ -54,7 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(
     name = "BatchServlet",
     shortDescription = "Bundles multiple requests into a single response.",
-    description = "Allows you to execute multiple requests in one single request.",
+    description = "Allows multiple requests to be executed in a single request.",
     bindings = @ServiceBinding(
         type = BindingType.PATH,
         bindings = "/system/batch"
@@ -64,13 +64,13 @@ import javax.servlet.http.HttpServletResponse;
         description = "Get multiple request responses into a single response.",
         parameters = @ServiceParameter(
             name = "requests",
-            description = "JSON string that represents a request. <br />Example:" +
-                "<pre>{\n\"url\" : \"/foo/bar.json\",\n\"method\" : \"GET\",\n\"parameters : {\n\"val\" : 123,\n\"val@TypeHint\" : \"Long\"\n}\n}</pre>"
+            description = "A JSON string representing a request. <br />Example:" +
+                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
-            description = "All requests are succesfull. <br />" +
-                "A JSON array is returning which holds an object for each resource. Example:" +
+            description = "All requests are successful. <br />" +
+                "A JSON array is returned containing an object for each resource. Example:" +
                 "<pre>[\n" +
                 "{\"url\": \"/_user/a/ad/admin/public/authprofile.json\",\n \"body\": \"{\"user\"...\",\n \"success\":true, \"status\": 200,\n \"headers\":{\"Content-Type\":\"application/json\"}\n} \n]</pre>"
           ),
@@ -80,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
           ),
           @ServiceResponse(
             code = 500,
-            description = "Unable to get and parse all the requests."
+            description = "Unable to get and parse all requests."
           )
         }
     )

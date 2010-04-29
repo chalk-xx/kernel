@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
@@ -31,18 +34,17 @@ import javax.jcr.Item;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
-/**
- *
- * @scr.service interface="org.apache.sling.servlets.post.SlingPostProcessor"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.component immediate="true" label="SitePostProcessor"
- *                description="Post Processor for Site operations" metatype="no"
- * @scr.property name="service.description" value="Post Processes site operations"
- *
- */
+@Component(immediate = true, label = "%site.postProcessor.label", description = "%site.postProcessor.desc")
+@Service
 public class SitePostProcessor implements SlingPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SitePostProcessor.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Gets lists of members for a site")
+  static final String SERVICE_DESCRIPTION = "Post Processes site operations";
 
   /**
    * Check for changes to properties of interest to the authz handler.

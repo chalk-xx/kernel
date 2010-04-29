@@ -17,6 +17,10 @@
 */
 package org.sakaiproject.nakamura.batch;
  
+
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -33,36 +37,27 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.ResponseWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
- 
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
- 
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
  
 /**
 * The <code>SearchServlet</code> uses nodes from the
-*
-* @scr.component immediate="true" label="BatchGetServlet"
-* description="servlet to return multiple resources"
-* @scr.service interface="javax.servlet.Servlet"
-* @scr.property name="service.description"
-* value="Bundles multiple resource requests into a single response."
-* @scr.property name="service.vendor" value="The Sakai Foundation"
-* @scr.property name="sling.servlet.paths" value="/system/batch/get"
-* @scr.property name="sling.servlet.methods" value="GET"
 */
 @ServiceDocumentation(
     name = "BatchGetServlet",
     shortDescription = "Bundles multiple resource requests into a single response.",
-    description = "Allows you to fetch multiple resources in one single request.",
+    description = "Allows fetching of multiple resources in one request.",
     bindings = @ServiceBinding(
         type = BindingType.PATH,
         bindings = "/system/batch/get"
     ),
     methods = @ServiceMethod(
         name = "GET",
-        description = "Get multiple resource requests into a single response.",
+        description = "Get multiple resource requests in a single response.",
         parameters = @ServiceParameter(
             name = "resources",
             description = "Multi valued parameter that contains absolute paths to the needed resources. <br />Example:" +
@@ -70,8 +65,8 @@ import javax.servlet.http.HttpServletResponse;
         ),
         response = {@ServiceResponse(
             code = 200,
-            description = "All requests are succesfull. <br />" +
-                "A JSON array is returning which holds an object for each resource. Example:" +
+            description = "All requests are successful. <br />" +
+                "A JSON array is returned containing an object for each resource. Example:" +
                 "<pre>[\n" +
                 "{\"path\": \"/dev/.json\", \"data\": \"{\"user\"...\"}, \n" +
                 "{\"path\": \"/devwidgets.json\", \"data\": \"{\"jcr:created\":\"Wed Dec 16 2009 10:39:19 GMT+0000\",\"jcr:primaryType\":\"sling:Folder\"}\"},\n" +
@@ -79,24 +74,29 @@ import javax.servlet.http.HttpServletResponse;
           ),
           @ServiceResponse(
             code = 400,
-            description = "Either there was no 'resources' parameter found or it contained a non-absolute path."
+            description = "Either no 'resources' parameter was found or it contained a non-absolute path."
           ),
           @ServiceResponse(
             code = 500,
-            description = "Unable to get and parse all the requests."
+            description = "Unable to get and parse all requests."
           )
         }
     )
 )
+@Component(immediate = true, label = "BatchGetServlet", description = "servlet to return multiple resources")
+@SlingServlet(generateComponent = false, paths = "/system/batch/get", methods = "GET")
 public class BatchGetServlet extends SlingSafeMethodsServlet {
  
-  /**
-*
-*/
   private static final long serialVersionUID = 9159034894038200948L;
   private static final Logger LOGGER = LoggerFactory
       .getLogger(BatchGetServlet.class);
- 
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Bundles multiple resource requests into a single response.")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
   public static final String RESOURCE_PATH_PARAMETER = "resources";
  
   @Override

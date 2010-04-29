@@ -5,7 +5,7 @@
 # and svn info https://source.caret.cam.ac.uk/camtools
 
 export K2_TAG="0.3"
-export S2_TAG="trunk"
+export S2_TAG="tags/sakai-2.7.0-b06"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -81,14 +81,6 @@ tar -xzf apache-tomcat-5.5.26.tar.gz
 mv apache-tomcat-5.5.26 sakai2-demo
 mkdir sakai2-demo/sakai
 
-# build kernel 1
-echo "Building k1/trunk..."
-svn export -q https://source.sakaiproject.org/svn/kernel/trunk/ kernel
-cd kernel
-mvn clean install -Dmaven.test.skip=true
-cd ..
-rm -rf kernel
-
 # build sakai 2
 echo "Building sakai2/$S2_TAG..."
 svn checkout -q "https://source.sakaiproject.org/svn/sakai/$S2_TAG" sakai
@@ -96,20 +88,17 @@ cd sakai/
 REPO_REV=`svn info|grep Revision`
 # SAK-17223 K2AuthenticationFilter
 rm -rf login/
-svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223/ login
+svn checkout -q https://source.sakaiproject.org/svn/login/branches/SAK-17223-2.7 login
 # SAK-17222 K2UserDirectoryProvider
 rm -rf providers
-svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222 providers
+svn checkout -q https://source.sakaiproject.org/svn/providers/branches/SAK-17222-2.7 providers
 # KERN-360 Servlet and TrustedLoginFilter RESTful services
 cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
-#sed -i 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml 
-# work around for broken sed on some systems
+find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7-SNAPSHOT/g' {} \;
 perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
 #
-# find . -name pom.xml -exec perl -pwi -e "s/<version>2\.8-SNAPSHOT<\/version>/<version>2\.6\.2<\/version>/gi" '{}' \;
 mvn clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
 cd ..
-#rm -rf sakai
 
 # configure sakai 2 instance
 cp -f server.xml sakai2-demo/conf/server.xml 

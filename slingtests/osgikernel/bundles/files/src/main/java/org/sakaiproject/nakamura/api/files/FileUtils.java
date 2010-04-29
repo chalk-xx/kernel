@@ -326,7 +326,7 @@ public class FileUtils {
    * @throws JSONException
    * @throws RepositoryException
    */
-  private static void writeSiteInfo(Node siteNode, JSONWriter write,
+  protected static void writeSiteInfo(Node siteNode, JSONWriter write,
       SiteService siteService) throws JSONException, RepositoryException {
     write.object();
     write.key("member-count");

@@ -19,6 +19,11 @@ package org.sakaiproject.nakamura.message;
 
 import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGESTORE_RT;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.sakaiproject.nakamura.api.locking.LockManager;
@@ -50,25 +55,17 @@ import javax.jcr.ValueFormatException;
 
 /**
  * Service for doing operations with messages.
- * 
- * @scr.component immediate="true" label="Sakai Messaging Service"
- *                description="Service for doing operations with messages."
- *                name="org.sakaiproject.nakamura.api.message.MessagingService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessagingService"
- * @scr.reference interface="org.sakaiproject.nakamura.api.site.SiteService" name="SiteService"
  */
+@Component(immediate = true, label = "Sakai Messaging Service", description = "Service for doing operations with messages.", name = "org.sakaiproject.nakamura.api.message.MessagingService")
+@Service
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class MessagingServiceImpl implements MessagingService {
 
-  /** @scr.reference */
-  protected LockManager lockManager;
-  private SiteService siteService;
-  protected void bindSiteService(SiteService siteService) {
-    this.siteService = siteService;
-  }
-  protected void unbindSiteService(SiteService siteService) {
-    this.siteService = null;
-  }
+  @Reference
+  protected transient LockManager lockManager;
+
+  @Reference
+  protected transient SiteService siteService;
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(MessagingServiceImpl.class);

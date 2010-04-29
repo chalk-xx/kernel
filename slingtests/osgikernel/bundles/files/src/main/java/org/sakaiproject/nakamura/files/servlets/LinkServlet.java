@@ -58,8 +58,8 @@ import javax.servlet.ServletException;
 @Reference(name="LinkHandler", referenceInterface=LinkHandler.class, cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC)
 @ServiceDocumentation(
     name = "LinkServlet", 
-    shortDescription = "Download the file that this link points to.", 
-    description = "When a user hits a sakai/link the file will be downloaded, or if nescecary the request will be redirected to the appropriate url.", 
+    shortDescription = "Download file that this link points to.", 
+    description = "When a user hits a sakai/link the file will be downloaded or, if necessary, the request will be redirected to the appropriate url.", 
     bindings = @ServiceBinding(
         type = BindingType.TYPE, 
         bindings = "sakai/link"
@@ -68,7 +68,7 @@ import javax.servlet.ServletException;
         name = "GET", 
         description = "Downloads the file.",
         response = {
-            @ServiceResponse(code = 200, description = "User was succesfully linked to the real download (can be file/url)."),
+            @ServiceResponse(code = 200, description = "User was successfully linked to the real download (can be file/url)."),
             @ServiceResponse(code = 500, description = "Failed to redirect, explanation in HTML.")
         }
     )

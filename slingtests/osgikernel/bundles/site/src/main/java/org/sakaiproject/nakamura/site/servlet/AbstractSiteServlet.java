@@ -17,17 +17,18 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.sakaiproject.nakamura.api.site.SiteService;
 
 /**
  * 
  */
+@Component(componentAbstract = true)
 public class AbstractSiteServlet extends SlingAllMethodsServlet {
 
-  /**
-   * @scr.reference name="SiteService"
-   */
+  @Reference
   private SiteService siteService;
   /**
    *

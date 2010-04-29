@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.search.processors;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -12,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+
+import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
@@ -60,7 +64,7 @@ public class PageSearchPropertyProvider implements SearchPropertyProvider {
       path = path.substring(0, path.length() - 1);
     }
 
-    propertiesMap.put("_filter", filter);
+    propertiesMap.put("_filter", escapeString(filter, Query.XPATH));
     propertiesMap.put("_path", ISO9075.encodePath(path));
   }
 
