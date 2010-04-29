@@ -82,6 +82,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
 
       if (!DocProxyUtils.isExternalRepositoryConfig(node)) {
         // This must be something else, ignore it..
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Requested resource does not exist here: " + url);
         return;
       }
 
