@@ -3,7 +3,6 @@ package org.sakaiproject.nakamura.search.processors;
 import static org.easymock.EasyMock.expect;
 
 import org.apache.sling.api.SlingHttpServletRequest;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
@@ -15,7 +14,6 @@ import java.io.PrintWriter;
 import javax.jcr.Node;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.query.QueryResult;
 import javax.jcr.query.Row;
 import javax.jcr.query.RowIterator;
@@ -35,10 +33,6 @@ public abstract class AbstractSearchResultProcessorTest extends AbstractEasyMock
     expect(propertyIterator.hasNext()).andReturn(false).anyTimes();
     Node dummyNode = createMock(Node.class);
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    ResourceResolver resourceResolver = createMock(ResourceResolver.class);
-    Session session = createMock(Session.class);
-    expect(request.getResourceResolver()).andReturn(resourceResolver).times(itemCount);
-    expect(resourceResolver.adaptTo(Session.class)).andReturn(session).times(itemCount);
     expect(row.getNode()).andReturn(dummyNode).anyTimes();
     
     expect(dummyNode.getProperties()).andReturn(propertyIterator).anyTimes();

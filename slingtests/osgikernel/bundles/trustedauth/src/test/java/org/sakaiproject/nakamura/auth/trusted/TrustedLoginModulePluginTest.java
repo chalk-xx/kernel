@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.auth.trusted;
 
+import org.apache.jackrabbit.api.JackrabbitSession;
+import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -89,7 +91,10 @@ public class TrustedLoginModulePluginTest {
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpSession session = createMock(HttpSession.class);
+    JackrabbitSession jackrabbitSession = createMock(JackrabbitSession.class);
+    PrincipalManager principalManager = createMock(PrincipalManager.class);
     EasyMock.expect(request.getSession(true)).andReturn(session);
+    
     
     Principal principal = createMock(Principal.class);
     EasyMock.expect(request.getUserPrincipal()).andReturn(principal);
@@ -114,11 +119,14 @@ public class TrustedLoginModulePluginTest {
 
 //    EasyMock.expect(request.getSession(false)).andReturn(session);
     EasyMock.expect(session.getAttribute(TrustedTokenService.SA_AUTHENTICATION_CREDENTIALS)).andReturn(credentials).anyTimes();
+    EasyMock.expect(jackrabbitSession.getPrincipalManager()).andReturn(principalManager).anyTimes();
+    EasyMock.expect(principalManager.getPrincipal("ieb")).andReturn(principal).anyTimes();
+    EasyMock.expect(principal.getName()).andReturn("ieb").times(2);
     
     replay();
     
     TrustedLoginModulePlugin loginModulePlugin = new TrustedLoginModulePlugin();
-    loginModulePlugin.doInit(null, null, null);
+    loginModulePlugin.doInit(null, jackrabbitSession, null);
     Assert.assertTrue(loginModulePlugin.canHandle(credentials));
     Assert.assertFalse(loginModulePlugin.canHandle(new SimpleCredentials("user", new char[0])));
     Principal principal1 = loginModulePlugin.getPrincipal(credentials);

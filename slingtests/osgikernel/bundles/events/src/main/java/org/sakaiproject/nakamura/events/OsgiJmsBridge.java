@@ -26,6 +26,10 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +39,11 @@ import java.util.Map;
 
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
 
@@ -126,21 +132,72 @@ public class OsgiJmsBridge implements EventHandler {
     LOGGER.debug("Processing event {}", event);
     Session clientSession = null;
     try {
-      
+
       conn = connFactoryService.getDefaultPooledConnectionFactory().createConnection();
       // conn.setClientID(connectionClientId);
       // post to JMS
       // Sessions are not thread safe, so we need to create and destroy a session, for
       // sending.
-      clientSession = conn.createSession(transacted, acknowledgeMode);
+      EventDeliveryMode deliveryMode = (EventDeliveryMode) event
+          .getProperty(EventDeliveryConstants.DELIVERY_MODE);
+      EventMessageMode messageMode = (EventMessageMode) event
+          .getProperty(EventDeliveryConstants.MESSAGE_MODE);
 
-      Topic emailTopic = clientSession.createTopic(event.getTopic());
-      MessageProducer client = clientSession.createProducer(emailTopic);
+      EventAcknowledgeMode acknowledgeModeForEvent = (EventAcknowledgeMode) event
+          .getProperty(EventDeliveryConstants.ACKNOWLEDGE_MODE);
+
+      int clientAcknowledgeMode = acknowledgeMode;
+      if (acknowledgeModeForEvent != null) {
+        switch (acknowledgeModeForEvent) {
+        case AUTO_ACKNOWLEDGE:
+          clientAcknowledgeMode = Session.AUTO_ACKNOWLEDGE;
+          break;
+        case CLIENT_ACKNOWLEDGE:
+          clientAcknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
+          break;
+        case DUPS_OK_ACKNOWLEDGE:
+          clientAcknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
+          break;
+        }
+      }
+
+      clientSession = conn.createSession(transacted, clientAcknowledgeMode);
+
       Message msg = clientSession.createMessage();
+
       // may need to set a delivery mode eg persistent for certain types of messages.
       // this should be specified in the OSGi event.
-      msg.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+      if (messageMode != null) {
+        switch (messageMode) {
+        case PERSISTENT:
+          msg.setJMSDeliveryMode(DeliveryMode.PERSISTENT);
+          break;
+        case NON_PERSISTENT:
+        default:
+          msg.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+          break;
+        }
+      } else {
+        msg.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);
+      }
+
+      Destination destination = null;
+      if (deliveryMode != null) {
+        switch (deliveryMode) {
+        case P2P:
+          destination = clientSession.createQueue(event.getTopic());
+          break;
+        case BROADCAST:
+        default:
+          destination = clientSession.createTopic(event.getTopic());
+          break;
+        }
+      } else {
+        destination = clientSession.createTopic(event.getTopic());
+      }
+      MessageProducer producer = clientSession.createProducer(destination);
       msg.setJMSType(event.getTopic());
+
       for (String name : event.getPropertyNames()) {
         Object obj = event.getProperty(name);
         // "Only objectified primitive objects, String, Map and List types are
@@ -153,7 +210,7 @@ public class OsgiJmsBridge implements EventHandler {
         }
       }
 
-      client.send(msg);
+      producer.send(msg);
     } catch (JMSException e) {
       LOGGER.error(e.getMessage(), e);
     } finally {

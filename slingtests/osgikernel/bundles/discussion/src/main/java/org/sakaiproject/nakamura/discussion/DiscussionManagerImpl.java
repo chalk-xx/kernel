@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.discussion;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessagingException;
 import org.slf4j.Logger;
@@ -32,16 +35,15 @@ import javax.jcr.query.QueryResult;
 
 /**
  * Manager for the discussions.
- * 
- * @scr.component immediate="true" label="Sakai Discussion Manager"
- *                description="Service for doing operations with discussions." name
- *                ="org.sakaiproject.nakamura.api.discussion.DiscussionManager"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.discussion.DiscussionManager"
  */
+@Component(immediate = true, label = "%discussion.manager.label", description = "%discussion.manager.desc")
+@Service
 public class DiscussionManagerImpl implements DiscussionManager {
 
   public static final Logger LOG = LoggerFactory.getLogger(DiscussionManagerImpl.class);
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
 
   /**
    * 

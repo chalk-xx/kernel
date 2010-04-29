@@ -25,6 +25,9 @@ import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE
 import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SITE_RESOURCE_TYPE;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -49,6 +52,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
@@ -80,20 +84,9 @@ import javax.servlet.http.HttpServletResponse;
  * /site/container/site.createsite If the node is of type of sakai/sites, then create the
  * site based on a request property If the note is not of type sakai/sites, and exists
  * make it a sakai/site
- * 
- * @scr.component immediate="true" label="CreateSiteServlet"
- *                description="Create site servlet"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description" value=
- *               "Supports creation of sites, either from existing folders, or new folders."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
- *               values.1="sakai/sites"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="createsite"
- * @scr.reference name="SlingRepository"
- *                interface="org.apache.sling.jcr.api.SlingRepository"
  */
+@Component(immediate = true, label = "%site.createSiteServlet.label", description = "%site.createSiteServlet.desc")
+@SlingServlet(resourceTypes = { "sling/servlet/default", "sakai/sites" }, methods = "POST", selectors = "createsite", generateComponent = false)
 @ServiceDocumentation(name="Create a Site",
     description="The <code>CreateSiteServlet</code> creates new sites. . /site/container.createsite " +
     		"/site/container/site.createsite If the node is of type " + SITES_CONTAINER_RESOURCE_TYPE + ", then create the " +
@@ -135,11 +128,18 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
 
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @org.apache.felix.scr.annotations.Property(value = "Supports creation of sites, either from existing folders, or new folders.")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
   private static final String SITE_CREATE_PRIVILEGE = "sakai:sitegroupcreate";
 
+  @Reference
   private transient SlingRepository slingRepository;
-  
-  /** @scr.reference */
+
+  @Reference
   private transient VersionService versionService;
   
   /** @scr.reference */
@@ -147,7 +147,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingAllMethodsServlet#doPost(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -156,6 +156,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       throws ServletException, IOException {
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
+      if ( UserConstants.ANON_USERID.equals(session.getUserID()) ) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        return;
+      }
       UserManager userManager = AccessControlUtil.getUserManager(session);
       Authorizable currentUser = userManager.getAuthorizable(request.getRemoteUser());
 
@@ -248,6 +252,11 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             LOGGER.warn(e.getMessage(), e);
           }
         }
+        // site creation notification
+        Dictionary<String,String> eventProps = new Hashtable<String,String>();
+        eventProps.put("sitePath", sitePath);
+        eventProps.put("userId", currentUser.getID());
+        eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/api/site/event/create", eventProps));
       } finally {
         if (adminSession != null) {
           adminSession.logout();
@@ -258,8 +267,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       // in the usual way.
       RequestDispatcherOptions requestDispatcherOptions = new RequestDispatcherOptions();
       requestDispatcherOptions.setReplaceSelectors("");
-      RequestDispatcher requestDispatcher = request.getRequestDispatcher(sitePath,
-          requestDispatcherOptions);
+      RequestDispatcher requestDispatcher = request.getRequestDispatcher(sitePath, requestDispatcherOptions);
       requestDispatcher.forward(request, response);
     } catch (RepositoryException ex) {
       throw new ServletException(ex.getMessage(), ex);
@@ -268,20 +276,21 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   }
 
   /**
-   * A special pseudo-privilege stored as a normal node property is used to determine
-   * whether the current user has permission to create a site in the specified location.
-   * The standard "jcr:addChildNodes" privilege is both insufficient (it does not allow
-   * setting properties on the newly created node) and too powerful (it would let users
-   * sabotage site trees which were otherwise inaccessible to them).
-   * 
+   * A special pseudo-privilege stored as a normal node property is used
+   * to determine whether the current user has permission to create a site
+   * in the specified location. The standard "jcr:addChildNodes" privilege
+   * is both insufficient (it does not allow setting properties on the newly
+   * created node) and too powerful (it would let users sabotage site
+   * trees which were otherwise inaccessible to them).
+   *
    * @param session
    * @param sitePath
    * @param adminSession needed to check node paths in case the current user does
    *   not have read access
    * @param userId
-   * @return true if the specified user can create a site at the specified path regardless
-   *         of other access restrictions; false if the user needs to rely on normal
-   *         security checks
+   * @return true if the specified user can create a site at the specified path
+   *   regardless of other access restrictions; false if the user needs to rely on
+   *   normal security checks
    * @throws RepositoryException
    */
   private boolean isCreateSiteGranted(Session session, Session adminSession, String sitePath, Authorizable currentUser) throws RepositoryException {
@@ -307,8 +316,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     // iterate up to (but not including) the root looking for a site marker.
     Node siteMarker = firstRealNode;
     Set<String> principals = new HashSet<String>();
-    PrincipalIterator principalIterator = principalManager.getGroupMembership(currentUser
-        .getPrincipal());
+    PrincipalIterator principalIterator = principalManager
+        .getGroupMembership(currentUser.getPrincipal());
     boolean granted = false;
     while (!"/".equals(siteMarker.getPath())) {
       if (siteMarker.hasProperty(SITE_CREATE_PRIVILEGE)) {
@@ -343,7 +352,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
 
   /**
    * Create a site from a template node and its children.
-   * 
+   *
    * @param session
    * @param templatePath
    * @param sitePath
@@ -354,7 +363,8 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     ensureParent(session, sitePath);
     
     // Copy the template files in the new folder.
-    LOGGER.debug("Copying template ({}) to new dir ({})", templatePath, sitePath);
+    LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
+        sitePath);
     Workspace workspace = session.getWorkspace();
     workspace.copy(templatePath, sitePath);
     Node siteNode = (Node) session.getItem(sitePath);
@@ -507,12 +517,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private void versionNodeAndChildren(Node n, String userID, Session createSession) {
     try {
       // TODO do better check
-      if (n.isNode()
-          && !n.getName().startsWith("rep:")
-          && !n.getName().startsWith("jcr:")
-          && n.hasProperties()
-          && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
-              JcrConstants.NT_RESOURCE)) {
+      if (n.isNode() && !n.getName().startsWith("rep:") && !n.getName().startsWith("jcr:") && n.hasProperties() && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(JcrConstants.NT_RESOURCE)) {
         versionService.saveNode((Node) createSession.getItem(n.getPath()), userID);
         NodeIterator it = n.getNodes();
         // Version the childnodes

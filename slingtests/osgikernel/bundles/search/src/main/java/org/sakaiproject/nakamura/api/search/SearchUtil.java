@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.api.search;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
+import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
@@ -47,14 +48,14 @@ public class SearchUtil {
    * @return
    * @throws SearchException
    */
-  public static SearchResultSet getSearchResultSet(
-      SlingHttpServletRequest request, Query query) throws SearchException {
+  public static SearchResultSet getSearchResultSet(SlingHttpServletRequest request,
+      Query query) throws SearchException {
     try {
       // Get the query result.
       QueryResult rs = query.execute();
 
       // Extract the total hits from lucene
-      int hits = getHits(rs);
+      long hits = getHits(rs);
 
       // Do the paging on the iterator.
       RowIterator iterator = rs.getRows();
@@ -72,10 +73,11 @@ public class SearchUtil {
 
   /**
    * Get the hits from a Lucene queryResult.
+   * 
    * @param rs
    * @return
    */
-  public static int getHits(QueryResult rs) throws SearchException {
+  public static long getHits(QueryResult rs) throws SearchException {
     QueryHitsExtractor extr = new QueryHitsExtractor(rs);
     return extr.getHits();
   }
@@ -89,10 +91,10 @@ public class SearchUtil {
    *          The name of the parameter that holds the integer value.
    * @param defaultVal
    *          The default value in case the parameter is not found or is not an integer
-   * @return The integer value.
+   * @return The long value.
    */
-  public static int intRequestParameter(SlingHttpServletRequest request,
-      String paramName, int defaultVal) {
+  public static long intRequestParameter(SlingHttpServletRequest request,
+      String paramName, long defaultVal) {
     RequestParameter param = request.getRequestParameter(paramName);
     if (param != null) {
       try {
@@ -114,14 +116,39 @@ public class SearchUtil {
    */
   public static long getPaging(SlingHttpServletRequest request, long total) {
 
-    int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
+    long nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE,
         SearchConstants.DEFAULT_PAGED_ITEMS);
-    int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
+    long offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
 
     if (total < 0) {
       total = Long.MAX_VALUE;
     }
     long start = Math.min(offset, total);
     return start;
+  }
+
+  /**
+   * Assumes value is the value of a parameter in a where constraint and escapes it
+   * according to the spec.
+   * 
+   * @param value
+   * @param queryLanguage
+   *          The language to escape for. This can be XPATH, SQL, JCR_SQL2 or JCR_JQOM.
+   *          Look at {@link Query Query}.
+   * @return
+   */
+  public static String escapeString(String value, String queryLanguage) {
+    String escaped = null;
+    if (value != null) {
+      if (queryLanguage.equals(Query.XPATH) || queryLanguage.equals(Query.SQL)
+          || queryLanguage.equals(Query.JCR_SQL2) || queryLanguage.equals(Query.JCR_JQOM)) {
+        // See JSR-170 spec v1.0, Sec. 6.6.4.9 and 6.6.5.2
+        escaped = value.replaceAll("\\\\(?![-\"])", "\\\\\\\\").replaceAll("'", "\\\\'")
+            .replaceAll("'", "''").replaceAll("\"", "\\\\\"");
+      } else {
+        LOGGER.error("Unknown query language: " + queryLanguage);
+      }
+    }
+    return escaped;
   }
 }

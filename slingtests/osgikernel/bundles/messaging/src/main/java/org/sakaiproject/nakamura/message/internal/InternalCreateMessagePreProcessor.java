@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.message.internal;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
@@ -27,13 +31,13 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Checks if the message the user wants to create has all the right properties on it.
- * 
- * @scr.component immediate="true" label="InternalCreateMessagePreProcessor"
- *                description="Checks request for Internal messages"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.message.createpreprocessor" value="internal"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.CreateMessagePreProcessor"
  */
+@Component(immediate = true, label = "InternalCreateMessagePreProcessor", description = "Checks request for Internal messages")
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Checks if the user is allowed to create a message of type internal."),
+    @Property(name = "sakai.message.createpreprocessor", value = "internal") })
 public class InternalCreateMessagePreProcessor implements CreateMessagePreProcessor {
 
   // Constructor so we can use this anywhere else but not trough src.

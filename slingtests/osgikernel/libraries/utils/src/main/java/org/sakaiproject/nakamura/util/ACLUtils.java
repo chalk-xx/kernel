@@ -105,22 +105,27 @@ public class ACLUtils {
    * @param session
    * @param writePrivilageGranted
    * @throws RepositoryException
-   * @Deprecated use the version with the principal, its expensive to get hold of authorizables at times.
+   * @deprecated use {@link AccessControlUtil.replaceAccessControlEntry(Session, String,
+   *             Principal, String[], String[], String[], String)} instead.
    */
+  @Deprecated
   public static void addEntry(String path, Authorizable authorizable, Session session,
       String... privilegeSpec) throws RepositoryException {
     addEntry(path, authorizable.getPrincipal(), session, privilegeSpec);
   }
+
   /**
    * Add an ACL entry at a path for the authorizable.
-   *
    *
    * @param path
    * @param principal
    * @param session
    * @param writePrivilageGranted
    * @throws RepositoryException
+   * @deprecated use {@link AccessControlUtil.replaceAccessControlEntry(Session, String,
+   *             Principal, String[], String[], String[], String)} instead.
    */
+  @Deprecated
   public static void addEntry(String path, Principal principal, Session session,
         String... privilegeSpec) throws RepositoryException {
 

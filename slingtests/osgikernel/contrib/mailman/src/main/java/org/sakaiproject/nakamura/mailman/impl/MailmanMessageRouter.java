@@ -1,5 +1,9 @@
 package org.sakaiproject.nakamura.mailman.impl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
@@ -12,19 +16,21 @@ import java.util.List;
 
 import javax.jcr.Node;
 
-/**
- * 
- * @scr.component inherit="true" label="MailmanMessageRouter" immediate="true"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageRouter"
- * @scr.property name="service.description"
- *               value="Manages Routing for group mailing lists."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- */
+@Component(inherit = true, immediate = true, label = "%mail.manager.router.label")
+@Service
 public class MailmanMessageRouter implements MessageRouter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MailmanMessageRouter.class);
   
-  /** @scr.reference */
+  @SuppressWarnings("unused")
+  @Property(value = "The Sakai Foundation")
+  private static final String SERVICE_VENDOR = "service.vendor";
+
+  @SuppressWarnings("unused")
+  @Property(value = "Manages Routing for group mailing lists.")
+  private static final String SERVICE_DESCRIPTION = "service.description";
+
+  @Reference
   private MailmanManager mailmanManager;
   
   public int getPriority() {

@@ -64,7 +64,6 @@
         <module>bundles/discussion</module>
         <module>bundles/smtp</module>
         <module>bundles/user</module>
-        <module>bundles/uxloader</module>
         <module>bundles/events</module>
         <module>bundles/batch</module>
         <module>bundles/activation-mail</module>
@@ -86,6 +85,8 @@
         <module>bundles/docproxy</module>
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
+        <module>bundles/calendar</module>
+        <module>bundles/antixss</module>
         <!-- NYU contrib needs -->
         <!-- <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
@@ -135,10 +136,6 @@
               <goals>
                 <goal>install</goal>
               </goals>
-              <configuration>
-                <user>admin</user>
-                <password>alexFTW++</password>
-              </configuration>
             </execution>
           </executions>
          </plugin>

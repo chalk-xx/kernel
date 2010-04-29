@@ -119,8 +119,9 @@ public class TagServlet extends SlingSafeMethodsServlet {
     }
 
     SearchResultSet rs = proc.getSearchResultSet(request, query);
+    write.array();
     proc.writeNodes(request, write, null, rs.getRowIterator());
-
+    write.endArray();
   }
 
   /**

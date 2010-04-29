@@ -157,8 +157,14 @@ module SlingUsers
     end
 
     def update_properties(sling, props)
-      sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
+      return sling.execute_post(sling.url_for("#{user_url}.update.html"), props)
     end
+	
+	
+	def change_password(sling, newpassword)
+	   return sling.execute_post(sling.url_for("#{user_url}.changePassword.html"), "oldPwd" => @password, "newPwd" => newpassword, "newPwdConfirm" => newpassword)     
+	end
+	
 
     # Get the home folder of a group.
     def home_path_for(sling)

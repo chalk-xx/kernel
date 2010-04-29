@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -60,13 +64,11 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * count.json?filters=sakai:read,sakai:messagebox&values=true,inbox&groupby=sakai:category
  * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values="sakai/messagestore"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="count"
- * @scr.reference interface="org.sakaiproject.nakamura.api.message.MessagingService" name="MessagingService"
  */
+@SlingServlet(methods = {"GET"}, resourceTypes = {"sakai/messagestore"}, selectors = {"count"}, generateComponent = true, generateService = true)
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Endpoint to count messages in a messagestore.") })
 @ServiceDocumentation(
     name = "CountServlet",
     shortDescription = "Count all the internal messages a user has.",
@@ -97,14 +99,9 @@ public class CountServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -5714446506015596037L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CountServlet.class);
 
-  private transient MessagingService messagingService;
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
-
+  @Reference
+  protected transient MessagingService messagingService;
+  
   @Override
   protected void doGet(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws ServletException, IOException {

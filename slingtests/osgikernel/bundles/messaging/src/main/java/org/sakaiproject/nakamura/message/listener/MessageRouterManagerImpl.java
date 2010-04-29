@@ -17,6 +17,13 @@
  */
 package org.sakaiproject.nakamura.message.listener;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.message.MessageRouter;
 import org.sakaiproject.nakamura.api.message.MessageRouterManager;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
@@ -31,18 +38,11 @@ import java.util.Set;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
-/**
- * 
- * @scr.component inherit="true" label="%sakai-manager.name" immediate="true"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageRouterManager"
- * @scr.property name="service.description"
- *               value="Manages Routing"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="messageRouters"
- *                interface="org.sakaiproject.nakamura.api.message.MessageRouter"
- *                policy="dynamic" cardinality="0..n" bind="addMessageRouter"
- *                unbind="removeMessageRouter"
- */
+@Component(inherit = true, label = "%sakai-manager.name", immediate = true)
+@Service
+@Properties(value = { @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Manages messaging routing.") })
+@Reference(name = "messageRouters", referenceInterface = MessageRouter.class, cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE, policy = ReferencePolicy.DYNAMIC, bind = "addMessageRouter", unbind = "removeMessageRouter")
 public class MessageRouterManagerImpl implements MessageRouterManager {
 
   private List<MessageRouter> routers = new ArrayList<MessageRouter>();

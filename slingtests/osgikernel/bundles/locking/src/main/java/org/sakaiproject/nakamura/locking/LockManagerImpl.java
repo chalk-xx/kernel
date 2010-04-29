@@ -20,6 +20,10 @@ package org.sakaiproject.nakamura.locking;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.locking.Lock;
 import org.sakaiproject.nakamura.api.locking.LockManager;
 import org.sakaiproject.nakamura.api.locking.LockTimeoutException;
@@ -34,15 +38,9 @@ import java.security.SecureRandom;
 
 /**
  * A lock manager that uses a cluster replicated cache to manage the locks
- *
- * @scr.component immediate="true" metatype="no"
- * @scr.property name="service.description" value="In JVM Lock Manager"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.locking.LockManager"
- * @scr.reference name="cacheManagerService"
- *                interface="org.sakaiproject.nakamura.api.memory.CacheManagerService"
- *                bind="bindCacheManagerService" unbind="unbindCacheManagerService"
  */
+@Component(immediate = true)
+@Service
 @SuppressWarnings(justification="Circular dependency noted ", value={"CD_CIRCULAR_DEPENDENCY"})
 public class LockManagerImpl implements LockManager {
 
@@ -64,9 +62,17 @@ public class LockManagerImpl implements LockManager {
    * debug flag set at service creation.
    */
   private static final boolean debug = LOGGER.isDebugEnabled();
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "In JVM Lock Manager")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
   /**
    * Service dependency, the Cache Manager
    */
+  @Reference
   private CacheManagerService cacheManagerService;
   /**
    * container for Locks.

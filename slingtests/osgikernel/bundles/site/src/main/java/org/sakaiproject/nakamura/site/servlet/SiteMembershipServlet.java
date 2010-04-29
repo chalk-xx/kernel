@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.site.servlet;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -45,16 +48,9 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteMembershipServlet</code>
- * 
- * @scr.component immediate="true" label="SiteGetServlet"
- *                description="Get members servlet for site service"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="service.description"
- *               value="Gets a list of sites that the user is a member of"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sling.servlet.paths" value="/system/sling/membership"
- * @scr.property name="sling.servlet.methods" value="GET"
  */
+@Component(immediate = true, label = "%site.membershipServlet.label", description = "%site.membershipServlet.desc")
+@SlingServlet(paths = "/system/sling/membership", methods = "GET", generateComponent = false)
 @ServiceDocumentation(name="Site Membership Servlet",
     description=" Get the membership for the current user in json format.",
     shortDescription="Get the site membership for the current user.",
@@ -73,6 +69,12 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(SiteMembershipServlet.class);
   private static final long serialVersionUID = 4874392318687088747L;
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Gets a list of sites that the user is a member of")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)

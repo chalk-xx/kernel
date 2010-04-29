@@ -18,6 +18,12 @@
 
 package org.sakaiproject.nakamura.chat;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.Services;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -41,67 +47,29 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- * Handler for chat messages. This will also write to a logfile.
- * 
- * @scr.component label="ChatMessageHandler"
- *                description="Handler for internally delivered chat messages."
- *                immediate="true"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageTransport"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageProfileWriter"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository"
- * @scr.reference interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                name="MessagingService"
- * @scr.reference name="ChatManagerService"
- *                interface="org.sakaiproject.nakamura.api.chat.ChatManagerService"
+ * Handler for chat messages.
  */
+@Component(label = "ChatMessageHandler", description = "Handler for internally delivered chat messages.", immediate = true)
+@Services(value = {
+    @Service(value = MessageTransport.class),
+    @Service(value = MessageProfileWriter.class)
+})
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Handler for internally delivered chat messages") })
 public class ChatMessageHandler implements MessageTransport, MessageProfileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(ChatMessageHandler.class);
   private static final String TYPE = MessageConstants.TYPE_CHAT;
   private static final Object CHAT_TRANSPORT = "chat";
 
-  private ChatManagerService chatManagerService;
+  @Reference
+  protected transient ChatManagerService chatManagerService;
 
-  protected void bindChatManagerService(ChatManagerService chatManagerService) {
-    this.chatManagerService = chatManagerService;
-  }
+  @Reference
+  protected transient SlingRepository slingRepository;
 
-  protected void unbindChatManagerService(ChatManagerService chatManagerService) {
-    this.chatManagerService = null;
-  }
-
-  /**
-   * The JCR Repository we access.
-   * 
-   */
-  private SlingRepository slingRepository;
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to set
-   */
-  protected void bindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = slingRepository;
-  }
-
-  /**
-   * @param slingRepository
-   *          the slingRepository to unset
-   */
-  protected void unbindSlingRepository(SlingRepository slingRepository) {
-    this.slingRepository = null;
-  }
-
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * Default constructor

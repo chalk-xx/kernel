@@ -18,6 +18,9 @@
 
 package org.sakaiproject.nakamura.discussion;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
@@ -42,23 +45,21 @@ import javax.jcr.Session;
 /**
  * Handler for messages that are sent locally and intended for local delivery. Needs to be
  * started immediately to make sure it registers with JCR as soon as possible.
- * 
- * @scr.component label="DiscussionMessageTransport"
- *                description="Handler for discussion messages." immediate="true"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.message.MessageTransport"
- * @scr.reference interface="org.apache.sling.jcr.api.SlingRepository"
- *                name="SlingRepository"
- * @scr.reference interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                name="MessagingService"
  */
+@Component(immediate = true, label = "%discussion.messageTransport.label", description = "%discussion.messageTransport.desc")
+@Service
 public class DiscussionMessageTransport implements MessageTransport {
   private static final Logger LOG = LoggerFactory
       .getLogger(DiscussionMessageTransport.class);
   private static final String TYPE = DiscussionConstants.TYPE_DISCUSSION;
 
+  @Reference
   private SlingRepository slingRepository;
+  @Reference
   private MessagingService messagingService;
+
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
 
   /**
    * {@inheritDoc}

@@ -71,12 +71,12 @@ public class CreateMessageServletTest {
     servlet = new CreateMessageServlet();
     messagingService = mock(MessagingService.class);
 
-    servlet.bindMessagingService(messagingService);
+    servlet.messagingService = messagingService;
   }
 
   @After
   public void tearDown() {
-    servlet.unbindMessagingService(messagingService);
+    servlet.messagingService = null;
   }
 
   @Test

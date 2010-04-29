@@ -17,25 +17,13 @@
  */
 package org.sakaiproject.nakamura.site;
 
-import java.util.AbstractCollection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
-import javax.jcr.Item;
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.PathNotFoundException;
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
@@ -53,29 +41,43 @@ import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.AbstractCollection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * The <code>SiteServiceImpl</code> provides a Site Service implementatoin.
- * 
- * @scr.component immediate="true" label="SiteService"
- *                description="Sakai Site Service implementation"
- * @scr.service interface="org.sakaiproject.nakamura.api.site.SiteService"
- * @scr.property name="service.description"
- *               value="Provides a site service to manage sites."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.reference name="eventAdmin" interface="org.osgi.service.event.EventAdmin"
  */
+@Component(immediate = true, label = "%siteService.impl.label", description = "%siteService.impl.desc")
+@Service
 public class SiteServiceImpl implements SiteService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
 
-  /**
-   * @scr.reference
-   */
+  @Reference
   private SlingRepository slingRepository;
+
+  @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @org.apache.felix.scr.annotations.Property(value = "Provides a site service to manage sites.")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   /**
    * The default site template, used when none has been defined.
@@ -90,6 +92,7 @@ public class SiteServiceImpl implements SiteService {
   /**
    * The OSGi Event Admin Service.
    */
+  @Reference
   private EventAdmin eventAdmin;
 
   /**
@@ -189,7 +192,6 @@ public class SiteServiceImpl implements SiteService {
 
       if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
         targetGroup.addMember(userAuthorizable);
-//        xythosService.addMember(requestedGroup, user);
         postEvent(SiteEvent.joinedSite, site, targetGroup);
 
       } else {
@@ -338,7 +340,7 @@ public class SiteServiceImpl implements SiteService {
 
   private Value[] getPropertyValues(Node site, String propName) throws PathNotFoundException,
       RepositoryException {
-    javax.jcr.Property property = site.getProperty(propName);
+    Property property = site.getProperty(propName);
     if (property.getDefinition().isMultiple()) {
       return property.getValues();
     } else {
@@ -449,7 +451,7 @@ public class SiteServiceImpl implements SiteService {
    */
   public Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort)
       throws SiteException {
-    MembershipTree membership = getMembershipTree(site);
+    MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
       Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
       List<GroupKey> sortedList = Lists.sortedCopy(membership.getGroups().keySet(), comparitor);
@@ -488,7 +490,7 @@ public class SiteServiceImpl implements SiteService {
    *      int, org.sakaiproject.nakamura.api.site.Sort[])
    */
   public AbstractCollection<User> getMembers(Node site, int start, int nitems, Sort[] sort) {
-    MembershipTree membership = getMembershipTree(site);
+    MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
       Comparator<UserKey> comparitor = buildCompoundComparitor(sort);
       List<UserKey> sortedList = Lists.sortedCopy(membership.getUsers().keySet(), comparitor);
@@ -535,7 +537,7 @@ public class SiteServiceImpl implements SiteService {
   }
 
   public int getMemberCount(Node site) {
-    return getMembershipTree(site).getUsers().size();
+    return getMembershipTree(site, false).getUsers().size();
   }
 
   /**
@@ -550,9 +552,12 @@ public class SiteServiceImpl implements SiteService {
    * 
    * @param site
    *          the site
+   * @param lookupProfile
+   *          If a profile should be looked up for all the users of this site. (true will
+   *          be much slower!)
    * @return a membership tree
    */
-  private MembershipTree getMembershipTree(Node site) {
+  private MembershipTree getMembershipTree(Node site, boolean lookupProfile) {
     Map<GroupKey, Membership> groups = Maps.newLinkedHashMap();
     Map<UserKey, Membership> users = Maps.newLinkedHashMap();
     try {
@@ -572,12 +577,14 @@ public class SiteServiceImpl implements SiteService {
           } else if (a instanceof User) {
             // FIXME: a is never a User Key (bug?)
             if (!users.containsKey(a)) {
-              String profilePath = PersonalUtils.getProfilePath(a);
               Node profileNode = null;
-              try {
-                profileNode = (Node) session.getItem(profilePath);
-              } catch ( PathNotFoundException e ) {
-                LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+              if (lookupProfile) {
+                String profilePath = PersonalUtils.getProfilePath(a);
+                try {
+                  profileNode = (Node) session.getItem(profilePath);
+                } catch ( PathNotFoundException e ) {
+                  LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
+                }
               }
               users.put(new UserKey((User) a, profileNode), new Membership(null, a));
             }
@@ -716,7 +723,7 @@ public class SiteServiceImpl implements SiteService {
           } catch ( PathNotFoundException e ) {
             LOGGER.warn("User {} does not have a profile at {} ", a.getID(), profilePath);
           }
-          LOGGER.info("Populate Members adding profile {} {} ",profileNode,profilePath);
+          LOGGER.debug("Populate Members adding profile {} {} ",profileNode,profilePath);
           users.put(new UserKey((User) a, profileNode), new Membership(group, a));
         }
       }

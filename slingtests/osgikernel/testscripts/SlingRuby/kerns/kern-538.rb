@@ -76,6 +76,31 @@ class TC_Kern538Test < SlingTest
     
   end
   
+  def test_withdelete
+    m = Time.now.to_i.to_s
+    treeuser = create_user("treeuser#{m}")
+    @s.switch_user(treeuser)
+
+    # Create the default tree
+    tree = default_tree()
+
+    parameters = {
+      ":operation" => "createTree",
+      "tree" => JSON.generate(tree),
+      "delete" => "1"
+    }
+
+    # Create a node that needs to be deleted.
+    res = @s.execute_post(@s.url_for("#{treeuser.private_path_for(@s)}/test"), {"toDelete" => "true"})
+    assert_equal(201, res.code.to_i, "Expected to create a node.")
+
+    # Execute the createTree post
+    jsonRes = create_tree(default_tree(), "#{treeuser.private_path_for(@s)}/test", 5, "1")
+
+    #Assertions
+    default_asserts(jsonRes)
+  end
+
   def default_asserts(jsonRes)
     assert_not_nil(jsonRes, "Expected to have some properties ")
     assert_not_nil(jsonRes["foo"], "Expected to find the Foo Element" )
@@ -87,7 +112,7 @@ class TC_Kern538Test < SlingTest
     assert_equal(jsonRes["foo"]["bar2"]["unit"], 2.5, "Expexted to get a childnode 'bar2' with property unit of '2.5'.")
     assert_equal(jsonRes["foo"]["bar2"]["title"], "Second bar", "Expexted to get a childnode 'bar2' with property title of 'Second bar'.")
   end
-  
+
   def default_tree()
     # Our tree should exist out of a node 'foo' with two childnodes 'bar1' and 'bar2'    
     tree = {
@@ -107,12 +132,13 @@ class TC_Kern538Test < SlingTest
     return tree
   end
   
-  def create_tree(tree, url, levels = 5)
+  def create_tree(tree, url, levels = 5, delete = "0")
     
     # Actual parameters we're sending in the request.
     parameters = {
       ":operation" => "createTree", 
-      "tree" => JSON.generate(tree)
+      "tree" => JSON.generate(tree),
+      "delete" => delete
     }
     
     # Execute the post
@@ -121,9 +147,9 @@ class TC_Kern538Test < SlingTest
     # Return the result of that node
     res = @s.execute_get(@s.url_for("#{url}.#{levels}.json"))
     if ( res.code == "200" ) 
-       return JSON.parse(res.body)
+      return JSON.parse(res.body)
     else
-       return JSON.parse("{}")
+      return JSON.parse("{}")
     end
   end
   

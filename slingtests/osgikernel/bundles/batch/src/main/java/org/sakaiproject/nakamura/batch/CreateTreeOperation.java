@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.batch;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.HtmlResponse;
@@ -28,6 +31,8 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.util.JcrUtils;
 
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,28 +41,29 @@ import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
 
-/**
- * @scr.component metatype="no" immediate="true"
- * @scr.service
- * @scr.property name="sling.post.operation" value="createTree"
- */
+@Component(immediate = true)
+@Service
 public class CreateTreeOperation extends AbstractSlingPostOperation {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 9207596135556346980L;
   public static final String TREE_PARAM = "tree";
+  public static final String DELETE_PARAM = "delete";
+
+  @Property(value = "createTree")
+  static final String SLING_POST_OPERATION = "sling.post.operation";
 
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
     // Check parameters
     RequestParameter treeParam = request.getRequestParameter(TREE_PARAM);
+    RequestParameter deleteParam = request.getRequestParameter(DELETE_PARAM);
     Session session = request.getResourceResolver().adaptTo(Session.class);
     JSONObject json = null;
     Node node = null;
@@ -77,6 +83,16 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
     // Get node
     String path = request.getResource().getPath();
     node = JcrUtils.deepGetOrCreateNode(session, path);
+
+    // Check if we want to delete the entire tree before creating a new node.
+    if (deleteParam != null && !node.isNew() && "1".equals(deleteParam.getString())) {
+      // Remove the node (we could get all the child nodes and remove the tree)
+      node.remove();
+      // Save the session so the node is actually removed
+      session.save();
+      // Create a brand new one.
+      node = JcrUtils.deepGetOrCreateNode(session, path);
+    }
 
     // Start creating the tree.
     createTree(session, json, node);
@@ -107,36 +123,55 @@ public class CreateTreeOperation extends AbstractSlingPostOperation {
             // This represents a multivalued property
 
             JSONArray arr = (JSONArray) obj;
-            String[] values = new String[arr.length()];
+            Value[] values = new Value[arr.length()];
             for (int i = 0; i < arr.length(); i++) {
-              values[i] = (String) arr.get(i);
+              values[i] = getValue(arr.get(i), session);
             }
             node.setProperty(key, values);
 
           } else {
-            // Single property
-            // Be smart, and check Number etc
-            if (obj instanceof JSONString) {
-              Object o = ((JSONString) obj).toJSONString();
-              if (o instanceof String) {
-                node.setProperty(key, (String) obj);
-              }
-            }
-            if (obj instanceof String) {
-              node.setProperty(key, (String) obj);
-            }
-            if (obj instanceof Number) {
-              node.setProperty(key, json.getDouble(key));
-            }
-            if (obj instanceof Boolean) {
-              node.setProperty(key, json.getBoolean(key));
-            }
+            node.setProperty(key, getValue(obj, session));
           }
         }
       }
     } catch (JSONException e) {
       // TODO
     }
+  }
+
+  /**
+   * Get the {@link Value JCR Value} for an object. If none is found, it will default o a
+   * string value.
+   *
+   * @param obj
+   * @param session
+   * @return
+   * @throws RepositoryException
+   */
+  protected Value getValue(Object obj, Session session)
+      throws RepositoryException {
+    Value value = null;
+    ValueFactory vf = session.getValueFactory();
+    if (obj instanceof JSONString) {
+      value = vf.createValue(((JSONString) obj).toJSONString());
+    } else if (obj instanceof String) {
+      value = vf.createValue(obj.toString());
+    } else if (obj instanceof BigDecimal) {
+      value = vf.createValue((BigDecimal) obj);
+    } else if (obj instanceof Boolean) {
+      value = vf.createValue(Boolean.valueOf(obj.toString()));
+    } else if (obj instanceof Double) {
+      value = vf.createValue((Double) obj);
+    } else if (obj instanceof Long) {
+      value = vf.createValue((Long) obj);
+    } else if (obj instanceof Integer) {
+      value = vf.createValue((Integer) obj);
+    } else if (obj instanceof Calendar) {
+      value = vf.createValue((Calendar) obj);
+    } else {
+      value = vf.createValue(obj.toString());
+    }
+    return value;
   }
 
   protected Node addNode(Node node, String key) throws ItemExistsException,

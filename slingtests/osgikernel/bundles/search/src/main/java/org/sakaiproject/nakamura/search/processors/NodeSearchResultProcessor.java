@@ -33,7 +33,6 @@ import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.jcr.query.Query;
 import javax.jcr.query.Row;
 
@@ -58,7 +57,6 @@ public class NodeSearchResultProcessor implements SearchResultProcessor {
    */
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
-    Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = row.getNode();
     if (aggregator != null) {
       aggregator.add(node);

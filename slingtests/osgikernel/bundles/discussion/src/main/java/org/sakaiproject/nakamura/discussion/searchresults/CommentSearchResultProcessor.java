@@ -18,6 +18,9 @@
 
 package org.sakaiproject.nakamura.discussion.searchresults;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
@@ -37,14 +40,16 @@ import javax.jcr.query.Row;
 
 /**
  * Formats comment nodes.
- * 
- * @scr.component immediate="true" label="CommentSearchResultProcessor"
- *                description="Formatter for comment search results."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.processor" value="Comment"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchResultProcessor"
  */
+@Component(immediate = true, label = "%discussion.commentSearch.label", description = "%discussion.commentSearch.desc")
+@Service
 public class CommentSearchResultProcessor implements SearchResultProcessor {
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Comment")
+  static final String SEARCH_PROCESSOR = "sakai.search.processor";
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {

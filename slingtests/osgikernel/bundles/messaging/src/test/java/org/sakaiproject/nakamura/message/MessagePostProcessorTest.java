@@ -54,7 +54,7 @@ public class MessagePostProcessorTest {
     eventAdmin = new MockEventAdmin();
 
     processor = new MessagePostProcessor();
-    processor.bindEventAdmin(eventAdmin);
+    processor.eventAdmin = eventAdmin;
 
     session = mock(Session.class);
     ResourceResolver resourceResolver = mock(ResourceResolver.class);
@@ -66,7 +66,7 @@ public class MessagePostProcessorTest {
 
   @After
   public void tearDown() {
-    processor.unbindEventAdmin(eventAdmin);
+    processor.eventAdmin = null;
   }
 
   @Test

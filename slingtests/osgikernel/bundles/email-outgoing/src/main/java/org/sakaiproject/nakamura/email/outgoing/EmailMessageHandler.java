@@ -22,6 +22,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
+import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventMessageMode;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
@@ -78,6 +81,10 @@ public class EmailMessageHandler implements MessageTransport {
     if (recipients != null) {
       Properties props = new Properties();
       try {
+        // make the message deliver to one listener.
+        props.put(EventDeliveryConstants.DELIVERY_MODE, EventDeliveryMode.P2P);
+        // make the message persistent to survive restarts.
+        props.put(EventDeliveryConstants.MESSAGE_MODE, EventMessageMode.PERSISTENT);
         props.put(OutgoingEmailMessageListener.RECIPIENTS, recipients);
         props.put(OutgoingEmailMessageListener.NODE_PATH_PROPERTY, n.getPath());
         Event emailEvent = new Event(OutgoingEmailMessageListener.TOPIC_NAME, props);

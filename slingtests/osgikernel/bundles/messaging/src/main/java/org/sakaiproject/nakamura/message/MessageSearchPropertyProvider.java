@@ -17,7 +17,14 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import static org.sakaiproject.nakamura.api.search.SearchUtil.escapeString;
+
 import org.apache.commons.lang.StringUtils;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -28,30 +35,21 @@ import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 import java.util.Map;
 
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 
 /**
  * Provides properties to process the search
- * 
- * @scr.component immediate="true" label="MessageSearchPropertyProvider"
- *                description="Formatter for connection search results"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="sakai.search.provider" value="Message"
- * @scr.service interface="org.sakaiproject.nakamura.api.search.SearchPropertyProvider"
- * @scr.reference name="MessagingService"
- *                interface="org.sakaiproject.nakamura.api.message.MessagingService"
- *                bind="bindMessagingService" unbind="unbindMessagingService"
  */
+@Component(immediate = true, label = "MessageSearchPropertyProvider", description = "Provides some message search properties.")
+@Service
+@Properties(value = {
+    @Property(name = "service.vendor", value = "The Sakai Foundation"),
+    @Property(name = "service.description", value = "Provides some message search properties."),
+    @Property(name = "sakai.search.provider", value = "Message") })
 public class MessageSearchPropertyProvider implements SearchPropertyProvider {
 
-  private MessagingService messagingService;
-
-  protected void bindMessagingService(MessagingService messagingService) {
-    this.messagingService = messagingService;
-  }
-
-  protected void unbindMessagingService(MessagingService messagingService) {
-    this.messagingService = null;
-  }
+  @Reference
+  protected transient MessagingService messagingService;
 
   /**
    * {@inheritDoc}
@@ -81,7 +79,7 @@ public class MessageSearchPropertyProvider implements SearchPropertyProvider {
       String[] users = StringUtils.split(usersParam.getString(), ',');
 
       for (String u : users) {
-        sql += "@sakai:from=\"" + u + "\" or ";
+        sql += "@sakai:from=\"" + escapeString(u, Query.XPATH) + "\" or ";
       }
       sql = sql.substring(0, sql.length() - 4);
       sql += ")";

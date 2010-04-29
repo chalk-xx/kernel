@@ -24,6 +24,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.ReferenceMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.slf4j.Logger;
@@ -55,177 +58,124 @@ import java.util.Properties;
  */
 
 /**
- * Holds the configuration properties that are used in the nakamura. This is an OSGi Managed
- * service that collects together all the configuation properties.
- * 
- * 
- * @scr.component immediate="true" label="Sakai Configuration Service"
- *                description="Provides Configuration for nakamura components"
- * @scr.property name="service.description" value="Implementation of the Configuration Service that provides setup properties for all nakamura bundles."
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.api.configuration.ConfigurationService"
- * 
+ * Holds the configuration properties that are used in nakamura. This is an OSGi Managed
+ * service that collects together all the configuration properties.
  */
+@Component(immediate = true, metatype = true, label = "Sakai Configuration Service", description = "Provides Configuration for nakamura components")
+@Service(value = ConfigurationService.class)
 public class NakamuraConstants implements ConfigurationService, ManagedService {
 
-  /**
-   * 
-   * @scr.property value="/userenv" type="String" name="JCR User Environment Base Path"
-   *               description="The location of system private data in the repo, read only, one time configuration per repository."
-   */
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Implementation of the Configuration Service that provides setup properties for all nakamura bundles.")
+  static final String SERVICE_DESCRIPTION = "service.description";
+
+  @Property(value = "/userenv", name = "JCR User Environment Base Path", description = "The location of system private data in the repo, read only, one time configuration per repository.")
   public static final String JCR_USERENV_BASE = "jcruserenv.base";
   /**
    * list of templates in the form type=path;type=path;
-   * 
-   * @scr.property value="jcruserenv.templates=student=/configuration/defaults/usertypes/userenv-student.json;researcher=/configuration/defaults/usertypes/userenv-researcher.json;"
-   *               type="String"
    */
+  @Property(value = "jcruserenv.templates=student=/configuration/defaults/usertypes/userenv-student.json;researcher=/configuration/defaults/usertypes/userenv-researcher.json;")
   public static final String JCR_USERENV_TEMPLATES = "jcruserenv.templates";
   /**
    * The default template for a user
-   * 
-   * @scr.property value="/configuration/defaults/usertypes/userenv-default.json"
-   *               type="String"
    */
+  @Property(value = "/configuration/defaults/usertypes/userenv-default.json")
   public static final String JCR_DEFAULT_TEMPLATE = "jcruserenv.templates.default";
   /**
    * list of profile templates in the form type=path;type=path;
-   * 
-   * @scr.property value="/configuration/defaults/usertypes/profile-student.json;researcher=/configuration/defaults/usertypes/profile-researcher.json;"
-   *               type="String"
    */
+  @Property(value = "/configuration/defaults/usertypes/profile-student.json;researcher=/configuration/defaults/usertypes/profile-researcher.json;")
   public static final String JCR_PROFILE_TEMPLATES = "jcrprofile.templates";
   /**
    * The default template for a user
-   * 
-   * @scr.property value="/configuration/defaults/usertypes/profile-default.json"
-   *               type="String"
    */
+  @Property(value = "/configuration/defaults/usertypes/profile-default.json")
   public static final String JCR_PROFILE_DEFAUT_TEMPLATES = "jcrprofile.templates.default";
   /**
    * The template locations for site creation.
-   * 
-   * @scr.property value="project=/configuration/defaults/sitetypes/project-site.json;course=/configuration/defaults/sitetypes/course-site.json;"
-   *               type="String"
    */
+  @Property(value = "project=/configuration/defaults/sitetypes/project-site.json;course=/configuration/defaults/sitetypes/course-site.json;")
   public static final String JCR_SITE_TEMPLATES = "jcrsite.templates";
   /**
    * Default site template.
-   * 
-   * @scr.property value="/configuration/defaults/sitetypes/default-site.json"
-   *               type="String"
    */
+  @Property(value = "/configuration/defaults/sitetypes/default-site.json")
   public static final String JCR_SITE_DEFAULT_TEMPLATE = "jcrsite.templates.default";
 
   /**
    * The property name defining the users public data
-   * 
-   * @scr.property value="/_user/public" type="String"
    */
+  @Property(value = "/_user/public")
   public static final String PRIVATE_SHARED_PATH_BASE = "jcrprivateshared.base";
   /**
    * The property name defining the data that is completely private to the user.
-   * 
-   * @scr.property value="/_user/private" type="String"
    */
+  @Property(value = "/_user/private")
   public static final String PRIVATE_PATH_BASE = "jcrprivate.base";
   /**
    * Setting: The time to live of User Env objects the local cache, this should be set in
    * the nakamura properties file.
-   * 
-   * @scr.property value="600000" type="String"
    */
+  @Property(value = "600000")
   public static final String TTL = "userenvironment.ttl";
 
   /**
-   * This controls whether anonymous account creation is enabled. I also enables the
+   * This controls whether anonymous account creation is enabled. It also enables the
    * ability to to check for the existence of eids in the system anonymously....without
    * being superuser.
-   * 
-   * @scr.property value="true" type="String"
    */
+  @Property(value = "true")
   public static final String PROP_ANON_ACCOUNTING = "rest.user.anonymous.account.creation";
   /**
    * Control over the JPA Entity Manager scope, can be THREAD if its really stable
    * although this means the filter must commit, or REQUEST, then the standard filter
    * manages commits
-   * 
-   * @scr.property value="REQUEST" type="String"
    */
+  @Property(value = "REQUEST")
   public static final String ENTITY_MANAGER_SCOPE = "jpa.entitymanager.scope";
 
-  /**
-   * @scr.property value="org.apache.derby.jdbc.EmbeddedDriver" type="String"
-   */
+  @Property(value = "org.apache.derby.jdbc.EmbeddedDriver")
   public static final String JDBC_DRIVER_NAME = "jdbc.driver";
-  /**
-   * @scr.property value="jdbc:derby:target/testdb;create=true" type="String"
-   */
+  @Property(value = "jdbc:derby:target/testdb;create=true")
   public static final String JDBC_URL = "jdbc.url";
-  /**
-   * @scr.property value="sa" type="String"
-   */
+  @Property(value = "sa")
   public static final String JDBC_USERNAME = "jdbc.username";
-  /**
-   * @scr.property value="" type="String"
-   */
+  @Property
   public static final String JDBC_PASSWORD = "jdbc.password";
-  /**
-   * @scr.property value="values(1)" type="String"
-   */
+  @Property(value = "values(1)")
   public static final String JDBC_VALIDATION_QUERY = "jdbc.validation";
-  /**
-   * @scr.property value="false" type="String"
-   */
+  @Property(value = "false")
   public static final String JDBC_DEFAULT_READ_ONLY = "jdbc.defaultReadOnly";
-  /**
-   * @scr.property value="true" type="String"
-   */
+  @Property(value = "true")
   public static final String JDBC_DEFAULT_AUTO_COMMIT = "jdbc.defaultAutoCommit";
-  /**
-   * @scr.property value="false" type="String"
-   */
+  @Property(value = "false")
   public static final String JDBC_DEFAULT_PREPARED_STATEMENTS = "jdbc.defaultPreparedStatement";
-  /**
-   * @scr.property value="600" type="String"
-   */
+  @Property(value = "600")
   public static final String TRANSACTION_TIMEOUT_SECONDS = "transaction.timeoutSeconds";
-  /**
-   * @scr.property value="1" type="String"
-   */
+  @Property(value = "1")
   public static final String DB_MIN_WRITE = "eclipselink.write.min";
-  /**
-   * @scr.property value="1" type="String"
-   */
+  @Property(value = "1")
   public static final String DB_MIN_NUM_READ = "eclipselink.read.min";
-  /**
-   * @scr.property value="default" type="String"
-   */
+  @Property(value = "default")
   public static final String DB_UNITNAME = "jpa.unitname";
-  /**
-   * @scr.property value="SAKAIID" type="String"
-   */
+  @Property(value = "SAKAIID")
   public static final String SESSION_COOKIE = "http.global.cookiename";
 
-  /**
-   * @scr.property value="" type="String"
-   */
+  @Property
   public static final String SUBJECT_PROVIDER_REGISTRY = "subjectstatement.provider";
   /**
    * The name of the registry used for this type of service.
-   * 
-   * @scr.property value="" type="String"
    */
+  @Property
   public static final String AUTHENTICATION_PROVIDER_REGISTRY = "authentication.provider.registry";
-  /**
-   * @scr.property value="" type="String"
-   */
+  @Property
   public static final String MANAGER_PROVIDER_REGISTRY = "authentication.manager.provider.registry";
   /**
    * The name of the registry used for this type of service.
-   * 
-   * @scr.property value="" type="String"
    */
+  @Property
   public static final String USER_PROVIDER_REGISTRY = "user.provider.registry";
 
   // constant properties

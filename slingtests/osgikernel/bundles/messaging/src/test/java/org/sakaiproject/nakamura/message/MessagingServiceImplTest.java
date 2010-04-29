@@ -117,12 +117,12 @@ public class MessagingServiceImplTest {
     replay(siteService);
 
     messagingServiceImpl = new MessagingServiceImpl();
-    messagingServiceImpl.bindSiteService(siteService);
+    messagingServiceImpl.siteService = siteService;
   }
 
   @After
   public void tearDown() {
-    messagingServiceImpl.unbindSiteService(siteService);
+    messagingServiceImpl.siteService = null;
     verify(siteService);
   }
 
