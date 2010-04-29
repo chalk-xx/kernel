@@ -17,16 +17,11 @@
  */
 package org.sakaiproject.nakamura.connections;
 
+import static javax.jcr.security.Privilege.JCR_ALL;
+import static javax.jcr.security.Privilege.JCR_READ;
+import static javax.jcr.security.Privilege.JCR_WRITE;
+import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
-import static org.sakaiproject.nakamura.util.ACLUtils.ADD_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.MODIFY_PROPERTIES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_DENIED;
-import static org.sakaiproject.nakamura.util.ACLUtils.READ_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_CHILD_NODES_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.REMOVE_NODE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_DENIED;
-import static org.sakaiproject.nakamura.util.ACLUtils.WRITE_GRANTED;
-import static org.sakaiproject.nakamura.util.ACLUtils.addEntry;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -85,14 +80,13 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
       };
       Principal everyone = principalManager.getEveryone();
 
-      addEntry(store.getPath(), authorizable.getPrincipal(), session, READ_GRANTED,
-          WRITE_GRANTED, REMOVE_CHILD_NODES_GRANTED, MODIFY_PROPERTIES_GRANTED,
-          ADD_CHILD_NODES_GRANTED, REMOVE_NODE_GRANTED);
+      replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
+          new String[] { JCR_ALL }, null, null);
 
       // explicitly deny anon and everyone, this is private space.
-      addEntry(store.getPath(), anon, session, READ_DENIED, WRITE_DENIED);
-      addEntry(store.getPath(), everyone, session, READ_DENIED, WRITE_DENIED);
-
+      String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
+      replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null);
+      replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null);
     }
   }
 

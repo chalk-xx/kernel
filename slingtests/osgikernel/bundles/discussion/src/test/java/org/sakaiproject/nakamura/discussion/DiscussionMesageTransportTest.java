@@ -21,31 +21,22 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.easymock.PowerMock;
 import org.sakaiproject.nakamura.api.message.AbstractMessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.message.MessageRoute;
 import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
-import org.sakaiproject.nakamura.util.ACLUtils;
-
-import java.security.Principal;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
 import javax.jcr.version.VersionException;
 
 /**
@@ -58,7 +49,6 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
   private SlingRepository repository;
   private MessageRoutes routes;
   private JackrabbitSession adminSession;
-  private UserManager userManager;
 
   @Before
   public void setUp() throws Exception {
@@ -66,15 +56,14 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
 
     routes = new MockMessageRoutes();
     transport = new DiscussionMessageTransport();
+    transport.activateTesting();
     messagingService = createMock(MessagingService.class);
 
-    userManager = createMock(UserManager.class);
-
     adminSession = createMock(JackrabbitSession.class);
+    adminSession.logout();
 
     repository = createMock(SlingRepository.class);
     expect(repository.loginAdministrative(null)).andReturn(adminSession);
-    adminSession.logout();
 
     transport.bindMessagingService(messagingService);
     transport.bindSlingRepository(repository);
@@ -98,24 +87,6 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
     expect(messagingService.getFullPathToMessage("s-site", "a1b2c3d4e5f6", adminSession))
         .andReturn("/sites/site/store/a1b2c3d4e5f6");
 
-    // Authorizable
-    Principal principal = createMock(Principal.class);
-    expect(principal.getName()).andReturn("johndoe");
-    Authorizable auth = createMock(Authorizable.class);
-    expect(auth.getPrincipal()).andReturn(principal);
-    expect(userManager.getAuthorizable("johndoe")).andReturn(auth);
-    expect(adminSession.getUserManager()).andReturn(userManager);
-    AccessControlManager accessControlManager = createNiceMock(AccessControlManager.class);
-    expect(adminSession.getAccessControlManager()).andReturn(accessControlManager).anyTimes();
-    AccessControlPolicyIterator accessControlPolicyIterator = createNiceMock(AccessControlPolicyIterator.class);
-    expect(accessControlManager.getApplicablePolicies("/sites/site/store/a1b2c3d4e5f6")).andReturn(accessControlPolicyIterator).atLeastOnce();
-    expect(accessControlManager.getPolicies("/sites/site/store/a1b2c3d4e5f6")).andReturn(new AccessControlPolicy[0]).atLeastOnce();
-
-    // mockStatic(ACLUtils.class);
-    // ACLUtils.addEntry("/sites/site/store/a1b2c3d4e5f6", auth, adminSession,
-    // ACLUtils.WRITE_GRANTED, ACLUtils.READ_GRANTED, ACLUtils.REMOVE_NODE_GRANTED);
-    // PowerMock.replay(ACLUtils.class);
-
     // deepGetOrCreate new node
     MockNode messageNode = new MockNode("/sites/site/store/a1b2c3d4e5f6");
     expect(adminSession.itemExists("/sites/site/store/a1b2c3d4e5f6")).andReturn(true);
@@ -130,8 +101,6 @@ public class DiscussionMesageTransportTest extends AbstractEasyMockTest {
 
     replay();
     transport.send(routes, null, node);
-
-    PowerMock.verify(ACLUtils.class);
 
     assertEquals("notified", messageNode.getProperty(
         MessageConstants.PROP_SAKAI_SENDSTATE).getString());

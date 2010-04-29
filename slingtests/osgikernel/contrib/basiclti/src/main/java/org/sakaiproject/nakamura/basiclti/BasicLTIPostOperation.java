@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.basiclti;
 
+import static javax.jcr.security.Privilege.JCR_ALL;
+import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
@@ -41,11 +43,11 @@ import org.apache.sling.servlets.post.AbstractSlingPostOperation;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostOperation;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.util.ACLUtils;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,17 +237,21 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
         .getUserManager(adminSession);
     final PrincipalManager principalManager = AccessControlUtil
         .getPrincipalManager(adminSession);
-    final Authorizable anonymous = userManager
-        .getAuthorizable(UserConstants.ANON_USERID);
     final Authorizable currentUser = userManager.getAuthorizable(currentUserId);
-    final Authorizable everyone = userManager.getAuthorizable(principalManager
-        .getEveryone());
-    ACLUtils.addEntry(sensitiveNodePath, anonymous, adminSession,
-        ACLUtils.ALL_DENIED);
-    ACLUtils.addEntry(sensitiveNodePath, everyone, adminSession,
-        ACLUtils.ALL_DENIED);
-    ACLUtils.addEntry(sensitiveNodePath, currentUser, adminSession,
-        ACLUtils.ALL_DENIED);
+
+    Principal anon = new Principal() {
+      public String getName() {
+        return UserConstants.ANON_USERID;
+      }
+    };
+    Principal everyone = principalManager.getEveryone();
+
+    replaceAccessControlEntry(adminSession, sensitiveNodePath, anon, null,
+        new String[] { JCR_ALL }, null);
+    replaceAccessControlEntry(adminSession, sensitiveNodePath, everyone, null,
+        new String[] { JCR_ALL }, null);
+    replaceAccessControlEntry(adminSession, sensitiveNodePath,
+        currentUser.getPrincipal(), null, new String[] { JCR_ALL }, null);
   }
 
   /**

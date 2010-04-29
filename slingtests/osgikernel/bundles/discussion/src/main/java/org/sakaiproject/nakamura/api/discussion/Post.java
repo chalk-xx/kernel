@@ -17,12 +17,16 @@
  */
 package org.sakaiproject.nakamura.api.discussion;
 
+import static javax.jcr.security.Privilege.JCR_MODIFY_PROPERTIES;
+import static javax.jcr.security.Privilege.JCR_REMOVE_CHILD_NODES;
+import static javax.jcr.security.Privilege.JCR_REMOVE_NODE;
+import static javax.jcr.security.Privilege.JCR_WRITE;
+
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.util.ACLUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -91,9 +95,8 @@ public class Post {
     try {
       AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
           .getSession());
-      Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
-      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED
-          .substring(2));
+      Privilege write = acm.privilegeFromName(JCR_WRITE);
+      Privilege modProps = acm.privilegeFromName(JCR_MODIFY_PROPERTIES);
       Privilege[] privileges = { write, modProps };
       if (acm.hasPrivileges(node.getPath(), privileges)) {
         return true;
@@ -118,13 +121,10 @@ public class Post {
     try {
       AccessControlManager acm = AccessControlUtil.getAccessControlManager(node
           .getSession());
-      Privilege write = acm.privilegeFromName(ACLUtils.WRITE_GRANTED.substring(2));
-      Privilege modProps = acm.privilegeFromName(ACLUtils.MODIFY_PROPERTIES_GRANTED
-          .substring(2));
-      Privilege deleteNode = acm.privilegeFromName(ACLUtils.REMOVE_NODE_GRANTED
-          .substring(2));
-      Privilege deleteChildNode = acm
-          .privilegeFromName(ACLUtils.REMOVE_CHILD_NODES_GRANTED.substring(2));
+      Privilege write = acm.privilegeFromName(JCR_WRITE);
+      Privilege modProps = acm.privilegeFromName(JCR_MODIFY_PROPERTIES);
+      Privilege deleteNode = acm.privilegeFromName(JCR_REMOVE_NODE);
+      Privilege deleteChildNode = acm.privilegeFromName(JCR_REMOVE_CHILD_NODES);
       Privilege[] privileges = { write, modProps, deleteNode, deleteChildNode };
       if (acm.hasPrivileges(node.getPath(), privileges)) {
         return true;
