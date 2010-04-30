@@ -21,7 +21,7 @@ import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
-@Component
+@Component(enabled = false)
 @Service
 public class LdapLoginModulePlugin implements LoginModulePlugin {
   @Reference
@@ -43,7 +43,15 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
   public boolean canHandle(Credentials cred) {
-    return cred instanceof SimpleCredentials;
+    boolean canHandle = false;
+    if (cred instanceof SimpleCredentials) {
+      SimpleCredentials sc = (SimpleCredentials) cred;
+      if (sc.getUserID() != null && sc.getUserID().length() > 0
+          && sc.getPassword() != null && sc.getPassword().length > 0) {
+        canHandle = true;
+      }
+    }
+    return canHandle;
   }
 
   /**

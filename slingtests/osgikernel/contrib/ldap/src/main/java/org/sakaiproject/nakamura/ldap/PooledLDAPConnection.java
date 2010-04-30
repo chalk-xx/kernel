@@ -54,6 +54,7 @@ public class PooledLDAPConnection extends LDAPConnection {
 	private long birthdate = new Date().getTime();
 
 	public PooledLDAPConnection() {
+	  super();
 	}
 	
 	public PooledLDAPConnection(LDAPSocketFactory socketFactory) {

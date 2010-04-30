@@ -16,7 +16,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.sakaiproject.nakamura.api.persondirectory.Person;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
@@ -185,8 +184,6 @@ public class LdapPersonProvider implements PersonProvider {
       }
 
       return ldapPerson;
-    } catch (LdapException e) {
-      throw new PersonProviderException(e.getMessage(), e);
     } catch (LDAPException e) {
       throw new PersonProviderException(e.getMessage(), e);
     }

@@ -42,8 +42,8 @@ public interface LdapConnectionManager {
 
   /**
    * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials. If null
-   * is passed for the dn, the default dn and password will be used. If null is provided
-   * but no 
+   * is passed for the dn, the default dn and password will be used mimicking
+   * getConnection() with autobind = true.
    * 
    * @param dn
    *          The distinguished name for binding.

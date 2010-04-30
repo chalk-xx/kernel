@@ -45,7 +45,6 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.sakaiproject.nakamura.api.persondirectory.Person;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
 
@@ -186,7 +185,7 @@ public class LdapPersonProviderTest {
     LdapConnectionManager mgr = createMock(LdapConnectionManager.class);
     LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
     expect(mgr.getConfig()).andReturn(config);
-    expect(mgr.getConnection()).andThrow(new LdapException("oops"));
+    expect(mgr.getConnection()).andThrow(new LDAPException());
     replay(mgr);
 
     LdapPersonProvider provider = new LdapPersonProvider(mgr);
@@ -238,7 +237,7 @@ public class LdapPersonProviderTest {
    * @return
    * @throws Exception
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private LdapPersonProvider setUpForPositiveTest(String[] attributeMap, boolean allowAdmin)
       throws Exception {
     LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);

@@ -16,7 +16,6 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.jcr.Credentials;
@@ -26,24 +25,29 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(metatype = true)
+@Component(metatype = true, enabled = false)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   private static final Logger log = LoggerFactory
       .getLogger(LdapAuthenticationPlugin.class);
 
-  public static final String DEFAULT_LDAP_BASE_DN = "uid={}";
-  @Property(value = DEFAULT_LDAP_BASE_DN)
+  private static final String UTF8 = "UTF-8";
+
+  @Property(value = "o=sakai")
   static final String LDAP_BASE_DN = "sakai.auth.ldap.baseDn";
   private String baseDn;
+
+  @Property(value = "uid={}")
+  static final String USER_FILTER = "sakai.auth.ldap.filter.user";
+  private String userFilter;
 
   /**
    * Filter applied to make sure user has the required authorization (ie. attributes).
    */
-  @Property
-  static final String FILTER = "sakai.auth.ldap.filter";
-  private String filter;
+  @Property(value = "(&(allowSakai=true))")
+  static final String AUTHZ_FILTER = "sakai.auth.ldap.filter.authz";
+  private String authzFilter;
 
   @Reference
   private LdapConnectionManager connMgr;
@@ -67,7 +71,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   private void processProps(Map<?, ?> props) {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
-    filter = OsgiUtil.toString(props.get(FILTER), null);
+    userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
+    authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
   }
 
   public boolean authenticate(Credentials credentials) throws RepositoryException {
@@ -79,63 +84,71 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-      String user = sc.getUserID();
-      String userDn = buildBaseDn(user);
+      String userDn = userFilter.replace("{}", sc.getUserID());
       String userPass = new String(sc.getPassword());
 
       LDAPConnection conn = null;
       try {
-        // 1) Bind as app user
-        conn = connMgr.getBoundConnection(appUser, appPass);
+        try {
+          // 1) Bind as app user
+          conn = connMgr.getBoundConnection(appUser, appPass);
+        } catch (LDAPException e) {
+          throw new IllegalArgumentException("Can't bind application user [" + appUser
+              + "]", e);
+        }
 
         // 2) Search for username (not authz).
         // If search fails, log/report invalid username or password.
-        LDAPSearchResults results = conn.search(userDn, LDAPConnection.SCOPE_ONE, null,
+        LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userDn,
             null, false);
         if (results.getCount() == 0) {
-          log.warn("Invalid username when check LDAP [{}]", user);
-        } else {
+          throw new IllegalArgumentException("Can't find user [" + userDn + "]");
+        }
+
+        // 3) Bind as username.
+        // If bind fails, log/report invalid username or password.
+        try {
+          conn.bind(LDAPConnection.LDAP_V3, userDn + ", " + baseDn, userPass
+              .getBytes(UTF8));
+        } catch (LDAPException e) {
+          log.warn("Can't bind user [{}]", userDn);
+          throw e;
+        }
+
+        if (authzFilter.length() > 0) {
+          // 4) Return to app user
           try {
-            // 3) Bind as username.
-            // If bind fails, log/report invalid username or password.
-            conn.bind(LDAPConnection.LDAP_V3, userDn, userPass.getBytes("UTF-8"));
-
-            // 4) Return to app user
-            conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes("UTF-8"));
-
-            // 5) Search user DN with authz filter
-            // If search fails, log/report that user is not authorized
-            results = conn.search(userDn, LDAPConnection.SCOPE_ONE, filter, null, false);
-
-            if (results.getCount() == 0) {
-              log.warn("User not authorized to login [{}]", user);
-            } else {
-              // FINALLY!
-              auth = true;
-            }
+            conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
           } catch (LDAPException e) {
-            log.warn(e.getMessage(), e);
-          } catch (UnsupportedEncodingException e) {
-            throw new RepositoryException(e.getMessage(), e);
+            log.warn("{}]", appUser);
+            throw new IllegalArgumentException("Can't bind application user [" + appUser
+                + "]");
+          }
+
+          // 5) Search user DN with authz filter
+          // If search fails, log/report that user is not authorized
+          String userAuthzFilter = "(&(" + userDn + ")(" + authzFilter + "))";
+          results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userAuthzFilter, null,
+              false);
+          if (results.getCount() == 0) {
+            throw new IllegalArgumentException("User not authorized [" + userDn + "]");
           }
         }
-      } catch (LDAPException e) {
-        throw new RepositoryException(e.getMessage(), e);
+
+        // FINALLY!
+        auth = true;
+      } catch (Exception e) {
+        log.warn(e.getMessage(), e);
+
+        if (e instanceof RepositoryException) {
+          throw (RepositoryException) e;
+        } else {
+          throw new RepositoryException(e.getMessage(), e);
+        }
       } finally {
         connMgr.returnConnection(conn);
       }
     }
     return auth;
-  }
-
-  /**
-   * Builds the DN needed to search for the specified user.
-   * 
-   * @param userId
-   * @return
-   */
-  protected String buildBaseDn(String userId) {
-    String dn = baseDn.replace("{}", userId);
-    return dn;
   }
 }

@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPSearchResults;
+
 import static junit.framework.Assert.assertTrue;
 
 import static junit.framework.Assert.assertFalse;
@@ -25,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.internal.stubbing.defaultanswers.Answers;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 
@@ -40,12 +44,20 @@ public class LdapAuthenticationPluginTest {
   
   private LdapAuthenticationPlugin ldapAuthenticationPlugin;
   
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private LdapConnectionManager connMgr;
+  
+  @Mock
+  private LDAPConnection conn;
+  
+  @Mock
+  private LDAPSearchResults results;
   
   @Before
   public void setup() throws Exception {
-    when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(null);
+    when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(conn);
+    when(connMgr.getConfig().getLdapUser()).thenReturn("admin");
+    when(connMgr.getConfig().getLdapPassword()).thenReturn("admin");
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr);
   }
 
@@ -62,9 +74,16 @@ public class LdapAuthenticationPluginTest {
   public void canAuthenticateWithValidCredentials() throws Exception {
     // given
     HashMap<String, String> props = new HashMap<String, String>();
-    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, "uid={}");
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, "ou=People,o=nyu.edu,o=nyu");
+    props.put(LdapAuthenticationPlugin.USER_FILTER, "uid={}");
+    props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, "eduEntitlements=sakai");
     ldapAuthenticationPlugin.activate(props);
     
+    when(
+        conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
+        .thenReturn(results);
+    when(results.getCount()).thenReturn(1);
+
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
   }
