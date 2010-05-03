@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.nakamura.ldap.api;
+package org.sakaiproject.nakamura.api.ldap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,7 +116,7 @@ public class LdapConnectionManagerConfigTest {
     config.setLdapPort(LDAPConnection.DEFAULT_SSL_PORT);
     assertEquals(LDAPConnection.DEFAULT_SSL_PORT, config.getLdapPort());
     config.setLdapPort(-1000);
-    assertEquals(-1000, config.getLdapPort());
+    assertEquals(LDAPConnection.DEFAULT_PORT, config.getLdapPort());
 
     config.setLdapUser("someLdapUser");
     assertEquals("someLdapUser", config.getLdapUser());

@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPSocketFactory;
 
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
@@ -28,6 +29,7 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 /**
@@ -46,30 +48,23 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   private static Logger log = LoggerFactory.getLogger(PooledLDAPConnectionFactory.class);
 
   /** the controlling connection manager */
-  private LdapConnectionManager connMgr;
-
-  /** connection information */
-  private String host;
-  private int port;
-  private String binddn;
-  private byte[] bindpw;
-  private boolean autoBind;
-
-  /** flag to tell us if we are using TLS */
-  private boolean useTLS;
+  private LdapConnectionManager mgr;
 
   /** standard set of LDAP constraints */
   private LDAPConstraints standardConstraints;
 
   private List<LdapConnectionLivenessValidator> validators;
 
-  public PooledLDAPConnectionFactory() {
+  public PooledLDAPConnectionFactory(LdapConnectionManager connMgr,
+      List<LdapConnectionLivenessValidator> validators) {
+    setConnectionManager(connMgr);
+    setLivenessValidators(validators);
   }
 
   public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
     this.validators = validators;
   }
-
+  
   /**
    * Constructs a new PooledLDAPConnection object, including: passing it the
    * connection manager so it can return itself to the pool if it falls out of
@@ -83,22 +78,29 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
     PooledLDAPConnection conn = newConnection();
 
     log.debug("makeObject(): instantiated connection");
-    conn.setConnectionManager(connMgr);
+    conn.setConnectionManager(mgr);
 
     log.debug("makeObject(): assigned connection ConnectionManager");
     conn.setConstraints(standardConstraints);
 
     log.debug("makeObject(): assigned connection constraints");
-    conn.connect(host, port);
+    conn.connect(mgr.getConfig().getLdapHost(), mgr.getConfig().getLdapPort());
 
     log.debug("makeObject(): connected connection");
-    if (useTLS) {
+    if (mgr.getConfig().isTLS()) {
       log.debug("makeObject(): attempting to initiate TLS");
       conn.startTLS();
       log.debug("makeObject(): successfully initiated TLS");
     }
-    if (this.autoBind) {
+    if (mgr.getConfig().isAutoBind()) {
+      String binddn = mgr.getConfig().getLdapUser();
       log.debug("makeObject(): binding connection to default bind DN [{}]", binddn);
+      byte[] bindpw;
+      try {
+        bindpw = mgr.getConfig().getLdapPassword().getBytes("UTF8");
+      } catch (Exception e) {
+        throw new RuntimeException("unable to encode bind password", e);
+      }
       conn.bind(LDAPConnection.LDAP_V3, binddn, bindpw);
       log.debug("makeObject(): successfully bound connection to default bind DN []", binddn);
     }
@@ -108,7 +110,9 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   }
 
   protected PooledLDAPConnection newConnection() {
-    return new PooledLDAPConnection();
+    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(mgr.getConfig());
+    PooledLDAPConnection conn = new PooledLDAPConnection(ldapSocketFactory);
+    return conn;
   }
 
   /**
@@ -170,7 +174,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
 
         log.debug("validateObject(): connection bindAttempted flag is set");
 
-        if (!(autoBind)) {
+        if (!(mgr.getConfig().isAutoBind())) {
           log
               .debug("validateObject(): last borrower attempted bind operation, but no default bind credentials available, invalidating connection");
           conn.setActive(false);
@@ -180,6 +184,13 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
         }
 
         try {
+          String binddn = mgr.getConfig().getLdapUser();
+          byte[] bindpw = null;
+          try {
+            bindpw = mgr.getConfig().getLdapPassword().getBytes("UTF-8");
+          } catch (UnsupportedEncodingException e) {
+            // ignore
+          }
           log
               .debug(
                   "validateObject(): last borrower attempted bind operation - rebinding with defaults [bind dn: {}]",
@@ -250,7 +261,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   /**
    * Sets the LdapConnectionManager that the Factory will use to configure and
    * manage its PooledLDAPConnections. This includes gathering all the
-   * connection information (host, port, user, passord), setting the
+   * connection information (host, port, user, password), setting the
    * SocketFactory, determining if we are using TLS, and creating the default
    * constraints.
    *
@@ -259,28 +270,13 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
    */
   public void setConnectionManager(LdapConnectionManager connectionManager) {
 
-    this.connMgr = connectionManager;
-
-    // collect connection information
-    this.host = connectionManager.getConfig().getLdapHost();
-    this.port = connectionManager.getConfig().getLdapPort();
-    this.autoBind = connectionManager.getConfig().isAutoBind();
-    if (this.autoBind) {
-      this.binddn = connectionManager.getConfig().getLdapUser();
-      try {
-        this.bindpw = connectionManager.getConfig().getLdapPassword().getBytes("UTF8");
-      } catch (Exception e) {
-        throw new RuntimeException("unable to encode bind password", e);
-      }
-    }
-
-    // determine if we are using TLS
-    useTLS = connectionManager.getConfig().isSecureConnection()
-        && connectionManager.getConfig().isTLS();
+    LdapConnectionManagerConfig config = connectionManager.getConfig();
 
     // set up the standard constraints
     standardConstraints = new LDAPConstraints();
-    standardConstraints.setTimeLimit(connectionManager.getConfig().getOperationTimeout());
-    standardConstraints.setReferralFollowing(connectionManager.getConfig().isFollowReferrals());
+    standardConstraints.setTimeLimit(config.getOperationTimeout());
+    standardConstraints.setReferralFollowing(config.isFollowReferrals());
+    
+    this.mgr = connectionManager;
   }
 }

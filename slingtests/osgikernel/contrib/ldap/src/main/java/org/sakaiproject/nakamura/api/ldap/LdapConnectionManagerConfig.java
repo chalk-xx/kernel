@@ -104,10 +104,6 @@ public class LdapConnectionManagerConfig {
    */
   public void setSecureConnection(boolean secureConnection) {
     this.secureConnection = secureConnection;
-
-    if (secureConnection && ldapPort <= 0) {
-      ldapPort = LDAPConnection.DEFAULT_SSL_PORT;
-    }
   }
 
   public boolean isTLS() {
@@ -190,7 +186,15 @@ public class LdapConnectionManagerConfig {
    *          The LDAP connection port to set.
    */
   public void setLdapPort(int ldapPort) {
-    this.ldapPort = ldapPort;
+    if (ldapPort <= 0) {
+      if (secureConnection) {
+        this.ldapPort = LDAPConnection.DEFAULT_SSL_PORT;
+      } else {
+        this.ldapPort = LDAPConnection.DEFAULT_PORT;
+      }
+    } else {
+      this.ldapPort = ldapPort;
+    }
   }
 
   /**

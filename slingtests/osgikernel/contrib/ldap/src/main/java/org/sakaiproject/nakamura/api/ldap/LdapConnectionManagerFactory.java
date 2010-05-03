@@ -15,29 +15,21 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.sakaiproject.nakamura.api.ldap;
 
-public class LdapException extends Exception {
-
+/**
+ * Factory for create {@link LdapConnectionManager}s
+ */
+public interface LdapConnectionManagerFactory {
   /**
+   * Create a new instance of an {@link LdapConnectionManager} using the provided
+   * configuration.
    * 
+   * @param config
+   * @return 
    */
-  private static final long serialVersionUID = -4218342407997822225L;
-
-  public LdapException() {
-    super();
-  }
-
-  public LdapException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public LdapException(String message) {
-    super(message);
-  }
-
-  public LdapException(Throwable cause) {
-    super(cause);
-  }
-
+  LdapConnectionManager create(LdapConnectionManagerConfig config);
+  
+  void destroy(LdapConnectionManager mgr);
 }

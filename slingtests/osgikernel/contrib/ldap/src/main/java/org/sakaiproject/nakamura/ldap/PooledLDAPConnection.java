@@ -21,6 +21,7 @@ import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPResponseQueue;
+import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.slf4j.Logger;
@@ -52,6 +53,14 @@ public class PooledLDAPConnection extends LDAPConnection {
 
 	private long birthdate = new Date().getTime();
 
+	public PooledLDAPConnection() {
+	  super();
+	}
+	
+	public PooledLDAPConnection(LDAPSocketFactory socketFactory) {
+	  super(socketFactory);
+	}
+	
 	/**
 	 * protect against pooled connections leaking out of the pool
 	 */
@@ -103,28 +112,28 @@ public class PooledLDAPConnection extends LDAPConnection {
 		super.bind(i, s, abyte0);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, Map map, Object obj, LDAPConstraints ldapconstraints) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, map, obj, ldapconstraints);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, Map map, Object obj) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, map, obj);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, String[] as, Map map, Object obj, LDAPConstraints ldapconstraints) throws LDAPException {
 		bindAttempted = true;
 		super.bind(s, s1, as, map, obj, ldapconstraints);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
   @Override
   public void bind(String s, String s1, String[] as, Map map, Object obj) throws LDAPException {
 		bindAttempted = true;
