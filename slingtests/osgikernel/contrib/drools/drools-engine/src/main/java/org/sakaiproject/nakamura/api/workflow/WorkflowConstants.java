@@ -24,15 +24,17 @@ import javax.jcr.Session;
  */
 public interface WorkflowConstants {
 
-  public static final String SESSION_STORAGE_PREFIX = "/var/drools/sessions/";
+  public static final String SESSION_STORAGE_PREFIX = "/var/workflow/sessions/";
  
-  public static final String PROCESS_INSTANCE_EVENT_STORAGE_PREFIX = "/var/drools/processinstanceevents/";
+  public static final String PROCESS_INSTANCE_EVENT_STORAGE_PREFIX = "/var/workflow/signal/";
 
-  public static final String WORK_ITEM_STORAGE_PREFIX = "/var/drools/workitem/";
+  public static final String WORK_ITEM_STORAGE_PREFIX = "/var/workflow/item/";
 
-  public static final String PROCESS_INSTANCE_STORAGE_PREFIX = "/var/drools/processinstance/";
+  public static final String PROCESS_INSTANCE_STORAGE_PREFIX = "/var/workflow/process/";
 
   public static final String PR_PROCESS_INSTANCE_ID = "sakai:workflow-process-instance-id";
+
+  public static final String PR_PROCESS_ID = "sakai:workflow-process-id";
 
   public static final String PR_STARTDATE = "sakai:workflow-start-date";
 

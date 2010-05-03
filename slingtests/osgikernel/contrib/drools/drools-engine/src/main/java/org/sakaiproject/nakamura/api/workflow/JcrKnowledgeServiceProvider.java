@@ -29,10 +29,27 @@ import javax.jcr.Session;
  */
 public interface JcrKnowledgeServiceProvider {
 
+  /**
+   * Create a new Stateful Knowledge Session backed up by JCR. 
+   * @param kbase the knowledge base.
+   * @param configuration the Session configuration.
+   * @param environment The environment.
+   * @param session a JCR session to use
+   * @return
+   */
   public StatefulKnowledgeSession newStatefulKnowledgeSession(KnowledgeBase kbase,
       KnowledgeSessionConfiguration configuration,
       Environment environment, Session session);
 
+  /**
+   * Load an existing Statefull Knowledge session from JCR.
+   * @param id
+   * @param kbase
+   * @param configuration
+   * @param environment
+   * @param session
+   * @return
+   */
   public StatefulKnowledgeSession loadStatefulKnowledgeSession(int id,
        KnowledgeBase kbase,
        KnowledgeSessionConfiguration configuration,

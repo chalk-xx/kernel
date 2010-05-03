@@ -77,9 +77,7 @@ public class ProcessInstanceEventInfo extends AbstractIdBasedObject {
    */
   @Override
   public void load() throws RepositoryException, IOException {
-    if ( objectNode.hasProperty(WorkflowConstants.PR_PROCESS_INSTANCE_EVENT_TYPE)) {
-      this.eventType = getStringValue(WorkflowConstants.PR_PROCESS_INSTANCE_EVENT_TYPE, "");
-    }
+    this.eventType = getStringValue(WorkflowConstants.PR_PROCESS_INSTANCE_EVENT_TYPE, "");
   }
 
   /**

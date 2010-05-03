@@ -200,7 +200,7 @@ public class ProcessInstanceInfo extends AbstractIdBasedObject {
    */
   @Override
   public void load() throws RepositoryException, IOException {
-    processId = getStringValue(WorkflowConstants.PR_PROCESS_INSTANCE_ID, "");
+    processId = getStringValue(WorkflowConstants.PR_PROCESS_ID, "");
     startDate = getDateValue(WorkflowConstants.PR_STARTDATE, new Date());
     lastReadDate = getDateValue(WorkflowConstants.PR_LAST_READ_DATE, new Date());
 
@@ -223,7 +223,7 @@ public class ProcessInstanceInfo extends AbstractIdBasedObject {
   @Override
   public void save() throws RepositoryException, IOException {
     update();
-    setProperty(WorkflowConstants.PR_PROCESS_INSTANCE_ID, processId);
+    setProperty(WorkflowConstants.PR_PROCESS_ID, processId);
     setProperty(WorkflowConstants.PR_STARTDATE, startDate);
     setProperty(WorkflowConstants.PR_LAST_READ_DATE, lastReadDate);
     setProperty(WorkflowConstants.PR_PROCESS_INSTANCE_LAST_MODIFICATION_DATE, lastModificationDate);
