@@ -283,8 +283,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
             session.save();
           }
         } catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          log.warn(e.getMessage(), e);
         } finally {
           ungetSession(session);
         }
