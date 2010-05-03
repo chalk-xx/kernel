@@ -16,7 +16,3 @@ override.properties
 cachedir
 activemq-data
 /sling
-*.iml
-.idea
-*.ipr
-*.iws
