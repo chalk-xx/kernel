@@ -55,7 +55,7 @@ public class LdapAuthenticationPluginTest {
   
   @Before
   public void setup() throws Exception {
-    when(connMgr.getBoundConnection(anyString(), anyString())).thenReturn(conn);
+    when(connMgr.getConnection()).thenReturn(conn);
     when(connMgr.getConfig().getLdapUser()).thenReturn("admin");
     when(connMgr.getConfig().getLdapPassword()).thenReturn("admin");
     ldapAuthenticationPlugin = new LdapAuthenticationPlugin(connMgr);
