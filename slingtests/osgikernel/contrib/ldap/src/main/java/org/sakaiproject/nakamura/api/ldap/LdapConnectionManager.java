@@ -22,62 +22,52 @@ import com.novell.ldap.LDAPException;
 
 /**
  * Implementations manage <code>LDAPConnection</code> allocation.
- *
+ * 
  * @see LdapConnectionManager
  * @author Dan McCallum, Unicon Inc
  * @author John Lewis, Unicon Inc
- *
+ * 
  */
 public interface LdapConnectionManager {
 
   /**
-   * Initializes an instance for use, typically by digesting the contents of the
-   * assigned {@link LdapConnectionManagerConfig}.
-   */
-  // public void init() throws LdapException;
-
-  /**
-   * Retrieve an <code>LDAPConnection</code> -- the connection may already be
-   * bound depending on the configuration
-   *
+   * Retrieve an <code>LDAPConnection</code> -- the connection may already be bound
+   * depending on the configuration
+   * 
    * @return a connected <code>LDAPConnection</code>
    * @throws LDAPException
    *           if the <code>LDAPConnection</code> allocation fails
    */
-  public LDAPConnection getConnection() throws LdapException;
-
-	/**
-	 * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials
-	 * @param dn the distinguished name for binding
-	 * @param pass the password for binding
-	 * @return a connected <code>LDAPConnection</code>
-	 * @throws LDAPException if the <code>LDAPConnection</code> allocation fails
-	 */
-  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException;
-
-	/**
-	 * Return an <code>LDAPConnection</code>.  This can allow for
-	 * connections to be pooled instead of just destroyed.
-	 * @param conn an <code>LDAPConnection</code> that you no longer need
-	 */
-	public void returnConnection(LDAPConnection conn);
-
-	/**
-	 * Assign the LDAPConnection management configuration.
-	 * Should typically be invoked once and followed by a
-	 * call to init().
-	 * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
-	 */
-	public void setConfig(LdapConnectionManagerConfig config);
-
-	/**
-	 * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
-	 * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
-	 */
-	public LdapConnectionManagerConfig getConfig();
+  LDAPConnection getConnection() throws LDAPException;
 
   /**
-   * Shuts down an instance.
+   * Retrieve a bound <code>LDAPConnection</code> using the indicated credentials. If null
+   * is passed for the dn, the default dn and password will be used mimicking
+   * getConnection() with autobind = true.
+   * 
+   * @param dn
+   *          The distinguished name for binding.
+   * @param pass
+   *          the password for binding
+   * @return a connected <code>LDAPConnection</code>
+   * @throws LDAPException
+   *           if the <code>LDAPConnection</code> allocation fails
    */
-  public void destroy();
+  LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException;
+
+  /**
+   * Return an <code>LDAPConnection</code>. This can allow for connections to be pooled
+   * instead of just destroyed.
+   * 
+   * @param conn
+   *          an <code>LDAPConnection</code> that you no longer need
+   */
+  void returnConnection(LDAPConnection conn);
+
+  /**
+   * Retrieve the currently assigned {@link LdapConnectionManagerConfig}.
+   * 
+   * @return the currently assigned {@link LdapConnectionManagerConfig}, if any
+   */
+  LdapConnectionManagerConfig getConfig();
 }

@@ -20,28 +20,15 @@ package org.sakaiproject.nakamura.ldap;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPConstraints;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPJSSESecureSocketFactory;
-import com.novell.ldap.LDAPJSSEStartTLSFactory;
+import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.cert.CertificateException;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
 
 /**
  * Allocates connected, constrained, and optionally bound and secure
@@ -53,98 +40,62 @@ import javax.net.ssl.TrustManager;
  */
 public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
-  // public static final String KEYSTORE_LOCATION_SYS_PROP_KEY =
-  // "javax.net.ssl.trustStore";
-  // public static final String KEYSTORE_PASSWORD_SYS_PROP_KEY =
-  // "javax.net.ssl.trustStorePassword";
-
   /** Class-specific logger */
   private static Logger log = LoggerFactory.getLogger(SimpleLdapConnectionManager.class);
 
   /** connection allocation configuration */
-  private LdapConnectionManagerConfig config;
+  protected LdapConnectionManagerConfig config;
 
   /**
    * {@inheritDoc}
    */
-  public void init() throws LdapException {
+  public void init(LdapConnectionManagerConfig config) {
 
     log.debug("init()");
 
-    if (config.isSecureConnection()) {
-      log.debug("init(): initializing secure socket factory");
-      try {
-        // initialize the keystore which will create an SSL context by which
-        // socket factories can be created. this allows for multiple keystores
-        // to be managed without the use of system properties.
-        SSLContext ctx = initKeystore(config.getKeystoreLocation(), config.getKeystorePassword());
-        SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
-        if (config.isTLS()) {
-          LDAPConnection.setSocketFactory(new LDAPJSSEStartTLSFactory(sslSocketFactory));
-        } else {
-          LDAPConnection.setSocketFactory(new LDAPJSSESecureSocketFactory(sslSocketFactory));
-        }
-      } catch (GeneralSecurityException e) {
-        log.error(e.getMessage(), e);
-        throw new LdapException(e.getMessage(), e);
-      } catch (IOException e) {
-        log.error(e.getMessage(), e);
-        throw new LdapException(e.getMessage(), e);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @see org.sakaiproject.nakamura.api.ldap.LdapConnectionManager#destroy()
-   */
-  public void destroy() {
-    // nothing to do
+    this.config = config;
+    
+    verifySetup();
   }
 
   /**
    * {@inheritDoc}
    */
-  public LDAPConnection getConnection() throws LdapException {
+  public LDAPConnection getConnection() throws LDAPException {
     log.debug("getConnection()");
 
-    try {
-      LDAPConnection conn = newLDAPConnection();
-      applyConstraints(conn);
-      connect(conn);
+    verifySetup();
 
-      if (config.isAutoBind()) {
-        log.debug("getConnection(): auto-binding");
-        bind(conn, config.getLdapUser(), config.getLdapPassword());
-      }
+    LDAPConnection conn = newLDAPConnection();
+    applyConstraints(conn);
+    connect(conn);
 
-      return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
+    if (config.isAutoBind()) {
+      log.debug("getConnection(): auto-binding");
+      bind(conn, config.getLdapUser(), config.getLdapPassword());
     }
+
+    return conn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public LDAPConnection getBoundConnection(String dn, String pass) throws LdapException {
+  public LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException {
+    verifySetup();
+    
     log.debug("getBoundConnection(): [dn = {}]", config.getLdapUser());
 
-    try {
-      LDAPConnection conn = newLDAPConnection();
-      applyConstraints(conn);
-      connect(conn);
-      bind(conn, dn, pass);
+    LDAPConnection conn = newLDAPConnection();
+    applyConstraints(conn);
+    connect(conn);
+    bind(conn, dn, pass);
 
-      return conn;
-    } catch (LDAPException e) {
-      throw new LdapException(e.getMessage(), e);
-    }
+    return conn;
   }
 
   protected LDAPConnection newLDAPConnection() {
-    LDAPConnection conn = new LDAPConnection();
+    verifySetup();
+    
+    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(config);
+    LDAPConnection conn = new LDAPConnection(ldapSocketFactory);
     return conn;
   }
 
@@ -174,6 +125,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
   /**
    * {@inheritDoc}
+   * 
+   * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
    */
   public void setConfig(LdapConnectionManagerConfig config) {
     this.config = config;
@@ -187,30 +140,6 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   }
 
   /**
-   * Loads a keystore and sets up an SSL context that can be used to create
-   * socket factories that use the suggested keystore.
-   *
-   * @param config
-   * @throws CertificateException
-   * @throws KeyStoreException
-   * @throws NoSuchProviderException
-   * @throws NoSuchAlgorithmException
-   * @throws IOException
-   * @throws KeyManagementException
-   * @throws NullPointerException
-   *           if a non-null keystore location cannot be resolved
-   */
-  protected SSLContext initKeystore(String keystoreLocation, String keystorePassword)
-      throws GeneralSecurityException, IOException {
-    FileInputStream fis = new FileInputStream(keystoreLocation);
-    char[] passChars = (keystorePassword != null) ? keystorePassword.toCharArray() : null;
-    TrustManager[] myTM = new TrustManager[] { new LdapX509TrustManager(fis, passChars) };
-    SSLContext ctx = SSLContext.getInstance("TLS");
-    ctx.init(null, myTM, null);
-    return ctx;
-  }
-
-  /**
    * Applies {@link LDAPConstraints} to the specified {@link LDAPConnection}.
    * Implemented to assign <code>timeLimit</code> and
    * <code>referralFollowing</code> constraint values retrieved from the
@@ -219,6 +148,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    * @param conn
    */
   protected void applyConstraints(LDAPConnection conn) {
+    verifySetup();
+    
     int timeout = config.getOperationTimeout();
     boolean followReferrals = config.isFollowReferrals();
     log.debug("applyConstraints(): values [timeout = {}][follow referrals = {}]", timeout,
@@ -241,6 +172,8 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   protected void connect(LDAPConnection conn) throws LDAPException {
     log.debug("connect()");
 
+    verifySetup();
+    
     conn.connect(config.getLdapHost(), config.getLdapPort());
 
     try {
@@ -278,9 +211,23 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
     log.debug("postConnect()");
 
+    verifySetup();
+    
     if (config.isSecureConnection() && config.isTLS()) {
       log.debug("postConnect(): starting TLS");
       conn.startTLS();
+    }
+  }
+  
+  private void verifySetup() throws IllegalStateException {
+    if (config == null) {
+      throw new IllegalStateException("Configuration not available for this connection manager.");
+    }
+    
+    if (config.getKeystoreLocation() != null && config.getKeystoreLocation().length() > 0
+        && !(new File(config.getKeystoreLocation()).exists())) {
+      throw new IllegalStateException("Keystore not found at specified location ["
+          + config.getKeystoreLocation() + "]");
     }
   }
 }

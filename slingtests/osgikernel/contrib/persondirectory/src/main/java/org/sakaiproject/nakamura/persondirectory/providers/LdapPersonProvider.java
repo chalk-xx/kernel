@@ -15,8 +15,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionBroker;
-import org.sakaiproject.nakamura.api.ldap.LdapException;
+import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.persondirectory.Person;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
@@ -41,7 +40,6 @@ import javax.jcr.Node;
 @Service
 public class LdapPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(LdapPersonProvider.class);
-  private static final String LDAP_BROKER_NAME = "LdapUserProvider";
 
   /** Default LDAP access timeout in milliseconds */
   public static final int DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000;
@@ -67,7 +65,7 @@ public class LdapPersonProvider implements PersonProvider {
   protected static final String PROP_ALLOW_ADMIN_LOOKUP = "ldap.provider.admin.lookup";
 
   @Reference
-  private LdapConnectionBroker ldapBroker;
+  private LdapConnectionManager connMgr;
 
   private boolean allowAdminLookup;
   private String baseDn;
@@ -86,8 +84,8 @@ public class LdapPersonProvider implements PersonProvider {
    *
    * @param ldapBroker
    */
-  protected LdapPersonProvider(LdapConnectionBroker ldapBroker) {
-    this.ldapBroker = ldapBroker;
+  protected LdapPersonProvider(LdapConnectionManager connMgr) {
+    this.connMgr = connMgr;
   }
 
   @Activate
@@ -154,7 +152,7 @@ public class LdapPersonProvider implements PersonProvider {
             new Object[] { baseDn, filter, attributes });
 
         // get a connection
-        LDAPConnection conn = ldapBroker.getConnection(LDAP_BROKER_NAME);
+        LDAPConnection conn = connMgr.getConnection();
         LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
             attributes, false, constraints);
         if (searchResults.hasMore()) {
@@ -186,8 +184,6 @@ public class LdapPersonProvider implements PersonProvider {
       }
 
       return ldapPerson;
-    } catch (LdapException e) {
-      throw new PersonProviderException(e.getMessage(), e);
     } catch (LDAPException e) {
       throw new PersonProviderException(e.getMessage(), e);
     }
