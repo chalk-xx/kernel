@@ -15,78 +15,126 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.sakaiproject.nakamura.workflow.persistence.managers;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jcr.Session;
+
 import org.drools.WorkingMemory;
+import org.drools.common.InternalRuleBase;
+import org.drools.common.InternalWorkingMemory;
+import org.drools.process.core.Process;
 import org.drools.process.instance.ProcessInstance;
 import org.drools.process.instance.ProcessInstanceManager;
+import org.drools.process.instance.impl.ProcessInstanceImpl;
+import org.sakaiproject.nakamura.api.workflow.WorkflowConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-
-/**
- *
- */
 public class JcrProcessInstanceManager implements ProcessInstanceManager {
 
+  private static final Logger LOGGER = LoggerFactory
+      .getLogger(JcrProcessInstanceManager.class);
+  private WorkingMemory workingMemory;
+  private transient Map<Long, ProcessInstance> processInstances;
+  private Session session;
+
   /**
-   * @param workingMemory
+   * 
    */
   public JcrProcessInstanceManager(WorkingMemory workingMemory) {
-    // TODO Auto-generated constructor stub
+    this.workingMemory = workingMemory;
+    session = (Session) this.workingMemory.getEnvironment().get(
+        WorkflowConstants.SESSION_IDENTIFIER);
+
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#addProcessInstance(org.drools.process.instance.ProcessInstance)
-   */
-  public void addProcessInstance(ProcessInstance arg0) {
-    // TODO Auto-generated method stub
-    
+  public void addProcessInstance(ProcessInstance processInstance) {
+    try {
+      ProcessInstanceInfo processInstanceInfo = new ProcessInstanceInfo(session,
+          processInstance);
+      processInstanceInfo.save();
+      processInstance = (ProcessInstance) processInstanceInfo
+          .getProcessInstance(workingMemory);
+      processInstanceInfo.getProcessInstance(workingMemory);
+      processInstanceInfo.updateLastReadDate();
+      internalAddProcessInstance(processInstance);
+    } catch (Exception e) {
+      LOGGER.info("failed to add process instance " + processInstance, e);
+      throw new RuntimeException("failed to add process instance " + processInstance, e);
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#getProcessInstance(long)
-   */
-  public ProcessInstance getProcessInstance(long arg0) {
-    // TODO Auto-generated method stub
-    return null;
+  public void internalAddProcessInstance(ProcessInstance processInstance) {
+    if (this.processInstances == null) {
+      this.processInstances = new HashMap<Long, ProcessInstance>();
+    }
+    processInstances.put(processInstance.getId(), processInstance);
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#getProcessInstances()
-   */
+  public ProcessInstance getProcessInstance(long id) {
+    ProcessInstance processInstance = null;
+    if (this.processInstances != null) {
+      processInstance = this.processInstances.get(id);
+      if (processInstance != null) {
+        return processInstance;
+      }
+    }
+
+    try {
+      ProcessInstanceInfo processInstanceInfo = new ProcessInstanceInfo(session, id);
+      processInstanceInfo.updateLastReadDate();
+      processInstance = (ProcessInstance) processInstanceInfo
+          .getProcessInstance(workingMemory);
+      Process process = ((InternalRuleBase) workingMemory.getRuleBase())
+          .getProcess(processInstance.getProcessId());
+      if (process == null) {
+        throw new IllegalArgumentException("Could not find process "
+            + processInstance.getProcessId());
+      }
+      processInstance.setProcess(process);
+      if (processInstance.getWorkingMemory() == null) {
+        processInstance.setWorkingMemory((InternalWorkingMemory) workingMemory);
+        ((ProcessInstanceImpl) processInstance).reconnect();
+      }
+      return processInstance;
+    } catch (Exception e) {
+      LOGGER.info("Could Not find process " + id, e);
+      throw new IllegalArgumentException("Could Not find process " + id, e);
+    }
+  }
+
   public Collection<ProcessInstance> getProcessInstances() {
-    // TODO Auto-generated method stub
-    return null;
+    return new ArrayList<ProcessInstance>();
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#internalAddProcessInstance(org.drools.process.instance.ProcessInstance)
-   */
-  public void internalAddProcessInstance(ProcessInstance arg0) {
-    // TODO Auto-generated method stub
-    
+  public void removeProcessInstance(ProcessInstance processInstance) {
+    try {
+      ProcessInstanceInfo processInstanceInfo = new ProcessInstanceInfo(session,
+          processInstance);
+      processInstanceInfo.remove();
+      internalRemoveProcessInstance(processInstance);
+    } catch (Exception e) {
+      LOGGER.info("Could Not remove process " + processInstance, e);
+      throw new IllegalArgumentException("Could Not remove process " + processInstance, e);
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#internalRemoveProcessInstance(org.drools.process.instance.ProcessInstance)
-   */
-  public void internalRemoveProcessInstance(ProcessInstance arg0) {
-    // TODO Auto-generated method stub
-    
+  public void internalRemoveProcessInstance(ProcessInstance processInstance) {
+    if (this.processInstances != null) {
+      processInstances.remove(processInstance.getId());
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   * @see org.drools.process.instance.ProcessInstanceManager#removeProcessInstance(org.drools.process.instance.ProcessInstance)
-   */
-  public void removeProcessInstance(ProcessInstance arg0) {
-    // TODO Auto-generated method stub
-    
+  public void clearProcessInstances() {
+    if (processInstances != null) {
+      processInstances.clear();
+    }
   }
 
 }

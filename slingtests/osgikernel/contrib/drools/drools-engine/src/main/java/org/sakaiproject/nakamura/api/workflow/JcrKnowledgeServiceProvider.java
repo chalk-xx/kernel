@@ -22,6 +22,8 @@ import org.drools.runtime.Environment;
 import org.drools.runtime.KnowledgeSessionConfiguration;
 import org.drools.runtime.StatefulKnowledgeSession;
 
+import javax.jcr.Session;
+
 /**
  * A JcrKnowledgeService provider ,mechanisms for creating new sessions and loading existing sessions by ID.
  */
@@ -29,10 +31,10 @@ public interface JcrKnowledgeServiceProvider {
 
   public StatefulKnowledgeSession newStatefulKnowledgeSession(KnowledgeBase kbase,
       KnowledgeSessionConfiguration configuration,
-      Environment environment);
+      Environment environment, Session session);
 
   public StatefulKnowledgeSession loadStatefulKnowledgeSession(int id,
        KnowledgeBase kbase,
        KnowledgeSessionConfiguration configuration,
-       Environment environment);
+       Environment environment, Session session );
 }

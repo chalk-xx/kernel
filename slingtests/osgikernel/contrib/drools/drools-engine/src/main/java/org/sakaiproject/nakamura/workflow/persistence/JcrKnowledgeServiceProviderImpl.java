@@ -25,11 +25,14 @@ import org.drools.runtime.Environment;
 import org.drools.runtime.KnowledgeSessionConfiguration;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.sakaiproject.nakamura.api.workflow.JcrKnowledgeServiceProvider;
+import org.sakaiproject.nakamura.api.workflow.WorkflowConstants;
 import org.sakaiproject.nakamura.workflow.persistence.managers.JcrProcessInstanceManagerFactory;
 import org.sakaiproject.nakamura.workflow.persistence.managers.JcrSignalManagerFactory;
 import org.sakaiproject.nakamura.workflow.persistence.managers.JcrWorkItemManagerFactory;
 
 import java.util.Properties;
+
+import javax.jcr.Session;
 
 /**
  *
@@ -50,7 +53,7 @@ public class JcrKnowledgeServiceProviderImpl implements JcrKnowledgeServiceProvi
    */
   public StatefulKnowledgeSession loadStatefulKnowledgeSession(int id,
       KnowledgeBase kbase, KnowledgeSessionConfiguration configuration,
-      Environment environment) {
+      Environment environment, Session session) {
     
     
     if (configuration == null) {
@@ -68,10 +71,13 @@ public class JcrKnowledgeServiceProviderImpl implements JcrKnowledgeServiceProvi
     props.setProperty("drools.workItemManagerFactory", WORK_ITEM_MANAGER_FACTORY);
     props.setProperty("drools.processSignalManagerFactory", SIGNAL_MANAGER_FACTORY);
 
+    
     ((SessionConfiguration) configuration).addProperties(props);
+    
+    environment.set(WorkflowConstants.SESSION_IDENTIFIER, session);
 
     CommandService commandService = new JcrSingleSessionCommandService(id, kbase,
-        configuration, environment);
+        configuration, environment, session);
     return new CommandBasedStatefulKnowledgeSession(commandService);
   }
 
@@ -83,7 +89,7 @@ public class JcrKnowledgeServiceProviderImpl implements JcrKnowledgeServiceProvi
    *      org.drools.runtime.Environment)
    */
   public StatefulKnowledgeSession newStatefulKnowledgeSession(KnowledgeBase kbase,
-      KnowledgeSessionConfiguration configuration, Environment environment) {
+      KnowledgeSessionConfiguration configuration, Environment environment, Session session) {
     
     
     if (configuration == null) {
@@ -103,8 +109,9 @@ public class JcrKnowledgeServiceProviderImpl implements JcrKnowledgeServiceProvi
 
     ((SessionConfiguration) configuration).addProperties(props);
 
+    environment.set(WorkflowConstants.SESSION_IDENTIFIER, session);
     CommandService commandService = new JcrSingleSessionCommandService(kbase, configuration,
-        environment);
+        environment, session);
     return new CommandBasedStatefulKnowledgeSession(commandService);
 
   }

@@ -1,8 +1,22 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 package org.sakaiproject.nakamura.workflow.persistence;
-
-import java.util.Map;
-
-import javax.naming.InitialContext;
 
 import org.drools.KnowledgeBase;
 import org.drools.RuleBase;
@@ -12,282 +26,155 @@ import org.drools.impl.KnowledgeBaseImpl;
 import org.drools.impl.StatefulKnowledgeSessionImpl;
 import org.drools.process.command.Command;
 import org.drools.process.command.CommandService;
-import org.drools.reteoo.ReteooStatefulSession;
 import org.drools.reteoo.ReteooWorkingMemory;
 import org.drools.runtime.Environment;
 import org.drools.runtime.EnvironmentName;
 import org.drools.runtime.KnowledgeSessionConfiguration;
 import org.drools.runtime.StatefulKnowledgeSession;
+import org.sakaiproject.nakamura.workflow.persistence.managers.JcrProcessInstanceManager;
 import org.sakaiproject.nakamura.workflow.persistence.managers.JcrSignalManager;
+import org.sakaiproject.nakamura.workflow.persistence.managers.JcrWorkItemManager;
 
-public class JcrSingleSessionCommandService
-    implements
-    CommandService {
+import java.io.IOException;
 
-    private JcrSessionMarshallingHelper marshallingHelper;
-    private StatefulSession             session;
-    private StatefulKnowledgeSession    ksession;
-    private Environment                 env;
-    private SessionInfo sessionInfo;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
-    public void checkEnvironment(Environment env) {        
-        if ( env.get( EnvironmentName.ENTITY_MANAGER_FACTORY ) == null ) {
-            throw new IllegalArgumentException( "Environment must have an EntityManagerFactory" );
-        }
-        
-        // @TODO log a warning that all transactions will be locally scoped using the EntityTransaction
-//        if ( env.get( EnvironmentName.TRANSACTION_MANAGER ) == null ) {
-//            throw new IllegalArgumentException( "Environment must have an EntityManagerFactory" );
-//        }        
-    }
-    
-    public JcrSingleSessionCommandService(RuleBase ruleBase,
-                                       SessionConfiguration conf,
-                                       Environment env) {
-        this( new KnowledgeBaseImpl( ruleBase ),
-              (SessionConfiguration) conf,
-              env );
+public class JcrSingleSessionCommandService implements CommandService {
+
+  private SessionInfo sessionInfo;
+  private StatefulSession session;
+  private StatefulKnowledgeSession ksession;
+  private Environment env;
+
+  public void checkEnvironment(Environment env) {
+    if (env.get(EnvironmentName.ENTITY_MANAGER_FACTORY) == null) {
+      throw new IllegalArgumentException("Environment must have an EntityManagerFactory");
     }
 
-    public JcrSingleSessionCommandService(int sessionId,
-    		                           RuleBase ruleBase,
-		                               SessionConfiguration conf,
-		                               Environment env) {
-		this( sessionId,
-		      new KnowledgeBaseImpl( ruleBase ),
-		      (SessionConfiguration) conf,
-		      env );
-	}
+    // @TODO log a warning that all transactions will be locally scoped using the
+    // EntityTransaction
+    // if ( env.get( EnvironmentName.TRANSACTION_MANAGER ) == null ) {
+    // throw new IllegalArgumentException( "Environment must have an EntityManagerFactory"
+    // );
+    // }
+  }
 
-    public JcrSingleSessionCommandService(KnowledgeBase kbase,
-                                       KnowledgeSessionConfiguration conf,
-                                       Environment env) {
-        if ( conf == null ) {
-            conf = new SessionConfiguration();
-        }
-        this.env = env;
-        this.sessionInfo = new SessionInfo();
+  public JcrSingleSessionCommandService(RuleBase ruleBase, SessionConfiguration conf,
+      Environment env, Session jcrSession) {
+    this(new KnowledgeBaseImpl(ruleBase), (SessionConfiguration) conf, env, jcrSession);
+  }
 
-        this.session = ((KnowledgeBaseImpl) kbase).ruleBase.newStatefulSession( (SessionConfiguration) conf,
-                                                                                this.env );
-        
-        this.ksession = new StatefulKnowledgeSessionImpl( (ReteooWorkingMemory) session );
+  public JcrSingleSessionCommandService(int sessionId, RuleBase ruleBase,
+      SessionConfiguration conf, Environment env, Session jcrSession) {
+    this(sessionId, new KnowledgeBaseImpl(ruleBase), (SessionConfiguration) conf, env,
+        jcrSession);
+  }
 
-        ((JcrSignalManager) this.session.getSignalManager()).setCommandService( this );
+  public JcrSingleSessionCommandService(KnowledgeBase kbase,
+      KnowledgeSessionConfiguration conf, Environment env, Session jcrSession) {
+    if (conf == null) {
+      conf = new SessionConfiguration();
+    }
+    this.env = env;
 
-        this.marshallingHelper = new JcrSessionMarshallingHelper( this.ksession,
-                                                                  conf );
+    this.session = ((KnowledgeBaseImpl) kbase).ruleBase.newStatefulSession(
+        (SessionConfiguration) conf, this.env);
 
-        this.sessionInfo.setJPASessionMashallingHelper( this.marshallingHelper );
+    this.ksession = new StatefulKnowledgeSessionImpl((ReteooWorkingMemory) session);
 
-        this.sessionInfo.save();
-        
-        // update the session id to be the same as the session info id
-        ((ReteooStatefulSession) this.session).setId( this.sessionInfo.getId() );
-
-        new Thread( new Runnable() {
-            public void run() {
-                session.fireUntilHalt();
-            }
-        } );
+    ((JcrSignalManager) this.session.getSignalManager()).setCommandService(this);
+    try {
+      this.sessionInfo = new SessionInfo(jcrSession, ksession, conf);
+      this.sessionInfo.save();
+      this.ksession = sessionInfo.getStatefulKnowledgeSession();
+    } catch (RepositoryException e) {
+      throw new IllegalArgumentException("Could not save session data ", e);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Could not find session data ", e);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("Could not find session data ", e);
     }
 
-    public JcrSingleSessionCommandService(int sessionId,
-                                       KnowledgeBase kbase,
-                                       KnowledgeSessionConfiguration conf,
-                                       Environment env) {
-        if ( conf == null ) {
-            conf = new SessionConfiguration();
-        }
+    new Thread(new Runnable() {
+      public void run() {
+        session.fireUntilHalt();
+      }
+    });
+  }
 
-        this.env = env;
-
-            sessionInfo = this.em.find( SessionInfo.class, sessionId );
-        
-        if (sessionInfo == null) {
-        	throw new RuntimeException("Could not find session data for id " + sessionId);
-        }
-
-        this.marshallingHelper = new JcrSessionMarshallingHelper( this.sessionInfo,
-                                                                  kbase,
-                                                                  conf,
-                                                                  env );
-
-        this.sessionInfo.setJcrSessionMashallingHelper( this.marshallingHelper );        
-		this.ksession = this.marshallingHelper.getObject();
-		this.session = (StatefulSession) ((StatefulKnowledgeSessionImpl) ksession).session;
-        ((JPASignalManager) this.session.getSignalManager()).setCommandService( this );
-
-        new Thread( new Runnable() {
-            public void run() {
-                session.fireUntilHalt();
-            }
-        } );
+  public JcrSingleSessionCommandService(int sessionId, KnowledgeBase kbase,
+      KnowledgeSessionConfiguration conf, Environment env, Session jcrSession) {
+    if (conf == null) {
+      conf = new SessionConfiguration();
     }
 
-    public StatefulSession getSession() {
-        return this.session;
+    this.env = env;
+
+    try {
+      sessionInfo = new SessionInfo(jcrSession, sessionId, kbase, conf, env);
+      this.ksession = sessionInfo.getStatefulKnowledgeSession();
+    } catch (RepositoryException e) {
+      throw new IllegalArgumentException("Could not find session data for id "
+          + sessionId, e);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Could not find session data for id "
+          + sessionId, e);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("Could not find session data for id "
+          + sessionId, e);
     }
+    this.session = (StatefulSession) ((StatefulKnowledgeSessionImpl) ksession).session;
+    ((JcrSignalManager) this.session.getSignalManager()).setCommandService(this);
 
-    public synchronized <T> T execute(Command<T> command) {
-        session.halt();
+    new Thread(new Runnable() {
+      public void run() {
+        session.fireUntilHalt();
+      }
+    });
+  }
 
-        boolean localTransaction = false;
-        UserTransaction ut = null;
-        try {
-            ut = (UserTransaction) new InitialContext().lookup( "java:comp/UserTransaction" );
+  public StatefulSession getSession() {
+    return this.session;
+  }
 
-            if ( ut.getStatus() == Status.STATUS_NO_TRANSACTION ) {
-                // If there is no transaction then start one, we will commit within the same Command
-                ut.begin();
-                localTransaction = true;
-            }
+  public synchronized <T> T execute(Command<T> command) {
+    session.halt();
 
-            EntityManager localEm = (EntityManager) env.get( EnvironmentName.ENTITY_MANAGER );
-            if (localEm == null ||  !localEm.isOpen()) {
-            	localEm = this.emf.createEntityManager(); // no need to call joinTransaction as it will do so if one already exists
-            	this.env.set( EnvironmentName.ENTITY_MANAGER, localEm );
-            }
-            
-            if ( this.em == null ) {
-                // there must have been a rollback to lazily re-initialise the state
-                this.em = this.emf.createEntityManager();
-                this.sessionInfo = this.em.find( SessionInfo.class, this.sessionInfo.getId() );
-                this.sessionInfo.setJPASessionMashallingHelper( this.marshallingHelper );
-                // have to create a new localEM as an EM part of a transaction cannot do a find.
-                // this.sessionInfo.rollback();
-                this.marshallingHelper.loadSnapshot( this.sessionInfo.getData(),
-                                                     this.ksession );
-                this.session = (StatefulSession) ((StatefulKnowledgeSessionImpl) this.ksession).session;                
-            }
+    try {
 
-            this.em.joinTransaction();
-            this.sessionInfo.setDirty();
+      T result = command.execute((ReteooWorkingMemory) session);
 
-            registerRollbackSync();
+      sessionInfo.save();
 
-            T result = command.execute( ( ReteooWorkingMemory ) session );
+      // clean up cached process and work item instances
+      ((JcrProcessInstanceManager) ((ReteooWorkingMemory) session)
+          .getProcessInstanceManager()).clearProcessInstances();
+      ((JcrWorkItemManager) ((ReteooWorkingMemory) session).getWorkItemManager())
+          .clearWorkItems();
 
-            if ( localTransaction ) {
-                // it's a locally created transaction so commit
-                ut.commit();
+      return result;
 
-                // cleanup local entity manager
-                if ( localEm.isOpen() ) {
-                    localEm.close();
-                }
-                this.env.set( EnvironmentName.ENTITY_MANAGER, null );
-                
-                // clean up cached process and work item instances
-                ((JPAProcessInstanceManager) ((ReteooWorkingMemory) session).getProcessInstanceManager()).clearProcessInstances();
-                ((JPAWorkItemManager) ((ReteooWorkingMemory) session).getWorkItemManager()).clearWorkItems();
-            }
-            
-            return result;
-
-        } catch ( Throwable t1 ) {
-            t1.printStackTrace();
-            if ( localTransaction ) {
-                try {
-                    if ( ut != null ) {
-                        ut.rollback();
-                    }
-                    throw new RuntimeException( "Could not execute command",
-                                                t1 );
-                } catch ( Throwable t2 ) {
-                    throw new RuntimeException( "Could not rollback transaction",
-                                                t2 );
-                }
-            } else {
-                throw new RuntimeException( "Could not execute command",
-                                            t1 );
-            }
-        } finally {
-            new Thread( new Runnable() {
-                public void run() {
-                    session.fireUntilHalt();
-                }
-            } );
+    } catch (Throwable t1) {
+      t1.printStackTrace();
+      throw new RuntimeException("Could not execute command", t1);
+    } finally {
+      new Thread(new Runnable() {
+        public void run() {
+          session.fireUntilHalt();
         }
+      });
     }
+  }
 
-    public void dispose() {
-        if ( session != null ) {
-            session.dispose();
-        }
+  public void dispose() {
+    if (session != null) {
+      session.dispose();
     }
+  }
 
-    public int getSessionId() {
-        return sessionInfo.getId();
-    }
+  public int getSessionId() {
+    return (int) sessionInfo.getId();
+  }
 
-    private void registerRollbackSync() throws IllegalStateException,
-                                      RollbackException,
-                                      SystemException {
-        TransactionManager txm = (TransactionManager) env.get( EnvironmentName.TRANSACTION_MANAGER );
-        if ( txm == null ) {
-            return;
-        }
-
-        Map map = (Map) env.get( "synchronizations" );
-        if ( map == null ) {
-            map = new IdentityMap();
-            env.set( "synchronizations",
-                     map );
-        }
-
-        if ( map.get( this ) == null ) {
-            txm.getTransaction().registerSynchronization( new SynchronizationImpl() );
-            map.put( this,
-                     this );
-        }
-
-        //        // lazy registration that ensures we registration the rollback just once
-        //        if ( !rollbackRegistered.get() ) {
-        //            TransactionManagerServices.getTransactionManager().getTransaction().registerSynchronization( new SynchronizationImpl( rollbackRegistered,
-        //                                                                                                                                  ks ) );  
-        //            rollbackRegistered.set( true );
-        //            System.out.println( "registered rollback sychronisation" );
-        //        }
-    }
-
-    private class SynchronizationImpl
-        implements
-        Synchronization {
-
-        public void afterCompletion(int status) {
-            if ( status != Status.STATUS_COMMITTED ) {
-                rollback();
-            }
-
-            // always cleanup thread local whatever the result
-            //rollbackRegistered.remove();
-            Map map = (Map) env.get( "synchronizations" );
-            map.remove( JcrSingleSessionCommandService.this );
-
-            // cleanup local entity manager
-            EntityManager localEm = (EntityManager) env.get( EnvironmentName.ENTITY_MANAGER );
-            if ( localEm != null && localEm.isOpen() ) {
-                localEm.close();
-            }
-            env.set( EnvironmentName.ENTITY_MANAGER, null );
-            
-            // clean up cached process and work item instances
-            ((JPAProcessInstanceManager) ((ReteooWorkingMemory) session).getProcessInstanceManager()).clearProcessInstances();
-            ((JPAWorkItemManager) ((ReteooWorkingMemory) session).getWorkItemManager()).clearWorkItems();
-
-        }
-
-        public void beforeCompletion() {
-
-        }
-
-    }
-
-
-    private void rollback() {
-        // with em null, if someone tries to use this session it'll first restore it's state
-        this.em.close();
-        this.em = null;
-    }
 }

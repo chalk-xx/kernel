@@ -30,7 +30,7 @@ public class JcrWorkItemManagerFactory implements WorkItemManagerFactory  {
    * {@inheritDoc}
    * @see org.drools.process.instance.WorkItemManagerFactory#createWorkItemManager(org.drools.WorkingMemory)
    */
-  public WorkItemManager createWorkItemManager(WorkingMemory arg0) {
+  public WorkItemManager createWorkItemManager(WorkingMemory workingMemory) {
     return new JcrWorkItemManager(workingMemory);
   }
 
