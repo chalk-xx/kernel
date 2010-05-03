@@ -18,6 +18,9 @@
 
 package org.sakaiproject.nakamura.version.impl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.JcrConstants;
 import org.sakaiproject.nakamura.version.VersionService;
 
@@ -28,14 +31,13 @@ import javax.jcr.version.Version;
 
 /**
  * Service for doing operations with versions.
- * 
- * @scr.component immediate="true" label="Sakai Versioning Service"
- *                description="Service for doing operations with versions."
- *                name="org.sakaiproject.nakamura.version.VersionService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.service interface="org.sakaiproject.nakamura.version.VersionService"
  */
+@Component(immediate = true, label = "Sakai Versioning Service", description = "Service for doing operations with versions.")
+@Service
 public class VersionServiceImpl implements VersionService {
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
 
   public Version saveNode(Node node, String savingUsername) throws RepositoryException {
     if (node.canAddMixin("sakai:propertiesmix")) {

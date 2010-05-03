@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.version.impl;
 
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -54,16 +55,6 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Gets a version
- * 
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
- * @scr.property name="sling.servlet.methods" value="GET"
- * @scr.property name="sling.servlet.selectors" value="versions"
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
- * 
  */
 
 @ServiceDocumentation(name="List Versions Servlet",
@@ -88,6 +79,7 @@ import javax.servlet.http.HttpServletResponse;
     )) 
         
 
+@SlingServlet(resourceTypes = "sling/servlet/default", methods = "GET", selectors = "versions", extensions = "json")
 public class ListVersionsServlet extends SlingSafeMethodsServlet {
 
   /**
