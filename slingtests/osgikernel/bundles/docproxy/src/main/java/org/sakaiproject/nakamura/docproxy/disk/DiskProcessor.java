@@ -452,4 +452,8 @@ public class DiskProcessor implements ExternalRepositoryProcessor {
     }
   }
 
+  public void removeDocument(Node node, String path) throws DocProxyException {
+    throw new UnsupportedOperationException("DiskProcessor does not support removing documents.");
+  }
+
 }
