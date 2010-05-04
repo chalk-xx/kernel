@@ -15,29 +15,23 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.ldap;
+package org.sakaiproject.nakamura.workflow.persistence.managers;
 
-public class LdapException extends Exception {
+import org.drools.WorkingMemory;
+import org.drools.process.instance.event.SignalManager;
+import org.drools.process.instance.event.SignalManagerFactory;
+
+/**
+ *
+ */
+public class JcrSignalManagerFactory implements SignalManagerFactory{
 
   /**
-   * 
+   * {@inheritDoc}
+   * @see org.drools.process.instance.event.SignalManagerFactory#createSignalManager(org.drools.WorkingMemory)
    */
-  private static final long serialVersionUID = -4218342407997822225L;
-
-  public LdapException() {
-    super();
-  }
-
-  public LdapException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public LdapException(String message) {
-    super(message);
-  }
-
-  public LdapException(Throwable cause) {
-    super(cause);
+  public SignalManager createSignalManager(WorkingMemory workingMemory) {
+    return new JcrSignalManager(workingMemory);
   }
 
 }

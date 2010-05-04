@@ -7,7 +7,7 @@ do
   pushd bundles/$i
 
   ## clean and build the bundle
-  mvn clean install
+  mvn $BUILD_OPTS clean install
 
   if [[ $? -ne 0 ]]
   then
@@ -21,7 +21,7 @@ do
 done
 
 ## rebundle things
-mvn -Pbundle clean install
+mvn $BUILD_OPTS -Pbundle clean install
 
 if [[ $? -ne 0 ]]
 then
