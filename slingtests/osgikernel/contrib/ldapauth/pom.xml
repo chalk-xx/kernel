@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.auth.ldap</artifactId>
   <packaging>bundle</packaging>
   <version>0.4-SNAPSHOT</version>
-  <name>Sakai LDAP Authentication Bundle</name>
+  <name>Sakai Nakamura LDAP Authentication Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -41,8 +41,7 @@
         <configuration>
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
-            <Export-Package>org.sakaiproject.nakamura.api.auth.ldap</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.auth.ldap.*</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.auth.ldap</Private-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -77,6 +76,12 @@
       <version>0.4-SNAPSHOT</version>
     </dependency>
 
+<!-- JCR -->
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+    </dependency>
+
 <!-- Sling -->
     <dependency>
       <groupId>org.apache.sling</groupId>
@@ -85,15 +90,36 @@
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.engine</artifactId>
-      <version>2.0.4-incubator</version>
+      <artifactId>org.apache.sling.commons.auth</artifactId>
+      <version>0.9.0-20100322</version>
     </dependency>
     <dependency>
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
       <version>2.0.7-20100322</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.api</artifactId>
+      <version>2.0.7-20100322</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.base</artifactId>
+      <version>2.0.7-20100322</version>
+    </dependency>
+    
+	<dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.user</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
+    
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -101,7 +127,14 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
 <!-- testing -->
@@ -112,10 +145,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>org.apache.sling</groupId>
-    	<artifactId>org.apache.sling.commons.testing</artifactId>
-    	<version>2.0.4-incubator</version>
-    	<scope>test</scope>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
     </dependency>
   </dependencies>
 </project>

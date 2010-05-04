@@ -26,7 +26,6 @@ import static org.junit.Assert.fail;
 import com.novell.ldap.LDAPConnection;
 
 import org.apache.commons.pool.ObjectPool;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
@@ -46,20 +45,19 @@ public class PoolingLdapConnectionManagerTest {
     // some white box awkwardness
     config.setSecureConnection(false);
 
-    poolingConnMgr = new PoolingLdapConnectionManager();
-    poolingConnMgr.setConfig(config);
-    poolingConnMgr.setPool(pool);
-  }
-
-  @After
-  public void tearDown() {
-    poolingConnMgr.destroy();
+    poolingConnMgr = new PoolingLdapConnectionManager() {
+      org.apache.commons.pool.ObjectPool newConnectionPool(
+          org.apache.commons.pool.PoolableObjectFactory factory, int maxConns, byte whenExhausted,
+          int maxWait, int maxIdle, boolean testOnBorrow, boolean testOnReturn) {
+        return pool;
+      };
+    };
   }
 
   @Test
   public void testDoesNotReturnNullReferencesToPool() throws Exception {
     replay(pool);
-    poolingConnMgr.init();
+    poolingConnMgr.init(config);
     // mockPool will throw a fit if any method called
     poolingConnMgr.returnConnection(null);
   }
@@ -72,7 +70,7 @@ public class PoolingLdapConnectionManagerTest {
     expectLastCall().andThrow(new Exception());
 
     replay(pool);
-    poolingConnMgr.init();
+    poolingConnMgr.init(config);
 
     LDAPConnection conn = poolingConnMgr.getConnection();
     try {

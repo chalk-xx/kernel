@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.version.impl;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.Resource;
@@ -45,14 +47,6 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Saves the current version of the JCR node identified by the Resource and checks out a new 
  * writeable version.
- * 
- * @scr.component metatype="no" immediate="true"
- * @scr.service interface="javax.servlet.Servlet"
- * @scr.property name="sling.servlet.resourceTypes" values.0="sling/servlet/default"
- * @scr.property name="sling.servlet.methods" value="POST"
- * @scr.property name="sling.servlet.selectors" value="save"
- * @scr.property name="sling.servlet.extensions" value="json"
- * 
  */
 
 @ServiceDocumentation(name="Save a version Servlet",
@@ -73,6 +67,7 @@ import javax.servlet.http.HttpServletResponse;
           @ServiceResponse(code=500,description="Failure with HTML explanation.")}
     )) 
 
+@SlingServlet(resourceTypes = "sling/servlet/default", methods = "POST", selectors = "save", extensions = "json")
 public class SaveVersionServlet extends SlingAllMethodsServlet {
 
 
@@ -82,7 +77,7 @@ public class SaveVersionServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -7513481862698805983L;
   private static final Logger LOGGER = LoggerFactory.getLogger(SaveVersionServlet.class);
 
-  /** @scr.reference */
+  @Reference
   protected transient VersionService versionService;
   
   /**

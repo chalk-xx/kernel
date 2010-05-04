@@ -20,6 +20,9 @@ package org.sakaiproject.nakamura.memory;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.management.ManagementService;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.memory.Cache;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.api.memory.CacheScope;
@@ -37,16 +40,16 @@ import javax.management.MBeanServer;
 
 /**
  * The <code>CacheManagerServiceImpl</code>
- *
- * @scr.component immediate="true" label="CacheManagerServiceImpl"
- * description="Implementation of the Cache Manager Service"
- *          name="org.sakaiproject.nakamura.api.memory.CacheManagerService"
- * @scr.service interface="org.sakaiproject.nakamura.api.memory.CacheManagerService"
- * @scr.property name="service.vendor" value="The Sakai Foundation"
- * @scr.property name="service.description"
- *      value="Cache Manager Service Implementation"
  */
+@Component(immediate = true, label = "CacheManagerServiceImpl", description = "Implementation of the Cache Manager Service")
+@Service
 public class CacheManagerServiceImpl implements CacheManagerService {
+
+  @Property(value = "The Sakai Foundation")
+  static final String SERVICE_VENDOR = "service.vendor";
+
+  @Property(value = "Cache Manager Service Implementation")
+  static final String SERVICE_DESCRIPTION = "service.description";
 
   private static final String CONFIG_PATH = "res://org/sakaiproject/nakamura/memory/ehcacheConfig.xml";
   private static final Logger logger = LoggerFactory.getLogger(CacheManagerServiceImpl.class);
