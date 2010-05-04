@@ -11,7 +11,7 @@ class TC_Kern693Test < SlingTest
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{originalsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => originalsiteid,
       "description" => originalsiteid,
       "id" => originalsiteid)
@@ -22,7 +22,7 @@ class TC_Kern693Test < SlingTest
       ":sitepath" => "/#{newsite}",
       ":moveFrom" => "/sites/#{originalsiteid}",
       ":copyFrom" => "/sites/#{originalsiteid}",
-      "sakai:site-template" => "/templates/template")
+      "sakai:site-template" => "/var/templates/site/systemtemplate")
     assert_equal("400", res.code, "Contradictory instructions were accepted")
   end
 
@@ -52,7 +52,7 @@ class TC_Kern693Test < SlingTest
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{originalsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => originalsitename,
       "description" => originalsitename,
       "id" => originalsiteid)
@@ -80,7 +80,7 @@ class TC_Kern693Test < SlingTest
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{originalsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => originalsitename,
       "description" => originalsitename,
       "id" => originalsiteid)
@@ -116,7 +116,7 @@ class TC_Kern693Test < SlingTest
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{originalsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => originalsiteid,
       "description" => originalsiteid,
       "id" => originalsiteid)
