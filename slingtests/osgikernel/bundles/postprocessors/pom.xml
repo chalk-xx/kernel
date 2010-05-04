@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.postprocessors</artifactId>
   <packaging>bundle</packaging>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>edu.nyu</groupId>
       <artifactId>xythos-service</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
