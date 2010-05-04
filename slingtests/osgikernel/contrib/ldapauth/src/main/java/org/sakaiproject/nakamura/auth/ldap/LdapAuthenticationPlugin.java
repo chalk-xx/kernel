@@ -155,12 +155,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         auth = true;
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
-
-        if (e instanceof RepositoryException) {
-          throw (RepositoryException) e;
-        } else {
-          throw new RepositoryException(e.getMessage(), e);
-        }
       } finally {
         connMgr.returnConnection(conn);
       }
