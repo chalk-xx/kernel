@@ -43,9 +43,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageProducer;
-import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.Topic;
 
 /**
  * Bridge to send OSGi events onto a JMS topic.
@@ -212,7 +210,13 @@ public class OsgiJmsBridge implements EventHandler {
 
       producer.send(msg);
     } catch (JMSException e) {
-      LOGGER.error(e.getMessage(), e);
+      Throwable t = e.getCause();
+      if ( t != null && t.getClass().getName().equals("org.apache.activemq.transport.TransportDisposedIOException") ) {
+        LOGGER.info("Transport disposed, probably on shutdown, use debug level logging to see more :{} ", e.getMessage());
+        LOGGER.debug(e.getMessage(), e);
+      } else {
+        LOGGER.error(e.getMessage(), e);
+      }
     } finally {
       try {
         if (conn != null) {

@@ -45,6 +45,10 @@ public class UserPostProcessorRegister {
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
         delayedReferences.add(serviceReference);
+        if ( processors != null ) { // remove any old processors from the previous active period
+          Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+          processors.remove(serviceId);
+        }
       } else {
         addProcessor(serviceReference);
       }
@@ -56,6 +60,10 @@ public class UserPostProcessorRegister {
     synchronized (delayedReferences) {
       if (osgiComponentContext == null) {
         delayedReferences.remove(serviceReference);
+        if ( processors != null ) { // remove any old processors from the previous active period
+          Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
+          processors.remove(serviceId);
+        }
       } else {
         removeProcessor(serviceReference);
       }
@@ -68,7 +76,17 @@ public class UserPostProcessorRegister {
    */
   private void removeProcessor(ServiceReference serviceReference) {
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
-    processors.remove(serviceId);
+    UserPostProcessor processor = processors.remove(serviceId);
+    if (processor != null) {
+      List<UserPostProcessor> newProcessorList = new ArrayList<UserPostProcessor>(
+          processors.values());
+      Collections.sort(newProcessorList, new Comparator<UserPostProcessor>() {
+        public int compare(UserPostProcessor o1, UserPostProcessor o2) {
+          return o1.getSequence() - o2.getSequence();
+        }
+      });
+      processorList = newProcessorList;
+    }
   }
 
   /**
@@ -79,7 +97,8 @@ public class UserPostProcessorRegister {
         USER_POST_PROCESSOR, serviceReference);
     Long serviceId = (Long) serviceReference.getProperty(Constants.SERVICE_ID);
     processors.put(serviceId, processor);
-    List<UserPostProcessor> newProcessorList = new ArrayList<UserPostProcessor>(processors.values());
+    List<UserPostProcessor> newProcessorList = new ArrayList<UserPostProcessor>(
+        processors.values());
     Collections.sort(newProcessorList, new Comparator<UserPostProcessor>() {
       public int compare(UserPostProcessor o1, UserPostProcessor o2) {
         return o1.getSequence() - o2.getSequence();
@@ -92,12 +111,17 @@ public class UserPostProcessorRegister {
    * @param componentContext
    */
   public void setComponentContext(ComponentContext componentContext) {
+
     synchronized (delayedReferences) {
-      osgiComponentContext = componentContext;
-      for (ServiceReference ref : delayedReferences) {
-        addProcessor(ref);
+      if (componentContext == null) {
+        osgiComponentContext = null;
+      } else {
+        osgiComponentContext = componentContext;
+        for (ServiceReference ref : delayedReferences) {
+          addProcessor(ref);
+        }
+        delayedReferences.clear();
       }
-      delayedReferences.clear();
     }
   }
 
