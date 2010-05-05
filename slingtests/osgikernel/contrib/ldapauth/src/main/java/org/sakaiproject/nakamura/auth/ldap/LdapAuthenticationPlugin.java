@@ -25,7 +25,7 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(metatype = true, enabled = false)
+@Component(metatype = true)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
@@ -61,15 +61,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
   @Activate
   protected void activate(Map<?, ?> props) {
-    processProps(props);
+    init(props);
   }
 
   @Modified
   protected void modified(Map<?, ?> props) {
-    processProps(props);
+    init(props);
   }
 
-  private void processProps(Map<?, ?> props) {
+  private void init(Map<?, ?> props) {
     baseDn = OsgiUtil.toString(props.get(LDAP_BASE_DN), "");
     userFilter = OsgiUtil.toString(props.get(USER_FILTER), "");
     authzFilter = OsgiUtil.toString(props.get(AUTHZ_FILTER), "");
@@ -89,9 +89,19 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       LDAPConnection conn = null;
       try {
+        // 0) Get a connection to the server
         try {
-          // 1) Bind as app user
-          conn = connMgr.getBoundConnection(appUser, appPass);
+          conn = connMgr.getConnection();
+          log.debug("Connected to LDAP server");
+        } catch (LDAPException e) {
+          throw new IllegalStateException("Unable to connect to LDAP server ["
+              + connMgr.getConfig().getLdapHost() + "]");
+        }
+
+        // 1) Bind as app user
+        try {
+          conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
+          log.debug("Bound as application user");
         } catch (LDAPException e) {
           throw new IllegalArgumentException("Can't bind application user [" + appUser
               + "]", e);
@@ -103,6 +113,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
             null, false);
         if (results.getCount() == 0) {
           throw new IllegalArgumentException("Can't find user [" + userDn + "]");
+        } else {
+          log.debug("Found user via search");
         }
 
         // 3) Bind as username.
@@ -110,6 +122,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
           conn.bind(LDAPConnection.LDAP_V3, userDn + ", " + baseDn, userPass
               .getBytes(UTF8));
+          log.debug("Bound as user");
         } catch (LDAPException e) {
           log.warn("Can't bind user [{}]", userDn);
           throw e;
@@ -119,6 +132,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           // 4) Return to app user
           try {
             conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
+            log.debug("Rebound as application user");
           } catch (LDAPException e) {
             log.warn("{}]", appUser);
             throw new IllegalArgumentException("Can't bind application user [" + appUser
@@ -132,6 +146,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
               false);
           if (results.getCount() == 0) {
             throw new IllegalArgumentException("User not authorized [" + userDn + "]");
+          } else {
+            log.debug("Found user + authz filter via search");
           }
         }
 
@@ -139,12 +155,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         auth = true;
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
-
-        if (e instanceof RepositoryException) {
-          throw (RepositoryException) e;
-        } else {
-          throw new RepositoryException(e.getMessage(), e);
-        }
       } finally {
         connMgr.returnConnection(conn);
       }

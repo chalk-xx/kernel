@@ -110,7 +110,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   }
 
   protected PooledLDAPConnection newConnection() {
-    LDAPSocketFactory ldapSocketFactory = LdapUtil.chooseLDAPSocketFactory(mgr.getConfig());
+    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(mgr.getConfig());
     PooledLDAPConnection conn = new PooledLDAPConnection(ldapSocketFactory);
     return conn;
   }

@@ -165,7 +165,12 @@ public class ClusterTrackingServiceImpl implements ClusterTrackingService, Runna
    * @throws Exception
    */
   protected void deactivate(ComponentContext ctx) throws Exception {
-    removeInstance(serverId);
+    try {
+      removeInstance(serverId);
+    } catch ( IllegalStateException e ) {
+      LOGGER.info("Cluster Tacking Cache has already been disposed, the server registration will timeout on other nodes :{}",e.getMessage());
+      LOGGER.debug(e.getMessage(),e);
+    }
   }
 
   /**

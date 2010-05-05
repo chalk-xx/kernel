@@ -61,14 +61,6 @@ import java.util.Map;
 @Service
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
-//  public static final String PID = "org.sakaiproject.nakamura.ldap.LdapConnectionManager";
-//  @Property(value = PID)
-//  static final String SERVICE_PID = Constants.SERVICE_PID;
-
-//  public static final String FACTORY_PID = PID + ".factory";
-//  @Property(value = FACTORY_PID)
-//  static final String SERVICE_FACTORY_PID = "service.factoryPid";
-
   static final boolean DEFAULT_AUTO_BIND = false;
   @Property(boolValue = DEFAULT_AUTO_BIND)
   static final String AUTO_BIND = "sakai.ldap.autobind";

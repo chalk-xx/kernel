@@ -27,6 +27,7 @@ import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -93,7 +94,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   protected LDAPConnection newLDAPConnection() {
     verifySetup();
     
-    LDAPSocketFactory ldapSocketFactory = LdapUtil.chooseLDAPSocketFactory(config);
+    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(config);
     LDAPConnection conn = new LDAPConnection(ldapSocketFactory);
     return conn;
   }
@@ -221,6 +222,12 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   private void verifySetup() throws IllegalStateException {
     if (config == null) {
       throw new IllegalStateException("Configuration not available for this connection manager.");
+    }
+    
+    if (config.getKeystoreLocation() != null && config.getKeystoreLocation().length() > 0
+        && !(new File(config.getKeystoreLocation()).exists())) {
+      throw new IllegalStateException("Keystore not found at specified location ["
+          + config.getKeystoreLocation() + "]");
     }
   }
 }

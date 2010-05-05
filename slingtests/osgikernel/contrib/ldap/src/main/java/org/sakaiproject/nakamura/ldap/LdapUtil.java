@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.ldap;
 
+import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPSocketFactory;
@@ -23,13 +24,20 @@ import javax.net.ssl.TrustManager;
 
 public class LdapUtil {
   private static final Logger log = LoggerFactory.getLogger(LdapUtil.class);
-  
+
   /**
+   * Initializes an LDAP socket factory is a non-default socket factory is needed. This
+   * scenario becomes relevant when needing to connect using SSL or TLS. If no special
+   * socket factory is needed, null is returned which is safe to provide to the
+   * constructor of {@link LDAPConnection} or to
+   * {@link LDAPConnection#setSocketFactory(LDAPSocketFactory)}.
    * 
    * @param config
-   * @return
+   *          The configuration used for connecting.
+   * @return The proper socket factory based on the provided configuration. null if
+   *         special socket factory is required.
    */
-  public static LDAPSocketFactory chooseLDAPSocketFactory(LdapConnectionManagerConfig config) {
+  public static LDAPSocketFactory initLDAPSocketFactory(LdapConnectionManagerConfig config) {
     LDAPSocketFactory socketFactory = null;
 
     if (config.isSecureConnection() || config.isTLS()) {

@@ -189,6 +189,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
 
     private Object lock = new Object();
 
+    private boolean active = false;
+
     /** Returns the JCR repository used by this service. */
     @SuppressWarnings(justification="OSGi Managed", value={"UWF_UNWRITTEN_FIELD"})
     protected SlingRepository getRepository() {
@@ -232,8 +234,23 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
         } else {
             selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
         }
-        postProcessorTracker.setComponentContext(componentContext);
+        synchronized(postProcessorTracker) {
+          postProcessorTracker.setComponentContext(componentContext);
+          active  = true;
+          doActivateTasks();
+        }
+    }
 
+    protected void deactivate(ComponentContext componentContext) {
+      synchronized(postProcessorTracker) {
+        postProcessorTracker.setComponentContext(null);
+        active = false;
+        doDeactivateTasks();
+      }
+
+    }
+
+    private void doActivateTasks() {
         // check that the admin and anon users are setup correctly
         Session session = null;
         try {
@@ -278,16 +295,20 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
               } catch (Exception e) {
                 log.warn(e.getMessage(), e);
               }
+              log.info("Performed Default setup for user:[{}]",userId);
           }
           if ( session.hasPendingChanges()) {
             session.save();
           }
         } catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          log.warn(e.getMessage(), e);
         } finally {
           ungetSession(session);
         }
+    }
+
+    private void doDeactivateTasks() {
+      // nothing at the moment, but better to have the plumbing in place.
     }
 
     /*
@@ -403,12 +424,22 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
 
 
     protected void bindUserPostProcessor(ServiceReference serviceReference) {
+      synchronized(postProcessorTracker) {
         postProcessorTracker.bindUserPostProcessor(serviceReference);
+        if ( active ) {
+          doActivateTasks();
+        }
+      }
 
     }
 
     protected void unbindUserPostProcessor(ServiceReference serviceReference) {
+      synchronized(postProcessorTracker) {
         postProcessorTracker.unbindUserPostProcessor(serviceReference);
+        if ( !active ) {
+          doDeactivateTasks();
+        }
+      }
     }
 
 }

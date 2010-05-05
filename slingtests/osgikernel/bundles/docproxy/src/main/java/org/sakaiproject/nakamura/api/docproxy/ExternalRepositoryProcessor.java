@@ -118,22 +118,22 @@ public interface ExternalRepositoryProcessor {
   public Iterator<ExternalDocumentResult> search(Node node,
       Map<String, Object> searchProperties) throws DocProxyException;
 
-  /**
-   * Removes the specified document from the external repository.
-   * 
-   * If it is not appropriate for Sakai to be able to initiate the removal of documents,
-   * the implementor can throw an exception or implement this as a no op.
-   * @param node
-   *          the node representing the document.
-   * @param path
-   *          optional path identifying the resource, if null it will be ignored, but can
-   *          be ignored by the implementation. Most of the time this will be part of the
-   *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
-   *          DocProxy node, the path would be /foo/bar/readme.txt
-   * @throws DocProxyException
-   */
-  public void removeDocument(Node node, String path)
-      throws DocProxyException;
+   /**
+    * Removes the specified document from the external repository.
+    * 
+    * If it is not appropriate for Sakai to be able to initiate the removal of documents,
+    * the implementor can throw an exception or implement this as a no op.
+    * @param node
+    *          the node representing the document.
+    * @param path
+    *          optional path identifying the resource, if null it will be ignored, but can
+    *          be ignored by the implementation. Most of the time this will be part of the
+    *          URL behind the node. ex: /docproxy/disk/foo/bar/readme.txt where disk is the
+    *          DocProxy node, the path would be /foo/bar/readme.txt
+    * @throws DocProxyException
+    */
+   public void removeDocument(Node node, String path)
+       throws DocProxyException;
 
   /**
    * @return What kind of external repository this processor should handle.
