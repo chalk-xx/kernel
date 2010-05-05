@@ -151,7 +151,7 @@ public class MailmanGroupManagerTest extends AbstractEasyMockTest {
   }
 
   private User createDummyUser(String userName) throws RepositoryException {
-    User user = EasyMock.createMock(User.class);
+    User user = EasyMock.createNiceMock(User.class);
     expect(user.getID()).andReturn(userName).anyTimes();
     expect(user.isGroup()).andReturn(false).anyTimes();
     return user;
