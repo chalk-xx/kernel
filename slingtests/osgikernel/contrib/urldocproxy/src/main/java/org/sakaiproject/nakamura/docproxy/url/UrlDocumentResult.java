@@ -179,4 +179,10 @@ public class UrlDocumentResult implements ExternalDocumentResult {
       return false;
     return true;
   }
+
+  public InputStream getDocumentInputStream(long startingAt, String userId)
+      throws DocProxyException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
