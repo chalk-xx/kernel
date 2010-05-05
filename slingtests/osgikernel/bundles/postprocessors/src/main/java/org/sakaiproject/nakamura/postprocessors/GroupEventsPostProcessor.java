@@ -31,6 +31,7 @@ public class GroupEventsPostProcessor implements EventHandler {
     String userId = (String) event.getProperty("userId");
     try {
       xythosService.createGroup(sitePath, userId);
+      xythosService.createDirectory(userId, null, "/alex3", sitePath);
     } catch (Exception e1) {
       LOGGER.warn("failed to create Xythos group when creating site: " + e1.getMessage());
     }
