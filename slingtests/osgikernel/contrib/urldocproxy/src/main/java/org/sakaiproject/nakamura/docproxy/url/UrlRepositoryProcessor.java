@@ -114,7 +114,7 @@ public class UrlRepositoryProcessor implements ExternalRepositoryProcessor {
     xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
 
     // process properties into http methods
-    Dictionary props = context.getProperties();
+    Dictionary<?, ?> props = context.getProperties();
 
     hmacHeader = OsgiUtil.toString(props.get(HMAC_HEADER), DEFAULT_HMAC_HEADER);
     searchUrl = OsgiUtil.toString(props.get(SEARCH_URL), DEFAULT_SEARCH_URL);
