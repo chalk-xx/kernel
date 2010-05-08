@@ -21,10 +21,6 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PATH;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_GROUP_PREFIX;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PREFIX;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
@@ -35,6 +31,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
 import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
@@ -77,10 +74,10 @@ import javax.jcr.version.VersionException;
  *                interface="org.osgi.service.event.EventAdmin"
  * 
  */
-public class UserPostProcessorImpl implements UserPostProcessor {
+public class PersonalUserPostProcessor implements UserPostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(UserPostProcessorImpl.class);
+      .getLogger(PersonalUserPostProcessor.class);
 
   /**
    */
@@ -122,18 +119,8 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     }
     LOGGER.debug("Processing  {} ",authorizable.getID());
     try {
-      String resourcePath = request.getRequestPathInfo().getResourcePath();
-      if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
-        createHomeFolder(session, authorizable, false, changes);
-        fireEvent(request, authorizable.getID(), changes);
-      } else if (resourcePath.equals(SYSTEM_USER_MANAGER_GROUP_PATH)) {
-        createHomeFolder(session, authorizable, true, changes);
-        fireEvent(request, authorizable.getID(), changes);
-      } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_USER_PREFIX)) {
-        createHomeFolder(session, authorizable, false, changes);
-        fireEvent(request, authorizable.getID(), changes);
-      } else if (resourcePath.startsWith(SYSTEM_USER_MANAGER_GROUP_PREFIX)) {
-        createHomeFolder(session, authorizable, true, changes);
+      if (!isPostProcessingDone(session, authorizable)) {
+        createHomeFolder(session, authorizable, changes);
         fireEvent(request, authorizable.getID(), changes);
       }
       LOGGER.debug("DoneProcessing  {} ",authorizable.getID());
@@ -232,13 +219,16 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @throws RepositoryException
    */
   private Node createHomeFolder(Session session, Authorizable authorizable,
-      boolean isGroup, List<Modification> changes) throws RepositoryException {
+      List<Modification> changes) throws RepositoryException {
     String homeFolderPath = PersonalUtils.getHomeFolder(authorizable);
     LOGGER.debug("Creating Home for {} at   {} ",authorizable.getID(), homeFolderPath);
-    if (session.itemExists(homeFolderPath)) {
-      Node node =  (Node) session.getItem(homeFolderPath);
-      LOGGER.debug("Home Exists for {} at  {} as {} ",new Object[] {authorizable.getID(), homeFolderPath, node});
-      return node;
+    Node homeNode;
+    if (session.nodeExists(homeFolderPath)) {
+      homeNode = session.getNode(homeFolderPath);
+      LOGGER.debug("Home Exists for {} at  {} as {} ",new Object[] {authorizable.getID(), homeFolderPath, homeNode});
+    } else {
+      homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
+      LOGGER.debug("Created Home Node for {} at   {} ",authorizable.getID(), homeNode);
     }
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal anon = new Principal() {
@@ -247,9 +237,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
       }
     };
     Principal everyone = principalManager.getEveryone();
-
-    Node homeNode = JcrUtils.deepGetOrCreateNode(session, homeFolderPath);
-    LOGGER.debug("Created Home Node for {} at   {} ",authorizable.getID(), homeNode);
 
     // The user can do everything on this node.
     replaceAccessControlEntry(session, homeFolderPath, authorizable.getPrincipal(),
@@ -268,7 +255,7 @@ public class UserPostProcessorImpl implements UserPostProcessor {
     // Create the public, private, authprofile
     createPrivate(session, authorizable);
     createPublic(session, authorizable);
-    Node profileNode = createProfile(session, authorizable, isGroup);
+    Node profileNode = createProfile(session, authorizable);
 
     // Update the values on the profile node.
     updateProperties(session, profileNode, authorizable, changes);
@@ -281,17 +268,14 @@ public class UserPostProcessorImpl implements UserPostProcessor {
    * @return
    * @throws RepositoryException
    */
-  private Node createProfile(Session session, Authorizable authorizable, boolean isGroup)
+  private Node createProfile(Session session, Authorizable authorizable)
       throws RepositoryException {
     String path = PersonalUtils.getProfilePath(authorizable);
     
-    String type = nodeTypeForAuthorizable(isGroup);
-    if (session.itemExists(path)) {
-      return (Node) session.getItem(path);
-    }
-    LOGGER.debug("Creating  Profile Node {} for authorizable {} ", path,authorizable.getID());
+    String type = nodeTypeForAuthorizable(authorizable.isGroup());
+    LOGGER.debug("Creating or resetting Profile Node {} for authorizable {} ", path,authorizable.getID());
     Node profileNode = JcrUtils.deepGetOrCreateNode(session, path);
-    profileNode.setProperty("sling:resourceType", type);
+    profileNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY, type);
     // Make sure we can place references to this profile node in the future.
     // This will make it easier to search on it later on.
     if (profileNode.canAddMixin(JcrConstants.MIX_REFERENCEABLE)) {
@@ -313,14 +297,10 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createPrivate(Session session, Authorizable authorizable)
       throws RepositoryException {
     String privatePath = PersonalUtils.getPrivatePath(authorizable);
-    LOGGER.debug("creating private at {} ",privatePath);
-    if (session.itemExists(privatePath)) {
-      return (Node) session.getItem(privatePath);
-    }
-
+    LOGGER.debug("creating or replacing ACLs for private at {} ",privatePath);
     Node privateNode = JcrUtils.deepGetOrCreateNode(session, privatePath);
+
     // Make sure that this folder is completely private.
-    
     PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
     Principal everyone = principalManager.getEveryone();
     Principal anon = new Principal() {
@@ -328,7 +308,6 @@ public class UserPostProcessorImpl implements UserPostProcessor {
         return UserConstants.ANON_USERID;
       }
     };
-
     replaceAccessControlEntry(session, privatePath, authorizable.getPrincipal(),
         new String[] { JCR_ALL }, null, null);
     replaceAccessControlEntry(session, privatePath, anon, null, new String[] { JCR_READ,
@@ -354,10 +333,11 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   private Node createPublic(Session session, Authorizable athorizable)
       throws RepositoryException {
     String publicPath = PersonalUtils.getPublicPath(athorizable);
-    LOGGER.debug("Creating Public  for {} at   {} ",athorizable.getID(), publicPath);
-    if (session.itemExists(publicPath)) {
-      return (Node) session.getItem(publicPath);
+    if (session.nodeExists(publicPath)) {
+      // No more work needed at present.
+      return session.getNode(publicPath);
     }
+    LOGGER.debug("Creating Public  for {} at   {} ",athorizable.getID(), publicPath);
     Node publicNode = JcrUtils.deepGetOrCreateNode(session, publicPath);
     return publicNode;
   }
@@ -474,5 +454,30 @@ public class UserPostProcessorImpl implements UserPostProcessor {
   public int getSequence() {
     return 0;
   }
-
+  
+  /**
+   * Decide whether post-processing this user or group would be redundant because
+   * it has already been done. The current logic uses the existence of a profile
+   * node of the correct type as a marker.
+   *
+   * @param session
+   * @param authorizable
+   * @return true if there is evidence that post-processing has already occurred for
+   *    this user or group
+   * @throws RepositoryException
+   */
+  private boolean isPostProcessingDone(Session session, Authorizable authorizable) throws RepositoryException {
+    boolean isProfileCreated = false;
+    String path = PersonalUtils.getProfilePath(authorizable);
+    if (session.nodeExists(path)) {
+      Node node = session.getNode(path);
+      String type = nodeTypeForAuthorizable(authorizable.isGroup());
+      if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)) {
+        if (node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY).getString().equals(type)) {
+          isProfileCreated = true;
+        }
+      }
+    }
+    return isProfileCreated;
+  }
 }
