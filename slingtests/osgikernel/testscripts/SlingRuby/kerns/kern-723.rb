@@ -22,7 +22,7 @@ class TC_Kern723Test < SlingTest
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
     @s.switch_user(sitecreator)
-    sitetemplate = "/templates/template"
+    sitetemplate = "/var/templates/site/systemtemplate"
     
     @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteid}",
