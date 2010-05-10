@@ -12,7 +12,7 @@ class TC_Kern637Test < SlingTest
     sitename = "Test Site #{m}"
     sitecreator = create_user("testuser#{m}")
     @s.switch_user(sitecreator)
-    sitetemplate = "/templates/template"
+    sitetemplate = "/var/templates/site/systemtemplate"
     # Make sure the template is there as expected.
     res = @s.execute_get(@s.url_for(sitetemplate + ".json"))
     props = JSON.parse(res.body)

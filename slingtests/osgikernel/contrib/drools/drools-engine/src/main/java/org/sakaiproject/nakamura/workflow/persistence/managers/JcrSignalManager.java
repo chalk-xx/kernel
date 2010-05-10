@@ -64,7 +64,7 @@ public class JcrSignalManager extends DefaultSignalManager {
   }
 
   private List<Long> getProcessInstancesForEvent(String type) {
-
+    // TODO: sort out how this should work, I think it will impact storage.
     LOGGER
         .warn("Events are not propagating, need to implement a query, and sort out ProcessInstancEventInfo ");
     // need to perform a query

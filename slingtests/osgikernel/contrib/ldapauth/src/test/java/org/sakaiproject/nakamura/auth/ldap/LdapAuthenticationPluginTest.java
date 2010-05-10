@@ -41,11 +41,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.stubbing.defaultanswers.Answers;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-
-import java.util.HashMap;
 
 import java.util.HashMap;
 
