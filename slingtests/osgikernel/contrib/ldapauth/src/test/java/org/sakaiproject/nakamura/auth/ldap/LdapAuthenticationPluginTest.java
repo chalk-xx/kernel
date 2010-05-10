@@ -110,7 +110,17 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(1);
+    when(results.hasMore()).thenReturn(true);
+
+    // verify the calls
+    // verify(connMgr).getConnection();
+    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
+    // verify(conn).search(anyString(), anyInt(), anyString(), any(String[].class),
+    // anyBoolean());
+    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
+    // verify(conn).search(isA(String.class), isA(Integer.class), anyString(),
+    // any(String[].class),
+    // anyBoolean());
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
@@ -129,17 +139,7 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(1);
-
-    // verify the calls
-    // verify(connMgr).getConnection();
-    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
-    // verify(conn).search(anyString(), anyInt(), anyString(), any(String[].class),
-    // anyBoolean());
-    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
-    // verify(conn).search(isA(String.class), isA(Integer.class), anyString(),
-    // any(String[].class),
-    // anyBoolean());
+    when(results.hasMore()).thenReturn(true);
 
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
@@ -187,7 +187,7 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(0);
+    when(results.hasMore()).thenReturn(false);
 
     // then
     assertFalse(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
@@ -206,7 +206,7 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(1);
+    when(results.hasMore()).thenReturn(true);
     doThrow(new LDAPException()).when(conn).bind(LDAPConnection.LDAP_V3,
         USER_FILTER.replace("{}", USER) + ", " + LDAP_BASE_DN, PASS.getBytes("UTF-8"));
 
@@ -229,7 +229,7 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(1);
+    when(results.hasMore()).thenReturn(true);
 
     // then
     assertFalse(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
@@ -248,7 +248,7 @@ public class LdapAuthenticationPluginTest {
     when(
         conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
         .thenReturn(results);
-    when(results.getCount()).thenReturn(1).thenReturn(0);
+    when(results.hasMore()).thenReturn(true).thenReturn(false);
 
     // then
     assertFalse(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
