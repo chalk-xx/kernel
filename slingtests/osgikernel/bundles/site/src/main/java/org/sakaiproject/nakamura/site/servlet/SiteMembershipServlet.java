@@ -95,7 +95,7 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
 
         output.array();
         for (Group g : site.getValue()) {
-          output.value(g);
+          output.value(g.getID());
         }
         output.endArray();
 

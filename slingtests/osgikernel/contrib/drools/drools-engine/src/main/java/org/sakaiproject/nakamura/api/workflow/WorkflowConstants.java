@@ -48,11 +48,11 @@ public interface WorkflowConstants {
   
   public static final String PR_PROCESS_INSTANCE_EVENT_TYPES = "sakai:workflow-event-types";
 
-  public static final String PR_WORKITEM_NAME = null;
+  public static final String PR_WORKITEM_NAME = "sakai:workflow-item-name";
 
-  public static final String PR_WORKITEM_CREATION_DATE = null;
+  public static final String PR_WORKITEM_CREATION_DATE = "sakai:workflow-create-date";
 
-  public static final String PR_WORKITEM_STATE = null;
+  public static final String PR_WORKITEM_STATE = "sakai:workflow-item-state";
 
   public static final String SESSION_IDENTIFIER = Session.class.getName();
 
