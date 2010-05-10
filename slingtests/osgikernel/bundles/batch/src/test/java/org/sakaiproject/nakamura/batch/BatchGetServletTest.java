@@ -17,61 +17,48 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
 import static org.mockito.Mockito.when;
-import static org.sakaiproject.nakamura.batch.BatchServlet.REQUESTS_PARAMETER;
+
+import static org.mockito.Mockito.mock;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  */
-public class BatchServletTest {
+public class BatchGetServletTest {
 
-  private BatchServlet servlet;
+  private BatchGetServlet servlet;
   private SlingHttpServletRequest request;
   private SlingHttpServletResponse response;
 
   @Before
-  public void setUp() throws Exception {
-    servlet = new BatchServlet();
+  public void setup() throws Exception {
+    servlet = new BatchGetServlet();
     request = mock(SlingHttpServletRequest.class);
     response = mock(SlingHttpServletResponse.class);
-
   }
 
   @Test
-  public void testInvalidRequest() throws ServletException, IOException {
-    when(request.getParameter(REQUESTS_PARAMETER)).thenReturn("marlformedparameter");
+  public void testParameters() throws IOException, ServletException {
+
+    when(request.getRequestParameter(BatchGetServlet.RESOURCE_PATH_PARAMETER))
+        .thenReturn(null);
     servlet.doGet(request, response);
-    verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST,
-        "Failed to parse the " + REQUESTS_PARAMETER + " parameter");
-  }
+    verify(response).sendError(Mockito.eq(HttpServletResponse.SC_BAD_REQUEST),
+        Mockito.anyString());
 
-  @Test
-  public void testSimpleRequest() throws Exception {
-    String json = "[{\"url\" : \"/foo/bar\",\"method\" : \"POST\",\"parameters\" : {\"val\" : 123,\"val@TypeHint\" : \"Long\"}}]";
-    when(request.getParameter(REQUESTS_PARAMETER)).thenReturn(json);
-
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintWriter writer = new PrintWriter(baos);
-
-    RequestDispatcher dispatcher = mock(RequestDispatcher.class);
-    when(request.getRequestDispatcher("/foo/bar")).thenReturn(dispatcher);
-    when(response.getWriter()).thenReturn(writer);
-    servlet.doPost(request, response);
   }
 
 }
