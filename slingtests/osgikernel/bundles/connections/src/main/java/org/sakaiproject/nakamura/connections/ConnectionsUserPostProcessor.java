@@ -29,6 +29,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
@@ -44,6 +46,7 @@ import java.security.Principal;
 import java.util.List;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
@@ -87,7 +90,31 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
       String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
       replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null);
       replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null);
+      createContactsGroup(authorizable, session);
     }
+  }
+
+  /**
+   * Create a group that will contain the contacts for this user.
+   *
+   * @param authorizable
+   *          The user that needs to have a group.
+   * @param session
+   *          The session that can be used to create a group
+   * @throws RepositoryException
+   * @throws AuthorizableExistsException
+   */
+  protected void createContactsGroup(Authorizable authorizable, Session session)
+      throws AuthorizableExistsException, RepositoryException {
+    UserManager um = AccessControlUtil.getUserManager(session);
+    final String userID = authorizable.getID();
+    Principal p = new Principal() {
+
+      public String getName() {
+        return "g-contacts-" + userID;
+      }
+    };
+    um.createGroup(p);
   }
 
   /**
