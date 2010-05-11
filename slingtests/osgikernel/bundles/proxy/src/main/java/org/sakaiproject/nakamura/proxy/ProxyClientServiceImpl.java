@@ -54,6 +54,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -89,7 +92,6 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private static final String JCR_RESOURCE_LOADER = "jcr";
 
-
   /**
    * The shared velocity engine, which should cache all the templates. (need to sort out
    * how to invalidate).
@@ -111,13 +113,26 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    */
   private ThreadLocal<Node> boundNode = new ThreadLocal<Node>();
 
+  private Map<String, Object> configProperties;
+
   /**
    * Create resources used by this component.
    * 
    * @param ctx
    * @throws Exception
    */
+  @SuppressWarnings("unchecked")
   protected void activate(ComponentContext ctx) throws Exception {
+    if (ctx != null) {
+      Dictionary<String, Object> props = ctx.getProperties();
+      configProperties = new HashMap<String, Object>();
+      for (Enumeration<String> e = props.keys(); e.hasMoreElements();) {
+        String k = e.nextElement();
+        configProperties.put(k, props.get(k));
+      }
+    } else {
+      configProperties = new HashMap<String, Object>();
+    }
     velocityEngine = new VelocityEngine();
     velocityEngine.setProperty(VelocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger(
         this.getClass()));
@@ -188,15 +203,17 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @throws ProxyClientException
    */
   public ProxyResponse executeCall(Node node, Map<String, String> headers,
-      Map<String, Object> input,
-      InputStream requestInputStream, long requestContentLength, String requestContentType)
-      throws ProxyClientException {
+      Map<String, Object> input, InputStream requestInputStream,
+      long requestContentLength, String requestContentType) throws ProxyClientException {
     try {
       bindNode(node);
 
       if (node != null && node.hasProperty(SAKAI_REQUEST_PROXY_ENDPOINT)) {
 
         VelocityContext context = new VelocityContext(input);
+
+        // add in the config properties from the bundle overwriting everythign else.
+        context.put("config", configProperties);
 
         // setup the post request
         String endpointURL = JcrUtils.getMultiValueString(node
@@ -278,7 +295,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
 
         }
 
-        populateMethod(method,node,headers);
+        populateMethod(method, node, headers);
 
         if (requestInputStream == null && !node.hasProperty(SAKAI_PROXY_REQUEST_TEMPLATE)) {
           if (method instanceof PostMethod) {
@@ -286,7 +303,7 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
             for (Entry<String, Object> param : input.entrySet()) {
               Object v = param.getValue();
               if (v instanceof String[]) {
-                for (String val : (String[])v) {
+                for (String val : (String[]) v) {
                   postMethod.addParameter(param.getKey(), val);
                 }
               } else {
@@ -350,7 +367,8 @@ public class ProxyClientServiceImpl implements ProxyClientService, ProxyNodeSour
    * @param method
    * @throws RepositoryException
    */
-  private void populateMethod(HttpMethod method, Node node, Map<String, String> headers) throws RepositoryException {
+  private void populateMethod(HttpMethod method, Node node, Map<String, String> headers)
+      throws RepositoryException {
     // follow redirects, but dont auto process 401's and the like.
     // credentials should be provided
     method.setDoAuthentication(false);
