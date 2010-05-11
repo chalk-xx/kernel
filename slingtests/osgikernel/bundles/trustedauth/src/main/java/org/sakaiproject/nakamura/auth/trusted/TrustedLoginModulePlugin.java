@@ -103,15 +103,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#canHandle(javax.jcr.Credentials)
    */
   public boolean canHandle(Credentials cred) {
-    boolean hasAttribute = false;
-
-    if (cred != null && cred instanceof SimpleCredentials) {
-      Object attr = ((SimpleCredentials) cred)
-          .getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
-      hasAttribute = (attr instanceof TrustedUser);
-    }
-
-    return hasAttribute;
+    return TrustedAuthenticationPlugin.canHandle(cred);
   }
 
   /**
@@ -122,10 +114,11 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
    */
   public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
       throws RepositoryException {
-    if (canHandle(creds)) {
-      return new TrustedAuthenticationPlugin(principal);
+    try {
+      return new TrustedAuthenticationPlugin(principal, creds);
+    } catch ( IllegalArgumentException e ) {
+      return null;      
     }
-    return null;
   }
 
   /**
