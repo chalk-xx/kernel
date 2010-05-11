@@ -55,7 +55,7 @@ public class RequestInfo {
    * {
    *   "url" : "/foo/bar",
    *   "method" : "POST",
-   *   "parameters : {
+   *   "parameters\" : {
    *     "val" : 123,
    *     "val@TypeHint" : "Long"
    *   }

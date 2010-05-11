@@ -33,16 +33,16 @@ public class NameSanitizer {
     String name = this.name;
 
     // User names can't start with g-
-    if (isUser && name.startsWith("g-")) {
+    if (isUser() && name.startsWith("g-")) {
       throw new RepositoryException("User name must not begin 'g-'");
     }
 
     // Group names HAVE to start with a g-
-    if (!isUser && !name.startsWith("g-")) {
+    if (isGroup() && !name.startsWith("g-")) {
       throw new RepositoryException("Group names must begin with 'g-'");
     }
 
-    if (!isUser && name.startsWith("g-")) {
+    if (isGroup() && name.startsWith("g-")) {
       name = name.substring(2);
     }
 
@@ -59,5 +59,24 @@ public class NameSanitizer {
         throw new RepositoryException("Invalid characters in name: " + name);
       }
     }
+    
+    // KERN-763 - UserIDs starting with g-contacts- are reserved for the contact groups.
+    if (name.startsWith("g-contacts-")) {
+      throw new RepositoryException("'g-contacts-' is a reserved prefix.");
+    }
+  }
+
+  /**
+   * @return true if the sanitizer should handle the name as a group id.
+   */
+  public boolean isGroup() {
+    return !isUser;
+  }
+
+  /**
+   * @return true if the sanitizer should handle the name as a username.
+   */
+  public boolean isUser() {
+    return isUser;
   }
 }
