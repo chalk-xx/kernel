@@ -29,6 +29,7 @@ import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookieException;
+import org.sakaiproject.nakamura.util.Signature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 
@@ -77,6 +79,18 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   /** Property to point to keystore file */
   @Property(value = "sling/cookie-keystore.bin", description = "The name of the token store")
   public static final String TOKEN_FILE_NAME = "sakai.auth.trusted.token.storefile";
+
+  /** Property to contain the shared secret used by all trusted servers */
+  @Property(value = "default-setting-change-before-use", description= "The shared secret used for server to server trusted tokens")
+  public static final String SERVER_TOKEN_SHARED_SECRET = "sakai.auth.trusted.server.secret";
+
+  /** True if server tokens are enabled. */
+  @Property(boolValue=true, description = "If true, trusted tokens from servers are accepted considered" )
+  public static final String SERVER_TOKEN_ENABLED = "sakai.auth.trusted.server.enabled";
+
+  /** A list of all the known safe hosts to trust as servers */
+  @Property(value =";localhost;", description="A ; seperated list of hosts that this instance trusts to make server connections.")
+  public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
   /**
    * If True, sessions will be used, if false cookies.
@@ -126,6 +140,12 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    */
   private ArrayList<Object[]> calls;
 
+  private String sharedSecret;
+
+  private boolean trustedTokenEnabled;
+
+  private String safeHosts;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -146,6 +166,9 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     secureCookie = (Boolean) props.get(SECURE_COOKIE);
     ttl = (Long) props.get(TTL);
     trustedAuthCookieName = (String) props.get(COOKIE_NAME);
+    sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
+    trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
+    safeHosts = (String) props.get(SERVER_TOKEN_SAFE_HOSTS);
     
     String tokenFile = (String) props.get(TOKEN_FILE_NAME);
     String serverId = clusterTrackingService.getCurrentServerId();
@@ -171,54 +194,87 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @return credentials associated with the request.
    */
   public Credentials getCredentials(HttpServletRequest req, HttpServletResponse response) {
-    if ( testing ) {
-      calls.add(new Object[]{"getCredentials",req,response});
+    if (testing) {
+      calls.add(new Object[] { "getCredentials", req, response });
       return new SimpleCredentials("testing", "testing".toCharArray());
     }
     Credentials cred = null;
     String userId = null;
-    if (usingSession) {
-      HttpSession session = req.getSession(false);
-      if (session != null) {
-        Credentials testCredentials = (Credentials) session
-            .getAttribute(SA_AUTHENTICATION_CREDENTIALS);
-        if (testCredentials instanceof SimpleCredentials) {
-          SimpleCredentials sc = (SimpleCredentials) testCredentials;
-          Object o = sc.getAttribute(CA_AUTHENTICATION_USER);
-          if (o instanceof TrustedUser) {
-            TrustedUser tu = (TrustedUser) o;
-            if (tu.getUser() != null) {
-              userId = tu.getUser();
-              cred = testCredentials;
+    String sakaiTrustedHeader = req.getHeader("x-sakai-token");
+    if (trustedTokenEnabled && sakaiTrustedHeader != null
+        && sakaiTrustedHeader.trim().length() > 0) {
+      String host = req.getRemoteHost();
+      if (safeHosts.indexOf(host) < 0) {
+        LOG.warn("Ingnoring Trusted Token request from {} ", host);
+      } else {
+        // we have a HMAC based token, we should see if it is valid against the key we
+        // have
+        // and if so create some credentials.
+        String[] parts = sakaiTrustedHeader.split(";");
+        if (parts.length == 2) {
+          try {
+            String hash = parts[0];
+            String user = parts[1];
+            String hmac = Signature.calculateRFC2104HMAC(user, sharedSecret);
+            if (hmac.equals(hash)) {
+              // the user is Ok, we will trust it.
+              userId = user;
+              cred = createCredentials(userId);
+            }
+          } catch (SignatureException e) {
+            LOG.warn("Failed to validate server token : {} {} ", sakaiTrustedHeader, e
+                .getMessage());
+          }
+        } else {
+          LOG.warn("Illegal number of elements in trusted server token:{} {}  ",
+              sakaiTrustedHeader, parts.length);
+        }
+      }
+    }
+    if (userId == null) {
+      if (usingSession) {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+          Credentials testCredentials = (Credentials) session
+              .getAttribute(SA_AUTHENTICATION_CREDENTIALS);
+          if (testCredentials instanceof SimpleCredentials) {
+            SimpleCredentials sc = (SimpleCredentials) testCredentials;
+            Object o = sc.getAttribute(CA_AUTHENTICATION_USER);
+            if (o instanceof TrustedUser) {
+              TrustedUser tu = (TrustedUser) o;
+              if (tu.getUser() != null) {
+                userId = tu.getUser();
+                cred = testCredentials;
+              }
             }
           }
+        } else {
+          cred = null;
         }
       } else {
-        cred = null;
-      }
-    } else {
-      Cookie[] cookies = req.getCookies();
-      if (cookies != null) {
-        for (Cookie c : cookies) {
-          if (trustedAuthCookieName.equals(c.getName())) {
-            if (secureCookie && !c.getSecure()) {
-              continue;
-            }
-            String cookieValue = c.getValue();
-            userId = decodeCookie(c.getValue());
-            if (userId != null) {
-              cred = createCredentials(userId);
-              refreshToken(response, c.getValue(), userId);
-              break;
-            } else {
-              LOG.debug("Invalid Cookie {} ",cookieValue);
+        Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+          for (Cookie c : cookies) {
+            if (trustedAuthCookieName.equals(c.getName())) {
+              if (secureCookie && !c.getSecure()) {
+                continue;
+              }
+              String cookieValue = c.getValue();
+              userId = decodeCookie(c.getValue());
+              if (userId != null) {
+                cred = createCredentials(userId);
+                refreshToken(response, c.getValue(), userId);
+                break;
+              } else {
+                LOG.debug("Invalid Cookie {} ", cookieValue);
+              }
             }
           }
         }
       }
     }
-    if ( userId != null ) {
-      LOG.debug("Trusted Authentication for {} with credentials {}  ",userId, cred);
+    if (userId != null) {
+      LOG.debug("Trusted Authentication for {} with credentials {}  ", userId, cred);
     }
     return cred;
   }
