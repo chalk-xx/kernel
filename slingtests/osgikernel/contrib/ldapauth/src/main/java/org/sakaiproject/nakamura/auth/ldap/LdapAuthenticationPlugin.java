@@ -110,11 +110,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         // 2) Search for username (not authz).
         // If search fails, log/report invalid username or password.
         LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userDn,
-            null, false);
-        if (results.getCount() == 0) {
-          throw new IllegalArgumentException("Can't find user [" + userDn + "]");
-        } else {
+            null, true);
+        if (results.hasMore()) {
           log.debug("Found user via search");
+        } else {
+          throw new IllegalArgumentException("Can't find user [" + userDn + "]");
         }
 
         // 3) Bind as username.
@@ -134,7 +134,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
             conn.bind(LDAPConnection.LDAP_V3, appUser, appPass.getBytes(UTF8));
             log.debug("Rebound as application user");
           } catch (LDAPException e) {
-            log.warn("{}]", appUser);
             throw new IllegalArgumentException("Can't bind application user [" + appUser
                 + "]");
           }
@@ -143,24 +142,19 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           // If search fails, log/report that user is not authorized
           String userAuthzFilter = "(&(" + userDn + ")(" + authzFilter + "))";
           results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userAuthzFilter, null,
-              false);
-          if (results.getCount() == 0) {
-            throw new IllegalArgumentException("User not authorized [" + userDn + "]");
-          } else {
+              true);
+          if (results.hasMore()) {
             log.debug("Found user + authz filter via search");
+          } else {
+            throw new IllegalArgumentException("User not authorized [" + userDn + "]");
           }
         }
 
         // FINALLY!
         auth = true;
+        log.info("User [{}] authenticated with LDAP", userDn);
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
-
-        if (e instanceof RepositoryException) {
-          throw (RepositoryException) e;
-        } else {
-          throw new RepositoryException(e.getMessage(), e);
-        }
       } finally {
         connMgr.returnConnection(conn);
       }

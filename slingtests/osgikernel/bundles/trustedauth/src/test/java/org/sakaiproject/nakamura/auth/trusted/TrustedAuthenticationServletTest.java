@@ -74,6 +74,9 @@ public class TrustedAuthenticationServletTest {
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict).anyTimes();
     return context;
   }

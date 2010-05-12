@@ -72,6 +72,8 @@ public class OsgiJmsBridge implements EventHandler {
   private String connectionClientId;
   private int acknowledgeMode;
 
+  private long lastMessage = System.currentTimeMillis();
+
   /**
    * Default constructor.
    */
@@ -212,7 +214,10 @@ public class OsgiJmsBridge implements EventHandler {
     } catch (JMSException e) {
       Throwable t = e.getCause();
       if ( t != null && t.getClass().getName().equals("org.apache.activemq.transport.TransportDisposedIOException") ) {
-        LOGGER.info("Transport disposed, probably on shutdown, use debug level logging to see more :{} ", e.getMessage());
+        if ( (System.currentTimeMillis() - lastMessage) > 15000L ) {
+          lastMessage = System.currentTimeMillis();
+          LOGGER.info("Transport disposed, probably on shutdown, use debug level logging to see more :{} ", e.getMessage());
+        }
         LOGGER.debug(e.getMessage(), e);
       } else {
         LOGGER.error(e.getMessage(), e);

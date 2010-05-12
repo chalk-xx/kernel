@@ -27,6 +27,13 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
   @Reference
   private LdapAuthenticationPlugin authPlugin;
 
+  public LdapLoginModulePlugin() {
+  }
+
+  LdapLoginModulePlugin(LdapAuthenticationPlugin authPlugin) {
+    this.authPlugin = authPlugin;
+  }
+  
   /**
    * {@inheritDoc}
    *

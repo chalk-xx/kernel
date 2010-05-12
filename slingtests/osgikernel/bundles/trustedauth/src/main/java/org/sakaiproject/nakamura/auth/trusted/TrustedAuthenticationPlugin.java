@@ -19,6 +19,8 @@
 package org.sakaiproject.nakamura.auth.trusted;
 
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
+import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
+import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
 
 import java.security.Principal;
 
@@ -29,10 +31,24 @@ import javax.jcr.SimpleCredentials;
 public final class TrustedAuthenticationPlugin implements AuthenticationPlugin {
   private final Principal principal;
 
-  public TrustedAuthenticationPlugin(Principal principal) {
-    this.principal = principal;
+  public TrustedAuthenticationPlugin(Principal principal, Credentials creds) {
+    if (canHandle(creds)) {
+      this.principal = principal;
+      return;
+    }
+    throw new IllegalArgumentException("Creadentials are not trusted ");
   }
 
+  public static boolean canHandle(Credentials cred) {
+    boolean hasAttribute = false;
+    if (cred != null && cred instanceof SimpleCredentials) {
+      Object attr = ((SimpleCredentials) cred)
+          .getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
+      hasAttribute = (attr instanceof TrustedUser);
+    }
+    return hasAttribute;
+  }
+  
   public boolean authenticate(Credentials credentials) throws RepositoryException {
     boolean auth = false;
     if (credentials instanceof SimpleCredentials) {

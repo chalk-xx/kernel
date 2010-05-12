@@ -39,6 +39,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.api.resource.Resource;
@@ -246,6 +247,17 @@ public class ConnectionManagerImpl implements ConnectionManager {
         handleInvitation(requestParameters, adminSession, thisNode, otherNode);
       }
 
+      // KERN-763 : Connections need to be "stored" in groups.
+      StatePairFinal spAccepted = new StatePairFinal(ACCEPTED, ACCEPTED);
+      if (sp.equals(spAccepted)) {
+        addUserToGroup(thisAu, otherAu, adminSession);
+        addUserToGroup(otherAu, thisAu, adminSession);
+      } else {
+        // This might be an existing connection that needs to be removed
+        removeUserFromGroup(thisAu, otherAu, adminSession);
+        removeUserFromGroup(otherAu, thisAu, adminSession);
+      }
+
       sp.transition(thisNode, otherNode);
 
       // save changes if any were actually made
@@ -271,6 +283,45 @@ public class ConnectionManagerImpl implements ConnectionManager {
       }
     }
     return true;
+  }
+
+  /**
+   * Removes a member from a group
+   *
+   * @param thisAu
+   *          The {@link Authorizable authorizable} who owns the group.
+   * @param otherAu
+   *          The {@link Authorizable authorizable} who needs to be removed from the
+   *          contact group.
+   * @param adminSession
+   *          A session that can be used to modify a group.
+   * @throws RepositoryException
+   */
+  protected void removeUserFromGroup(Authorizable thisAu, Authorizable otherAu,
+      Session session) throws RepositoryException {
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Group g = (Group) um.getAuthorizable("g-contacts-" + thisAu.getID());
+    if (g != null && g.isMember(otherAu)) {
+      g.removeMember(otherAu);
+    }
+  }
+
+  /**
+   * Adds one user to another user his connection group.
+   *
+   * @param thisAu
+   *          The base user who is adding a contact.
+   * @param otherAu
+   *          The user that needs to be added to the group.
+   * @param session
+   *          The session that can be used to locate and manipulate the group
+   * @throws RepositoryException
+   */
+  protected void addUserToGroup(Authorizable thisAu, Authorizable otherAu, Session session)
+      throws RepositoryException {
+    UserManager um = AccessControlUtil.getUserManager(session);
+    Group g = (Group) um.getAuthorizable("g-contacts-" + thisAu.getID());
+    g.addMember(otherAu);
   }
 
   /**

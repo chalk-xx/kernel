@@ -12,7 +12,7 @@ class TC_Kern726Test < SlingTest
     @s.switch_user(sitecreator)
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteparent}/#{siteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => siteid,
       "description" => siteid,
       "id" => siteid,
@@ -29,21 +29,21 @@ class TC_Kern726Test < SlingTest
     newsiteid = "testothersite_#{m}"
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteparent}/#{siteid}/#{newsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => newsiteid,
       "description" => newsiteid,
       "id" => newsiteid)
     assert_not_equal("200", res.code, "Non-members should not be able to create site under site")
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteresource}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => newsiteid,
       "description" => newsiteid,
       "id" => newsiteid)
     assert_not_equal("200", res.code, "Non-members should not be able to overwrite site resource")
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
       ":sitepath" => "/#{siteparent}/#{newsiteid}",
-      "sakai:site-template" => "/templates/template",
+      "sakai:site-template" => "/var/templates/site/systemtemplate",
       "name" => newsiteid,
       "description" => newsiteid,
       "id" => newsiteid)

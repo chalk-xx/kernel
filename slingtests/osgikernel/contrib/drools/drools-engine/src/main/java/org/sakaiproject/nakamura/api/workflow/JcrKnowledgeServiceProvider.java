@@ -43,7 +43,7 @@ public interface JcrKnowledgeServiceProvider {
 
   /**
    * Load an existing Statefull Knowledge session from JCR.
-   * @param id
+   * @param id the id of the session.
    * @param kbase
    * @param configuration
    * @param environment
