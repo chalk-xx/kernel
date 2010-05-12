@@ -96,6 +96,7 @@ import org.sakaiproject.user.api.UserNotDefinedException;
 public class TrustedLoginFilter implements Filter {
 	private final static Log LOG = LogFactory.getLog(TrustedLoginFilter.class);
 	private static final String ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET = "org.sakaiproject.util.TrustedLoginFilter.sharedSecret";
+	private static final String TOKEN_SEPARATOR = ";";
 
 	private SessionManager sessionManager;
 	private String sharedSecret;
@@ -154,13 +155,15 @@ public class TrustedLoginFilter implements Filter {
 	 */
 	protected String decodeToken(String token) {
 		String userId = null;
-		String[] parts = token.split(";");
-		if (parts.length == 2) {
+		final String[] parts = token.split(TOKEN_SEPARATOR);
+		if (parts.length == 3) {
 			try {
-				String hash = parts[0];
-				String user = parts[1];
-				String hmac = Signature
-						.calculateRFC2104HMAC(user, sharedSecret);
+				final String hash = parts[0];
+				final String user = parts[1];
+				final String timestamp = parts[2];
+				final String message = user + TOKEN_SEPARATOR + timestamp;
+				final String hmac = Signature
+						.calculateRFC2104HMAC(message, sharedSecret);
 				if (hmac.equals(hash)) {
 					// the user is Ok, we will trust it.
 					userId = user;
