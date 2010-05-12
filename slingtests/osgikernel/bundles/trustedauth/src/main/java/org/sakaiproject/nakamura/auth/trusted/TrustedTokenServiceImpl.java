@@ -205,17 +205,19 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         && sakaiTrustedHeader.trim().length() > 0) {
       String host = req.getRemoteHost();
       if (safeHosts.indexOf(host) < 0) {
-        LOG.warn("Ingnoring Trusted Token request from {} ", host);
+        LOG.warn("Ignoring Trusted Token request from {} ", host);
       } else {
         // we have a HMAC based token, we should see if it is valid against the key we
         // have
         // and if so create some credentials.
         String[] parts = sakaiTrustedHeader.split(";");
-        if (parts.length == 2) {
+        if (parts.length == 3) {
           try {
             String hash = parts[0];
             String user = parts[1];
-            String hmac = Signature.calculateRFC2104HMAC(user, sharedSecret);
+            String timestamp = parts[2];
+            String hmac = Signature.calculateRFC2104HMAC(
+                user + ";" + timestamp, sharedSecret);
             if (hmac.equals(hash)) {
               // the user is Ok, we will trust it.
               userId = user;
