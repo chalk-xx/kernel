@@ -114,7 +114,9 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
         return "g-contacts-" + userID;
       }
     };
-    um.createGroup(p);
+    if (um.getAuthorizable(p) == null) {
+      um.createGroup(p);
+    }
   }
 
   /**
