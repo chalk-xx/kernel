@@ -16,300 +16,291 @@
  */
 package org.sakaiproject.nakamura.persondirectory.providers;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
+import static org.mockito.Matchers.anyInt;
+
+import static org.mockito.Matchers.any;
+
+import static org.mockito.Matchers.anyBoolean;
+
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.isA;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 
-import org.easymock.classextension.EasyMock;
 import org.junit.Test;
-import org.osgi.service.component.ComponentContext;
+import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.internal.stubbing.defaultanswers.ReturnsDeepStubs;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.persondirectory.Person;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+
+@RunWith(MockitoJUnitRunner.class)
 public class LdapPersonProviderTest {
+
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  private Node node;
+
   /**
-   * Test for the default constructor. Too simple to not have and boosts code
-   * coverage.
-   *
+   * Test for the default constructor. Too simple to not have and boosts code coverage.
+   * 
    * @throws Exception
    */
-  @Test
+  @Test(expected = NullPointerException.class)
   public void testDefaultConstructor() throws Exception {
-    try {
-      LdapPersonProvider provider = new LdapPersonProvider();
-      provider.getPerson("whatever", null);
-      fail("Should fail when the broker isn't explicitly set or injected by OSGi reference.");
-    } catch (NullPointerException e) {
-      // expected
-    }
+    LdapPersonProvider provider = new LdapPersonProvider();
+    provider.getProfileSection(hasAllProperties(node, "admin"));
+    fail("Should fail when the connection manager isn't explicitly set or injected by OSGi reference.");
   }
 
   @Test
   public void testActivateWithAllProperties() throws Exception {
-    LdapConnectionManager mgr = createMock(LdapConnectionManager.class);
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    expect(mgr.getConfig()).andReturn(config);
-    replay(mgr);
+    LdapConnectionManager mgr = mock(LdapConnectionManager.class);
 
     LdapPersonProvider provider = new LdapPersonProvider(mgr);
-    String[] attrMap = new String[] { "attr0=>wow wee", "attr1 => camera 1" };
-    provider.activate(buildContext(attrMap));
+    String[] attrMap = new String[] { "attr0=>wow wee", "attr1 => camera 1", "attr2" };
+    provider.activate(buildMap(attrMap));
     Map<String, String> attributesMap = provider.getAttributesMap();
     assertTrue(attributesMap.containsKey("attr0"));
     assertEquals("wow wee", attributesMap.get("attr0"));
     assertTrue(attributesMap.containsKey("attr1"));
     assertEquals("camera 1", attributesMap.get("attr1"));
+    assertTrue(attributesMap.containsKey("attr2"));
+    assertEquals("attr2", attributesMap.get("attr2"));
   }
 
-  @Test
-  public void testActivateWithBadPropertySeparator() {
-    LdapPersonProvider provider = new LdapPersonProvider();
-    String[] attrMap = new String[] { "attr1 -> camera 1" };
-    try {
-      provider.activate(buildContext(attrMap));
-      fail("Should fail on improper mapping syntax.");
-    } catch (ComponentException e) {
-      // expected
-    }
-  }
-
-  @Test
-  public void testActivateWithEmptyFirstKey() {
-    LdapPersonProvider provider = new LdapPersonProvider();
-    String[] attrMap = new String[] { "=>wow wee" };
-    try {
-      provider.activate(buildContext(attrMap));
-      fail("Should fail on improper mapping syntax.");
-    } catch (ComponentException e) {
-      // expected
-    }
-  }
-
-  @Test
+  @Test(expected = ComponentException.class)
   public void testActivateWithEmptySecondKey() {
     LdapPersonProvider provider = new LdapPersonProvider();
     String[] attrMap = new String[] { "attr0=> " };
-    try {
-      provider.activate(buildContext(attrMap));
-      fail("Should fail on improper mapping syntax.");
-    } catch (ComponentException e) {
-      // expected
-    }
+    provider.activate(buildMap(attrMap));
+    fail("Should fail on improper mapping syntax.");
   }
 
   /**
    * Test getting a person from an ldap provider.
-   *
+   * 
    * @throws Exception
    */
   @Test
-  public void testGetPerson() throws Exception {
-    String[] attrMap = new String[] { "firstname => called" };
+  public void testGetProfileSection() throws Exception {
+    String[] attrMap = new String[] { "firstname => called", "lastname" };
     LdapPersonProvider provider = setUpForPositiveTest(attrMap);
-    Person person = provider.getPerson("tUser", null);
+    Map<String, Object> person = provider.getProfileSection(hasAllProperties(node,
+        "tUser"));
     assertNotNull(person);
 
-    Set<String> attributeNames = person.getAttributeNames();
-    assertNotNull(attributeNames);
+    Set<String> keys = person.keySet();
+    assertEquals(2, keys.size());
 
-    assertEquals(2, attributeNames.size());
+    assertTrue(keys.contains("called"));
+    assertEquals("Tester", person.get("called"));
 
-    assertTrue(attributeNames.contains("called"));
-    assertEquals("Tester", person.getAttributeValue("called"));
+    assertTrue(keys.contains("lastname"));
+    assertTrue(person.get("lastname") instanceof String[]);
 
-    assertTrue(attributeNames.contains("lastname"));
-    assertEquals("User", person.getAttributeValue("lastname"));
+    boolean hasUser = false;
+    boolean hasLuser = false;
+    for (String val : (String[]) person.get("lastname")) {
+      if ("User".equals(val)) {
+        hasUser = true;
+      } else if ("Luser".equals(val)) {
+        hasLuser = true;
+      }
+    }
+    assertTrue(hasUser && hasLuser);
   }
 
-  /**
-   * Test getting "admin" from an ldap provider.
-   *
-   * @throws Exception
-   */
   @Test
-  public void testGetAdmin() throws Exception {
-    String[] attrMap = new String[] { "firstname => called" };
+  public void testProfileSectionNotFound() throws Exception {
+    String[] attrMap = new String[] { "firstname => called", "lastname" };
+
+    LDAPConnection connection = mock(LDAPConnection.class);
+    LDAPSearchResults results = mock(LDAPSearchResults.class);
+
+    LdapConnectionManager mgr = mock(LdapConnectionManager.class);
+    when(mgr.getBoundConnection(anyString(), anyString())).thenReturn(connection);
+    when(
+        connection.search(anyString(), anyInt(), anyString(), any(String[].class),
+            anyBoolean())).thenReturn(results);
+
+    LdapPersonProvider provider = new LdapPersonProvider(mgr);
+    provider.activate(buildMap(attrMap));
+    Map<String, Object> person = provider.getProfileSection(hasAllProperties(node,
+        "tUser"));
+
+    assertNotNull(person);
+
+    assertEquals(0, person.size());
+  }
+
+  @Test
+  public void testRecurseForInfo() throws Exception {
+    String[] attrMap = new String[] { "firstname => called", "lastname" };
     LdapPersonProvider provider = setUpForPositiveTest(attrMap);
-    Person person = provider.getPerson("admin", null);
-    assertNull("Should not allow lookup of 'admin'", person);
+    Node n2 = Mockito.mock(Node.class, new ReturnsDeepStubs());
+    hasAllProperties(n2, "huh");
+    when(node.getParent()).thenReturn(n2);
+    Map<String, Object> person = provider.getProfileSection(node);
+    assertNotNull(person);
 
-    provider = setUpForPositiveTest(attrMap, true);
-    person = provider.getPerson("admin", null);
-    Set<String> attributeNames = person.getAttributeNames();
-    assertNotNull("Should allow lookup of 'admin'", attributeNames);
+    Set<String> keys = person.keySet();
+    assertEquals(2, keys.size());
 
-    assertEquals(2, attributeNames.size());
+    assertTrue(keys.contains("called"));
+    assertEquals("Tester", person.get("called"));
 
-    assertTrue(attributeNames.contains("called"));
-    assertEquals("Tester", person.getAttributeValue("called"));
+    assertTrue(keys.contains("lastname"));
+    assertTrue(person.get("lastname") instanceof String[]);
 
-    assertTrue(attributeNames.contains("lastname"));
-    assertEquals("User", person.getAttributeValue("lastname"));
+    boolean hasUser = false;
+    boolean hasLuser = false;
+    for (String val : (String[]) person.get("lastname")) {
+      if ("User".equals(val)) {
+        hasUser = true;
+      } else if ("Luser".equals(val)) {
+        hasLuser = true;
+      }
+    }
+    assertTrue(hasUser && hasLuser);
+  }
+
+  @Test(expected = PersonProviderException.class)
+  public void testAtRootNoInfo() throws Exception {
+    String[] attrMap = new String[] { "firstname => called", "lastname" };
+    LdapPersonProvider provider = setUpForPositiveTest(attrMap);
+    when(node.getParent()).thenThrow(new RepositoryException());
+    provider.getProfileSection(node);
+    fail("Should bubble up internal exceptions.");
   }
 
   /**
    * Test getPerson() when LdapConnectionBroker.getBoundConnection(..) throws an
    * LdapException.
-   *
+   * 
    * @throws Exception
    */
-  @Test
+  @Test(expected = PersonProviderException.class)
   public void testGetPersonThrowsLdapException() throws Exception {
-    LdapConnectionManager mgr = createMock(LdapConnectionManager.class);
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    expect(mgr.getConfig()).andReturn(config);
-    expect(mgr.getConnection()).andThrow(new LDAPException());
-    replay(mgr);
+    LdapConnectionManager mgr = mock(LdapConnectionManager.class);
+    when(mgr.getBoundConnection(anyString(), anyString())).thenThrow(new LDAPException());
 
     LdapPersonProvider provider = new LdapPersonProvider(mgr);
-    provider.activate(buildContext(null));
-    try {
-      provider.getPerson("tUser", null);
-      fail("Should bubble up exceptions that are thrown internally.");
-    } catch (PersonProviderException e) {
-      // expected
-    }
+    provider.activate(buildMap(null));
+    provider.getProfileSection(hasAllProperties(node, "tUser"));
+    fail("Should bubble up exceptions that are thrown internally.");
   }
 
   /**
    * Test getPerson() when LDAPConnection.search(..) throws an LDAPException.
-   *
+   * 
    * @throws Exception
    */
-  @Test
+  @Test(expected = PersonProviderException.class)
   public void testGetPersonThrowsLDAPException() throws Exception {
-    LdapConnectionManager mgr = createMock(LdapConnectionManager.class);
-    LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    expect(mgr.getConfig()).andReturn(config);
-    expect(mgr.getConnection()).andReturn(connection);
-    replay(mgr);
-    expect(
-        connection.search(isA(String.class), anyInt(), isA(String.class), (String[]) anyObject(),
-            anyBoolean(), isA(LDAPSearchConstraints.class))).andThrow(new LDAPException());
-    EasyMock.replay(connection);
+    LdapConnectionManager mgr = mock(LdapConnectionManager.class);
+    LDAPConnection connection = mock(LDAPConnection.class);
+    when(mgr.getBoundConnection(anyString(), anyString())).thenReturn(connection);
+    // replay(mgr);
+    when(
+        connection.search(Mockito.isA(String.class), anyInt(), isA(String.class),
+            any(String[].class), anyBoolean())).thenThrow(new LDAPException());
+    // EasyMock.replay(connection);
 
     LdapPersonProvider provider = new LdapPersonProvider(mgr);
-    provider.activate(buildContext(null));
-    try {
-      provider.getPerson("tUser", null);
-      fail("Should bubble up exceptions that are thrown internally.");
-    } catch (PersonProviderException e) {
-      // expected
-    }
-  }
-
-  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap) throws Exception {
-    return setUpForPositiveTest(attributeMap, false);
+    provider.activate(buildMap(null));
+    provider.getProfileSection(hasAllProperties(node, "tUser"));
+    fail("Should bubble up exceptions that are thrown internally.");
   }
 
   /**
-   * Setup everything needed for a test that follows the most positive path of
-   * action.
-   *
+   * Setup everything needed for a test that follows the most positive path of action.
+   * 
    * @return
    * @throws Exception
    */
-  @SuppressWarnings("rawtypes")
-  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap, boolean allowAdmin)
-      throws Exception {
-    LDAPConnection connection = EasyMock.createMock(LDAPConnection.class);
-    LDAPSearchResults results = EasyMock.createMock(LDAPSearchResults.class);
-    LDAPAttributeSet attrSet = EasyMock.createMock(LDAPAttributeSet.class);
-    Iterator attrIter = createMock(Iterator.class);
-    LDAPEntry entry = EasyMock.createMock(LDAPEntry.class);
+  private LdapPersonProvider setUpForPositiveTest(String[] attributeMap) throws Exception {
+    LDAPConnection connection = mock(LDAPConnection.class);
+    LDAPSearchResults results = mock(LDAPSearchResults.class);
+    LDAPEntry entry = mock(LDAPEntry.class);
 
-    LdapConnectionManager mgr = createMock(LdapConnectionManager.class);
-    LdapConnectionManagerConfig config = new LdapConnectionManagerConfig();
-    expect(mgr.getConfig()).andReturn(config);
-    expect(mgr.getConnection()).andReturn(connection);
-    replay(mgr);
-    expect(
-        connection.search(isA(String.class), anyInt(), isA(String.class), (String[]) anyObject(),
-            anyBoolean(), isA(LDAPSearchConstraints.class))).andReturn(results);
-    EasyMock.replay(connection);
+    LdapConnectionManager mgr = mock(LdapConnectionManager.class);
+    when(mgr.getBoundConnection(anyString(), anyString())).thenReturn(connection);
+    when(
+        connection.search(anyString(), anyInt(), anyString(), any(String[].class),
+            anyBoolean())).thenReturn(results);
 
     // get a result
-    expect(results.hasMore()).andReturn(TRUE);
-    expect(results.next()).andReturn(entry);
+    when(results.hasMore()).thenReturn(true).thenReturn(false);
+    when(results.next()).thenReturn(entry);
 
     // get the attributes and an iterator to them
-    expect(entry.getAttributeSet()).andReturn(attrSet);
-    expect(attrSet.iterator()).andReturn(attrIter);
-    EasyMock.replay(entry, attrSet);
+    LDAPAttributeSet attrSet = mock(LDAPAttributeSet.class);
+    when(entry.getAttributeSet()).thenReturn(attrSet);
+    Iterator attrIter = mock(Iterator.class);
+    when(attrSet.iterator()).thenReturn(attrIter);
 
+    when(attrIter.hasNext()).thenReturn(true).thenReturn(true).thenReturn(false);
     // first loop through
-    expect(attrIter.hasNext()).andReturn(TRUE);
-    LDAPAttribute attr = EasyMock.createMock(LDAPAttribute.class);
-    expect(attr.getName()).andReturn("firstname");
-    expect(attr.getStringValueArray()).andReturn(new String[] { "Tester" });
-    expect(attrIter.next()).andReturn(attr);
-    EasyMock.replay(attr);
-
+    LDAPAttribute attr1 = mock(LDAPAttribute.class);
+    when(attr1.getName()).thenReturn("firstname");
+    when(attr1.getStringValueArray()).thenReturn(new String[] { "Tester" });
     // second loop through
-    expect(attrIter.hasNext()).andReturn(TRUE);
-    attr = EasyMock.createMock(LDAPAttribute.class);
-    expect(attr.getName()).andReturn("lastname");
-    expect(attr.getStringValueArray()).andReturn(new String[] { "User" });
-    expect(attrIter.next()).andReturn(attr);
-    EasyMock.replay(attr);
-
-    // stop loop through attributes
-    expect(attrIter.hasNext()).andReturn(FALSE);
-    replay(attrIter);
-
-    // stop loop through results
-    expect(results.hasMore()).andReturn(FALSE);
-    EasyMock.replay(results);
+    LDAPAttribute attr2 = mock(LDAPAttribute.class);
+    when(attr2.getName()).thenReturn("lastname");
+    when(attr2.getStringValueArray()).thenReturn(new String[] { "User", "Luser" });
+    when(attrIter.next()).thenReturn(attr1).thenReturn(attr2);
 
     LdapPersonProvider provider = new LdapPersonProvider(mgr);
-    provider.activate(buildContext(attributeMap, allowAdmin));
+    provider.activate(buildMap(attributeMap));
     return provider;
   }
 
-  private ComponentContext buildContext(String[] attributeMap) {
-    return buildContext(attributeMap, false);
+  private Map<String, Object> buildMap(String[] attributeMap) {
+    HashMap<String, Object> map = new HashMap<String, Object>();
+    map.put(LdapPersonProvider.BASE_DN, "ou=accounts,dc=sakai");
+    map.put(LdapPersonProvider.PROP_FILTER_PATTERN, "uid={}");
+    if (attributeMap != null) {
+      map.put(LdapPersonProvider.PROP_ATTRIBUTES_MAP, attributeMap);
+    }
+    return map;
   }
 
-  private ComponentContext buildContext(String[] attributeMap, boolean allowAdmin) {
-    Properties props = new Properties();
-    props.put(LdapPersonProvider.PROP_BASE_DN, "ou=accounts,dc=sakai");
-    props.put(LdapPersonProvider.PROP_FILTER_PATTERN, "uid={}");
-    if (attributeMap != null) {
-      props.put(LdapPersonProvider.PROP_ATTRIBUTES_MAP, attributeMap);
-    }
-    props.put(LdapPersonProvider.PROP_ALLOW_ADMIN_LOOKUP, allowAdmin);
+  private Node hasAllProperties(Node node, String uid) throws Exception {
+    when(node.hasProperty(LdapPersonProvider.SLING_RESOURCE_TYPE)).thenReturn(true);
+    when(node.getProperty(LdapPersonProvider.SLING_RESOURCE_TYPE).toString()).thenReturn(
+        LdapPersonProvider.SAKAI_USER_PROFILE);
+    when(node.hasProperty(LdapPersonProvider.REP_USER_ID)).thenReturn(true);
 
-    ComponentContext ctx = createMock(ComponentContext.class);
-    expect(ctx.getProperties()).andReturn(props);
-    replay(ctx);
-    return ctx;
+    Property prop = mock(Property.class);
+    when(prop.toString()).thenReturn(uid);
+    when(node.getProperty(LdapPersonProvider.REP_USER_ID)).thenReturn(prop);
+
+    return node;
   }
 }
