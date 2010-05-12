@@ -79,5 +79,11 @@
       <type>jar</type>
       <classifier>jdk15</classifier>
     </dependency>
+    <!-- TODO bind to release version when it is ready 0.5? -->
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>
