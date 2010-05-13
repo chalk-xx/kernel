@@ -5,7 +5,6 @@ import com.novell.ldap.LDAPAttributeSet;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -13,65 +12,58 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.osgi.service.component.ComponentContext;
+import org.apache.sling.commons.osgi.OsgiUtil;
+import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentException;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.api.persondirectory.Person;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProvider;
 import org.sakaiproject.nakamura.api.persondirectory.PersonProviderException;
-import org.sakaiproject.nakamura.persondirectory.PersonImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 /**
  * Person provider implementation that gets its information from an LDAP store.
- *
- * @author Carl Hall
  */
-@Component(metatype = true, enabled = false)
-@Service
+@Component(metatype = true)
+@Service(serviceFactory = true)
 public class LdapPersonProvider implements PersonProvider {
   private static final Logger LOG = LoggerFactory.getLogger(LdapPersonProvider.class);
+  static final String SLING_RESOURCE_TYPE = "sling:resourceType";
+  static final String REP_USER_ID = "rep:userId";
+  static final String SAKAI_USER_PROFILE = "sakai/user-profile";
 
-  /** Default LDAP access timeout in milliseconds */
-  public static final int DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000;
+  public static final String SEPARATOR = "=>";
 
-  /** Default referral following behavior */
-  public static final boolean DEFAULT_IS_FOLLOW_REFERRALS = false;
+  public static final String DEFAULT_SERVICE_PID = "org.sakaiproject.nakamura.persondirectory.providers.LdapPersonProvider";
+  @Property(value = DEFAULT_SERVICE_PID, propertyPrivate = true)
+  protected static final String SERVICE_PID = Constants.SERVICE_PID;
+  
+  public static final String DEFAULT_SERVICE_FACTORY_PID = DEFAULT_SERVICE_PID + "-factory";
+  @Property(value = DEFAULT_SERVICE_FACTORY_PID, propertyPrivate = true)
+  protected static final String SERVICE_FACTORY_PID = "serviceFactory.pid";
 
-  @Property(value = "ou=accounts,dc=sakai")
-  protected static final String PROP_BASE_DN = "ldap.provider.baseDn.pattern";
+  @Property(value = "o=sakai")
+  protected static final String BASE_DN = "sakai.pd.ldap.baseDn.pattern";
+  private String baseDn;
 
   @Property(value = "uid={}")
-  protected static final String PROP_FILTER_PATTERN = "ldap.provider.filter.pattern";
+  protected static final String PROP_FILTER_PATTERN = "sakai.pd.ldap.filter.pattern";
+  private String filterPattern;
 
-  // @Property(cardinality = Integer.MAX_VALUE)
-  @Property(value = { "attr1", "attr2" })
-  protected static final String PROP_ATTRIBUTES = "ldap.provider.attributes";
-
-  // @Property(cardinality = Integer.MAX_VALUE)
-  @Property(value = { "oldkey1 => newkey1", "oldkey2 => newkey2" })
-  protected static final String PROP_ATTRIBUTES_MAP = "ldap.provider.attributes.map";
-
-  @Property(boolValue = false)
-  protected static final String PROP_ALLOW_ADMIN_LOOKUP = "ldap.provider.admin.lookup";
+  @Property(cardinality = 2147483647)
+  protected static final String PROP_ATTRIBUTES_MAP = "sakai.pd.ldap.attributes.map";
+  private HashMap<String, String> attrsMap = new HashMap<String, String>();
 
   @Reference
   private LdapConnectionManager connMgr;
-
-  private boolean allowAdminLookup;
-  private String baseDn;
-  private String filterPattern;
-  private HashMap<String, String> attributesMap = new HashMap<String, String>();
-  private String[] attributes;
 
   /**
    * Default constructor.
@@ -84,108 +76,107 @@ public class LdapPersonProvider implements PersonProvider {
    *
    * @param ldapBroker
    */
-  protected LdapPersonProvider(LdapConnectionManager connMgr) {
+  LdapPersonProvider(LdapConnectionManager connMgr) {
     this.connMgr = connMgr;
   }
 
   @Activate
-  @SuppressWarnings("rawtypes")
-  protected void activate(ComponentContext ctx) {
-    Dictionary props = ctx.getProperties();
-    allowAdminLookup = (Boolean) props.get(PROP_ALLOW_ADMIN_LOOKUP);
-    baseDn = (String) props.get(PROP_BASE_DN);
-    filterPattern = (String) props.get(PROP_FILTER_PATTERN);
-    // make sure the area isn't length 1 and empty. Felix admin will send this.
-    attributes = (String[]) props.get(PROP_ATTRIBUTES);
-    if (attributes != null && attributes.length == 1 && "".equals(attributes[0])) {
-      attributes = null;
-    }
+  protected void activate(Map<?, ?> props) {
+    baseDn = OsgiUtil.toString(props.get(BASE_DN), "");
+    filterPattern = OsgiUtil.toString(props.get(PROP_FILTER_PATTERN), "");
+
     String[] attributeMapping = (String[]) props.get(PROP_ATTRIBUTES_MAP);
     if (attributeMapping != null
         && !(attributeMapping.length == 1 && "".equals(attributeMapping[0]))) {
       for (String mapping : attributeMapping) {
-        int splitIndex = mapping.indexOf("=>");
+        int splitIndex = mapping.indexOf(SEPARATOR);
         if (splitIndex < 1) {
-          // make sure the splitter is found after at least 1 character.
-          throw new ComponentException("Improperly formatted key mapping [" + mapping
-              + "]. Should be fromKey=>toKey.");
+          attrsMap.put(mapping.trim(), mapping.trim());
+        } else {
+          String key0 = mapping.substring(0, splitIndex).trim();
+          String key1 = mapping.substring(splitIndex + 2).trim();
+          if (key0.length() == 0 || key1.length() == 0) {
+            // make sure we have 2 usable keys
+            throw new ComponentException("Improperly formatted key mapping [" + mapping
+                + "]. Should be fromKey " + SEPARATOR + " toKey.");
+          }
+          attrsMap.put(key0, key1);
         }
-        String key0 = mapping.substring(0, splitIndex).trim();
-        String key1 = mapping.substring(splitIndex + 2).trim();
-        if (key0.length() == 0 || key1.length() == 0) {
-          // make sure we have 2 usable keys
-          throw new ComponentException("Improperly formatted key mapping [" + mapping
-              + "]. Should be fromKey=>toKey.");
-        }
-        attributesMap.put(key0, key1);
       }
     } else {
-      attributesMap = new HashMap<String, String>();
+      attrsMap = new HashMap<String, String>();
     }
 
     // create an attribute array for looking things up
-    Set<String> attrKeys = attributesMap.keySet();
+    Set<String> attrKeys = attrsMap.keySet();
     String[] attrs = new String[attrKeys.size()];
     attrKeys.toArray(attrs);
   }
 
   protected Map<String, String> getAttributesMap() {
-    return attributesMap;
+    return attrsMap;
   }
 
-  @SuppressWarnings("rawtypes")
-  public Person getPerson(String uid, Node profileNode) throws PersonProviderException {
+  public Map<String, Object> getProfileSection(Node parameters)
+      throws PersonProviderException {
     try {
-      PersonImpl ldapPerson = null;
-      if (allowAdminLookup || (!allowAdminLookup && !"admin".equals(uid))) {
-        // set the constraints
-        LDAPSearchConstraints constraints = new LDAPSearchConstraints();
-        constraints.setDereference(LDAPSearchConstraints.DEREF_ALWAYS);
-        constraints.setTimeLimit(DEFAULT_OPERATION_TIMEOUT_MILLIS);
-        constraints.setReferralFollowing(DEFAULT_IS_FOLLOW_REFERRALS);
-        constraints.setBatchSize(0);
+      HashMap<String, Object> person = new HashMap<String, Object>();
 
-        // set the properties
-        String filter = filterPattern.replace("{}", uid);
+      // get the user ID
+      String uid = findUserId(parameters);
+      
+      // set the properties
+      String filter = filterPattern.replace("{}", uid);
 
-        LOG.debug("searchDirectory(): [baseDN = {}][filter = {}][return attribs = {}]",
-            new Object[] { baseDn, filter, attributes });
+      String[] attributes = attrsMap.keySet().toArray(new String[]{});
 
-        // get a connection
-        LDAPConnection conn = connMgr.getConnection();
-        LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB, filter,
-            attributes, false, constraints);
-        if (searchResults.hasMore()) {
-          // create the person to populate
-          ldapPerson = new PersonImpl(uid);
+      LOG.debug("searchDirectory(): [baseDN = {}][filter = {}][return attribs = {}]",
+          new Object[] { baseDn, filter, attributes });
 
-          // pick off the first result returned
-          LDAPEntry entry = searchResults.next();
+      // get a connection bound to the application user
+      LDAPConnection conn = connMgr.getBoundConnection(null, null);
+      LDAPSearchResults searchResults = conn.search(baseDn, LDAPConnection.SCOPE_SUB,
+          filter, attributes, false);
+      if (searchResults.hasMore()) {
+        // pick off the first result returned
+        LDAPEntry entry = searchResults.next();
 
-          // get the attributes from the entry and loop through them
-          LDAPAttributeSet attrs = entry.getAttributeSet();
-          Iterator attrIter = attrs.iterator();
-          while (attrIter.hasNext()) {
-            // get the key and values from the attribute
-            LDAPAttribute attr = (LDAPAttribute) attrIter.next();
-            String name = attr.getName();
-            String[] vals = attr.getStringValueArray();
+        // get the attributes from the entry and loop through them
+        LDAPAttributeSet attrs = entry.getAttributeSet();
+        Iterator<?> attrIter = attrs.iterator();
+        while (attrIter.hasNext()) {
+          // get the key and values from the attribute
+          LDAPAttribute attr = (LDAPAttribute) attrIter.next();
+          String name = attr.getName();
+          String[] vals = attr.getStringValueArray();
 
-            // check for an aliased name
-            String mappingName = name;
-            if (attributesMap.containsKey(name)) {
-              mappingName = attributesMap.get(name);
-            }
+          // check for an aliased name
+          String mappingName = attrsMap.get(name);
 
-            // add the values under the appropriate key
-            ldapPerson.addAttribute(mappingName, vals);
+          // add the values under the appropriate key
+          if (vals.length == 1) {
+            person.put(mappingName, vals[0]);
+          } else if (vals.length > 1) {
+            person.put(mappingName, vals);
           }
         }
       }
-
-      return ldapPerson;
+      return person;
     } catch (LDAPException e) {
       throw new PersonProviderException(e.getMessage(), e);
+    } catch (RepositoryException e) {
+      throw new PersonProviderException(e.getMessage(), e);
+    }
+  }
+  
+  private String findUserId(Node node) throws RepositoryException {
+    if (node.hasProperty(SLING_RESOURCE_TYPE)
+        && SAKAI_USER_PROFILE.equals(node.getProperty(SLING_RESOURCE_TYPE).toString())
+        && node.hasProperty(REP_USER_ID)) {
+      javax.jcr.Property prop = node.getProperty(REP_USER_ID);
+      return prop.toString();
+    } else {
+      return findUserId(node.getParent());
     }
   }
 }
