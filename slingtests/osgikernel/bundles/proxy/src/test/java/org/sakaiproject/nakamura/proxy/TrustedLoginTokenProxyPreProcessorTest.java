@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
+import org.sakaiproject.nakamura.util.Signature;
 
 import java.security.MessageDigest;
 import java.util.Dictionary;
@@ -109,23 +110,10 @@ public class TrustedLoginTokenProxyPreProcessorTest {
   private String myHash(String[] tokenParts) throws Exception {
     String user = tokenParts[1];
     String timestamp = tokenParts[2];
-    String toHash = secret + TrustedLoginTokenProxyPreProcessor.TOKEN_SEPARATOR + user
+    final String message = user
         + TrustedLoginTokenProxyPreProcessor.TOKEN_SEPARATOR + timestamp;
-    return byteArrayToHexStr(MessageDigest.getInstance(
-        TrustedLoginTokenProxyPreProcessor.HASH_ALGORITHM).digest(
-        toHash.getBytes("UTF-8")));
-  }
-
-  protected String byteArrayToHexStr(byte[] data) {
-    char[] chars = new char[data.length * 2];
-    for (int i = 0; i < data.length; i++) {
-      byte current = data[i];
-      int hi = (current & 0xF0) >> 4;
-      int lo = current & 0x0F;
-      chars[2 * i] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-      chars[2 * i + 1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
-    }
-    return new String(chars);
+    final String hmac = Signature.calculateRFC2104HMAC(message, secret);
+    return hmac;
   }
 
   private void requestCanReturnUserName() {

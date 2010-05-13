@@ -61,11 +61,11 @@ import javax.servlet.http.HttpServletResponse;
     ),
     methods = @ServiceMethod(
         name = "POST",
-        description = "Get multiple request responses into a single response.",
+        description = "Get multiple request responses into a single response. It can do GET, POST and DELETE everything is defined in the json block.",
         parameters = @ServiceParameter(
             name = "requests",
             description = "A JSON string representing a request. <br />Example:" +
-                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
+                "<pre>[{  \"url\" : \"/foo/bar\",  \"method\" : \"POST\",  \"parameters\" : {    \"val\" : 123,    \"val@TypeHint\" : \"Long\"  }},{  \"url\" : \"/_user/a/ad/admin/public/authprofile.json\",  \"method\" : \"GET\"}]</pre>"
         ),
         response = {@ServiceResponse(
             code = 200,
