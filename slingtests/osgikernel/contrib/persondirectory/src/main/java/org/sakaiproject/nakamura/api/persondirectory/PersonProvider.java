@@ -16,22 +16,22 @@
  */
 package org.sakaiproject.nakamura.api.persondirectory;
 
+import java.util.Map;
+
 import javax.jcr.Node;
 
 /**
- * Provider interface for looking up a person ({@link Person}) and attributes
- * associated to them.
- *
- * @author Carl Hall
+ * Provider interface for looking up a person ({@link Person}) and attributes associated
+ * to them.
  */
 public interface PersonProvider {
   /**
    * Get all attributes associated to a person.
-   *
+   * 
    * @param uid
    *          The user ID to lookup.
-   * @return A {@link Person} with all found associated attributes. null if the
-   *         UID is not found.
+   * @return A {@link Person} with all found associated attributes. null if the UID is not
+   *         found.
    */
-  Person getPerson(String uid, Node profileNode) throws PersonProviderException;
+  Map<String, Object> getProfileSection(Node parameters) throws PersonProviderException;
 }
