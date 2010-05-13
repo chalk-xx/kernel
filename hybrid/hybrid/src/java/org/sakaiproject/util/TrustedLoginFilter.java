@@ -96,55 +96,80 @@ import org.sakaiproject.user.api.UserNotDefinedException;
 public class TrustedLoginFilter implements Filter {
 	private final static Log LOG = LogFactory.getLog(TrustedLoginFilter.class);
 	private static final String ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET = "org.sakaiproject.util.TrustedLoginFilter.sharedSecret";
+	private static final String ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_ENABLED = "org.sakaiproject.util.TrustedLoginFilter.enabled";
+	private static final String ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SAFE_HOSTS = "org.sakaiproject.util.TrustedLoginFilter.safeHosts";
 	private static final String TOKEN_SEPARATOR = ";";
 
 	private SessionManager sessionManager;
-	private String sharedSecret;
+
+	/**
+	 * Property to contain the shared secret used by all trusted servers. The
+	 * shared secret used for server to server trusted tokens.
+	 */
+	private String sharedSecret = null;
+	/**
+	 * True if server tokens are enabled. If true, trusted tokens from servers
+	 * are accepted considered.
+	 */
+	private boolean enabled = true;
+	/**
+	 * A list of all the known safe hosts to trust as servers. A ; separated
+	 * list of hosts that this instance trusts to make server connections.
+	 */
+	private String safeHosts = ";localhost;";
 
 	/**
 	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
 	 *      javax.servlet.ServletResponse, javax.servlet.FilterChain)
 	 */
+	@SuppressWarnings("deprecation")
 	public void doFilter(ServletRequest req, ServletResponse resp,
 			FilterChain chain) throws IOException, ServletException {
-		HttpServletRequest hreq = (HttpServletRequest) req;
-		String token = hreq.getHeader("x-sakai-token");
-		Session currentSession = null;
-		Session requestSession = null;
-		if (token != null) {
-			String user = decodeToken(token);
-			if (user != null) {
-				currentSession = sessionManager.getCurrentSession();
-				if (!user.equals(currentSession.getUserEid())) {
-					requestSession = sessionManager.startSession();
-					org.sakaiproject.user.api.User usr;
-					try {
-						usr = org.sakaiproject.user.cover.UserDirectoryService
-								.getUserByEid(user);
-						requestSession.setUserEid(usr.getEid());
-						requestSession.setUserId(usr.getId());
-						requestSession.setActive();
-					} catch (UserNotDefinedException e) {
-						LOG.error(e.getLocalizedMessage(), e);
-						throw new Error(e);
-					}
-					sessionManager.setCurrentSession(requestSession);
-					// wrap the request so that we can get the user via
-					// getRemoteUser() in other places.
-					if (!(hreq instanceof ToolRequestWrapper)) {
-						hreq = new ToolRequestWrapper(hreq, user);
+		if (enabled) {
+			HttpServletRequest hreq = (HttpServletRequest) req;
+			final String host = req.getRemoteHost();
+			if (safeHosts.indexOf(host) < 0) {
+				LOG.warn("Ignoring Trusted Token request from: " + host);
+			} else {
+				final String token = hreq.getHeader("x-sakai-token");
+				Session currentSession = null;
+				Session requestSession = null;
+				if (token != null) {
+					final String user = decodeToken(token);
+					if (user != null) {
+						currentSession = sessionManager.getCurrentSession();
+						if (!user.equals(currentSession.getUserEid())) {
+							requestSession = sessionManager.startSession();
+							org.sakaiproject.user.api.User usr;
+							try {
+								usr = org.sakaiproject.user.cover.UserDirectoryService
+										.getUserByEid(user);
+								requestSession.setUserEid(usr.getEid());
+								requestSession.setUserId(usr.getId());
+								requestSession.setActive();
+							} catch (UserNotDefinedException e) {
+								LOG.error(e.getLocalizedMessage(), e);
+								throw new Error(e);
+							}
+							sessionManager.setCurrentSession(requestSession);
+							// wrap the request so that we can get the user via
+							// getRemoteUser() in other places.
+							if (!(hreq instanceof ToolRequestWrapper)) {
+								hreq = new ToolRequestWrapper(hreq, user);
+							}
+						}
 					}
 				}
-			}
-		}
-		try {
-			chain.doFilter(hreq, resp);
-		} finally {
-			if (requestSession != null) {
-				if (currentSession != null) {
-					sessionManager.setCurrentSession(currentSession);
+				try {
+					chain.doFilter(hreq, resp);
+				} finally {
+					if (requestSession != null) {
+						if (currentSession != null) {
+							sessionManager.setCurrentSession(currentSession);
+						}
+						requestSession.invalidate();
+					}
 				}
-				requestSession.invalidate();
 			}
 		}
 	}
@@ -162,8 +187,8 @@ public class TrustedLoginFilter implements Filter {
 				final String user = parts[1];
 				final String timestamp = parts[2];
 				final String message = user + TOKEN_SEPARATOR + timestamp;
-				final String hmac = Signature
-						.calculateRFC2104HMAC(message, sharedSecret);
+				final String hmac = Signature.calculateRFC2104HMAC(message,
+						sharedSecret);
 				if (hmac.equals(hash)) {
 					// the user is Ok, we will trust it.
 					userId = user;
@@ -181,16 +206,20 @@ public class TrustedLoginFilter implements Filter {
 	/**
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
 	 */
+	@SuppressWarnings("deprecation")
 	public void init(FilterConfig config) throws ServletException {
 		sessionManager = org.sakaiproject.tool.cover.SessionManager
 				.getInstance();
-		// get sharedSecret from web.xml first
-		sharedSecret = config.getInitParameter("sharedSecret");
-		if (sharedSecret == null) {
-			// not in web.xml may be specified in sakai.properties
-			sharedSecret = ServerConfigurationService
-					.getString(ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET);
-		}
+		// default to true - enabled
+		enabled = ServerConfigurationService.getBoolean(
+				ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_ENABLED, enabled);
+		sharedSecret = ServerConfigurationService.getString(
+				ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SHARED_SECRET,
+				sharedSecret);
+		// default to localhost
+		safeHosts = ServerConfigurationService.getString(
+				ORG_SAKAIPROJECT_UTIL_TRUSTED_LOGIN_FILTER_SAFE_HOSTS,
+				safeHosts);
 	}
 
 	/**
@@ -198,14 +227,6 @@ public class TrustedLoginFilter implements Filter {
 	 */
 	public void destroy() {
 		// nothing to do here
-	}
-
-	/**
-	 * @param sharedSecret
-	 *            the sharedSecret to set
-	 */
-	protected void setSharedSecret(String sharedSecret) {
-		this.sharedSecret = sharedSecret;
 	}
 
 }
