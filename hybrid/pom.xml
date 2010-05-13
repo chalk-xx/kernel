@@ -30,6 +30,7 @@
       </activation>
       <modules>
         <module>hybrid</module>
+        <module>hybrid-util</module>
       </modules>
       <dependencyManagement>
         <dependencies>
@@ -47,6 +48,7 @@
       <id>pre-kernel</id>
       <modules>
         <module>hybrid</module>
+        <module>hybrid-util</module>
         <module>pre-kernel</module>
       </modules>
       <dependencyManagement>
