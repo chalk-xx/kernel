@@ -20,6 +20,10 @@ package org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.jackrabbit.core.security.authorization.acl.RulesPrincipal;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
@@ -36,8 +40,10 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import javax.jcr.AccessDeniedException;
 import javax.jcr.Item;
 import javax.jcr.LoginException;
 import javax.jcr.Node;
@@ -59,7 +65,7 @@ import javax.jcr.security.Privilege;
  */
 public class RepositoryBaseTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryBaseTest.class);
-  private static final long ADAY = 3600000L*24L;
+  private static final long ADAY = 3600000L * 24L;
   private static BundleContext bundleContext;
   private static RepositoryBase repositoryBase;
 
@@ -210,7 +216,6 @@ public class RepositoryBaseTest {
       LOGGER.info("Done Opening Admin Session ");
       PrincipalManager principalManager = session.getPrincipalManager();
 
-
       Node node = session.getRootNode().addNode("testnodeace");
       AccessControlManager accessControlManager = session.getAccessControlManager();
       String resourcePath = node.getPath();
@@ -224,7 +229,8 @@ public class RepositoryBaseTest {
         }
       }
       if (acl == null) {
-        AccessControlPolicyIterator applicablePolicies = accessControlManager.getApplicablePolicies(resourcePath);
+        AccessControlPolicyIterator applicablePolicies = accessControlManager
+            .getApplicablePolicies(resourcePath);
         while (applicablePolicies.hasNext()) {
           AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
           if (policy instanceof AccessControlList) {
@@ -235,25 +241,20 @@ public class RepositoryBaseTest {
       }
       Assert.assertNotNull(acl);
 
-
       Principal principal = principalManager.getPrincipal(RulesBasedAce.createPrincipal(
-      "ieb").getName());
+          "ieb").getName());
 
       Assert.assertNotNull(principal);
       Assert.assertTrue(principal instanceof RulesPrincipal);
       RulesPrincipal rp = (RulesPrincipal) principal;
       Assert.assertEquals("ieb", rp.getPrincipalName());
 
-
-      Privilege[] privileges = new Privilege[]{
-          accessControlManager.privilegeFromName("jcr:write")
-      };
+      Privilege[] privileges = new Privilege[] { accessControlManager
+          .privilegeFromName("jcr:write") };
 
       acl.addAccessControlEntry(principal, privileges);
 
       accessControlManager.setPolicy(resourcePath, acl);
-
-
 
       // make the ACL a rules based.
       RuleACLModifier ruleAclModifier = new RuleACLModifier();
@@ -261,25 +262,22 @@ public class RepositoryBaseTest {
 
       ValueFactory vf = session.getValueFactory();
 
-
       long now = System.currentTimeMillis();
       String[] range = new String[4];
-      for ( int i = 0; i < 4; i++ ) {
+      for (int i = 0; i < 4; i++) {
         GregorianCalendar start = new GregorianCalendar();
-        start.setTimeInMillis((ADAY*i)+now-3600000L);
+        start.setTimeInMillis((ADAY * i) + now - 3600000L);
         GregorianCalendar end = new GregorianCalendar();
-        end.setTimeInMillis((ADAY*i)+now+3600000L);
-        range[i] = start.toString()+"/"+end.toString();
+        end.setTimeInMillis((ADAY * i) + now + 3600000L);
+        range[i] = start.toString() + "/" + end.toString();
       }
 
-      Value[] ranges = new Value[] {
-          vf.createValue(range[1]),
-          vf.createValue(range[2]),
-          vf.createValue(range[3])
-      };
+      Value[] ranges = new Value[] { vf.createValue(range[1]), vf.createValue(range[2]),
+          vf.createValue(range[3]) };
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range[0]));
 
-      Property[] p = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      Property[] p = ruleAclModifier.setProperties(resourcePath, session, principal,
+          ruleProperties);
       Assert.assertEquals(1, p.length);
       Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p[0].getName());
       Assert.assertEquals(range[0], p[0].getString());
@@ -287,9 +285,9 @@ public class RepositoryBaseTest {
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, ranges);
       p = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
       Assert.assertEquals(3, p.length);
-      for ( int i = 0; i < 3; i++ ) {
-        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE+i, p[i].getName());
-        Assert.assertEquals(range[i+1], p[i].getString());
+      for (int i = 0; i < 3; i++) {
+        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE + i, p[i].getName());
+        Assert.assertEquals(range[i + 1], p[i].getString());
       }
     } finally {
       session.logout();
@@ -297,6 +295,136 @@ public class RepositoryBaseTest {
 
   }
 
+  @Test
+  public void testUserAccessControl() throws LoginException, RepositoryException,
+      IOException {
+    Repository repo = getRepositoryBase().getRepository();
+    JackrabbitSession session = null;
+    try {
+      LOGGER.info("Opening Admin Session ");
+      session = (JackrabbitSession) repo.login(new SimpleCredentials("admin", "admin"
+          .toCharArray()));
+      LOGGER.info("Done Opening Admin Session ");
+      UserManager userManager = session.getUserManager();
+      String testUser = "testUser" + System.currentTimeMillis();
+      String testViewerUser = "testViewerUser" + System.currentTimeMillis();
+      String testManagerUser = "testManagerUser" + System.currentTimeMillis();
+      userManager.createUser(testUser, "testpassword");
+      userManager.createUser(testViewerUser, "testpassword");
+      userManager.createUser(testManagerUser, "testpassword");
+      Principal groupPrincipal = new Principal() {
+        private String groupName = "group" + System.currentTimeMillis();
 
+        public String getName() {
+          return groupName;
+        }
+      };
+      Principal group2Principal = new Principal() {
+        private String groupName = "group2-" + System.currentTimeMillis();
+
+        public String getName() {
+          return groupName;
+        }
+      };
+
+      Group g1 = userManager.createGroup(groupPrincipal);
+      Group g2 = userManager.createGroup(group2Principal);
+      g1.setProperty("rep:group-managers", new Value[] { session.getValueFactory()
+          .createValue("dummy") });
+      g2.setProperty("rep:group-managers", new Value[] { session.getValueFactory()
+          .createValue(testManagerUser) });
+      g2.setProperty("rep:group-viewers", new Value[] { session.getValueFactory()
+          .createValue(testViewerUser) });
+      // we need to be able to add properties to the group somehow.
+
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+      session.logout();
+
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUser,
+          "testpassword".toCharArray()));
+      userManager = session.getUserManager();
+      User testUserU = (User) userManager.getAuthorizable(testUser);
+      testUserU.setProperty("mytestvale", session.getValueFactory()
+          .createValue("testing"));
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+      testUserU = (User) userManager.getAuthorizable(testViewerUser);
+      try {
+        testUserU.setProperty("mytestvale", session.getValueFactory().createValue(
+            "cant-do-this-wrong-user"));
+        Assert.fail();
+      } catch (AccessDeniedException e) {
+        // Ok
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+      Group group1 = (Group) userManager.getAuthorizable(groupPrincipal);
+      Value [] v = group1.getProperty("rep:group-managers");
+      Assert.assertNotNull(v);
+      Assert.assertEquals(1,v.length);
+      Assert.assertEquals("dummy", v[0].getString());
+      try {
+        group1.setProperty("mytestvale", session.getValueFactory().createValue(
+            "cant-do-this-wrong-user"));
+        Assert.fail();
+      } catch (AccessDeniedException e) {
+        // Ok
+      }
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+
+      session.logout();
+
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testUser,
+          "testpassword".toCharArray()));
+      userManager = session.getUserManager();
+
+      System.err.println("Trying to get Authorizable for "+group2Principal.getName());
+      Group group2 = (Group) userManager.getAuthorizable(group2Principal);
+      Assert.assertNull(group2);// should not have been able to read group2.
+  
+      session.logout();
+
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testViewerUser,
+          "testpassword".toCharArray()));
+      userManager = session.getUserManager();
+      group2 = (Group) userManager.getAuthorizable(group2Principal);
+      v = group2.getProperty("rep:group-managers");
+      Assert.assertNotNull(v);
+      Assert.assertEquals(1,v.length);
+      Assert.assertEquals(testManagerUser, v[0].getString());
+
+      try {
+        group2.setProperty("mytestvale", session.getValueFactory().createValue(
+            "cant-do-this-wrong-user"));
+        Assert.fail();
+      } catch (AccessDeniedException e) {
+        // Ok
+      }
+
+      session.logout();
+
+      session = (JackrabbitSession) repo.login(new SimpleCredentials(testManagerUser,
+          "testpassword".toCharArray()));
+      userManager = session.getUserManager();
+      group2 = (Group) userManager.getAuthorizable(group2Principal);
+      Assert.assertNotNull(group2); // should be able to see the group
+      v = group2.getProperty("rep:group-managers");
+      Assert.assertNotNull(v);
+      Assert.assertEquals(1,v.length);
+      Assert.assertEquals(testManagerUser, v[0].getString());
+      group2.setProperty("mytestvale", session.getValueFactory().createValue(
+          "cant-do-this-wrong-user"));
+
+    } finally {
+      session.logout();
+    }
+
+  }
 
 }
