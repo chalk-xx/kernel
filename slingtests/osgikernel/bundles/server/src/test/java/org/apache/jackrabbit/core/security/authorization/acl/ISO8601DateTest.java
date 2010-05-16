@@ -65,7 +65,6 @@ public class ISO8601DateTest {
       g.setTimeInMillis(t);
       String tt = g.toString();
       ISO8601Date g2 = new ISO8601Date(tt);
-      System.err.println(g.toString()+" "+g2.toString());
       Assert.assertEquals(g.getTimeInMillis(), g2.getTimeInMillis());
       Assert.assertEquals(g.toString(), g2.toString());
     }
@@ -76,7 +75,6 @@ public class ISO8601DateTest {
       g.setTimeInMillis(t);
       String tt = g.toString();
       ISO8601Date g2 = new ISO8601Date(tt);
-      System.err.println(g.toString()+" "+g2.toString());
       Assert.assertEquals(g.getTimeInMillis(), g2.getTimeInMillis());
       Assert.assertEquals(g.toString(), g2.toString());
     }
@@ -87,7 +85,6 @@ public class ISO8601DateTest {
       g.setTimeInMillis(t);
       String tt = g.toString();
       ISO8601Date g2 = new ISO8601Date(tt);
-      System.err.println(g.toString()+" "+g2.toString());
       Assert.assertEquals(g.getTimeInMillis(), g2.getTimeInMillis());
       Assert.assertEquals(g.toString(), g2.toString());
     }

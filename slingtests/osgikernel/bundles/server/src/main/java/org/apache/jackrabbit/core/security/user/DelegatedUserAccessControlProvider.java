@@ -336,7 +336,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
          * @see AbstractCompiledPermissions#buildResult(Path)
          */
         protected Result buildResult(Path path) throws RepositoryException {
-            System.err.println("Build Result Path Checking "+path.getString());
+            log.debug("Build Result Path Checking {} ",path.getString());
             NodeImpl userNode = null;
             try {
                 if (session.nodeExists(userNodePath)) {
@@ -425,15 +425,15 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
                   if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
-                    System.err.println("Is Managed "+node.getPath());
+                    log.debug("Is Managed {} ", node.getPath());
                     Value[] managers = node.getProperty(NT_REP_GROUP_MANAGERS).getValues();
                     for ( Value manager : managers ) {
                       String m = manager.getString();
                       for ( Principal p : principals ) {
-                        System.err.println("Checking for Manager ["+m+"] == ["+p.getName()+"]");
+                        log.debug("Checking for Manager [{}] == [{}]", m, p.getName());
                         if ( m.equals(p.getName())) {
                           isManager = true;
-                          System.err.println("Is a Manager ["+m+"] == ["+p.getName()+"]");
+                          log.debug("Is a Manager [{}] == [{}]", m, p.getName());
                           break;
                         }
                       }
@@ -445,14 +445,14 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                   if ( !isManager ) {
                       if ( node.hasProperty(NT_REP_GROUP_VIEWERS)) {
                           isPrivate = true;
-                          System.err.println("Is Private "+node.getPath());
+                          log.debug("Is Private {} ", node.getPath());
                           Value[] viewers = node.getProperty(NT_REP_GROUP_VIEWERS).getValues();
                           for ( Value viewer : viewers ) {
                             String v = viewer.getString();
                             for ( Principal p : principals ) {
-                              System.err.println("Checking for Viewer ["+v+"] == ["+p.getName()+"]");
+                              log.debug("Checking for Viewer [{}] == [{}]", v, p.getName());
                               if ( v.equals(p.getName())) {
-                                System.err.println("Is a Viewer ["+v+"] == ["+p.getName()+"]");
+                                log.debug("Is a Viewer [{}] == [{}]", v, p.getName());
                                 isPrivate = false;
                                 break;
                               }
@@ -489,12 +489,12 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                    allows = Permission.NONE;
                    denies = Permission.NONE;
                    privs = PrivilegeRegistry.NO_PRIVILEGE;
-                   System.err.println("Denied all to "+node.getPath());
+                   log.debug("Denied all to {} ", node.getPath());
                  } else {
-                   System.err.println("Default permissions ie read on "+node.getPath());
+                   log.debug("Default permissions ie read on {} ", node.getPath());
                  }
             } // else outside of user/group tree -> read only.
-            System.err.println("Granted "+path.getString()+" "+allows+" "+denies+" "+privs);
+            log.debug("Granted {} allows {} denied {} privs {} ", new Object[]{ path.getString(), allows, denies, privs});
             return new Result(allows, denies, privs, PrivilegeRegistry.NO_PRIVILEGE);
         }
 
