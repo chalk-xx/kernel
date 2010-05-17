@@ -8,7 +8,7 @@
   <name>Sakai Nakamura Project OSGi Experiments</name>
   <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
     implementations. </description>
-  <url>http://groups.google.com/sakai-nakamura</url>
+  <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
     <maven>2.0.7</maven>
