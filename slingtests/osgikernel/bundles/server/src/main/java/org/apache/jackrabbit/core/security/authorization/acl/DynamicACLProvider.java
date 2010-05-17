@@ -51,10 +51,12 @@ import java.util.Set;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.NodeIterator;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
@@ -71,7 +73,7 @@ public class DynamicACLProvider extends ACLProvider {
   private NodeId rootNodeId;
   private RuleProcessorManager ruleProccesorManager;
 
-  
+
 
   /**
    * @param dynamicPrincipalManager2
@@ -83,7 +85,7 @@ public class DynamicACLProvider extends ACLProvider {
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ACLProvider#init(javax.jcr.Session,
    *      java.util.Map)
    */
@@ -107,7 +109,7 @@ public class DynamicACLProvider extends ACLProvider {
   }
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.jcr.jackrabbit.server.impl.security.standard.ACLProvider#retrieveResultEntries(org.apache.jackrabbit.core.NodeImpl,
    *      java.util.List)
    */
@@ -127,11 +129,12 @@ public class DynamicACLProvider extends ACLProvider {
     private final List<AccessControlEntry> userAces = new ArrayList<AccessControlEntry>();
     private final List<AccessControlEntry> groupAces = new ArrayList<AccessControlEntry>();
     private StringBuilder construct;
+    private boolean forceDebug = false;
 
     private Entries(NodeImpl node, Collection<String> principalNames)
         throws RepositoryException {
       this.principalNames = principalNames;
-      if ( LOG.isDebugEnabled() ) {
+      if ( LOG.isDebugEnabled() || forceDebug ) {
         construct = new StringBuilder();
         construct.append("\nPath:").append(node.getPath());
       }
@@ -156,14 +159,14 @@ public class DynamicACLProvider extends ACLProvider {
 
     /**
      * Separately collect the entries defined for the user and group principals.
-     * 
+     *
      * @param aclNode
      *          acl node
      * @throws RepositoryException
      *           if an error occurs
      */
     private void collectEntriesFromAcl(NodeImpl aclNode, NodeImpl contextNode) throws RepositoryException {
-      if ( LOG.isDebugEnabled() ) {
+      if ( LOG.isDebugEnabled() || forceDebug ) {
         construct.append(":ACLNode:").append(aclNode.getPath());
         construct.append("\n");
       }
@@ -185,7 +188,7 @@ public class DynamicACLProvider extends ACLProvider {
           rp = new RulesPrincipal(principalName);
           principalName = rp.getPrincipalName();
         } catch ( IllegalArgumentException e ) {
-
+          LOG.info("Principal {} is not a rules principal ",principalName, e);
         }
         if ( rp == null || isAceActiveCheap(aceNode) ) {
           // only process aceNode if 'principalName' is contained in the given set
@@ -197,10 +200,9 @@ public class DynamicACLProvider extends ACLProvider {
             if ( rp == null || isAceActiveExpensive(aceNode,contextNode,userId) ) {
               Principal princ = principalMgr.getPrincipal(principalName);
 
-              Value[] privValues = aceNode.getProperty(AccessControlConstants.P_PRIVILEGES)
-                  .getValues();
+              Value[] privValues = getValues(aceNode.getProperty(AccessControlConstants.P_PRIVILEGES));
               Privilege[] privs = new Privilege[privValues.length];
-              if ( LOG.isDebugEnabled() ) {
+              if ( LOG.isDebugEnabled() || forceDebug ) {
                 construct.append("[Matched,");
                 construct.append((princ instanceof Group)?"group,":"user,");
                 construct.append(aceNode
@@ -229,10 +231,11 @@ public class DynamicACLProvider extends ACLProvider {
               } else {
                 uaces.add(0, ace);
               }
-            } else if ( LOG.isDebugEnabled() ) {
+            } else if ( LOG.isDebugEnabled()  || forceDebug) {
+
               construct.append("[Not Active,").append(principalName).append("]\n");
             }
-          } else if ( LOG.isDebugEnabled() ){
+          } else if ( LOG.isDebugEnabled()  || forceDebug){
             construct.append("[Ignored,").append(principalName).append("]\n");
           }
         }
@@ -251,7 +254,11 @@ public class DynamicACLProvider extends ACLProvider {
 
     @SuppressWarnings("unchecked")
     private Iterator<AccessControlEntry> iterator() {
-      LOG.debug("User {} ACE {} ",userId,construct);
+      if ( forceDebug) {
+        LOG.info("User {} ACE {} ",userId,construct);
+      } else {
+        LOG.debug("User {} ACE {} ",userId,construct);
+      }
       return new IteratorChain(userAces.iterator(), groupAces.iterator());
     }
   }
@@ -267,9 +274,9 @@ public class DynamicACLProvider extends ACLProvider {
       String userId) {
     try {
       // check
-      RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString()); 
+      RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString());
       if ( aceNode.hasProperty(RulesBasedAce.P_RULEPROCESSOR)) {
-        String name = aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE).getString();
+        String name = aceNode.getProperty(RulesBasedAce.P_RULEPROCESSOR).getString();
         RuleProcessor ruleProcessor = ruleProccesorManager.getRuleProcessor(name);
         if ( ruleProcessor != null ) {
           return ruleProcessor.isAceActive(aceNode,contextNode,userId);
@@ -296,20 +303,22 @@ public class DynamicACLProvider extends ACLProvider {
     try {
       RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString());
       long now = System.currentTimeMillis();
+
       if ( aceNode.hasProperty(RulesBasedAce.P_ACTIVE_RANGE)) {
-        Value[] activeRanges = aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE).getValues();
+        Value[] activeRanges = getValues(aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE));
         for ( Value r : activeRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);
           ISO8601Date to = new ISO8601Date(range[1]);
           if ( from.before(now) && to.after(now) ) {
             return true;
+
           }
         }
         return false; // it had active times but none matched
       }
       if ( aceNode.hasProperty(RulesBasedAce.P_INACTIVE_RANGE)) {
-        Value[] activeRanges = aceNode.getProperty(RulesBasedAce.P_INACTIVE_RANGE).getValues();
+        Value[] activeRanges = getValues(aceNode.getProperty(RulesBasedAce.P_INACTIVE_RANGE));
         for ( Value r : activeRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);
@@ -321,9 +330,24 @@ public class DynamicACLProvider extends ACLProvider {
       }
       return true;
     } catch ( IllegalArgumentException e ) {
+      LOG.debug("Was not a rules based acl {} ", e.getMessage());
       return true; // its not a rules based ACL so it must be active.
     } catch ( Exception e ) {
+      LOG.debug("Was not a rules based acl {} ", e.getMessage());
       return true; // an error in processing has to default to active
+    }
+  }
+
+  /**
+   * @param property
+   * @return
+   * @throws RepositoryException
+   */
+  private Value[] getValues(Property property) throws RepositoryException {
+    if ( property.isMultiple() ) {
+      return property.getValues();
+    } else {
+      return new Value[] {property.getValue() };
     }
   }
 
