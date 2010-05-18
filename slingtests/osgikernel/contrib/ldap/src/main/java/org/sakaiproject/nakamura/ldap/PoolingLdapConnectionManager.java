@@ -19,11 +19,13 @@ package org.sakaiproject.nakamura.ldap;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
+
 import org.apache.commons.pool.ObjectPool;
 import org.apache.commons.pool.PoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.ConfigurationPolicy;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -46,18 +48,18 @@ import java.util.Map;
  * Allocates connected, constrained, bound and optionally secure
  * <code>LDAPConnection</code>s. Uses commons-pool to provide a pool of connections
  * instead of creating a new connection for each request. Originally tried implementing
- * this with <code>com.novell.ldap.connectionpool.PoolManager</code>, but it did not handle
- * recovering connections that had suffered a network error or connections that were never
- * returned but dropped out of scope.
- * 
+ * this with <code>com.novell.ldap.connectionpool.PoolManager</code>, but it did not
+ * handle recovering connections that had suffered a network error or connections that
+ * were never returned but dropped out of scope.
+ *
  * @author John Lewis, Unicon Inc [development for Sakai 2]
  * @author <a href="mailto:carl@hallwaytech.com">Carl Hall, Hallway Technologies [changes
- *         for OSGi]</a>
+ *         for OSGi, Sakai 3]</a>
  * @see LdapConnectionManagerConfig
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  */
-@Component(metatype = true)
+@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE)
 @Service
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
@@ -112,7 +114,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   static final boolean DEFAULT_TLS = false;
   @Property(boolValue = DEFAULT_TLS)
   static final String TLS = "sakai.ldap.tls";
-  
+
   /** Class-specific logger */
   private static Logger log = LoggerFactory.getLogger(PoolingLdapConnectionManager.class);
 
@@ -166,7 +168,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
       conn = (LDAPConnection) pool.borrowObject();
       log.debug(
           "getBoundConnection():dn=[{}] successfully borrowed connection from pool", dn);
-      
+
       conn.bind(LDAPConnection.LDAP_V3, dn, pass.getBytes("UTF8"));
       log.debug("getBoundConnection():dn=[{}] successfully bound to dn", dn);
       return conn;
@@ -207,11 +209,11 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
       throw new RuntimeException("failed to return pooled connection", e);
     }
   }
-  
+
   // ---------- SCR integration
   /**
    * Activate/initialize the instance. Normally called by OSGi.
-   * 
+   *
    * @param context
    */
   @Activate
@@ -269,7 +271,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
   /**
    * Creates a new {@link PooledLDAPConnectionFactory}. Provided to be overridden when
    * testing.
-   * 
+   *
    * @param manager
    * @param livenessValidators
    * @return
@@ -282,7 +284,7 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 
   /**
    * Creates a new {@link GenericObjectPool}. Provided to be overridden when testing.
-   * 
+   *
    * @param factory
    * @param maxConns
    * @param whenExhausted
@@ -304,10 +306,10 @@ public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
     );
     return gpool;
   }
-  
+
   /**
    * Given a dictionary of properties, creates an {@link LdapConnectionManagerConfig}.
-   * 
+   *
    * @param props
    * @return
    */
