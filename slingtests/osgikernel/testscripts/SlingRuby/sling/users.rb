@@ -40,7 +40,7 @@ module SlingUsers
     end
 
     def update_properties(sling, props)
-      sling.execute_post(sling.url_for("#{group_url}.update.html"), props)
+      return sling.execute_post(sling.url_for("#{group_url}.update.html"), props)
     end
 
     def add_member(sling, principal, type)
