@@ -199,11 +199,11 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getResource()).andReturn(null);
     expect(request.getParameterValues(":member@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":member")).andReturn(new String[] {});
+    
 
     expect(user.getID()).andReturn("admin");
-    expect(
-        group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY))
-        .andReturn(false);
+    // might need to adjust here
+    expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(session.getValueFactory()).andReturn(valueFactory);
     Capture<String> valueCapture = new Capture<String>();
 
@@ -233,7 +233,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     assertTrue(valuesCapture.hasCaptured());
     assertTrue(propertyName.hasCaptured());
     assertEquals("admin", valueCapture.getValue());
-    assertEquals(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+    assertEquals(UserConstants.PROP_GROUP_MANAGERS,
         propertyName.getValue());
     assertEquals(1, valuesCapture.getValue().length);
     verify();

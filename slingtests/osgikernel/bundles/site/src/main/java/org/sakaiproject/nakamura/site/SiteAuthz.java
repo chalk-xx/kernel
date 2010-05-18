@@ -393,7 +393,7 @@ public class SiteAuthz {
       Value[] adminPrincipals = groupAdministrators.toArray(new Value[groupAdministrators
           .size()]);
       for (Group membershipGroup : membershipGroups) {
-        membershipGroup.setProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+        membershipGroup.setProperty(UserConstants.PROP_GROUP_MANAGERS,
             adminPrincipals);
       }
     }
@@ -454,7 +454,7 @@ public class SiteAuthz {
     if (currentUser.isAdmin()) {
       isMaintainer = true;
     } else {
-      if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
+      if (group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
         Set<String> userPrincipals = new HashSet<String>();
         /* The following does not exist in JR2
         for (PrincipalIterator iter = currentUser.getPrincipals(); iter.hasNext();) {
@@ -466,7 +466,7 @@ public class SiteAuthz {
           Group userGroup = iter.next();
           userPrincipals.add(userGroup.getID());
         }
-        Value[] adminPrincipalValues = group.getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY);
+        Value[] adminPrincipalValues = group.getProperty(UserConstants.PROP_GROUP_MANAGERS);
         for (Value adminPrincipalValue : adminPrincipalValues) {
           String adminPrincipal = adminPrincipalValue.getString();
           if (userPrincipals.contains(adminPrincipal)) {
@@ -494,6 +494,8 @@ public class SiteAuthz {
    */
   private void deleteGroup(Session session, SlingRepository slingRepository, Group group)
       throws RepositoryException {
+    // FIXME: this is managed by the Access Control manager and should not really be here.
+    // For the moment, it has been adjusted to use the correct properties.
     if (!isUserGroupMaintainer(session, group)) {
       LOGGER.warn("User is not allowed to modify group");
       throw new RepositoryException("Not allowed to modify the group ");

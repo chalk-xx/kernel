@@ -123,7 +123,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   private static final long serialVersionUID = 3417673949322305891L;
 
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteAuthorizableServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteSakaiAuthorizableServlet.class);
 
   
   private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
