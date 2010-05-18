@@ -17,10 +17,7 @@
  */
 package org.sakaiproject.nakamura.xythos;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
@@ -70,53 +67,8 @@ public class HessianXythosRemote implements XythosRemote {
     return xythosService.doSearch(arg0, arg1);
   }
 
-  public String findAllFilesForUser(String arg0) {
-    return xythosService.findAllFilesForUser(arg0);
-  }
-
-  public Collection<Map<String, String>> findFilesWithXPath(String arg0, String arg1) {
-    return xythosService.findFilesWithXPath(arg0, arg1);
-  }
-
-  public long getContentLength(String arg0, String arg1) {
-    return xythosService.getContentLength(arg0, arg1);
-  }
-
-  public String getContentType(String arg0, String arg1) {
-    return xythosService.getContentType(arg0, arg1);
-  }
-
-  public String getContentUri(String arg0, String arg1) {
-    return xythosService.getContentUri(arg0, arg1);
-  }
-
-  public Map<String, Object> getDocument(String arg0, String arg1) {
-    return xythosService.getDocument(arg0, arg1);
-  }
-
-  public byte[] getFileContent(String arg0, String arg1) {
-    return xythosService.getFileContent(arg0, arg1);
-  }
-  
-  public Map<String, Object> getFileProperties(String arg0, String arg1) {
-    return xythosService.getFileProperties(arg0, arg1);
-  }
-
-  public Map<String, String> getProperties() {
-    return xythosService.getProperties();
-  }
-
-  public boolean ping() {
-    return xythosService.ping();
-  }
-
   public void removeDocument(String arg0, String arg1) {
     xythosService.removeDocument(arg0, arg1);
-  }
-
-  public String saveFile(String arg0, String arg1, byte[] arg2, String arg3, String arg4,
-      String arg5) {
-    return xythosService.saveFile(arg0, arg1, arg2, arg3, arg4, arg5);
   }
 
   public void toggleMember(String arg0, String arg1) {
@@ -155,6 +107,10 @@ public class HessianXythosRemote implements XythosRemote {
 
   public boolean shareFileWithGroup(String groupId, String filePath, String userId) {
     return xythosService.shareFileWithGroup(groupId, filePath, userId);
+  }
+
+  public Map<String, Object> getDocument(String path, String userId) {
+    return xythosService.getDocument(path, userId);
   }
 
 }
