@@ -112,16 +112,6 @@ public class LdapAuthenticationPluginTest {
         .thenReturn(results);
     when(results.hasMore()).thenReturn(true);
 
-    // verify the calls
-    // verify(connMgr).getConnection();
-    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
-    // verify(conn).search(anyString(), anyInt(), anyString(), any(String[].class),
-    // anyBoolean());
-    // verify(conn).bind(anyInt(), anyString(), any(byte[].class));
-    // verify(conn).search(isA(String.class), isA(Integer.class), anyString(),
-    // any(String[].class),
-    // anyBoolean());
-
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
   }

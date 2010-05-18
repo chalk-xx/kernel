@@ -22,7 +22,7 @@ import org.apache.jackrabbit.core.config.BeanConfig;
 import org.apache.jackrabbit.core.config.WorkspaceSecurityConfig;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProvider;
 import org.apache.jackrabbit.core.security.authorization.AccessControlProviderFactory;
-import org.apache.jackrabbit.core.security.user.UserAccessControlProvider;
+import org.apache.jackrabbit.core.security.user.DelegatedUserAccessControlProvider;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RuleProcessorManager;
 import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.SakaiActivator;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.DynamicPrincipalManager;
@@ -101,7 +101,7 @@ public class DynamicAccessControlProviderFactoryImpl implements
         // UserAccessControlProvider is designed to work with an extra
         // workspace storing user and groups. therefore avoid returning
         // this ac provider for the default workspace.
-        prov = new UserAccessControlProvider();
+        prov = new DelegatedUserAccessControlProvider();
       } else {
         prov = new DynamicACLProvider(dynamicPrincipalManager, ruleProcessorManager);
       }

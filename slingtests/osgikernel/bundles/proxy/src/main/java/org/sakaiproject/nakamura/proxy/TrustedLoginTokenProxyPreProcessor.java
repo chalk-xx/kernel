@@ -24,12 +24,11 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.proxy.ProxyPreProcessor;
+import org.sakaiproject.nakamura.util.Signature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Dictionary;
 import java.util.Map;
 
@@ -51,8 +50,7 @@ import java.util.Map;
     @Property(name = "service.vendor", value = { "The Sakai Foundation" }) })
 public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
   
-  public static final String HASH_ALGORITHM = "SHA1";
-  public static final String SECURE_TOKEN_HEADER_NAME = "X-SAKAI-TOKEN";
+  public static final String SECURE_TOKEN_HEADER_NAME = "x-sakai-token";
   public static final String TOKEN_SEPARATOR = ";";
 
   private static final Logger LOGGER = LoggerFactory
@@ -75,35 +73,19 @@ public class TrustedLoginTokenProxyPreProcessor implements ProxyPreProcessor {
       Map<String, String> headers, Map<String, Object> templateParams) {
 
     String user = request.getRemoteUser();
-
-    String other = "" + System.currentTimeMillis();
-    String hash = sharedSecret + TOKEN_SEPARATOR + user + TOKEN_SEPARATOR + other;
+    String hmac;
+    final String message = user + TOKEN_SEPARATOR + System.currentTimeMillis();
     try {
-      hash = byteArrayToHexStr(MessageDigest.getInstance(HASH_ALGORITHM).digest(
-          hash.getBytes("UTF-8")));
-
-    } catch (NoSuchAlgorithmException e1) {
-      LOGGER.error(HASH_ALGORITHM +" Algorithm does not exist on this JVM", e1);
-    } catch (UnsupportedEncodingException e) {
-      LOGGER.error("UTF8 Encoding does not exist on the JVM (as if!)", e);
+      hmac = Signature.calculateRFC2104HMAC(message, sharedSecret);
+    } catch (SignatureException e) {
+      LOGGER.error(e.getLocalizedMessage(), e);
+      throw new Error(e);
     }
-    String full = hash + TOKEN_SEPARATOR + user + TOKEN_SEPARATOR + other;
-    headers.put("X-SAKAI-TOKEN", full);
+    final String token = hmac + TOKEN_SEPARATOR + message;
+    headers.put(SECURE_TOKEN_HEADER_NAME, token);
 
     templateParams.put("port", port);
     templateParams.put("hostname", hostname);
-  }
-
-  protected String byteArrayToHexStr(byte[] data) {
-    char[] chars = new char[data.length * 2];
-    for (int i = 0; i < data.length; i++) {
-      byte current = data[i];
-      int hi = (current & 0xF0) >> 4;
-      int lo = current & 0x0F;
-      chars[2 * i] = (char) (hi < 10 ? ('0' + hi) : ('A' + hi - 10));
-      chars[2 * i + 1] = (char) (lo < 10 ? ('0' + lo) : ('A' + lo - 10));
-    }
-    return new String(chars);
   }
 
   /**

@@ -24,10 +24,14 @@ import static org.sakaiproject.nakamura.batch.BatchServlet.REQUESTS_PARAMETER;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,20 +40,38 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class BatchServletTest {
 
+  private BatchServlet servlet;
+  private SlingHttpServletRequest request;
+  private SlingHttpServletResponse response;
+
+  @Before
+  public void setUp() throws Exception {
+    servlet = new BatchServlet();
+    request = mock(SlingHttpServletRequest.class);
+    response = mock(SlingHttpServletResponse.class);
+
+  }
+
   @Test
   public void testInvalidRequest() throws ServletException, IOException {
-
-    BatchServlet servlet = new BatchServlet();
-
-    SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
-    SlingHttpServletResponse response = mock(SlingHttpServletResponse.class);
-
     when(request.getParameter(REQUESTS_PARAMETER)).thenReturn("marlformedparameter");
-
     servlet.doGet(request, response);
-
     verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST,
         "Failed to parse the " + REQUESTS_PARAMETER + " parameter");
+  }
+
+  @Test
+  public void testSimpleRequest() throws Exception {
+    String json = "[{\"url\" : \"/foo/bar\",\"method\" : \"POST\",\"parameters\" : {\"val\" : 123,\"val@TypeHint\" : \"Long\"}}]";
+    when(request.getParameter(REQUESTS_PARAMETER)).thenReturn(json);
+
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintWriter writer = new PrintWriter(baos);
+
+    RequestDispatcher dispatcher = mock(RequestDispatcher.class);
+    when(request.getRequestDispatcher("/foo/bar")).thenReturn(dispatcher);
+    when(response.getWriter()).thenReturn(writer);
+    servlet.doPost(request, response);
   }
 
 }

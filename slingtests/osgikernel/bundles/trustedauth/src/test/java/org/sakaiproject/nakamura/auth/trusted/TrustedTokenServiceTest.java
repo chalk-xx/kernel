@@ -81,6 +81,9 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -93,6 +96,9 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.TTL, 1200000L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/cookie-token.bin");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -105,6 +111,10 @@ public class TrustedTokenServiceTest {
     dict.put(TrustedTokenServiceImpl.TTL, 100L);
     dict.put(TrustedTokenServiceImpl.SECURE_COOKIE, false);
     dict.put(TrustedTokenServiceImpl.TOKEN_FILE_NAME, "target/fast-cookie-token.bin");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_ENABLED, false);
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SAFE_HOSTS, ";localhost;");
+    dict.put(TrustedTokenServiceImpl.SERVER_TOKEN_SHARED_SECRET, "not-so-secret" );
+
     EasyMock.expect(context.getProperties()).andReturn(dict);
     return context;
   }
@@ -350,6 +360,7 @@ public class TrustedTokenServiceTest {
   public void testGetCredentialsNone() {
     ComponentContext context = configureForCookie();
     HttpServletRequest request = createMock(HttpServletRequest.class);
+    EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
     Cookie[] cookies = new Cookie[] { new Cookie("sdfsd", "fsdfs"),
         new Cookie("sdfsd1", "fsdfs"), new Cookie("sdfsd2", "fsdfs"),
         new Cookie("sdfsd3", "fsdfs"), new Cookie("sdfsd4", "fsdfs"), };
@@ -370,6 +381,7 @@ public class TrustedTokenServiceTest {
     Cookie[] cookies = new Cookie[] { new Cookie("sdfsd", "fsdfs"),
         new Cookie("sdfsd1", "fsdfs"), null, new Cookie("sdfsd3", "fsdfs"),
         new Cookie("sdfsd4", "fsdfs"), };
+    EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
     EasyMock.expect(request.getCookies()).andReturn(cookies);
     HttpServletResponse response = createMock(HttpServletResponse.class);
 
@@ -393,6 +405,7 @@ public class TrustedTokenServiceTest {
     ComponentContext context = configureForSession();
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpSession session = createMock(HttpSession.class);
+    EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
     EasyMock.expect(request.getSession(true)).andReturn(session);
 
     Principal principal = createMock(Principal.class);
@@ -416,6 +429,7 @@ public class TrustedTokenServiceTest {
     verify();
     reset();
 
+    EasyMock.expect(request.getHeader("x-sakai-token")).andReturn(null).anyTimes();
     EasyMock.expect(request.getSession(false)).andReturn(session);
     EasyMock.expect(
         session.getAttribute(TrustedTokenService.SA_AUTHENTICATION_CREDENTIALS))
