@@ -40,6 +40,7 @@ public class ISO8601Date extends GregorianCalendar {
    *
    */
   public ISO8601Date() {
+    date = false;
   }
 
   public ISO8601Date(String spec) {
@@ -95,7 +96,7 @@ public class ISO8601Date extends GregorianCalendar {
       min = Integer.parseInt(spec.substring(14, 16));
       sec = Integer.parseInt(spec.substring(17, 19));
       z = TimeZone.getTimeZone("GMT" + spec.substring(19));
-      date = true;
+      date = false;
       break;
     case 8: // 19970714
       year = Integer.parseInt(spec.substring(0, 4));
