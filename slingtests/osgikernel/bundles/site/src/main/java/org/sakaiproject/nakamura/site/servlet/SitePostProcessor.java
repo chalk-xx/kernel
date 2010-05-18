@@ -56,14 +56,14 @@ public class SitePostProcessor implements SlingPostProcessor {
         Session s = request.getResourceResolver().adaptTo(Session.class);
         // Avoid a bogus warning when the deleted item is not found.
         if (m.getType().equals(ModificationType.DELETE)) {
-          LOGGER.info("Delete node {}", m.getSource());
+          LOGGER.debug("Delete node {}", m.getSource());
         } else {
           if (s.itemExists(m.getSource())) {
             Item item = s.getItem(m.getSource());
             if (item != null && item.isNode()) {
-              LOGGER.info("Change to node {}", item);
+              LOGGER.debug("Change to node {}", item);
             } else {
-              LOGGER.info("Change to property {}", item);
+              LOGGER.debug("Change to property {}", item);
               if (!authzHandled && SiteAuthz.MONITORED_SITE_PROPERTIES.contains(item.getName())) {
                 SiteAuthz authz = new SiteAuthz(item.getParent());
                 authz.applyAuthzChanges();
@@ -71,7 +71,7 @@ public class SitePostProcessor implements SlingPostProcessor {
               }
             }
           } else {
-            LOGGER.info("itemExists was false for Modification source " + m.getSource() + ", " + m.getType());
+            LOGGER.debug("itemExists was false for Modification source " + m.getSource() + ", " + m.getType());
           }
         }
       } catch (RepositoryException ex) {
