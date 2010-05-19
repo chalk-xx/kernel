@@ -15,6 +15,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
+import org.sakaiproject.nakamura.ldap.LdapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
-      String userDn = userFilter.replace("{}", sc.getUserID());
+      String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
+          sc.getUserID()));
       String userPass = new String(sc.getPassword());
 
       LDAPConnection conn = null;
@@ -121,13 +123,15 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // 3) Bind as user.
         // If bind fails, log/report invalid username or password.
+
+        // value is set below. define here for use in authz check.
+        String userEntryDn = null;
         try {
           // KERN-776 Resolve the user DN from the search results and check for an aliased
           // entry
           LDAPEntry userEntry = results.next();
           LDAPAttribute objectClass = userEntry.getAttribute("objectClass");
 
-          String userEntryDn = null;
           if ("aliasObject".equals(objectClass.getStringValue())) {
             LDAPAttribute aliasDN = userEntry.getAttribute("aliasedObjectName");
             userEntryDn = aliasDN.getStringValue();
@@ -154,7 +158,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
           // 5) Search user DN with authz filter
           // If search fails, log/report that user is not authorized
-          String userAuthzFilter = "(&(" + userDn + ")(" + authzFilter + "))";
+          String userAuthzFilter = "(&(" + userEntryDn + ")(" + authzFilter + "))";
           results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userAuthzFilter, null,
               true);
           if (results.hasMore()) {
