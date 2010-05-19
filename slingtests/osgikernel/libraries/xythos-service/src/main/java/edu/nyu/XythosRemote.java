@@ -17,6 +17,8 @@ public interface XythosRemote {
 	
 	Map<String, Object> getDocument(String path, String userId);
 	
+	byte[] getFileContent(String path, String userId);
+	
 	List<Map<String, Object>> doSearch(Map<String, Object> searchProperties, String userId);
 	
 	void updateFile(String path, byte[] fileData, Map<String, Object>properties, String userId);
