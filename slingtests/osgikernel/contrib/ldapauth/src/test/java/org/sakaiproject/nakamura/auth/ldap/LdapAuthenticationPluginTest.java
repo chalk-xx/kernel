@@ -17,23 +17,22 @@
  */
 package org.sakaiproject.nakamura.auth.ldap;
 
-import static org.mockito.Mockito.doNothing;
-
-import static org.mockito.Mockito.doThrow;
-
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import static org.mockito.internal.stubbing.defaultanswers.Answers.RETURNS_DEEP_STUBS;
 
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.assertFalse;
-
 import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
@@ -112,8 +111,15 @@ public class LdapAuthenticationPluginTest {
         .thenReturn(results);
     when(results.hasMore()).thenReturn(true);
 
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+    when(ldapEntry.getAttribute("objectClass").getStringValue()).thenReturn(
+        "inetOrgPerson");
+
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
+
+    verify(ldapEntry).getDN();
   }
 
   @Test
@@ -131,8 +137,44 @@ public class LdapAuthenticationPluginTest {
         .thenReturn(results);
     when(results.hasMore()).thenReturn(true);
 
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+    when(results.next()).thenReturn(ldapEntry);
+    when(ldapEntry.getAttribute("objectClass").getStringValue()).thenReturn(
+        "inetOrgPerson");
+
     // then
     assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
+
+    verify(ldapEntry).getDN();
+  }
+
+  @Test
+  public void useAliasObject() throws Exception {
+    // given
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put(LdapAuthenticationPlugin.LDAP_BASE_DN, LDAP_BASE_DN);
+    props.put(LdapAuthenticationPlugin.USER_FILTER, USER_FILTER);
+    props.put(LdapAuthenticationPlugin.AUTHZ_FILTER, AUTHZ_FILTER);
+    ldapAuthenticationPlugin.activate(props);
+
+    when(connMgr.getConnection()).thenReturn(conn);
+    when(
+        conn.search(anyString(), anyInt(), anyString(), any(String[].class), anyBoolean()))
+        .thenReturn(results);
+    when(results.hasMore()).thenReturn(true);
+
+    LDAPEntry ldapEntry = mock(LDAPEntry.class, RETURNS_DEEP_STUBS.get());
+
+    when(results.next()).thenReturn(ldapEntry);
+    when(ldapEntry.getAttribute("objectClass").getStringValue())
+        .thenReturn("aliasObject");
+
+    // then
+    assertTrue(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
+
+    // verify that the alias attributes where accessed
+    verify(ldapEntry, atLeastOnce()).getAttribute("objectClass");
+    verify(ldapEntry, atLeastOnce()).getAttribute("aliasedObjectName");
   }
 
   @Test
@@ -243,7 +285,7 @@ public class LdapAuthenticationPluginTest {
     // then
     assertFalse(ldapAuthenticationPlugin.authenticate(simpleCredentials()));
   }
-  
+
   private SimpleCredentials simpleCredentials() {
     return new SimpleCredentials(USER, PASS.toCharArray());
   }
