@@ -50,8 +50,8 @@ import org.sakaiproject.tool.api.SessionManager;
 public class SitesServlet extends HttpServlet {
 	private static final long serialVersionUID = 7907409301065984518L;
 	private static final Log LOG = LogFactory.getLog(SitesServlet.class);
-	private SessionManager sessionManager;
-	private SiteService siteService;
+	private transient SessionManager sessionManager;
+	private transient SiteService siteService;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)

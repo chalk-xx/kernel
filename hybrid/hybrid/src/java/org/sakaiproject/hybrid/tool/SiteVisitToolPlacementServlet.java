@@ -69,11 +69,11 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 			.getLog(SiteVisitToolPlacementServlet.class);
 	private static final String SITE_ID = "siteId";
 
-	private SessionManager sessionManager;
-	private SiteService siteService;
-	private EventTrackingService eventTrackingService;
-	private ToolHelperImpl toolHelper = new ToolHelperImpl();
-	private AuthzGroupService authzGroupService;
+	private transient SessionManager sessionManager;
+	private transient SiteService siteService;
+	private transient EventTrackingService eventTrackingService;
+	private transient ToolHelperImpl toolHelper;
+	private transient AuthzGroupService authzGroupService;
 
 	/**
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
@@ -273,5 +273,6 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 		if (authzGroupService == null) {
 			throw new IllegalStateException("AuthzGroupService == null");
 		}
+		toolHelper = new ToolHelperImpl();
 	}
 }
