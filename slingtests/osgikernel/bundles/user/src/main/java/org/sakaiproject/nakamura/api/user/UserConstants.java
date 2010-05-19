@@ -41,8 +41,6 @@ public interface UserConstants {
    */
   public static final String PRIVATE_PROPERTIES = "sakai:privateproperties";
 
-  public static final String USER_POST_PROCESSOR = "UserPostProcessor";
-
   /**
    * The number of hash levels applied to user paths, this is system wide and can't be
    * changed once an instance has been loaded with users. 4 will give upto 2E9 users.
@@ -61,9 +59,11 @@ public interface UserConstants {
    */
   public static final String ANON_USERID = "anonymous";
   
-  public static final String ADMIN_PRINCIPALS_PROPERTY = "sakai:delegatedGroupAdmin";
-
   public static final String ADMIN_USERID = "admin";
+  
+  public static final String PROP_GROUP_MANAGERS = "rep:group-managers";
+
+  public static final String PROP_GROUP_VIEWERS = "rep:group-viewers";
 
   public static final String[] DEFAULT_USERS = { ANON_USERID, ADMIN_USERID};
 

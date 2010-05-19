@@ -40,26 +40,25 @@ import javax.jcr.Node;
 /**
  * Lot's of ACL issues going on in here..
  */
-public class MessageUserPostProcessorTest {
+public class MessageAuthorizablePostProcessorTest {
 
   @Test
   public void testNotAUser() throws Exception {
-    MessageUserPostProcessor proc = new MessageUserPostProcessor();
+    MessageAuthorizablePostProcessor proc = new MessageAuthorizablePostProcessor();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     Group group = mock(Group.class);
     JackrabbitSession session = mock(JackrabbitSession.class);
-    List<Modification> changes = new ArrayList<Modification>();
 
     RequestPathInfo info = mock(RequestPathInfo.class);
     when(info.getResourcePath()).thenReturn("/wrong/path");
     when(request.getRequestPathInfo()).thenReturn(info);
 
-    proc.process(group, session, request, changes);
+    proc.process(group, session, Modification.onCreated("/wrong/path"));
   }
 
 // we cant test this becuase we need a principal manager, and that is part Acl Utils  @Test
   public void testAuthorizable() throws Exception {
-    MessageUserPostProcessor proc = new MessageUserPostProcessor();
+    MessageAuthorizablePostProcessor proc = new MessageAuthorizablePostProcessor();
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     JackrabbitSession session = mock(JackrabbitSession.class);
     Node node = mock(Node.class);
@@ -80,6 +79,6 @@ public class MessageUserPostProcessorTest {
     when(userManager.getAuthorizable("newUserID")).thenReturn(null);
     when(session.getUserManager()).thenReturn(userManager);
 
-    proc.process(user, session, request, changes);
+    proc.process(user, session, Modification.onCreated(UserConstants.SYSTEM_USER_MANAGER_USER_PATH+"newUserID"));
   }
 }

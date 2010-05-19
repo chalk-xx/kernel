@@ -32,7 +32,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -42,15 +41,15 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.sakaiproject.nakamura.util.IOUtils;
+import org.sakaiproject.nakamura.util.osgi.BindingListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
@@ -123,10 +122,6 @@ import javax.servlet.http.HttpServletResponse;
  *               description="%self.registration.enabled.description"
  *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
  * 
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
- *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  */
 
 @ServiceDocumentation(name="Create User Servlet",
@@ -158,14 +153,12 @@ import javax.servlet.http.HttpServletResponse;
     @ServiceResponse(code=500,description="Failure, including user already exists. HTML explains failure.")
         }))		
 
-public class CreateSakaiUserServlet extends AbstractUserPostServlet {
+public class CreateSakaiUserServlet extends AbstractUserPostServlet implements BindingListener  {
 
     /**
      *
      */
     private static final long serialVersionUID = -5060795742204221361L;
-
-    private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
 
     /**
      * default log
@@ -177,6 +170,13 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     private static final Boolean DEFAULT_SELF_REGISTRATION_ENABLED = Boolean.TRUE;
 
     private Boolean selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
+
+    /**
+     * Used to post process authorizable creation request.
+     *
+     * @scr.reference
+     */
+    private transient AuthorizablePostProcessService postProcessorService;
 
     /**
      * The JCR Repository we access to resolve resources
@@ -234,20 +234,15 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
         } else {
             selfRegistrationEnabled = DEFAULT_SELF_REGISTRATION_ENABLED;
         }
-        synchronized(postProcessorTracker) {
-          postProcessorTracker.setComponentContext(componentContext);
-          active  = true;
-          doActivateTasks();
-        }
+        active  = true;
+        doActivateTasks();
+        postProcessorService.addListener(this);
     }
 
     protected void deactivate(ComponentContext componentContext) {
-      synchronized(postProcessorTracker) {
-        postProcessorTracker.setComponentContext(null);
         active = false;
+        postProcessorService.removeListener(this);
         doDeactivateTasks();
-      }
-
     }
 
     private void doActivateTasks() {
@@ -281,17 +276,8 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
               }
               
               try {
-                // Let all the processors create the nescecary paths ( home folders, authprofile, ..)
-                List<Modification> changes = new ArrayList<Modification>();
-                SakaiSlingHttpServletRequest request = new SakaiSlingHttpServletRequest(
-                    session, UserConstants.SYSTEM_USER_MANAGER_USER_PATH);
-                log.debug("Looping all the post processors");
-                for (UserPostProcessor userPostProcessor : postProcessorTracker
-                    .getProcessors()) {
-                  log.debug("Processor: {}", userPostProcessor);
-                  userPostProcessor.process(user, session, request, changes);
-                }
-                log.debug("Finished Looping all the post processors");
+                postProcessorService.process(user, session, Modification.onCreated(user.getID()));
+                
               } catch (Exception e) {
                 log.warn(e.getMessage(), e);
               }
@@ -403,12 +389,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
                 writeContent(selfRegSession, user, reqProperties, changes);
 
                 try {
-                    log.debug("Looping all the post processors");
-                    for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-                        log.debug("Processor: {}", userPostProcessor);
-                        userPostProcessor.process(user, selfRegSession, request, changes);
-                    }
-                    log.debug("Finished Looping all the post processors");
+                    postProcessorService.process(user, selfRegSession, Modification.onCreated(userPath));
                 } catch (Exception e) {
                     log.warn(e.getMessage(), e);
                     response
@@ -423,23 +404,17 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet {
     }
 
 
-    protected void bindUserPostProcessor(ServiceReference serviceReference) {
-      synchronized(postProcessorTracker) {
-        postProcessorTracker.bindUserPostProcessor(serviceReference);
-        if ( active ) {
-          doActivateTasks();
-        }
-      }
 
-    }
-
-    protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-      synchronized(postProcessorTracker) {
-        postProcessorTracker.unbindUserPostProcessor(serviceReference);
-        if ( !active ) {
-          doDeactivateTasks();
-        }
-      }
+    /**
+     * {@inheritDoc}
+     * @see org.sakaiproject.nakamura.util.osgi.BindingListener#notifyBinding()
+     */
+    public void notifyBinding() {
+      if ( active ) {
+        doActivateTasks();
+      } else {
+        doDeactivateTasks();
+      }      
     }
 
 }

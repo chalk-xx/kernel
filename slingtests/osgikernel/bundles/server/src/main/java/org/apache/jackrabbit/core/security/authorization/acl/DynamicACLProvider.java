@@ -188,7 +188,7 @@ public class DynamicACLProvider extends ACLProvider {
           rp = new RulesPrincipal(principalName);
           principalName = rp.getPrincipalName();
         } catch ( IllegalArgumentException e ) {
-          LOG.info("Principal {} is not a rules principal ",principalName, e);
+          LOG.debug("Principal {} is not a rules principal ",principalName, e);
         }
         if ( rp == null || isAceActiveCheap(aceNode) ) {
           // only process aceNode if 'principalName' is contained in the given set

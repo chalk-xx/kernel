@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 
 import javax.jcr.RepositoryException;
 
@@ -35,11 +36,14 @@ public class TestSiteAuthz {
   private SlingRepository repository;
   @Mock
   private JackrabbitSession session;
+  
+  @Mock
+  private AuthorizablePostProcessService postProcessService;
 
   @Test
   public void testNoAuthzConf() throws RepositoryException {
     MockNode site = new MockNode("/sites/testsite");
-    SiteAuthz siteAuthz = new SiteAuthz(site);
+    SiteAuthz siteAuthz = new SiteAuthz(site, postProcessService);
     siteAuthz.initAccess("testuser");
     assertNull(siteAuthz.getMaintenanceRole());
     siteAuthz.deletionPostProcess(session, repository);

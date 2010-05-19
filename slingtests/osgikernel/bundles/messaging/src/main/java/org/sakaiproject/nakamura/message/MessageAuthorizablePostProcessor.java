@@ -36,7 +36,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,21 +51,19 @@ import javax.jcr.Session;
  * This PostProcessor listens to post operations on User objects and creates a message
  * store.
  */
-@Component(immediate = true, label = "MessageUserPostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
+@Component(immediate = true, label = "MessageAuthorizablePostProcessor", description = "Creates the message stores for users and groups.", metatype = false)
 @Service
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Creates the message stores for users and groups.") })
-public class MessageUserPostProcessor implements UserPostProcessor {
+public class MessageAuthorizablePostProcessor implements AuthorizablePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(MessageUserPostProcessor.class);
+      .getLogger(MessageAuthorizablePostProcessor.class);
 
-  public void process(Authorizable authorizable, Session session,
-      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
-    LOGGER.debug("Starting MessageUserPostProcessor process");
-    String resourcePath = request.getRequestPathInfo().getResourcePath();
-    if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+    LOGGER.debug("Starting MessageAuthorizablePostProcessor process");
+    if (authorizable != null && authorizable.getID() != null && !authorizable.isGroup()) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       String path = PersonalUtils.getHomeFolder(authorizable) + "/"
           + MessageConstants.FOLDER_MESSAGES;
@@ -99,7 +97,7 @@ public class MessageUserPostProcessor implements UserPostProcessor {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
    */
   public int getSequence() {
     return 10;

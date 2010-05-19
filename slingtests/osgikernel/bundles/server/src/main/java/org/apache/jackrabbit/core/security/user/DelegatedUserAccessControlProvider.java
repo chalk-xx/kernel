@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -425,15 +426,15 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
                   if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
-                    log.debug("Is Managed {} ", node.getPath());
-                    Value[] managers = node.getProperty(NT_REP_GROUP_MANAGERS).getValues();
+                    log.info("Is Managed {} ", node.getPath());
+                    Value[] managers = getValues(node.getProperty(NT_REP_GROUP_MANAGERS));
                     for ( Value manager : managers ) {
                       String m = manager.getString();
                       for ( Principal p : principals ) {
-                        log.debug("Checking for Manager [{}] == [{}]", m, p.getName());
+                        log.info("Checking for Manager [{}] == [{}]", m, p.getName());
                         if ( m.equals(p.getName())) {
                           isManager = true;
-                          log.debug("Is a Manager [{}] == [{}]", m, p.getName());
+                          log.info("Is a Manager [{}] == [{}]", m, p.getName());
                           break;
                         }
                       }
@@ -446,7 +447,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                       if ( node.hasProperty(NT_REP_GROUP_VIEWERS)) {
                           isPrivate = true;
                           log.debug("Is Private {} ", node.getPath());
-                          Value[] viewers = node.getProperty(NT_REP_GROUP_VIEWERS).getValues();
+                          Value[] viewers = getValues(node.getProperty(NT_REP_GROUP_VIEWERS));
                           for ( Value viewer : viewers ) {
                             String v = viewer.getString();
                             for ( Principal p : principals ) {
@@ -546,7 +547,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         if (userAdminGroupPath.equals(nodePath)) {
                             isUserAdmin = false;
                             if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = session.getProperty(evPath).getValues();
+                                Value[] vs = getValues(session.getProperty(evPath));
                                 for (int i = 0; i < vs.length && !isUserAdmin; i++) {
                                     isUserAdmin = userNode.getIdentifier().equals(vs[i].getString());
                                 }
@@ -554,7 +555,7 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                         } else if (groupAdminGroupPath.equals(nodePath)) {
                             isGroupAdmin = false;
                             if (ev.getType() != Event.PROPERTY_REMOVED) {
-                                Value[] vs = session.getProperty(evPath).getValues();
+                                Value[] vs = getValues(session.getProperty(evPath));
                                 for (int i = 0; i < vs.length && !isGroupAdmin; i++) {
                                     isGroupAdmin = userNode.getIdentifier().equals(vs[i].getString());
                                 }
@@ -571,5 +572,22 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 }
             }
         }
+    }
+
+    /**
+     * @param property
+     * @return
+     * @throws RepositoryException 
+     */
+    public Value[] getValues(Property property) throws RepositoryException {
+      if ( property == null ) {
+        return new Value[0];
+      } else {
+        if ( property.isMultiple() ) {
+          return property.getValues();
+        } else {
+          return new Value[] { property.getValue()};
+        }
+      }
     }
 }

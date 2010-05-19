@@ -25,10 +25,13 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
+import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,11 +90,14 @@ public class SiteAuthz {
   private JSONObject authzConfig;
   private Map<String, String> roleToGroupMap;
 
+  private AuthorizablePostProcessService postProcessService;
+
   /**
    * @param site
    * @throws RepositoryException
    */
-  public SiteAuthz(Node site) throws RepositoryException {
+  public SiteAuthz(Node site, AuthorizablePostProcessService postProcesService) throws RepositoryException {
+    this.postProcessService = postProcesService;
     this.site = site;
     this.siteRef = site.getIdentifier();
     this.roleToGroupMap = new HashMap<String, String>();
@@ -336,7 +342,14 @@ public class SiteAuthz {
         return principalName;
       }
     });
-
+    
+    try {
+      postProcessService.process(group, session, Modification.onCreated( AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+                      + group.getID()));
+    } catch (Exception e) {
+      throw new RepositoryException(e.getMessage(),e);
+    }
+    
     return group;
   }
 
@@ -393,9 +406,16 @@ public class SiteAuthz {
       Value[] adminPrincipals = groupAdministrators.toArray(new Value[groupAdministrators
           .size()]);
       for (Group membershipGroup : membershipGroups) {
-        membershipGroup.setProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+        membershipGroup.setProperty(UserConstants.PROP_GROUP_MANAGERS,
             adminPrincipals);
+        try {
+          postProcessService.process(membershipGroup,session, Modification.onCreated(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+              + membershipGroup.getID()));
+        } catch (Exception e) {
+          throw new RepositoryException(e.getMessage(),e);
+        }
       }
+            
     }
     return roleToGroupMap;
   }
@@ -454,7 +474,7 @@ public class SiteAuthz {
     if (currentUser.isAdmin()) {
       isMaintainer = true;
     } else {
-      if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
+      if (group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
         Set<String> userPrincipals = new HashSet<String>();
         /* The following does not exist in JR2
         for (PrincipalIterator iter = currentUser.getPrincipals(); iter.hasNext();) {
@@ -466,7 +486,7 @@ public class SiteAuthz {
           Group userGroup = iter.next();
           userPrincipals.add(userGroup.getID());
         }
-        Value[] adminPrincipalValues = group.getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY);
+        Value[] adminPrincipalValues = group.getProperty(UserConstants.PROP_GROUP_MANAGERS);
         for (Value adminPrincipalValue : adminPrincipalValues) {
           String adminPrincipal = adminPrincipalValue.getString();
           if (userPrincipals.contains(adminPrincipal)) {
@@ -494,6 +514,8 @@ public class SiteAuthz {
    */
   private void deleteGroup(Session session, SlingRepository slingRepository, Group group)
       throws RepositoryException {
+    // FIXME: this is managed by the Access Control manager and should not really be here.
+    // For the moment, it has been adjusted to use the correct properties.
     if (!isUserGroupMaintainer(session, group)) {
       LOGGER.warn("User is not allowed to modify group");
       throw new RepositoryException("Not allowed to modify the group ");

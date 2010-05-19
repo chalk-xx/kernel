@@ -39,7 +39,11 @@ class TC_Kern308Test < SlingTest
     g2 = create_group("g-#{u2.name}")
     g2.add_member(@s, u2.name, "user")
     assert(g2.has_member(@s, u2.name), "Expected user to be a member of their group")
-    g2.update_properties(@s, "sakai:delegatedGroupAdmin" => g1.name)
+	
+    res = g2.update_properties(@s, "rep:group-managers" => g1.name)
+    assert_equal("200", res.code, "Expected to be able to make change to add the group manager in "+res.body)
+    res = @s.execute_get(@s.url_for(Group.url_for(g2.name) + ".tidy.json"))
+	puts(res.body)
     puts "Delegated admin property updated"
     @s.switch_user(u1)
     res = g2.add_member(@s, u3.name, "user")

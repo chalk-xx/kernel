@@ -25,7 +25,7 @@ import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.request.RequestProgressTracker;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,7 +46,7 @@ import javax.servlet.http.HttpSession;
 
 /**
  * NOTE: this is just a quick mock of the
- * <code>SlingHttpServletRequest<code> that can be used in the {@link UserPostProcessor post processors} when this bundle comes up.
+ * <code>SlingHttpServletRequest<code> that can be used in the {@link AuthorizablePostProcessor post processors} when this bundle comes up.
  * This class only implements the bare necessary things.
  */
 public class SakaiSlingHttpServletRequest implements SlingHttpServletRequest {

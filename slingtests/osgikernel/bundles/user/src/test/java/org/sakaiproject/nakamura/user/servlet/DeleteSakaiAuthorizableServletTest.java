@@ -8,6 +8,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.servlets.post.Modification;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
 import java.util.ArrayList;
@@ -31,11 +32,15 @@ public class DeleteSakaiAuthorizableServletTest extends AbstractEasyMockTest {
     expect(request.getResourceResolver()).andReturn(rr).times(3);
     expect(request.getResource()).andReturn(null).times(2);
 
-    HtmlResponse response = new HtmlResponse();
-
     List<Modification> changes = new ArrayList<Modification>();
 
+    AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
+
+    HtmlResponse response = new HtmlResponse();
+
+
     replay();
+    dsas.postProcessorService = authorizablePostProcessService;
     dsas.handleOperation(request, response, changes);
     verify();
   }

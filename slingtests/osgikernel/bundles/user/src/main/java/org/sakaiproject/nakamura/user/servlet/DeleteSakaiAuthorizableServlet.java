@@ -24,8 +24,6 @@ import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.DeleteAuthorizableServlet;
 import org.apache.sling.servlets.post.Modification;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -34,7 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,9 +86,6 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.methods" value="POST" 
  * @scr.property name="sling.servlet.selectors" value="delete" 
  * 
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor" unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  *
  */
 @ServiceDocumentation(name="Delete Authorizable (Group and User) Servlet",
@@ -123,10 +118,13 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   private static final long serialVersionUID = 3417673949322305891L;
 
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteAuthorizableServlet.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DeleteSakaiAuthorizableServlet.class);
 
   
-  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  /**
+   * @src.reference
+   */
+  protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * {@inheritDoc}
@@ -161,8 +159,8 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(null, session, request, changes);
+      for ( Modification m : changes) {
+        postProcessorService.process(null, session, m);
       }
       // delete the user objects
       super.handleOperation(request, response, changes);
@@ -172,32 +170,13 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       }
     } catch (Exception e) {
       // undo any changes
-      session.refresh(true);
       LOGGER.warn(e.getMessage(),e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      session.refresh(true);
       return;
     }
   }
   
 
-  protected void bindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.bindUserPostProcessor(serviceReference);
-
-  }
-
-  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.unbindUserPostProcessor(serviceReference);
-  }
-
-  /**
-   * Activates this component.
-   * 
-   * @param componentContext
-   *          The OSGi <code>ComponentContext</code> of this component.
-   */
-  protected void activate(ComponentContext componentContext) {
-    super.activate(componentContext);
-    postProcessorTracker.setComponentContext(componentContext);
-  }
 
 }

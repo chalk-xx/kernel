@@ -18,9 +18,12 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.Value;
 
-public class UserPostProcessorTest extends AbstractEasyMockTest {
+public class AuthorizablePostProcessorTest extends AbstractEasyMockTest {
   @Test
   public void testNoProcessingNeeded() throws Exception {
+    if ( true ) {
+      return; // this is disabled since processing is now needed to sync the groups managers and viewers, KERN-759
+    }
     ArrayList<String> propNames = new ArrayList<String>();
     propNames.add("rep:userId");
     Authorizable authorizable = createAuthorizable("admin", false, false);
@@ -36,10 +39,9 @@ public class UserPostProcessorTest extends AbstractEasyMockTest {
     expect(session.nodeExists("/_user/a/ad/admin/public/authprofile")).andReturn(true).atLeastOnce();
     expect(session.getNode("/_user/a/ad/admin/public/authprofile")).andReturn(profileNode).atLeastOnce();
     SlingHttpServletRequest request = createMock(SlingHttpServletRequest.class);
-    List<Modification> changes = new ArrayList<Modification>();
     replay();
-    PersonalUserPostProcessor postProcessor = new PersonalUserPostProcessor();
-    postProcessor.process(authorizable, session, request, changes);
+    PersonalAuthorizablePostProcessor postProcessor = new PersonalAuthorizablePostProcessor();
+    postProcessor.process(authorizable, session, Modification.onModified("path-to-request-id"));
     verify();
   }
 }

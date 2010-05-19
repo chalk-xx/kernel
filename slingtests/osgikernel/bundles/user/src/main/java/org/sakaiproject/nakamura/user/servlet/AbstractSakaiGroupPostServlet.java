@@ -138,9 +138,9 @@ public abstract class AbstractSakaiGroupPostServlet extends
     protected void updateOwnership(SlingHttpServletRequest request,
         Group group, String[] principalChange, List<Modification> changes) throws RepositoryException {
       Set<String> adminPrincipals = new HashSet<String>();
-      if (group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY)) {
+      if (group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)) {
         Value[] adminPrincipalsProperties = group
-            .getProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY);
+            .getProperty(UserConstants.PROP_GROUP_MANAGERS);
         for (Value adminPricipal : adminPrincipalsProperties) {
           adminPrincipals.add(adminPricipal.toString());
         }
@@ -169,7 +169,7 @@ public abstract class AbstractSakaiGroupPostServlet extends
         for (String adminPrincipalName : adminPrincipals) {
           newAdminPrincipals[i++] = valueFactory.createValue(adminPrincipalName);
         }
-        group.setProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+        group.setProperty(UserConstants.PROP_GROUP_MANAGERS,
             newAdminPrincipals);
       }
     }

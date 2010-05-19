@@ -25,6 +25,7 @@ import org.apache.sling.servlets.post.SlingPostConstants;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
@@ -138,7 +139,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
   }
 
   @Test
-  public void testPrincipalNotExists() throws RepositoryException {
+  public void testPrincipalNotExists() throws Exception {
     CreateSakaiGroupServlet csgs = new CreateSakaiGroupServlet();
 
     UserManager userManager = createMock(UserManager.class);
@@ -199,11 +200,11 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getResource()).andReturn(null);
     expect(request.getParameterValues(":member@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":member")).andReturn(new String[] {});
+    
 
     expect(user.getID()).andReturn("admin");
-    expect(
-        group.hasProperty(UserConstants.ADMIN_PRINCIPALS_PROPERTY))
-        .andReturn(false);
+    // might need to adjust here
+    expect(group.hasProperty(UserConstants.PROP_GROUP_MANAGERS)).andReturn(false);
     expect(session.getValueFactory()).andReturn(valueFactory);
     Capture<String> valueCapture = new Capture<String>();
 
@@ -213,16 +214,23 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     Capture<String> propertyName = new Capture<String>();
     group.setProperty(capture(propertyName), capture(valuesCapture));
     expectLastCall();
+    
+    List<Modification> changes = new ArrayList<Modification>();
+
 
     expect(session.hasPendingChanges()).andReturn(true);
     session.save();
+    expectLastCall();
+
+    AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
+    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(), (Session)EasyMock.anyObject(), (Modification)EasyMock.anyObject());
     expectLastCall();
 
     HtmlResponse response = new HtmlResponse();
 
     replay();
 
-    List<Modification> changes = new ArrayList<Modification>();
+    csgs.postProcessorService = authorizablePostProcessService;
 
     try {
       csgs.handleOperation(request, response, changes);
@@ -233,7 +241,7 @@ public class CreateSakaiGroupServletTest extends AbstractEasyMockTest {
     assertTrue(valuesCapture.hasCaptured());
     assertTrue(propertyName.hasCaptured());
     assertEquals("admin", valueCapture.getValue());
-    assertEquals(UserConstants.ADMIN_PRINCIPALS_PROPERTY,
+    assertEquals(UserConstants.PROP_GROUP_MANAGERS,
         propertyName.getValue());
     assertEquals(1, valuesCapture.getValue().length);
     verify();

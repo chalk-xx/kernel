@@ -50,6 +50,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.JcrUtils;
@@ -138,6 +139,9 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   @Reference
   private transient VersionService versionService;
 
+  @Reference
+  private transient AuthorizablePostProcessService postProcessService;
+
   /**
    * {@inheritDoc}
    *
@@ -222,9 +226,13 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // it.
         createSession = adminSession;
       } else {
+        
         adminSession.logout();
         adminSession = null;
       }
+      
+      LOGGER.info("Creating Site {} for user {} with session {}",new Object[] { sitePath, currentUser.getID(), session.getUserID()});
+      	
 
       // Perform the actual creation or move.
       try {
@@ -446,7 +454,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         new String[] {"jcr:all"}, null, null);
 
     // Handle authz configuration via a helper.
-    SiteAuthz authzHelper = new SiteAuthz(site);
+    SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
     authzHelper.initAccess(creator.getID());
   }
   
