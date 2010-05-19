@@ -33,7 +33,6 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.component.ComponentContext;
@@ -45,8 +44,8 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
 import org.sakaiproject.nakamura.user.NameSanitizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,9 +152,13 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(CreateSakaiGroupServlet.class);
-  
 
-  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  /**
+   * Used to perform post processing.
+   * 
+   * @scr.reference
+   */
+  protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * The JCR Repository we access to resolve resources
@@ -308,9 +311,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     changes);
 
                 try {
-                    for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-                        userPostProcessor.process(group, session, request, changes);
-                    }
+                  postProcessorService.process(group, session, request, changes);
                 } catch (Exception e) {
                     LOGGER.warn(e.getMessage(), e);
                     response
@@ -328,15 +329,6 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
         }
   }
 
-
-  protected void bindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.bindUserPostProcessor(serviceReference);
-
-  }
-
-  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.unbindUserPostProcessor(serviceReference);
-  }
 
   /** Returns the JCR repository used by this service. */
   protected SlingRepository getRepository() {
@@ -373,7 +365,6 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
    */
   protected void activate(ComponentContext componentContext) {
     super.activate(componentContext);
-    postProcessorTracker.setComponentContext(componentContext);
     String groupList = (String) componentContext.getProperties().get(
         GROUP_AUTHORISED_TOCREATE);
     if (groupList != null) {

@@ -25,8 +25,6 @@ import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -35,7 +33,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,10 +88,6 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" values="sling/group"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
- *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  * @scr.property name="servlet.post.dateFormats"
  *               values.0="EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
  *               values.1="yyyy-MM-dd'T'HH:mm:ss.SSSZ" values.2="yyyy-MM-dd'T'HH:mm:ss"
@@ -124,8 +118,13 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UpdateSakaiGroupServlet.class);
 
-  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
-
+  /**
+   * The post processor service.
+   * 
+   * @scr.reference
+   */
+  private transient AuthorizablePostProcessService postProcessorService;
+  
   /**
    * The JCR Repository we access to resolve resources
    * 
@@ -182,9 +181,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       }
 
       try {
-        for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-          userPostProcessor.process(authorizable, session, request, changes);
-        }
+        postProcessorService.process(authorizable, session, request, changes);
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);
 
@@ -200,27 +197,6 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       LOGGER.info("Failed " + t.getMessage(), t);
       throw new RepositoryException(t.getMessage(), t);
     }
-  }
-
-  protected void bindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.bindUserPostProcessor(serviceReference);
-
-  }
-
-  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.unbindUserPostProcessor(serviceReference);
-  }
-
-  /**
-   * Activates this component.
-   * 
-   * @param componentContext
-   *          The OSGi <code>ComponentContext</code> of this component.
-   */
-  protected void activate(ComponentContext componentContext) {
-    LOGGER.info("Context is " + componentContext);
-    super.activate(componentContext);
-    postProcessorTracker.setComponentContext(componentContext);
   }
 
   /**

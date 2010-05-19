@@ -23,8 +23,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
 import org.apache.sling.servlets.post.Modification;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -33,7 +31,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,10 +86,6 @@ import javax.servlet.http.HttpServletResponse;
  * @scr.property name="sling.servlet.resourceTypes" value="sling/user"
  * @scr.property name="sling.servlet.methods" value="POST"
  * @scr.property name="sling.servlet.selectors" value="update"
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
- *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  * 
  */
 @ServiceDocumentation(name="Update User Servlet",
@@ -128,7 +122,10 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
   private static final Logger LOGGER = LoggerFactory
       .getLogger(UpdateSakaiUserServlet.class);
 
-  private transient UserPostProcessorRegister postProcessorTracker = new UserPostProcessorRegister();
+  /**
+   * @scr.reference
+   */
+  private transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * {@inheritDoc}
@@ -144,34 +141,12 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
     Authorizable authorizable = resource.adaptTo(Authorizable.class);
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      for (UserPostProcessor userPostProcessor : postProcessorTracker.getProcessors()) {
-        userPostProcessor.process(authorizable, session, request, changes);
-      }
+      postProcessorService.process(authorizable, session, request, changes);
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
     }
-  }
-
-  protected void bindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.bindUserPostProcessor(serviceReference);
-
-  }
-
-  protected void unbindUserPostProcessor(ServiceReference serviceReference) {
-    postProcessorTracker.unbindUserPostProcessor(serviceReference);
-  }
-
-  /**
-   * Activates this component.
-   * 
-   * @param componentContext
-   *          The OSGi <code>ComponentContext</code> of this component.
-   */
-  protected void activate(ComponentContext componentContext) {
-    super.activate(componentContext);
-    postProcessorTracker.setComponentContext(componentContext);
   }
 
 }

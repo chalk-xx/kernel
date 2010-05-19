@@ -222,9 +222,13 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // it.
         createSession = adminSession;
       } else {
+        
         adminSession.logout();
         adminSession = null;
       }
+      
+      LOGGER.info("Creating Site {} for user {} with session {}",new Object[] { sitePath, currentUser.getID(), session.getUserID()});
+      	
 
       // Perform the actual creation or move.
       try {

@@ -28,7 +28,7 @@ import javax.jcr.Session;
 /**
  * 
  */
-public interface UserPostProcessor {
+public interface AuthorizablePostProcessor {
 
   /**
    * @param request
