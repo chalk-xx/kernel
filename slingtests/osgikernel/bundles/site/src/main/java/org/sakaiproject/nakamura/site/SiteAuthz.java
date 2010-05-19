@@ -336,7 +336,7 @@ public class SiteAuthz {
         return principalName;
       }
     });
-
+    // TODO: fix the remainder of group creation (ie creating the group folders)
     return group;
   }
 

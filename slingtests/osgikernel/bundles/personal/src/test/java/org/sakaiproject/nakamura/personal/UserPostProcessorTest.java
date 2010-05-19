@@ -21,6 +21,9 @@ import javax.jcr.Value;
 public class UserPostProcessorTest extends AbstractEasyMockTest {
   @Test
   public void testNoProcessingNeeded() throws Exception {
+    if ( true ) {
+      return; // this is disabled since processing is now needed to sync the groups managers and viewers, KERN-759
+    }
     ArrayList<String> propNames = new ArrayList<String>();
     propNames.add("rep:userId");
     Authorizable authorizable = createAuthorizable("admin", false, false);
