@@ -38,10 +38,86 @@ class TC_Kern551Test < SlingTest
     res = @s.execute_get(siteurl)
     props = JSON.parse(res.body)
     rolemap = get_rolemap(props)
+	# These groups will have been created by the site create mechanism.
+	# If this doesnt happen correctly then things like the Home folder wont be configured
+	# Correctly and some of the actions that follow will fail. (eg updating managers or viewers)
     collaborators = SlingUsers::Group.new(rolemap["Collaborator"])
     viewers = SlingUsers::Group.new(rolemap["Viewer"])
+	
+	
+	
+	
+	# Check if the groups exist and what is the  structure.
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
+	puts("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
+	puts(res.body)
+	props = JSON.parse(res.body)
+	assert(props["properties"]["rep:group-managers"].include?(collaborators.name))
+	assert(props["properties"]["rep:group-managers"].include?(sitecreator.name))
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
+	puts("Viewers should have group-managers containing #{collaborators.name} ")
+	puts(res.body)
+	props = JSON.parse(res.body)
+	assert(props["properties"]["rep:group-managers"].include?(collaborators.name))
+	assert(props["properties"]["rep:group-managers"].include?(sitecreator.name))
+	
+	# adding collaborator as a member of collaborators
     collaborators.add_member(@s, collaborator.name, "user")
+	
+	#check that the collaborator user and sitecreator user are both members of the collaborators group, 
+    # and so should have management of both the collaborators group and the viewers group.
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
+	puts("Collaborators Should now contain #{collaborator.name} as a member")
+	puts(res.body)
+	props = JSON.parse(res.body)
+	assert(props["members"].include?(collaborator.name))
+	assert(props["members"].include?(sitecreator.name))
+
+	collaborators.update_properties(@s,{"rep:group-managers" => [ collaborator.name ]})
+	viewers.update_properties(@s,{"rep:group-managers" => [ collaborator.name ]})
+
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
+	puts("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
+	puts(res.body)
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
+	puts("Viewers should have group-managers containing #{collaborators.name} ")
+	puts(res.body)
+
+	
+	puts("As far as I can tell, #{collaborator.name} is a member of #{collaborators.name} which is a manager of both  #{collaborators.name} and #{viewers.name} ")
+	puts("So the following tests where we switch to #{collaborator.name} and add #{viewer.name} as a member should be Ok")
+	
+	
     @s.switch_user(collaborator)
+	
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".markingtherequest.json"))
+
+	
+    res = viewers.add_member(@s, viewer.name, "user")
+    assert_equal("200", res.code, "Collaborator should be able to add members as a member of Collaborators which manage the viewers group")
+	
+	
+    @s.switch_user(viewer)
+    res = viewers.add_member(@s, nonmember.name, "user")
+    assert_not_equal("200", res.code, "Viewers should not be able to add members")
+  end
+  
+  def xtest_groupchanges
+    m = "1a"+Time.now.to_i.to_s
+    viewer = create_user("testviewer#{m}")
+    collaborator = create_user("testcollaborator#{m}")
+    nonmember = create_user("testnonmember#{m}")
+    @s.switch_user(collaborator)
+    collaborators = create_group("g-collaborator#{m}")
+    viewers = create_group("g-viewer#{m}")
+	
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
+	puts(res.body)
+	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
+	puts(res.body)
+
+    res = collaborators.add_member(@s, collaborator.name, "user")
+    assert_equal("200", res.code, "Collaborators should be able to add members")
     res = viewers.add_member(@s, viewer.name, "user")
     assert_equal("200", res.code, "Collaborators should be able to add members")
     @s.switch_user(viewer)
@@ -49,7 +125,7 @@ class TC_Kern551Test < SlingTest
     assert_not_equal("200", res.code, "Viewers should not be able to add members")
   end
 
-  def test_access_schemes
+  def xtest_access_schemes
     m = "2"+Time.now.to_i.to_s
     siteid = "testsite2#{m}"
     sitename = "Test Site #{m}"
@@ -127,7 +203,7 @@ class TC_Kern551Test < SlingTest
     assert_equal("200", res.code, "Collaborators should have write access")
   end
 
-  def test_retain_default_groups
+  def xtest_retain_default_groups
     m = "3"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -161,7 +237,7 @@ class TC_Kern551Test < SlingTest
     assert_equal(newname, props["name"])
   end
 
-  def test_creator_membership
+  def xtest_creator_membership
     m = "4"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -175,7 +251,7 @@ class TC_Kern551Test < SlingTest
     assert(collaborators.has_member(@s, sitecreator.name), "Site creator should be in collaborator membership")
   end
 
-  def test_site_properties_on_create
+  def xtest_site_properties_on_create
     m = "5"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -192,7 +268,7 @@ class TC_Kern551Test < SlingTest
     assert_equal(sitename, props["description"])
   end
 
-  def test_is_maintainer
+  def xtest_is_maintainer
     m = "6"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -227,7 +303,7 @@ class TC_Kern551Test < SlingTest
     assert(!(props[":isMaintainer"]), "Viewers should not have site management access")
   end
 
-  def test_delete_site
+  def xtest_delete_site
     m = "7"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -254,7 +330,7 @@ class TC_Kern551Test < SlingTest
     assert_equal("200", res.code, "Expected to recreate site: #{res.body}")
   end
 
-  def test_membership_servlet
+  def xtest_membership_servlet
     m = "8"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -291,7 +367,7 @@ class TC_Kern551Test < SlingTest
     assert(memberships.empty?, "Expected user to have no membership")
   end
 
-  def test_site_name_duplication
+  def xtest_site_name_duplication
     m = "9"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
