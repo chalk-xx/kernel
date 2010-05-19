@@ -17,11 +17,25 @@
  */
 package org.sakaiproject.nakamura.api.user;
 
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.util.osgi.BoundService;
+
+import javax.jcr.Session;
 
 /**
  *
  */
-public interface AuthorizablePostProcessService extends BoundService, AuthorizablePostProcessor {
+public interface AuthorizablePostProcessService extends BoundService {
+  
+  /**
+   * @param authorizable
+   * @param session
+   * @param changes
+   * @throws Exception
+   */
+  void process(Authorizable authorizable, Session session, Modification change)
+      throws Exception;
+
 
 }

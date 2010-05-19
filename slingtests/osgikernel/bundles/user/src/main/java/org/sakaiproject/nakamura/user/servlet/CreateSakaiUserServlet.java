@@ -50,7 +50,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
@@ -123,10 +122,6 @@ import javax.servlet.http.HttpServletResponse;
  *               description="%self.registration.enabled.description"
  *               valueRef="DEFAULT_SELF_REGISTRATION_ENABLED"
  * 
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
- *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  */
 
 @ServiceDocumentation(name="Create User Servlet",
@@ -281,12 +276,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
               }
               
               try {
-                // Let all the processors create the nescecary paths ( home folders, authprofile, ..)
-                List<Modification> changes = new ArrayList<Modification>();
-                SakaiSlingHttpServletRequest request = new SakaiSlingHttpServletRequest(
-                    session, UserConstants.SYSTEM_USER_MANAGER_USER_PATH);
-                
-                postProcessorService.process(user, session, request, changes);
+                postProcessorService.process(user, session, Modification.onCreated(user.getID()));
                 
               } catch (Exception e) {
                 log.warn(e.getMessage(), e);
@@ -399,7 +389,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
                 writeContent(selfRegSession, user, reqProperties, changes);
 
                 try {
-                    postProcessorService.process(user, selfRegSession, request, changes);
+                    postProcessorService.process(user, selfRegSession, Modification.onCreated(userPath));
                 } catch (Exception e) {
                     log.warn(e.getMessage(), e);
                     response

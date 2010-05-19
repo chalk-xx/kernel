@@ -32,6 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,9 @@ public class SiteDeleteServlet extends AbstractSiteServlet {
 
   @Reference
   protected transient SlingRepository slingRepository;
+  
+  @Reference
+  private AuthorizablePostProcessService postProcessService;
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -99,7 +103,7 @@ public class SiteDeleteServlet extends AbstractSiteServlet {
           // is removed.
           Session session = site.getSession();
           String sitePath = site.getPath();
-          SiteAuthz authzHelper = new SiteAuthz(site);
+          SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
           site.remove();
           authzHelper.deletionPostProcess(session, slingRepository);
           if (session.hasPendingChanges()) {

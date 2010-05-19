@@ -23,6 +23,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceNotFoundException;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.helper.RequestProperty;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -123,7 +124,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
    * 
    * @scr.reference
    */
-  private transient AuthorizablePostProcessService postProcessorService;
+  protected transient AuthorizablePostProcessService postProcessorService;
   
   /**
    * The JCR Repository we access to resolve resources
@@ -181,7 +182,8 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
       }
 
       try {
-        postProcessorService.process(authorizable, session, request, changes);
+        postProcessorService.process(authorizable, session, Modification.onModified(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+                + authorizable.getID()));
       } catch (Exception e) {
         LOGGER.warn(e.getMessage(), e);
 
@@ -202,7 +204,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
   /**
    * @param slingRepository
    */
-  public void bindRepository(SlingRepository slingRepository) {
+  protected void bindRepository(SlingRepository slingRepository) {
     this.repository = slingRepository;
 
   }
@@ -210,7 +212,7 @@ public class UpdateSakaiGroupServlet extends AbstractSakaiGroupPostServlet {
   /**
    * @param slingRepository
    */
-  public void unbindRepository(SlingRepository slingRepository) {
+  protected void unbindRepository(SlingRepository slingRepository) {
     this.repository = null;
 
   }

@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
@@ -31,10 +30,8 @@ import org.sakaiproject.nakamura.api.calendar.CalendarConstants;
 import org.sakaiproject.nakamura.api.calendar.CalendarException;
 import org.sakaiproject.nakamura.api.calendar.CalendarService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.PathUtils;
-
-import java.util.List;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -44,7 +41,7 @@ import javax.jcr.Session;
  */
 @Service
 @Component(immediate = true)
-public class CalendarUserPostProcessor implements UserPostProcessor {
+public class CalendarAuthorizablePostProcessor implements AuthorizablePostProcessor {
 
   @Reference
   protected transient CalendarService calendarService;
@@ -52,7 +49,7 @@ public class CalendarUserPostProcessor implements UserPostProcessor {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
    */
   public int getSequence() {
     // We make sure that the home folders get created before we run ours.
@@ -62,18 +59,14 @@ public class CalendarUserPostProcessor implements UserPostProcessor {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable,
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable,
    *      javax.jcr.Session, org.apache.sling.api.SlingHttpServletRequest, java.util.List)
    */
-  public void process(Authorizable authorizable, Session session,
-      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
+  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
     // We only process new users/groups.
-    for (Modification m : changes) {
-      if (m.getType() == ModificationType.CREATE) {
-        // Store it.
-        createCalendar(authorizable, session, request);
-        break;
-      }
+    if (ModificationType.CREATE.equals(change.getType())) {
+      // Store it.
+      createCalendar(authorizable, session);
     }
   }
 
@@ -86,8 +79,7 @@ public class CalendarUserPostProcessor implements UserPostProcessor {
    * @throws CalendarException
    * @throws RepositoryException
    */
-  protected void createCalendar(Authorizable authorizable, Session session,
-      SlingHttpServletRequest request) throws CalendarException, RepositoryException {
+  protected void createCalendar(Authorizable authorizable, Session session) throws CalendarException, RepositoryException {
 
     // The path to the calendar of an authorizable.
     String path = PersonalUtils.getHomeFolder(authorizable);

@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.ReferenceStrategy;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
@@ -40,19 +39,26 @@ import javax.jcr.Session;
  *
  */
 @Component(immediate=true)
-@Service
-@References(
-    @Reference(name="PostProcessors",cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, policy=ReferencePolicy.DYNAMIC, referenceInterface=AuthorizablePostProcessor.class, strategy=ReferenceStrategy.EVENT, bind="bindOrderedService", unbind="unbindOrderedService"))
+@Service(value=AuthorizablePostProcessService.class)
+@References({
+    @Reference(name="PostProcessors",cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE, 
+        policy=ReferencePolicy.DYNAMIC, 
+        referenceInterface=AuthorizablePostProcessor.class, 
+        strategy=ReferenceStrategy.EVENT, 
+        bind="bindAuthorizablePostProcessor", 
+        unbind="unbindAuthorizablePostProcessor")})
 public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService<AuthorizablePostProcessor> implements AuthorizablePostProcessService {
+
+  
+  private AuthorizablePostProcessor[] orderedServices = new AuthorizablePostProcessor[0];
 
   /**
    * {@inheritDoc}
    * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#process(org.apache.jackrabbit.api.security.user.Authorizable, javax.jcr.Session, org.apache.sling.api.SlingHttpServletRequest, java.util.List)
    */
-  public void process(Authorizable authorizable, Session session,
-      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
-    for ( AuthorizablePostProcessor processor : getOrderedServices() ) {
-      processor.process(authorizable, session, request, changes);
+  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+    for ( AuthorizablePostProcessor processor : orderedServices ) {
+       processor.process(authorizable, session, change);
     }
   }
 
@@ -68,12 +74,21 @@ public class AuthorizablePostProcessorServiceImpl extends AbstractOrderedService
   }
 
 
-  /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
-   */
-  public int getSequence() {
-    return 0;
+
+  protected void bindAuthorizablePostProcessor(AuthorizablePostProcessor service) {
+    addService(service);
+  }
+  
+  protected void unbindAuthorizablePostProcessor(AuthorizablePostProcessor service) {
+    removeService(service);
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.util.osgi.AbstractOrderedService#saveArray(java.util.List)
+   */
+  @Override
+  protected void saveArray(List<AuthorizablePostProcessor> serviceList) {
+    orderedServices = serviceList.toArray(new AuthorizablePostProcessor[serviceList.size()]);
+  }
 }

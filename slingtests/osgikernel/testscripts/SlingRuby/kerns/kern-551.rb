@@ -102,7 +102,7 @@ class TC_Kern551Test < SlingTest
     assert_not_equal("200", res.code, "Viewers should not be able to add members")
   end
   
-  def xtest_groupchanges
+  def test_groupchanges
     m = "1a"+Time.now.to_i.to_s
     viewer = create_user("testviewer#{m}")
     collaborator = create_user("testcollaborator#{m}")
@@ -125,7 +125,7 @@ class TC_Kern551Test < SlingTest
     assert_not_equal("200", res.code, "Viewers should not be able to add members")
   end
 
-  def xtest_access_schemes
+  def test_access_schemes
     m = "2"+Time.now.to_i.to_s
     siteid = "testsite2#{m}"
     sitename = "Test Site #{m}"
@@ -203,7 +203,7 @@ class TC_Kern551Test < SlingTest
     assert_equal("200", res.code, "Collaborators should have write access")
   end
 
-  def xtest_retain_default_groups
+  def test_retain_default_groups
     m = "3"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -237,7 +237,7 @@ class TC_Kern551Test < SlingTest
     assert_equal(newname, props["name"])
   end
 
-  def xtest_creator_membership
+  def test_creator_membership
     m = "4"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -251,7 +251,7 @@ class TC_Kern551Test < SlingTest
     assert(collaborators.has_member(@s, sitecreator.name), "Site creator should be in collaborator membership")
   end
 
-  def xtest_site_properties_on_create
+  def test_site_properties_on_create
     m = "5"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -268,7 +268,7 @@ class TC_Kern551Test < SlingTest
     assert_equal(sitename, props["description"])
   end
 
-  def xtest_is_maintainer
+  def test_is_maintainer
     m = "6"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -303,7 +303,7 @@ class TC_Kern551Test < SlingTest
     assert(!(props[":isMaintainer"]), "Viewers should not have site management access")
   end
 
-  def xtest_delete_site
+  def test_delete_site
     m = "7"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -330,7 +330,7 @@ class TC_Kern551Test < SlingTest
     assert_equal("200", res.code, "Expected to recreate site: #{res.body}")
   end
 
-  def xtest_membership_servlet
+  def test_membership_servlet
     m = "8"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"
@@ -367,7 +367,7 @@ class TC_Kern551Test < SlingTest
     assert(memberships.empty?, "Expected user to have no membership")
   end
 
-  def xtest_site_name_duplication
+  def test_site_name_duplication
     m = "9"+Time.now.to_i.to_s
     siteid = "testsite#{m}"
     sitename = "Test Site #{m}"

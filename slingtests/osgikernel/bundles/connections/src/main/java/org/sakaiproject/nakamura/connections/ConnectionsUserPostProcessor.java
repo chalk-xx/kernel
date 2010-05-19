@@ -35,9 +35,10 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
+import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.api.user.UserPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,20 +54,18 @@ import javax.jcr.Session;
  * This PostProcessor listens to post operations on User objects and creates a connection
  * store. 
  */
-@Component(immediate = true, description = "Post Processor for User and Group operations to create a connection store", label = "ConnectionsUserPostProcessor")
+@Component(immediate = true, description = "Post Processor for User and Group operations to create a connection store", label = "ConnectionsAuthorizablePostProcessor")
 @Properties(value = {
     @Property(name = "service.vendor", value = "The Sakai Foundation"),
     @Property(name = "service.description", value = "Post Processes User and Group operations") })
-@Service(value = UserPostProcessor.class)
-public class ConnectionsUserPostProcessor implements UserPostProcessor {
+@Service(value = AuthorizablePostProcessor.class)
+public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ConnectionsUserPostProcessor.class);
 
-  public void process(Authorizable authorizable, Session session,
-      SlingHttpServletRequest request, List<Modification> changes) throws Exception {
-    String resourcePath = request.getRequestPathInfo().getResourcePath();
-    if (resourcePath.equals(SYSTEM_USER_MANAGER_USER_PATH)) {
+  public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
+    if (!authorizable.isGroup()) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       String path = ConnectionUtils.getConnectionPathBase(authorizable);
       LOGGER.debug("Creating connections store: {}", path);
@@ -121,7 +120,7 @@ public class ConnectionsUserPostProcessor implements UserPostProcessor {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.api.user.UserPostProcessor#getSequence()
+   * @see org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor#getSequence()
    */
   public int getSequence() {
     return 10;

@@ -25,10 +25,13 @@ import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceUtil;
+import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,11 +90,14 @@ public class SiteAuthz {
   private JSONObject authzConfig;
   private Map<String, String> roleToGroupMap;
 
+  private AuthorizablePostProcessService postProcessService;
+
   /**
    * @param site
    * @throws RepositoryException
    */
-  public SiteAuthz(Node site) throws RepositoryException {
+  public SiteAuthz(Node site, AuthorizablePostProcessService postProcesService) throws RepositoryException {
+    this.postProcessService = postProcesService;
     this.site = site;
     this.siteRef = site.getIdentifier();
     this.roleToGroupMap = new HashMap<String, String>();
@@ -336,7 +342,14 @@ public class SiteAuthz {
         return principalName;
       }
     });
-    // TODO: fix the remainder of group creation (ie creating the group folders)
+    
+    try {
+      postProcessService.process(group, session, Modification.onCreated( AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+                      + group.getID()));
+    } catch (Exception e) {
+      throw new RepositoryException(e.getMessage(),e);
+    }
+    
     return group;
   }
 
@@ -395,7 +408,14 @@ public class SiteAuthz {
       for (Group membershipGroup : membershipGroups) {
         membershipGroup.setProperty(UserConstants.PROP_GROUP_MANAGERS,
             adminPrincipals);
+        try {
+          postProcessService.process(membershipGroup,session, Modification.onCreated(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+              + membershipGroup.getID()));
+        } catch (Exception e) {
+          throw new RepositoryException(e.getMessage(),e);
+        }
       }
+            
     }
     return roleToGroupMap;
   }

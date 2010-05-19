@@ -22,6 +22,7 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jackrabbit.usermanager.impl.post.UpdateUserServlet;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -141,7 +142,8 @@ public class UpdateSakaiUserServlet extends UpdateUserServlet {
     Authorizable authorizable = resource.adaptTo(Authorizable.class);
     try {
       Session session = request.getResourceResolver().adaptTo(Session.class);
-      postProcessorService.process(authorizable, session, request, changes);
+      postProcessorService.process(authorizable, session, Modification.onModified(AuthorizableResourceProvider.SYSTEM_USER_MANAGER_USER_PREFIX
+                + authorizable.getID()));
     } catch (Exception e) {
       LOGGER.warn(e.getMessage(), e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());

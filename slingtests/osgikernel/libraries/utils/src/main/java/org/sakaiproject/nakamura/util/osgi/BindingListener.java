@@ -18,12 +18,13 @@
 package org.sakaiproject.nakamura.util.osgi;
 
 /**
- *
+ * Classes that need to be notified of an internal state change of a Service should
+ * implement this and register with the service which must also implement BoundService.
  */
 public interface BindingListener {
 
   /**
-   * 
+   * Notify the listener of a change of state in the service.
    */
   void notifyBinding();
 

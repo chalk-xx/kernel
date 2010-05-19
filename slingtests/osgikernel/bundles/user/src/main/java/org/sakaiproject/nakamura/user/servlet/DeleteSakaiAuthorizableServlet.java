@@ -124,7 +124,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
   /**
    * @src.reference
    */
-  private transient AuthorizablePostProcessService postProcessorService;
+  protected transient AuthorizablePostProcessService postProcessorService;
 
   /**
    * {@inheritDoc}
@@ -159,7 +159,9 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
     Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      postProcessorService.process(null, session, request, changes);
+      for ( Modification m : changes) {
+        postProcessorService.process(null, session, m);
+      }
       // delete the user objects
       super.handleOperation(request, response, changes);
 
@@ -168,9 +170,9 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
       }
     } catch (Exception e) {
       // undo any changes
-      session.refresh(true);
       LOGGER.warn(e.getMessage(),e);
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      session.refresh(true);
       return;
     }
   }

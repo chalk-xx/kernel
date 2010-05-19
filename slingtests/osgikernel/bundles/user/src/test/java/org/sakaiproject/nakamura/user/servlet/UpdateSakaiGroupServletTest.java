@@ -6,7 +6,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
@@ -16,20 +15,19 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HtmlResponse;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.servlets.post.Modification;
+import org.easymock.EasyMock;
 import org.junit.Test;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.jcr.Session;
 
 public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testHandleOperation() throws Exception {
     UpdateSakaiGroupServlet usgs = new UpdateSakaiGroupServlet();
@@ -37,21 +35,19 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     ArrayList<Modification> changes = new ArrayList<Modification>();
 
     Group authorizable = createMock(Group.class);
-    Principal principal = createMock(Principal.class);
-    User currentUser = createMock(User.class);
-    Iterator<Group> groupIterator = createMock(Iterator.class);
-    Group dummyGroup = createMock(Group.class);
     SlingRepository slingRepository = createMock(SlingRepository.class);
     usgs.bindRepository(slingRepository);
     JackrabbitSession session = createMock(JackrabbitSession.class);
+    AuthorizablePostProcessService authorizablePostProcessService = createMock(AuthorizablePostProcessService.class);
     
     expect(authorizable.isGroup()).andReturn(true).times(2);
-    expect(authorizable.getID()).andReturn("g-foo");
+    expect(authorizable.getID()).andReturn("g-foo").times(2);
 
     Resource resource = createMock(Resource.class);
     expect(resource.adaptTo(Authorizable.class)).andReturn(authorizable);
 
     UserManager userManager = createMock(UserManager.class);
+    
 
     expect(session.getUserManager()).andReturn(userManager).anyTimes();
     
@@ -80,10 +76,14 @@ public class UpdateSakaiGroupServletTest extends AbstractEasyMockTest {
     expect(request.getParameterValues(":member@Delete")).andReturn(new String[] {});
     expect(request.getParameterValues(":member")).andReturn(new String[] {});
     
+    authorizablePostProcessService.process((Authorizable)EasyMock.anyObject(),(Session)EasyMock.anyObject(),(Modification)EasyMock.anyObject());
+    expectLastCall();
+    
     HtmlResponse response = new HtmlResponse();
 
     replay();
-
+    
+    usgs.postProcessorService = authorizablePostProcessService;
     usgs.handleOperation(request, response, changes);
     
     verify();

@@ -19,11 +19,13 @@ package org.sakaiproject.nakamura.site.servlet;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.ModificationType;
 import org.apache.sling.servlets.post.SlingPostProcessor;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,9 @@ public class SitePostProcessor implements SlingPostProcessor {
   @Property(value = "Gets lists of members for a site")
   static final String SERVICE_DESCRIPTION = "Post Processes site operations";
 
+  @Reference
+  private AuthorizablePostProcessService postProcessService;
+
   /**
    * Check for changes to properties of interest to the authz handler.
    */
@@ -65,7 +70,7 @@ public class SitePostProcessor implements SlingPostProcessor {
             } else {
               LOGGER.info("Change to property {}", item);
               if (!authzHandled && SiteAuthz.MONITORED_SITE_PROPERTIES.contains(item.getName())) {
-                SiteAuthz authz = new SiteAuthz(item.getParent());
+                SiteAuthz authz = new SiteAuthz(item.getParent(), postProcessService);
                 authz.applyAuthzChanges();
                 authzHandled = true;  // Only needed once
               }

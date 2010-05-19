@@ -19,6 +19,7 @@ package org.sakaiproject.nakamura.site.servlet;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -31,6 +32,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.site.SiteException;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.site.SiteAuthz;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.IOUtils;
@@ -86,6 +88,9 @@ public class SiteGetServlet extends AbstractSiteServlet {
 
   @Property(value = "Renders sites")
   static final String SERVICE_DESCRIPTION = "service.description";
+  
+  @Reference
+  private AuthorizablePostProcessService postProcessService;
 
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -132,7 +137,7 @@ public class SiteGetServlet extends AbstractSiteServlet {
       ExtendedJSONWriter.writeNodeContentsToWriter(writer, node);
       // Add a non-persisted property to convey the current session's rights.
       try {
-        SiteAuthz authzHelper = new SiteAuthz(node);
+        SiteAuthz authzHelper = new SiteAuthz(node, postProcessService);
         boolean isMaintainer = authzHelper.isUserSiteMaintainer();
         writer.key(SiteAuthz.SITE_IS_USER_MAINTAINER_PROPERTY);
         writer.value(isMaintainer);

@@ -41,8 +41,6 @@ public interface UserConstants {
    */
   public static final String PRIVATE_PROPERTIES = "sakai:privateproperties";
 
-  public static final String USER_POST_PROCESSOR = "UserPostProcessor";
-
   /**
    * The number of hash levels applied to user paths, this is system wide and can't be
    * changed once an instance has been loaded with users. 4 will give upto 2E9 users.

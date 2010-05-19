@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * We only test we can create the servlet since its fully tested by Sling already
  */
-public class ChnageSakaiUserPasswordServletTest {
+public class ChangeSakaiUserPasswordServletTest {
 
   @Test
   public void test() {

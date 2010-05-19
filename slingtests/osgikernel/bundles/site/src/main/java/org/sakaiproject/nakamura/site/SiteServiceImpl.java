@@ -36,6 +36,7 @@ import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.site.Sort;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
@@ -94,6 +95,9 @@ public class SiteServiceImpl implements SiteService {
    */
   @Reference
   private EventAdmin eventAdmin;
+
+  @Reference
+  private AuthorizablePostProcessService postProcessService;
 
   /**
    * {@inheritDoc}
@@ -334,7 +338,7 @@ public class SiteServiceImpl implements SiteService {
    * @see org.sakaiproject.nakamura.api.site.SiteService#isUserSiteMaintainer(javax.jcr.Node)
    */
   public boolean isUserSiteMaintainer(Node site) throws RepositoryException {
-    SiteAuthz authz = new SiteAuthz(site);
+    SiteAuthz authz = new SiteAuthz(site, postProcessService);
     return authz.isUserSiteMaintainer();
   }
 

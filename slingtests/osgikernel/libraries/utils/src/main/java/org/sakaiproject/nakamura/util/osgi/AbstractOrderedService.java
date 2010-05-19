@@ -17,7 +17,6 @@
  */
 package org.sakaiproject.nakamura.util.osgi;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,44 +28,46 @@ import java.util.Set;
  *
  */
 /**
- *
+ * <p>
+ * Provides a mechanism where services can bind and unbind such that they are available as
+ * an ordered list. This class takes care of the ordering of the list and the
+ * synchronization issues surrounding service registration. In
+ * addition concrete classes must provide a sorting mechanism in getComparitor.
+ * </p><p>
+ * 
+ * The class also provides a default implementation of the BoundService, notifying listeners of changes to the list.
+ * </p>
  */
-@SuppressWarnings("unchecked")
 public abstract class AbstractOrderedService<T> implements BoundService {
-  
+
+
   /**
-   * 
-   */
-  private T[] orderedServices = (T[]) new Object();
-  
-  /**
-   * The set of processors 
+   * The set of services, to be ordered.
    */
   private Set<T> serviceSet = new HashSet<T>();
 
   /**
-   * A list of listeners that have actions that need to be performed when processors are registered or de-registered.
+   * A list of listeners that have actions that need to be performed when processors are
+   * registered or de-registered.
    */
   private List<BindingListener> listeners = new ArrayList<BindingListener>();
 
 
-
-  
   /**
-   * @return
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.util.osgi.BoundService#addListener(org.sakaiproject.nakamura.util.osgi.BindingListener)
    */
-  protected T[] getOrderedServices() {
-    return orderedServices;
-  }
-
-
   public void addListener(BindingListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
       listeners.add(listener);
     }
   }
-  
+
+  /**
+   * {@inheritDoc}
+   * @see org.sakaiproject.nakamura.util.osgi.BoundService#removeListener(org.sakaiproject.nakamura.util.osgi.BindingListener)
+   */
   public void removeListener(BindingListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
@@ -74,21 +75,24 @@ public abstract class AbstractOrderedService<T> implements BoundService {
   }
 
   /**
-   * Notifies registered listeners of a change to the list so that they can invoke any aditional actions they deem necessary.
+   * Notifies registered listeners of a change to the list so that they can invoke any
+   * additional actions they deem necessary.
    */
   private void notifyNewList() {
-    synchronized(listeners) {
-      for ( BindingListener listener : listeners ) {
+    synchronized (listeners) {
+      for (BindingListener listener : listeners) {
         listener.notifyBinding();
       }
     }
-    
+
   }
+
   /**
    * SCR Integration, bind a service.
+   * 
    * @param service
    */
-  protected void bindSortedService(T service) {
+  protected void addService(T service) {
     synchronized (serviceSet) {
       serviceSet.add(service);
       createNewSortedList();
@@ -98,9 +102,10 @@ public abstract class AbstractOrderedService<T> implements BoundService {
 
   /**
    * SCR integration, unbind a service.
+   * 
    * @param service
    */
-  protected void unbindSortedService(T service) {
+  protected void removeService(T service) {
     synchronized (serviceSet) {
       serviceSet.remove(service);
       createNewSortedList();
@@ -109,21 +114,22 @@ public abstract class AbstractOrderedService<T> implements BoundService {
   }
 
   /**
-   * Generate a new sorted list. 
+   * Generate a new sorted list.
    */
   private void createNewSortedList() {
     List<T> serviceList = new ArrayList<T>(serviceSet);
     Collections.sort(serviceList, getComparitor());
-    orderedServices = (T[]) serviceList.toArray(new Object[serviceList.size()]); 
+    saveArray(serviceList);
   }
 
+  /**
+   * @param serviceList
+   */
+  protected abstract void saveArray(List<T> serviceList);
 
   /**
-   * @return
+   * @return a compartator suitable for sorting the list of services.
    */
   protected abstract Comparator<? super T> getComparitor();
-
-
-
 
 }

@@ -18,10 +18,7 @@
 package org.sakaiproject.nakamura.api.user;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.servlets.post.Modification;
-
-import java.util.List;
 
 import javax.jcr.Session;
 
@@ -31,12 +28,12 @@ import javax.jcr.Session;
 public interface AuthorizablePostProcessor {
 
   /**
-   * @param request
+   * @param authorizable
+   * @param session
    * @param changes
-   * @param session the administrative session used to create the user.
    * @throws Exception
    */
-  void process(Authorizable authorizable, Session session, SlingHttpServletRequest request, List<Modification> changes)
+  void process(Authorizable authorizable, Session session, Modification change)
       throws Exception;
 
   /**

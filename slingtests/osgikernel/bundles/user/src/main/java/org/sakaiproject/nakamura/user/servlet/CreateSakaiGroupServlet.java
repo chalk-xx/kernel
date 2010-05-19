@@ -113,10 +113,6 @@ import javax.servlet.http.HttpServletResponse;
  *               values.3="yyyy-MM-dd" values.4="dd.MM.yyyy HH:mm:ss"
  *               values.5="dd.MM.yyyy"
  * 
- * @scr.reference name="UserPostProcessor" bind="bindUserPostProcessor"
- *                unbind="unbindUserPostProcessor"
- *                interface="org.sakaiproject.nakamura.api.user.UserPostProcessor"
- *                cardinality="0..n" policy="dynamic"
  * 
  */
 @ServiceDocumentation(name="Create Group Servlet",
@@ -311,7 +307,7 @@ public class CreateSakaiGroupServlet extends AbstractSakaiGroupPostServlet imple
                     changes);
 
                 try {
-                  postProcessorService.process(group, session, request, changes);
+                  postProcessorService.process(group, session, Modification.onCreated(groupPath));
                 } catch (Exception e) {
                     LOGGER.warn(e.getMessage(), e);
                     response

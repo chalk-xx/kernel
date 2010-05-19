@@ -18,16 +18,17 @@
 package org.sakaiproject.nakamura.util.osgi;
 
 /**
+ * A bound service, notifies listeners when its internal state changes as a result of the things that it is binding changing.
  */
 public interface BoundService {
 
   /**
-   * @param listener
+   * @param listener the listener to be added to the notification list.
    */
   void addListener(BindingListener listener);
 
   /**
-   * @param listener
+   * @param listener the listener to be removed from the notification list.
    */
   void removeListener(BindingListener listener);
 
