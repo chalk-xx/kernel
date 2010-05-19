@@ -1,6 +1,8 @@
 package org.sakaiproject.nakamura.auth.ldap;
 
+import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchResults;
 
@@ -109,7 +111,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // 2) Search for username (not authz).
         // If search fails, log/report invalid username or password.
-        LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userDn,
+        LDAPSearchResults results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userDn,
             null, true);
         if (results.hasMore()) {
           log.debug("Found user via search");
@@ -117,11 +119,23 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           throw new IllegalArgumentException("Can't find user [" + userDn + "]");
         }
 
-        // 3) Bind as username.
+        // 3) Bind as user.
         // If bind fails, log/report invalid username or password.
         try {
-          conn.bind(LDAPConnection.LDAP_V3, userDn + ", " + baseDn, userPass
-              .getBytes(UTF8));
+          // KERN-776 Resolve the user DN from the search results and check for an aliased
+          // entry
+          LDAPEntry userEntry = results.next();
+          LDAPAttribute objectClass = userEntry.getAttribute("objectClass");
+
+          String userEntryDn = null;
+          if ("aliasObject".equals(objectClass.getStringValue())) {
+            LDAPAttribute aliasDN = userEntry.getAttribute("aliasedObjectName");
+            userEntryDn = aliasDN.getStringValue();
+          } else {
+            userEntryDn = userEntry.getDN();
+          }
+
+          conn.bind(LDAPConnection.LDAP_V3, userEntryDn, userPass.getBytes(UTF8));
           log.debug("Bound as user");
         } catch (LDAPException e) {
           log.warn("Can't bind user [{}]", userDn);
@@ -141,7 +155,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
           // 5) Search user DN with authz filter
           // If search fails, log/report that user is not authorized
           String userAuthzFilter = "(&(" + userDn + ")(" + authzFilter + "))";
-          results = conn.search(baseDn, LDAPConnection.SCOPE_ONE, userAuthzFilter, null,
+          results = conn.search(baseDn, LDAPConnection.SCOPE_SUB, userAuthzFilter, null,
               true);
           if (results.hasMore()) {
             log.debug("Found user + authz filter via search");

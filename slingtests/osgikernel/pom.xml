@@ -8,7 +8,7 @@
   <name>Sakai Nakamura Project OSGi Experiments</name>
   <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
     implementations. </description>
-  <url>http://groups.google.com/sakai-nakamura</url>
+  <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
     <maven>2.0.7</maven>
@@ -391,7 +391,14 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-scr-plugin</artifactId>
-          <version>1.4.0</version>
+          <version>1.4.4</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-simple</artifactId>
+              <version>1.5.2</version>
+            </dependency>
+          </dependencies>
           <executions>
             <execution>
               <id>generate-scr-scrdescriptor</id>
@@ -697,7 +704,7 @@
       <dependency>
         <groupId>org.apache.felix</groupId>
         <artifactId>org.apache.felix.scr.annotations</artifactId>
-        <version>1.0.0</version>
+        <version>1.3.0</version>
       </dependency>
 
 <!-- testing libraries -->

@@ -21,7 +21,7 @@ import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
-@Component
+@Component(enabled = false)
 @Service
 public class LdapLoginModulePlugin implements LoginModulePlugin {
   @Reference
