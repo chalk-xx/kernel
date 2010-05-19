@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Sakai 3 Demo
-export K2_TAG="0.2"
+export K2_TAG="0.4"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -15,8 +15,8 @@ export MAVEN_HOME=/usr/local/apache-maven-2.2.1
 export M2_HOME=/usr/local/apache-maven-2.2.1
 export PATH=$MAVEN_HOME/bin:${PATH}
 export MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
-export JAVA_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
-export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps"
+export JAVA_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
+export K2_OPTS="-server -Xmx512m -XX:MaxPermSize=128m -Djava.awt.headless=true"
 BUILD_DATE=`date "+%D %R"`
 
 # ensure logs directory exists
@@ -37,19 +37,19 @@ rm -rf sakai3
 rm -rf ~/.m2/repository/org/sakaiproject
 
 # build sakai 3
-echo "Building sakai3/K2@0.2..."
+echo "Building sakai3/K2@$K2_TAG..."
 cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
 cd open-experiments/slingtests/osgikernel/
-git checkout $K2_TAG
-mvn clean install -Dmaven.test.skip=true
+git checkout -b $K2_TAG
+mvn -B -e clean install -Dmaven.test.skip=true
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.2.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.4-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
 cd $BUILD_DIR
