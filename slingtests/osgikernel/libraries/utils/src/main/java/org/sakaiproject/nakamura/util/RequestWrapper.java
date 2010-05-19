@@ -121,4 +121,41 @@ public class RequestWrapper extends SlingHttpServletRequestWrapper {
     return (requestInfo.getMethod() == null) ? "GET" : requestInfo.getMethod();
   }
 
+  @Override
+  public String getPathInfo() {
+    return requestInfo.getUrl();
+  }
+
+  @Override
+  public String getPathTranslated() {
+    String url = requestInfo.getUrl();
+    int i = url.indexOf("?");
+    if (i != -1) {
+      return url.substring(0, i);
+    } else {
+      return url;
+    }
+  }
+
+  @Override
+  public String getQueryString() {
+    String url = requestInfo.getUrl();
+    int i = url.indexOf("?");
+    if (i != -1) {
+      return url.substring(i, url.length());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public String getServletPath() {
+    return requestInfo.getUrl();
+  }
+
+  @Override
+  public String getRequestURI() {
+    return requestInfo.getUrl();
+  }
+
 }
