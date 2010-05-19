@@ -36,6 +36,7 @@ import org.sakaiproject.authz.api.AuthzGroup;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.GroupNotDefinedException;
 import org.sakaiproject.authz.api.Role;
+import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.event.api.Event;
 import org.sakaiproject.event.api.EventTrackingService;
 import org.sakaiproject.exception.IdUnusedException;
@@ -252,22 +253,23 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		sessionManager = org.sakaiproject.tool.cover.SessionManager
-				.getInstance();
+		sessionManager = (SessionManager) ComponentManager
+				.get(org.sakaiproject.tool.api.SessionManager.class);
 		if (sessionManager == null) {
 			throw new IllegalStateException("SessionManager == null");
 		}
-		siteService = org.sakaiproject.site.cover.SiteService.getInstance();
+		siteService = (SiteService) ComponentManager
+				.get(org.sakaiproject.site.api.SiteService.class);
 		if (siteService == null) {
 			throw new IllegalStateException("SiteService == null");
 		}
-		eventTrackingService = org.sakaiproject.event.cover.EventTrackingService
-				.getInstance();
+		eventTrackingService = (EventTrackingService) ComponentManager
+				.get(org.sakaiproject.event.api.EventTrackingService.class);
 		if (eventTrackingService == null) {
 			throw new IllegalStateException("EventTrackingService == null");
 		}
-		authzGroupService = org.sakaiproject.authz.cover.AuthzGroupService
-				.getInstance();
+		authzGroupService = (AuthzGroupService) ComponentManager
+				.get(org.sakaiproject.authz.api.AuthzGroupService.class);
 		if (authzGroupService == null) {
 			throw new IllegalStateException("AuthzGroupService == null");
 		}
