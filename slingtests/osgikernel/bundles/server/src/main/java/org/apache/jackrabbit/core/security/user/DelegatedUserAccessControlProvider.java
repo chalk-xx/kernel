@@ -426,15 +426,15 @@ public class DelegatedUserAccessControlProvider extends AbstractAccessControlPro
                 NodeImpl node = (NodeImpl) getExistingNode(path);
                 if ( node.isNodeType(NT_REP_GROUP) ) {
                   if ( node.hasProperty(NT_REP_GROUP_MANAGERS)) {
-                    log.debug("Is Managed {} ", node.getPath());
+                    log.info("Is Managed {} ", node.getPath());
                     Value[] managers = getValues(node.getProperty(NT_REP_GROUP_MANAGERS));
                     for ( Value manager : managers ) {
                       String m = manager.getString();
                       for ( Principal p : principals ) {
-                        log.debug("Checking for Manager [{}] == [{}]", m, p.getName());
+                        log.info("Checking for Manager [{}] == [{}]", m, p.getName());
                         if ( m.equals(p.getName())) {
                           isManager = true;
-                          log.debug("Is a Manager [{}] == [{}]", m, p.getName());
+                          log.info("Is a Manager [{}] == [{}]", m, p.getName());
                           break;
                         }
                       }
