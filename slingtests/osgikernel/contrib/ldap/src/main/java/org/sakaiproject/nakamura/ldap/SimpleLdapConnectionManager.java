@@ -54,7 +54,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
     log.debug("init()");
 
     this.config = config;
-    
+
     verifySetup();
   }
 
@@ -80,7 +80,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
   public LDAPConnection getBoundConnection(String dn, String pass) throws LDAPException {
     verifySetup();
-    
+
     log.debug("getBoundConnection(): [dn = {}]", config.getLdapUser());
 
     LDAPConnection conn = newLDAPConnection();
@@ -93,7 +93,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
   protected LDAPConnection newLDAPConnection() {
     verifySetup();
-    
+
     LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(config);
     LDAPConnection conn = new LDAPConnection(ldapSocketFactory);
     return conn;
@@ -125,8 +125,10 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
 
   /**
    * {@inheritDoc}
-   * 
-   * @param config a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable without defensive copying.
+   *
+   * @param config
+   *          a reference to a {@link LdapConnectionManagerConfig}. Should be cacheable
+   *          without defensive copying.
    */
   public void setConfig(LdapConnectionManagerConfig config) {
     this.config = config;
@@ -149,7 +151,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
    */
   protected void applyConstraints(LDAPConnection conn) {
     verifySetup();
-    
+
     int timeout = config.getOperationTimeout();
     boolean followReferrals = config.isFollowReferrals();
     log.debug("applyConstraints(): values [timeout = {}][follow referrals = {}]", timeout,
@@ -173,7 +175,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
     log.debug("connect()");
 
     verifySetup();
-    
+
     conn.connect(config.getLdapHost(), config.getLdapPort());
 
     try {
@@ -212,18 +214,18 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
     log.debug("postConnect()");
 
     verifySetup();
-    
+
     if (config.isSecureConnection() && config.isTLS()) {
       log.debug("postConnect(): starting TLS");
       conn.startTLS();
     }
   }
-  
+
   private void verifySetup() throws IllegalStateException {
     if (config == null) {
       throw new IllegalStateException("Configuration not available for this connection manager.");
     }
-    
+
     if (config.getKeystoreLocation() != null && config.getKeystoreLocation().length() > 0
         && !(new File(config.getKeystoreLocation()).exists())) {
       throw new IllegalStateException("Keystore not found at specified location ["
