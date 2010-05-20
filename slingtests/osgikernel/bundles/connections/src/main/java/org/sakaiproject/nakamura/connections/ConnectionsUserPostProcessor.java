@@ -65,7 +65,7 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
       .getLogger(ConnectionsUserPostProcessor.class);
 
   public void process(Authorizable authorizable, Session session, Modification change) throws Exception {
-    if (!authorizable.isGroup()) {
+    if (authorizable != null && !authorizable.isGroup()) {
       PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
       String path = ConnectionUtils.getConnectionPathBase(authorizable);
       LOGGER.debug("Creating connections store: {}", path);
