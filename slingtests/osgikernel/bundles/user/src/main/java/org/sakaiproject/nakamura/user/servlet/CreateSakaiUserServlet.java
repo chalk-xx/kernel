@@ -398,6 +398,9 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
                 if (selfRegSession.hasPendingChanges()) {
                     selfRegSession.save();
                 }
+        } catch ( RepositoryException e ) {
+          log.error(e.getMessage(),e);
+          throw e;
         } finally {
             ungetSession(selfRegSession);
         }
