@@ -10,9 +10,8 @@ include SlingInterface
 include SlingUsers
 include SlingAuthz
 
-class TC_OwnerAuthZTest < AuthZBase
-
-
+class TC_OwnerAuthZTest < Test::Unit::TestCase
+  include AuthZBase
 
   def test_authzOwner
     @delete = false
