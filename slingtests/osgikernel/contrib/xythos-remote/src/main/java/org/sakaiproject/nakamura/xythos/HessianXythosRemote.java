@@ -113,4 +113,8 @@ public class HessianXythosRemote implements XythosRemote {
     return xythosService.getDocument(path, userId);
   }
 
+  public byte[] getFileContent(String path, String userId) {
+    return xythosService.getFileContent(path, userId);
+  }
+
 }
