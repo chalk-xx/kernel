@@ -10,7 +10,8 @@ include SlingUsers
 include SlingSites
 include SlingContacts
 
-class TC_MyContactTest < SlingTest
+class TC_MyContactTest < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -84,5 +85,4 @@ class TC_MyContactTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MyContactTest)
 

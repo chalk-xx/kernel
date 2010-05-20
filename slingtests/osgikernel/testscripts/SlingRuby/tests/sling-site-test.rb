@@ -8,7 +8,8 @@ include SlingInterface
 include SlingUsers
 include SlingSites
 
-class TC_MySiteTest < SlingTest
+class TC_MySiteTest < Test::Unit::TestCase
+  include SlingTest
 
   def do_site_create
     m = Time.now.to_i.to_s
@@ -112,5 +113,4 @@ class TC_MySiteTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MySiteTest)
 

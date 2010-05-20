@@ -280,5 +280,4 @@ def test_NodeAuthZChildPrivate
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MyAuthZTest)
 

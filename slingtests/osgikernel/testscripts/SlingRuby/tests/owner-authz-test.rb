@@ -59,5 +59,4 @@ class TC_OwnerAuthZTest < AuthZBase
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_OwnerAuthZTest)
 

@@ -8,7 +8,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 
-class TC_RSSTest < SlingTest
+class TC_RSSTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_valid_rss_file
     # Do a GET request to a valid RSS file.
@@ -47,4 +48,3 @@ class TC_RSSTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_RSSTest)

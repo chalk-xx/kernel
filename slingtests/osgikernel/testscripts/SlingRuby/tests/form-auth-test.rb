@@ -7,7 +7,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
-class TC_FormAuthTest < SlingTest
+class TC_FormAuthTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_form_auth
     @s.trustedauth = true
@@ -37,5 +38,4 @@ class TC_FormAuthTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_FormAuthTest)
 
