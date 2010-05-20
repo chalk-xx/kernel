@@ -20,7 +20,7 @@ snapshot=${3:-"SNAPSHOT"}
 echo "Moving from $cversion-SNAPSHOT to $nversion-SNAPSHOT "
 
 
-listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v "do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
+listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v ".git|do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
 listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
 set +o errexit
 echo "Incrementing version"
@@ -31,7 +31,7 @@ do
 done
 
 
-listofsnap=`find . -exec grep -l $snapshot {} \;| egrep -v "do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
+listofsnap=`find . -exec grep -l $snapshot {} \;| egrep -v ".git|do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
 echo "Connecting to SNAPSHOTS"
 for i in $listofsnap
 do
