@@ -133,7 +133,7 @@ else
     echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
     # declare shared secret for trusted login from K2
     echo "org.sakaiproject.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
-    echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 
