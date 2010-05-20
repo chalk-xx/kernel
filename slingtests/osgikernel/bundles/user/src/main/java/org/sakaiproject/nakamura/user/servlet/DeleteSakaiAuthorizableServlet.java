@@ -122,7 +122,7 @@ public class DeleteSakaiAuthorizableServlet extends DeleteAuthorizableServlet {
 
   
   /**
-   * @src.reference
+   * @scr.reference
    */
   protected transient AuthorizablePostProcessService postProcessorService;
 
