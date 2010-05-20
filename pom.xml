@@ -93,15 +93,20 @@
         <module>contrib/import</module>
         <module>contrib/basiclti</module>
         <module>contrib/filters</module>
-        <module>contrib/jaxrs</module>
         <module>contrib/mailman</module>
-        <module>contrib/scriptrunner</module>
-        <module>contrib/sessiontest</module>
         <module>contrib/persondirectory</module>
         <module>contrib/casauth</module>
         <module>contrib/ldapauth</module>
         <module>contrib/ldap</module>
         <module>contrib/urldocproxy</module>
+       </modules>
+    </profile>
+    <profile>
+       <id>sandbox</id>
+       <modules>
+        <module>sandbox/jaxrs</module>
+        <module>sandbox/scriptrunner</module>
+        <module>sandbox/sessiontest</module>
        </modules>
     </profile>
     <profile>
