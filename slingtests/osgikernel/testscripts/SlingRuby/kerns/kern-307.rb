@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern307Test < SlingTest
+class TC_Kern307Test < Test::Unit::TestCase
+  include SlingTest
 
   def create_test_node_with_permissions(user, m)
     @s.switch_user(SlingUsers::User.admin_user)
@@ -49,5 +50,4 @@ class TC_Kern307Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern307Test)
 

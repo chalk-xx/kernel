@@ -119,7 +119,8 @@ TY9TMQHlzDNMKOwj5pFnyhP972ouaxmciZXv3FCUefzM+DOGdSb3/zxx5vTVCXfVBM2MPSfPhqsq
 3M4zg+EZAAZKqUgIYSilq7K91dwK3JVsWKcA6KICv6KoxP8BYtkbhHgLexkAAAAASUVORK5CYII=
 "
 
-class CropitTest < SlingTest 
+class CropitTest < Test::Unit::TestCase
+  include SlingTest
  
   def test_upload_image
     imagedata = upload_image()
@@ -177,4 +178,3 @@ class CropitTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(CropitTest)

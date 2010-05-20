@@ -11,7 +11,8 @@ include SlingUsers
 include SlingAuthz
 
 
-class TC_Kern568Test < SlingTest
+class TC_Kern568Test < Test::Unit::TestCase
+  include SlingTest
   
   # Just check that we get a response to a bad t parameter
   def test_malformed_time
@@ -85,4 +86,3 @@ class TC_Kern568Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern568Test)

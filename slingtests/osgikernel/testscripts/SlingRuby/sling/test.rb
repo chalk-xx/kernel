@@ -1,9 +1,9 @@
-#require 'test/unit.rb'
-#require 'sling/sling'
-#require 'sling/users'
-#require 'sling/sites'
-#require 'sling/search'
-#require 'tempfile'
+require 'test/unit.rb'
+require 'sling/sling'
+require 'sling/users'
+require 'sling/sites'
+require 'sling/search'
+require 'tempfile'
 
 #class SlingTest < Test::Unit::TestCase
 module SlingTest

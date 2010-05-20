@@ -1,22 +1,19 @@
 #!/usr/bin/env ruby
 
 require 'sling/test'
-include SlingTest
 require 'sling/search'
 require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
-require 'sling/sling'
-require 'sling/users'
-require 'sling/sites'
-require 'tempfile'
 
 class TC_Kern254Test < Test::Unit::TestCase
+
+  include SlingTest
 
   def test_modify_user_after_group_join
     m = "1b"+Time.now.to_i.to_s
 	testuser = "testuser#{m}"
-    u = SlingTest::create_user(testuser)
+    u = create_user(testuser)
     g1 = create_group("g-testgroup#{m}")
     g1.add_member(@s, u.name, "user")
     g2 = create_group("g-testgroup2#{m}")
@@ -30,5 +27,5 @@ class TC_Kern254Test < Test::Unit::TestCase
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern254Test)
+#Test::Unit::UI::Console::TestRunner.run(TC_Kern254Test)
 

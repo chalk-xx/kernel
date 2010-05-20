@@ -7,7 +7,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingMessage
 
-class TC_Kern723Test < SlingTest
+class TC_Kern723Test < Test::Unit::TestCase
+  include SlingTest
   
   def setup
     super
@@ -54,4 +55,3 @@ class TC_Kern723Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern723Test)

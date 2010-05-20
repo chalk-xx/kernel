@@ -10,7 +10,8 @@ include SlingUsers
 include SlingContacts
 
 
-class TC_Kern759Test < SlingTest
+class TC_Kern759Test < Test::Unit::TestCase
+  include SlingTest
   
   
   def test_private_group
@@ -64,4 +65,3 @@ class TC_Kern759Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern759Test)

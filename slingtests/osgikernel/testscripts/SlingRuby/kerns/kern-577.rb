@@ -14,7 +14,8 @@ include SlingSites
 include SlingMessage
 include SlingFile
 
-class TC_MyFileTest < SlingTest
+class TC_MyFileTest < Test::Unit::TestCase
+  include SlingTest
   
   def setup
     super
@@ -161,4 +162,3 @@ class TC_MyFileTest < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MyFileTest)

@@ -10,7 +10,8 @@ $testfile1 = "<html><head><title>KERN 312</title></head><body><p>Should work</p>
 
 #This kern tests wheter regular users are able to upload files into their private store.
 
-class TC_Kern455Test < SlingTest
+class TC_Kern455Test < Test::Unit::TestCase
+  include SlingTest
 
   def upload_file(nodename, data)
     res = create_file_node(nodename, "testfile", "testfile", data, "text/html")
@@ -120,5 +121,4 @@ class TC_Kern455Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern455Test)
 

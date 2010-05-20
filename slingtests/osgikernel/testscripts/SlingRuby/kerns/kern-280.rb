@@ -9,7 +9,8 @@ include SlingInterface
 include SlingUsers
 include SlingContacts
 
-class TC_Kern280Test < SlingTest
+class TC_Kern280Test < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -27,5 +28,4 @@ class TC_Kern280Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern280Test)
 

@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingAuthz
 
-class TC_Kern277Test < SlingTest
+class TC_Kern277Test < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -77,5 +78,4 @@ class TC_Kern277Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern277Test)
 

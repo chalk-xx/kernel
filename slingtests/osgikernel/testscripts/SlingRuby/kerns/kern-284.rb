@@ -7,7 +7,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingContacts
 
-class ContactCollisionTest < SlingTest 
+class ContactCollisionTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_create_collision 
     users = (0..1).collect {|i| create_user("my_test_user" + i.to_s + Time.now.to_i.to_s)}
@@ -64,5 +65,4 @@ class ContactCollisionTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(ContactCollisionTest)
 
