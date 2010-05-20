@@ -5,7 +5,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern330Test < SlingTest
+class TC_Kern330Test < Test::Unit::TestCase
+  include SlingTest
   
   #
   # Batch post test
@@ -217,4 +218,3 @@ class TC_Kern330Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern330Test)

@@ -10,7 +10,8 @@ include SlingUsers
 include SlingAuthz
 
 
-class TC_KernMeTest < SlingTest
+class TC_KernMeTest < Test::Unit::TestCase
+  include SlingTest
   
   def set_first_name(name, user)
     public = user.public_path_for(@s)
@@ -51,4 +52,3 @@ class TC_KernMeTest < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_KernMeTest)

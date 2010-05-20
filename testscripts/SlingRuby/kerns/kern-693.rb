@@ -3,7 +3,8 @@
 require 'sling/test'
 require 'test/unit/ui/console/testrunner.rb'
 
-class TC_Kern693Test < SlingTest
+class TC_Kern693Test < Test::Unit::TestCase
+  include SlingTest
   def test_site_too_many_methods
     m = Time.now.to_f.to_s.gsub('.', '_')
     originalsiteid = "testsite_orig_#{m}"
@@ -138,4 +139,3 @@ class TC_Kern693Test < SlingTest
   end
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern693Test)

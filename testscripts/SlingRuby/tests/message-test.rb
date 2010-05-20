@@ -11,7 +11,8 @@ include SlingUsers
 include SlingSites
 include SlingMessage
 
-class TC_MyMessageTest < SlingTest
+class TC_MyMessageTest < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -197,5 +198,4 @@ class TC_MyMessageTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MyMessageTest)
 

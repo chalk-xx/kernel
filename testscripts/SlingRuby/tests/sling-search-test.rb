@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_MySearchTest < SlingTest
+class TC_MySearchTest < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -37,5 +38,4 @@ class TC_MySearchTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MySearchTest)
 

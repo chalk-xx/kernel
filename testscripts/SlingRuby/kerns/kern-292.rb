@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern292Test < SlingTest
+class TC_Kern292Test < Test::Unit::TestCase
+  include SlingTest
 
   def test_mutual_group_addition
     m = Time.now.to_i.to_s
@@ -66,5 +67,4 @@ class TC_Kern292Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern292Test)
 

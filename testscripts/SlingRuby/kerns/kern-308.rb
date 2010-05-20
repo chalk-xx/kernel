@@ -8,7 +8,8 @@ include SlingInterface
 include SlingUsers
 include SlingSearch
 
-class TC_Kern308Test < SlingTest
+class TC_Kern308Test < Test::Unit::TestCase
+  include SlingTest
 
 
   def test_308
@@ -57,5 +58,4 @@ class TC_Kern308Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern308Test)
 

@@ -9,7 +9,8 @@ include SlingSearch
 $testscript = "<html><body><h1><%= currentNode.title %></h1></body></html>"
 $expected = "<html><body><h1>some title</h1></body></html>"
 
-class TC_Kern310Test < SlingTest
+class TC_Kern310Test < Test::Unit::TestCase
+  include SlingTest
 
   def upload_file(nodename, filename, data)
     n = create_file_node(nodename, filename, filename, data, "text/html")
@@ -34,5 +35,4 @@ class TC_Kern310Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern310Test)
 

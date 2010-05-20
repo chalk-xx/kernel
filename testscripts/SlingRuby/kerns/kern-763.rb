@@ -10,7 +10,8 @@ include SlingUsers
 include SlingContacts
 
 
-class TC_Kern763Test < SlingTest
+class TC_Kern763Test < Test::Unit::TestCase
+  include SlingTest
   
   
   def test_permissions
@@ -61,4 +62,3 @@ class TC_Kern763Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern763Test)

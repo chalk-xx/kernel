@@ -6,7 +6,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
-class TC_Kern740Test < SlingTest
+class TC_Kern740Test < Test::Unit::TestCase
+  include SlingTest
   
   #
   # Test changing the admin password using the form auth mechanism.
@@ -196,4 +197,3 @@ class TC_Kern740Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern740Test)

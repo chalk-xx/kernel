@@ -10,7 +10,8 @@ include SlingUsers
 include SlingAuthz
 
 
-class TC_Kern563Test < SlingTest
+class TC_Kern563Test < Test::Unit::TestCase
+  include SlingTest
   
   def test_default_locale
     m = Time.now.to_i.to_s
@@ -47,4 +48,3 @@ class TC_Kern563Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern563Test)

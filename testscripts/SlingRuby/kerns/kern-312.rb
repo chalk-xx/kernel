@@ -9,7 +9,8 @@ include SlingSearch
 $testfile1 = "<html><head><title>KERN 312</title></head><body><p>Should work</p></body></html>"
 $testfile2 = "<html><head><title>KERN 312</title></head><body><p>Should still work</p></body></html>"
 
-class TC_Kern312Test < SlingTest
+class TC_Kern312Test < Test::Unit::TestCase
+  include SlingTest
 
   def upload_file(nodename, data)
     n = create_file_node(nodename, "testfile", "testfile", data, "text/html")
@@ -60,5 +61,4 @@ class TC_Kern312Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern312Test)
 

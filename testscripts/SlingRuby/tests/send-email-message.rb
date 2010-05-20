@@ -12,7 +12,8 @@ require 'test/unit/ui/console/testrunner.rb'
 
 include SlingMessage
 
-class TC_OutgoingMessage < SlingTest
+class TC_OutgoingMessage < Test::Unit::TestCase
+  include SlingTest
 
   def setup
     super
@@ -58,4 +59,3 @@ class TC_OutgoingMessage < SlingTest
   end
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_OutgoingMessage)

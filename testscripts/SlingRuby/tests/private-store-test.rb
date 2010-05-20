@@ -7,7 +7,8 @@ include SlingInterface
 include SlingUsers
 include SlingSites
 
-class TC_PrivateNodeCreateTest < SlingTest
+class TC_PrivateNodeCreateTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_create__private_node
     puts("test_create_private_node---------------------------------------------------START")
@@ -40,5 +41,4 @@ class TC_PrivateNodeCreateTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_PrivateNodeCreateTest)
 
