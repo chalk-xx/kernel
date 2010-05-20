@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.user.servlet;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
+import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -398,6 +399,12 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
                 if (selfRegSession.hasPendingChanges()) {
                     selfRegSession.save();
                 }
+        } catch ( AuthorizableExistsException e) {
+          log.warn(e.getMessage());
+          response.setStatus(HttpServletResponse.SC_CONFLICT, e.getMessage());
+        } catch ( RepositoryException e ) {
+          log.error(e.getMessage(),e);
+          throw e;
         } finally {
             ungetSession(selfRegSession);
         }
