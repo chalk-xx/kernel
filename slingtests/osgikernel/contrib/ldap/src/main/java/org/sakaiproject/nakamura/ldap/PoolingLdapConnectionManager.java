@@ -51,16 +51,16 @@ import java.util.Map;
  * this with <code>com.novell.ldap.connectionpool.PoolManager</code>, but it did not
  * handle recovering connections that had suffered a network error or connections that
  * were never returned but dropped out of scope.
- * 
+ *
  * @author John Lewis, Unicon Inc [development for Sakai 2]
  * @author <a href="mailto:carl@hallwaytech.com">Carl Hall, Hallway Technologies [changes
  *         for OSGi, Sakai 3]</a>
- * 
+ *
  * @see LdapConnectionManagerConfig
  * @see PooledLDAPConnection
  * @see PooledLDAPConnectionFactory
  */
-@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE)
+@Component(metatype = true, configurationFactory = true, policy = ConfigurationPolicy.REQUIRE, immediate = true)
 @Service
 public class PoolingLdapConnectionManager extends SimpleLdapConnectionManager {
 

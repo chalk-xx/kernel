@@ -28,7 +28,7 @@ import javax.jcr.SimpleCredentials;
 /**
  * Authentication plugin for verifying a user against an LDAP instance.
  */
-@Component(metatype = true)
+@Component(metatype = true, immediate = true)
 @Service(value = LdapAuthenticationPlugin.class)
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
