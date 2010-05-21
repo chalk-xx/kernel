@@ -5,7 +5,8 @@ require 'sling/sites'
 require 'sling/search'
 require 'tempfile'
 
-class SlingTest < Test::Unit::TestCase
+#class SlingTest < Test::Unit::TestCase
+module SlingTest
 
   def setup
     @s = SlingInterface::Sling.new()
@@ -17,6 +18,7 @@ class SlingTest < Test::Unit::TestCase
     @created_groups = []
     @created_sites = []
 	@delete = true
+    puts @um
   end
 
   def teardown

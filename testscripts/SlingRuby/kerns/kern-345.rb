@@ -7,7 +7,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingContacts
 
-class TC_Kern345Test < SlingTest
+class TC_Kern345Test < Test::Unit::TestCase
+  include SlingTest
 
   def test_asymmetric_relationships
     m = Time.now.to_i.to_s
@@ -73,4 +74,3 @@ class TC_Kern345Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern345Test)

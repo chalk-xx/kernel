@@ -5,7 +5,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern538Test < SlingTest
+class TC_Kern538Test < Test::Unit::TestCase
+  include SlingTest
   
   #
   # Creating a tree of nodes by posting a block of JSON.
@@ -155,4 +156,3 @@ class TC_Kern538Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern538Test)

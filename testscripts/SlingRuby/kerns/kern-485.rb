@@ -10,7 +10,8 @@ include SlingUsers
 include SlingAuthz
 
 
-class TC_Kern485Test < SlingTest
+class TC_Kern485Test < Test::Unit::TestCase
+  include SlingTest
 
   def checkGetAccess(path, user, expected)
     @s.switch_user(user)
@@ -38,4 +39,3 @@ class TC_Kern485Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern485Test)

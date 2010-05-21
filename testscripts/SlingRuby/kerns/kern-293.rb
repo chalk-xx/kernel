@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern293Test < SlingTest
+class TC_Kern293Test < Test::Unit::TestCase
+  include SlingTest
 
 =begin
   def test_overwrite
@@ -37,5 +38,4 @@ class TC_Kern293Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern293Test)
 

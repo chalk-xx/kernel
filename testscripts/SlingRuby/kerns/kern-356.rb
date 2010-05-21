@@ -9,7 +9,8 @@ include SlingInterface
 include SlingUsers
 include SlingAuthz
 
-class Kern356Test < SlingTest
+class Kern356Test < Test::Unit::TestCase
+  include SlingTest
 
 # This method assumes that the node, users and groups exist, read a write are denied for the denyUserread read and write are granted
 # all are granted read
@@ -155,5 +156,4 @@ class Kern356Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(Kern356Test)
 

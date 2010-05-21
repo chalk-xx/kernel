@@ -5,7 +5,8 @@ require 'sling/test'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern702Test < SlingTest
+class TC_Kern702Test < Test::Unit::TestCase
+  include SlingTest
 
   def test_create_site_without_template
     m = Time.now.to_f.to_s.gsub('.', '_')
@@ -37,4 +38,3 @@ class TC_Kern702Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern702Test)

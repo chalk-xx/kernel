@@ -5,7 +5,8 @@ require 'sling/test'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern551Test < SlingTest
+class TC_Kern551Test < Test::Unit::TestCase
+  include SlingTest
   def simple_site_create(siteid, sitename)
     sitetemplate = "/var/templates/site/systemtemplate"
     res = @s.execute_post(@s.url_for("/sites.createsite.json"),
@@ -406,4 +407,3 @@ class TC_Kern551Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern551Test)

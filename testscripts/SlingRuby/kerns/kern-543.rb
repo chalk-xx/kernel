@@ -10,7 +10,8 @@ include SlingUsers
 include SlingAuthz
 
 
-class TC_Kern543Test < SlingTest
+class TC_Kern543Test < Test::Unit::TestCase
+  include SlingTest
   
   def do_site_create
     m = Time.now.to_i.to_s
@@ -94,4 +95,3 @@ class TC_Kern543Test < SlingTest
   
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern543Test)

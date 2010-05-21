@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern270Test < SlingTest
+class TC_Kern270Test < Test::Unit::TestCase
+  include SlingTest
 
   def test_modify_user_after_group_join
     m = "1a"+Time.now.to_i.to_s
@@ -22,5 +23,4 @@ class TC_Kern270Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern270Test)
 

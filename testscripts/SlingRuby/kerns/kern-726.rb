@@ -3,7 +3,8 @@
 require 'sling/test'
 require 'test/unit/ui/console/testrunner.rb'
 
-class TC_Kern726Test < SlingTest
+class TC_Kern726Test < Test::Unit::TestCase
+  include SlingTest
   def test_site_create_not_destroy
     m = Time.now.to_f.to_s.gsub('.', '_')
     siteid = "testsite_#{m}"
@@ -51,4 +52,3 @@ class TC_Kern726Test < SlingTest
   end
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern726Test)

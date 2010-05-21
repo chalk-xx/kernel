@@ -10,7 +10,8 @@ include SlingInterface
 include SlingUsers
 include SlingAuthz
 
-class TC_MyAuthZTest < AuthZBase
+class TC_MyAuthZTest < Test::Unit::TestCase
+  include AuthZBase
 
 
 #
@@ -280,5 +281,4 @@ def test_NodeAuthZChildPrivate
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_MyAuthZTest)
 

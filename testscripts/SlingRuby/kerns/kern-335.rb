@@ -11,7 +11,8 @@ include SlingUsers
 include SlingSites
 include SlingMessage
 
-class TC_Kern335Test < SlingTest
+class TC_Kern335Test < Test::Unit::TestCase
+  include SlingTest
   
   def setup
     super
@@ -62,5 +63,4 @@ class TC_Kern335Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern335Test)
 

@@ -7,7 +7,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingContacts
 
-class TC_Kern289Test < SlingTest
+class TC_Kern289Test < Test::Unit::TestCase
+  include SlingTest
 
   def test_connection_details
     m = Time.now.to_i.to_s
@@ -33,5 +34,4 @@ class TC_Kern289Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern289Test)
 

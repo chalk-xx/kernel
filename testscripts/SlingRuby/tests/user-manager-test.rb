@@ -7,7 +7,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
-class TC_UserManagerTest < SlingTest
+class TC_UserManagerTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_create_user
     m = Time.now.to_i.to_s
@@ -51,5 +52,4 @@ class TC_UserManagerTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_UserManagerTest)
 

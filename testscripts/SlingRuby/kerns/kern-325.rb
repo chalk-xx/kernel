@@ -6,7 +6,8 @@ require 'test/unit.rb'
 require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
-class TC_Kern325Test < SlingTest
+class TC_Kern325Test < Test::Unit::TestCase
+  include SlingTest
 
 
   def test_site_template_versioning
@@ -22,5 +23,4 @@ class TC_Kern325Test < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_Kern325Test)
 

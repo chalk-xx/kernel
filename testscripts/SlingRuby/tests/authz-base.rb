@@ -8,7 +8,8 @@ require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 
-class AuthZBase < SlingTest
+module AuthZBase
+  include SlingTest
 
 # This method assumes that the node, users and groups exist, read a write are denied for the denyUserread read and write are granted
 # all are granted read

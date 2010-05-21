@@ -7,7 +7,8 @@ include SlingInterface
 include SlingUsers
 include SlingSites
 
-class TC_NodeCreateTest < SlingTest
+class TC_NodeCreateTest < Test::Unit::TestCase
+  include SlingTest
 
   def test_create_node
     puts("test_create_node---------------------------------------------------START")
@@ -121,5 +122,4 @@ class TC_NodeCreateTest < SlingTest
 
 end
 
-Test::Unit::UI::Console::TestRunner.run(TC_NodeCreateTest)
 
