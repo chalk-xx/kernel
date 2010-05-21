@@ -37,11 +37,11 @@ class Kern356Test < Test::Unit::TestCase
 	ace = acl[principal]
 	if ( readGranted || writeGranted ) then
 	  assert_not_nil(ace["granted"],"Expected ace for #{principal} to have granted something granted ace was nil "+@authz.hashToString(acl))
-	  puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
+	  @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
 	end
 	if ( !readGranted || !writeGranted ) then
       assert_not_nil(ace["denied"],"Expected ace for #{principal} to have denied something, denied was nil "+@authz.hashToString(acl))
-      puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
+      @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
      end
 
         if ( readGranted ) then
@@ -80,7 +80,7 @@ class Kern356Test < Test::Unit::TestCase
 	res = @s.execute_post(@s.url_for(path+".html"),user.name => "testset")
 	if ( canWrite ) then
 		if ( res.code != "200" ) then
-			puts(res.body)
+			@log.debug(res.body)
 		end 
 		assert_equal("200",res.code,"Should have been able to write to the node as "+user.to_s()+because)
 	else
@@ -97,7 +97,7 @@ class Kern356Test < Test::Unit::TestCase
 	
 	path = "test/authztest/node"+m
 		
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	childPath = path+"/childnode"
 	create_node(path+"/childnode","testchildproperty" => "testvalue")
@@ -129,7 +129,7 @@ class Kern356Test < Test::Unit::TestCase
         if ( res.code == "200" )
 	   assert_equal(true,res.body.include?("GetAllProfilesTest"+m),"Found User in response ")
         end 
-	puts(res.body)
+	@log.debug(res.body)
 	
 	
 	

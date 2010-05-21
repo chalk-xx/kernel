@@ -4,8 +4,8 @@ require 'sling/users'
 require 'sling/sites'
 require 'sling/search'
 require 'tempfile'
+require 'logger'
 
-#class SlingTest < Test::Unit::TestCase
 module SlingTest
 
   def setup
@@ -17,8 +17,9 @@ module SlingTest
     @created_users = []
     @created_groups = []
     @created_sites = []
-	@delete = true
-    puts @um
+    @delete = true
+    @log = Logger.new(STDOUT)
+    @log.level = Logger::WARN
   end
 
   def teardown
@@ -32,7 +33,7 @@ module SlingTest
   end
 
   def create_node(path, props={})
-    puts "Path is #{path}"
+    #puts "Path is #{path}"
     res = @s.create_node(path, props)
     assert_not_equal("500", res.code, "Expected to be able to create node "+res.body)
     @created_nodes << path

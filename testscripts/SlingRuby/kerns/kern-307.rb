@@ -25,7 +25,7 @@ class TC_Kern307Test < Test::Unit::TestCase
 
   def test_dirty_acl_cache
     m = Time.now.to_i.to_s
-    @s.log = true
+    #@s.log = true
     randomuser = create_user("randomuser#{m}")
 
     node1 = create_test_node_with_permissions(randomuser, "#{m}1")
@@ -37,7 +37,7 @@ class TC_Kern307Test < Test::Unit::TestCase
 
   def test_clean_acl_cache
     m = Time.now.to_i.to_s
-    @s.log = true
+    #@s.log = true
     randomuser = create_user("randomuser#{m}")
 
     node1 = create_test_node_with_permissions(randomuser, "#{m}1")

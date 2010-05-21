@@ -32,7 +32,7 @@ class TC_OutgoingMessage < Test::Unit::TestCase
     user = "auser#{m}"
     a = @um.create_user(user)
 
-    puts "Sending mail to user #{user}"
+    @log.info "Sending mail to user #{user}"
     @mm.create("smtp:#{user}@example.com", 'smtp', 'outbox')
   end
 

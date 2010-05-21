@@ -47,7 +47,7 @@ class TC_Kern723Test < Test::Unit::TestCase
     # Do a search
     res = @s.execute_get(@s.url_for("/var/search/comments/flat.json?marker=#{m}&path=/sites/#{siteid}/store&page=0&items=10"))
     props = JSON.parse(res.body)
-    puts res.body
+    @log.debug res.body
     assert_equal(1, props["total"]);
     assert_equal("Test body", props["results"][0]["post"]["sakai:body"])
   end

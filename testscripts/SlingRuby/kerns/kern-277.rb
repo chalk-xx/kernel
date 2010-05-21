@@ -20,7 +20,7 @@ class TC_Kern277Test < Test::Unit::TestCase
     create_node(path, "testproperty" => "testvalue")
     @authz.grant(path, group.name, "jcr:write" => "denied")
     acl = @authz.getacl(path)
-    puts "Got ace: #{acl.to_s}"
+    @log.info "Got ace: #{acl.to_s}"
     ace = acl[group.name]
     assert_not_nil(ace["denied"], "Expected ACE for #{group.name} deny")
   end
@@ -38,7 +38,7 @@ class TC_Kern277Test < Test::Unit::TestCase
     @authz.grant(path, group2.name, "jcr:write" => "denied")
     @authz.grant(path, group1.name, "jcr:write" => "granted")
     acl = @authz.getacl(path)
-    puts "Got ace: #{acl.to_s}"
+    @log.info "Got ace: #{acl.to_s}"
     @s.switch_user(user1)
     res = @s.update_node_props(path, "fish" => "cat")
     assert_equal("200", res.code, "Expected modification to succeed")
@@ -64,7 +64,7 @@ class TC_Kern277Test < Test::Unit::TestCase
     @authz.grant(parent, group1.name, "jcr:write" => "granted")
     @authz.grant(child, group2.name, "jcr:write" => "denied")
     acl = @authz.getacl(child)
-    puts "Got ace: #{acl.to_s}"
+    @log.info "Got ace: #{acl.to_s}"
     @s.switch_user(user1)
     res = @s.update_node_props(child, "fish" => "cat")
     assert_equal("200", res.code, "Expected modification to succeed")
