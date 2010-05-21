@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
 $testscript = "<html><body><h1><%= currentNode.title %></h1></body></html>"

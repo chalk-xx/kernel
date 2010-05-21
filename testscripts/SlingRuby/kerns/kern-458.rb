@@ -3,7 +3,6 @@
 require 'set'
 require 'sling/test'
 require 'sling/message'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingMessage
 

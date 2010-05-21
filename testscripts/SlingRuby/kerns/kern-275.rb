@@ -3,7 +3,6 @@
 require 'sling/sling'
 require 'base64'
 require 'sling/test'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 
 $image="

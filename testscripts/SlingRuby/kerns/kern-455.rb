@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
 $testfile1 = "<html><head><title>KERN 312</title></head><body><p>Should work</p></body></html>"
