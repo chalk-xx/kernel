@@ -88,7 +88,7 @@ public class TemplateBuilder {
   }
 
   /**
-   * Creates the groups
+   * Reads the groups
    * 
    * @throws RepositoryException
    */
@@ -268,6 +268,7 @@ public class TemplateBuilder {
           newIndexes[i] = loopIndexes[i];
         }
         loopIndexes = newIndexes;
+        nestedLevel++;
         for (;;) {
           try {
             NodeIterator loopChildNodes = child.getNodes();
@@ -285,12 +286,15 @@ public class TemplateBuilder {
               // Add it to the map.
               map.put(childName, childMap);
 
+              loopIndexes[nestedLevel]++;
+
             }
+            loopIndexes[nestedLevel] = 0;
           } catch (Throwable t) {
             break;
           }
         }
-        nestedLevel++;
+        nestedLevel--;
       }
 
       else {

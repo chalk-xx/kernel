@@ -352,7 +352,9 @@ public class JcrUtils {
     } else if (o instanceof InputStream) {
       val = vf.createValue((InputStream) o);
     } else if (o instanceof Long) {
-      val = vf.createValue((String) o);
+      val = vf.createValue((Long) o);
+    } else if (o instanceof String) {
+      val = vf.createValue(o.toString());
     }
 
     return val;
