@@ -1,17 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'logger'
-
 module SlingAuthz
 
   class Authz
 
-    attr_accessor :log
-
     def initialize(sling)
       @sling = sling
-      @log = Logger.new(STDOUT)
-      @log.level = Logger::WARN
     end
 
     def delete(path,principal)
@@ -20,8 +14,8 @@ module SlingAuthz
 	  urlpath = @sling.url_for(path)	  
 	  res = @sling.execute_post(urlpath+".deleteAce.html", postParams)
 	  if ( res.code != "200" )
-	     @log.debug(res.body)
-	     @log.info(" Unable to update acl at #{path} "+postParams)
+	     puts(res.body)
+	     puts(" Unable to update acl at #{path} "+postParams)
 		 return false 
 	  end 
 
@@ -32,7 +26,7 @@ module SlingAuthz
 	  acl = getacl(path)
 	  ace = {}
 	  if ( acl[principal] )
-	     @log.info(acl[principal])
+	     puts(acl[principal]) 
 		 ace = acl[principal]
 	  end
 	  postParams = {}
@@ -50,14 +44,14 @@ module SlingAuthz
 		postParams['privilege@'+key] = value
 	  end
 	  
-	  @log.info("Updating ACE to :"+hashToString(postParams))
+	  puts("Updating ACE to :"+hashToString(postParams))
 
 		
 	  urlpath = @sling.url_for(path)	  
 	  res = @sling.execute_post(urlpath+".modifyAce.html", postParams)
 	  if ( res.code != "200" )
-	     @log.debug(res.body)
-	     @log.info(" Unable to update acl at #{path} "+postParams)
+	     puts(res.body)
+	     puts(" Unable to update acl at #{path} "+postParams)
 		 return false 
 	  end 
     end
@@ -66,10 +60,10 @@ module SlingAuthz
 	  urlpath = @sling.url_for(path)
 	  res = @sling.execute_get(urlpath+".acl.json")
 	  if ( res.code != "200" )
-	     log.info(" Unable to get ACL at path #{path} ")
+	     puts(" Unable to get ACL at path #{path} ")
 		 return false
 	  end
-	  @log.info("Current ACE :"+res.body)
+	  puts("Current ACE :"+res.body)
 	  
 	  acl = JSON.parse(res.body)
 	  return acl

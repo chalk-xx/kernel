@@ -49,14 +49,14 @@ class TC_Kern551Test < Test::Unit::TestCase
 	
 	# Check if the groups exist and what is the  structure.
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
-	@log.info("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
-	@log.debug(res.body)
+	puts("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
+	puts(res.body)
 	props = JSON.parse(res.body)
 	assert(props["properties"]["rep:group-managers"].include?(collaborators.name))
 	assert(props["properties"]["rep:group-managers"].include?(sitecreator.name))
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
-	@log.info("Viewers should have group-managers containing #{collaborators.name} ")
-	@log.debug(res.body)
+	puts("Viewers should have group-managers containing #{collaborators.name} ")
+	puts(res.body)
 	props = JSON.parse(res.body)
 	assert(props["properties"]["rep:group-managers"].include?(collaborators.name))
 	assert(props["properties"]["rep:group-managers"].include?(sitecreator.name))
@@ -67,8 +67,8 @@ class TC_Kern551Test < Test::Unit::TestCase
 	#check that the collaborator user and sitecreator user are both members of the collaborators group, 
     # and so should have management of both the collaborators group and the viewers group.
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
-	@log.info("Collaborators Should now contain #{collaborator.name} as a member")
-	@log.debug(res.body)
+	puts("Collaborators Should now contain #{collaborator.name} as a member")
+	puts(res.body)
 	props = JSON.parse(res.body)
 	assert(props["members"].include?(collaborator.name))
 	assert(props["members"].include?(sitecreator.name))
@@ -77,15 +77,15 @@ class TC_Kern551Test < Test::Unit::TestCase
 	viewers.update_properties(@s,{"rep:group-managers" => [ collaborator.name ]})
 
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
-	@log.info("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
-	@log.debug(res.body)
+	puts("Collaborators should have group-managers of #{sitecreator.name} and #{collaborators.name} ")
+	puts(res.body)
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
-	@log.info("Viewers should have group-managers containing #{collaborators.name} ")
-	@log.debug(res.body)
+	puts("Viewers should have group-managers containing #{collaborators.name} ")
+	puts(res.body)
 
 	
-	@log.info("As far as I can tell, #{collaborator.name} is a member of #{collaborators.name} which is a manager of both  #{collaborators.name} and #{viewers.name} ")
-	@log.info("So the following tests where we switch to #{collaborator.name} and add #{viewer.name} as a member should be Ok")
+	puts("As far as I can tell, #{collaborator.name} is a member of #{collaborators.name} which is a manager of both  #{collaborators.name} and #{viewers.name} ")
+	puts("So the following tests where we switch to #{collaborator.name} and add #{viewer.name} as a member should be Ok")
 	
 	
     @s.switch_user(collaborator)
@@ -112,9 +112,9 @@ class TC_Kern551Test < Test::Unit::TestCase
     viewers = create_group("g-viewer#{m}")
 	
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(collaborators.name) + ".tidy.json"))
-	@log.debug(res.body)
+	puts(res.body)
 	res = @s.execute_get(@s.url_for(SlingUsers::Group.url_for(viewers.name) + ".tidy.json"))
-	@log.debug(res.body)
+	puts(res.body)
 
     res = collaborators.add_member(@s, collaborator.name, "user")
     assert_equal("200", res.code, "Collaborators should be able to add members")
@@ -232,7 +232,7 @@ class TC_Kern551Test < Test::Unit::TestCase
       "name" => newname)
     assert_equal("200", res.code, "Now should be able to change site " + res.body)
     res = @s.execute_get(@s.url_for("/sites/#{siteid}.json"))
-    @log.debug res.body
+    puts res.body
     props = JSON.parse(res.body)
     assert_equal(newname, props["name"])
   end
@@ -261,7 +261,7 @@ class TC_Kern551Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Expected to create site: #{res.body}")
     res = @s.execute_get(@s.url_for("/sites/#{siteid}.json"))
     assert_equal("200", res.code, "Expected to get site: #{res.body}")
-    @log.debug res.body
+    puts res.body
     props = JSON.parse(res.body)
     assert_equal("/var/templates/site/systemtemplate", props["sakai:site-template"])
     assert_equal(sitename, props["name"])
@@ -352,17 +352,17 @@ class TC_Kern551Test < Test::Unit::TestCase
     viewers.add_member(@s, viewer.name, "user")
     @s.switch_user(collaborator)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
-    @log.debug res.body
+    puts res.body
     memberships = JSON.parse(res.body)
     assert_equal("/sites/#{siteid}", memberships.first["siteref"], "Expected user to have Collaborator membership")
     @s.switch_user(viewer)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
-    @log.debug res.body
+    puts res.body
     memberships = JSON.parse(res.body)
     assert_equal("/sites/#{siteid}", memberships.first["siteref"], "Expected user to have Viewer membership")
     @s.switch_user(nonmember)
     res = @s.execute_get(@s.url_for("/system/sling/membership.json"))
-    @log.debug res.body
+    puts res.body
     memberships = JSON.parse(res.body)
     assert(memberships.empty?, "Expected user to have no membership")
   end

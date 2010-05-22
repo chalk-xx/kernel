@@ -19,7 +19,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	@log.debug(res.body)
+	puts(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
@@ -31,7 +31,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	props = JSON.parse(res.body)
 	# check the node really was last modified by the correct user.
 	assert_equal(u.name, props["jcr:lastModifiedBy"])
-	@log.debug(res.body)
+	puts(res.body)
   end
 
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'logger'
-
 module SlingSites
 
   class Site
@@ -48,12 +46,8 @@ module SlingSites
 
   class SiteManager
 
-    attr_accessor :log
-
     def initialize(sling)
       @sling = sling
-      @log = Logger.new(STDOUT)
-      @log.level = Logger::WARN
     end
 
 # This will only create sites on nodes that already exist or nodes that 
@@ -65,7 +59,7 @@ module SlingSites
 	  path = @sling.url_for(sitecontainer)
       res = @sling.execute_post(path+".createsite.json", "sakai:title" => title, ":sitepath" => sitepath, "sakai:site-template" => sitetemplate )
       if (res.code != "200" && res.code != "201")
-        @log.info "Unable to create site: #{res.code} #{res.body}"
+        puts "Unable to create site: #{res.code} #{res.body}"
         return nil
       end
       return Site.new(@sling, sitecontainer+sitepath)

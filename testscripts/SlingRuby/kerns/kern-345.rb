@@ -27,12 +27,12 @@ class TC_Kern345Test < Test::Unit::TestCase
     u2 = create_user("otheruser2#{m}")
     cm = ContactManager.new(@s)
     @s.switch_user(u1)
-	@log.info("As testuser#{m} inviting otheruser#{m} as a friend, colleque, follower")
+	puts("As testuser#{m} inviting otheruser#{m} as a friend, colleque, follower")
     cm.invite_contact(u2.name, ["friend", "colleague"], ["follower"], ["leader"])
-	@log.info("Checking relationship testuser#{m} invited otheruser#{m} as a friend, colleque, follower")
+	puts("Checking relationship testuser#{m} invited otheruser#{m} as a friend, colleque, follower")
     check_contact_relationships(cm, "friend", "colleague", "follower")
     @s.switch_user(u2)
-	@log.info("Checking relationship  otheruser#{m} was invited by testuser#{m} as a friend, colleque, leader")
+	puts("Checking relationship  otheruser#{m} was invited by testuser#{m} as a friend, colleque, leader")
     check_contact_relationships(cm, "friend", "colleague", "leader")
   end
 
@@ -44,11 +44,11 @@ class TC_Kern345Test < Test::Unit::TestCase
     @s.switch_user(u1)
     cm.invite_contact(u2.name, [], ["teacher"], ["student"])
     @s.switch_user(u2)
-    @log.info "About to accept invitation"
+    puts "About to accept invitation"
     cm.accept_contact(u1.name)
-    @log.info "About to remove contact"
+    puts "About to remove contact"
     cm.remove_contact(u1.name)
-    @log.info "Afterwards..."
+    puts "Afterwards..."
     assert_equal(0, cm.get_all()["results"].length, "Should have removed all contacts")
     @s.switch_user(u1)
     cm.invite_contact(u2.name, ["colleague"])

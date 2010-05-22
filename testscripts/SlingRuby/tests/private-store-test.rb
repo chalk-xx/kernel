@@ -10,7 +10,7 @@ class TC_PrivateNodeCreateTest < Test::Unit::TestCase
   include SlingTest
 
   def test_create__private_node
-    @log.info("test_create_private_node---------------------------------------------------START")
+    puts("test_create_private_node---------------------------------------------------START")
     m = Time.now.to_i.to_s
     testpath = "/private/testnode"
     user1 = "user1-"+m
@@ -35,7 +35,7 @@ class TC_PrivateNodeCreateTest < Test::Unit::TestCase
     assert_equal("bar", props["b"], "Expected property to be set")
 
 
-    @log.info("test_create_node---------------------------------------------------END")
+    puts("test_create_node---------------------------------------------------END")
   end
 
 end

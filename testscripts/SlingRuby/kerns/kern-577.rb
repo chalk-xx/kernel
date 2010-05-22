@@ -24,7 +24,7 @@ class TC_MyFileTest < Test::Unit::TestCase
   
   def test_upload_file
     m = Time.now.to_i.to_s
-    @log.info("Creating user simon"+m)
+    puts("Creating user simon"+m)
     simon = create_user("simon"+m)
     
     # Create a site for each user.
@@ -80,7 +80,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     assert_equal(1, myfiles["total"].to_i(), "Expected 1 file for simon on alfa.")
     
     #Try uploading as anonymous
-    @log.info("Check that Anon is denied ")
+    puts("Check that Anon is denied ")
     @s.switch_user(SlingUsers::User.anonymous)
     res = @s.execute_file_post(@s.url_for("sites/simon#{m}/_files"), "anon", "anon", "This is some random content: anonanon.", "text/plain") 
     if ( res.code == "200" )
@@ -95,7 +95,7 @@ class TC_MyFileTest < Test::Unit::TestCase
   
   def old_functionality
     m = Time.now.to_i.to_s
-    @log.info("Creating user simon"+m)
+    puts("Creating user simon"+m)
     simon = create_user("simon"+m)
     
     # Create a site for each user.
@@ -105,7 +105,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     # Upload 2 files for user simon.
     @s.switch_user(simon)
     res = @ff.upload("/sites/simon/_files/myFile.txt", "/sites/simon/myFile" )
-    @log.debug(res.body)
+    puts(res.body)
     assert_equal("200", res.code.to_s(), "Expected to upload a file.")
     file = JSON.parse(res.body)
     
@@ -133,7 +133,7 @@ class TC_MyFileTest < Test::Unit::TestCase
     assert_equal("2", myfiles["total"].to_s(), "Expected 2 files for simon.")
     
     
-    @log.info("Check that Anon is denied ")
+    puts("Check that Anon is denied ")
     @s.switch_user(SlingUsers::User.anonymous)
     res = @ff.upload("/sites/simon/_files/anon.txt", "/sites/simon/anon") 
     if ( res.code == "200" )
@@ -146,16 +146,16 @@ class TC_MyFileTest < Test::Unit::TestCase
   
   def teardown
     @created_users.each do |user|
-      #@s.debug = true
+      @s.debug = true
       @s.switch_user(user)
-      #@s.debug = false
+      @s.debug = false
     end
     
     @s.switch_user(SlingUsers::User.admin_user())
     
     @s.delete_file("http://localhost:8080/sites/simon")
     
-    @log.info("Deleted /sites/simon, /sites/ian, /sites/oszkar")
+    puts("Deleted /sites/simon, /sites/ian, /sites/oszkar")
     super
   end
   

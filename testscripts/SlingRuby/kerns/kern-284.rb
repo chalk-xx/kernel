@@ -48,7 +48,7 @@ class ContactCollisionTest < Test::Unit::TestCase
     for trial in trials
       threads << Thread.new(trial) do |t|
         s = Sling.new
-        #s.debug = true
+        s.debug = true
         cm = ContactManager.new(s)
         s.switch_user(t[0])
         res = cm.invite_contact(t[1].name, "friend")

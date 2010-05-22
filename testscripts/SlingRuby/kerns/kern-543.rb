@@ -22,14 +22,14 @@ class TC_Kern543Test < Test::Unit::TestCase
     siteid = sitecontainerid+sitename
     # the final url of the site
     @siteurl = @s.url_for(siteid)
-    @log.info("Site id is #{siteid} ")
+    puts("Site id is #{siteid} ")
     res = create_site(sitecontainerid,"Site "+m,sitename)
     assert_not_nil(res, "Expected site to be created ")
-    @log.info("Site path #{res} ")
+    puts("Site path #{res} ")
     
     res = @s.execute_get(@siteurl+".json");
     assert_equal("200",res.code,"Expectect to get site json at #{@siteurl}.json, result was #{res.body} ")
-    @log.debug(res.body)
+    puts(res.body)
     props = JSON.parse(res.body)
     assert_equal("sakai/site", props["sling:resourceType"], "Expected resource type to be set")
     
@@ -83,7 +83,7 @@ class TC_Kern543Test < Test::Unit::TestCase
     
     contentpath = upload_content(pagepath)
     
-    @log.info"--#{contentpath}--"
+    puts"--#{contentpath}--"
     res = @s.execute_post(@s.url_for("#{contentpath}.save.html"))
     assert_equal(200,res.code.to_i,"Expectect to be able to version the content, result was #{res.code} ")
     

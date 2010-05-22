@@ -24,7 +24,7 @@ class TC_Kern458Test < Test::Unit::TestCase
 
     res = @s.execute_get(@s.url_for(testnode+".json"))
     assert_equal("200",res.code)
-    @log.debug(res.body)
+    puts(res.body)
     props = JSON.parse(res.body)
     assert_equal("<script",props["badContent1"])
     assert_equal("<script>alert('gotya');</script>",props["badContent2"])

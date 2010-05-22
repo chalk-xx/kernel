@@ -11,20 +11,20 @@ class TC_Kern294Test < Test::Unit::TestCase
   def test_move
     m = Time.now.to_i.to_s
     n1 = create_node("test/d1#{m}")
-    #@s.debug = true
+    @s.debug = true
     res = @s.execute_post(@s.url_for(n1), { ":operation" => "move",
                                                  ":dest" => "d2#{m}" }) 
-    #@s.debug = false
+    @s.debug = false
     assert_equal("201", res.code, "Expected to be able to move node")
   end
 
   def test_move_at_root
     m = Time.now.to_i.to_s
     n1 = create_node("d1#{m}")
-    #@s.debug = true
+    @s.debug = true
     res = @s.execute_post(@s.url_for(n1), { ":operation" => "move",
                                                  ":dest" => "d2#{m}" }) 
-    #@s.debug = false
+    @s.debug = false
     assert_equal("201", res.code, "Expected to be able to move node")
   end
 

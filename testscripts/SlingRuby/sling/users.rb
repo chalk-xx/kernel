@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'digest/sha1'
-require 'logger'
 
 $USERMANAGER_URI="system/userManager/"
 $GROUP_URI="#{$USERMANAGER_URI}group.create.html"
@@ -11,7 +10,6 @@ $DEFAULT_PASSWORD="testuser"
 module SlingUsers
 
   class Principal
-
     attr_accessor :name
 
     def initialize(name)
@@ -206,13 +204,9 @@ module SlingUsers
 
   class UserManager
 
-    attr_accessor :log
-
     def initialize(sling)
       @sling = sling
       @date = Time.now().strftime("%Y%m%d%H%M%S")
-      @log = Logger.new(STDOUT)
-      @log.level = Logger::WARN
     end
 
     def delete_test_user(id)
@@ -223,7 +217,7 @@ module SlingUsers
       result = @sling.execute_post(@sling.url_for("#{User.url_for(username)}.delete.html"),
                                     { "go" => 1 })
       if (result.code.to_i > 299)
-        @log.info "Error deleting user"
+        puts "Error deleting user"
         return false
       end
       return true
@@ -233,7 +227,7 @@ module SlingUsers
       result = @sling.execute_post(@sling.url_for("#{Group.url_for(groupname)}.delete.html"),
                                     { "go" => 1 })
       if (result.code.to_i > 299)
-        @log.info "Error deleting group"
+        puts "Error deleting group"
         return false
       end
       return true
@@ -244,21 +238,21 @@ module SlingUsers
     end
 
     def create_user(username)
-      @log.info "Creating user: #{username}"
+      puts "Creating user: #{username}"
       user = User.new(username)
       result = @sling.execute_post(@sling.url_for("#{$USER_URI}"),
                             { ":name" => user.name,
                               "pwd" => user.password,
                               "pwdConfirm" => user.password })
       if (result.code.to_i > 299)
-        @log.info "Error creating user"
+        puts "Error creating user"
         return nil
       end
       return user
     end
 
     def create_group(groupname)
-      @log.info "Creating group: #{groupname}"
+      puts "Creating group: #{groupname}"
       group = Group.new(groupname)
       result = @sling.execute_post(@sling.url_for($GROUP_URI), { ":name" => group.name })
       if (result.code.to_i > 299)

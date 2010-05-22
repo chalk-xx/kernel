@@ -19,35 +19,35 @@ class TC_MyContactTest < Test::Unit::TestCase
 
   def test_connect_users
     m = Time.now.to_i.to_s
-    @log.info("Creating user aaron"+m)
+    puts("Creating user aaron"+m)
     a = create_user("aaron"+m)
-    @log.info("Creating user nico"+m)
+    puts("Creating user nico"+m)
     n = create_user("nico"+m)
-    @log.info("Creating user ian"+m)
+    puts("Creating user ian"+m)
     i = create_user("ian"+m)
     @s.switch_user(a)
-    @log.info("Aaron Adding Nico as a coworker and friend")
+    puts("Aaron Adding Nico as a coworker and friend")
     res = @cm.invite_contact("nico"+m, [ "coworker", "friend" ])
     assert_equal("200", res.code, "Expected to be able to request contact addition "+res.body)
-    @log.info("Checking that The invitation to Nico is pending")
+    puts("Checking that The invitation to Nico is pending")
     contacts = @cm.get_pending()
     assert_not_nil(contacts, "Expected to get contacts back")
     assert_equal(1, contacts["results"].size, "Expected single pending request back")
     contact = contacts["results"][0]
     assert_equal("nico"+m, contact["target"], "Expected nico to be my friend")
     assert_equal("PENDING", contact["details"]["sakai:state"], "Expected state to be 'PENDING'")
-    @log.info("Invitation from Aaron to Nico is present ")
+    puts("Invitation from Aaron to Nico is present ")
    
 
     @s.switch_user(n)
-    @log.info("Operating as Nico")
+    puts("Operating as Nico")
     contacts = @cm.get_invited()
     assert_not_nil(contacts, "Expected to get an invite back ")
     assert_equal(1, contacts["results"].size, "Only expecting a single invite for Nico ")
     contact = contacts["results"][0]
     assert_equal("aaron"+m,contact["target"], "Expected Aaron to be asking ")
     assert_equal("INVITED", contact["details"]["sakai:state"], "Expected state to be 'INVITED'") 
-    @log.info("Nico is accpting invitation from Aaron")
+    puts("Nico is accpting invitation from Aaron")
     res = @cm.accept_contact("aaron"+m)
     assert_equal("200", res.code, "Expecting acceptance of the contact")
     contacts = @cm.get_accepted()
@@ -58,7 +58,7 @@ class TC_MyContactTest < Test::Unit::TestCase
     assert_equal("ACCEPTED", contact["details"]["sakai:state"], "Expected state to be 'ACCEPTED'") 
 
     @s.switch_user(a)
-    @log.info("Operating as Aaron")
+    puts("Operating as Aaron")
     contacts = @cm.get_accepted()
     assert_not_nil(contacts, "Expected to get an accepted back ")
     assert_equal(1, contacts["results"].size, "Only expecting a single acceptance ")
