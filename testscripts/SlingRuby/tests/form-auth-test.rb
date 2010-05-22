@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
@@ -20,7 +19,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	puts(res.body)
+	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
@@ -32,7 +31,7 @@ class TC_FormAuthTest < Test::Unit::TestCase
 	props = JSON.parse(res.body)
 	# check the node really was last modified by the correct user.
 	assert_equal(u.name, props["jcr:lastModifiedBy"])
-	puts(res.body)
+	@log.debug(res.body)
   end
 
 

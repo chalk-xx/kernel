@@ -4,7 +4,6 @@ require 'sling/sling'
 require 'sling/test'
 require 'sling/authz'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 
@@ -41,11 +40,11 @@ module AuthZBase
 	ace = acl[principal]
 	if ( readGranted || writeGranted ) then
 	  assert_not_nil(ace["granted"],"Expected ace for #{principal} to have granted something granted ace was nil "+@authz.hashToString(acl))
-	  puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
+	  @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["granted"].to_s)
 	end
 	if ( !readGranted || !writeGranted ) then
       assert_not_nil(ace["denied"],"Expected ace for #{principal} to have denied something, denied was nil "+@authz.hashToString(acl))
-      puts("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
+      @log.info("ACE for user #{principal} was "+@authz.hashToString(ace)+":"+ace["denied"].to_s)
      end
 
         if ( readGranted ) then
@@ -84,7 +83,7 @@ module AuthZBase
 	res = @s.execute_post(@s.url_for(path+".html"),user.name => "testset")
 	if ( canWrite ) then
 		if ( res.code != "200" ) then
-			puts(res.body)
+			@log.debug(res.body)
 		end 
 		assert_equal("200",res.code,"Should have been able to write to the node as "+user.to_s()+because)
 	else

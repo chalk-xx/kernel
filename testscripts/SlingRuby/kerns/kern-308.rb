@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/sling'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 include SlingSearch
@@ -19,7 +18,7 @@ class TC_Kern308Test < Test::Unit::TestCase
 	g1t = create_group("g-group1-"+@m)
 	@s.switch_user(u)
 	g = create_group("g-group"+@m)
-        puts(g.details(@s))
+        @log.info(g.details(@s))
 	assert_not_nil(g,"Failed to create group node ")
         g.add_member(@s, n.name, "user")
 
@@ -44,8 +43,8 @@ class TC_Kern308Test < Test::Unit::TestCase
     res = g2.update_properties(@s, "rep:group-managers" => g1.name)
     assert_equal("200", res.code, "Expected to be able to make change to add the group manager in "+res.body)
     res = @s.execute_get(@s.url_for(Group.url_for(g2.name) + ".tidy.json"))
-	puts(res.body)
-    puts "Delegated admin property updated"
+	@log.debug(res.body)
+    @log.info "Delegated admin property updated"
     @s.switch_user(u1)
     res = g2.add_member(@s, u3.name, "user")
     assert_equal("200", res.code, "Expected to be able to make change")

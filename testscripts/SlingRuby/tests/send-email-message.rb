@@ -8,7 +8,6 @@ require 'sling/sling'
 require 'sling/test'
 require 'sling/message'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 
 include SlingMessage
 
@@ -33,7 +32,7 @@ class TC_OutgoingMessage < Test::Unit::TestCase
     user = "auser#{m}"
     a = @um.create_user(user)
 
-    puts "Sending mail to user #{user}"
+    @log.info "Sending mail to user #{user}"
     @mm.create("smtp:#{user}@example.com", 'smtp', 'outbox')
   end
 

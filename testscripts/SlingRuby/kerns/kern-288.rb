@@ -4,7 +4,6 @@ require 'sling/test'
 require 'sling/search'
 require 'sling/contacts'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingContacts
 
 class TC_Kern288Test < Test::Unit::TestCase

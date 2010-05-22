@@ -4,7 +4,6 @@ require 'sling/sling'
 require 'sling/test'
 require 'sling/authz'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 require 'authz-base.rb'
 include SlingInterface
 include SlingUsers
@@ -36,7 +35,7 @@ class TC_MyAuthZTest < Test::Unit::TestCase
 	create_user(user2)
 	create_group(group1)
 	create_group(group2)
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	
         updateAcl(path,user1,true,true)
@@ -95,7 +94,7 @@ class TC_MyAuthZTest < Test::Unit::TestCase
 	assert_equal(true,g3.has_member(@s,user6))
 	
 		
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	
 	# set all the acls
@@ -163,7 +162,7 @@ class TC_MyAuthZTest < Test::Unit::TestCase
 	assert_equal(true,g3.has_member(@s,user6))
 	
 		
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	childPath = path+"/childnode"
 	create_node(path+"/childnode","testchildproperty" => "testvalue")
@@ -236,7 +235,7 @@ def test_NodeAuthZChildPrivate
 	assert_equal(true,g3.has_member(@s,user6))
 	
 		
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"testproperty" => "testvalue")
 	childPath = path+"/childnode"
 	create_node(path+"/childnode","testchildproperty" => "testvalue")

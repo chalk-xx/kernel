@@ -2,7 +2,6 @@
 
 require 'sling/test'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
@@ -18,9 +17,9 @@ class TC_Kern740Test < Test::Unit::TestCase
     @s.trustedauth = false
     admin2 = User.new("admin","2admin2")
 	@s.switch_user(admin2)
-	puts("401 is Ok")
+	@log.info("401 is Ok")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?performing_teardown"))
-	puts("401 is Ok")
+	@log.info("401 is Ok")
 	admin2.change_password(@s,"admin")
 	super
   end
@@ -29,9 +28,9 @@ class TC_Kern740Test < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     @s.trustedauth = false
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Starting_Basic_AuthTest"))
-	puts("Changing Admin Password with Basic Auth")
+	@log.info("Changing Admin Password with Basic Auth")
 	runChangePassword("c")
-	puts("Done Changing Admin Password with Basic Auth")
+	@log.info("Done Changing Admin Password with Basic Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Basic_AuthTest"))
   end
 
@@ -48,7 +47,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	puts(res.body)
+	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(testUser.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m
@@ -101,9 +100,9 @@ class TC_Kern740Test < Test::Unit::TestCase
 	
 
 	
-	puts("Changing Admin Password with Trusted Auth")
+	@log.info("Changing Admin Password with Trusted Auth")
 	runChangePassword("d")
-	puts("Done Changing Admin Password with Trusted Auth")
+	@log.info("Done Changing Admin Password with Trusted Auth")
 	@s.execute_get(@s.url_for("/var/cluster/user.json?Done_Trusted_AuthTest"))
   end
 
@@ -178,7 +177,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	puts(res.body)
+	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(u, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+u+v

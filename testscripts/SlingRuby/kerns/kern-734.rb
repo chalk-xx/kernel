@@ -2,7 +2,6 @@
 
 require 'sling/test'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 include SlingUsers
 
@@ -56,7 +55,7 @@ class TC_Kern740Test < Test::Unit::TestCase
 	res = @s.execute_get(@s.url_for("/system/me"))
 	assert_equal("200",res.code)
 	props = JSON.parse(res.body)
-	puts(res.body)
+	@log.debug(res.body)
 	assert_not_nil(props["user"],"system me request failed, expected to find a user object")
 	assert_equal(testUser.name, props["user"]["userid"],"Authentication failed, didnt get expected user")
 	homeFolderTestFile = "/_user/"+props["user"]["userStoragePrefix"]+"testarea"+m+type

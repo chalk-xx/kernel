@@ -4,7 +4,6 @@ require 'sling/sling'
 require 'sling/test'
 require 'sling/authz'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 require 'authz-base.rb'
 include SlingInterface
 include SlingUsers
@@ -34,7 +33,7 @@ class TC_OwnerAuthZTest < Test::Unit::TestCase
 
 	admin = SlingUsers::User.admin_user()
 	
-	puts("Creating Node at #{path}")
+	@log.info("Creating Node at #{path}")
 	create_node(path,"jcr:mixinTypes" => "mix:created", "testproperty" => "testvalue")
 	
 	updateAcl(path,user1,true,true) # allow u1 to write, so we can create the sub node

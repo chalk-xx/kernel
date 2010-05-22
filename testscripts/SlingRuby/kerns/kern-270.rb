@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
 class TC_Kern270Test < Test::Unit::TestCase
@@ -14,7 +13,7 @@ class TC_Kern270Test < Test::Unit::TestCase
 	username = "testuser-#{m}"
 	groupname = "g-testgroup2-#{m}"
     u = create_user(username)
-    puts @s.get_node_props_json(SlingUsers::User.url_for(u.name))
+    @log.info @s.get_node_props_json(SlingUsers::User.url_for(u.name))
     g = create_group(groupname)
     g.add_member(@s, u.name, "user")
     res = u.update_properties(@s, "fish" => "cat")

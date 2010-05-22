@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/search'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
 class TC_Kern292Test < Test::Unit::TestCase
@@ -13,15 +12,15 @@ class TC_Kern292Test < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     g1 = create_group("g-testgroup1-#{m}")
     g2 = create_group("g-testgroup2-#{m}")
-	puts("adding group #{g1.name} to #{g2.name} ")
+    @log.info("adding group #{g1.name} to #{g2.name} ")
     res = g2.add_member(@s, g1.name, "group")
     assert_equal("200", res.code, "Expected first add to succeed")
     members = g2.members(@s)
     assert_equal(g1.name, members[0], "Expected member name to match")
-	@s.debug=true
-	puts("adding group #{g2.name} to #{g1.name} ")
+    #@s.debug=true
+    @log.info("adding group #{g2.name} to #{g1.name} ")
     res = g1.add_member(@s, g2.name, "group")
-	@s.debug=false
+    #@s.debug=false
     ## assert_equal("500", res.code, "Expected second add to fail"), in JR2 this does not fail, but it does not add.
     assert_equal("200", res.code, "Expected second add to be Ok")
     members = g1.members(@s)
@@ -32,7 +31,7 @@ class TC_Kern292Test < Test::Unit::TestCase
     m = Time.now.to_i.to_s
     g1 = create_group("g-testgroup3-#{m}")
     g2 = create_group("g-testgroup4-#{m}")
-	puts("Adding #{g1.name} to #{g2.name} ")
+    @log.info("Adding #{g1.name} to #{g2.name} ")
     res = g2.add_member(@s, g1.name, "group")
     assert_equal("200", res.code, "Expected first add to succeed")
     members = g2.members(@s)
