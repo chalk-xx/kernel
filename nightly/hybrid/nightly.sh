@@ -76,7 +76,7 @@ then
 else
     echo "Building nakamura@$K2_TAG..."
     git clone -q git://github.com/ieb/open-experiments.git
-    cd open-experiments/slingtests/osgikernel/
+    cd open-experiments
     git checkout -b $K2_TAG
     mvn -B -e clean install -Dmaven.test.skip=true
     date > .lastbuild
