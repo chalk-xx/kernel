@@ -112,6 +112,11 @@ public class ResponseWrapper extends SlingHttpServletResponseWrapper {
   }
 
   @Override
+  public void setContentLength(int len) {
+    headers.put("Content-Length", Integer.toString(len));
+  }
+
+  @Override
   public void reset() {
   }
 
