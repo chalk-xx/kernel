@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/sling'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 include SlingSearch

@@ -3,7 +3,6 @@
 require 'sling/sling'
 require 'sling/test'
 require 'sling/contacts'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingContacts
 

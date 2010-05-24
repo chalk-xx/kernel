@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'sling/test'
-require 'test/unit/ui/console/testrunner.rb'
 
 class TC_Kern693Test < Test::Unit::TestCase
   include SlingTest

@@ -42,7 +42,7 @@ cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
-cd open-experiments/slingtests/osgikernel/
+cd open-experiments
 git checkout -b $K2_TAG
 mvn -B -e clean install -Dmaven.test.skip=true
 

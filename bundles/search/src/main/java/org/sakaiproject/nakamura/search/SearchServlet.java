@@ -421,9 +421,9 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           if (v.startsWith("_")) {
             String value = propertiesMap.get(v);
             if (value != null) {
-              sb.append(escapeString(value, queryLanguage));
+              sb.append(value);
             } else if (value == null && defaultValue != null) {
-              sb.append(escapeString(defaultValue, queryLanguage));
+              sb.append(defaultValue);
             }
           } else {
 
