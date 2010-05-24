@@ -60,7 +60,7 @@ if [[ -f last-release/stage1 ]]
 then
    echo "Release has been built, continuing ... (to start again remove last-release/stage1) "
 else
-  listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v "do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
+  listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v ".git|do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
   listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
   set +o errexit
   hascommits=`git status -uno | grep -c "nothing to commit"`
@@ -202,7 +202,7 @@ patch -p3 -R < last-release/changeversion.diff
 if [ $rc == "" ]
 then
   # There was no RC provided, this means we go from 0.2-SNAPSHOT -> 0.2 (tag) -> 0.3-SNAPSHOT
-  listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v "do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
+  listofpoms=`find . -exec grep -l SNAPSHOT {} \;| egrep -v ".git|do_release.sh|target|binary/release|uxloader/src/main/resources|last-release|cachedir"`
   listofpomswithversion=`grep -l $cversion-SNAPSHOT $listofpoms`
   for i in $listofpomswithversion
   do
