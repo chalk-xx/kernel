@@ -39,7 +39,7 @@ import javax.security.auth.login.FailedLoginException;
  * <code>SimpleCredentials</code> attributed with the special authentication
  * data provided by the {@link org.sakaiproject.nakamura.auth.ldap.LdapAuthenticationHandler}.
  */
-@Component(enabled = false)
+@Component
 @Service
 public class LdapLoginModulePlugin implements LoginModulePlugin {
   @Reference
@@ -51,7 +51,7 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
   LdapLoginModulePlugin(LdapAuthenticationPlugin authPlugin) {
     this.authPlugin = authPlugin;
   }
-  
+
   /**
    * {@inheritDoc}
    *
