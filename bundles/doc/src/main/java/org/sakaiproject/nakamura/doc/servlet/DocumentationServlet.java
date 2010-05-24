@@ -17,13 +17,12 @@
  */
 package org.sakaiproject.nakamura.doc.servlet;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.DocumentationConstants;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
@@ -72,7 +71,8 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
    * 
    */
   private static final long serialVersionUID = -6622263132868029827L;
-  protected transient ServletDocumentationTracker servletTracker;
+  @Reference
+  protected transient ServletDocumentationRegistry servletDocumentationRegistry;
 
   /**
    * {@inheritDoc}
@@ -88,7 +88,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
       sendIndex(response);
     } else {
 
-      ServletDocumentation doc = servletTracker.getServletDocumentation().get(
+      ServletDocumentation doc = servletDocumentationRegistry.getServletDocumentation().get(
           p.getString());
       if (doc == null) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -99,18 +99,6 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
     return;
   }
 
-  protected void activate(ComponentContext context) {
-    BundleContext bundleContext = context.getBundleContext();
-    servletTracker = new ServletDocumentationTracker(bundleContext);
-    servletTracker.open();
-  }
-
-  protected void deactivate(ComponentContext context) {
-    if (servletTracker != null) {
-      servletTracker.close();
-      servletTracker = null;
-    }
-  }
 
   /**
    * @param response
@@ -121,7 +109,7 @@ public class DocumentationServlet extends SlingSafeMethodsServlet {
     writer.append(DocumentationConstants.HTML_HEADER);
     writer.append("<h1>List of Services</h1>");
     writer.append("<ul>");
-    Map<String, ServletDocumentation> m = servletTracker.getServletDocumentation();
+    Map<String, ServletDocumentation> m = servletDocumentationRegistry.getServletDocumentation();
     List<ServletDocumentation> o = new ArrayList<ServletDocumentation>(m.values());
     Collections.sort(o);
     for (ServletDocumentation k : o) {
