@@ -1,11 +1,11 @@
-package org.sakaiproject.nakamura.ldap;
+package org.sakaiproject.nakamura.api.ldap;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
 import com.novell.ldap.LDAPJSSEStartTLSFactory;
 import com.novell.ldap.LDAPSocketFactory;
 
-import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
+import org.sakaiproject.nakamura.ldap.LdapX509TrustManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
