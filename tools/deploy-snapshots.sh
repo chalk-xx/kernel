@@ -43,6 +43,13 @@ install "org.apache.sling.jcr.webdav" "2.0.9" $version
 install "org.apache.sling.jcr.davex" "0.9.0" $version
 install "org.apache.sling.jcr.jackrabbit.server" "2.0.7" $version
 install "org.apache.sling.commons.testing" "2.0.5" $version
+install "org.apache.sling.jcr.jackrabbit.usermanager" "2.0.5" $version
+install "org.apache.sling.httpauth" "2.0.5" $version
+install "org.apache.sling.servlets.post" "2.0.5" $version
+install "org.apache.sling.launchpad.content" "2.0.5" $version
+install "org.apache.sling.commons.json" "2.0.5" $version
+install "org.apache.sling.jcr.jackrabbit.accessmanager" "2.0.5" $version
+install "org.apache.sling.jcr.classloader" "3.1.1" $version
 
 
 pushd $repo
