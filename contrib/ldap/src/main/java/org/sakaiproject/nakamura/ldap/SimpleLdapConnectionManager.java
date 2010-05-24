@@ -24,7 +24,6 @@ import com.novell.ldap.LDAPSocketFactory;
 
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +94,7 @@ public class SimpleLdapConnectionManager implements LdapConnectionManager {
   protected LDAPConnection newLDAPConnection() {
     verifySetup();
 
-    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(config);
+    LDAPSocketFactory ldapSocketFactory = LdapSecurityUtil.initLDAPSocketFactory(config);
     LDAPConnection conn = new LDAPConnection(ldapSocketFactory);
     return conn;
   }
