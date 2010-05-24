@@ -26,7 +26,6 @@ import org.apache.commons.pool.PoolableObjectFactory;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionLivenessValidator;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManagerConfig;
-import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +64,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   public void setLivenessValidators(List<LdapConnectionLivenessValidator> validators) {
     this.validators = validators;
   }
-  
+
   /**
    * Constructs a new PooledLDAPConnection object, including: passing it the
    * connection manager so it can return itself to the pool if it falls out of
@@ -111,7 +110,8 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
   }
 
   protected PooledLDAPConnection newConnection() {
-    LDAPSocketFactory ldapSocketFactory = LdapUtil.initLDAPSocketFactory(mgr.getConfig());
+    LDAPSocketFactory ldapSocketFactory = LdapSecurityUtil.initLDAPSocketFactory(mgr
+        .getConfig());
     PooledLDAPConnection conn = new PooledLDAPConnection(ldapSocketFactory);
     return conn;
   }
@@ -277,7 +277,7 @@ public class PooledLDAPConnectionFactory implements PoolableObjectFactory {
     standardConstraints = new LDAPConstraints();
     standardConstraints.setTimeLimit(config.getOperationTimeout());
     standardConstraints.setReferralFollowing(config.isFollowReferrals());
-    
+
     this.mgr = connectionManager;
   }
 }
