@@ -15,7 +15,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.sakaiproject.nakamura.api.ldap.LdapConnectionManager;
-import org.sakaiproject.nakamura.ldap.LdapUtil;
+import org.sakaiproject.nakamura.api.ldap.LdapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
