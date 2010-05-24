@@ -42,6 +42,7 @@ install "org.apache.sling.jcr.base" "2.0.7" $version
 install "org.apache.sling.jcr.webdav" "2.0.9" $version
 install "org.apache.sling.jcr.davex" "0.9.0" $version
 install "org.apache.sling.jcr.jackrabbit.server" "2.0.7" $version
+install "org.apache.sling.commons.testing" "2.0.5" $version
 
 
 pushd $repo
