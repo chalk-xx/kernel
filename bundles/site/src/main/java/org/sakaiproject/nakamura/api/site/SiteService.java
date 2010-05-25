@@ -57,6 +57,11 @@ public interface SiteService {
    */
   public static final String JOINABLE = "sakai:joinable";
 
+   /**
+   * The property used to store the type of site.(e.g. portfolio, course, other)
+   */
+  public static final String SAKAI_SITE_TYPE = "sakai:site-type";
+
   /**
    * The property used to store the sites a group is associated with.
    */
