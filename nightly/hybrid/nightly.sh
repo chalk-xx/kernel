@@ -6,7 +6,7 @@
 
 export K2_TAG="0.4"
 export S2_TAG="tags/sakai-2.7.0-b06"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.4.jar"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.5-SNAPSHOT.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -76,11 +76,9 @@ then
 else
     echo "Building nakamura@$K2_TAG..."
     git clone -q git://github.com/ieb/open-experiments.git
-    cd open-experiments/slingtests/osgikernel/
+    cd open-experiments
     git checkout -b $K2_TAG
-    # work around instance not listening on port 80
-    #perl -pwi -e 's/localhost/localhost:8080/g' bundles/proxy/src/main/resources/SLING-INF/content/var/proxy/s23/*.json
-    mvn -e clean install -Dmaven.test.skip=true
+    mvn -B -e clean install -Dmaven.test.skip=true
     date > .lastbuild
 fi
 
@@ -117,7 +115,7 @@ else
     cp -R $BUILD_DIR/sakai3/open-experiments/hybrid .
     find hybrid -name pom.xml -exec perl -pwi -e 's/2\.8-SNAPSHOT/2\.7-SNAPSHOT/g' {} \;
     perl -pwi -e 's/<\/modules>/<module>hybrid<\/module><\/modules>/gi' pom.xml
-    mvn -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
+    mvn -B -e clean install sakai:deploy -Dmaven.test.skip=true -Dmaven.tomcat.home=$BUILD_DIR/sakai2-demo
     # configure sakai 2 instance
     cd $BUILD_DIR
     cp -f server.xml sakai2-demo/conf/server.xml 
@@ -135,6 +133,7 @@ else
     echo "login.k2.authentication.vaildateUrl=http://localhost:8008/var/cluster/user.cookie.json?c=" >> sakai2-demo/sakai/sakai.properties
     # declare shared secret for trusted login from K2
     echo "org.sakaiproject.util.TrustedLoginFilter.sharedSecret=e2KS54H35j6vS5Z38nK40" >> sakai2-demo/sakai/sakai.properties
+    echo "org.sakaiproject.util.TrustedLoginFilter.safeHosts=localhost;127.0.0.1" >> sakai2-demo/sakai/sakai.properties
     date > $BUILD_DIR/sakai/.lastbuild
 fi
 

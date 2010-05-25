@@ -33,6 +33,7 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.SessionManager;
@@ -49,8 +50,8 @@ import org.sakaiproject.tool.api.SessionManager;
 public class SitesServlet extends HttpServlet {
 	private static final long serialVersionUID = 7907409301065984518L;
 	private static final Log LOG = LogFactory.getLog(SitesServlet.class);
-	private SessionManager sessionManager;
-	private SiteService siteService;
+	private transient SessionManager sessionManager;
+	private transient SiteService siteService;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -93,12 +94,13 @@ public class SitesServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
-		sessionManager = org.sakaiproject.tool.cover.SessionManager
-				.getInstance();
+		sessionManager = (SessionManager) ComponentManager
+				.get(org.sakaiproject.tool.api.SessionManager.class);
 		if (sessionManager == null) {
 			throw new IllegalStateException("SessionManager == null");
 		}
-		siteService = org.sakaiproject.site.cover.SiteService.getInstance();
+		siteService = (SiteService) ComponentManager
+				.get(org.sakaiproject.site.api.SiteService.class);
 		if (siteService == null) {
 			throw new IllegalStateException("SiteService == null");
 		}

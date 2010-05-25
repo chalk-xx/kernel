@@ -30,6 +30,7 @@
       </activation>
       <modules>
         <module>hybrid</module>
+        <module>hybrid-util</module>
       </modules>
       <dependencyManagement>
         <dependencies>
@@ -47,6 +48,7 @@
       <id>pre-kernel</id>
       <modules>
         <module>hybrid</module>
+        <module>hybrid-util</module>
         <module>pre-kernel</module>
       </modules>
       <dependencyManagement>
@@ -83,7 +85,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.4-SNAPSHOT</version>
+      <version>0.5-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
