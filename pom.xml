@@ -85,6 +85,7 @@
         <module>bundles/woodstox</module>
         <module>bundles/calendar</module>
         <module>bundles/antixss</module>
+        <module>bundles/authz</module>
       </modules>
     </profile>
     <profile>
