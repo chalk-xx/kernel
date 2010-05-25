@@ -18,11 +18,8 @@
 package org.sakaiproject.nakamura.sitetemplate;
 
 import static org.apache.jackrabbit.JcrConstants.JCR_MIXINTYPES;
-
 import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_COPY_FROM;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_MOVE_FROM;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
