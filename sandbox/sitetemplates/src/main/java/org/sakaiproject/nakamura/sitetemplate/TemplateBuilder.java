@@ -521,7 +521,8 @@ public class TemplateBuilder {
       }
     } catch (JSONException e) {
       LOGGER.error("Provided JSON does not compute with the template.", e);
-      throw new IllegalArgumentException("Provided JSON does not compute with the template.");
+      throw new IllegalArgumentException(
+          "Provided JSON does not compute with the template.");
     }
     return o;
   }
