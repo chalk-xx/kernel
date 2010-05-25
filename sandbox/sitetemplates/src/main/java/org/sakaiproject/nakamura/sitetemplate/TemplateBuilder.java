@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.sitetemplate;
 
+import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import org.apache.commons.lang.StringUtils;
@@ -79,7 +80,6 @@ public class TemplateBuilder {
     defaultPropertiesToIgnore = new ArrayList<String>();
     defaultPropertiesToIgnore.add("sakai:template-group");
     defaultPropertiesToIgnore.add("sakai:template-groups");
-    defaultPropertiesToIgnore.add("jcr:primaryType");
     defaultPropertiesToIgnore.add("jcr:createdBy");
     defaultPropertiesToIgnore.add("jcr:created");
     defaultPropertiesToIgnore.add("jcr:lastModifedBy");
@@ -131,6 +131,7 @@ public class TemplateBuilder {
     List<String> propertiesToIgnore = new ArrayList<String>();
     propertiesToIgnore.addAll(defaultPropertiesToIgnore);
     propertiesToIgnore.add(GROUPS_PROPERTY_MEMBERS);
+    propertiesToIgnore.add(JCR_PRIMARYTYPE);
 
     // Loop over the groups and add them to the map.
     while (resources.hasNext()) {
@@ -318,6 +319,7 @@ public class TemplateBuilder {
 
             }
           } catch (Throwable t) {
+            LOGGER.error("Provided JSON does not compute with the template.", t);
             break;
           }
         }
@@ -329,10 +331,12 @@ public class TemplateBuilder {
         // Check if this node is a special node.
         // ie: an ACE node.
         // This can be checked by looking at the sling:resourceType
+        String rt = "";
         if (child.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
-          if (child.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_ACE)) {
-            handleACENode(child, map);
-          }
+          rt = child.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString();
+        }
+        if (rt.equals(RT_ACE)) {
+          handleACENode(child, map);
         } else {
           // Handle this node.
           Map<String, Object> childMap = new HashMap<String, Object>();
@@ -516,8 +520,8 @@ public class TemplateBuilder {
         }
       }
     } catch (JSONException e) {
-      throw new IllegalArgumentException(
-          "Provided JSON does not compute with the template.");
+      LOGGER.error("Provided JSON does not compute with the template.", e);
+      throw new IllegalArgumentException("Provided JSON does not compute with the template.");
     }
     return o;
   }

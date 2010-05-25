@@ -17,6 +17,10 @@
  */
 package org.sakaiproject.nakamura.sitetemplate;
 
+import static org.apache.jackrabbit.JcrConstants.JCR_MIXINTYPES;
+
+import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_COPY_FROM;
@@ -245,33 +249,37 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       // Create the groups.
       createGroups(builder, adminSession, siteNode);
 
+      // We get the site node trough our own session, so we can modify it.
+      // siteNode = session.getNode(sitePath);
+      // Create the site structure.
+      createSiteStructure(builder, siteNode, adminSession);
+
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
-      siteNode = null;
+
+      return siteNode;
     } finally {
       if (adminSession != null)
         adminSession.logout();
     }
-
-    // We get the site node trough our own session, so we can modify it.
-    siteNode = session.getNode(sitePath);
-    // Create the site structure.
-    createSiteStructure(builder, siteNode);
-    return siteNode;
   }
 
   /**
    * Creates the structure for the site.
    * 
    * @param builder
+   *          The TemplateBuilder that contains the Map of nodes that needs to be created.
    * @param siteNode
+   *          The Node that represents the site.
+   * @param adminSession
+   *          The admin session, this will only be used for setting ACLs.
    * @throws RepositoryException
    */
-  private void createSiteStructure(TemplateBuilder builder, Node siteNode)
-      throws RepositoryException {
+  private void createSiteStructure(TemplateBuilder builder, Node siteNode,
+      Session adminSession) throws RepositoryException {
     Map<String, Object> structure = builder.getSiteMap();
-    handleNode(structure, siteNode);
+    handleNode(structure, siteNode, adminSession);
   }
 
   /**
@@ -285,47 +293,56 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  private void handleNode(Map<String, Object> structure, Node node)
+  private void handleNode(Map<String, Object> structure, Node node, Session adminSession)
       throws RepositoryException {
     Session session = node.getSession();
     // Handle the ACEs before we do anything else.
     if (structure.containsKey("rep:policy")) {
       List<ACE> lst = (List<ACE>) structure.get("rep:policy");
       for (ACE ace : lst) {
-        AccessControlUtil.replaceAccessControlEntry(session, node.getPath(), ace
+        AccessControlUtil.replaceAccessControlEntry(adminSession, node.getPath(), ace
             .getPrincipal(), ace.getGrantedPrivileges(), ace.getDeniedPrivileges(), null,
             null);
       }
       // We have to do a save for the ACEs to get picked up.
-      if (session.hasPendingChanges()) {
-        session.save();
+      if (adminSession.hasPendingChanges()) {
+        adminSession.save();
+      }
+      session.refresh(true);
+    }
+    if (structure.containsKey(JCR_MIXINTYPES)) {
+      Value[] mixins = (Value[]) structure.get(JCR_MIXINTYPES);
+      for (Value v : mixins) {
+        String mixin = v.getString();
+        if (node.canAddMixin(mixin)) {
+          node.addMixin(v.getString());
+        }
       }
     }
 
     for (Entry<String, Object> entry : structure.entrySet()) {
 
+      String key = entry.getKey();
+      if (key.equals(JCR_PRIMARYTYPE) || key.equals(JCR_MIXINTYPES)) {
+        continue;
+      }
+
       // Handle the properties ..
       if (entry.getValue() instanceof Value) {
-        node.setProperty(entry.getKey(), (Value) entry.getValue());
+        node.setProperty(key, (Value) entry.getValue());
       } else if (entry.getValue() instanceof Value[]) {
-        String name = entry.getKey();
-        if (name.equals(JcrConstants.JCR_MIXINTYPES)) {
-          for (Value v : (Value[]) entry.getValue()) {
-            String mixin = v.getString();
-            if (node.canAddMixin(mixin)) {
-              node.addMixin(v.getString());
-            }
-          }
-        } else {
-          node.setProperty(entry.getKey(), (Value[]) entry.getValue());
-        }
+        node.setProperty(key, (Value[]) entry.getValue());
       }
 
       // Handle the child nodes.
       else if (entry.getValue() instanceof Map<?, ?>) {
         Map<String, Object> map = (Map<String, Object>) entry.getValue();
-        Node childNode = node.addNode(entry.getKey());
-        handleNode(map, childNode);
+        String nt = "nt:unstructured";
+        if (map.containsKey(JcrConstants.JCR_PRIMARYTYPE)) {
+          nt = ((Value) map.get(JCR_PRIMARYTYPE)).getString();
+        }
+        Node childNode = node.addNode(key, nt);
+        handleNode(map, childNode, adminSession);
       }
     }
   }
@@ -341,7 +358,12 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
   private void createGroups(TemplateBuilder builder, Session session, Node siteNode)
       throws RepositoryException {
 
-    Node groupNodes = siteNode.addNode(GROUPS_SITE_NODENAME);
+    Node groupNodes = null;
+    if (siteNode.hasNode(GROUPS_SITE_NODENAME)) {
+      groupNodes = siteNode.getNode(GROUPS_SITE_NODENAME);
+    } else {
+      groupNodes = siteNode.addNode(GROUPS_SITE_NODENAME);
+    }
 
     UserManager um = AccessControlUtil.getUserManager(session);
     Map<Principal, Map<String, Object>> groups = builder.getGroups();
@@ -379,7 +401,14 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
         Value v = (Value) map.get(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER);
         isMaintainer = v.getBoolean();
       }
-      Node groupNode = groupNodes.addNode(GROUPS_SITE_NODENAME_GROUP + i);
+
+      Node groupNode = null;
+      if (groupNodes.hasNode(GROUPS_SITE_NODENAME_GROUP + i)) {
+        groupNode = groupNodes.getNode(GROUPS_SITE_NODENAME_GROUP + i);
+      } else {
+        groupNode = groupNodes.addNode(GROUPS_SITE_NODENAME_GROUP + i);
+      }
+
       groupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/site-group");
       groupNode.setProperty(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER, isMaintainer);
       i++;
