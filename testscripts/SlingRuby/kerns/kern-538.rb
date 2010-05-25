@@ -2,7 +2,6 @@
 
 require 'sling/test'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingSearch
 
 class TC_Kern538Test < Test::Unit::TestCase

@@ -69,6 +69,13 @@ import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.imsglobal.basiclti.BasicLTIConstants;
 import org.imsglobal.basiclti.BasicLTIUtil;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,14 +112,32 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
+@ServiceDocumentation(name = "BasicLTIConsumerServlet", shortDescription = "Performs all activities related to BasicLTI functionality.", description = "Performs all activities related to BasicLTI functionality.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/basiclti", extensions = {
+    @ServiceExtension(name = "json", description = "This is the default return type if none is specified."),
+    @ServiceExtension(name = "html", description = "Useful only in the context of a .launch selector and the preferred return type in that case.") }, selectors = @ServiceSelector(name = "launch", description = "Used to retrieve the launch data for a BasicLTI launch (i.e. invocation of the service).")), methods = {
+    @ServiceMethod(name = "GET", description = "Get information about a sakai/basiclti resource.", response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
+    @ServiceMethod(name = "POST", description = "Get information about current user.", response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "Multi-valued parameters are not supported."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
+    @ServiceMethod(name = "PUT", description = "The PUT method is not supported for sakai/basiclti nodes.", response = { @ServiceResponse(code = HttpServletResponse.SC_METHOD_NOT_ALLOWED, description = "PUT method not allowed.") }),
+    @ServiceMethod(name = "DELETE", description = "Delete a sakai/basiclti node and its corresponding data.", response = {
+        @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Everything was deleted as expected"),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
+        @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Unauthorized: The current user does not have permissions to delete the data."),
+        @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to delete the node due to a runtime error.") }) })
 @SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = 5985490994324951127L;
   private static final Logger LOG = LoggerFactory
       .getLogger(BasicLTIConsumerServlet.class);
   /**
-   * A {@link Map} containing all of the known application settings and their
-   * associated locking keys.
+   * A {@link Map} containing all of the known application settings and their associated
+   * locking keys.
    */
   private transient Map<String, String> applicationSettings = null;
   /**
@@ -164,8 +189,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     applicationSettings.put(DEBUG, DEBUG_LOCK);
     applicationSettings.put(RELEASE_NAMES, RELEASE_NAMES_LOCK);
     applicationSettings.put(RELEASE_EMAIL, RELEASE_EMAIL_LOCK);
-    applicationSettings
-        .put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
+    applicationSettings.put(RELEASE_PRINCIPAL_NAME, RELEASE_PRINCIPAL_NAME_LOCK);
 
     Session adminSession = null;
     try {
@@ -198,8 +222,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           }
         }
       } else {
-        throw new IllegalStateException("Node does not exist: "
-            + GLOBAL_SETTINGS);
+        throw new IllegalStateException("Node does not exist: " + GLOBAL_SETTINGS);
       }
     } catch (RepositoryException e) {
       throw new Error(e);
@@ -210,8 +233,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     }
     if (instanceContactEmail == null || instanceDescription == null
         || instanceGuid == null || instanceName == null || instanceUrl == null) {
-      throw new IllegalStateException(
-          "Missing one or more required global settings!");
+      throw new IllegalStateException("Missing one or more required global settings!");
     }
   }
 
@@ -222,8 +244,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
     LOG
         .debug("doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final String[] selectors = request.getRequestPathInfo().getSelectors();
@@ -239,26 +261,25 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       if (extension == null || "json".equals(extension)) {
         final Resource resource = request.getResource();
         if (resource == null) {
-          sendError(HttpServletResponse.SC_NOT_FOUND,
-              "Resource could not be found", new Error(
-                  "Resource could not be found"), response);
+          sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
+              new Error("Resource could not be found"), response);
           return;
         }
         final Node node = resource.adaptTo(Node.class);
         try {
           response.setContentType("application/json");
           final Map<String, Object> settings = readProperties(node);
-          final Session session = request.getResourceResolver().adaptTo(
-              Session.class);
+          final Session session = request.getResourceResolver().adaptTo(Session.class);
           if (canManageSettings(node.getPath(), session)) {
             settings.putAll(readSensitiveNode(node));
           }
           renderJson(response.getWriter(), settings);
         } catch (Exception e) {
-          sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-              .getLocalizedMessage(), e, response);
+          sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+              e.getLocalizedMessage(), e, response);
         }
       }
+      response.setStatus(HttpServletResponse.SC_OK);
     }
   }
 
@@ -268,13 +289,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .debug("doLaunch(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final Resource resource = request.getResource();
     if (resource == null) {
-      sendError(HttpServletResponse.SC_NOT_FOUND,
-          "Resource could not be found", new Error(
-              "Resource could not be found"), response);
+      sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
+          new Error("Resource could not be found"), response);
     }
     final Node node = resource.adaptTo(Node.class);
-    final Session session = request.getResourceResolver()
-        .adaptTo(Session.class);
+    final Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
       // FIXME Work with UX team to develop virtual widget model.
       final String vtoolId = "basiclti";
@@ -293,20 +312,18 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         final Node adminNode = (Node) session.getItem(adminNodePath);
         adminSettings = getLaunchSettings(adminNode);
       } else {
-        LOG
-            .debug(
-                "No administrative settings found for virtual tool: {}. No policy to apply.",
-                vtoolId);
+        LOG.debug(
+            "No administrative settings found for virtual tool: {}. No policy to apply.",
+            vtoolId);
         adminSettings = Collections.emptyMap();
       }
       final Map<String, Object> userSettings = getLaunchSettings(node);
 
       // merge admin and user properties
-      final Map<String, Object> effectiveSettings = new HashMap<String, Object>(
-          Math.max(adminSettings.size(), userSettings.size()));
+      final Map<String, Object> effectiveSettings = new HashMap<String, Object>(Math.max(
+          adminSettings.size(), userSettings.size()));
       for (final String setting : applicationSettings.keySet()) {
-        effectiveSetting(setting, effectiveSettings, adminSettings,
-            userSettings);
+        effectiveSetting(setting, effectiveSettings, adminSettings, userSettings);
       }
 
       final Map<String, String> launchProps = new HashMap<String, String>();
@@ -315,8 +332,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String ltiUrl = (String) effectiveSettings.get(LTI_URL);
       if (ltiUrl == null || "".equals(ltiUrl)) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_URL
-            + " cannot be null", new IllegalArgumentException(LTI_URL
-            + " cannot be null"), response);
+            + " cannot be null",
+            new IllegalArgumentException(LTI_URL + " cannot be null"), response);
         return;
       }
       // LTI_SECRET
@@ -331,8 +348,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       final String ltiKey = (String) effectiveSettings.get(LTI_KEY);
       if (ltiKey == null || "".equals(ltiKey)) {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, LTI_KEY
-            + " cannot be null", new IllegalArgumentException(LTI_KEY
-            + " cannot be null"), response);
+            + " cannot be null",
+            new IllegalArgumentException(LTI_KEY + " cannot be null"), response);
         return;
       }
 
@@ -369,8 +386,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           .getAccessControlManager(session);
       final Privilege[] modifyACLs = { accessControlManager
           .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL) };
-      boolean canManageSite = accessControlManager.hasPrivileges(sitePath,
-          modifyACLs);
+      boolean canManageSite = accessControlManager.hasPrivileges(sitePath, modifyACLs);
       LOG.info("hasPrivileges(modifyAccessControl)=" + canManageSite);
       if ("anonymous".equals(session.getUserID())) {
         launchProps.put(ROLES, "None");
@@ -380,8 +396,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         launchProps.put(ROLES, "Learner");
       }
 
-      final boolean releaseNames = (Boolean) effectiveSettings
-          .get(RELEASE_NAMES);
+      final boolean releaseNames = (Boolean) effectiveSettings.get(RELEASE_NAMES);
       if (releaseNames) {
         String firstName = null;
         if (az.hasProperty("firstName")) {
@@ -408,8 +423,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
       }
 
-      final boolean releaseEmail = (Boolean) effectiveSettings
-          .get(RELEASE_EMAIL);
+      final boolean releaseEmail = (Boolean) effectiveSettings.get(RELEASE_EMAIL);
       if (releaseEmail) {
         if (az.hasProperty("email")) {
           final String email = az.getProperty("email")[0].getString();
@@ -417,8 +431,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
       }
 
-      launchProps.put(LAUNCH_PRESENTATION_LOCALE, request.getLocale()
-          .toString());
+      launchProps.put(LAUNCH_PRESENTATION_LOCALE, request.getLocale().toString());
 
       // we will always launch in an iframe for the time being
       launchProps.put(LAUNCH_PRESENTATION_DOCUMENT_TARGET, "iframe");
@@ -431,28 +444,28 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       launchProps.put("simple_key", "custom_simple_value");
       launchProps.put("Complex!@#$^*(){}[]KEY", "Complex!@#$^*(){}[]Value");
 
-      final Map<String, String> cleanProps = BasicLTIUtil.cleanupProperties(
-          launchProps, BLACKLIST);
+      final Map<String, String> cleanProps = BasicLTIUtil.cleanupProperties(launchProps,
+          BLACKLIST);
       final Map<String, String> signedProperties = BasicLTIUtil.signProperties(
           cleanProps, ltiUrl, "POST", ltiKey, ltiSecret, instanceGuid,
           instanceDescription, instanceUrl, instanceName, instanceContactEmail);
       final String extension = request.getRequestPathInfo().getExtension();
       if ("html".equalsIgnoreCase(extension)) { // return html
-        final String html = BasicLTIUtil.postLaunchHTML(signedProperties,
-            ltiUrl, debug);
+        final String html = BasicLTIUtil.postLaunchHTML(signedProperties, ltiUrl, debug);
         response.getWriter().write(html);
       } else { // return json
         renderJson(response.getWriter(), ltiUrl, signedProperties);
       }
     } catch (Throwable e) {
-      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getLocalizedMessage(), e, response);
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
+          response);
     }
+    response.setStatus(HttpServletResponse.SC_OK);
   }
 
   /**
-   * Intended for nodes of <code>sling:resourceType=sakai/basiclti</code> - i.e.
-   * not sensitive nodes.
+   * Intended for nodes of <code>sling:resourceType=sakai/basiclti</code> - i.e. not
+   * sensitive nodes.
    * 
    * @param node
    * @return
@@ -462,8 +475,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       throws RepositoryException {
     final Map<String, Object> settings = readProperties(node);
     // sanity check for sensitive data in settings node
-    final List<String> keysToRemove = new ArrayList<String>(sensitiveKeys
-        .size());
+    final List<String> keysToRemove = new ArrayList<String>(sensitiveKeys.size());
     for (final Entry<String, Object> entry : settings.entrySet()) {
       final String key = entry.getKey();
       if (sensitiveKeys.contains(key)) {
@@ -480,23 +492,20 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Simple helper method to read Node Properties into a
-   * <code>Map<String, String></code>. No sanity checking is performed for
-   * issues regarding sensitive data exposure.
+   * Simple helper method to read Node Properties into a <code>Map<String, String></code>.
+   * No sanity checking is performed for issues regarding sensitive data exposure.
    * <p>
-   * Only well known application settings will be returned in the Map (i.e.
-   * other properties will be filtered out).
+   * Only well known application settings will be returned in the Map (i.e. other
+   * properties will be filtered out).
    * 
    * @param node
    * @return
    * @throws RepositoryException
    */
-  private Map<String, Object> readProperties(final Node node)
-      throws RepositoryException {
+  private Map<String, Object> readProperties(final Node node) throws RepositoryException {
     // loop through Node properties
     final PropertyIterator iter = node.getProperties();
-    final Map<String, Object> settings = new HashMap<String, Object>((int) iter
-        .getSize());
+    final Map<String, Object> settings = new HashMap<String, Object>((int) iter.getSize());
     while (iter.hasNext()) {
       final Property property = iter.nextProperty();
       switch (property.getValue().getType()) {
@@ -504,8 +513,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         settings.put(property.getName(), property.getValue().getString());
         break;
       case PropertyType.BOOLEAN:
-        settings.put(property.getName(), Boolean.valueOf(property.getValue()
-            .getBoolean()));
+        settings.put(property.getName(), Boolean
+            .valueOf(property.getValue().getBoolean()));
         break;
       default:
         break;
@@ -527,13 +536,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .debug("doDelete(SlingHttpServletRequest request, SlingHttpServletResponse response)");
     final Resource resource = request.getResource();
     if (resource == null) {
-      sendError(HttpServletResponse.SC_NOT_FOUND,
-          "Resource could not be found", new Error(
-              "Resource could not be found"), response);
+      sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
+          new Error("Resource could not be found"), response);
     }
     final Node node = resource.adaptTo(Node.class);
-    final Session session = request.getResourceResolver()
-        .adaptTo(Session.class);
+    final Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
       if (canRemoveNode(node.getPath(), session)) {
         removeSensitiveNode(node);
@@ -543,13 +550,13 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         }
         response.setStatus(HttpServletResponse.SC_OK);
       } else {
-        sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied", null,
-            response);
+        sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied", null, response);
       }
     } catch (Exception e) {
-      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getLocalizedMessage(), e, response);
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
+          response);
     }
+    response.setStatus(HttpServletResponse.SC_OK);
   }
 
   /**
@@ -559,25 +566,21 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doPost(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
     final Resource resource = request.getResource();
     if (resource == null) {
-      sendError(HttpServletResponse.SC_NOT_FOUND,
-          "Resource could not be found", new Error(
-              "Resource could not be found"), response);
+      sendError(HttpServletResponse.SC_NOT_FOUND, "Resource could not be found",
+          new Error("Resource could not be found"), response);
     }
     final Node node = resource.adaptTo(Node.class);
-    final Session session = request.getResourceResolver()
-        .adaptTo(Session.class);
+    final Session session = request.getResourceResolver().adaptTo(Session.class);
     try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(
-          sensitiveKeys.size());
+      final Map<String, String> sensitiveData = new HashMap<String, String>(sensitiveKeys
+          .size());
       // loop through request parameters
-      final RequestParameterMap requestParameterMap = request
-          .getRequestParameterMap();
-      for (final Entry<String, RequestParameter[]> entry : requestParameterMap
-          .entrySet()) {
+      final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
+      for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
         final String key = entry.getKey();
         if (key.endsWith("@TypeHint")) {
           continue;
@@ -622,15 +625,15 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
       }
       updateSensitiveNode(node, session, sensitiveData);
     } catch (Exception e) {
-      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e
-          .getLocalizedMessage(), e, response);
+      sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage(), e,
+          response);
     }
   }
 
-  private void updateSensitiveNode(final Node parent,
-      final Session userSession, Map<String, String> sensitiveData)
-      throws ItemExistsException, PathNotFoundException, VersionException,
-      ConstraintViolationException, LockException, RepositoryException {
+  private void updateSensitiveNode(final Node parent, final Session userSession,
+      Map<String, String> sensitiveData) throws ItemExistsException,
+      PathNotFoundException, VersionException, ConstraintViolationException,
+      LockException, RepositoryException {
     if (parent == null) {
       throw new IllegalArgumentException("Node parent==null");
     }
@@ -675,28 +678,24 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
           }
         }
       } catch (PathNotFoundException e) { // This is to be expected
-        LOG
-            .debug(
-                "The node does not exist or the user does not have permission(?): {}",
-                adminNodePath);
+        LOG.debug("The node does not exist or the user does not have permission(?): {}",
+            adminNodePath);
       }
     }
     if (invalidPrivileges) {
-      LOG.error("{} has invalid privileges: {}", userSession.getUserID(),
-          adminNodePath);
+      LOG.error("{} has invalid privileges: {}", userSession.getUserID(), adminNodePath);
       throw new Error(userSession.getUserID() + " has invalid privileges: "
           + adminNodePath);
     }
   }
 
   /**
-   * Since normal users do not have privileges to read the sensitive node, this
-   * method elevates privileges to admin to read the values.
+   * Since normal users do not have privileges to read the sensitive node, this method
+   * elevates privileges to admin to read the values.
    * <p>
-   * This method should <em>only</em> be called from <code>doLaunch()</code> or
-   * if the user has permissions to manage the <code>sakai/basiclti</code>
-   * settings node (i.e. <code>canManageSettings()</code> from
-   * <code>doGet()</code>).
+   * This method should <em>only</em> be called from <code>doLaunch()</code> or if the
+   * user has permissions to manage the <code>sakai/basiclti</code> settings node (i.e.
+   * <code>canManageSettings()</code> from <code>doGet()</code>).
    * 
    * @param parent
    * @return
@@ -732,8 +731,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
     return settings;
   }
 
-  private void removeSensitiveNode(final Node parent)
-      throws PathNotFoundException, RepositoryException {
+  private void removeSensitiveNode(final Node parent) throws PathNotFoundException,
+      RepositoryException {
     final String adminNodePath = parent.getPath() + "/" + LTI_ADMIN_NODE_NAME;
     // now let's elevate Privileges and do some admin modifications
     Session adminSession = null;
@@ -751,8 +750,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Does userSession.getUserId have permission to modify the
-   * <code>sakai/basiclti</code> settings node?
+   * Does userSession.getUserId have permission to modify the <code>sakai/basiclti</code>
+   * settings node?
    * 
    * @param path
    *          Absolute path to the <code>sakai/basiclti</code> settings node.
@@ -769,14 +768,14 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .getAccessControlManager(userSession);
     final Privilege[] modifyProperties = { accessControlManager
         .privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES) };
-    boolean canManageSettings = accessControlManager.hasPrivileges(path,
-        modifyProperties);
+    boolean canManageSettings = accessControlManager
+        .hasPrivileges(path, modifyProperties);
     return canManageSettings;
   }
 
   /**
-   * Does userSession.getUserId have permission to remove the
-   * <code>sakai/basiclti</code> settings node?
+   * Does userSession.getUserId have permission to remove the <code>sakai/basiclti</code>
+   * settings node?
    * 
    * @param path
    * @param userSession
@@ -790,8 +789,7 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .getAccessControlManager(userSession);
     final Privilege[] modifyProperties = { accessControlManager
         .privilegeFromName(Privilege.JCR_REMOVE_NODE) };
-    boolean canRemoveNode = accessControlManager.hasPrivileges(path,
-        modifyProperties);
+    boolean canRemoveNode = accessControlManager.hasPrivileges(path, modifyProperties);
     return canRemoveNode;
   }
 
@@ -821,10 +819,10 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
   @Override
-  protected void doPut(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
-    sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-        "PUT method not allowed.", null, response);
+  protected void doPut(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
+    sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "PUT method not allowed.", null,
+        response);
   }
 
   /**
@@ -858,8 +856,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * @param properties
    * @throws JSONException
    */
-  private void renderJson(final Writer pwriter,
-      final Map<String, Object> properties) throws JSONException {
+  private void renderJson(final Writer pwriter, final Map<String, Object> properties)
+      throws JSONException {
     final ExtendedJSONWriter writer = new ExtendedJSONWriter(pwriter);
     writer.object(); // root object
     for (final Entry<String, Object> entry : properties.entrySet()) {
@@ -870,11 +868,11 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Simple helper to apply business logic to settings. For each setting, the
-   * adminSetting becomes the default value unless the adminSetting is locked.
-   * If it is locked, then the userSetting cannot override the adminSetting
-   * (i.e. it essentially is a system policy instead of a default value). Once
-   * these rules have been applied, the result is stored in effectiveSettings.
+   * Simple helper to apply business logic to settings. For each setting, the adminSetting
+   * becomes the default value unless the adminSetting is locked. If it is locked, then
+   * the userSetting cannot override the adminSetting (i.e. it essentially is a system
+   * policy instead of a default value). Once these rules have been applied, the result is
+   * stored in effectiveSettings.
    * 
    * @param setting
    *          The key.
@@ -887,14 +885,12 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    */
   private void effectiveSetting(final String setting,
       final Map<String, Object> effectiveSettings,
-      final Map<String, Object> adminSettings,
-      final Map<String, Object> userSettings) {
+      final Map<String, Object> adminSettings, final Map<String, Object> userSettings) {
     if (setting == null || effectiveSettings == null || adminSettings == null
         || userSettings == null) {
       throw new IllegalArgumentException();
     }
-    final Object adminSetting = adminSettings.get(applicationSettings
-        .get(setting));
+    final Object adminSetting = adminSettings.get(applicationSettings.get(setting));
     boolean locked = false; // default to unlocked
     if (adminSetting != null) {
       locked = (Boolean) adminSetting;
@@ -917,8 +913,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
   }
 
   /**
-   * Utility method to start walking back up the hierarchy looking for the
-   * containing Site node. If the Site node cannot be found, null is returned.
+   * Utility method to start walking back up the hierarchy looking for the containing Site
+   * node. If the Site node cannot be found, null is returned.
    * 
    * @param startingNode
    * @return The containing Site node if found else return null.
@@ -928,9 +924,9 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    * @throws AccessDeniedException
    * @throws RepositoryException
    */
-  private Node findSiteNode(final Node startingNode)
-      throws ValueFormatException, PathNotFoundException,
-      ItemNotFoundException, AccessDeniedException, RepositoryException {
+  private Node findSiteNode(final Node startingNode) throws ValueFormatException,
+      PathNotFoundException, ItemNotFoundException, AccessDeniedException,
+      RepositoryException {
     Node returnNode = null;
     Node traversalNode = startingNode;
     while (traversalNode.getDepth() != 0) {
@@ -955,8 +951,8 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
    *          Message to be emitted in error response.
    * @param exception
    *          Optional exception that will be thrown only if
-   *          {@link HttpServletResponse#isCommitted()}. It will be logged in
-   *          either case. Allows null value.
+   *          {@link HttpServletResponse#isCommitted()}. It will be logged in either case.
+   *          Allows null value.
    * @param response
    */
   private void sendError(int errorCode, String message, Throwable exception,

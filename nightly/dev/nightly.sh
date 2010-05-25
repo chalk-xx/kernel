@@ -43,7 +43,7 @@ cd $BUILD_DIR
 mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
-cd open-experiments/slingtests/osgikernel/
+cd open-experiments
 mvn -B -e clean install -Dmaven.test.skip=true -Dsakai-ux-tag=$UX_TAG
 
 # start sakai 3 instance

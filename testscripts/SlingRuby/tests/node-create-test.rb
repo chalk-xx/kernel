@@ -2,7 +2,6 @@
 
 require 'sling/sling'
 require 'sling/test'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingInterface
 include SlingUsers
 include SlingSites

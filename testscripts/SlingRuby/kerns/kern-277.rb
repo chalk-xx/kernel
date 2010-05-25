@@ -3,7 +3,6 @@
 require 'sling/test'
 require 'sling/authz'
 require 'test/unit.rb'
-require 'test/unit/ui/console/testrunner.rb'
 include SlingAuthz
 
 class TC_Kern277Test < Test::Unit::TestCase
