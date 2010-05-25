@@ -26,7 +26,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.jcr.api.SlingRepository;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.osgi.service.event.EventAdmin;
@@ -44,7 +43,6 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   protected UserManager userManager;
 
   protected SiteServiceImpl siteService;
-  protected SlingRepository slingRepository;
 
   @Override
   @Before
@@ -52,7 +50,6 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
     super.setUp();
     userManager = createMock(UserManager.class);
     eventAdmin = createMock(EventAdmin.class);
-    slingRepository = createMock(SlingRepository.class);
   }
 
   protected Group createDummyGroup(String groupName) throws RepositoryException {
@@ -114,13 +111,9 @@ public class AbstractSiteServiceTest extends AbstractEasyMockTest {
   protected void preRequest() {
     replay();
     siteService = new SiteServiceImpl();
-    siteService.bindEventAdmin(eventAdmin);
-    siteService.bindSlingRepository(slingRepository);
   }
 
   protected void postRequest() {
-    siteService.unbindEventAdmin(eventAdmin);
-    siteService.unbindSlingRepository(slingRepository);
     verify();
   }
 
