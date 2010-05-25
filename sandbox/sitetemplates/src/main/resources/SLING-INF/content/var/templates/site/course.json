@@ -3,11 +3,13 @@
 		"sling:resourceType" : "sakai/template-groups",
 		"group0" : {
 			"sling:resourceType": "sakai/template-group",
-			"sakai:principalName": "@@groups.collaborators.name@@"
+			"sakai:template-group-principalname": "@@groups.collaborators.name@@",
+			"sakai:template-group-members" : ["@@groups.collaborators.members(...)@@"]
 		},
 		"group1" : {
 			"sling:resourceType": "sakai/template-group",
-			"sakai:principalName": "@@groups.viewers.name@@"
+			"sakai:template-group-principalname": "@@groups.viewers.name@@",
+			"sakai:template-group-members" : ["@@groups.viewers.members(...)@@"]
 		}
 	},
 	"site" : {
@@ -61,8 +63,8 @@
 			"foobar" : {
 				"sling:resourceType" : "sakai/site-page",
 				"sakai:site-page-type" : "webpage",
-				"sakai:site=page-position" : "100000",
-				"sakai:site=page-title" : "Welcome",
+				"sakai:site-page-position" : "100000",
+				"sakai:site-page-title" : "Welcome",
 				"sakai:savedBy" : "@@site.user.creator@@",
 				"section0" : {
 					"sakai:site-page-section-content" : "<h1>Foobar</h1>"
@@ -72,11 +74,11 @@
 				}
 			},
 			"@@site.pages(...)@@" : {
-				"@@site.pages(...).id" : {
+				"@@site.pages(...).id@@" : {
 					"sling:resourceType" : "sakai/site-page",
 					"sakai:site-page-type" : "@@site.pages(...).type@@",
-					"sakai:site=page-position" : "@@site.pages(...).position",
-					"sakai:site=page-title" : "@@site.pages(...).title",
+					"sakai:site-page-position" : "@@site.pages(...).position@@",
+					"sakai:site-page-title" : "@@site.pages(...).title@@",
 					"sakai:savedBy" : "@@site.user.creator@@",
 					"@@site.pages(...).sections(...)@@" : {
 						"@@site.pages(...).sections(...).id@@" : {

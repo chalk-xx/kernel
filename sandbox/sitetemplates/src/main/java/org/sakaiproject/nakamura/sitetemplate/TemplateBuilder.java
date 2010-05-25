@@ -19,11 +19,15 @@ package org.sakaiproject.nakamura.sitetemplate;
 
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.sakaiproject.nakamura.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -46,9 +50,12 @@ import javax.jcr.Value;
  */
 public class TemplateBuilder {
 
-  private static final String RT_GROUPS = "sakai/template-group";
-  private static final String GROUPS_PROPERTY_PRINCIPAL_NAME = "sakai:principalName";
-  private static final Object RT_ACE = "sakai/template-ace";
+  public static final String RT_GROUPS = "sakai/template-group";
+  public static final Object RT_ACE = "sakai/template-ace";
+  public static final String GROUPS_PROPERTY_PRINCIPAL_NAME = "sakai:template-group-principalname";
+  public static final String GROUPS_PROPERTY_MEMBERS = "sakai:template-group-members";
+  public static final String GROUPS_PROPERTY_IS_MAINTAINER = "sakai:template-group-ismaintainer";
+  public static final Logger LOGGER = LoggerFactory.getLogger(TemplateBuilder.class);
 
   private Node templateNode;
   private JSONObject json;
@@ -56,13 +63,32 @@ public class TemplateBuilder {
   private Map<Principal, Map<String, Object>> groups;
   private Map<String, Object> siteMap;
   private int[] loopIndexes = {};
-  private int nestedLevel = 0;
+  private int nestedLevel = -1;
+  private List<String> defaultPropertiesToIgnore;
+
+  public TemplateBuilder() {
+
+  }
 
   public TemplateBuilder(Node templateNode, JSONObject json, ResourceResolver resolver)
       throws RepositoryException {
     this.templateNode = templateNode;
     this.json = json;
     this.resolver = resolver;
+
+    defaultPropertiesToIgnore = new ArrayList<String>();
+    defaultPropertiesToIgnore.add("sakai:template-group");
+    defaultPropertiesToIgnore.add("sakai:template-groups");
+    defaultPropertiesToIgnore.add("jcr:primaryType");
+    defaultPropertiesToIgnore.add("jcr:createdBy");
+    defaultPropertiesToIgnore.add("jcr:created");
+    defaultPropertiesToIgnore.add("jcr:lastModifedBy");
+    defaultPropertiesToIgnore.add("jcr:lastModifed");
+    defaultPropertiesToIgnore.add("jcr:predecessors");
+    defaultPropertiesToIgnore.add("jcr:uuid");
+    defaultPropertiesToIgnore.add("jcr:versionHistory");
+    defaultPropertiesToIgnore.add("jcr:baseVersion");
+    defaultPropertiesToIgnore.add("jcr:isCheckedOut");
 
     // Populate the groups map.
     readGroups();
@@ -103,23 +129,41 @@ public class TemplateBuilder {
     Iterator<Resource> resources = resolver.findResources(query.toString(), "xpath");
 
     List<String> propertiesToIgnore = new ArrayList<String>();
-    propertiesToIgnore.add("sakai:template-group");
-    propertiesToIgnore.add("sakai:template-groups");
-    propertiesToIgnore.add("jcr:primaryType");
-    propertiesToIgnore.add("jcr:createdBy");
-    propertiesToIgnore.add("jcr:created");
-    propertiesToIgnore.add("jcr:lastModifedBy");
-    propertiesToIgnore.add("jcr:lastModifed");
+    propertiesToIgnore.addAll(defaultPropertiesToIgnore);
+    propertiesToIgnore.add(GROUPS_PROPERTY_MEMBERS);
 
     // Loop over the groups and add them to the map.
     while (resources.hasNext()) {
       Map<String, Object> properties = new HashMap<String, Object>();
       Node node = resources.next().adaptTo(Node.class);
+
+      // The name of the group.
       Value principalName = node.getProperty(GROUPS_PROPERTY_PRINCIPAL_NAME).getValue();
       if (isPlaceHolder(principalName.getString())) {
         principalName = getValue(principalName, session);
       }
       properties.put(GROUPS_PROPERTY_PRINCIPAL_NAME, principalName);
+
+      // The members of this group
+      Value[] members = node.getProperty(GROUPS_PROPERTY_MEMBERS).getValues();
+      List<String> toAdd = new ArrayList<String>();
+      for (Value v : members) {
+        String memberName = v.getString();
+        if (isPlaceHolder(memberName)) {
+          if (isLoopStatement(memberName)) {
+            JSONArray arr = (JSONArray) getJSONValue(memberName, true);
+            for (int i = 0; i < arr.length(); i++) {
+              toAdd.add(arr.optString(i));
+            }
+          } else {
+            memberName = getValue(memberName, session).getString();
+            toAdd.add(memberName);
+          }
+        } else {
+          toAdd.add(memberName);
+        }
+      }
+      properties.put(GROUPS_PROPERTY_MEMBERS, toAdd);
 
       // Loop over all the properties of this group.
       // Each property needs to be added on the group authorizable eventually, we put this
@@ -160,25 +204,9 @@ public class TemplateBuilder {
    *          The map to add the property values and child nodes.
    * @throws RepositoryException
    */
-  private void handleNode(Node node, Map<String, Object> map) throws RepositoryException {
-    // Check if this node is a special node.
-    // ie: an ACE node.
-    // This can be checked by looking at the sling:resourceType
-    if (node.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
-      if (node.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_ACE)) {
-        handleACENode(node, map);
-      }
-    }
-
-    // Handle the properties for this node.
-    List<String> propertiesToIgnore = new ArrayList<String>();
-    propertiesToIgnore.add("jcr:primaryType");
-    propertiesToIgnore.add("jcr:createdBy");
-    propertiesToIgnore.add("jcr:created");
-    propertiesToIgnore.add("jcr:lastModifedBy");
-    propertiesToIgnore.add("jcr:lastModifed");
-
-    addProperties(node, map, propertiesToIgnore);
+  protected void handleNode(Node node, Map<String, Object> map)
+      throws RepositoryException {
+    addProperties(node, map, defaultPropertiesToIgnore);
     handleChildNodes(node, map);
   }
 
@@ -249,12 +277,11 @@ public class TemplateBuilder {
       Node child = childNodes.nextNode();
 
       String name = child.getName();
-      // Node names that are of @@foo.bar?@@ are if structures.
+      // Node names that are of @@foo.bar=='alfa'?@@ are if structures.
       // The properties on these kind of nodes need to be set on the parent node.
       // Child nodes need to be added on the parent node.
-      if (isIfStructure(name)) {
-        Value val = getValue(name, node.getSession());
-        if (isValueTrue(val)) {
+      if (isConditionalStatement(name)) {
+        if (isConditionTrue(name)) {
           handleNode(child, map);
         }
       }
@@ -262,14 +289,15 @@ public class TemplateBuilder {
       // This means that bar should be an array in the json object.
       // This node's children will then be "copied" as many times as there are items in
       // the bar array sent over from the UI.
-      else if (isLoopStructure(name)) {
-        int[] newIndexes = new int[nestedLevel + 1];
+      else if (isLoopStatement(name)) {
+        int[] newIndexes = new int[loopIndexes.length + 1];
         for (int i : loopIndexes) {
           newIndexes[i] = loopIndexes[i];
         }
         loopIndexes = newIndexes;
         nestedLevel++;
-        for (;;) {
+        JSONArray arr = (JSONArray) getJSONValue(name, true);
+        for (int i = 0; i < arr.length(); i++) {
           try {
             NodeIterator loopChildNodes = child.getNodes();
             while (loopChildNodes.hasNext()) {
@@ -289,45 +317,77 @@ public class TemplateBuilder {
               loopIndexes[nestedLevel]++;
 
             }
-            loopIndexes[nestedLevel] = 0;
           } catch (Throwable t) {
             break;
           }
         }
+        loopIndexes[nestedLevel] = 0;
         nestedLevel--;
       }
 
       else {
+        // Check if this node is a special node.
+        // ie: an ACE node.
+        // This can be checked by looking at the sling:resourceType
+        if (child.hasProperty(SLING_RESOURCE_TYPE_PROPERTY)) {
+          if (child.getProperty(SLING_RESOURCE_TYPE_PROPERTY).getString().equals(RT_ACE)) {
+            handleACENode(child, map);
+          }
+        } else {
+          // Handle this node.
+          Map<String, Object> childMap = new HashMap<String, Object>();
+          handleNode(child, childMap);
 
-        // Handle this node.
-        Map<String, Object> childMap = new HashMap<String, Object>();
-        handleNode(child, childMap);
+          // Maybe the name for this childnode needs to be filled in.
+          String childName = child.getName();
+          if (isPlaceHolder(childName)) {
+            childName = getValue(childName, child.getSession()).getString();
+          }
 
-        // Maybe the name for this childnode needs to be filled in.
-        String childName = child.getName();
-        if (isPlaceHolder(childName)) {
-          childName = getValue(childName, child.getSession()).getString();
+          // Add it to the map.
+          map.put(childName, childMap);
         }
-
-        // Add it to the map.
-        map.put(childName, childMap);
       }
     }
   }
 
   /**
-   * Returns true if the value equals true, "true", "1", or 1.
+   * Currently supported conditions:
    * 
-   * @param val
-   * @return
+   * @@foo.bar==bla
+   * @@foo.bar==bla
+   * @@foo.bar==true
+   * @@foo.bar==1
+   * 
+   * @param name
+   *          The name of the node that represents the conditional statement.
+   * @param A
+   *          {@link Session JCR Session} that can be used to create {@link Value values}.
+   * @return true when the condition has been met, otherwise false.
    * @throws RepositoryException
    */
-  private boolean isValueTrue(Value val) throws RepositoryException {
-    return ((val.getType() == PropertyType.BOOLEAN && val.getBoolean())
-        || (val.getType() == PropertyType.STRING && (val.getString().toLowerCase()
-            .equals("true") || val.getString().equals("1"))) || ((val.getType() == PropertyType.LONG
-        || val.getType() == PropertyType.DOUBLE || val.getType() == PropertyType.DECIMAL) && val
-        .getLong() == 1));
+  protected boolean isConditionTrue(String name) throws RepositoryException {
+    // @@foo.bar=='bla'?@@
+    name = name.substring(2, name.length() - 3);
+    String[] parts = StringUtils.split(name, "==");
+    parts[0] = StringUtils.trim(parts[0]);
+    parts[1] = StringUtils.trim(parts[1]);
+    Object o = getJSONValue(parts[0], false);
+    Object o2 = parts[1];
+    try {
+      if (o instanceof Boolean) {
+        o2 = Boolean.valueOf(parts[1]);
+      } else if (o instanceof Double) {
+        o2 = Double.valueOf(parts[1]);
+      } else if (o instanceof Integer) {
+        o2 = Integer.valueOf(parts[1]);
+      } else if (o instanceof Long) {
+        o2 = Long.valueOf(parts[1]);
+      }
+    } catch (NumberFormatException e) {
+      return false;
+    }
+    return o.equals(o2);
   }
 
   /**
@@ -339,7 +399,7 @@ public class TemplateBuilder {
    *          The map to add the name-values to
    * @throws RepositoryException
    */
-  private void addProperties(Node node, Map<String, Object> map,
+  protected void addProperties(Node node, Map<String, Object> map,
       List<String> propertiesToIgnore) throws RepositoryException {
     Session session = node.getSession();
     PropertyIterator pi = node.getProperties();
@@ -348,9 +408,7 @@ public class TemplateBuilder {
       String pName = p.getName();
 
       // We ignore some properties.
-      if (propertiesToIgnore != null
-          && (propertiesToIgnore.contains(pName) || pName
-              .equals(SLING_RESOURCE_TYPE_PROPERTY))) {
+      if (propertiesToIgnore != null && (propertiesToIgnore.contains(pName))) {
         continue;
       }
 
@@ -372,7 +430,7 @@ public class TemplateBuilder {
    * @return
    * @throws RepositoryException
    */
-  private Object getPropertyValue(Property p) throws RepositoryException {
+  protected Object getPropertyValue(Property p) throws RepositoryException {
     if (p.getDefinition().isMultiple()) {
       Value[] values = p.getValues();
       for (int i = 0; i < values.length; i++) {
@@ -399,6 +457,12 @@ public class TemplateBuilder {
    * @throws RepositoryException
    */
   protected Value getValue(String name, Session session) throws RepositoryException {
+    Object o = getJSONValue(name, false);
+
+    return JcrUtils.createValue(o, session);
+  }
+
+  protected Object getJSONValue(String name, boolean justGetArray) {
     name = org.apache.commons.lang.StringUtils.remove(name, '@');
     name = org.apache.commons.lang.StringUtils.remove(name, '?');
 
@@ -436,7 +500,11 @@ public class TemplateBuilder {
         else if (isArray && !openParenthesis && character == '.') {
           // Remove the '(...)' from the key.
           String k = key.substring(0, key.length() - 5);
-          o = j.getJSONArray(k).get(loopIndexes[arrIndex]);
+          if (i == characters.length && justGetArray) {
+            o = j.getJSONArray(k);
+          } else {
+            o = j.getJSONArray(k).get(loopIndexes[arrIndex]);
+          }
           arrIndex++;
           key.delete(0, key.length());
           if (o instanceof JSONObject) {
@@ -451,8 +519,7 @@ public class TemplateBuilder {
       throw new IllegalArgumentException(
           "Provided JSON does not compute with the template.");
     }
-
-    return JcrUtils.createValue(o, session);
+    return o;
   }
 
   /**
@@ -498,15 +565,16 @@ public class TemplateBuilder {
    * @return
    * @throws RepositoryException
    */
-  protected boolean isIfStructure(Value value) throws RepositoryException {
-    return (value.getType() == PropertyType.STRING && isIfStructure(value.getString()));
+  protected boolean isConditionalStatement(Value value) throws RepositoryException {
+    return (value.getType() == PropertyType.STRING && isConditionalStatement(value
+        .getString()));
   }
 
   /**
    * @param string
    * @return
    */
-  private boolean isIfStructure(String name) {
+  protected boolean isConditionalStatement(String name) {
     return (name.startsWith("@@") && name.endsWith("?@@"));
   }
 
@@ -516,16 +584,61 @@ public class TemplateBuilder {
    * @return
    * @throws RepositoryException
    */
-  protected boolean isLoopStructure(Value value) throws RepositoryException {
-    return (value.getType() == PropertyType.STRING && isLoopStructure(value.getString()));
+  protected boolean isLoopStatement(Value value) throws RepositoryException {
+    return (value.getType() == PropertyType.STRING && isLoopStatement(value.getString()));
   }
 
   /**
    * @param name
    * @return
    */
-  private boolean isLoopStructure(String name) {
+  protected boolean isLoopStatement(String name) {
     return (name.startsWith("@@") && name.endsWith("(...)@@"));
+  }
+
+  /**
+   * @return the templateNode
+   */
+  public Node getTemplateNode() {
+    return templateNode;
+  }
+
+  /**
+   * @return the json
+   */
+  public JSONObject getJson() {
+    return json;
+  }
+
+  /**
+   * @return the resolver
+   */
+  public ResourceResolver getResolver() {
+    return resolver;
+  }
+
+  /**
+   * @param templateNode
+   *          the templateNode to set
+   */
+  public void setTemplateNode(Node templateNode) {
+    this.templateNode = templateNode;
+  }
+
+  /**
+   * @param json
+   *          the json to set
+   */
+  public void setJson(JSONObject json) {
+    this.json = json;
+  }
+
+  /**
+   * @param resolver
+   *          the resolver to set
+   */
+  public void setResolver(ResourceResolver resolver) {
+    this.resolver = resolver;
   }
 
 }

@@ -37,7 +37,6 @@ import javax.jcr.Property;
 import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 import javax.jcr.nodetype.NodeType;
@@ -349,8 +348,6 @@ public class JcrUtils {
       val = vf.createValue((Calendar) o);
     } else if (o instanceof Double) {
       val = vf.createValue((Double) o);
-    } else if (o instanceof InputStream) {
-      val = vf.createValue((InputStream) o);
     } else if (o instanceof Long) {
       val = vf.createValue((Long) o);
     } else if (o instanceof String) {
