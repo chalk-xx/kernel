@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 import javax.jcr.Item;
 import javax.jcr.RepositoryException;
@@ -67,11 +66,20 @@ import javax.jcr.ValueFactory;
              description = {
                  "Modifies an ACE in the ACL on the Reource identified by the URL. The post will replace the ACE on the user, so " +
                  "the caller must ensure they have a current copy of the ACE, edit it locally and then submit the edited copy to this " +
-                 "servlet ",
+                 "servlet. In addition to the standard ACE modification provided by the standard Sling Access manager this version allows the caller " +
+                 "to set multiple active and inactive periods (see kernel documentation under KERN-629) or specify a rule to be used from the " +
+                 "rules engine",
                  "<pre>" +
-                 "curl -FprincipalId=ieb -Fprivilege@jcr:read=granted -Fprivilege@jcr:write=denied http://admin:admin@localhost:8080/_user/private.modifyAce.html\n" +
+                 "#Make this ACL active for ieb if the Rule in rules system named WhenHeHasEatenHisBreakfast evaluated to true " +
+                 "curl -FprincipalId=ieb -Fprivilege@jcr:read=granted -Frule=WhenHeHasEatenHisBreakfast -Fprivilege@jcr:write=denied http://admin:admin@localhost:8080/_user/private.modifyRuleAce.html\n" +
+                 "Location: http://admin:admin@localhost:8080/_user/private.acl.html\n" +
+                 "</pre>",
+                 "<pre>" +
+                 "#Make this ACL active for ieb between 12 May 2010 and 24 May 2010" +
+                 "curl -FprincipalId=ieb -Fprivilege@jcr:read=granted -Factive=20100512/20100524 -Fprivilege@jcr:write=denied http://admin:admin@localhost:8080/_user/private.modifyRuleAce.html\n" +
                  "Location: http://admin:admin@localhost:8080/_user/private.acl.html\n" +
                  "</pre>"
+
          },
          parameters = {
          @ServiceParameter(name="principalId",description={
@@ -80,14 +88,14 @@ import javax.jcr.ValueFactory;
             "ACE will be generated. If this is alreadt a RulePrincipal ID, then that ACE will be " +
             "located and modified." 
          }),
-         @ServiceParameter(name="Active",description={
+         @ServiceParameter(name="active",description={
              "An array of time periods when the ACL is active. This parameter is optional, when used it takes precidence over the rule parameter. " +
              "This parameter takes the format FromDateTime/ToDateTime, where FromDateTime and ToDateTime are ISO8601 Formatted date strings " +
              "in one of the following forms. 19970714T170000Z, 19970714T170000+01, 1997-07-14T17:00:00Z, 19970714T170000+0100, " +
              "1997-07-14T17:00:00+01, 1997-07-14T17:00:00+01:00 and for date only ranges 19970714 and 1997-07-14 " +
              "eg 1997-07-14T17:00:00+01:00/1997-07-24T09:00:00+01:00"
           }),
-          @ServiceParameter(name="Inactive",description={
+          @ServiceParameter(name="inactive",description={
               "An array of time periods when the ACL is inactive. This parameter is optional, when used, it takes precidence over the rule parameter. The format of this parameter is the same as for active." 
            }),
            @ServiceParameter(name="rule",description={
@@ -108,7 +116,7 @@ import javax.jcr.ValueFactory;
            @ServiceResponse(code=0,description="Any other status codes emmitted with have the meaning prescribed in the RFC")
          })
         })
-@SlingServlet(methods={"POST"},selectors="ruleacl")
+@SlingServlet(methods={"POST"},selectors={"modifyRuleAce"},extensions={"html"},resourceTypes={"sling/servlet/default"})
 public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
 
   /**
@@ -133,14 +141,6 @@ public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
     if (principalId == null) {
       throw new RepositoryException("principalId was not submitted.");
     }
-    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
-    Principal principal = principalManager.getPrincipal(principalId);
-    if ( principal == null ) {
-      throw new RepositoryException("Principal "+principalId+" cound not be found ");
-    }
-    if ( !RulesBasedAce.isRulesBasedPrincipal(principal) ) {
-      principal = RulesBasedAce.createPrincipal(principal.getName());
-    }
     // the principal at this point is a rules principal, do all the normal things with it.
     
     String resourcePath = null;
@@ -154,6 +154,16 @@ public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
       } else {
         throw new ResourceNotFoundException("Resource is not a JCR Node");
       }
+    }
+    
+    PrincipalManager principalManager = AccessControlUtil.getPrincipalManager(session);
+    Principal principal = principalManager.getPrincipal(principalId);
+    if ( principal == null ) {
+      throw new RepositoryException("Principal "+principalId+" cound not be found ");
+    }
+    if ( !RulesBasedAce.isRulesBasedPrincipal(principal) ) {
+      principal = RulesBasedAce.createPrincipal(principal.getName());
+      changes.add(Modification.onCreated(resourcePath));
     }
     
     // Collect the modified privileges from the request.
@@ -183,8 +193,8 @@ public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
 
     String order = request.getParameter("order");
     
-    String[] active = request.getParameterValues("timeActive");
-    String[] inactive = request.getParameterValues("timeInactive");
+    String[] active = request.getParameterValues("active");
+    String[] inactive = request.getParameterValues("inactive");
     String rule = request.getParameter("rule");
     ValueFactory valueFactory = session.getValueFactory();
     Map<String,Object> ruleProperties = new HashMap<String, Object>();
@@ -210,17 +220,20 @@ public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
     
     // Make the actual changes.
     try {
+      
       AccessControlUtil.replaceAccessControlEntry(session, resourcePath, principal,
           grantedPrivilegeNames.toArray(new String[grantedPrivilegeNames.size()]),
           deniedPrivilegeNames.toArray(new String[deniedPrivilegeNames.size()]),
           removedPrivilegeNames.toArray(new String[removedPrivilegeNames.size()]),
           order);
+      changes.add(Modification.onModified(resourcePath));
       
       if ( ruleProperties.size() > 0  ) {
         RuleACLModifier ruleACLModifier = new RuleACLModifier();
         ruleACLModifier.setProperties(resourcePath, session, principal, ruleProperties);
       }
       
+     
       
       if (session.hasPendingChanges()) {
         session.save();

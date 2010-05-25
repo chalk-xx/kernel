@@ -16,20 +16,6 @@
  */
 package org.sakaiproject.nakamura.authz.servlets;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import javax.jcr.security.AccessControlList;
-import javax.jcr.security.AccessControlManager;
-import javax.jcr.security.AccessControlPolicy;
-import javax.jcr.security.AccessControlPolicyIterator;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceNotFoundException;
@@ -41,6 +27,16 @@ import org.apache.sling.servlets.post.Modification;
 import org.apache.sling.servlets.post.SlingPostConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Based on the AbstractAccessPostServlet in the Sling Access Manager, unfortunately this is not visible, so can't extend from it here.
@@ -253,49 +249,4 @@ public abstract class AbstractRuleAccessPostServlet extends SlingAllMethodsServl
         return ret.toString();
     }
 
-    /**
-     * Returns an <code>AccessControlList</code> to edit for the node at the
-     * given <code>resourcePath</code>.
-     *
-     * @param accessControlManager The manager providing access control lists
-     * @param resourcePath The node path for which to return an access control
-     *            list
-     * @param mayCreate <code>true</code> if an access control list should be
-     *            created if the node does not have one yet.
-     * @return The <code>AccessControlList</code> to modify to control access to
-     *         the node.
-     * @throws RepositoryException If the access control manager does not
-     *             provide a <code>AccessControlPolicy</code> which is an
-     *             <code>AccessControlList</code>.
-     */
-    protected AccessControlList getAccessControlList(
-            final AccessControlManager accessControlManager,
-            final String resourcePath, final boolean mayCreate)
-            throws RepositoryException {
-
-        // check for an existing access control list to edit
-        AccessControlPolicy[] policies = accessControlManager.getPolicies(resourcePath);
-        for (AccessControlPolicy policy : policies) {
-            if (policy instanceof AccessControlList) {
-                return (AccessControlList) policy;
-            }
-        }
-
-        // no existing access control list, try to create if allowed
-        if (mayCreate) {
-            AccessControlPolicyIterator applicablePolicies = accessControlManager.getApplicablePolicies(resourcePath);
-            while (applicablePolicies.hasNext()) {
-                AccessControlPolicy policy = applicablePolicies.nextAccessControlPolicy();
-                if (policy instanceof AccessControlList) {
-                    return (AccessControlList) policy;
-                }
-            }
-        }
-
-        // neither an existing nor a create AccessControlList is available, fail
-        throw new RepositoryException(
-            "Unable to find or create an access control policy to update for "
-                + resourcePath);
-
-    }
 }
