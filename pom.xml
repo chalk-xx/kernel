@@ -108,6 +108,7 @@
         <module>sandbox/jaxrs</module>
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
+        <module>sandbox/sitetemplates</module>
        </modules>
     </profile>
     <profile>
