@@ -75,8 +75,7 @@ import javax.jcr.version.VersionException;
     @Property(name = "service.description", value = "Creates a sakai/basiclti settings node."),
     @Property(name = "service.vendor", value = "The Sakai Foundation") })
 public class BasicLTIPostOperation extends AbstractSlingPostOperation {
-  private static final Logger LOG = LoggerFactory
-      .getLogger(BasicLTIPostOperation.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BasicLTIPostOperation.class);
   /**
    * Dependency injected from OSGI container.
    */
@@ -92,21 +91,18 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
   @Override
   protected void doRun(SlingHttpServletRequest request, HtmlResponse response,
       List<Modification> changes) throws RepositoryException {
-    final Session session = request.getResourceResolver()
-        .adaptTo(Session.class);
+    final Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = request.getResource().adaptTo(Node.class);
     if (node == null) { // create the node
       final String path = request.getResource().getPath();
       node = JcrUtils.deepGetOrCreateNode(session, path);
     }
     try {
-      final Map<String, String> sensitiveData = new HashMap<String, String>(
-          sensitiveKeys.size());
+      final Map<String, String> sensitiveData = new HashMap<String, String>(sensitiveKeys
+          .size());
       // loop through request parameters
-      final RequestParameterMap requestParameterMap = request
-          .getRequestParameterMap();
-      for (final Entry<String, RequestParameter[]> entry : requestParameterMap
-          .entrySet()) {
+      final RequestParameterMap requestParameterMap = request.getRequestParameterMap();
+      for (final Entry<String, RequestParameter[]> entry : requestParameterMap.entrySet()) {
         final String key = entry.getKey();
         if (key.endsWith("@TypeHint")) {
           continue;
@@ -116,8 +112,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
           // removeProperty(node, key);
         } else {
           if (requestParameterArray.length > 1) {
-            throw new RepositoryException(
-                "Multi-valued parameters are not supported");
+            throw new RepositoryException("Multi-valued parameters are not supported");
           } else {
             final String value = requestParameterArray[0].getString("UTF-8");
             if ("".equals(value)) {
@@ -154,10 +149,10 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
     }
   }
 
-  private void createSensitiveNode(final Node parent,
-      final Session userSession, Map<String, String> sensitiveData)
-      throws ItemExistsException, PathNotFoundException, VersionException,
-      ConstraintViolationException, LockException, RepositoryException {
+  private void createSensitiveNode(final Node parent, final Session userSession,
+      Map<String, String> sensitiveData) throws ItemExistsException,
+      PathNotFoundException, VersionException, ConstraintViolationException,
+      LockException, RepositoryException {
     if (parent == null) {
       throw new IllegalArgumentException("Node parent==null");
     }
@@ -176,14 +171,12 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
     Session adminSession = null;
     try {
       adminSession = slingRepository.loginAdministrative(null);
-      final Node adminNode = JcrUtils.deepGetOrCreateNode(adminSession,
-          adminNodePath);
+      final Node adminNode = JcrUtils.deepGetOrCreateNode(adminSession, adminNodePath);
       for (final Entry<String, String> entry : sensitiveData.entrySet()) {
         adminNode.setProperty(entry.getKey(), entry.getValue());
       }
       // ensure only admins can read the node
-      accessControlSensitiveNode(adminNodePath, adminSession, userSession
-          .getUserID());
+      accessControlSensitiveNode(adminNodePath, adminSession, userSession.getUserID());
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
       }
@@ -206,23 +199,20 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
           }
         }
       } catch (PathNotFoundException e) { // This is to be expected
-        LOG
-            .debug(
-                "The node does not exist or the user does not have permission(?): {}",
-                adminNodePath);
+        LOG.debug("The node does not exist or the user does not have permission(?): {}",
+            adminNodePath);
       }
     }
     if (invalidPrivileges) {
-      LOG.error("{} has invalid privileges: {}", userSession.getUserID(),
-          adminNodePath);
+      LOG.error("{} has invalid privileges: {}", userSession.getUserID(), adminNodePath);
       throw new Error(userSession.getUserID() + " has invalid privileges: "
           + adminNodePath);
     }
   }
 
   /**
-   * Apply the necessary access control entries so that only admin users can
-   * read/write the sensitive node.
+   * Apply the necessary access control entries so that only admin users can read/write
+   * the sensitive node.
    * 
    * @param sensitiveNodePath
    * @param adminSession
@@ -231,11 +221,9 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
    * @throws RepositoryException
    */
   private void accessControlSensitiveNode(final String sensitiveNodePath,
-      final Session adminSession, String currentUserId)
-      throws AccessDeniedException, UnsupportedRepositoryOperationException,
-      RepositoryException {
-    final UserManager userManager = AccessControlUtil
-        .getUserManager(adminSession);
+      final Session adminSession, String currentUserId) throws AccessDeniedException,
+      UnsupportedRepositoryOperationException, RepositoryException {
+    final UserManager userManager = AccessControlUtil.getUserManager(adminSession);
     final PrincipalManager principalManager = AccessControlUtil
         .getPrincipalManager(adminSession);
     final Authorizable currentUser = userManager.getAuthorizable(currentUserId);
