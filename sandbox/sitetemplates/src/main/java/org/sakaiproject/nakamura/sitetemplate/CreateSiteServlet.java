@@ -17,11 +17,10 @@
  */
 package org.sakaiproject.nakamura.sitetemplate;
 
+import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.apache.jackrabbit.JcrConstants.JCR_MIXINTYPES;
 import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_COPY_FROM;
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_MOVE_FROM;
 import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE;
@@ -45,7 +44,6 @@ import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
-import org.sakaiproject.nakamura.util.PathUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.version.VersionService;
 import org.slf4j.Logger;
@@ -58,11 +56,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import javax.jcr.Workspace;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -105,8 +101,6 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
     String currentUser = session.getUserID();
 
     String templatePath = null;
-    String copyFromPath = null;
-    String moveFromPath = null;
 
     // Do the necessary checks to see if this request is valid.
     if (UserConstants.ANON_USERID.equals(currentUser)) {
@@ -142,38 +136,6 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
         }
       }
 
-      // Check what we will do (create, copy, move)
-      // If we have been asked to move a site, make sure it exists.
-      RequestParameter requestParameter = request.getRequestParameter(PARAM_MOVE_FROM);
-      if (requestParameter != null) {
-        moveFromPath = requestParameter.getString();
-        if (!session.itemExists(moveFromPath)
-            || !siteService.isSite(session.getItem(moveFromPath))) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + PARAM_MOVE_FROM + " must be set to an existing site.");
-          return;
-        }
-      }
-      // If we have been asked to copy a site, make sure it exists.
-      requestParameter = request.getRequestParameter(PARAM_COPY_FROM);
-      if (requestParameter != null) {
-        copyFromPath = requestParameter.getString();
-        if (!session.itemExists(copyFromPath)
-            || !siteService.isSite(session.getItem(copyFromPath))) {
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST, "The parameter "
-              + PARAM_COPY_FROM + " must be set to an existing site.");
-          return;
-        }
-      }
-      // We can only create a site in one way at a time.
-      if (((templatePath != null) && ((moveFromPath != null) || (copyFromPath != null)))
-          || ((moveFromPath != null) && (copyFromPath != null))) {
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Only one of "
-            + SAKAI_SITE_TEMPLATE + ", " + PARAM_MOVE_FROM + ", and " + PARAM_COPY_FROM
-            + " can be specified.");
-        return;
-      }
-
       RequestParameter siteParam = request.getRequestParameter("site");
       siteJSON = new JSONObject(siteParam.getString("UTF-8"));
 
@@ -189,19 +151,10 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       return;
     }
 
-    // Perform the actual creation or move.
+    // Perform the actual creation.
     try {
       if (templatePath != null) {
         createSiteFromTemplate(session, sitePath, templateNode, siteJSON, resolver);
-      } else if (copyFromPath != null) {
-        copySite(session, copyFromPath, sitePath, currentUser);
-      } else if (moveFromPath != null) {
-        moveSite(session, moveFromPath, sitePath, currentUser);
-      }
-
-      // Save everything.
-      if (session.hasPendingChanges()) {
-        session.save();
       }
 
     } catch (Exception e) {
@@ -243,13 +196,45 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       // Create the sitenode.
       siteNode = JcrUtils.deepGetOrCreateNode(adminSession, sitePath);
 
+      // We give the current user JCR_ALL on the sitenode so he/she can create the
+      // necessary structure.
+      // We will remove the ACL later, the user just has to add him or herself to the
+      // managers group if he wants access.
+      UserManager um = AccessControlUtil.getUserManager(session);
+      Principal p = um.getAuthorizable(session.getUserID()).getPrincipal();
+      String[] privs = new String[] { JCR_ALL };
+      AccessControlUtil.replaceAccessControlEntry(adminSession, sitePath, p, privs, null,
+          null, null);
+
       // Create the groups.
       createGroups(builder, adminSession, siteNode);
+
+      // Save the admin changes so that they can be picked up by our other session.
+      adminSession.save();
+
+      // We refresh the current session so that the changes that the admin made (creating
+      // site node, setting JCR_ALL permission) are available to us.
+      // After this point the admin session should NOT be used for anything else besides
+      // removing the JCR_ALL permission.
+      session.refresh(true);
+      // Grab the site node trough our own session.
+      siteNode = session.getNode(sitePath);
 
       // We get the site node trough our own session, so we can modify it.
       // siteNode = session.getNode(sitePath);
       // Create the site structure.
-      createSiteStructure(builder, siteNode, adminSession);
+      createSiteStructure(builder, siteNode);
+
+      // Save everything we've done.
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+
+      // Remove the current user his JCR_ALL privileges.
+      // If the user is not in the manager group, he will NOT be able to edit the site
+      // anymore!
+      AccessControlUtil.replaceAccessControlEntry(adminSession, sitePath, p, null, null,
+          privs, null);
 
       if (adminSession.hasPendingChanges()) {
         adminSession.save();
@@ -273,10 +258,10 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    *          The admin session, this will only be used for setting ACLs.
    * @throws RepositoryException
    */
-  private void createSiteStructure(TemplateBuilder builder, Node siteNode,
-      Session adminSession) throws RepositoryException {
+  private void createSiteStructure(TemplateBuilder builder, Node siteNode)
+      throws RepositoryException {
     Map<String, Object> structure = builder.getSiteMap();
-    handleNode(structure, siteNode, adminSession);
+    handleNode(structure, siteNode);
   }
 
   /**
@@ -290,22 +275,17 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  private void handleNode(Map<String, Object> structure, Node node, Session adminSession)
+  private void handleNode(Map<String, Object> structure, Node node)
       throws RepositoryException {
     Session session = node.getSession();
     // Handle the ACEs before we do anything else.
     if (structure.containsKey("rep:policy")) {
       List<ACE> lst = (List<ACE>) structure.get("rep:policy");
       for (ACE ace : lst) {
-        AccessControlUtil.replaceAccessControlEntry(adminSession, node.getPath(), ace
+        AccessControlUtil.replaceAccessControlEntry(session, node.getPath(), ace
             .getPrincipal(), ace.getGrantedPrivileges(), ace.getDeniedPrivileges(), null,
             null);
       }
-      // We have to do a save for the ACEs to get picked up.
-      if (adminSession.hasPendingChanges()) {
-        adminSession.save();
-      }
-      session.refresh(true);
     }
     if (structure.containsKey(JCR_MIXINTYPES)) {
       Value[] mixins = (Value[]) structure.get(JCR_MIXINTYPES);
@@ -339,7 +319,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
           nt = ((Value) map.get(JCR_PRIMARYTYPE)).getString();
         }
         Node childNode = node.addNode(key, nt);
-        handleNode(map, childNode, adminSession);
+        handleNode(map, childNode);
       }
     }
   }
@@ -348,11 +328,11 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * Creates the groups in the system.
    * 
    * @param builder
-   * @param session
+   * @param adminSession
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  private void createGroups(TemplateBuilder builder, Session session, Node siteNode)
+  private void createGroups(TemplateBuilder builder, Session adminSession, Node siteNode)
       throws RepositoryException {
 
     Node groupNodes = null;
@@ -362,7 +342,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       groupNodes = siteNode.addNode(GROUPS_SITE_NODENAME);
     }
 
-    UserManager um = AccessControlUtil.getUserManager(session);
+    UserManager um = AccessControlUtil.getUserManager(adminSession);
     Map<Principal, Map<String, Object>> groups = builder.getGroups();
     int i = 0;
     for (Entry<Principal, Map<String, Object>> g : groups.entrySet()) {
@@ -409,117 +389,6 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       groupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/site-group");
       groupNode.setProperty(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER, isMaintainer);
       i++;
-    }
-  }
-
-  /**
-   * Copy a site over.
-   * 
-   * @param session
-   * @param fromPath
-   * @param sitePath
-   * @param creator
-   * @return
-   * @throws RepositoryException
-   */
-  private Node copySite(Session session, String fromPath, String sitePath, String creator)
-      throws RepositoryException {
-    ensureParent(session, sitePath);
-
-    // Copy the template files in the new folder.
-    LOGGER.debug("Copying site ({}) to new dir ({})", fromPath, sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.copy(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-    session.save();
-
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-    versionNodeAndChildren(siteNode, creator);
-    LOGGER.debug("Finished copying");
-    return siteNode;
-  }
-
-  /**
-   * Moves a site. When the move is done it will version the site node.
-   * 
-   * @param session
-   *          Session to use to do the move.
-   * @param fromPath
-   *          The path to the site that needs to be moved.
-   * @param sitePath
-   *          The path to where the site should be moved
-   * @param creator
-   *          The Authorizable that does the versioning -- the current user.
-   * @return The new site node.
-   * @throws RepositoryException
-   */
-  private Node moveSite(Session session, String fromPath, String sitePath, String creator)
-      throws RepositoryException {
-    ensureParent(session, sitePath);
-
-    // Copy the template files in the new folder.
-    LOGGER.debug("Moving site ({}) to new dir ({})", fromPath, sitePath);
-    Workspace workspace = session.getWorkspace();
-    workspace.move(fromPath, sitePath);
-    Node siteNode = (Node) session.getItem(sitePath);
-
-    versionService.saveNode(siteNode, creator);
-    LOGGER.debug("Finished move");
-    return siteNode;
-  }
-
-  /**
-   * Workspace copy/move needs the destination's parent to exist and be saved. The save is
-   * necessary to do a Workspace.move or .copy .
-   * 
-   * @param session
-   *          The session that can be used to create the parent node.
-   * @param sitePath
-   *          The path where the site should be created. This method will create the path
-   *          to the parent.
-   * @throws RepositoryException
-   */
-  private void ensureParent(Session session, String sitePath) throws RepositoryException {
-    String parentPath = PathUtils.getParentReference(sitePath);
-    JcrUtils.deepGetOrCreateNode(session, parentPath);
-    if (session.hasPendingChanges()) {
-      session.save();
-    }
-  }
-
-  /**
-   * Versions a node and all its child nodes.
-   * 
-   * @param n
-   *          The node (and it's subtree) that needs to be versioned.
-   * @param userID
-   *          The userID that does the versioning -- current user.
-   * @param createSession
-   *          Session to use for versioning.
-   */
-  private void versionNodeAndChildren(Node n, String userID) {
-    try {
-
-      Session session = n.getSession();
-      // TODO do better check
-      if (n.isNode()
-          && !n.getName().startsWith("rep:")
-          && !n.getName().startsWith("jcr:")
-          && n.hasProperties()
-          && !n.getProperty(JcrConstants.JCR_PRIMARYTYPE).getString().equals(
-              JcrConstants.NT_RESOURCE)) {
-        versionService.saveNode((Node) session.getItem(n.getPath()), userID);
-        NodeIterator it = n.getNodes();
-        // Version the childnodes
-        while (it.hasNext()) {
-          Node childNode = it.nextNode();
-          versionNodeAndChildren(childNode, userID);
-        }
-      }
-    } catch (RepositoryException re) {
-      LOGGER.warn("Unable to save copied node", re);
     }
   }
 
