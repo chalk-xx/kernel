@@ -385,7 +385,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
       if (!session.itemExists(basePath)) {
         JcrUtils.deepGetOrCreateNode(session, basePath);
         AccessControlUtil.replaceAccessControlEntry(session, basePath, fromUser
-            .getPrincipal(), new String[] { JCR_ALL }, null, null);
+            .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
         LOGGER.info("Added ACL to [{}]", basePath);
       }
       Node node = JcrUtils.deepGetOrCreateNode(session, nodePath);

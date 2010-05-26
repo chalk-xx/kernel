@@ -234,13 +234,13 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       LOGGER.info("User {} is attempting to make {} a manager ", session.getUserID(),
           manager.getName());
       AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, manager,
-          new String[] { JCR_ALL }, null, null);
+          new String[] { JCR_ALL }, null, null, null);
     }
     for (Principal viewer : viewers) {
       LOGGER.info("User {} is attempting to make {} a viewer ", session.getUserID(),
           viewer.getName());
       AccessControlUtil.replaceAccessControlEntry(session, homeFolderPath, viewer,
-          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null);
+          new String[] { JCR_READ }, new String[] { JCR_WRITE }, null, null);
     }
     LOGGER.debug("Set ACL on Node for {} at   {} ", authorizable.getID(), homeNode);
 
@@ -400,11 +400,11 @@ public class PersonalAuthorizablePostProcessor implements AuthorizablePostProces
       }
     };
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, authorizable
-        .getPrincipal(), new String[] { JCR_ALL }, null, null);
+        .getPrincipal(), new String[] { JCR_ALL }, null, null, null);
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, anon, null,
-        new String[] { JCR_READ, JCR_WRITE }, null);
+        new String[] { JCR_READ, JCR_WRITE }, null, null);
     AccessControlUtil.replaceAccessControlEntry(session, privatePath, everyone, null,
-        new String[] { JCR_READ, JCR_WRITE }, null);
+        new String[] { JCR_READ, JCR_WRITE }, null, null);
 
     LOGGER.debug("Done creating private at {} ", privatePath);
     return privateNode;

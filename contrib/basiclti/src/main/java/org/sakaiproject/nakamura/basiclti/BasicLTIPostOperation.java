@@ -247,11 +247,11 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
     Principal everyone = principalManager.getEveryone();
 
     replaceAccessControlEntry(adminSession, sensitiveNodePath, anon, null,
-        new String[] { JCR_ALL }, null);
+        new String[] { JCR_ALL }, null, null);
     replaceAccessControlEntry(adminSession, sensitiveNodePath, everyone, null,
-        new String[] { JCR_ALL }, null);
+        new String[] { JCR_ALL }, null, null);
     replaceAccessControlEntry(adminSession, sensitiveNodePath,
-        currentUser.getPrincipal(), null, new String[] { JCR_ALL }, null);
+        currentUser.getPrincipal(), null, new String[] { JCR_ALL }, null, null);
   }
 
   /**
