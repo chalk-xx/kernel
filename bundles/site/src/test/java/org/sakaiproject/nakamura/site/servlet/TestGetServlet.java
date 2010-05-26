@@ -85,6 +85,8 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     RequestPathInfo requestPathInfo = createMock(RequestPathInfo.class);
     expect(request.getRequestPathInfo()).andReturn(requestPathInfo).anyTimes();
     expect(requestPathInfo.getExtension()).andReturn("json").anyTimes();
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
   }
 
   @Test
