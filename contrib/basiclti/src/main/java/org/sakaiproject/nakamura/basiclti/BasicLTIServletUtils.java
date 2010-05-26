@@ -32,12 +32,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.security.AccessControlException;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
+import javax.jcr.version.VersionException;
 
 public class BasicLTIServletUtils {
   /**
@@ -125,6 +130,25 @@ public class BasicLTIServletUtils {
       }
     }
     return isAdmin;
+  }
+
+  /**
+   * Quietly removes a Property on a Node if it exists.
+   * 
+   * @param node
+   * @param property
+   * @throws VersionException
+   * @throws LockException
+   * @throws ConstraintViolationException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   */
+  protected static void removeProperty(final Node node, final String property)
+      throws VersionException, LockException, ConstraintViolationException,
+      PathNotFoundException, RepositoryException {
+    if (node.hasProperty(property)) {
+      node.getProperty(property).remove();
+    }
   }
 
 }

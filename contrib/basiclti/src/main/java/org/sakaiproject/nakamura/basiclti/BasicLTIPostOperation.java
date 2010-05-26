@@ -22,6 +22,7 @@ import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessCont
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_ADMIN_NODE_NAME;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
+import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.sensitiveKeys;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.unsupportedKeys;
 
@@ -120,7 +121,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
           } else {
             final String value = requestParameterArray[0].getString("UTF-8");
             if ("".equals(value)) {
-              // removeProperty(node, key);
+              removeProperty(node, key);
             } else { // has a valid value
               if (sensitiveKeys.contains(key)) {
                 sensitiveData.put(key, value);
@@ -142,7 +143,7 @@ public class BasicLTIPostOperation extends AbstractSlingPostOperation {
       } // end request parameters loop
       // safety precaution - just to be safe
       for (String skey : sensitiveKeys) {
-        // removeProperty(node, skey);
+        removeProperty(node, skey);
       }
       if (session.hasPendingChanges()) {
         session.save();
