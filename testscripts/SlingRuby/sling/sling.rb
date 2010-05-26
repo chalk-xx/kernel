@@ -325,6 +325,17 @@ module SlingInterface
         end))
         return res
       end
+
+    def set_node_acl_rule_entries(path, principal, privs, props)
+      puts "Setting node acl for: #{principal} to #{privs.dump}"
+	  props["principalId"] = principal.name
+      res = execute_post(url_for("#{path}.modifyRuleAce.html"), 
+      props.update(
+                                                 privs.keys.inject(Hash.new) do |n,k| 
+        n.update("privilege@#{k}" => privs[k])
+        end))
+        return res
+      end
       
       def delete_node_acl_entries(path, principal)
         res = execute_post(url_for("#{path}.deleteAce.html"), {
