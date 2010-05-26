@@ -113,6 +113,7 @@ public class CropItServletTest extends AbstractEasyMockTest {
     Binary bin = createMock(Binary.class);
     expect(imgContentData.getBinary()).andReturn(bin);
     byte[] b = IOUtils.getInputStreamBytes(getClass().getClassLoader().getResourceAsStream("people.png"));
+    expect(bin.getSize()).andReturn((long)b.length);
     expect(bin.getStream()).andReturn(new ByteArrayInputStream(b));
     expect(imgContentType.getString()).andReturn("image/png");
     expect(imgContentNode.getProperty("jcr:data")).andReturn(imgContentData);

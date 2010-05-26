@@ -87,6 +87,7 @@
         <module>bundles/woodstox</module>
         <module>bundles/calendar</module>
         <module>bundles/antixss</module>
+        <module>bundles/authz</module>
         <!-- NYU contrib needs -->
         <module>contrib/ldap</module>
         <module>contrib/ldapauth</module>

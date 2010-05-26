@@ -238,6 +238,11 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         adminSession = null;
       }
       
+      // Get the optional site type
+      String sakaiSiteType = null;
+      if ( request.getRequestParameter(SiteService.SAKAI_SITE_TYPE) != null )
+        sakaiSiteType = request.getRequestParameter(SiteService.SAKAI_SITE_TYPE).getString();
+
       LOGGER.info("Creating Site {} for user {} with session {}",new Object[] { sitePath, currentUser.getID(), session.getUserID()});
       	
 
@@ -245,14 +250,15 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       try {
         Node siteNode;
         if (templatePath != null) {
-          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser);
+          siteNode = createSiteFromTemplate(createSession, templatePath, sitePath, currentUser, sakaiSiteType);
         } else if (copyFromPath != null) {
           siteNode = copySite(createSession, copyFromPath, sitePath, currentUser);
         } else if (moveFromPath != null) {
           siteNode = moveSite(createSession, moveFromPath, sitePath, currentUser);
         } else {
-          siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser);
+          siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser, sakaiSiteType);
         }
+        
         if (LOGGER.isDebugEnabled()) {
           try {
             JcrUtils.logItem(LOGGER, siteNode);
@@ -367,7 +373,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    * @return the new site node
    * @throws RepositoryException
    */
-  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator) throws RepositoryException {
+  private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     ensureParent(session, sitePath);
     
     // Copy the template files in the new folder.
@@ -384,7 +390,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     session.save();
 
     initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode);
+    initializeNewSite(session, siteNode, sakaiSiteType);
     if (session.hasPendingChanges()) {
       session.save();
     }
@@ -393,12 +399,12 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     return siteNode;
   }
   
-  private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator) throws RepositoryException {
+  private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     Node siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
     session.save();
 
     initializeAccess(session, siteNode, creator);
-    initializeNewSite(session, siteNode);
+    initializeNewSite(session, siteNode, sakaiSiteType);
     if (session.hasPendingChanges()) {
       session.save();
     }
@@ -470,10 +476,13 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     authzHelper.initAccess(creator.getID());
   }
   
-  private void initializeNewSite(Session session, Node site) throws RepositoryException {
+  private void initializeNewSite(Session session, Node site, String sakaiSiteType) throws RepositoryException {
     site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         SiteService.SITE_RESOURCE_TYPE);
 
+    if ( sakaiSiteType != null )
+        site.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType );
+       
     // Add a message store to this site.
     // TODO Is there any reason this can't be handled by site templates?
     Node storeNode = site.addNode("store");
