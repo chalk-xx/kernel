@@ -24,8 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.HashSet;
 
+import javax.jcr.Binary;
 import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
@@ -35,6 +38,7 @@ import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.ValueFactory;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.PropertyDefinition;
 
@@ -317,6 +321,41 @@ public class JcrUtils {
       }
     }
     return hasRequiredMixin;
+  }
+
+  /**
+   * Creates a JCR {@link Value value} from an object. If Object could not be transformed
+   * to a {@link Value value} null will be returned.
+   * 
+   * @param o
+   *          The value that needs to be created. {@link Node Nodes} are not supported.
+   * @param session
+   *          Needed to create the value.
+   * @return A {@link Value value} or null.
+   * @throws RepositoryException
+   */
+  public static Value createValue(Object o, Session session) throws RepositoryException {
+    ValueFactory vf = session.getValueFactory();
+    Value val = null;
+
+    if (o instanceof BigDecimal) {
+      val = vf.createValue((BigDecimal) o);
+    } else if (o instanceof Binary) {
+      val = vf.createValue((Binary) o);
+    } else if (o instanceof Boolean) {
+      val = vf.createValue((Boolean) o);
+    } else if (o instanceof Calendar) {
+      val = vf.createValue((Calendar) o);
+    } else if (o instanceof Double) {
+      val = vf.createValue((Double) o);
+    } else if (o instanceof Long) {
+      val = vf.createValue((Long) o);
+    } else if (o instanceof String) {
+      val = vf.createValue(o.toString());
+    }
+
+    return val;
+
   }
 
 }

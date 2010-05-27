@@ -127,8 +127,11 @@ public class PathUtils {
   }
 
   /**
+   * Return the path of the parent node.
+   *
    * @param resourceReference
-   * @return
+   *          A string that represents a path in JCR (can end with /)
+   * @return If given "/foo/bar///" will return /foo.
    */
   public static String getParentReference(String resourceReference) {
     char[] ref = resourceReference.toCharArray();

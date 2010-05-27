@@ -469,7 +469,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
   private void initializeAccess(Session session, Node site, Authorizable creator) throws RepositoryException {
     // Give the creator full rights on the site tree.
     AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator.getPrincipal(),
-        new String[] {"jcr:all"}, null, null);
+        new String[] {"jcr:all"}, null, null, null);
 
     // Handle authz configuration via a helper.
     SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);

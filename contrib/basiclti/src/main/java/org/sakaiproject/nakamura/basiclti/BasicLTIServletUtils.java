@@ -32,12 +32,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.lock.LockException;
+import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.security.AccessControlException;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
+import javax.jcr.version.VersionException;
 
 public class BasicLTIServletUtils {
   /**
@@ -65,31 +70,25 @@ public class BasicLTIServletUtils {
   }
 
   /**
-   * Helper method to return a Set of Privileges that a normal user <i>should
-   * not</i> have on a sensitive Node.
+   * Helper method to return a Set of Privileges that a normal user <i>should not</i> have
+   * on a sensitive Node.
    * 
    * @param acm
    * @return
    * @throws AccessControlException
    * @throws RepositoryException
    */
-  protected static Set<Privilege> getInvalidUserPrivileges(
-      final AccessControlManager acm) throws AccessControlException,
-      RepositoryException {
+  protected static Set<Privilege> getInvalidUserPrivileges(final AccessControlManager acm)
+      throws AccessControlException, RepositoryException {
     Set<Privilege> invalidUserPrivileges = new HashSet<Privilege>(9);
     invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_ALL));
     invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_READ));
     invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_WRITE));
-    invalidUserPrivileges.add(acm
-        .privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES));
-    invalidUserPrivileges.add(acm
-        .privilegeFromName(Privilege.JCR_READ_ACCESS_CONTROL));
-    invalidUserPrivileges.add(acm
-        .privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL));
-    invalidUserPrivileges.add(acm
-        .privilegeFromName(Privilege.JCR_ADD_CHILD_NODES));
-    invalidUserPrivileges.add(acm
-        .privilegeFromName(Privilege.JCR_REMOVE_CHILD_NODES));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_MODIFY_PROPERTIES));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_READ_ACCESS_CONTROL));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_MODIFY_ACCESS_CONTROL));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_ADD_CHILD_NODES));
+    invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_REMOVE_CHILD_NODES));
     invalidUserPrivileges.add(acm.privilegeFromName(Privilege.JCR_REMOVE_NODE));
     return invalidUserPrivileges;
   }
@@ -105,19 +104,16 @@ public class BasicLTIServletUtils {
   protected static boolean isAdminUser(final Session session)
       throws UnsupportedRepositoryOperationException, RepositoryException {
     final UserManager userManager = AccessControlUtil.getUserManager(session);
-    final Authorizable authorizable = userManager.getAuthorizable(session
-        .getUserID());
+    final Authorizable authorizable = userManager.getAuthorizable(session.getUserID());
     boolean isAdmin = false;
     if (authorizable != null) {
       final Principal principal = authorizable.getPrincipal();
       if (principal != null) {
         final PrincipalManager principalManager = AccessControlUtil
             .getPrincipalManager(session);
-        final PrincipalIterator it = principalManager
-            .getGroupMembership(principal);
+        final PrincipalIterator it = principalManager.getGroupMembership(principal);
         while (it.hasNext()) {
-          if (SecurityConstants.ADMINISTRATORS_NAME.equals(it.nextPrincipal()
-              .getName())) {
+          if (SecurityConstants.ADMINISTRATORS_NAME.equals(it.nextPrincipal().getName())) {
             isAdmin = true;
             break;
           }
@@ -125,6 +121,25 @@ public class BasicLTIServletUtils {
       }
     }
     return isAdmin;
+  }
+
+  /**
+   * Quietly removes a Property on a Node if it exists.
+   * 
+   * @param node
+   * @param property
+   * @throws VersionException
+   * @throws LockException
+   * @throws ConstraintViolationException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   */
+  protected static void removeProperty(final Node node, final String property)
+      throws VersionException, LockException, ConstraintViolationException,
+      PathNotFoundException, RepositoryException {
+    if (node.hasProperty(property)) {
+      node.getProperty(property).remove();
+    }
   }
 
 }

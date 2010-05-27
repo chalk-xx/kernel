@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServletResponse;
  * The <code>SiteServiceGetServlet</code>
  */
 @Component(immediate = true, label = "%site.getServlet.label", description = "%site.getServlet.desc")
-@SlingServlet(resourceTypes = "sakai/site", methods = "GET", extensions = "html", generateComponent = false)
+@SlingServlet(resourceTypes = {"sakai/site"}, methods = {"GET"}, generateComponent = false)
 @ServiceDocumentation(name="Get Site Servlet",
     description=" Gets the site container or the site definition depending on serialization ",
     shortDescription="Get site.",
@@ -131,6 +131,10 @@ public class SiteGetServlet extends AbstractSiteServlet {
   }
 
   private void renderAsJson(Node node, SlingHttpServletResponse response) throws IOException {
+    // KERN-788 Output as json.
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     try {
       writer.object();

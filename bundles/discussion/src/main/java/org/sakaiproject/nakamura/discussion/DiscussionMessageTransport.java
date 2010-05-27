@@ -118,7 +118,7 @@ public class DiscussionMessageTransport implements MessageTransport {
             Authorizable authorizable = AccessControlUtil.getUserManager(session)
                 .getAuthorizable(from);
             replaceAccessControlEntry(session, toPath, authorizable.getPrincipal(),
-                new String[] { JCR_WRITE, JCR_READ, JCR_REMOVE_NODE }, null, null);
+                new String[] { JCR_WRITE, JCR_READ, JCR_REMOVE_NODE }, null, null, null);
           }
           if (session.hasPendingChanges()) {
             session.save();
