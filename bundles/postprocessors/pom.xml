@@ -44,6 +44,11 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.site</artifactId>
+      <version>0.5-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
     </dependency>
