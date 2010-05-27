@@ -13,7 +13,7 @@
 # User customisable ENV VARs
 # ---------------------------
 
-K2_version="sakai-k2-0.5-binary"
+K2_version="sakai-k2-0.5-SNAPSHOT-binary"
 mvn_bin="/usr/bin/mvn"
 tar_bin="/usr/bin/tar"
 zip_bin="/usr/bin/zip"

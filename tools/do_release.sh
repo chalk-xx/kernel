@@ -197,7 +197,7 @@ git tag -d $tagversion
 set -o errexit
 git tag -s -m "[release-script] tagging release $cversion " $tagversion HEAD
 echo "Reverting pom changes."
-patch -p3 -R < last-release/changeversion.diff
+patch -p1 -R < last-release/changeversion.diff
 
 if [ $rc == "" ]
 then

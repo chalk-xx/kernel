@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.5</version>
+    <version>0.5-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.resource</artifactId>
   <packaging>bundle</packaging>
-  <version>0.5</version>
+  <version>0.5-SNAPSHOT</version>
   <name>Sakai Sling Resource Extensione Bundle</name>
   <description>Sling Resource Extension budle containing adaptations of existing extension points</description>
   <build>

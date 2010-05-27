@@ -49,7 +49,7 @@ mvn -B -e clean install -Dmaven.test.skip=true -Dsakai-ux-tag=$UX_TAG
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.5.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.5-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
 cd $BUILD_DIR
