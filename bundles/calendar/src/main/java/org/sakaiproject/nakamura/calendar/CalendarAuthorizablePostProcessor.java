@@ -92,7 +92,7 @@ public class CalendarAuthorizablePostProcessor implements AuthorizablePostProces
     // If the authorizable is a group, we give the group access to it.
     String[] granted = new String[] { "jcr:all" };
     AccessControlUtil.replaceAccessControlEntry(session, path, authorizable
-        .getPrincipal(), granted, null, null);
+        .getPrincipal(), granted, null, null, null);
 
     if (session.hasPendingChanges()) {
       session.save();

@@ -57,6 +57,11 @@ public interface SiteService {
    */
   public static final String JOINABLE = "sakai:joinable";
 
+   /**
+   * The property used to store the type of site.(e.g. portfolio, course, other)
+   */
+  public static final String SAKAI_SITE_TYPE = "sakai:site-type";
+
   /**
    * The property used to store the sites a group is associated with.
    */
@@ -166,20 +171,6 @@ public interface SiteService {
   boolean isSiteTemplate(Item site);
 
   /**
-   * Join a site in a target Group. The target Group must already be associated with the
-   * site and the Site and the group must both be joinable. THe target group does not need
-   * to be a directly associated with the site.
-   * 
-   * @param site
-   *          the site to join
-   * @param targetGroup
-   *          the target Group to join
-   * @throws SiteException
-   *           if its not possible to fulfill the request.
-   */
-  void joinSite(Node site, String targetGroup) throws SiteException;
-
-  /**
    * @param site
    *          the site in question.
    * @return the joinable status of the site.
@@ -213,18 +204,6 @@ public interface SiteService {
    */
   boolean isUserSiteMaintainer(Node site) throws RepositoryException;
 
-  /**
-   * Initiate a join workflow for the site and the user. The user is taken from the
-   * current request.
-   * 
-   * @param site
-   *          the site in question
-   * @param group
-   *          the group being joined.
-   * @throws SiteException
-   *           thrown if there was a problem initiating the join workflow.
-   */
-  void startJoinWorkflow(Node site, Group group) throws SiteException;
 
   /**
    * @param site 
@@ -242,16 +221,6 @@ public interface SiteService {
    */
   String getSiteSkin(Node site) throws SiteException;
 
-  /**
-   * Unjoin a site, only if the user is a member of the group and the group is associated
-   * with the site. The user must also be a member of the group.
-   * 
-   * @param site
-   *          the site containing the group.
-   * @param group
-   *          the group to unjoin.
-   */
-  void unjoinSite(Node site, String string) throws SiteException;
 
   /**
    * Lists declared members of the site with a sort order and paging.

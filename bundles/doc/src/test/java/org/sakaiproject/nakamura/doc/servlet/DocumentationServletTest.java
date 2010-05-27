@@ -42,7 +42,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -65,12 +67,10 @@ public class DocumentationServletTest {
 
     ComponentContext componentContext = mock(ComponentContext.class);
     when(componentContext.getBundleContext()).thenReturn(bundleContext);
-    servlet.activate(componentContext);
   }
 
   @After
   public void tearDown() {
-    servlet.deactivate(null);
   }
 
   @Test
@@ -83,7 +83,13 @@ public class DocumentationServletTest {
     RequestParameter param = mock(RequestParameter.class);
     when(param.getString()).thenReturn(pathToServlet);
     when(request.getRequestParameter("p")).thenReturn(param);
+    
+    ServletDocumentationRegistry registry = mock(ServletDocumentationRegistry.class);
+    Map<String, ServletDocumentation> docMap = new HashMap<String, ServletDocumentation>();
+    when(registry.getServletDocumentation()).thenReturn(docMap);    
+    servlet.servletDocumentationRegistry = registry;
 
+    
     servlet.doGet(request, response);
 
     verify(response).sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -105,10 +111,13 @@ public class DocumentationServletTest {
     when(request.getRequestParameter("p")).thenReturn(param);
 
     Servlet documentedServlet = new DocumentedService();
-    ServletDocumentationTracker tracker = new ServletDocumentationTracker(bundleContext);
     ServiceReference reference = createServiceReference();
-    tracker.addServlet(reference, documentedServlet);
-    servlet.servletTracker = tracker;
+    ServletDocumentation servletDocumentation = new ServletDocumentation(reference, documentedServlet);
+    ServletDocumentationRegistry registry = mock(ServletDocumentationRegistry.class);
+    Map<String, ServletDocumentation> docMap = new HashMap<String, ServletDocumentation>();
+    docMap.put(servletDocumentation.getKey(), servletDocumentation);
+    when(registry.getServletDocumentation()).thenReturn(docMap);    
+    servlet.servletDocumentationRegistry = registry;
 
     servlet.doGet(request, response);
 
@@ -135,10 +144,13 @@ public class DocumentationServletTest {
     when(request.getRequestParameter("p")).thenReturn(null);
 
     Servlet documentedServlet = new DocumentedService();
-    ServletDocumentationTracker tracker = new ServletDocumentationTracker(bundleContext);
     ServiceReference reference = createServiceReference();
-    tracker.addServlet(reference, documentedServlet);
-    servlet.servletTracker = tracker;
+    ServletDocumentation servletDocumentation = new ServletDocumentation(reference, documentedServlet);
+    ServletDocumentationRegistry registry = mock(ServletDocumentationRegistry.class);
+    Map<String, ServletDocumentation> docMap = new HashMap<String, ServletDocumentation>();
+    docMap.put(servletDocumentation.getKey(), servletDocumentation);
+    when(registry.getServletDocumentation()).thenReturn(docMap);    
+    servlet.servletDocumentationRegistry = registry;
 
     servlet.doGet(request, response);
 

@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.doc;
 
 import static org.junit.Assert.assertEquals;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,13 +34,16 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
-import org.sakaiproject.nakamura.doc.servlet.ServletDocumentationTracker;
+import org.sakaiproject.nakamura.doc.servlet.ServletDocumentation;
+import org.sakaiproject.nakamura.doc.servlet.ServletDocumentationRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -64,12 +66,10 @@ public class GeneralDocumentationServletTest {
 
     componentContext = mock(ComponentContext.class);
     when(componentContext.getBundleContext()).thenReturn(bundleContext);
-    servlet.activate(componentContext);
   }
 
   @After
   public void tearDown() {
-    servlet.deactivate(componentContext);
   }
 
   @Test
@@ -84,10 +84,13 @@ public class GeneralDocumentationServletTest {
     when(request.getRequestParameter("p")).thenReturn(null);
 
     Servlet documentedServlet = new DocumentedService();
-    ServletDocumentationTracker tracker = new ServletDocumentationTracker(bundleContext);
     ServiceReference reference = createServiceReference();
-    tracker.addServlet(reference, documentedServlet);
-    servlet.servletTracker = tracker;
+    ServletDocumentation servletDocumentation = new ServletDocumentation(reference, documentedServlet);
+    ServletDocumentationRegistry registry = mock(ServletDocumentationRegistry.class);
+    Map<String, ServletDocumentation> docMap = new HashMap<String, ServletDocumentation>();
+    docMap.put(servletDocumentation.getKey(), servletDocumentation);
+    when(registry.getServletDocumentation()).thenReturn(docMap);    
+    servlet.servletDocumentationRegistry = registry;
 
     servlet.doGet(request, response);
     writer.flush();

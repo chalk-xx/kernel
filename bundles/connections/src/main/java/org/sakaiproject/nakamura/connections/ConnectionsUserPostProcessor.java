@@ -21,7 +21,6 @@ import static javax.jcr.security.Privilege.JCR_ALL;
 import static javax.jcr.security.Privilege.JCR_READ;
 import static javax.jcr.security.Privilege.JCR_WRITE;
 import static org.apache.sling.jcr.base.util.AccessControlUtil.replaceAccessControlEntry;
-import static org.sakaiproject.nakamura.api.user.UserConstants.SYSTEM_USER_MANAGER_USER_PATH;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
@@ -31,20 +30,17 @@ import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.AuthorizableExistsException;
 import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
 import org.apache.sling.servlets.post.Modification;
-import org.apache.sling.servlets.post.ModificationType;
 import org.sakaiproject.nakamura.api.connections.ConnectionConstants;
-import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessor;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
-import java.util.List;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -83,12 +79,12 @@ public class ConnectionsUserPostProcessor implements AuthorizablePostProcessor {
       Principal everyone = principalManager.getEveryone();
 
       replaceAccessControlEntry(session, path, authorizable.getPrincipal(),
-          new String[] { JCR_ALL }, null, null);
+          new String[] { JCR_ALL }, null, null, null);
 
       // explicitly deny anon and everyone, this is private space.
       String[] deniedPrivs = new String[] { JCR_READ, JCR_WRITE };
-      replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null);
-      replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null);
+      replaceAccessControlEntry(session, path, anon, null, deniedPrivs, null, null);
+      replaceAccessControlEntry(session, path, everyone, null, deniedPrivs, null, null);
       createContactsGroup(authorizable, session);
     }
   }

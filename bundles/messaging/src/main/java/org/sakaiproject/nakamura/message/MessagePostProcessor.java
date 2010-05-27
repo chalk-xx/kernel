@@ -17,11 +17,14 @@
  */
 package org.sakaiproject.nakamura.message;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+
 import static org.sakaiproject.nakamura.api.message.MessageConstants.BOX_OUTBOX;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.EVENT_LOCATION;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_MESSAGEBOX;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.SAKAI_MESSAGE_RT;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NONE;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
 import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_PENDING;
@@ -85,16 +88,19 @@ public class MessagePostProcessor implements SlingPostProcessor {
             Item item = s.getItem(getMessageFromModifcation(m));
             if (item != null && item.isNode()) {
               Node n = (Node) item;
-              if (n.hasProperty(PROP_SAKAI_MESSAGEBOX)) {
-                String box = n.getProperty(PROP_SAKAI_MESSAGEBOX).getString();
-                if (BOX_OUTBOX.equals(box)) {
-                  String sendstate = STATE_NONE;
-                  if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
-                    sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
-                    messageMap.put(n, sendstate);
-                  } else {
-                    messageMap.put(n, sendstate);
-                  }
+              // Make sure that this node
+              // - represents a message (sling:resourceType=sakai/message)
+              // - has a messagebox set to 'outbox'.
+              if ((n.hasProperty(SLING_RESOURCE_TYPE_PROPERTY) && n.getProperty(
+                  SLING_RESOURCE_TYPE_PROPERTY).getString().equals(SAKAI_MESSAGE_RT))
+                  && n.hasProperty(PROP_SAKAI_MESSAGEBOX)
+                  && n.getProperty(PROP_SAKAI_MESSAGEBOX).getString().equals(BOX_OUTBOX)) {
+                String sendstate = STATE_NONE;
+                if (n.hasProperty(PROP_SAKAI_SENDSTATE)) {
+                  sendstate = n.getProperty(PROP_SAKAI_SENDSTATE).getString();
+                  messageMap.put(n, sendstate);
+                } else {
+                  messageMap.put(n, sendstate);
                 }
               }
             }
@@ -125,10 +131,9 @@ public class MessagePostProcessor implements SlingPostProcessor {
           messageDict.put(EVENT_LOCATION, n.getPath());
           messageDict.put("user", request.getRemoteUser());
           LOGGER.info("Launched event for node: " + n.getPath());
-          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT,
-              messageDict);
-          // Initiate an asynchronous event.
-          eventAdmin.postEvent(pendingMessageEvent);
+          Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
+          // KERN-790: Initiate a synchronous event.
+          eventAdmin.sendEvent(pendingMessageEvent);
           handledNodes.add(n.getPath());
         }
       }

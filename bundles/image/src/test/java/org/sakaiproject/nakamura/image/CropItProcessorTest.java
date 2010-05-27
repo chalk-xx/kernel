@@ -34,7 +34,6 @@ import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -126,6 +125,7 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
     Property streamProp = createMock(Property.class);
     Binary bin = createMock(Binary.class);
     expect(streamProp.getBinary()).andReturn(bin);
+    expect(bin.getSize()).andReturn(100L); // this is not the correct length but here its ok.
     expect(bin.getStream()).andReturn(in);
     expect(contentNode.getProperty(JCRConstants.JCR_DATA)).andReturn(streamProp);
     createMimeType(contentNode, "image/foo");
@@ -148,9 +148,9 @@ public class CropItProcessorTest extends AbstractEasyMockTest {
     BufferedImage subImage = imgBuf.getSubimage(0, 0, 100, 100);
     ImageInfo info = new ImageInfo("PNG", 8, null, ImageFormat.IMAGE_FORMAT_PNG, "PNG",
         256, "image/png", 1, 76, 76, 76, 76, 256, true, true, false, 2, "ZIP");
-    ByteArrayOutputStream baos = CropItProcessor.scaleAndWriteToStream(50, 50, subImage,
+    byte[] image = CropItProcessor.scaleAndWriteToByteArray(50, 50, subImage,
         "people.png", info);
-    InputStream scaledIs = new ByteArrayInputStream(baos.toByteArray());
+    InputStream scaledIs = new ByteArrayInputStream(image);
     BufferedImage scaledImage = ImageIO.read(scaledIs);
     assertEquals(scaledImage.getWidth(), 50);
     assertEquals(scaledImage.getHeight(), 50);

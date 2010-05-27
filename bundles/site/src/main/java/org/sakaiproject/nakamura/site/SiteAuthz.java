@@ -303,7 +303,7 @@ public class SiteAuthz {
       // Start with a clean slate for this principal.
       String[] removes = {"jcr:all"};
       AccessControlUtil.replaceAccessControlEntry(site.getSession(), site.getPath(), principal,
-          grants.toArray(new String[grants.size()]), denies.toArray(new String[denies.size()]), removes);
+          grants.toArray(new String[grants.size()]), denies.toArray(new String[denies.size()]), removes, null);
       isAuthzChanged = true;
     }
     return isAuthzChanged;

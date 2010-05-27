@@ -18,7 +18,6 @@
 package org.sakaiproject.nakamura.site.servlet;
 
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.eq;
 
 import org.apache.jackrabbit.api.JackrabbitSession;
 import org.apache.sling.api.SlingHttpServletRequest;
@@ -52,7 +51,6 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
     response = createMock(SlingHttpServletResponse.class);
     session = createMock(JackrabbitSession.class);
     expect(session.getUserManager()).andReturn(userManager).anyTimes();
-    expect(slingRepository.loginAdministrative((String) eq(null))).andReturn(session).anyTimes();
     session.logout();
     EasyMock.expectLastCall().anyTimes();
     expect(session.hasPendingChanges()).andReturn(true).anyTimes();

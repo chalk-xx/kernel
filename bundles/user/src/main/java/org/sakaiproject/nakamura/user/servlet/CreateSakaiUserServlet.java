@@ -151,7 +151,8 @@ import javax.servlet.http.HttpServletResponse;
     },
     response={
     @ServiceResponse(code=200,description="Success, a redirect is sent to the users resource locator with HTML describing status."),
-    @ServiceResponse(code=500,description="Failure, including user already exists. HTML explains failure.")
+    @ServiceResponse(code=400,description="Failure, when you try to create a user with a username that already exists."),
+    @ServiceResponse(code=500,description="Failure, HTML explains failure.")
         }))		
 
 public class CreateSakaiUserServlet extends AbstractUserPostServlet implements BindingListener  {
@@ -401,7 +402,7 @@ public class CreateSakaiUserServlet extends AbstractUserPostServlet implements B
                 }
         } catch ( AuthorizableExistsException e) {
           log.warn(e.getMessage());
-          response.setStatus(HttpServletResponse.SC_CONFLICT, e.getMessage());
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch ( RepositoryException e ) {
           log.error(e.getMessage(),e);
           throw e;

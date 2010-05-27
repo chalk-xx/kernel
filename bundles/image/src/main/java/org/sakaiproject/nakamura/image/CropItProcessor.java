@@ -42,6 +42,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
@@ -80,7 +81,6 @@ public class CropItProcessor {
       List<Dimension> dimensions, String img, String save) throws ImageException {
 
     InputStream in = null;
-    ByteArrayOutputStream out = null;
 
     // The array that will contain all the cropped and resized images.
     String[] arrFiles = new String[dimensions.size()];
@@ -108,7 +108,12 @@ public class CropItProcessor {
         }
 
         // Read the image
-        in = imgNode.getProperty(JCRConstants.JCR_DATA).getBinary().getStream();
+        Binary content = imgNode.getProperty(JCRConstants.JCR_DATA).getBinary();
+        if ( content.getSize() > 100L*1024L*1024L ) {
+          throw new ImageException(406, "Image too large to crop > 100MB "+content.getSize());
+          
+        }
+        in = content.getStream();
         try {
 
           // NOTE: I'd prefer to use the InputStream, but I don't see a way to get the
@@ -147,14 +152,19 @@ public class CropItProcessor {
             iHeight = (iHeight <= 0) ? info.getHeight() : iHeight;
 
             // Create the image.
-            out = scaleAndWriteToStream(iWidth, iHeight, subImage, imgName, info);
+            byte[] image = scaleAndWriteToByteArray(iWidth, iHeight, subImage, imgName, info);
+            
+            if ( image != null ) {
 
-            String sPath = save + iWidth + "x" + iHeight + "_" + imgName;
-            // Save new image to JCR.
-            saveImageToJCR(sPath, info.getMimeType(), out, imgNode, session);
-
-            out.close();
-            arrFiles[i] = sPath;
+              String sPath = save + iWidth + "x" + iHeight + "_" + imgName;
+              // Save new image to JCR.
+              saveImageToJCR(sPath, info.getMimeType(), image, imgNode, session);
+  
+              arrFiles[i] = sPath;
+            } else {
+              LOGGER.warn("Failed to scale image "+img+" to "+iWidth+" by "+iHeight+" defaulting to full size");
+              arrFiles[i] = img;
+            }
           }
         } catch (ImageReadException e) {
           // This is not a valid image.
@@ -185,13 +195,6 @@ public class CropItProcessor {
           LOGGER.debug("Exception closing inputstream.");
         }
       }
-      if (out != null) {
-        try {
-          out.close();
-        } catch (IOException e) {
-          LOGGER.debug("Exception closing outputstream.");
-        }
-      }
     }
     return arrFiles;
   }
@@ -204,7 +207,7 @@ public class CropItProcessor {
    * @throws ImageReadException
    * @throws ImageException 
    */
-  public static BufferedImage getBufferedImage(byte[] bytes, ImageInfo info)
+  protected static BufferedImage getBufferedImage(byte[] bytes, ImageInfo info)
       throws ImageReadException, IOException, ImageException {
     BufferedImage imgBuf;
     // Guess the format and check if it is a valid one.
@@ -231,8 +234,8 @@ public class CropItProcessor {
    *          The stream you wish to save.
    * @throws ImageException
    */
-  public static void saveImageToJCR(String path, String mimetype,
-      ByteArrayOutputStream out, Node baseNode, Session session) throws ImageException {
+  protected static void saveImageToJCR(String path, String mimetype,
+      byte[] image, Node baseNode, Session session) throws ImageException {
 
     // Save image into the jcr
     ByteArrayInputStream bais = null;
@@ -241,7 +244,7 @@ public class CropItProcessor {
       Node node = JcrUtils.deepGetOrCreateNode(session, path, "nt:file");
 
       // convert stream to inputstream
-      bais = new ByteArrayInputStream(out.toByteArray());
+      bais = new ByteArrayInputStream(image);
       Node contentNode = null;
       if (node.hasNode(JCRConstants.JCR_CONTENT)) {
         contentNode = node.getNode(JCRConstants.JCR_CONTENT);
@@ -290,16 +293,15 @@ public class CropItProcessor {
    * @throws ImageWriteException
    *           Failed to write the cropped image to the stream.
    */
-  public static ByteArrayOutputStream scaleAndWriteToStream(int width, int height,
+  protected static byte[] scaleAndWriteToByteArray(int width, int height,
       BufferedImage img, String imgName, ImageInfo info) throws IOException,
       ImageWriteException {
-    ByteArrayOutputStream out = null;
     try {
       // Get a scaled image.
       BufferedImage imgScaled = getScaledInstance(img, width, height);
 
       // Convert image to a stream
-      out = new ByteArrayOutputStream();
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
 
       // Write to stream.
       if (info.getFormat() == ImageFormat.IMAGE_FORMAT_JPEG) {
@@ -307,29 +309,14 @@ public class CropItProcessor {
       } else {
         Sanselan.writeImage(imgScaled, out, info.getFormat(), null);
       }
+      out.close();
+      return out.toByteArray();
     } catch (Exception e) {
-      LOGGER.error("foo", e);
+      LOGGER.error("Failed to process image "+e.getMessage(), e);
     }
-    finally {
-      if (out != null) {
-        out.close();
-      }
-    }
-
-    return out;
+    return null;
   }
 
-  /**
-   * Returns the extension of a filename. If no extension is found, the entire filename is
-   * returned.
-   * 
-   * @param img
-   * @return
-   */
-  public static String getExtension(String img) {
-    String[] arr = img.split("\\.");
-    return arr[arr.length - 1];
-  }
 
   /**
    * Image scaling routine as prescribed by

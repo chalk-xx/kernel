@@ -17,6 +17,8 @@
  */
 package org.apache.jackrabbit.core.security.authorization.acl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
 import org.apache.jackrabbit.core.security.principal.PrincipalIteratorAdapter;
 import org.apache.jackrabbit.core.security.principal.PrincipalProvider;
@@ -30,8 +32,8 @@ import javax.jcr.Session;
 /**
  *
  */
-// the component is configured manually in the service component. @Component(immediate=true,description="Provides Principal resolution")
-//@Service(value=PrincipalProvider.class)
+@Component(immediate=true,description="Provides Principal resolution")
+@Service(value=PrincipalProvider.class)
 public class RulesPrincipalProvider implements PrincipalProvider {
 
 
