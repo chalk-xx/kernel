@@ -68,7 +68,7 @@ class TC_Kern455Test < Test::Unit::TestCase
     nodename = "#{privateFolder}/upload_test_admin#{m}"
     filepath = upload_file(nodename, $testfile1)
     
-    puts("Admin File was uploaded to "+filepath)
+    @log.info("Admin File was uploaded to "+filepath)
     @s.switch_user(dummyuser)
 
     privateFolder = dummyuser.private_path_for(@s)
@@ -80,7 +80,7 @@ class TC_Kern455Test < Test::Unit::TestCase
 	
 	# assume creation worked Ok, now get the node name
 	finalPath = res.body.match("/(_user/.*?/#{dummyuser.name}/private/testnode#{m})")[0]
-	puts("Path is "+finalPath)	
+	@log.info("Path is "+finalPath)
 	
 	res = @s.execute_get(@s.url_for(testnode+".json"))
 	assert_equal(res.code.to_i, 200, "Expected to be able to get to the node via the private route "+res.body)
@@ -107,13 +107,13 @@ class TC_Kern455Test < Test::Unit::TestCase
 	assert_equal(b1, res.body, "Expected direct and personal bodies to be the same ")
 	
 	
-	puts("Normal node operations working Ok on the personal space, if the test works upto this point the problem is with file upload and not permissions per-se ")
+	@log.info("Normal node operations working Ok on the personal space, if the test works upto this point the problem is with file upload and not permissions per-se ")
 
 
 
     nodename = "#{privateFolder}/upload_test_dummyuser#{m}"
     filepath = upload_file(nodename, $testfile1)
-    puts("User File was uploaded to "+filepath)
+    @log.info("User File was uploaded to "+filepath)
   end
 
 
