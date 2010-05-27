@@ -19,6 +19,10 @@ package org.sakaiproject.nakamura.sitetemplate;
 
 import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_MEMBERS;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_ACE;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_GROUPS;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.Resource;
@@ -51,11 +55,6 @@ import javax.jcr.Value;
  */
 public class TemplateBuilder {
 
-  public static final String RT_GROUPS = "sakai/template-group";
-  public static final Object RT_ACE = "sakai/template-ace";
-  public static final String GROUPS_PROPERTY_PRINCIPAL_NAME = "sakai:template-group-principalname";
-  public static final String GROUPS_PROPERTY_MEMBERS = "sakai:template-group-members";
-  public static final String GROUPS_PROPERTY_IS_MAINTAINER = "sakai:template-group-ismaintainer";
   public static final Logger LOGGER = LoggerFactory.getLogger(TemplateBuilder.class);
 
   private Node templateNode;
@@ -139,11 +138,11 @@ public class TemplateBuilder {
       Node node = resources.next().adaptTo(Node.class);
 
       // The name of the group.
-      Value principalName = node.getProperty(GROUPS_PROPERTY_PRINCIPAL_NAME).getValue();
+      Value principalName = node.getProperty(AUTHORIZABLES_SITE_PRINCIPAL_NAME).getValue();
       if (isPlaceHolder(principalName.getString())) {
         principalName = getValue(principalName, session);
       }
-      properties.put(GROUPS_PROPERTY_PRINCIPAL_NAME, principalName);
+      properties.put(AUTHORIZABLES_SITE_PRINCIPAL_NAME, principalName);
 
       // The members of this group
       Value[] members = node.getProperty(GROUPS_PROPERTY_MEMBERS).getValues();

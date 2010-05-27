@@ -25,6 +25,11 @@ import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE;
 import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_IS_MAINTAINER;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_NODENAME;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_NODENAME_SINGLE;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_SITE_AUTHORIZABLE;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
@@ -42,6 +47,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
@@ -66,16 +72,8 @@ import javax.servlet.http.HttpServletResponse;
     SiteService.SITES_CONTAINER_RESOURCE_TYPE }, selectors = { "template" }, generateComponent = true, generateService = true)
 public class CreateSiteServlet extends SlingAllMethodsServlet {
 
-  /**
-   *
-   */
-  private static final String GROUPS_SITE_NODENAME = "groups";
-  /**
-   *
-   */
   private static final long serialVersionUID = 6687687185254684084L;
   private static final Logger LOGGER = LoggerFactory.getLogger(CreateSiteServlet.class);
-  private static final String GROUPS_SITE_NODENAME_GROUP = "group";
 
   @Reference
   protected transient SiteService siteService;
@@ -83,6 +81,8 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
   protected transient VersionService versionService;
   @Reference
   protected transient SlingRepository slingRepository;
+  @Reference
+  private AuthorizablePostProcessService postProcessService;
 
   /**
    * {@inheritDoc}
@@ -336,15 +336,16 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       throws RepositoryException {
 
     Node groupNodes = null;
-    if (siteNode.hasNode(GROUPS_SITE_NODENAME)) {
-      groupNodes = siteNode.getNode(GROUPS_SITE_NODENAME);
+    if (siteNode.hasNode(AUTHORIZABLES_SITE_NODENAME)) {
+      groupNodes = siteNode.getNode(AUTHORIZABLES_SITE_NODENAME);
     } else {
-      groupNodes = siteNode.addNode(GROUPS_SITE_NODENAME);
+      groupNodes = siteNode.addNode(AUTHORIZABLES_SITE_NODENAME);
     }
 
     UserManager um = AccessControlUtil.getUserManager(adminSession);
     Map<Principal, Map<String, Object>> groups = builder.getGroups();
     int i = 0;
+    String siteID = siteNode.getIdentifier();
     for (Entry<Principal, Map<String, Object>> g : groups.entrySet()) {
       // Maybe the group already exists.
       // If it does, we use that one.
@@ -353,6 +354,12 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       // Create the authorizable.
       if (group == null) {
         group = um.createGroup(g.getKey());
+        try {
+          postProcessService.process(group, adminSession, null);
+        } catch (Exception e) {
+          LOGGER.warn("Failed to process the group creation.", e);
+        }
+        group.setProperty(SiteService.SITES, JcrUtils.createValue(siteID, adminSession));
       }
 
       // Set any additional properties
@@ -374,20 +381,21 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
 
       // add the group node to the site groupNode.
       boolean isMaintainer = false;
-      if (map.containsKey(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER)) {
-        Value v = (Value) map.get(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER);
+      if (map.containsKey(AUTHORIZABLES_SITE_IS_MAINTAINER)) {
+        Value v = (Value) map.get(AUTHORIZABLES_SITE_IS_MAINTAINER);
         isMaintainer = v.getBoolean();
       }
 
       Node groupNode = null;
-      if (groupNodes.hasNode(GROUPS_SITE_NODENAME_GROUP + i)) {
-        groupNode = groupNodes.getNode(GROUPS_SITE_NODENAME_GROUP + i);
+      if (groupNodes.hasNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i)) {
+        groupNode = groupNodes.getNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i);
       } else {
-        groupNode = groupNodes.addNode(GROUPS_SITE_NODENAME_GROUP + i);
+        groupNode = groupNodes.addNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i);
       }
 
-      groupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, "sakai/site-group");
-      groupNode.setProperty(TemplateBuilder.GROUPS_PROPERTY_IS_MAINTAINER, isMaintainer);
+      groupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_SITE_AUTHORIZABLE);
+      groupNode.setProperty(AUTHORIZABLES_SITE_PRINCIPAL_NAME, g.getKey().getName());
+      groupNode.setProperty(AUTHORIZABLES_SITE_IS_MAINTAINER, isMaintainer);
       i++;
     }
   }
