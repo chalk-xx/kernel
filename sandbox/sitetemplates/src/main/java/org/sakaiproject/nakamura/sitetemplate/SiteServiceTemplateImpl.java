@@ -69,6 +69,9 @@ public class SiteServiceTemplateImpl extends SiteServiceImpl {
    */
   @Override
   public Iterator<Group> getGroups(Node site, int start, int nitems, Sort[] sort) {
+    // TODO: this can probably be done much more sufficiently.
+    // It looks up all the users who are members of the groups as well, which is not
+    // necessary.
     MembershipTree membership = getMembershipTree(site, true);
     if (sort != null && sort.length > 0) {
       Comparator<GroupKey> comparitor = buildCompoundComparitor(sort);
