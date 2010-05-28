@@ -51,6 +51,7 @@ import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEAS
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.RELEASE_PRINCIPAL_NAME_LOCK;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.getInvalidUserPrivileges;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.isAdminUser;
+import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.removeProperty;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.sensitiveKeys;
 import static org.sakaiproject.nakamura.basiclti.BasicLTIServletUtils.unsupportedKeys;
 
@@ -791,25 +792,6 @@ public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
         .privilegeFromName(Privilege.JCR_REMOVE_NODE) };
     boolean canRemoveNode = accessControlManager.hasPrivileges(path, modifyProperties);
     return canRemoveNode;
-  }
-
-  /**
-   * Quietly removes a Property on a Node if it exists.
-   * 
-   * @param node
-   * @param property
-   * @throws VersionException
-   * @throws LockException
-   * @throws ConstraintViolationException
-   * @throws PathNotFoundException
-   * @throws RepositoryException
-   */
-  private void removeProperty(final Node node, final String property)
-      throws VersionException, LockException, ConstraintViolationException,
-      PathNotFoundException, RepositoryException {
-    if (node.hasProperty(property)) {
-      node.getProperty(property).remove();
-    }
   }
 
   /**

@@ -164,8 +164,8 @@ fi
 egrep -v "$ignoreTests" last-release/integration.log > last-release/integration-check.log
 
 
-failures=` grep -v "0 failures" last-release/integration-check.log  | grep -v osgikernel | wc -l`
-errors=` grep -v "0 errors" last-release/integration-check.log  | grep -v osgikernel | wc -l `
+failures=` grep -v "0 failures" last-release/integration-check.log  | grep failures | wc -l`
+errors=` grep -v "0 errors" last-release/integration-check.log  | grep errors | wc -l `
 testsrun=`grep "failures" last-release/integration-check.log  | wc -l`
 if [[ $testsrun -eq 0 ]]
 then
@@ -179,8 +179,8 @@ if [ $errors -ne 0 -o $failures -ne 0 ]
 then
    echo "There were failures or errors in integration, cant perform release"
    set +o errexit
-   grep -v "0 errors" last-release/integration-check.log  | grep -v osgikernel
-   grep -v "0 failures" last-release/integration-check.log  | grep -v osgikernel
+   grep -v "0 errors" last-release/integration-check.log  | grep errors
+   grep -v "0 failures" last-release/integration-check.log  | grep failures
    exit -1
 fi
     
@@ -197,7 +197,7 @@ git tag -d $tagversion
 set -o errexit
 git tag -s -m "[release-script] tagging release $cversion " $tagversion HEAD
 echo "Reverting pom changes."
-patch -p3 -R < last-release/changeversion.diff
+patch -p1 -R < last-release/changeversion.diff
 
 if [ $rc == "" ]
 then

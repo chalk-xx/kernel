@@ -281,13 +281,13 @@ public class CalendarServiceImpl implements CalendarService {
 
         // Grant access to the current user.
         AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(), user,
-            granted, null, null);
+            granted, null, null, null);
 
         // Deny everybody else
         AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(),
-            everyone, null, new String[] { "jcr:all" }, null);
+            everyone, null, new String[] { "jcr:all" }, null, null);
         AccessControlUtil.replaceAccessControlEntry(session, eventNode.getPath(), anon,
-            null, new String[] { "jcr:all" }, null);
+            null, new String[] { "jcr:all" }, null, null);
       }
     }
   }

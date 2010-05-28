@@ -55,4 +55,12 @@
       return new RulesPrincipal(SAKAI_RULES + name + "." + System.currentTimeMillis());
     }
 
+    /**
+     * @param principal
+     * @return
+     */
+    public static boolean isRulesBasedPrincipal(Principal principal) {
+      return (principal instanceof RulesPrincipal);
+    }
+
   }
