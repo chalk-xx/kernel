@@ -176,7 +176,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         return;
       }
       LOGGER.debug("The sitePath is: {}", sitePath);
-     
+
       // If we base this site on a template, make sure it exists.
       RequestParameter siteTemplateParam = request
           .getRequestParameter(SAKAI_SITE_TEMPLATE);
@@ -233,18 +233,18 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         // it.
         createSession = adminSession;
       } else {
-        
+
         adminSession.logout();
         adminSession = null;
       }
-      
+
       // Get the optional site type
       String sakaiSiteType = null;
       if ( request.getRequestParameter(SiteService.SAKAI_SITE_TYPE) != null )
         sakaiSiteType = request.getRequestParameter(SiteService.SAKAI_SITE_TYPE).getString();
 
       LOGGER.info("Creating Site {} for user {} with session {}",new Object[] { sitePath, currentUser.getID(), session.getUserID()});
-      	
+
 
       // Perform the actual creation or move.
       try {
@@ -258,7 +258,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
         } else {
           siteNode = createSiteWithoutTemplate(createSession, sitePath, currentUser, sakaiSiteType);
         }
-        
+
         if (LOGGER.isDebugEnabled()) {
           try {
             JcrUtils.logItem(LOGGER, siteNode);
@@ -375,7 +375,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    */
   private Node createSiteFromTemplate(Session session, String templatePath, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Copying template ({}) to new dir ({})", templatePath,
         sitePath);
@@ -398,7 +398,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node createSiteWithoutTemplate(Session session, String sitePath, Authorizable creator, String sakaiSiteType) throws RepositoryException {
     Node siteNode = JcrUtils.deepGetOrCreateNode(session, sitePath);
     session.save();
@@ -412,10 +412,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node copySite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Copying site ({}) to new dir ({})", fromPath,
         sitePath);
@@ -432,10 +432,10 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     LOGGER.debug("Finished copying");
     return siteNode;
   }
-  
+
   private Node moveSite(Session session, String fromPath, String sitePath, Authorizable creator) throws RepositoryException {
     ensureParent(session, sitePath);
-    
+
     // Copy the template files in the new folder.
     LOGGER.debug("Moving site ({}) to new dir ({})", fromPath,
         sitePath);
@@ -456,7 +456,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
    * Workspace copy/move needs the destination's parent to exist and be saved.
    * @param session
    * @param sitePath
-   * @throws RepositoryException 
+   * @throws RepositoryException
    */
   private void ensureParent(Session session, String sitePath) throws RepositoryException {
     String parentPath = PathUtils.getParentReference(sitePath);
@@ -465,7 +465,7 @@ public class CreateSiteServlet extends AbstractSiteServlet {
       session.save();
     }
   }
-  
+
   private void initializeAccess(Session session, Node site, Authorizable creator) throws RepositoryException {
     // Give the creator full rights on the site tree.
     AccessControlUtil.replaceAccessControlEntry(session, site.getPath(), creator.getPrincipal(),
@@ -475,27 +475,27 @@ public class CreateSiteServlet extends AbstractSiteServlet {
     SiteAuthz authzHelper = new SiteAuthz(site, postProcessService);
     authzHelper.initAccess(creator.getID());
   }
-  
+
   private void initializeNewSite(Session session, Node site, String sakaiSiteType) throws RepositoryException {
     site.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         SiteService.SITE_RESOURCE_TYPE);
 
     if ( sakaiSiteType != null )
         site.setProperty(SiteService.SAKAI_SITE_TYPE, sakaiSiteType );
-       
+
     // Add a message store to this site.
     // TODO Is there any reason this can't be handled by site templates?
     Node storeNode = site.addNode("store");
     storeNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         "sakai/messagestore");
   }
-  
+
   /**
    * Parse the request to get the destination of the new or moved site.
    * @param request
    * @param response
    * @return null if an error needs to be returned to the user
-   * @throws IOException 
+   * @throws IOException
    */
   private String getSitePath(SlingHttpServletRequest request, SlingHttpServletResponse response) throws IOException {
     String resourceType = request.getResource().getResourceType();
