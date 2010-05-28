@@ -243,6 +243,22 @@
   <build>
     <defaultGoal>install</defaultGoal>
     <plugins>
+       <plugin>
+         <groupId>org.codehaus.mojo</groupId>
+         <artifactId>ianal-maven-plugin</artifactId>
+         <executions>
+            <execution>
+               <goals>
+                  <goal>verify-legal-files</goal>
+               </goals>
+               <configuration>
+                  <!-- For the moment, just warn if any artifacts are missing legal files -->
+                  <strict>false</strict>
+               </configuration>
+            </execution>
+         </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
