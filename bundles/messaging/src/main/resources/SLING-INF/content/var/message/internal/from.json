@@ -3,7 +3,7 @@
   "sakai:query-template": "/{_userMessagePath}//element(*)Metadata[@sling:resourceType='sakai/message' and @sakai:type='internal' and jcr:contains(@sakai:from, '*{from}*')] order by @{sortOn|jcr:created} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:propertyprovider" : "Message",
-  "sakai:resultprocessor": "InternalMessage",
+  "sakai:resultprocessor": "Message",
   "sakai:title": "Messaging - User - Internal - From.",
   "sakai:shortDescription": "Get all the internal messages in your message store with a certain sakai:from recipient.",
   "sakai:parameters" : [

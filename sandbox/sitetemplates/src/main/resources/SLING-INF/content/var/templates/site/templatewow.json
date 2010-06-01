@@ -82,6 +82,14 @@
         "sakai:skin" : "@@site.properties.skin@@",
         "sakai:site-private" : "@@site.properties.private@@",
         "sakai:savedBy" : "@@site.user.creator@@",
+        "sakai:rolemembers" : [
+                               "@@groups.viewers.name@@",
+                               "@@groups.collaborators.name@@"
+                               ],
+        "sakai:roles": [
+    		"Viewer",
+    		"Collaborator"
+    	],
         "_files" : {
     		"sling:resourceType" : "sakai/folder"
     	},
