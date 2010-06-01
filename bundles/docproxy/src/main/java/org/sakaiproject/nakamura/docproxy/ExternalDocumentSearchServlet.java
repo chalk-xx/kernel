@@ -63,7 +63,7 @@ protected ExternalRepositoryProcessorTracker tracker;
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @see org.apache.sling.api.servlets.SlingSafeMethodsServlet#doGet(org.apache.sling.api.SlingHttpServletRequest,
    *      org.apache.sling.api.SlingHttpServletResponse)
    */
@@ -139,7 +139,7 @@ protected ExternalRepositoryProcessorTracker tracker;
 
   /**
    * Fill's in the values for the search properties.
-   * 
+   *
    * @param searchProperties
    * @param vals
    * @param request
@@ -177,24 +177,26 @@ protected ExternalRepositoryProcessorTracker tracker;
     searchProperties.put(searchPropertyName, searchPropertyValue);
   }
 
-    private String parseRequestParamName(String searchPropertyDefintion) {
-	// examples with and without a specified default value
-	// {color} {color|black}
-	Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
-	Matcher searchDefinitionMatcher = searchDefinitionPattern.matcher(searchPropertyDefintion);
-	return searchDefinitionMatcher.group(1);
-    }
+  private String parseRequestParamName(String searchPropertyDefintion) {
+    // examples with and without a specified default value
+    // {color} {color|black}
+    Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
+    Matcher searchDefinitionMatcher = searchDefinitionPattern
+        .matcher(searchPropertyDefintion);
+    return searchDefinitionMatcher.group(1);
+  }
 
-    private String parseSearchPropertyDefaultValue(String searchPropertyDefinition) {
-	Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
-	Matcher searchDefinitionMatcher = searchDefinitionPattern.matcher(searchPropertyDefinition);
-	return searchDefinitionMatcher.group(3);
-    }
+  private String parseSearchPropertyDefaultValue(String searchPropertyDefinition) {
+    Pattern searchDefinitionPattern = Pattern.compile(SEARCH_DEFINITION_REGEX);
+    Matcher searchDefinitionMatcher = searchDefinitionPattern
+        .matcher(searchPropertyDefinition);
+    return searchDefinitionMatcher.group(3);
+  }
 
 	protected void handleProperty(Map<String, Object> searchProperties, Property p,
 	      SlingHttpServletRequest request) throws RepositoryException {
-	String searchPropertyName = p.getName().replace("sakai:search-prop-", "");
-	String propertyValue = p.getString();
+    String searchPropertyName = p.getName().replace("sakai:search-prop-", "");
+    String propertyValue = p.getString();
 
     StringBuilder sb = new StringBuilder();
     boolean escape = false;
