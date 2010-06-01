@@ -49,14 +49,20 @@ public interface SiteConstants {
   public static final String AUTHORIZABLES_SITE_PRINCIPAL_NAME = "sakai:template-group-principalname";
 
   /**
-   * The property that defines what the members of a group should be when it gets created.
+   * The property that defines what the managers of a group should be when it gets
+   * created.
    */
-  public static final String GROUPS_PROPERTY_MEMBERS = "sakai:template-group-members";
+  public static final String GROUPS_PROPERTY_MANAGERS = "sakai:template-group-managers";
+
+  /**
+   * The property that defines what the viewers of a group should be when it gets created.
+   */
+  public static final String GROUPS_PROPERTY_VIEWERS = "sakai:template-group-viewers";
 
   /**
    * The property that defines if this group will be a maintainer or not.
    */
-  public static final String AUTHORIZABLES_SITE_IS_MAINTAINER = "sakai:template-group-ismaintainer";
+  public static final String AUTHORIZABLES_SITE_IS_MAINTAINER = "sakai:template-group-issitemanager";
 
   /**
    * The resource type of an ACE node defined in the template.

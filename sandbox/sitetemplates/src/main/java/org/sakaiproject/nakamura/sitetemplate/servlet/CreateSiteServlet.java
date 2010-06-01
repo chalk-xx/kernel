@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate;
+package org.sakaiproject.nakamura.sitetemplate.servlet;
 
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.apache.jackrabbit.JcrConstants.JCR_MIXINTYPES;
@@ -44,11 +44,16 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.jackrabbit.usermanager.impl.resource.AuthorizableResourceProvider;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.sitetemplate.create.ACE;
+import org.sakaiproject.nakamura.sitetemplate.create.GroupToCreate;
+import org.sakaiproject.nakamura.sitetemplate.create.TemplateBuilder;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.version.VersionService;
@@ -331,51 +336,27 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @param adminSession
    * @throws RepositoryException
    */
-  @SuppressWarnings("unchecked")
   private void createGroups(TemplateBuilder builder, Session adminSession, Node siteNode)
       throws RepositoryException {
 
-    Node groupNodes = null;
-    if (siteNode.hasNode(AUTHORIZABLES_SITE_NODENAME)) {
-      groupNodes = siteNode.getNode(AUTHORIZABLES_SITE_NODENAME);
-    } else {
-      groupNodes = siteNode.addNode(AUTHORIZABLES_SITE_NODENAME);
-    }
+    Node groupNodes = org.apache.jackrabbit.commons.JcrUtils.getOrAddNode(siteNode,
+        AUTHORIZABLES_SITE_NODENAME);
 
     UserManager um = AccessControlUtil.getUserManager(adminSession);
-    Map<Principal, Map<String, Object>> groups = builder.getGroups();
+    List<GroupToCreate> groups = builder.getGroups();
     int i = 0;
-    String siteID = siteNode.getIdentifier();
-    for (Entry<Principal, Map<String, Object>> g : groups.entrySet()) {
+    for (GroupToCreate g : groups) {
       // Maybe the group already exists.
       // If it does, we use that one.
-      Group group = (Group) um.getAuthorizable(g.getKey());
-
-      // Create the authorizable.
-      if (group == null) {
-        group = um.createGroup(g.getKey());
-        try {
-          postProcessService.process(group, adminSession, null);
-        } catch (Exception e) {
-          LOGGER.warn("Failed to process the group creation.", e);
-        }
-        group.setProperty(SiteService.SITES, JcrUtils.createValue(siteID, adminSession));
-      }
+      Group group = getOrCreateGroup(g, um, siteNode, adminSession);
 
       // Set any additional properties
-      Map<String, Object> map = g.getValue();
+      Map<String, Object> map = g.getProperties();
       for (Entry<String, Object> entry : map.entrySet()) {
         if (entry.getValue() instanceof Value) {
           group.setProperty(entry.getKey(), (Value) entry.getValue());
         } else if (entry.getValue() instanceof Value[]) {
           group.setProperty(entry.getKey(), (Value[]) entry.getValue());
-        } else if (entry.getValue() instanceof List<?>) {
-          // The member list
-          List<String> members = (List<String>) entry.getValue();
-          for (String m : members) {
-            Authorizable authorizable = um.getAuthorizable(m);
-            group.addMember(authorizable);
-          }
         }
       }
 
@@ -386,17 +367,81 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
         isMaintainer = v.getBoolean();
       }
 
-      Node groupNode = null;
-      if (groupNodes.hasNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i)) {
-        groupNode = groupNodes.getNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i);
-      } else {
-        groupNode = groupNodes.addNode(AUTHORIZABLES_SITE_NODENAME_SINGLE + i);
-      }
+      Node groupNode = org.apache.jackrabbit.commons.JcrUtils.getOrAddNode(groupNodes,
+          AUTHORIZABLES_SITE_NODENAME_SINGLE + i);
 
       groupNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, RT_SITE_AUTHORIZABLE);
-      groupNode.setProperty(AUTHORIZABLES_SITE_PRINCIPAL_NAME, g.getKey().getName());
+      groupNode
+          .setProperty(AUTHORIZABLES_SITE_PRINCIPAL_NAME, g.getPrincipal().getName());
       groupNode.setProperty(AUTHORIZABLES_SITE_IS_MAINTAINER, isMaintainer);
       i++;
+    }
+  }
+
+  /**
+   * Will lookup the group that is linked to the {@link Principal principal} provided in
+   * the {@link GroupToCreate GroupToCreate} object. If it exist it will return that group
+   * (unmodified!), if it doesn't it will create the new group and set the members and
+   * managers. It will also set the site UUID as a sakai:sites property on the group node.
+   * 
+   * @param g
+   *          The {@link GroupToCreate GroupToCreate} object that contains all the values
+   *          to create a proper group.
+   * @param um
+   *          The user manager to retrieve authorizables and create a group.
+   * @param site
+   *          The node that represents our site.
+   * @param session
+   *          A session to create a group.
+   * @return The group
+   * @throws RepositoryException
+   */
+  protected Group getOrCreateGroup(GroupToCreate g, UserManager um, Node site,
+      Session session) throws RepositoryException {
+    Group group = (Group) um.getAuthorizable(g.getPrincipal());
+    String siteID = site.getIdentifier();
+    // Create the authorizable.
+    // If the authorizable doesn't exist we do NOT modify it.
+    if (group == null) {
+      group = um.createGroup(g.getPrincipal());
+      try {
+        // Add all the members.
+        addMembersToGroup(group, g.getManagers(), um);
+        addMembersToGroup(group, g.getViewers(), um);
+
+        // Set the properties for this group.
+        group.setProperty(UserConstants.PROP_GROUP_MANAGERS, g.getManagers());
+        group.setProperty(UserConstants.PROP_GROUP_VIEWERS, g.getViewers());
+        group.setProperty(SiteService.SITES, (Value) JcrUtils
+            .createValue(siteID, session));
+        String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
+            + group.getID();
+        postProcessService.process(group, session, Modification.onCreated(groupPath));
+      } catch (Exception e) {
+        LOGGER.warn("Failed to process the group creation.", e);
+      }
+    }
+    return group;
+  }
+
+  /**
+   * @param group
+   *          The group where the list of members should be added to.
+   * @param members
+   *          An array of {@link Value values} where a .getString() returns the principal
+   *          string id.
+   * @param um
+   *          The UserManager that can be used to resolved strings to {@link Authorizable
+   *          authorizables}.
+   * @throws RepositoryException
+   */
+  protected void addMembersToGroup(Group group, Value[] members, UserManager um)
+      throws RepositoryException {
+    for (Value v : members) {
+      Authorizable au = um.getAuthorizable(v.getString());
+      if (au != null) {
+        group.addMember(au);
+      }
     }
   }
 

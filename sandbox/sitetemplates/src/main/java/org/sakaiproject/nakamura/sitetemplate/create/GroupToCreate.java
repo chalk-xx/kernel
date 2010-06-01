@@ -15,32 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate;
+package org.sakaiproject.nakamura.sitetemplate.create;
 
 import java.security.Principal;
+import java.util.Map;
+
+import javax.jcr.Value;
 
 /**
  *
  */
-public class ACE {
+public class GroupToCreate {
 
-  private String[] grantedPrivileges;
-  private String[] deniedPrivileges;
   private Principal principal;
-
-  /**
-   * @return the grantedPrivileges
-   */
-  public String[] getGrantedPrivileges() {
-    return grantedPrivileges;
-  }
-
-  /**
-   * @return the deniedPrivileges
-   */
-  public String[] getDeniedPrivileges() {
-    return deniedPrivileges;
-  }
+  private Value[] managers;
+  private Value[] viewers;
+  private Map<String, Object> properties;
 
   /**
    * @return the principal
@@ -50,19 +40,24 @@ public class ACE {
   }
 
   /**
-   * @param grantedPrivileges
-   *          the grantedPrivileges to set
+   * @return the managers
    */
-  public void setGrantedPrivileges(String[] grantedPrivileges) {
-    this.grantedPrivileges = grantedPrivileges;
+  public Value[] getManagers() {
+    return managers;
   }
 
   /**
-   * @param deniedPrivileges
-   *          the deniedPrivileges to set
+   * @return the viewers
    */
-  public void setDeniedPrivileges(String[] deniedPrivileges) {
-    this.deniedPrivileges = deniedPrivileges;
+  public Value[] getViewers() {
+    return viewers;
+  }
+
+  /**
+   * @return the properties
+   */
+  public Map<String, Object> getProperties() {
+    return properties;
   }
 
   /**
@@ -71,6 +66,30 @@ public class ACE {
    */
   public void setPrincipal(Principal principal) {
     this.principal = principal;
+  }
+
+  /**
+   * @param managers
+   *          the managers to set
+   */
+  public void setManagers(Value[] managers) {
+    this.managers = managers;
+  }
+
+  /**
+   * @param viewers
+   *          the viewers to set
+   */
+  public void setViewers(Value[] viewers) {
+    this.viewers = viewers;
+  }
+
+  /**
+   * @param properties
+   *          the properties to set
+   */
+  public void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
   }
 
 }

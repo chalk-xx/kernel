@@ -6,13 +6,15 @@
         "group0" : {
             "sling:resourceType": "sakai/template-group",
             "sakai:template-group-principalname": "@@groups.collaborators.name@@",
-            "sakai:template-group-members" : ["@@groups.collaborators.members(...)@@"],
-            "sakai:template-group-isMaintainer" : true
+            "sakai:template-group-managers" : ["@@groups.collaborators.members(...)@@"],
+            "sakai:template-group-viewers" : ["@@groups.collaborators.members(...)@@"],
+            "sakai:template-group-issitemanager" : true
         },
         "group1" : {
             "sling:resourceType": "sakai/template-group",
             "sakai:template-group-principalname": "@@groups.viewers.name@@",
-            "sakai:template-group-members" : ["@@groups.viewers.members(...)@@"]
+            "sakai:template-group-managers" : ["@@groups.collaborators.members(...)@@"],
+            "sakai:template-group-viewers" : ["@@groups.viewers.members(...)@@"],
         }
     },
     "site" : {

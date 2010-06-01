@@ -15,17 +15,17 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate;
+package org.sakaiproject.nakamura.sitetemplate.create;
 
 import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_MEMBERS;
 import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_MANAGERS;
+import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_VIEWERS;
 import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_ACE;
 import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_GROUPS;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -36,10 +36,11 @@ import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -60,10 +61,10 @@ public class TemplateBuilder {
   private Node templateNode;
   private JSONObject json;
   private ResourceResolver resolver;
-  private Map<Principal, Map<String, Object>> groups;
+  private List<GroupToCreate> groups;
   private Map<String, Object> siteMap;
   private int[] loopIndexes = {};
-  private int nestedLevel = -1;
+  private int nestedLevel;
   private List<String> defaultPropertiesToIgnore;
 
   public TemplateBuilder() {
@@ -76,6 +77,10 @@ public class TemplateBuilder {
     this.json = json;
     this.resolver = resolver;
 
+    // Initialize default values.
+    nestedLevel = -1;
+
+    // mixinTypes do NOT get ignored.
     defaultPropertiesToIgnore = new ArrayList<String>();
     defaultPropertiesToIgnore.add("sakai:template-group");
     defaultPropertiesToIgnore.add("sakai:template-groups");
@@ -89,18 +94,18 @@ public class TemplateBuilder {
     defaultPropertiesToIgnore.add("jcr:baseVersion");
     defaultPropertiesToIgnore.add("jcr:isCheckedOut");
 
-    // Populate the groups map.
-    readGroups();
-
     // Run over the site template.
     readSiteTemplate();
+
+    // Read groups.
+    readGroups();
   }
 
   /**
    * @return The groups that should be created by matching the template and the provided
    *         JSON input.
    */
-  public Map<Principal, Map<String, Object>> getGroups() {
+  public List<GroupToCreate> getGroups() {
     return this.groups;
   }
 
@@ -109,7 +114,7 @@ public class TemplateBuilder {
    *         either Value or Value[].
    */
   public Map<String, Object> getSiteMap() {
-    return this.siteMap;
+    return (Map<String, Object>) this.siteMap.get("site");
   }
 
   /**
@@ -117,69 +122,64 @@ public class TemplateBuilder {
    * 
    * @throws RepositoryException
    */
+  @SuppressWarnings("unchecked")
   private void readGroups() throws RepositoryException {
-    groups = new HashMap<Principal, Map<String, Object>>();
-    Session session = templateNode.getSession();
+    groups = new ArrayList<GroupToCreate>();
 
-    // Get the group nodes.
-    StringBuilder query = new StringBuilder();
-    query.append("/jcr:root").append(templateNode.getPath());
-    query.append("//*[@sling:resourceType='").append(RT_GROUPS).append("']");
-    Iterator<Resource> resources = resolver.findResources(query.toString(), "xpath");
-
+    // This is a list of properties we will ignore for the group nodes.
+    // Either because they are JCR specific or because we use them for something else,
+    // ex: principal name, managers, viewers,..
     List<String> propertiesToIgnore = new ArrayList<String>();
     propertiesToIgnore.addAll(defaultPropertiesToIgnore);
-    propertiesToIgnore.add(GROUPS_PROPERTY_MEMBERS);
+    propertiesToIgnore.add(GROUPS_PROPERTY_MANAGERS);
+    propertiesToIgnore.add(GROUPS_PROPERTY_VIEWERS);
+    propertiesToIgnore.add(AUTHORIZABLES_SITE_PRINCIPAL_NAME);
     propertiesToIgnore.add(JCR_PRIMARYTYPE);
+    propertiesToIgnore.add(SLING_RESOURCE_TYPE_PROPERTY);
 
-    // Loop over the groups and add them to the map.
-    while (resources.hasNext()) {
-      Map<String, Object> properties = new HashMap<String, Object>();
-      Node node = resources.next().adaptTo(Node.class);
-
-      // The name of the group.
-      Value principalName = node.getProperty(AUTHORIZABLES_SITE_PRINCIPAL_NAME).getValue();
-      if (isPlaceHolder(principalName.getString())) {
-        principalName = getValue(principalName, session);
-      }
-      properties.put(AUTHORIZABLES_SITE_PRINCIPAL_NAME, principalName);
-
-      // The members of this group
-      Value[] members = node.getProperty(GROUPS_PROPERTY_MEMBERS).getValues();
-      List<String> toAdd = new ArrayList<String>();
-      for (Value v : members) {
-        String memberName = v.getString();
-        if (isPlaceHolder(memberName)) {
-          if (isLoopStatement(memberName)) {
-            JSONArray arr = (JSONArray) getJSONValue(memberName, true);
-            for (int i = 0; i < arr.length(); i++) {
-              toAdd.add(arr.optString(i));
-            }
-          } else {
-            memberName = getValue(memberName, session).getString();
-            toAdd.add(memberName);
+    // We should've read everything under the template node in the readSiteTemplate()
+    // method, including the groups.
+    // All of the required info should be in the siteMap under the key'groups'.
+    Map<String, Object> groupMap = (Map<String, Object>) siteMap.get("groups");
+    for (Entry<String, Object> entry : groupMap.entrySet()) {
+      if (entry.getValue() instanceof Map) {
+        Map<String, Object> groupNode = (Map<String, Object>) entry.getValue();
+        if (groupNode.containsKey(SLING_RESOURCE_TYPE_PROPERTY)) {
+          Value val = (Value) groupNode.get(SLING_RESOURCE_TYPE_PROPERTY);
+          if (!RT_GROUPS.equals(val.getString())) {
+            // If this is not a group we skip it.
+            continue;
           }
-        } else {
-          toAdd.add(memberName);
+
+          // This entry represents a group.
+          // Get the principal for it.
+          final String principalName = ((Value) groupNode
+              .get(AUTHORIZABLES_SITE_PRINCIPAL_NAME)).getString();
+          Principal principal = new Principal() {
+
+            public String getName() {
+              return principalName;
+            }
+          };
+
+          // The properties this group will get.
+          Map<String, Object> properties = new HashMap<String, Object>();
+          for (Entry<String, Object> groupProperty : groupNode.entrySet()) {
+            if (!propertiesToIgnore.contains(groupProperty.getKey())) {
+              properties.put(groupProperty.getKey(), groupProperty.getValue());
+            }
+          }
+
+          GroupToCreate g = new GroupToCreate();
+          g.setPrincipal(principal);
+          g.setManagers((Value[]) groupNode.get(GROUPS_PROPERTY_MANAGERS));
+          g.setViewers((Value[]) groupNode.get(GROUPS_PROPERTY_VIEWERS));
+          g.setProperties(properties);
+
+          groups.add(g);
+
         }
       }
-      properties.put(GROUPS_PROPERTY_MEMBERS, toAdd);
-
-      // Loop over all the properties of this group.
-      // Each property needs to be added on the group authorizable eventually, we put this
-      // in the hashmap.
-      addProperties(node, properties, propertiesToIgnore);
-
-      // Add this group and its properties to the map.
-      final String groupName = principalName.getString();
-      Principal principal = new Principal() {
-
-        public String getName() {
-          return groupName;
-        }
-
-      };
-      groups.put(principal, properties);
     }
   }
 
@@ -188,10 +188,8 @@ public class TemplateBuilder {
    * 
    */
   private void readSiteTemplate() throws RepositoryException {
-    Node siteNode = templateNode.getNode("site");
     siteMap = new HashMap<String, Object>();
-
-    handleNode(siteNode, siteMap);
+    handleNode(templateNode, siteMap);
 
   }
 
@@ -296,7 +294,7 @@ public class TemplateBuilder {
         }
         loopIndexes = newIndexes;
         nestedLevel++;
-        JSONArray arr = (JSONArray) getJSONValue(name, true);
+        JSONArray arr = (JSONArray) getJSONValue(name);
         for (int i = 0; i < arr.length(); i++) {
           try {
             NodeIterator loopChildNodes = child.getNodes();
@@ -375,7 +373,7 @@ public class TemplateBuilder {
     String[] parts = StringUtils.split(name, "==");
     parts[0] = StringUtils.trim(parts[0]);
     parts[1] = StringUtils.trim(parts[1]);
-    Object o = getJSONValue(parts[0], false);
+    Object o = getJSONValue(parts[0]);
     Object o2 = parts[1];
     try {
       if (o instanceof Boolean) {
@@ -436,15 +434,29 @@ public class TemplateBuilder {
   protected Object getPropertyValue(Property p) throws RepositoryException {
     if (p.getDefinition().isMultiple()) {
       Value[] values = p.getValues();
+      List<Value> lst = new ArrayList<Value>();
       for (int i = 0; i < values.length; i++) {
-        if (isPlaceHolder(values[i])) {
-          values[i] = getValue(values[i], p.getSession());
+        Value value = values[i];
+        if (isLoopStatement(value)) {
+          // This property will have to be multi valued.
+          Object o = getJSONValue(value.getString());
+          Value[] vals = (Value[]) JcrUtils.createValue(o, p.getSession());
+          lst.addAll(Arrays.asList(vals));
+        } else if (isPlaceHolder(value)) {
+          value = getValue(value, p.getSession());
+          lst.add(value);
+        } else {
+          lst.add(value);
         }
       }
-      return values;
+      return lst.toArray(new Value[lst.size()]);
     } else {
       Value value = p.getValue();
-      if (isPlaceHolder(value)) {
+      if (isLoopStatement(value)) {
+        // This property will have to be multi valued.
+        Object o = getJSONValue(value.getString());
+        return JcrUtils.createValue(o, p.getSession());
+      } else if (isPlaceHolder(value)) {
         value = getValue(value, p.getSession());
       }
       return value;
@@ -460,12 +472,11 @@ public class TemplateBuilder {
    * @throws RepositoryException
    */
   protected Value getValue(String name, Session session) throws RepositoryException {
-    Object o = getJSONValue(name, false);
-
-    return JcrUtils.createValue(o, session);
+    Object o = getJSONValue(name);
+    return (Value) JcrUtils.createValue(o, session);
   }
 
-  protected Object getJSONValue(String name, boolean justGetArray) {
+  protected Object getJSONValue(String name) {
     name = org.apache.commons.lang.StringUtils.remove(name, '@');
     name = org.apache.commons.lang.StringUtils.remove(name, '?');
 
@@ -503,7 +514,7 @@ public class TemplateBuilder {
         else if (isArray && !openParenthesis && character == '.') {
           // Remove the '(...)' from the key.
           String k = key.substring(0, key.length() - 5);
-          if (i == characters.length && justGetArray) {
+          if (i == characters.length) {
             o = j.getJSONArray(k);
           } else {
             o = j.getJSONArray(k).get(loopIndexes[arrIndex]);
@@ -518,10 +529,14 @@ public class TemplateBuilder {
           key.append(character);
         }
       }
+    } catch (ArrayIndexOutOfBoundsException e) {
+      LOGGER.error("Could not get value out of the JSON object '" + name + "'", e);
+      throw new IllegalArgumentException("Could not get value out of the JSON object ' "
+          + name + "'");
     } catch (JSONException e) {
-      LOGGER.error("Provided JSON does not compute with the template.", e);
-      throw new IllegalArgumentException(
-          "Provided JSON does not compute with the template.");
+      LOGGER.error("Could not get value out of the JSON object '" + name + "'", e);
+      throw new IllegalArgumentException("Could not get value out of the JSON object ' "
+          + name + "'");
     }
     return o;
   }
