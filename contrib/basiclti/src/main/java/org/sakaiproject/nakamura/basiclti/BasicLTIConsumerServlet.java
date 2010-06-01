@@ -75,6 +75,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -116,20 +117,25 @@ import javax.servlet.http.HttpServletResponse;
 @ServiceDocumentation(name = "BasicLTIConsumerServlet", shortDescription = "Performs all activities related to BasicLTI functionality.", description = "Performs all activities related to BasicLTI functionality.", bindings = @ServiceBinding(type = BindingType.TYPE, bindings = "sakai/basiclti", extensions = {
     @ServiceExtension(name = "json", description = "This is the default return type if none is specified."),
     @ServiceExtension(name = "html", description = "Useful only in the context of a .launch selector and the preferred return type in that case.") }, selectors = @ServiceSelector(name = "launch", description = "Used to retrieve the launch data for a BasicLTI launch (i.e. invocation of the service).")), methods = {
-    @ServiceMethod(name = "GET", description = "Get information about a sakai/basiclti resource.", response = {
+    @ServiceMethod(name = "GET", description = "Get information about a sakai/basiclti resource.", parameters = { @ServiceParameter(name = "None", description = "No parameters are required.") }, response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
         @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
-    @ServiceMethod(name = "POST", description = "Get information about current user.", response = {
+    @ServiceMethod(name = "POST", description = "Create or update LTI launch parameters or widget settings.", parameters = {
+        @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
+        @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
+        @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+        @ServiceParameter(name = "*", description = "The service will try to persist any parameter that is available in the POST data. Some keys will be ignored if unsupported."),
+        @ServiceParameter(name = "*@TypeHint", description = "The service adheres to the @TypeHint sling conventions as much as possible.") }, response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_BAD_REQUEST, description = "Multi-valued parameters are not supported."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to process request due to a runtime error.") }),
     @ServiceMethod(name = "PUT", description = "The PUT method is not supported for sakai/basiclti nodes.", response = { @ServiceResponse(code = HttpServletResponse.SC_METHOD_NOT_ALLOWED, description = "PUT method not allowed.") }),
-    @ServiceMethod(name = "DELETE", description = "Delete a sakai/basiclti node and its corresponding data.", response = {
+    @ServiceMethod(name = "DELETE", description = "Delete a sakai/basiclti node and its corresponding data.", parameters = { @ServiceParameter(name = "None", description = "No parameters are required.") }, response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Everything was deleted as expected"),
-        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_FORBIDDEN, description = "Unauthorized: The current user does not have permissions to delete the data."),
+        @ServiceResponse(code = HttpServletResponse.SC_NOT_FOUND, description = "Resource could not be found."),
         @ServiceResponse(code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR, description = "Unable to delete the node due to a runtime error.") }) })
 @SlingServlet(methods = { "GET", "POST", "PUT", "DELETE" }, resourceTypes = { "sakai/basiclti" })
 public class BasicLTIConsumerServlet extends SlingAllMethodsServlet {
