@@ -125,6 +125,9 @@ import javax.servlet.http.HttpServletResponse;
         @ServiceParameter(name = LTI_KEY, description = "The opaque key given by the LTI provider."),
         @ServiceParameter(name = LTI_SECRET, description = "The shared secret given by the LTI provider."),
         @ServiceParameter(name = LTI_URL, description = "The LTI end point of the LTI provider."),
+        @ServiceParameter(name = RELEASE_EMAIL, description = "Controls privacy of email address in launch data."),
+        @ServiceParameter(name = RELEASE_NAMES, description = "Controls privacy of first/last name in launch data."),
+        @ServiceParameter(name = RELEASE_PRINCIPAL_NAME, description = "Controls privacy of username in launch data."),
         @ServiceParameter(name = "*", description = "The service will try to persist any parameter that is available in the POST data. Some keys will be ignored if unsupported."),
         @ServiceParameter(name = "*@TypeHint", description = "The service adheres to the @TypeHint sling conventions as much as possible.") }, response = {
         @ServiceResponse(code = HttpServletResponse.SC_OK, description = "Request has been processed successfully."),
