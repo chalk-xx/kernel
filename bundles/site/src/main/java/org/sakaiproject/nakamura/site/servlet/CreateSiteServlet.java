@@ -65,7 +65,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
