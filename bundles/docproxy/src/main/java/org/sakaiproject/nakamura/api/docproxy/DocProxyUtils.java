@@ -17,6 +17,9 @@
  */
 package org.sakaiproject.nakamura.api.docproxy;
 
+import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.REPOSITORY_REF;
+import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY_DOCUMENT;
 
 import org.apache.sling.api.resource.ValueMap;
@@ -24,9 +27,6 @@ import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
-
-import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.docproxy.DocProxyConstants.RT_EXTERNAL_REPOSITORY;
 
 import javax.jcr.Item;
 import javax.jcr.Node;
@@ -40,7 +40,7 @@ public class DocProxyUtils {
 
   /**
    * Checks wether or not a node is the config for an external repository
-   * 
+   *
    * @param node
    *          The node to check.
    * @return true = the node is a doc proxy node, false it is not.
@@ -56,7 +56,7 @@ public class DocProxyUtils {
 
   /**
    * Checks wether or not a node represents a document in an external repository.
-   * 
+   *
    * @param node
    *          The node to check.
    * @return true = the node is a doc proxy node, false it is not.
@@ -73,7 +73,7 @@ public class DocProxyUtils {
 
   /**
    * Outputs an {@link ExternalDocumentResultMetadata} in JSON.
-   * 
+   *
    * @param write
    *          The {@link JSONWriter} to write to.
    * @param meta
@@ -99,7 +99,7 @@ public class DocProxyUtils {
   /**
    * Get a proxy document node which holds information over an external repository,
    * processor ..
-   * 
+   *
    * @param node
    *          This node should hold a property {@link DocProxyConstants.REPOSITORY_REF}
    *          with a value of the UUID of the proxy node.
@@ -109,7 +109,7 @@ public class DocProxyUtils {
    */
   public static Node getProxyNode(Node node) throws DocProxyException {
     try {
-      String ref = node.getProperty(DocProxyConstants.REPOSITORY_REF).getString();
+      String ref = node.getProperty(REPOSITORY_REF).getString();
       Session session = node.getSession();
       Node retval = null;
       if (ref.startsWith("/")) {

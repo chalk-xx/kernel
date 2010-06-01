@@ -118,6 +118,10 @@ public interface SiteService {
    */
   public enum SiteEvent {
     /**
+     * Event posted to indicate a site has been created
+     */
+    created(),
+    /**
      * This event is posted to indicate the at join workflow should be started for the
      * user.
      */

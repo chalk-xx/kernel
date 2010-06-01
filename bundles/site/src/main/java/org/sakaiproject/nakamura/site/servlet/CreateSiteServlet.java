@@ -52,6 +52,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.site.SiteAuthz;
@@ -266,11 +267,14 @@ public class CreateSiteServlet extends AbstractSiteServlet {
             LOGGER.warn(e.getMessage(), e);
           }
         }
+
         // site creation notification
-        Dictionary<String,String> eventProps = new Hashtable<String,String>();
-        eventProps.put("sitePath", sitePath);
-        eventProps.put("userId", currentUser.getID());
-        eventAdmin.postEvent(new Event("org/sakaiproject/nakamura/api/site/event/create", eventProps));
+        Hashtable<String, String> eventProps = new Hashtable<String, String>();
+        eventProps.put(SiteEvent.SITE, sitePath);
+        eventProps.put(SiteEvent.USER, currentUser.getID());
+        eventAdmin.postEvent(new Event(SiteService.SiteEvent.created.getTopic(),
+            eventProps));
+
       } finally {
         if (adminSession != null) {
           adminSession.logout();
