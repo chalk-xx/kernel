@@ -22,11 +22,11 @@
     <parent>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>base</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.5</version>
     </parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>org.sakaiproject.nakamura.commons.commons-email</artifactId>
-    <version>1.1-0.5-SNAPSHOT</version>
+    <version>1.1-0.5</version>
     <packaging>bundle</packaging>
     <name>commons-email bundle</name>
     <description>

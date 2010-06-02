@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.5</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.postprocessors</artifactId>
   <packaging>bundle</packaging>
@@ -46,7 +46,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.site</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.5</version>
     </dependency>
     <dependency>
       <groupId>javax.jcr</groupId>
@@ -61,7 +61,7 @@
     <dependency>
       <groupId>edu.nyu</groupId>
       <artifactId>xythos-service</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
+      <version>0.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
