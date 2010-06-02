@@ -11,7 +11,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.osgi.OsgiUtil;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
-import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,7 @@ import java.util.Map;
 @Properties(value = {
     @Property(name = "service.vendor", value = "New York University"),
     @Property(name = "service.description", value = "Provides a place to respond when sites are created and memberships updated"),
-    @Property(name = "event.topics", value = SiteService.SiteEvent.TOPIC + "created") })
+    @Property(name = "event.topics", value = "org/sakaiproject/nakamura/api/site/event/created") })
 // SiteService.SiteEvent.created.getTopic()
 public class GroupEventsPostProcessor implements EventHandler {
 
