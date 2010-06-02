@@ -20,14 +20,8 @@ package org.sakaiproject.nakamura.basiclti;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_KEY;
 import static org.sakaiproject.nakamura.api.basiclti.BasicLtiAppConstants.LTI_SECRET;
 
-import org.apache.jackrabbit.api.security.principal.PrincipalIterator;
-import org.apache.jackrabbit.api.security.principal.PrincipalManager;
-import org.apache.jackrabbit.api.security.user.Authorizable;
-import org.apache.jackrabbit.api.security.user.UserManager;
-import org.apache.jackrabbit.core.security.SecurityConstants;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -103,24 +97,9 @@ public class BasicLTIServletUtils {
    */
   protected static boolean isAdminUser(final Session session)
       throws UnsupportedRepositoryOperationException, RepositoryException {
-    final UserManager userManager = AccessControlUtil.getUserManager(session);
-    final Authorizable authorizable = userManager.getAuthorizable(session.getUserID());
-    boolean isAdmin = false;
-    if (authorizable != null) {
-      final Principal principal = authorizable.getPrincipal();
-      if (principal != null) {
-        final PrincipalManager principalManager = AccessControlUtil
-            .getPrincipalManager(session);
-        final PrincipalIterator it = principalManager.getGroupMembership(principal);
-        while (it.hasNext()) {
-          if (SecurityConstants.ADMINISTRATORS_NAME.equals(it.nextPrincipal().getName())) {
-            isAdmin = true;
-            break;
-          }
-        }
-      }
-    }
-    return isAdmin;
+    final AccessControlManager acm = AccessControlUtil.getAccessControlManager(session);
+    final Privilege[] privJcrAll = { acm.privilegeFromName(Privilege.JCR_ALL) };
+    return acm.hasPrivileges("/", privJcrAll);
   }
 
   /**
