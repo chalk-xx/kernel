@@ -17,10 +17,7 @@
  */
 package org.sakaiproject.nakamura.profile;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
-import org.sakaiproject.nakamura.api.profile.ProviderSettingsFactory;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -29,28 +26,33 @@ import javax.jcr.Session;
 /**
  *
  */
-@Component(immediate=true)
-@Service(value=ProviderSettingsFactory.class)
-public class ProviderSettingsFactoryImpl implements ProviderSettingsFactory {
+public class ProviderSettingsFactory {
 
-  
-  private static final String PROVIDER_SETTINGS = "/var/profile/providersByName";
+  protected static final String PROVIDER_SETTINGS = "/var/profile/providersByName";
 
   /**
    * {@inheritDoc}
-   * @throws RepositoryException 
-   * @throws  
+   * 
+   * @throws RepositoryException
+   * @throws
    * 
    * @see org.sakaiproject.nakamura.api.profile.ProviderSettingsFactory#newProviderSettings(java.lang.String,
    *      javax.jcr.Node)
    */
-  public ProviderSettings newProviderSettings(String path, Node node) throws RepositoryException {
-    if (node.hasProperty("sakai:source")
-        && "external".equals(node.getProperty("sakai:source").getString())) {
-      Session session = node.getSession();
-      String providerSettings = appendPath(PROVIDER_SETTINGS, appendPath(path, node.getName()));
-      if (session.nodeExists(providerSettings) && session.nodeExists(providerSettings)) {
-        return new ProviderSettingsImpl(node, session.getNode(providerSettings));
+  public ProviderSettings newProviderSettings(String path, Node node)
+      throws RepositoryException {
+    if (node.hasProperty("sakai:source")) {
+      if ("external".equals(node.getProperty("sakai:source").getString())) {
+        System.err.println("Is external " + node.getProperty("sakai:source").getString());
+        
+        Session session = node.getSession();
+        String providerSettings = appendPath(PROVIDER_SETTINGS, path);
+        System.err.println("Locating "+providerSettings);
+        if (session.nodeExists(providerSettings)) {
+          return new ProviderSettingsImpl(node, session.getNode(providerSettings));
+        } else {
+          System.err.println("No Settings "+providerSettings);   
+        }
       }
     }
     return null;
@@ -62,7 +64,11 @@ public class ProviderSettingsFactoryImpl implements ProviderSettingsFactory {
    * @return
    */
   private String appendPath(String path, String name) {
+    System.err.println("Appending ["+path+"]["+name);
     if (path.endsWith("/")) {
+      return path + name;
+    }
+    if (name.startsWith("/")) {
       return path + name;
     }
     return path + "/" + name;

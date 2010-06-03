@@ -18,10 +18,12 @@
 package org.sakaiproject.nakamura.profile;
 
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
+import org.sakaiproject.nakamura.util.JcrUtils;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import javax.jcr.ValueFormatException;
 
 /**
@@ -46,7 +48,7 @@ public class ProviderSettingsImpl implements ProviderSettings {
     this.settingsNode = settingsNode;
     provider = settingsNode.getProperty("sakai:provider").getString();
     String providerSettings = settingsNode.getProperty("sakai:provider-settings").getString();
-    this.profileNode = profileNode.getSession().getNode(providerSettings);    
+    this.providerNode = profileNode.getSession().getNode(providerSettings);    
   }
 
   /**
@@ -57,16 +59,30 @@ public class ProviderSettingsImpl implements ProviderSettings {
     return provider;
   }
   
-  public Node getProfileNode() {
-    return profileNode;
+  
+  public String[] getProfileSettingsProperty(String propertyName) throws RepositoryException {
+    return getStringProperty(settingsNode, propertyName);
   }
   
-  public Node getSettingsNode() {
-    return settingsNode;
+  /**
+   * @param settingsNode2
+   * @param propertyName
+   * @return
+   */
+  private String[] getStringProperty(Node node, String propertyName) throws RepositoryException {
+    Value[] v = JcrUtils.getValues(node, propertyName);
+    if ( v == null || v.length == 0 ) {
+      return new String[0];
+    } 
+    String[] s = new String[v.length];
+    for ( int i = 0; i < s.length; i++ ) {
+      s[i] = v[i].getString();
+    }
+    return s;
   }
-  
-  public Node getProviderNode() {
-    return providerNode;
+
+  public String[] getProviderConfigProperty(String propertyName) throws RepositoryException {
+    return getStringProperty(providerNode, propertyName);
   }
 
 }

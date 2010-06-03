@@ -53,37 +53,59 @@ public class MergingJSONWriter extends JsonItemWriter {
    * @throws RepositoryException
    * @throws JSONException
    * @throws ValueFormatException
-   * @throws ExecutionException 
-   * @throws InterruptedException 
+   * @throws ExecutionException
+   * @throws InterruptedException
    */
-  public void dump(Node baseNode, Map<Node, Future<Map<String, Object>>> providedNodeData,
-      Writer w) throws JSONException, RepositoryException, InterruptedException, ExecutionException {
+  public void dump(Node baseNode,
+      Map<Node, Future<Map<String, Object>>> providedNodeData, Writer w)
+      throws JSONException, RepositoryException, InterruptedException, ExecutionException {
+    JSONWriter jw = new JSONWriter(w);
+    dump(jw, baseNode, providedNodeData);
+  }
+
+  protected void dump(JSONWriter jw, Node baseNode,
+      Map<Node, Future<Map<String, Object>>> providedNodeData) throws JSONException,
+      RepositoryException, InterruptedException, ExecutionException {
+    jw.object();
     if (providedNodeData.containsKey(baseNode)) {
-      dump(providedNodeData.get(baseNode).get(), w);
+      jw.key(baseNode.getName());
+      dump(jw, providedNodeData.get(baseNode).get());
     } else {
-      for (PropertyIterator pi = baseNode.getProperties(); pi.hasNext();) {
-        dump(pi.nextProperty(), w);
+      System.err.println("Base Node is "+baseNode);
+      PropertyIterator pi = baseNode.getProperties();
+      System.err.println("Property Iterator is  "+pi);
+      
+      for (; pi.hasNext();) {
+        writeProperty(jw, pi.nextProperty());
       }
-      for (NodeIterator ni = baseNode.getNodes(); ni.hasNext();) {
-        dump(ni.nextNode(), providedNodeData, w);
+      NodeIterator ni = baseNode.getNodes();
+      for (; ni.hasNext();) {
+        Node node = ni.nextNode();
+        if (providedNodeData.containsKey(node)) {
+          jw.key(node.getName());
+          dump(jw, providedNodeData.get(node).get());
+        } else {
+          jw.key(node.getName());
+          dump(jw, node, providedNodeData);
+        }
       }
     }
+    jw.endObject();
   }
 
   /**
    * @param map
    * @param w
-   * @throws JSONException 
+   * @throws JSONException
    */
   @SuppressWarnings("unchecked")
-  private void dump(Map<String, Object> map, Writer w) throws JSONException {
-    JSONWriter jw = new JSONWriter(w);
+  private void dump(JSONWriter jw, Map<String, Object> map) throws JSONException {
     jw.object();
-    for(Entry<String,Object> e : map.entrySet()) {
+    for (Entry<String, Object> e : map.entrySet()) {
       Object v = e.getValue();
-      if ( v instanceof Map) {
+      if (v instanceof Map) {
         jw.key(e.getKey());
-        dump((Map<String, Object>)e.getValue(),w);
+        dump(jw, (Map<String, Object>) e.getValue());
       } else {
         jw.key(e.getKey());
         jw.value(e.getValue());
