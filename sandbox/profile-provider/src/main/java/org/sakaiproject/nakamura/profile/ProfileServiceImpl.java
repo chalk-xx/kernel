@@ -18,13 +18,11 @@
 package org.sakaiproject.nakamura.profile;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.commons.json.JSONException;
 import org.sakaiproject.nakamura.api.profile.ProfileProvider;
 import org.sakaiproject.nakamura.api.profile.ProfileService;
 import org.sakaiproject.nakamura.api.profile.ProviderSettings;
-import org.sakaiproject.nakamura.api.profile.ProviderSettingsFactory;
 
 import java.io.Writer;
 import java.util.ArrayList;
@@ -47,10 +45,9 @@ import javax.jcr.RepositoryException;
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
-  private Map<String, ProfileProvider> providers;
+  protected Map<String, ProfileProvider> providers;
 
-  @Reference
-  private ProviderSettingsFactory providerSettingsFactory;
+  private ProviderSettingsFactory providerSettingsFactory = new ProviderSettingsFactory();
 
   public void writeProfileMap(Node baseNode, Writer w) throws JSONException,
       RepositoryException, InterruptedException, ExecutionException {
@@ -75,7 +72,7 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, List<ProviderSettings>> scanForProviders(Node baseNode)
       throws RepositoryException {
     Map<String, List<ProviderSettings>> providerMap = new HashMap<String, List<ProviderSettings>>();
-    return scanForProviders("/", baseNode, providerMap);
+    return scanForProviders("", baseNode, providerMap);
   }
 
   /**
@@ -88,13 +85,16 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, List<ProviderSettings>> scanForProviders(String path, Node node,
       Map<String, List<ProviderSettings>> providerMap) throws RepositoryException {
     ProviderSettings settings = providerSettingsFactory.newProviderSettings(path, node);
+    System.err.println("Got "+settings+" for "+path);
     if (settings == null) {
       for (NodeIterator ni = node.getNodes(); ni.hasNext();) {
-        scanForProviders(appendPath("/", node.getName()), node, providerMap);
+        Node newNode = ni.nextNode();
+        scanForProviders(appendPath(path, newNode.getName()), newNode, providerMap);
       }
     } else {
 
       List<ProviderSettings> l = providerMap.get(settings.getProvider());
+      
       if (l == null) {
         l = new ArrayList<ProviderSettings>();
         providerMap.put(settings.getProvider(), l);

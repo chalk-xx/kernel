@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.api.profile;
 
+import javax.jcr.RepositoryException;
+
 /**
  *
  */
@@ -26,5 +28,21 @@ public interface ProviderSettings {
    * @return
    */
   String getProvider();
+
+  /**
+   * Get a property, as String[] from the configuration for this provider in the JCR.
+   * @param propertyName the name of the property
+   * @return an array of values, if there are none it will be an array of length 0.
+   * @throws RepositoryException
+   */
+  String[] getProviderConfigProperty(String propertyName) throws RepositoryException;
+
+  /**
+   * Get the settings for this profile node.
+   * @param propertyName the name of the property.
+   * @return an array of values, if there are none it will be an array of length 0.
+   * @throws RepositoryException
+   */
+  String[] getProfileSettingsProperty(String propertyName) throws RepositoryException;
 
 }
