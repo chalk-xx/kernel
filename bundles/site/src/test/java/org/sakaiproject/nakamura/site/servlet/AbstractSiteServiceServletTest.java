@@ -70,12 +70,16 @@ public abstract class AbstractSiteServiceServletTest extends AbstractSiteService
 
   public JSONArray makeGetRequestReturningJSON() throws IOException, ServletException, JSONException
   {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     String jsonString = new String(makeGetRequestReturningBytes());
     return new JSONArray(jsonString);
   }
   
   public JSONArray makeGetRequestReturningJSONresults() throws IOException, ServletException, JSONException
   {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
     String jsonString = new String(makeGetRequestReturningBytes());
     JSONObject obj = new JSONObject(jsonString);
     return obj.getJSONArray("results");
