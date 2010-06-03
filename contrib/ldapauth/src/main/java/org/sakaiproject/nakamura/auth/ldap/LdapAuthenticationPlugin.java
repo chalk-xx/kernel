@@ -104,6 +104,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
       // get user credentials
       SimpleCredentials sc = (SimpleCredentials) credentials;
+      
+      if ("admin".equals(sc.getUserID())) {
+    	  return false;
+      }
+      
       String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
           sc.getUserID()));
       String userPass = new String(sc.getPassword());
