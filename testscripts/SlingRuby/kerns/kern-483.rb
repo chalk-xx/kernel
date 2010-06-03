@@ -38,7 +38,7 @@ class TC_Kern483Test < Test::Unit::TestCase
 	# Note that "jcr:read" is missing from the pseudo-creator's privilege list.
 	@authz.grant(nodepath, creatorid, {"jcr:readAccessControl" => "granted", "jcr:modifyAccessControl" => "granted","jcr:removeChildNodes" => "granted","jcr:write" => "granted","jcr:removeNode" => "granted","jcr:addChildNodes" => "granted","jcr:modifyProperties" => "granted"})
     res = @s.execute_get(@s.url_for(nodepath+".acl.json"))
-    puts("path=#{nodepath}, ACL=#{res.body}")
+    @log.info("path=#{nodepath}, ACL=#{res.body}")
 
     @s.switch_user(creator)
     everyone = SlingUsers::Group.new("everyone")
@@ -50,7 +50,7 @@ class TC_Kern483Test < Test::Unit::TestCase
     collabs.add_member(@s, creatorid, "user")
     collabs.add_member(@s, collabid, "user")
     res = @s.execute_get(@s.url_for("/system/userManager/group/#{collabsid}.json"))
-    puts("from non-admin, group=#{res.body}")
+    @log.info("from non-admin, group=#{res.body}")
 
     # At this point the creator will no longer have read access, and because
     # the modify-ACE servlet does try to retrieve the existing ACL, the update
@@ -61,7 +61,7 @@ class TC_Kern483Test < Test::Unit::TestCase
 		"privilege@jcr:readAccessControl" => "granted","privilege@jcr:read" => "granted","privilege@jcr:modifyAccessControl" => "granted","privilege@jcr:removeChildNodes" => "granted","privilege@jcr:write" => "granted","privilege@jcr:removeNode" => "granted","privilege@jcr:addChildNodes" => "granted","privilege@jcr:modifyProperties" => "granted"
 	})
     res = @s.execute_get(@s.url_for(nodepath+".acl.json"))
-    puts("path=#{nodepath}, ACL=#{res.body}")
+    @log.debug("path=#{nodepath}, ACL=#{res.body}")
 
     # How is the pseudo-creator doing now?
     # We'd like to see "200" since that user should still have read access via group
@@ -75,7 +75,7 @@ class TC_Kern483Test < Test::Unit::TestCase
     @s.switch_user(SlingUsers::User.admin_user())
     res = @s.execute_post(@s.url_for(nodepath + ".deleteAce.json"), ":applyTo" => creatorid)
     res = @s.execute_get(@s.url_for(nodepath+".acl.json"))
-    puts("path=#{nodepath}, ACL=#{res.body}")
+    @log.debug("path=#{nodepath}, ACL=#{res.body}")
 
     # At this point, the ACLs show the creator and the collab member to be
     # in the same condition. Are they actually treated the same, though?

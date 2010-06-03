@@ -21,7 +21,7 @@ class TC_Kern702Test < Test::Unit::TestCase
     assert_equal("200", res.code, "Expected to create site: #{res.body}")
     res = @s.execute_get(@s.url_for("/sites/#{siteid}.json"))
     assert_equal("200", res.code, "Expected to get site: #{res.body}")
-    puts res.body
+    @log.debug res.body
     props = JSON.parse(res.body)
     # assert_equal("/var/templates/site/systemtemplate", props["sakai:site-template"])
     assert_equal(sitename, props["name"])
@@ -30,7 +30,7 @@ class TC_Kern702Test < Test::Unit::TestCase
     res = @s.execute_post(@s.url_for("/sites/#{siteid}"), "name" => newname)
     assert_equal("200", res.code, "Should be able to change site " + res.body)
     res = @s.execute_get(@s.url_for("/sites/#{siteid}.json"))
-    puts res.body
+    @log.debug res.body
     props = JSON.parse(res.body)
     assert_equal(newname, props["name"])
   end

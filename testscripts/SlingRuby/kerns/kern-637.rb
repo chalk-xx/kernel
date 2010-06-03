@@ -24,7 +24,7 @@ class TC_Kern637Test < Test::Unit::TestCase
       "description" => sitename,
       "id" => siteid)
     res = @s.execute_get(@s.url_for("/sites/#{siteid}.json"))
-    puts res.body
+    @log.debug res.body
     props = JSON.parse(res.body)
     assert(!(props["sakai:is-site-template"]), "Expected site not is-site-template")
   end

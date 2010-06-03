@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>base</artifactId>
-  <version>0.5-SNAPSHOT</version>
+  <version>0.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Sakai Nakamura Project OSGi Experiments</name>
   <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
@@ -109,6 +109,7 @@
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
+        <module>sandbox/profile-provider</module>
        </modules>
     </profile>
     <profile>
