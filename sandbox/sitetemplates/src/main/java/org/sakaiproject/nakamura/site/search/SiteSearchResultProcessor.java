@@ -12,6 +12,7 @@ import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
 import org.sakaiproject.nakamura.api.search.SearchUtil;
+import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.RowUtils;
@@ -64,7 +65,13 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
       throws JSONException, RepositoryException {
     write.object();
     write.key("member-count");
-    write.value(String.valueOf(siteService.getMemberCount(resultNode)));
+    int count;
+    try {
+      count = siteService.getMemberCount(resultNode);
+    } catch (SiteException e) {
+      count = 0;
+    }
+    write.value(count);
     write.key("path");
     write.value(resultNode.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);

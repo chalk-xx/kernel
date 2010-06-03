@@ -21,7 +21,6 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 
 import java.util.AbstractCollection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -261,7 +260,7 @@ public interface SiteService {
    *          the Site node
    * @return The number of members
    */
-  int getMemberCount(Node site);
+  int getMemberCount(Node site) throws SiteException;
 
   /**
    * Get and Iterator of Groups for the site.
@@ -278,8 +277,21 @@ public interface SiteService {
    * @throws SiteException
    *           when there is an internal problem with getting the groups.
    */
-  AbstractCollection<AuthorizableKey> getGroups(Node site, int start, int nitems, Sort[] sort)
-      throws SiteException;
+  AbstractCollection<AuthorizableKey> getGroups(Node site, int start, int nitems,
+      Sort[] sort) throws SiteException;
+
+  /**
+   * 
+   * @param site
+   * @param start
+   * @param nitems
+   * @param sort
+   * @param maxLevels
+   * @return
+   * @throws SiteException
+   */
+  AbstractCollection<AuthorizableKey> getGroups(Node site, int start, int nitems,
+      Sort[] sort, int maxLevels) throws SiteException;
 
   /**
    * @param user

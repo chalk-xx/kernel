@@ -22,7 +22,7 @@
     <version>0.6-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.site</artifactId>
+  <artifactId>org.sakaiproject.nakamura.siteredux</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai site templating engine</name>
   <version>0.6-SNAPSHOT</version>

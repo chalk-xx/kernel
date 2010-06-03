@@ -494,17 +494,16 @@ public class SiteServiceImpl implements SiteService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.site.SiteServiceImpl#getMemberCount(javax.jcr.Node)
+   * @see org.sakaiproject.nakamura.site.SiteService#getMemberCount(javax.jcr.Node)
    */
-  public int getMemberCount(Node site) {
-    // TODO Auto-generated method stub
-    return 0;
+  public int getMemberCount(Node site) throws SiteException {
+    return getMembers(site, 0, -1, null, -1).size();
   }
 
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.site.SiteServiceImpl#isMember(javax.jcr.Node,
+   * @see org.sakaiproject.nakamura.site.SiteService#isMember(javax.jcr.Node,
    *      org.apache.jackrabbit.api.security.user.Authorizable)
    */
   public boolean isMember(Node site, Authorizable target) {
@@ -521,7 +520,7 @@ public class SiteServiceImpl implements SiteService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.site.SiteServiceImpl#isUserSiteMaintainer(javax.jcr.Node)
+   * @see org.sakaiproject.nakamura.site.SiteService#isUserSiteMaintainer(javax.jcr.Node)
    */
   public boolean isUserSiteMaintainer(Node site) throws RepositoryException {
     // TODO Maybe just check JCR_ALL or JCR_WRITE permission on the site node?
@@ -617,10 +616,11 @@ public class SiteServiceImpl implements SiteService {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.site.SiteServiceImpl#getGroups(javax.jcr.Node, int,
-   *      int, org.sakaiproject.nakamura.api.site.Sort[])
+   * @see org.sakaiproject.nakamura.site.SiteService#getGroups(javax.jcr.Node, int, int,
+   *      org.sakaiproject.nakamura.api.site.Sort[])
    */
-  public AbstractCollection<AuthorizableKey> getGroups(Node site, int start, int nitems, Sort[] sort) {
+  public AbstractCollection<AuthorizableKey> getGroups(Node site, int start, int nitems,
+      Sort[] sort) throws SiteException {
     return getGroups(site, start, nitems, sort, -1);
   }
 
