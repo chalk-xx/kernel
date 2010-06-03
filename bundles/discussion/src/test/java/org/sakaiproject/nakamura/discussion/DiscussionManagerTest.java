@@ -1,95 +1,58 @@
 package org.sakaiproject.nakamura.discussion;
 
-import static org.junit.Assert.assertNotNull;
-
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import org.apache.jackrabbit.api.JackrabbitRepository;
-import org.apache.jackrabbit.core.TransientRepository;
-import org.apache.jackrabbit.core.fs.local.FileUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.apache.sling.jcr.jackrabbit.server.impl.security.dynamic.RepositoryBase;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.osgi.framework.BundleContext;
 import org.sakaiproject.nakamura.api.discussion.DiscussionManager;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.jcr.LoginException;
-import javax.jcr.NamespaceException;
-import javax.jcr.NamespaceRegistry;
 import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFormatException;
-import javax.jcr.lock.LockException;
-import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.version.VersionException;
 
 public class DiscussionManagerTest {
 
-  /**
-   * 
-   */
-  private static final String DATA = "./target/testdata/jackrabbittest";
+  private static BundleContext bundleContext;
+  private static RepositoryBase repositoryBase;
 
-  /**
-   * 
-   */
-  private static final String CONFIG = "repository.xml";
+  private static RepositoryBase getRepositoryBase() throws IOException,
+      RepositoryException {
+    if (repositoryBase == null) {
+      bundleContext = Mockito.mock(BundleContext.class);
+      repositoryBase = new RepositoryBase(bundleContext);
+      repositoryBase.start();
+      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
-  private static Repository repository;
-  private Session aliveSession;
-
-  @BeforeClass
-  public static void beforeAll() throws IOException, LoginException, RepositoryException {
-    // Clean up the test data ...
-    File dataFile = new File(DATA);
-    if (dataFile.exists()) {
-      FileUtil.delete(dataFile);
+        public void run() {
+          if (repositoryBase != null) {
+            repositoryBase.stop();
+            repositoryBase = null;
+          }
+        }
+      }));
     }
-
-    repository = new TransientRepository(CONFIG, DATA);
+    return repositoryBase;
   }
 
-  @AfterClass
-  public static void afterAll() throws IOException {
-    try {
-      ((JackrabbitRepository) repository).shutdown();
-    } finally {
-      // Clean up after ourselves
-      File dataFile = new File(DATA);
-      if (dataFile.exists()) {
-        FileUtil.delete(dataFile);
-      }
-    }
+  @Before
+  public void before() {
+    MockitoAnnotations.initMocks(this);
   }
 
-  /**
-   * Starts the repository if it hasn't been started before.
-   * 
-   * @throws LoginException
-   * @throws RepositoryException
-   */
-  private void startRepo() throws LoginException, RepositoryException {
-    if (aliveSession == null) {
-      aliveSession = repository.login();
-      NamespaceRegistry registry = aliveSession.getWorkspace().getNamespaceRegistry();
-      try {
-        registry.getPrefix("sakai");
-      } catch (NamespaceException e) {
-        registry.registerNamespace("sakai", "sakai");
-      }
-      try {
-        registry.getPrefix("sling");
-      } catch (NamespaceException e) {
-        registry.registerNamespace("sling", "sling");
-      }
-    }
+  public Repository getRepository() throws IOException, RepositoryException {
+    return getRepositoryBase().getRepository();
   }
 
   /**
@@ -98,17 +61,14 @@ public class DiscussionManagerTest {
    * @return Returns the administrator session.
    * @throws LoginException
    * @throws RepositoryException
+   * @throws IOException
    */
-  private Session loginAsAdmin() throws LoginException, RepositoryException {
-    return repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
+  private Session loginAsAdmin() throws LoginException, RepositoryException, IOException {
+    return getRepository().login(new SimpleCredentials("admin", "admin".toCharArray()));
   }
 
   @Test
-  public void testFindSettings() throws ValueFormatException, VersionException,
-      LockException, ConstraintViolationException, RepositoryException {
-
-    startRepo();
-
+  public void testFindSettings() throws Exception {
     Session adminSession = loginAsAdmin();
 
     // Add a couple of nodes
@@ -131,11 +91,7 @@ public class DiscussionManagerTest {
   }
 
   @Test
-  public void testFindMessage() throws ValueFormatException, VersionException,
-      LockException, ConstraintViolationException, RepositoryException {
-
-    startRepo();
-
+  public void testFindMessage() throws Exception {
     Session adminSession = loginAsAdmin();
 
     // Add a couple of nodes
