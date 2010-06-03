@@ -15,25 +15,25 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate.servlet;
+package org.sakaiproject.nakamura.site.servlet;
 
 import static javax.jcr.security.Privilege.JCR_ALL;
 import static org.apache.jackrabbit.JcrConstants.JCR_MIXINTYPES;
 import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.site.SiteService.PARAM_SITE_PATH;
-import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_IS_SITE_TEMPLATE;
-import static org.sakaiproject.nakamura.api.site.SiteService.SAKAI_SITE_TEMPLATE;
-import static org.sakaiproject.nakamura.api.site.SiteService.SITES_CONTAINER_RESOURCE_TYPE;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_IS_MAINTAINER;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_NODENAME;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_NODENAME_SINGLE;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_SITE_AUTHORIZABLE;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.AUTHORIZABLES_SITE_IS_MAINTAINER;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.AUTHORIZABLES_SITE_NODENAME;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.AUTHORIZABLES_SITE_NODENAME_SINGLE;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.PARAM_SITE_PATH;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.RT_SITE_AUTHORIZABLE;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.SAKAI_IS_SITE_TEMPLATE;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.SAKAI_SITE_TEMPLATE;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.SITES;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.SITES_CONTAINER_RESOURCE_TYPE;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
-import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.UserManager;
@@ -51,9 +51,9 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.sitetemplate.create.ACE;
-import org.sakaiproject.nakamura.sitetemplate.create.GroupToCreate;
-import org.sakaiproject.nakamura.sitetemplate.create.TemplateBuilder;
+import org.sakaiproject.nakamura.site.create.ACE;
+import org.sakaiproject.nakamura.site.create.GroupToCreate;
+import org.sakaiproject.nakamura.site.create.SiteTemplateBuilder;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.sakaiproject.nakamura.version.VersionService;
@@ -74,7 +74,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 @SlingServlet(methods = { "POST" }, resourceTypes = { "sling/servlet/default",
-    SiteService.SITES_CONTAINER_RESOURCE_TYPE }, selectors = { "template" }, generateComponent = true, generateService = true)
+    SITES_CONTAINER_RESOURCE_TYPE }, selectors = { "template" }, generateComponent = true, generateService = true)
 public class CreateSiteServlet extends SlingAllMethodsServlet {
 
   private static final long serialVersionUID = 6687687185254684084L;
@@ -190,7 +190,8 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
   private Node createSiteFromTemplate(Session session, String sitePath,
       Node templateNode, JSONObject siteJSON, ResourceResolver resolver)
       throws RepositoryException {
-    TemplateBuilder builder = new TemplateBuilder(templateNode, siteJSON, resolver);
+    SiteTemplateBuilder builder = new SiteTemplateBuilder(templateNode, siteJSON,
+        resolver);
 
     Session adminSession = null;
     Node siteNode = null;
@@ -263,7 +264,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    *          The admin session, this will only be used for setting ACLs.
    * @throws RepositoryException
    */
-  private void createSiteStructure(TemplateBuilder builder, Node siteNode)
+  private void createSiteStructure(SiteTemplateBuilder builder, Node siteNode)
       throws RepositoryException {
     Map<String, Object> structure = builder.getSiteMap();
     handleNode(structure, siteNode);
@@ -320,7 +321,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
       else if (entry.getValue() instanceof Map<?, ?>) {
         Map<String, Object> map = (Map<String, Object>) entry.getValue();
         String nt = "nt:unstructured";
-        if (map.containsKey(JcrConstants.JCR_PRIMARYTYPE)) {
+        if (map.containsKey(JCR_PRIMARYTYPE)) {
           nt = ((Value) map.get(JCR_PRIMARYTYPE)).getString();
         }
         Node childNode = node.addNode(key, nt);
@@ -336,8 +337,8 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @param adminSession
    * @throws RepositoryException
    */
-  private void createGroups(TemplateBuilder builder, Session adminSession, Node siteNode)
-      throws RepositoryException {
+  private void createGroups(SiteTemplateBuilder builder, Session adminSession,
+      Node siteNode) throws RepositoryException {
 
     Node groupNodes = org.apache.jackrabbit.commons.JcrUtils.getOrAddNode(siteNode,
         AUTHORIZABLES_SITE_NODENAME);
@@ -412,8 +413,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
         // Set the properties for this group.
         group.setProperty(UserConstants.PROP_GROUP_MANAGERS, g.getManagers());
         group.setProperty(UserConstants.PROP_GROUP_VIEWERS, g.getViewers());
-        group.setProperty(SiteService.SITES, (Value) JcrUtils
-            .createValue(siteID, session));
+        group.setProperty(SITES, (Value) JcrUtils.createValue(siteID, session));
         String groupPath = AuthorizableResourceProvider.SYSTEM_USER_MANAGER_GROUP_PREFIX
             + group.getID();
         postProcessService.process(group, session, Modification.onCreated(groupPath));

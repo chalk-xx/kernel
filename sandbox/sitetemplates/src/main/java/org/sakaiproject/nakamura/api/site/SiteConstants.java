@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.api.sitetemplate;
+package org.sakaiproject.nakamura.api.site;
 
 /**
  * Constants that will be used troughout the site templating engine.
@@ -73,5 +73,63 @@ public interface SiteConstants {
    *
    */
   public static final String RT_SITE_AUTHORIZABLE = "sakai/site-group";
+
+  /**
+   * The property name of the site template.
+   */
+  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
+  /**
+   * The property name for the skin of a website.
+   */
+  public static final String SAKAI_SKIN = "sakai:skin";
+  /**
+   * The sling resource type for a site.
+   */
+  public static final String SITE_RESOURCE_TYPE = "sakai/site";
+  /**
+   * The property name that defines if this is a site template or not.
+   */
+  public static final String SAKAI_IS_SITE_TEMPLATE = "sakai:is-site-template";
+  /**
+   * The property used to store the joinable status of the site.
+   */
+  public static final String JOINABLE = "sakai:joinable";
+
+  /**
+   * The property used to store the type of site.(e.g. portfolio, course, other)
+   */
+  public static final String SAKAI_SITE_TYPE = "sakai:site-type";
+
+  /**
+   * The property used to store the sites a group is associated with.
+   */
+  public static final String SITES = "sakai:site";
+  /**
+   * The property returned with the groups info in the members listing (this is not and
+   * should not actually be stored on the node, it is generated on demand)
+   */
+  public static final String MEMBER_GROUPS = "member:groups";
+
+  /**
+   * The multivalued property to store the list of associated authorizables.
+   */
+  public static final String AUTHORIZABLE = "sakai:authorizables";
+  /**
+   * The request parameter indicating the target group for join and unjoin operations.
+   */
+  public static final String PARAM_GROUP = "targetGroup";
+  public static final String PARAM_START = "start";
+  public static final String PARAM_ITEMS = "items";
+  public static final String PARAM_SORT = "sort";
+  public static final String PARAM_ADD_GROUP = "addauth";
+  public static final String PARAM_REMOVE_GROUP = "removeauth";
+
+  /**
+   * Request parameters used when creating a site.
+   */
+  public static final String PARAM_SITE_PATH = ":sitepath";
+  public static final String PARAM_MOVE_FROM = ":moveFrom";
+  public static final String PARAM_COPY_FROM = ":copyFrom";
+  public static final String SITES_CONTAINER_RESOURCE_TYPE = "sakai/sites";
 
 }

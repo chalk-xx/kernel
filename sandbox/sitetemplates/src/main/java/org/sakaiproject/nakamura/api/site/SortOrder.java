@@ -15,37 +15,18 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate;
-
-import java.util.Map;
+package org.sakaiproject.nakamura.api.site;
 
 /**
- * 
+ * Sort ordering for Site related sorts.
  */
-public class MembershipTree {
-
-  private Map<GroupKey, Membership> groups;
-  private Map<UserKey, Membership> users;
-
+public enum SortOrder {
   /**
-   * @param groups
-   * @param users
+   * Ascending sort order.
    */
-  public MembershipTree(Map<GroupKey, Membership> groups, Map<UserKey, Membership> users) {
-    this.groups = groups;
-    this.users = users;
-  }
+  asc(), 
   /**
-   * @return the groups
+   * Descending sort order.
    */
-  public Map<GroupKey, Membership> getGroups() {
-    return groups;
-  }
-  /**
-   * @return the users
-   */
-  public Map<UserKey, Membership> getUsers() {
-    return users;
-  }
-
+  desc();
 }

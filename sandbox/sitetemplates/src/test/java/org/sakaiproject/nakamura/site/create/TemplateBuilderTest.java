@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate.create;
+package org.sakaiproject.nakamura.site.create;
 
 import static org.junit.Assert.assertFalse;
 
@@ -25,7 +25,7 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.sitetemplate.create.TemplateBuilder;
+import org.sakaiproject.nakamura.site.create.TemplateBuilder;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.InputStream;

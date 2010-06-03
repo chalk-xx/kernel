@@ -15,15 +15,10 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.sitetemplate.create;
+package org.sakaiproject.nakamura.site.create;
 
-import static org.apache.jackrabbit.JcrConstants.JCR_PRIMARYTYPE;
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.AUTHORIZABLES_SITE_PRINCIPAL_NAME;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_MANAGERS;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.GROUPS_PROPERTY_VIEWERS;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_ACE;
-import static org.sakaiproject.nakamura.api.sitetemplate.SiteConstants.RT_GROUPS;
+import static org.sakaiproject.nakamura.api.site.SiteConstants.RT_ACE;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -40,7 +35,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -61,11 +55,10 @@ public class TemplateBuilder {
   private Node templateNode;
   private JSONObject json;
   private ResourceResolver resolver;
-  private List<GroupToCreate> groups;
-  private Map<String, Object> siteMap;
+  private Map<String, Object> map;
   private int[] loopIndexes = {};
   private int nestedLevel;
-  private List<String> defaultPropertiesToIgnore;
+  protected List<String> defaultPropertiesToIgnore;
 
   public TemplateBuilder() {
 
@@ -82,8 +75,6 @@ public class TemplateBuilder {
 
     // mixinTypes do NOT get ignored.
     defaultPropertiesToIgnore = new ArrayList<String>();
-    defaultPropertiesToIgnore.add("sakai:template-group");
-    defaultPropertiesToIgnore.add("sakai:template-groups");
     defaultPropertiesToIgnore.add("jcr:createdBy");
     defaultPropertiesToIgnore.add("jcr:created");
     defaultPropertiesToIgnore.add("jcr:lastModifedBy");
@@ -93,103 +84,22 @@ public class TemplateBuilder {
     defaultPropertiesToIgnore.add("jcr:versionHistory");
     defaultPropertiesToIgnore.add("jcr:baseVersion");
     defaultPropertiesToIgnore.add("jcr:isCheckedOut");
-
-    // Run over the site template.
-    readSiteTemplate();
-
-    // Read groups.
-    readGroups();
   }
 
   /**
-   * @return The groups that should be created by matching the template and the provided
-   *         JSON input.
+   * @return A big Map of Maps that represents the node structure.
    */
-  public List<GroupToCreate> getGroups() {
-    return this.groups;
-  }
-
-  /**
-   * @return The site node structure represented as Map of Maps. A property value is
-   *         either Value or Value[].
-   */
-  public Map<String, Object> getSiteMap() {
-    return (Map<String, Object>) this.siteMap.get("site");
-  }
-
-  /**
-   * Reads the groups
-   * 
-   * @throws RepositoryException
-   */
-  @SuppressWarnings("unchecked")
-  private void readGroups() throws RepositoryException {
-    groups = new ArrayList<GroupToCreate>();
-
-    // This is a list of properties we will ignore for the group nodes.
-    // Either because they are JCR specific or because we use them for something else,
-    // ex: principal name, managers, viewers,..
-    List<String> propertiesToIgnore = new ArrayList<String>();
-    propertiesToIgnore.addAll(defaultPropertiesToIgnore);
-    propertiesToIgnore.add(GROUPS_PROPERTY_MANAGERS);
-    propertiesToIgnore.add(GROUPS_PROPERTY_VIEWERS);
-    propertiesToIgnore.add(AUTHORIZABLES_SITE_PRINCIPAL_NAME);
-    propertiesToIgnore.add(JCR_PRIMARYTYPE);
-    propertiesToIgnore.add(SLING_RESOURCE_TYPE_PROPERTY);
-
-    // We should've read everything under the template node in the readSiteTemplate()
-    // method, including the groups.
-    // All of the required info should be in the siteMap under the key'groups'.
-    Map<String, Object> groupMap = (Map<String, Object>) siteMap.get("groups");
-    for (Entry<String, Object> entry : groupMap.entrySet()) {
-      if (entry.getValue() instanceof Map) {
-        Map<String, Object> groupNode = (Map<String, Object>) entry.getValue();
-        if (groupNode.containsKey(SLING_RESOURCE_TYPE_PROPERTY)) {
-          Value val = (Value) groupNode.get(SLING_RESOURCE_TYPE_PROPERTY);
-          if (!RT_GROUPS.equals(val.getString())) {
-            // If this is not a group we skip it.
-            continue;
-          }
-
-          // This entry represents a group.
-          // Get the principal for it.
-          final String principalName = ((Value) groupNode
-              .get(AUTHORIZABLES_SITE_PRINCIPAL_NAME)).getString();
-          Principal principal = new Principal() {
-
-            public String getName() {
-              return principalName;
-            }
-          };
-
-          // The properties this group will get.
-          Map<String, Object> properties = new HashMap<String, Object>();
-          for (Entry<String, Object> groupProperty : groupNode.entrySet()) {
-            if (!propertiesToIgnore.contains(groupProperty.getKey())) {
-              properties.put(groupProperty.getKey(), groupProperty.getValue());
-            }
-          }
-
-          GroupToCreate g = new GroupToCreate();
-          g.setPrincipal(principal);
-          g.setManagers((Value[]) groupNode.get(GROUPS_PROPERTY_MANAGERS));
-          g.setViewers((Value[]) groupNode.get(GROUPS_PROPERTY_VIEWERS));
-          g.setProperties(properties);
-
-          groups.add(g);
-
-        }
-      }
-    }
+  public Map<String, Object> getMap() {
+    return map;
   }
 
   /**
    * @throws RepositoryException
    * 
    */
-  private void readSiteTemplate() throws RepositoryException {
-    siteMap = new HashMap<String, Object>();
-    handleNode(templateNode, siteMap);
+  protected void readTemplate() throws RepositoryException {
+    map = new HashMap<String, Object>();
+    handleNode(templateNode, map);
 
   }
 

@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.sitetemplate;
+package org.sakaiproject.nakamura.api.site;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
@@ -45,7 +45,7 @@ public class UserKey extends AuthorizableKey {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.sitetemplate.AuthorizableKey#getFirstName()
+   * @see org.sakaiproject.nakamura.api.site.AuthorizableKey#getFirstName()
    */
   @Override
   public String getFirstName() {
@@ -72,7 +72,7 @@ public class UserKey extends AuthorizableKey {
   /**
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.sitetemplate.AuthorizableKey#getLastName()
+   * @see org.sakaiproject.nakamura.api.site.AuthorizableKey#getLastName()
    */
   @Override
   public String getLastName() {
