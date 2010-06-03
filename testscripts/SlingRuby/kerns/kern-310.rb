@@ -21,7 +21,7 @@ class TC_Kern310Test < Test::Unit::TestCase
 
   def test_discovery_in_15_seconds
     m = Time.now.to_i.to_s
-    @s.log = true
+    #@s.log = true
     n = create_node("content/mynode#{m}", { "sling:resourceType" => "foo/bar",
                                             "title" => "some title" })
     filepath = upload_file("apps/foo/bar", "html.esp", $testscript)
@@ -29,7 +29,7 @@ class TC_Kern310Test < Test::Unit::TestCase
     res = @s.execute_get(@s.url_for("#{n}.html"))
     assert_equal("200", res.code, "Expected render to succeed")
     assert_equal($expected, res.body, "Expected render to be good")
-    @s.log = false
+    #@s.log = false
   end
 
 end

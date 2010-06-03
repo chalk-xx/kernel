@@ -39,7 +39,7 @@ public interface SiteService {
   /**
    * The property name of the site template.
    */
-  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";  
+  public static final String SAKAI_SITE_TEMPLATE = "sakai:site-template";
   /**
    * The property name for the skin of a website.
    */
@@ -86,7 +86,7 @@ public interface SiteService {
   public static final String PARAM_SORT = "sort";
   public static final String PARAM_ADD_GROUP = "addauth";
   public static final String PARAM_REMOVE_GROUP = "removeauth";
-  
+
   /**
    * Request parameters used when creating a site.
    */
@@ -117,6 +117,10 @@ public interface SiteService {
    * An Event Enumeration for all the events that the Site Service might emit.
    */
   public enum SiteEvent {
+    /**
+     * Event posted to indicate a site has been created
+     */
+    created(),
     /**
      * This event is posted to indicate the at join workflow should be started for the
      * user.
@@ -186,7 +190,7 @@ public interface SiteService {
 
   /**
    * Is the group a member of the site, either directly or implied.
-   * 
+   *
    * @param site
    *          the site in question.
    * @param group
@@ -206,14 +210,14 @@ public interface SiteService {
 
 
   /**
-   * @param site 
+   * @param site
    *          the site in question.
    * @return the path to the template-site where the given site is based on.
    */
   String getSiteTemplate(Node site) throws SiteException;
-  
+
   /**
-   * 
+   *
    * @param site the site in question
    * @return the path to the template associated with the site, may be the default site
    *         template if none is specified.
@@ -224,7 +228,7 @@ public interface SiteService {
 
   /**
    * Lists declared members of the site with a sort order and paging.
-   * 
+   *
    * @param site
    *          the Site node
    * @param start
@@ -242,7 +246,7 @@ public interface SiteService {
 
   /**
    * Returns the number of declared members of a site
-   * 
+   *
    * @param site
    *          the Site node
    * @return The number of members
@@ -251,7 +255,7 @@ public interface SiteService {
 
   /**
    * Get and Iterator of Groups for the site.
-   * 
+   *
    * @param site
    *          the site node.
    * @param start
@@ -277,21 +281,21 @@ public interface SiteService {
   /**
    * Gets the default site template for the node, this must be a node that exist and is
    * readable by the current session.
-   * 
+   *
    * @param site
    * @return the location of the default site template.
    */
   String getDefaultSiteTemplate(Node site);
-  
+
   /**
    * Finds the site by doing a query for the sitename. Returns null if nothing is found.
    * @param siteName
    * @return The Node that resembles the site or null if nothing is found.
    */
   public Node findSiteByName(Session session, String siteName) throws SiteException;
-  
+
   /**
-   * Finds a site by giving it a path. This will travel upwards along the path and if 
+   * Finds a site by giving it a path. This will travel upwards along the path and if
    * it finds a sakai/sites store will try to expand the path with the siteName.
    * the sitename is the part after the last slash (/)
    * @param session

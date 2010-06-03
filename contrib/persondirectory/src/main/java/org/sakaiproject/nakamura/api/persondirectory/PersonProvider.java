@@ -21,16 +21,16 @@ import java.util.Map;
 import javax.jcr.Node;
 
 /**
- * Provider interface for looking up a person ({@link Person}) and attributes associated
- * to them.
+ * Provider interface for looking up a person and attributes associated to them.
  */
 public interface PersonProvider {
+
   /**
-   * Get all attributes associated to a person.
+   * Get a particular section of attributes for a person.
    * 
-   * @param uid
-   *          The user ID to lookup.
-   * @return A {@link Person} with all found associated attributes. null if the UID is not
+   * @param parameters
+   *          The section node being accessed.
+   * @return A {@link Map} with all found associated attributes. null if the UID is not
    *         found.
    */
   Map<String, Object> getProfileSection(Node parameters) throws PersonProviderException;

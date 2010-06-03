@@ -19,14 +19,14 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.6-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.site</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Site Service Bundle</name>
-  <version>0.5-SNAPSHOT</version>
-  <description>Provides all the Site service features and a robust templating mechanism.</description>
+  <name>Sakai site templating engine</name>
+  <version>0.6-SNAPSHOT</version>
+  <description>Provides a robust templating mechanism for sites.</description>
   <build>
     <plugins>
       <plugin>
@@ -109,22 +109,22 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.doc</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
     	<artifactId>org.sakaiproject.nakamura.user</artifactId>
-    	<version>0.5-SNAPSHOT</version>
+    	<version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.5-SNAPSHOT</version>
+    	<groupId>org.sakaiproject.nakamura</groupId>
+    	<artifactId>org.sakaiproject.nakamura.search</artifactId>
+    	<version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

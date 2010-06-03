@@ -15,21 +15,31 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.sakaiproject.nakamura.api.profile;
 
-package org.sakaiproject.nakamura.api.ldap;
+import org.apache.sling.commons.json.JSONException;
+
+import java.io.Writer;
+import java.util.concurrent.ExecutionException;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 /**
- * Factory for create {@link LdapConnectionManager}s
+ *
  */
-public interface LdapConnectionManagerFactory {
+public interface ProfileService {
+
   /**
-   * Create a new instance of an {@link LdapConnectionManager} using the provided
-   * configuration.
-   * 
-   * @param config
-   * @return 
+   * Stream a profile out to a writer expanding external references efficiently.
+   * @param baseNode
+   * @param w
+   * @throws JSONException
+   * @throws RepositoryException
+   * @throws InterruptedException
+   * @throws ExecutionException
    */
-  LdapConnectionManager create(LdapConnectionManagerConfig config);
-  
-  void destroy(LdapConnectionManager mgr);
+  void writeProfileMap(Node baseNode, Writer w) throws JSONException,
+      RepositoryException, InterruptedException, ExecutionException;
+
 }
