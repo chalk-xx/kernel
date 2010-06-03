@@ -109,6 +109,9 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     	  return false;
       }
       
+      
+      long timeStart = System.currentTimeMillis();
+      
       String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
           sc.getUserID()));
       String userPass = new String(sc.getPassword());
@@ -192,7 +195,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         // FINALLY!
         auth = true;
-        log.info("User [{}] authenticated with LDAP", userDn);
+        log.info("User [{}] authenticated with LDAP in {}ms", userDn, System.currentTimeMillis() - timeStart);
       } catch (Exception e) {
         log.warn(e.getMessage(), e);
       } finally {
