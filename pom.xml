@@ -86,13 +86,13 @@
         <module>bundles/calendar</module>
         <module>bundles/antixss</module>
         <module>bundles/authz</module>
+        <module>bundles/basiclti</module>
       </modules>
     </profile>
     <profile>
        <id>withContrib</id>
        <modules>
         <module>contrib/import</module>
-        <module>contrib/basiclti</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
         <module>contrib/persondirectory</module>
