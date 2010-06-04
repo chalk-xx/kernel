@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Sakai Foundation (SF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -60,6 +59,7 @@ public class RepositoryBase {
     repository = RepositoryImpl.create(crc);
     Session session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
     session.getWorkspace().getNamespaceRegistry().registerNamespace("sakai", "http://www.sakaiproject.org/testing");
+    session.getWorkspace().getNamespaceRegistry().registerNamespace("sling", "http://sling.apache.org/testing");
     if ( session.hasPendingChanges() ) {
       session.save();
     }

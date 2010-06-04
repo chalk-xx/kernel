@@ -51,19 +51,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component(immediate = true, label = "%site.membershipServlet.label", description = "%site.membershipServlet.desc")
 @SlingServlet(paths = "/system/sling/membership", methods = "GET", generateComponent = false)
-@ServiceDocumentation(name="Site Membership Servlet",
-    description=" Get the membership for the current user in json format.",
-    shortDescription="Get the site membership for the current user.",
-    bindings=@ServiceBinding(type=BindingType.PATH,bindings={"/system/sling/membership"}),
-    methods=@ServiceMethod(name="GET",
-        description={"Get the site membership for the current user, serialized in json format",
-            "Example<br>" +
-            "<pre>curl http://user:pass@localhost:8080//system/sling/membership</pre>"
-        },
-        response={
-          @ServiceResponse(code=200,description="The body will contain json for the membership of the user."),
-          @ServiceResponse(code=500,description="Failure with HTML explanation.")}
-    )) 
+@ServiceDocumentation(name = "Site Membership Servlet", description = " Get the membership for the current user in json format.", shortDescription = "Get the site membership for the current user.", bindings = @ServiceBinding(type = BindingType.PATH, bindings = { "/system/sling/membership" }), methods = @ServiceMethod(name = "GET", description = {
+    "Get the site membership for the current user, serialized in json format",
+    "Example<br>"
+        + "<pre>curl http://user:pass@localhost:8080//system/sling/membership</pre>" }, response = {
+    @ServiceResponse(code = 200, description = "The body will contain json for the membership of the user."),
+    @ServiceResponse(code = 500, description = "Failure with HTML explanation.") }))
 public class SiteMembershipServlet extends AbstractSiteServlet {
 
   private static final Logger LOGGER = LoggerFactory
@@ -84,9 +77,6 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
       String u = request.getRemoteUser();
       Session session = request.getResourceResolver().adaptTo(Session.class);
       Map<String, List<Group>> membership = getSiteService().getMembership(session, u);
-
-      response.setContentType("application/json");
-      response.setCharacterEncoding("UTF-8");
 
       ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
       output.array();
@@ -114,13 +104,13 @@ public class SiteMembershipServlet extends AbstractSiteServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (SiteException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
       response.sendError(e.getStatusCode(), e.getMessage());
     } catch (RepositoryException e) {
-      LOGGER.warn(e.getMessage(),e);
+      LOGGER.warn(e.getMessage(), e);
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
     return;
   }
-  
+
 }

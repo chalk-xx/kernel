@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.sitetemplate;
+package org.sakaiproject.nakamura.api.site;
 
 import org.apache.jackrabbit.api.security.user.Authorizable;
 
@@ -15,11 +15,11 @@ public class AuthorizableKey {
     this.id = authorizable.getID();
     this.authorizable = authorizable;
   }
-  
+
   public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof AuthorizableKey)) 
+    if (obj == null || !(obj instanceof AuthorizableKey))
       return false;
-    return ((AuthorizableKey)obj).getID().equals(getID());
+    return ((AuthorizableKey) obj).getID().equals(getID());
   }
 
   private String getID() {
@@ -50,4 +50,5 @@ public class AuthorizableKey {
   public String getLastName() {
     return lastName;
   }
+
 }
