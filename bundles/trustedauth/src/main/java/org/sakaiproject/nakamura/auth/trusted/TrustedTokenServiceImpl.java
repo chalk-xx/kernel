@@ -89,7 +89,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   public static final String SERVER_TOKEN_ENABLED = "sakai.auth.trusted.server.enabled";
 
   /** A list of all the known safe hosts to trust as servers */
-  @Property(value =";localhost;", description="A ; seperated list of hosts that this instance trusts to make server connections.")
+  @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
   public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
   /**
