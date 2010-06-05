@@ -57,7 +57,7 @@
               org.sakaiproject.nakamura.imap.*,
               org.slf4j.spi.*
             </Private-Package>
-            <Sling-Nodetypes>org/apache/james/imap/jcr/imap.cnd</Sling-Nodetypes>
+            <Sling-Nodetypes>cnd/imap.cnd</Sling-Nodetypes>
             <Embed-Dependency>
             james-server-imapserver,
             james-server-netty-socket,
