@@ -20,7 +20,7 @@
   <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Configuration Bundle</name>
+  <name>Sakai Nakamura :: Configuration Bundle</name>
   <description>Provides configuration support for the Nakamura bound to OSIGi configuration services.</description>
   <build>
     <plugins>

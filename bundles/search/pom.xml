@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.search</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Search Support Bundle</name>
+  <name>Sakai Nakamura :: Search Support Bundle</name>
   <description>Search Support bundle that allows searches to be defined in JCR.</description>
   <build>
     <plugins>

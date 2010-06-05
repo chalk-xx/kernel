@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.guice</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Guice Bundle</name>
+  <name>Sakai Nakamura :: Sakai Guice Bundle</name>
   <description>Support libraries for simple Guice1 usage within a bundle. Does not work for Guice based bundles that contain non listed concrete classes in the bundle (requires Guice2).</description>
   <build>
     <plugins>

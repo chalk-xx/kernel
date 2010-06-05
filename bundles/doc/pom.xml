@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.doc</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>org.sakaiproject.nakamura.doc</name>
+  <name>Sakai Nakamura :: Documentation Support bundle</name>
   <description>Sakai Documentation Support bundle</description>
   <build>
     <plugins>

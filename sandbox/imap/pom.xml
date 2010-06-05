@@ -11,7 +11,7 @@
   <artifactId>org.sakaiproject.nakamura.imap</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>Nakamura IMAP Serverr</name>
+  <name>Sakai Nakamura :: JAMES IMAP Serverr</name>
   <build>
     <plugins>
       <plugin>

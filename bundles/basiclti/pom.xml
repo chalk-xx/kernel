@@ -23,7 +23,7 @@
 	<artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.6-SNAPSHOT</version>
-	<name>org.sakaiproject.nakamura.basiclti</name>
+	<name>Sakai Nakamura :: Basic LTI bundle</name>
 	<description>Sakai Basic LTI Implementation</description>
 	<build>
 		<plugins>

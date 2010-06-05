@@ -11,7 +11,7 @@
   <artifactId>org.sakaiproject.nakamura.profile</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>Nakamura Profile Bundle</name>
+  <name>Sakai Nakamura :: Profile Bundle</name>
   <build>
     <plugins>
       <plugin>

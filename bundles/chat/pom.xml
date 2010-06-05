@@ -24,7 +24,7 @@
 	<groupId>org.sakaiproject.nakamura</groupId>
 	<artifactId>org.sakaiproject.nakamura.chat</artifactId>
 	<packaging>bundle</packaging>
-	<name>Sakai chat services</name>
+	<name>Sakai Nakamura :: Chat services bundle</name>
 	<version>0.6-SNAPSHOT</version>
 	<description>Takes care of the sakai chat services.</description>
 	<build>

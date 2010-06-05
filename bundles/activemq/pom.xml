@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Nakamura ActiveMQ Bundle</name>
+  <name>Sakai Nakamura :: ActiveMQ Bundle</name>
   <version>5.3.0-0.6-SNAPSHOT</version>
 
   <build>

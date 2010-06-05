@@ -5,9 +5,8 @@
   <artifactId>base</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Sakai Nakamura Project OSGi Experiments</name>
-  <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
-    implementations. </description>
+  <name>Sakai Nakamura Project</name>
+  <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
   <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>

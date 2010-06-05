@@ -20,7 +20,7 @@
   <artifactId>javax.activation-mail</artifactId>
   <packaging>bundle</packaging>
   <version>${javax.activation.version}-${javax.mail.version}-0.6-SNAPSHOT</version>
-  <name>Javax Activation and Mail Bundle</name>
+  <name>Sakai Nakamura :: Javax Activation and Mail Bundle</name>
   <description>Provides javax.activation, javax.mail and implementation libraries </description>
   <properties>
     <javax.activation.version>1.1.1</javax.activation.version>

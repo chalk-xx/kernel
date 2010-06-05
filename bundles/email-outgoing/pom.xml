@@ -9,7 +9,7 @@
   <artifactId>org.sakaiproject.nakamura.email.outgoing</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Outgoing Email Sender</name>
+  <name>Sakai Nakamura :: Outgoing Email Sender</name>
   <description>Delivers messages from JCR outboxes to SMTP</description>
   <build>
     <plugins>

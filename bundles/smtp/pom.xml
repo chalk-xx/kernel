@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.smtp</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura SMTP Server</name>
+  <name>Sakai Nakamura :: SMTP Server</name>
   <description>Adds SMTP support for incoming e-mail</description>
   <build>
     <plugins>

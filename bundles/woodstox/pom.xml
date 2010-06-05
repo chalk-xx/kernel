@@ -28,7 +28,7 @@
 	<artifactId>org.sakaiproject.nakamura.woodstox</artifactId>
 	<version>4.0.7-0.6-SNAPSHOT</version>
 	<packaging>bundle</packaging>
-	<name>Woodstox/StAX</name>
+	<name>Sakai Nakamura :: Woodstox/StAX</name>
 	<description>
         This bundle simply wraps the Woodstox API (i.e. stax) and Implementation.
   </description>
