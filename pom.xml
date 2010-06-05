@@ -110,6 +110,7 @@
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
         <module>sandbox/profile-provider</module>
+        <module>sandbox/imap</module>
        </modules>
     </profile>
     <profile>
