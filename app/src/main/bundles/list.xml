@@ -654,5 +654,10 @@ org.sakaiproject.nakamura.jpaprovider
       <artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
       <version>0.6-SNAPSHOT</version>
     </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </bundle>
    </startLevel>
 </bundles>

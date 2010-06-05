@@ -87,6 +87,7 @@
         <module>bundles/antixss</module>
         <module>bundles/authz</module>
         <module>bundles/basiclti</module>
+        <module>bundles/profile</module>
       </modules>
     </profile>
     <profile>
@@ -109,7 +110,6 @@
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
-        <module>sandbox/profile-provider</module>
         <module>sandbox/imap</module>
        </modules>
     </profile>
