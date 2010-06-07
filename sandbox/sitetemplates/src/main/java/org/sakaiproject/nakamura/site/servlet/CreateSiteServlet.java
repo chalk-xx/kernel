@@ -187,7 +187,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @throws RepositoryException
    *           Failed to create the site.
    */
-  private Node createSiteFromTemplate(Session session, String sitePath,
+  protected Node createSiteFromTemplate(Session session, String sitePath,
       Node templateNode, JSONObject siteJSON, ResourceResolver resolver)
       throws RepositoryException {
     SiteTemplateBuilder builder = new SiteTemplateBuilder(templateNode, siteJSON);
@@ -263,7 +263,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    *          The admin session, this will only be used for setting ACLs.
    * @throws RepositoryException
    */
-  private void createSiteStructure(SiteTemplateBuilder builder, Node siteNode)
+  protected void createSiteStructure(SiteTemplateBuilder builder, Node siteNode)
       throws RepositoryException {
     Map<String, Object> structure = builder.getSiteMap();
     handleNode(structure, siteNode);
@@ -280,7 +280,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @throws RepositoryException
    */
   @SuppressWarnings("unchecked")
-  private void handleNode(Map<String, Object> structure, Node node)
+  protected void handleNode(Map<String, Object> structure, Node node)
       throws RepositoryException {
     Session session = node.getSession();
     // Handle the ACEs before we do anything else.
@@ -336,7 +336,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @param adminSession
    * @throws RepositoryException
    */
-  private void createGroups(SiteTemplateBuilder builder, Session adminSession,
+  protected void createGroups(SiteTemplateBuilder builder, Session adminSession,
       Node siteNode) throws RepositoryException {
 
     Node groupNodes = org.apache.jackrabbit.commons.JcrUtils.getOrAddNode(siteNode,
@@ -454,7 +454,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
    * @return null if an error needs to be returned to the user
    * @throws IOException
    */
-  private String getSitePath(SlingHttpServletRequest request,
+  protected String getSitePath(SlingHttpServletRequest request,
       SlingHttpServletResponse response) throws IOException {
     String resourceType = request.getResource().getResourceType();
     String sitePath = request.getRequestPathInfo().getResourcePath();

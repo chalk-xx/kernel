@@ -50,6 +50,7 @@ import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
+import javax.jcr.Value;
 import javax.jcr.ValueFactory;
 
 /**
@@ -81,9 +82,9 @@ public class AbstractSiteTest extends TestCase {
       }));
     }
   }
-  
+
   public void testFoo() {
-    
+
   }
 
   public static Repository getRepository() throws IOException, RepositoryException {
@@ -203,10 +204,16 @@ public class AbstractSiteTest extends TestCase {
 
   private static void createProfile(Session session, Authorizable au, String name)
       throws RepositoryException {
+    ValueFactory vf = session.getValueFactory();
+    Value firstName = vf.createValue(name);
+    Value lastName = vf.createValue(name);
     String path = PersonalUtils.getProfilePath(au);
     Node profile = JcrUtils.deepGetOrCreateNode(session, path);
     profile.setProperty("name", name);
-    profile.setProperty("firstName", name);
+    profile.setProperty("firstName", firstName);
+    profile.setProperty("lastName", lastName);
+    au.setProperty("firstName", firstName);
+    au.setProperty("lastName", lastName);
   }
 
   /**
@@ -296,7 +303,7 @@ public class AbstractSiteTest extends TestCase {
     acme.userTopManager = createUser(adminSession, "acme-top-manager-" + uniqueIdentifier);
     acme.userDevelopersManager = createUser(adminSession, "acme-developers-manager-"
         + uniqueIdentifier);
-    acme.userQAManager = createUser(adminSession, "acme-wq-manager-" + uniqueIdentifier);
+    acme.userQAManager = createUser(adminSession, "acme-qa-manager-" + uniqueIdentifier);
     acme.userResearchManager = createUser(adminSession, "acme-research-manager-"
         + uniqueIdentifier);
 
