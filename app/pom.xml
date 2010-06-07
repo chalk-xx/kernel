@@ -24,7 +24,7 @@
     <packaging>jar</packaging>
     <version>0.6-SNAPSHOT</version>
 
-    <name>Sakai Nakamura Launchpad Standalone Java Application</name>
+    <name>Sakai Nakamura :: Launchpad Standalone Java Application</name>
     <description> Standalone Launchpad Java Application. Everything needed to run the Launchpad is
     included in a single JAR file. </description>
 

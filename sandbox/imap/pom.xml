@@ -11,7 +11,7 @@
   <artifactId>org.sakaiproject.nakamura.imap</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>Nakamura IMAP Serverr</name>
+  <name>Sakai Nakamura :: JAMES IMAP Serverr</name>
   <build>
     <plugins>
       <plugin>
@@ -57,7 +57,7 @@
               org.sakaiproject.nakamura.imap.*,
               org.slf4j.spi.*
             </Private-Package>
-            <Sling-Nodetypes>org/apache/james/imap/jcr/imap.cnd</Sling-Nodetypes>
+            <Sling-Nodetypes>cnd/imap.cnd</Sling-Nodetypes>
             <Embed-Dependency>
             james-server-imapserver,
             james-server-netty-socket,

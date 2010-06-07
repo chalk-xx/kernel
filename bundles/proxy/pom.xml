@@ -8,7 +8,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai proxy service</name>
+  <name>Sakai Nakamura :: proxy service</name>
   <version>0.6-SNAPSHOT</version>
   <description>This will proxy through to other websites and fetch data</description>
   <build>

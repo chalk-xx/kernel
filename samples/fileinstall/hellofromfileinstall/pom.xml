@@ -26,7 +26,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.samples.fileinstall.hellofromfileinstall</artifactId>
   <version>0.6-SNAPSHOT</version>
-  <name>Sample Installation to FileInstall Directory</name>
+  <name>Sakai Nakamura :: Sample Installation to FileInstall Directory</name>
   <packaging>bundle</packaging>
   <build>
     <resources>

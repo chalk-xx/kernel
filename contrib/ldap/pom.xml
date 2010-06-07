@@ -26,7 +26,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Nakamura LDAP Connection Bundle</name>
+  <name>Sakai Nakamura :: LDAP Connection Bundle</name>
   <version>0.6-SNAPSHOT</version>
   <build>
     <plugins>

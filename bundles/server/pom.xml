@@ -21,7 +21,7 @@
   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
   <packaging>jar</packaging>
   <version>2.0.7-0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Server Extension Bundle</name>
+  <name>Sakai Nakamura :: Server Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the repository
     area as required by Sakai.</description>
     <repositories>
@@ -54,6 +54,13 @@
             <manifestFile> ${project.build.outputDirectory}/META-INF/MANIFEST.MF </manifestFile>
           </archive>
         </configuration>
+        <executions>
+         <execution>
+           <goals>
+             <goal>test-jar</goal>
+           </goals>
+         </execution>
+       </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

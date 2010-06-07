@@ -8,7 +8,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.docproxy</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Document Proxy</name>
+  <name>Sakai Nakamura :: Document Proxy</name>
   <version>0.6-SNAPSHOT</version>
   <description>This will allow resources in external repositories to form part of the URL space whilst still allowing the JCR to contain metadata on the item.</description>
   <build>

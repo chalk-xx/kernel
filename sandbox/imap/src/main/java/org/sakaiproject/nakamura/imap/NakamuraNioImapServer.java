@@ -34,6 +34,7 @@ import org.apache.james.imap.encode.ImapEncoder;
 import org.apache.james.imap.encode.main.DefaultImapEncoderFactory;
 import org.apache.james.imap.jcr.GlobalMailboxSessionJCRRepository;
 import org.apache.james.imap.jcr.JCRMailboxManager;
+import org.apache.james.imap.jcr.JCRMailboxSessionMapperFactory;
 import org.apache.james.imap.jcr.JCRSubscriptionManager;
 import org.apache.james.imap.mailbox.MailboxManager;
 import org.apache.james.imap.mailbox.MailboxSession;
@@ -95,13 +96,16 @@ public class NakamuraNioImapServer extends AbstractAsyncServer implements ImapCo
     Authenticator userManager = new Authenticator() {
       
       public boolean isAuthentic(String userid, CharSequence passwd) {
+        System.err.println("Said "+userid+" with password "+passwd+" was Ok");
         return true; // delegate authentication to JCR, the JCR session should use the same user as the imap session. We might want to 
         // integrate this with the sling authentication handlers.
       }
     };
 
     //TODO: Fix the scaling stuff so the tests will pass with max scaling too
-    MailboxManager mailboxManager = new JCRMailboxManager(userManager, new JCRSubscriptionManager(sessionRepos), sessionRepos);
+    JCRMailboxSessionMapperFactory jcrMailboxSessionMapperFactory = new JCRMailboxSessionMapperFactory(sessionRepos);
+    JCRSubscriptionManager jcrSubscriptionManager = new JCRSubscriptionManager(jcrMailboxSessionMapperFactory);
+    MailboxManager mailboxManager = new JCRMailboxManager( jcrMailboxSessionMapperFactory, userManager, jcrSubscriptionManager );
 
     final DefaultImapProcessorFactory defaultImapProcessorFactory = new DefaultImapProcessorFactory();
     MailboxSession session = mailboxManager.createSystemSession("test", jcLog);

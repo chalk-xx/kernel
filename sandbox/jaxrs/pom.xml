@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.jaxrs</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>JAX-RS 311 Bundle</name>
+  <name>Sakai Nakamura :: JAX-RS 311 Bundle</name>
   <description>Adds JAX-RS JSR-311 support into OSGi with a servlet bound into the Sling lifecycle.</description>
   <repositories>
     <repository>

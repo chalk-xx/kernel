@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.google-collections</artifactId>
   <packaging>bundle</packaging>
   <version>0.8-0.6-SNAPSHOT</version>
-  <name>Sakai Google Collections</name>
+  <name>Sakai Nakamura :: Google Collections</name>
   <description>Bundle containing Goole Collections</description>
   <build>
     <plugins>

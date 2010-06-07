@@ -23,7 +23,7 @@
 	<artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.6-SNAPSHOT</version>
-	<name>IMS Basic LTI Consumer Service</name>
+	<name>Sakai Nakamura :: Basic LTI Consumer bundle</name>
 	<description>Sakai Basic LTI Implementation</description>
 	<build>
 		<plugins>

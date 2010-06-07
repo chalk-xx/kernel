@@ -10,7 +10,7 @@
     <artifactId>org.sakaiproject.nakamura.ojdbc</artifactId>
     <version>0.6-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>oracle jdbc bundle</name>
+    <name>Sakai Nakamura :: oracle jdbc bundle</name>
     <description>
         This bundle simply wraps ojdbc14.jar.
     </description>

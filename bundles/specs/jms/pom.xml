@@ -26,7 +26,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>org.sakaiproject.nakamura.specs.jms</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Java Messaging Service (JMS) Bundle</name>
+  <name>Sakai Nakamura :: Java Messaging Service (JMS) Bundle</name>
   <version>0.6-SNAPSHOT</version>
   <build>
     <plugins>

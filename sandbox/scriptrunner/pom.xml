@@ -8,7 +8,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.scriptrunner</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai scriptrunner service</name>
+  <name>Sakai Nakamura :: scriptrunner service</name>
   <version>0.6-SNAPSHOT</version>
   <description>This will run scripts</description>
   <build>
