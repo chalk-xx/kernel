@@ -8,11 +8,11 @@ include SlingSearch
 class TC_Kern259Test < Test::Unit::TestCase
 
   include SlingTest
-  def test_site_membership
-    @log.warn("Site Join has been deprecated, tested elsewhere ")
-  end
+#  def test_site_membership
+#    @log.warn("Site Join has been deprecated, tested elsewhere ")
+#  end
 
-  def deprecated_test_site_membership
+  def test_site_membership
     m = Time.now.to_i.to_s
     @log.info("Creating Site at /sites/testsite/"+m)
     test_site = create_site("sites", "My Test Site " + m, "/testsite/" + m)
