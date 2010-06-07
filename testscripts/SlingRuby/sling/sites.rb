@@ -22,7 +22,7 @@ module SlingSites
       return @sling.execute_post(@sling.url_for(@path), "sakai:joinable" => joinable)
     end
   
-    def deprecated_join(groupname)
+    def join(groupname)
       return @sling.execute_post("#{@sling.url_for(@path)}.join.html", "targetGroup" => groupname)
     end
 
