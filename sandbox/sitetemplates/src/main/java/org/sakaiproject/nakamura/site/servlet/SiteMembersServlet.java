@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.jcr.Node;
@@ -174,14 +175,15 @@ public class SiteMembersServlet extends AbstractSiteServlet {
       LOGGER.debug("Finding members for: {} ", site.getPath());
       try {
 
-        AbstractCollection<AuthorizableKey> memberTree = getSiteService().getTreeMembers(
-            site, start, items, sort, maxLevels);
+        AbstractCollection<AuthorizableKey> memberTree = getSiteService().getMembers(site, start, items, sort, maxLevels);
 
         Session session = site.getSession();
 
         JSONWriter w = new JSONWriter(response.getWriter());
         w.array();
-        for (AuthorizableKey au : memberTree) {
+        Iterator<AuthorizableKey> it = memberTree.iterator();
+        while (it.hasNext()) {
+          AuthorizableKey au = it.next();
           outputMember(au, w, session);
         }
         w.endArray();

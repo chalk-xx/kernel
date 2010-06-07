@@ -21,7 +21,6 @@ import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_
 import static org.sakaiproject.nakamura.api.site.SiteConstants.RT_ACE;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -54,7 +53,6 @@ public class TemplateBuilder {
 
   private Node templateNode;
   private JSONObject json;
-  private ResourceResolver resolver;
   private Map<String, Object> map;
   private int[] loopIndexes = {};
   private int nestedLevel;
@@ -64,11 +62,10 @@ public class TemplateBuilder {
 
   }
 
-  public TemplateBuilder(Node templateNode, JSONObject json, ResourceResolver resolver)
+  public TemplateBuilder(Node templateNode, JSONObject json)
       throws RepositoryException {
     this.templateNode = templateNode;
     this.json = json;
-    this.resolver = resolver;
 
     // Initialize default values.
     nestedLevel = -1;
@@ -539,12 +536,6 @@ public class TemplateBuilder {
     return json;
   }
 
-  /**
-   * @return the resolver
-   */
-  public ResourceResolver getResolver() {
-    return resolver;
-  }
 
   /**
    * @param templateNode
@@ -560,14 +551,6 @@ public class TemplateBuilder {
    */
   public void setJson(JSONObject json) {
     this.json = json;
-  }
-
-  /**
-   * @param resolver
-   *          the resolver to set
-   */
-  public void setResolver(ResourceResolver resolver) {
-    this.resolver = resolver;
   }
 
 }

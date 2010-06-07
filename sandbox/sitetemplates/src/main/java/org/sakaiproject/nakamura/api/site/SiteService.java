@@ -294,6 +294,8 @@ public interface SiteService {
       Sort[] sort, int maxLevels) throws SiteException;
 
   /**
+   * Looks up the 
+   * @param session
    * @param user
    * @throws SiteException
    */

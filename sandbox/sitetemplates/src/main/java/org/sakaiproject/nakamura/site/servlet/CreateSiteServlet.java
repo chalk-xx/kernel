@@ -190,8 +190,7 @@ public class CreateSiteServlet extends SlingAllMethodsServlet {
   private Node createSiteFromTemplate(Session session, String sitePath,
       Node templateNode, JSONObject siteJSON, ResourceResolver resolver)
       throws RepositoryException {
-    SiteTemplateBuilder builder = new SiteTemplateBuilder(templateNode, siteJSON,
-        resolver);
+    SiteTemplateBuilder builder = new SiteTemplateBuilder(templateNode, siteJSON);
 
     Session adminSession = null;
     Node siteNode = null;
