@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.mailman</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Mailman Support</name>
+  <name>Sakai Nakamura :: Mailman Support</name>
   <description>Adds Mailman support</description>
   <build>
     <plugins>

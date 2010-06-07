@@ -11,7 +11,7 @@
     <relativePath>../master/pom.xml</relativePath>
     -->
   </parent>
-  <name>Sakai 2/3 Hybrid Base</name>
+  <name>Sakai Nakamura :: Sakai 2/3 Hybrid Base</name>
   <groupId>org.sakaiproject</groupId>
   <artifactId>sakai-hybrid-base</artifactId>
   <version>1.0-SNAPSHOT</version>

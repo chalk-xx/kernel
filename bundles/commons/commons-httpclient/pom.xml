@@ -28,7 +28,7 @@
     <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
     <version>3.1-0.6-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>commons-httpclient bundle</name>
+    <name>Sakai Nakamura :: Apache Commons HTTPClient bundle</name>
     <description>
         This bundle simply wraps commons-httpclient-3.1.jar.
     </description>

@@ -28,7 +28,7 @@
     <artifactId>org.sakaiproject.nakamura.commons.commons-pool</artifactId>
     <version>1.5.2-0.6-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>commons-pool bundle</name>
+    <name>Sakai Nakamura :: Apache Commons Pools bundle</name>
     <description>
         This bundle simply wraps commons-pool-1.5.2.jar.
     </description>

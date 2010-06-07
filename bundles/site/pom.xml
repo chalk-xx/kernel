@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.site</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Site Service Bundle</name>
+  <name>Sakai Nakamura :: Site Service Bundle</name>
   <description>Site Resource Type support.</description>
   <build>
     <plugins>

@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.connections</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Connections Management Bundle</name>
+  <name>Sakai Nakamura :: Connections Management Bundle</name>
   <description>Connections Management support bundle that allows the management of
     connections between users for social and academic networking.</description>
   <build>

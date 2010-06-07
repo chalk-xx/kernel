@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.session</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Session Manager Bundle</name>
+  <name>Sakai Nakamura ::  Session Manager Bundle</name>
   <description>Session Manager support, for those bundles that dont have access to the request objects.</description>
   <build>
     <plugins>

@@ -24,7 +24,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.siteredux</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai site templating engine</name>
+  <name>Sakai Nakamura :: Site Templating engine</name>
   <version>0.6-SNAPSHOT</version>
   <description>Provides a robust templating mechanism for sites.</description>
   <build>

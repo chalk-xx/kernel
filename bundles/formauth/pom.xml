@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.formauth</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Form Auth Bundle</name>
+  <name>Sakai Nakamura :: Form Auth Bundle</name>
   <description>Provides Form based authentication support to the request cycle and adds a URL against which form based authentication can be performed.</description>
   <build>
     <plugins>

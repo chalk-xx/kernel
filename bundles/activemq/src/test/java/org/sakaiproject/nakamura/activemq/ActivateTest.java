@@ -26,8 +26,6 @@ import org.osgi.service.component.ComponentContext;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import javax.jms.Connection;

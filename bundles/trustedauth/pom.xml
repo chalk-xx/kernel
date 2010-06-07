@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Trusted Authentication Bundle</name>
+  <name>Sakai Nakamura :: Trusted Authentication Bundle</name>
   <build>
     <plugins>
       <plugin>
