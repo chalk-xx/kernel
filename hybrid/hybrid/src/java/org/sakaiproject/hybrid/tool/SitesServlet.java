@@ -88,6 +88,9 @@ public class SitesServlet extends HttpServlet {
 			}
 			json.element("sites", sites);
 		}
+		resp.setContentType("application/json");
+		resp.setCharacterEncoding("UTF-8");
+		resp.setStatus(HttpServletResponse.SC_OK);
 		json.write(resp.getWriter());
 	}
 
