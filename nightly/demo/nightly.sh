@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #Sakai 3 Demo
-export K2_TAG="0.4"
+export K2_TAG="0.5"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.5.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -43,13 +44,13 @@ mkdir sakai3
 cd sakai3
 git clone -q git://github.com/ieb/open-experiments.git
 cd open-experiments
-git checkout -b $K2_TAG
+git checkout -b "build-$K2_TAG" $K2_TAG
 mvn -B -e clean install -Dmaven.test.skip=true
 
 # start sakai 3 instance
 echo "Starting sakai3 instance..."
 cd app/target/
-java $K2_OPTS -jar org.sakaiproject.nakamura.app-0.6-SNAPSHOT.jar -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
+java $K2_OPTS -jar $K2_ARTIFACT -p 8008 -f - > $BUILD_DIR/logs/sakai3-run.log.txt 2>&1 &
 
 # final cleanup
 cd $BUILD_DIR

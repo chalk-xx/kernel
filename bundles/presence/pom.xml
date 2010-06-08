@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.presence</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Presence Bundle</name>
+  <name>Sakai Nakamura :: Presence Bundle</name>
   <description>Presence end point.</description>
   <build>
     <plugins>

@@ -8,7 +8,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.image</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai image service</name>
+  <name>Sakai Nakamura :: image service</name>
   <version>0.6-SNAPSHOT</version>
   <description>This will service crop images.</description>
   <build>

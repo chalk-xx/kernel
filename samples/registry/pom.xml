@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.registry</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Registry Bundle</name>
+  <name>Sakai Nakamura :: Registry Bundle</name>
   <description>Registry Service.</description>
   <build>
     <plugins>

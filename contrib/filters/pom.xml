@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.filters</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Filters Bundle</name>
+  <name>Sakai Nakamura :: Filters Bundle</name>
   <description>Sakai filtering into the Sling request lifecycle.</description>
   <build>
     <plugins>

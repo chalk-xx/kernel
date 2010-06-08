@@ -24,7 +24,7 @@
 	<artifactId>org.sakaiproject.nakamura.import</artifactId>
 	<packaging>bundle</packaging>
 	<version>0.6-SNAPSHOT</version>
-	<name>org.sakaiproject.nakamura.import</name>
+	<name>Sakai Nakamura :: Sakai Import Bundle</name>
 	<description>Sakai import bundle</description>
 	<build>
 		<plugins>

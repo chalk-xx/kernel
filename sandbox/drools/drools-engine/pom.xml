@@ -11,7 +11,7 @@
   <artifactId>org.sakaiproject.nakamura.drools-engine</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
-  <name>Nakamura Drools :: Engine</name>
+  <name>Sakai Nakamura :: Drools Engine</name>
   <build>
     <plugins>
       <plugin>

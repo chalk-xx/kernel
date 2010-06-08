@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.content</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Default Content Loader</name>
+  <name>Sakai Nakamura :: Default Content Loader</name>
   <description>Loads default content into the JCR on startup.</description>
   <build>
     <plugins>

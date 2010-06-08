@@ -20,7 +20,7 @@
   </parent>
   <artifactId>org.sakaiproject.nakamura.batch</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Batch Bundle</name>
+  <name>Sakai Nakamura :: Batch Bundle</name>
   <version>0.6-SNAPSHOT</version>
   <description>Batch operations such as batch GET, POST, DELETE and tree...</description>
   <build>

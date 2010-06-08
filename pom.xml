@@ -5,9 +5,8 @@
   <artifactId>base</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Sakai Nakamura Project OSGi Experiments</name>
-  <description> Nakamura Experiments to evaluate approaches and generate Proof of Concept
-    implementations. </description>
+  <name>Sakai Nakamura Project</name>
+  <description> Sakai Nakamura is an OSGi server built ontop of Apache Sling, supporting Sakai 3. </description>
   <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
@@ -84,15 +83,15 @@
         <module>bundles/google-collections</module>
         <module>bundles/woodstox</module>
         <module>bundles/calendar</module>
-        <module>bundles/antixss</module>
         <module>bundles/authz</module>
+        <module>bundles/basiclti</module>
+        <module>bundles/profile</module>
       </modules>
     </profile>
     <profile>
        <id>withContrib</id>
        <modules>
         <module>contrib/import</module>
-        <module>contrib/basiclti</module>
         <module>contrib/filters</module>
         <module>contrib/mailman</module>
         <module>contrib/persondirectory</module>
@@ -109,7 +108,7 @@
         <module>sandbox/scriptrunner</module>
         <module>sandbox/sessiontest</module>
         <module>sandbox/sitetemplates</module>
-        <module>sandbox/profile-provider</module>
+        <module>sandbox/imap</module>
        </modules>
     </profile>
     <profile>

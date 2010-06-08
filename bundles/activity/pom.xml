@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.activity</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Activity Bundle</name>
+  <name>Sakai Nakamura :: Activity Bundle</name>
   <description>Provides activity creation, and aggregation capabilities.</description>
   <build>
     <plugins>

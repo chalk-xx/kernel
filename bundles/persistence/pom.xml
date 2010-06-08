@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.persistence</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Database Bundle</name>
+  <name>Sakai Nakamura :: Database Bundle</name>
   <description>Adds database support, JPA implementation clearance, JTA support and Datasources</description>
   <repositories>
     <repository>

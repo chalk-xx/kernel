@@ -172,6 +172,9 @@ public class SiteMembersServlet extends AbstractSiteServlet {
         }
       }
 
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
       try {
         ExtendedJSONWriter output = new ExtendedJSONWriter(response.getWriter());
         output.object();

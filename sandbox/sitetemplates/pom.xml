@@ -22,9 +22,9 @@
     <version>0.6-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.sitetemplate</artifactId>
+  <artifactId>org.sakaiproject.nakamura.siteredux</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai site templating engine</name>
+  <name>Sakai Nakamura :: Site Templating engine</name>
   <version>0.6-SNAPSHOT</version>
   <description>Provides a robust templating mechanism for sites.</description>
   <build>
@@ -56,6 +56,11 @@
       <version>2.0.8</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.api</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.jackrabbit</groupId>
       <artifactId>jackrabbit-api</artifactId>
       <version>2.0.0</version>
@@ -63,6 +68,15 @@
     <dependency>
       <groupId>javax.jcr</groupId>
       <artifactId>jcr</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.servlets.post</artifactId>
+      <version>2.0.5-20100524</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.testing</artifactId>
     </dependency>
 
     <!-- OSGi, slf4j, .. -->
@@ -84,6 +98,11 @@
       <groupId>org.apache.felix</groupId>
       <artifactId>org.osgi.compendium</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.google.collections</groupId>
+      <artifactId>google-collections</artifactId>
+      <scope>compile</scope>
+    </dependency>
     
     
     <!-- SAKAI  -->
@@ -104,12 +123,39 @@
     </dependency>
     <dependency>
     	<groupId>org.sakaiproject.nakamura</groupId>
-    	<artifactId>org.sakaiproject.nakamura.site</artifactId>
+    	<artifactId>org.sakaiproject.nakamura.search</artifactId>
     	<version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
-    	<groupId>org.apache.sling</groupId>
-    	<artifactId>org.apache.sling.commons.testing</artifactId>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.personal</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.version</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </dependency>
+    
+    <!-- TESTING -->
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
+      <version>0.6-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+      <version>2.0.7-0.6-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
+      <version>2.0.7-0.6-SNAPSHOT</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

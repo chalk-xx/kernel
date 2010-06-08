@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.util;
 
+import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.jcr.JsonItemWriter;
 import org.slf4j.Logger;
@@ -324,21 +325,59 @@ public class JcrUtils {
   }
 
   /**
-   * Creates a JCR {@link Value value} from an object. If Object could not be transformed
-   * to a {@link Value value} null will be returned.
+   * The following Objects will be returned into a {@link Value value} or an array of
+   * Values. The passed in object can be an array.
+   * <ul>
+   * <li>{@link BigDecimal BigDecimal}</li>
+   * <li>{@link Binary Binary}</li>
+   * <li>{@link Boolean Boolean}</li>
+   * <li>{@link Calendar Calendar}</li>
+   * <li>{@link Double Double}</li>
+   * <li>{@link Long Long}</li>
+   * <li>{@link String String}</li>
+   * <li>{@link JSONArray JSONArray}</li>
+   * </ul>
+   * If the object could not be changed to a Value object, this method will return null.
    * 
    * @param o
-   *          The value that needs to be created. {@link Node Nodes} are not supported.
+   *          The value (or array of) that needs to be created. {@link Node Nodes} are not
+   *          supported.
    * @param session
    *          Needed to create the value.
    * @return A {@link Value value} or null.
    * @throws RepositoryException
    */
-  public static Value createValue(Object o, Session session) throws RepositoryException {
+  public static Object createValue(Object o, Session session) throws RepositoryException {
     ValueFactory vf = session.getValueFactory();
     Value val = null;
 
-    if (o instanceof BigDecimal) {
+    // Handle the arrays first.
+    if (o.getClass().isArray()) {
+      Object[] arr = (Object[]) o;
+      int l = arr.length;
+      Value[] vals = new Value[l];
+      for (int i = 0; i < l; i++) {
+        vals[i] = (Value) createValue(arr[i], session);
+      }
+    }
+    if (o instanceof JSONArray) {
+      JSONArray arr = (JSONArray) o;
+      int l = arr.length();
+      Value[] vals = new Value[l];
+      for (int i = 0; i < l; i++) {
+        Object arrValue = arr.opt(i);
+        if (arrValue instanceof JSONArray) {
+          throw new IllegalArgumentException(
+              "The JSONArray cannot contain another array.");
+        }
+        vals[i] = (Value) createValue(arrValue, session);
+      }
+      return vals;
+
+    }
+
+    // Single values.
+    else if (o instanceof BigDecimal) {
       val = vf.createValue((BigDecimal) o);
     } else if (o instanceof Binary) {
       val = vf.createValue((Binary) o);

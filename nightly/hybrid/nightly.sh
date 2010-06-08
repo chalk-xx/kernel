@@ -4,9 +4,9 @@
 # don't forget to trust the svn certificate permanently: svn info https://source.sakaiproject.org/svn
 # and svn info https://source.caret.cam.ac.uk/camtools
 
-export K2_TAG="0.4"
+export K2_TAG="0.5"
 export S2_TAG="tags/sakai-2.7.0-b06"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6-SNAPSHOT.jar"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.5.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset
@@ -77,7 +77,7 @@ else
     echo "Building nakamura@$K2_TAG..."
     git clone -q git://github.com/ieb/open-experiments.git
     cd open-experiments
-    git checkout -b $K2_TAG
+    git checkout -b "build-$K2_TAG" $K2_TAG
     mvn -B -e clean install -Dmaven.test.skip=true
     date > .lastbuild
 fi

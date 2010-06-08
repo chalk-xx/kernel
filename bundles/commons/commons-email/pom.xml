@@ -28,7 +28,7 @@
     <artifactId>org.sakaiproject.nakamura.commons.commons-email</artifactId>
     <version>1.1-0.6-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>commons-email bundle</name>
+    <name>Sakai Nakamura :: Apache Commons Email bundle</name>
     <description>
         This bundle simply wraps commons-email-1.1.jar.
     </description>
