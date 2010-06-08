@@ -646,11 +646,6 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.antixss</artifactId>
-      <version>0.6-SNAPSHOT</version>
-    </bundle>
-    <bundle>
-      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.basiclti</artifactId>
       <version>0.6-SNAPSHOT</version>
     </bundle>
