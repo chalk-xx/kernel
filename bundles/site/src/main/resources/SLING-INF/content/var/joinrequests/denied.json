@@ -1,0 +1,12 @@
+{
+  "sakai:query-language": "JCR-SQL2",
+  "sakai:query-template": "SELECT * FROM [nt:base] WHERE PATH([nt:base]) LIKE '/{_requeststore}/%' WHERE sling:resourceType = 'sakai/joinrequest' and sakai:state = 'denied'",
+  "sling:resourceType": "sakai/search",
+  "sakai:propertyprovider" : "JoinRequest",
+  "sakai:resultprocessor": "JoinRequest",
+  "sakai:title": "Join Requests - Approved",
+  "sakai:shortDescription": "Get all the denied requests to join a join.",
+  "sakai:parameters" : [],
+  "sakai:description": ["Search to get all the denied requests to join a site."],
+  "sakai:response": ["Standard request.<br /> Example: Request to: /sites/mysite/approved.json<br /><pre class=\"json\">{\n   \"query\": \"//_user/contacts/_x0037_9/_x0039_4/ea/_x0034_6/simong//*[@sling:resourceType=\"sakai/contact\" and @sakai:state!=\"PENDING\"]\",\n   \"items\": 25,\n   \"total\": 0,\n   \"results\": []}</pre>"]
+}
