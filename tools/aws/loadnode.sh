@@ -17,5 +17,5 @@ scp -i ${PEM_NAME} ~/.m2/repository/org/sakaiproject/nakamura/org.sakaiproject.n
 ssh -i ${PEM_NAME} root@$AWSNAME -C sh confignode.sh ${NAK_VERSION}
 echo Run To start: ssh -i ${PEM_NAME} root@$AWSNAME -C sh start.sh 
 echo Run To Stop: ssh -i ${PEM_NAME} root@$AWSNAME -C sh stop.sh 
-echo Run To Stop: Browse to http://$AWSNAME:8080 to use 
+echo Run To Use: Browse to http://$AWSNAME:8080 to use 
 
