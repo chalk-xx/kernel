@@ -49,7 +49,7 @@ public class MessageProfileWriterTracker extends ServiceTracker {
   @Override
   public Object addingService(ServiceReference reference) {
     Object service = super.addingService(reference);
-    if (service instanceof SearchResultProcessor) {
+    if (service instanceof MessageProfileWriter) {
       MessageProfileWriter writer = (MessageProfileWriter) context.getService(reference);
       putWriter(writer);
 
