@@ -57,11 +57,7 @@ public class PageSearchResultProcessor implements SearchResultProcessor {
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
     Node node = RowUtils.getNode(row, session);
-    write.object();
-    ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    write.key("path");
-    write.value(node.getPath());
-    write.endObject();
+    ExtendedJSONWriter.writeNodeToWriter(write, node);
     if (aggregator != null) {
       aggregator.add(node);
     }

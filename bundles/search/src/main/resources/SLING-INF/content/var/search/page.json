@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/page\"{_filter}]",
+  "sakai:query-template": "/{_path}//*[@sling:resourceType=\"sakai/page\"{_filter}] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Page",
   "sakai:propertyprovider": "Page",
@@ -10,7 +10,9 @@
       "{\"name\" : \"path\", \"description\" : \"The node where you want to look under.<br />Example: /sites/my-course-site/_pages\"}",
       "{\"name\" : \"properties\", \"description\" : \"A multi-valued request parameter containing all the propertynames you wish to filter on.\"}",
       "{\"name\" : \"values\", \"description\" : \"A multi-valued request parameter containing all the values.\"}",
-      "{\"name\" : \"operators\", \"description\" : \"A multi-valued request parameter containing the operators.\"}"
+      "{\"name\" : \"operators\", \"description\" : \"A multi-valued request parameter containing the operators.\"}",
+      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is jcr:score\"}",
+      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
       ],
   "sakai:description": [
                         "Get page nodes out of the repository filtered by path and/or extra constraints.",
