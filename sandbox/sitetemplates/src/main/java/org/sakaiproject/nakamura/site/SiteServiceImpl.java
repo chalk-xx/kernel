@@ -415,51 +415,6 @@ public class SiteServiceImpl implements SiteService {
    * 
    * {@inheritDoc}
    * 
-   * @see org.sakaiproject.nakamura.api.site.SiteService#findSiteByURI(javax.jcr.Session,
-   *      java.lang.String)
-   */
-  public Node findSiteByURI(Session session, String uriPath) throws SiteException {
-
-    try {
-      Node node = JcrUtils.getFirstExistingNode(session, uriPath);
-      if (node == null) {
-        throw new SiteException(404, "No node found for this URI.");
-      }
-
-      // Assume that the last part in the url is the siteid.
-      String siteName = uriPath.substring(uriPath.lastIndexOf("/") + 1);
-
-      while (!node.getPath().equals("/")) {
-        // Check if it is a site.
-        if (isSite(node)) {
-          return node;
-        }
-        // Check if it is a bigstore and expand the path.
-        if (node.hasProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-            && node.getProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY)
-                .getString().equals("sakai/sites")) {
-          String path = PathUtils.toSimpleShardPath(node.getPath(), siteName, "");
-          Node siteNode = (Node) session.getItem(path);
-          if (isSite(siteNode)) {
-            return siteNode;
-          }
-        }
-
-        node = node.getParent();
-
-      }
-    } catch (RepositoryException e) {
-      LOGGER.warn("Unable to retrieve site: {}", e.getMessage());
-    }
-
-    LOGGER.info("No site found for {}", uriPath);
-    return null;
-  }
-
-  /**
-   * 
-   * {@inheritDoc}
-   * 
    * @see org.sakaiproject.nakamura.api.site.SiteService#findSiteByName(javax.jcr.Session,
    *      java.lang.String)
    */

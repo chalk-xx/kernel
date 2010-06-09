@@ -17,18 +17,25 @@
  */
 package org.sakaiproject.nakamura.site.create;
 
+import static org.apache.jackrabbit.JcrConstants.JCR_CREATED;
+import static org.apache.jackrabbit.JcrConstants.JCR_UUID;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.Lists;
+
 import org.apache.sling.commons.json.JSONObject;
+import org.apache.sling.commons.testing.jcr.MockNode;
 import org.apache.sling.commons.testing.jcr.MockValue;
 import org.junit.Before;
 import org.junit.Test;
-import org.sakaiproject.nakamura.site.create.TemplateBuilder;
 import org.sakaiproject.nakamura.util.IOUtils;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
@@ -47,6 +54,30 @@ public class TemplateBuilderTest {
       String s = IOUtils.readFully(in, "UTF-8");
       json = new JSONObject(s);
     }
+  }
+
+  @Test
+  public void testNodeProperties() throws Exception {
+    TemplateBuilder builder = new TemplateBuilder();
+    builder.setJson(json);
+
+    List<String> propertiesToIgnore = Lists.newArrayList(JCR_UUID, JCR_CREATED);
+    Map<String, Object> map = new HashMap<String, Object>();
+
+    MockNode node = new MockNode("/path/to/node");
+    node.setProperty(JCR_UUID, "aaaaa-23bbe3-abcde");
+    node.setProperty("sakai:int", 2);
+    node.setProperty("sakai:s", "foobar");
+    node.setProperty("sakai:multi", new String[] { "foo", "bar" });
+
+    builder.addProperties(node, map, propertiesToIgnore);
+
+    assertFalse(map.containsKey(JCR_UUID));
+    assertFalse(map.containsKey(JCR_CREATED));
+
+    assertEquals(2, ((Value) map.get("sakai:int")).getLong());
+    assertEquals("foobar", ((Value) map.get("sakai:s")).getString());
+    assertEquals(2, ((Value[]) map.get("sakai:multi")).length);
   }
 
   @Test

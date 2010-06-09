@@ -90,7 +90,7 @@ public class FileSearchPropertyProviderTest {
     SlingHttpServletRequest request = mock(SlingHttpServletRequest.class);
     RequestParameter searchParam = mock(RequestParameter.class);
     when(searchParam.getString()).thenReturn("term");
-    when(request.getRequestParameter("search")).thenReturn(searchParam);
+    when(request.getRequestParameter("q")).thenReturn(searchParam);
     String result = provider.getSearchValue(request);
     assertEquals("term", result);
   }

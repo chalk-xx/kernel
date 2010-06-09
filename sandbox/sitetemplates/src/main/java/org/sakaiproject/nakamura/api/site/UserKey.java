@@ -54,7 +54,7 @@ public class UserKey extends AuthorizableKey {
       if (firstName == null) {
         if (profileNode == null) {
           if (user.hasProperty(SortField.firstName.toString())) {
-            lastName = user.getProperty(SortField.firstName.toString())[0].getString();
+            firstName = user.getProperty(SortField.firstName.toString())[0].getString();
           }
         } else {
           if (profileNode.hasProperty(SortField.firstName.toString())) {

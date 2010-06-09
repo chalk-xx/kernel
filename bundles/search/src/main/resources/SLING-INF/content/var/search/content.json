@@ -1,12 +1,14 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//*[jcr:contains(.,\"{q}\")]",
+  "sakai:query-template": "//*[jcr:contains(.,\"{q}\")] order by @{sortOn|jcr:score} {sortOrder|descending}",
   "sling:resourceType": "sakai/search",
   "sakai:resultprocessor": "Node",
   "sakai:title": "Content - Any content",
   "sakai:shortDescription": "Search for any type node of node that matches the searchterm.",
   "sakai:parameters" : [
-      "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the node\"}"
+      "{\"name\" : \"q\", \"description\" : \"The term you want to match against. This will match any property on the node\"}",
+      "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. The default is jcr:score\"}",
+      "{\"name\" : \"sortOrder\", \"description\" : \"The order you wish to sort in. Either 'ascending' or 'descending'.\"}"
       ],
   "sakai:description": [
                         "Search trough the entire repository looking for nodes that have properties matching the searchterm.",

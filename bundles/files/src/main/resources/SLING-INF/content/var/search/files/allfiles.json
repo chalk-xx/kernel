@@ -1,6 +1,6 @@
 {
   "sakai:query-language": "xpath",
-  "sakai:query-template": "//element(*, nt:file)[(jcr:contains(., '{search}') or jcr:contains(jcr:content, '{search}')){_tags}{_usedin}]{_order}",
+  "sakai:query-template": "//element(*, nt:file)[(jcr:contains(., '{q}') or jcr:contains(jcr:content, '{q}')){_tags}{_usedin}]{_order}",
   "sling:resourceType": "sakai/search",
   "sakai:batchresultprocessor": "Files",
   "sakai:propertyprovider": "Files",
@@ -9,7 +9,7 @@
   "sakai:title": "Files - All",
   "sakai:shortDescription": "Performs a search on all the publicly available files in the repository.",
   "sakai:parameters" : [
-      "{\"name\" : \"search\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",
+      "{\"name\" : \"q\", \"description\" : \"The querystring to match the file against. This can either be the content of the file, or any property on the filenode.\"}",
       "{\"name\" : \"sakai:tags\", \"description\" : \"A comma seperated list of tags that the file(s) should match\"}",
       "{\"name\" : \"usedin\", \"description\" : \"Filter files based on where they are used (linked to.) This can be a multivalued parameter.\"}",
       "{\"name\" : \"sortOn\", \"description\" : \"The name of the property you wish to sort on. This only has any affect if it is used with the sortOrder parameter. Default is sakai:filename\"}",

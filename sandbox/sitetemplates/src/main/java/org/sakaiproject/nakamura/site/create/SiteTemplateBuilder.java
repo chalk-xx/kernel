@@ -46,9 +46,9 @@ public class SiteTemplateBuilder extends TemplateBuilder {
 
   private List<GroupToCreate> groups;
 
-  public SiteTemplateBuilder(Node templateNode, JSONObject json, ResourceResolver resolver)
+  public SiteTemplateBuilder(Node templateNode, JSONObject json)
       throws RepositoryException {
-    super(templateNode, json, resolver);
+    super(templateNode, json);
 
     defaultPropertiesToIgnore.add("sakai:template-group");
     defaultPropertiesToIgnore.add("sakai:template-groups");
