@@ -109,7 +109,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     	  return false;
       }
       
-      
       long timeStart = System.currentTimeMillis();
       
       String userDn = LdapUtil.escapeLDAPSearchFilter(userFilter.replace("{}",
