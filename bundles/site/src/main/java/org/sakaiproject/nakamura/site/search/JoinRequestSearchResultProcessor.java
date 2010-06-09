@@ -27,6 +27,7 @@ import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
+import org.sakaiproject.nakamura.api.search.SearchUtil;
 
 /**
  *
@@ -41,7 +42,7 @@ public class JoinRequestSearchResultProcessor implements SearchResultProcessor {
 
   public SearchResultSet getSearchResultSet(SlingHttpServletRequest request, Query query)
       throws SearchException {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return SearchUtil.getSearchResultSet(request, query);
   }
 
 }

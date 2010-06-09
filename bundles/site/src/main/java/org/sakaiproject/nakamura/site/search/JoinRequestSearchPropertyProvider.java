@@ -18,6 +18,7 @@
 package org.sakaiproject.nakamura.site.search;
 
 import java.util.Map;
+import javax.jcr.Node;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -37,7 +38,13 @@ import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
 })
 public class JoinRequestSearchPropertyProvider implements SearchPropertyProvider {
 
+  private static final String SITE_PARAM = "site";
+  private static final String SEARCH_PROP_REQUESTSTORE = "_requeststore";
+
   public void loadUserProperties(SlingHttpServletRequest request,
       Map<String, String> propertiesMap) {
+    String site = request.getParameter(SITE_PARAM);
+
+    propertiesMap.put(SEARCH_PROP_REQUESTSTORE, "sites/" + site);
   }
 }
