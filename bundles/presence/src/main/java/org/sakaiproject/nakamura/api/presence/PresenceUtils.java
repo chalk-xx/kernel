@@ -15,12 +15,12 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.presence;
+package org.sakaiproject.nakamura.api.presence;
 
 import java.io.Writer;
 
 import org.apache.sling.commons.json.JSONException;
-import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 
 /**
@@ -62,7 +62,7 @@ public class PresenceUtils {
    *          then output a complete JSON object (opened and closed)
    * @throws JSONException
    */
-  public static void makePresenceJSON(ExtendedJSONWriter output, String userId,
+  public static void makePresenceJSON(JSONWriter output, String userId,
       PresenceService presenceService, boolean partialObject) throws JSONException {
     if (!partialObject) {
       output.object();

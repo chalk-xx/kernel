@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
 import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.User;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -36,6 +37,8 @@ import org.sakaiproject.nakamura.api.message.MessageRoutes;
 import org.sakaiproject.nakamura.api.message.MessageTransport;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -69,6 +72,9 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
 
   @Reference
   protected transient SiteService siteService;
+
+  @Reference
+  protected transient PresenceService presenceService;
 
   /**
    * Default constructor
@@ -146,7 +152,13 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
         // Look up the recipient and check if it is an authorizable.
         Authorizable au = PersonalUtils.getAuthorizable(session, recipient);
         if (au != null) {
-          PersonalUtils.writeCompactUserInfo(session, recipient, write);
+          write.object();
+          PersonalUtils.writeCompactUserInfoContent(session, recipient, write);
+          if (au instanceof User) {
+            // Pass in the presence.
+            PresenceUtils.makePresenceJSON(write, au.getID(), presenceService, true);
+          }
+          write.endObject();
         } else {
           // No idea what this recipient is.
           // Just output it.
