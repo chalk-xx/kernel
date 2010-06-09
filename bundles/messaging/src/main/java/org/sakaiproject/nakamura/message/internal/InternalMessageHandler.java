@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Services;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -142,7 +143,16 @@ public class InternalMessageHandler implements MessageTransport, MessageProfileW
         Node siteNode = siteService.findSiteByName(session, recipient);
         ExtendedJSONWriter.writeNodeToWriter(write, siteNode);
       } else {
-        PersonalUtils.writeCompactUserInfo(session, recipient, write);
+        // Look up the recipient and check if it is an authorizable.
+        Authorizable au = PersonalUtils.getAuthorizable(session, recipient);
+        if (au != null) {
+          PersonalUtils.writeCompactUserInfo(session, recipient, write);
+        } else {
+          // No idea what this recipient is.
+          // Just output it.
+          write.value(recipient);
+        }
+
       }
     } catch (SiteException e) {
       LOG.error(e.getMessage(), e);
