@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -194,6 +196,7 @@ public class TagServletTest {
       throws PathNotFoundException, RepositoryException {
     Node node = new MockNode(path);
     node.setProperty(JcrConstants.JCR_PRIMARYTYPE, "nt:file");
+    node.setProperty(SAKAI_EXCLUDE_TREE, false);
     when(session.getItem(path)).thenReturn(node);
     nodes.add(node);
     return node;
