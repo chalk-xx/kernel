@@ -109,4 +109,9 @@ public interface SearchConstants {
    * The path where the search templates have to be under to be executable.
    */
   public static final String SEARCH_PATH_PREFIX = "/var";
+  /**
+   * A property that can be set on any node which tells the search servlet to not include
+   * this node and it's entire tree.
+   */
+  public static final String SAKAI_EXCLUDE_TREE = "sakai:search-exclude-tree";
 }

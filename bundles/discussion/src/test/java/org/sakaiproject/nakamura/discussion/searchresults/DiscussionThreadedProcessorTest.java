@@ -32,6 +32,7 @@ import org.apache.sling.commons.testing.jcr.MockNode;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.discussion.DiscussionConstants;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
 import org.sakaiproject.nakamura.testutils.easymock.MockRowIterator;
 
@@ -58,6 +59,7 @@ import javax.jcr.version.VersionException;
 public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
 
   private DiscussionThreadedSearchBatchResultProcessor processor;
+  private PresenceService presenceService;
 
   /**
    * {@inheritDoc}
@@ -69,6 +71,8 @@ public class DiscussionThreadedProcessorTest extends AbstractEasyMockTest {
     super.setUp();
 
     processor = new DiscussionThreadedSearchBatchResultProcessor();
+    presenceService = createNiceMock(PresenceService.class);
+    processor.presenceService = presenceService;
   }
 
   @Test

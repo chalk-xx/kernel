@@ -112,7 +112,7 @@ public class MessageSearchResultProcessor implements SearchResultProcessor {
 
     // Write out all the recipients their information on this message.
     // We always return this as an array, even if it is only 1 recipient.
-    MessageProfileWriter defaultProfileWriter = new InternalMessageHandler();
+    MessageProfileWriter defaultProfileWriter = tracker.getMessageProfileWriterByType("internal");
     if (resultNode.hasProperty(PROP_SAKAI_TO)) {
       String toVal = resultNode.getProperty(PROP_SAKAI_TO).getString();
       String[] rcpts = StringUtils.split(toVal, ',');
