@@ -31,14 +31,16 @@ import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
  */
 @Component
 @Property(name = EventConstants.EVENT_TOPIC, value = SiteEvent.TOPIC + "startJoinWorkflow")
-public class JoinSiteWorkflowHandler implements EventHandler {
+public class StartJoinSiteWorkflowHandler implements EventHandler {
 
   public void handleEvent(Event event) {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
     String user = (String) event.getProperty(SiteEvent.USER);
     String group = (String) event.getProperty(SiteEvent.GROUP);
 
-    
+    // make sure user hasn't already posted a request of any status
+
+    // add node to /sites/thissite/requests/h/ha/hash
   }
 
 }
