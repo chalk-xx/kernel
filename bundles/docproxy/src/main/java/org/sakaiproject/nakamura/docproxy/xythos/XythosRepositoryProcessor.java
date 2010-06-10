@@ -28,6 +28,9 @@ import org.sakaiproject.nakamura.api.docproxy.DocProxyException;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResult;
 import org.sakaiproject.nakamura.api.docproxy.ExternalDocumentResultMetadata;
 import org.sakaiproject.nakamura.api.docproxy.ExternalRepositoryProcessor;
+import org.sakaiproject.nakamura.docproxy.CreateExternalDocumentProxyServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -53,6 +56,9 @@ import javax.jcr.RepositoryException;
     @Property(name = "service.description", value = "Document Proxy implementation for Xythos Repository"),
     @Property(name = "service.note", value = "This service is in alpha") })
 public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
+  
+  protected static final Logger LOGGER = LoggerFactory
+  .getLogger(XythosRepositoryProcessor.class);
 
   protected static final String TYPE = "xythos";
   
@@ -82,7 +88,7 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       throws DocProxyException {
     try {
       String currentUserId = node.getSession().getUserID();
-       if ("anonymous".equals(currentUserId)) throw new DocProxyException(402, "anonymous user may not access Xythos");
+       if ("anonymous".equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access Xythos");
       return getFile(path, currentUserId);
     } catch (RepositoryException e) {
       throw new DocProxyException(500, "caused by RepositoryException getting session for requested Node");
@@ -107,8 +113,10 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       String currentUserId = node.getSession().getUserID();
       Collection<ExternalDocumentResult> searchResults = new ArrayList<ExternalDocumentResult>();
       List<Map<String,Object>> xythosSearchResults = xythos.doSearch(searchProperties, currentUserId);
-      for(Map<String,Object> doc : xythosSearchResults) {
-        searchResults.add(new XythosDocumentResult(doc, xythos));
+      if (xythosSearchResults != null) {
+        for(Map<String,Object> doc : xythosSearchResults) {
+          searchResults.add(new XythosDocumentResult(doc, xythos));
+        }
       }
       return searchResults.iterator();
     } catch (RepositoryException e) {
@@ -133,8 +141,10 @@ public class XythosRepositoryProcessor implements ExternalRepositoryProcessor {
       String contentType = new MimetypesFileTypeMap().getContentType(path.substring(path.lastIndexOf("/") + 1));
       properties.put("contentType", contentType);
       String currentUserId = node.getSession().getUserID();
+      if ("anonymous".equals(currentUserId)) throw new DocProxyException(401, "anonymous user may not access Xythos");
       byte[] fileData = new byte[documentStream.available()];
       documentStream.read(fileData);
+      LOGGER.info("calling updateFile. currentUserId:" + currentUserId + " path:" + path + " bytes:" + documentStream.available());
       xythos.updateFile("/" + currentUserId + "/" + path, fileData, properties, currentUserId);
       return properties;
     } catch(Exception e) {
