@@ -17,6 +17,7 @@
  */
 package org.sakaiproject.nakamura.activity;
 
+import static org.apache.jackrabbit.JcrConstants.NT_UNSTRUCTURED;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.ACTIVITY_STORE_NAME;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_ACTOR_ID;
 import static org.sakaiproject.nakamura.api.activity.ActivityConstants.PARAM_APPLICATION_ID;
@@ -141,7 +142,8 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       path = ActivityUtils.getPathFromId(id, path);
       // for some odd reason I must manually create the Node before dispatching to
       // Sling...
-      JcrUtils.deepGetOrCreateNode(session, path);
+      Node activity = JcrUtils.deepGetOrCreateNode(session, path, NT_UNSTRUCTURED);
+      activity.addMixin("mix:created");
     } catch (RepositoryException e) {
       LOG.error(e.getMessage(), e);
       throw new Error(e);
