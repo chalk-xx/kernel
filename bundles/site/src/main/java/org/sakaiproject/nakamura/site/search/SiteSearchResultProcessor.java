@@ -65,8 +65,6 @@ public class SiteSearchResultProcessor implements SearchResultProcessor {
     write.object();
     write.key("member-count");
     write.value(String.valueOf(siteService.getMemberCount(resultNode)));
-    write.key("path");
-    write.value(resultNode.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, resultNode);
     write.endObject();
   }

@@ -82,8 +82,8 @@ public class FilesUtilsTest {
    * 
    */
   private void assertFileNodeInfo(JSONObject j) throws JSONException {
-    assertEquals("/path/to/file.doc", j.getString("path"));
-    assertEquals("file.doc", j.getString("name"));
+    assertEquals("/path/to/file.doc", j.getString("jcr:path"));
+    assertEquals("file.doc", j.getString("jcr:name"));
     assertEquals("bar", j.getString("foo"));
     assertEquals("text/plain", j.getString("jcr:mimeType"));
     assertEquals(12345, j.getLong("jcr:data"));
@@ -143,7 +143,7 @@ public class FilesUtilsTest {
     String s = baos.toString("UTF-8");
     JSONObject j = new JSONObject(s);
 
-    assertEquals("/path/to/link", j.getString("path"));
+    assertEquals("/path/to/link", j.getString("jcr:path"));
     assertEquals("bar", j.getString("foo"));
     assertFileNodeInfo(j.getJSONObject("file"));
 
@@ -210,7 +210,7 @@ public class FilesUtilsTest {
     String s = baos.toString("UTF-8");
     JSONObject o = new JSONObject(s);
     assertEquals("11", o.get("member-count"));
-    assertEquals(siteNode.getPath(), o.get("path"));
+    assertEquals(siteNode.getPath(), o.get("jcr:path"));
 
   }
 

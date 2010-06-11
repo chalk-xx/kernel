@@ -318,8 +318,6 @@ public class FileUtils {
     write.object();
     write.key("member-count");
     write.value(String.valueOf(siteService.getMemberCount(siteNode)));
-    write.key("path");
-    write.value(siteNode.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
     write.endObject();
   }

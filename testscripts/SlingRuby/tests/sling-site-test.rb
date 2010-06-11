@@ -95,7 +95,7 @@ class TC_MySiteTest < Test::Unit::TestCase
     result = @search.search_for_site("dog")
     assert_not_nil(result, "Expected results back")
     assert(result["results"].size >= 1, "Expected at least one site")
-    created_site = result["results"].select { |r| r["path"] == "/sites/somesite/anothersite"+@m }
+    created_site = result["results"].select { |r| r["jcr:path"] == "/sites/somesite/anothersite"+@m }
     assert_equal(1, created_site.size, "Expected to find site with matching path")
     assert_equal(1, created_site[0]["member-count"].to_i, "Expected single member")
   end
