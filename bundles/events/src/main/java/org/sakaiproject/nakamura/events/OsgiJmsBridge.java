@@ -26,6 +26,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventAcknowledgeMode;
 import org.sakaiproject.nakamura.api.events.EventDeliveryConstants.EventDeliveryMode;
@@ -67,12 +68,18 @@ public class OsgiJmsBridge implements EventHandler {
 
   @Reference
   private ConnectionFactoryService connFactoryService;
+  
+  
+  @Reference
+  protected ClusterTrackingService clusterTrackingService;
 
   private boolean transacted;
   private String connectionClientId;
   private int acknowledgeMode;
 
   private long lastMessage = System.currentTimeMillis();
+
+  private String serverId;
 
   /**
    * Default constructor.
@@ -106,6 +113,7 @@ public class OsgiJmsBridge implements EventHandler {
     transacted = (Boolean) props.get(SESSION_TRANSACTED);
     acknowledgeMode = (Integer) props.get(ACKNOWLEDGE_MODE);
     connectionClientId = (String) props.get(CONNECTION_CLIENT_ID);
+    serverId = clusterTrackingService.getCurrentServerId();
 
     LOGGER.info("Session Transacted: {}, Acknowledge Mode: {}, " + "Client ID: {}",
         new Object[] { transacted, acknowledgeMode, connectionClientId });
@@ -209,6 +217,10 @@ public class OsgiJmsBridge implements EventHandler {
           msg.setObjectProperty(name, obj);
         }
       }
+      
+      msg.setStringProperty("clusterServerId", serverId);
+      
+      // add the current user
 
       producer.send(msg);
     } catch (JMSException e) {

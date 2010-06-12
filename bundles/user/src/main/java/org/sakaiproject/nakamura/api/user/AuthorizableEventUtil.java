@@ -66,7 +66,7 @@ public class AuthorizableEventUtil {
     return ( m instanceof UserModification ) || (m instanceof GroupModification );
   }
 
-  public static Event newGroupEvent(Modification m) throws RepositoryException {
+  public static Event newGroupEvent(String user, Modification m) throws RepositoryException {
     if ( m instanceof UserModification ) {
       UserModification um = (UserModification) m;
       Dictionary<String, Object> eventDictionary = new Hashtable<String, Object>();
@@ -74,6 +74,9 @@ public class AuthorizableEventUtil {
       eventDictionary.put(AuthorizableEvent.OPERATION, operation);
       eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, um.getGroup().getID());
       eventDictionary.put(AuthorizableEvent.USER, um.getUser());
+      if ( user != null ) {
+        eventDictionary.put(AuthorizableEvent.MODIFYING_USER, user);
+      }
       eventDictionary.put(AuthorizableEvent.GROUP, um.getGroup());
       return new Event(operation.getTopic(), eventDictionary);  
     } else if ( m instanceof GroupModification ) {
@@ -83,6 +86,9 @@ public class AuthorizableEventUtil {
       eventDictionary.put(AuthorizableEvent.OPERATION, operation);
       eventDictionary.put(AuthorizableEvent.PRINCIPAL_NAME, gm.getGroup().getID());
       eventDictionary.put(AuthorizableEvent.GROUP, gm.getGroup());
+      if ( user != null ) {
+        eventDictionary.put(AuthorizableEvent.USER, user);
+      }
       return new Event(operation.getTopic(), eventDictionary);   
     }
     return null;

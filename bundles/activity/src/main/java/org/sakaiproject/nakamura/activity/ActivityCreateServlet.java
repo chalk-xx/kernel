@@ -187,7 +187,7 @@ public class ActivityCreateServlet extends SlingAllMethodsServlet {
       throw new Error(e);
     }
     // post the asynchronous OSGi event
-    eventAdmin.postEvent(ActivityUtils.createEvent(activityItemPath));
+    eventAdmin.postEvent(ActivityUtils.createEvent(session.getUserID(), activityItemPath));
   }
 
   /**

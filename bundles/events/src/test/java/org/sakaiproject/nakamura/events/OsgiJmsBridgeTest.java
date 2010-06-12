@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.activemq.ConnectionFactoryService;
+import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -61,6 +62,7 @@ public class OsgiJmsBridgeTest {
   private Message message;
   private OsgiJmsBridge bridge;
   private Event event;
+  private ClusterTrackingService clusterTrackingService;
 
   @Before
   public void setUp() {
@@ -99,9 +101,11 @@ public class OsgiJmsBridgeTest {
   public void testHandleEvent() throws Exception {
     // setup to do full processing
     setUpFullProcess(true);
-
+    
+    clusterTrackingService = createMock(ClusterTrackingService.class);
+    expect(clusterTrackingService.getCurrentServerId()).andReturn("CurrentServerID");
     // start the mocks
-    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod);
+    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod, clusterTrackingService);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
@@ -109,7 +113,7 @@ public class OsgiJmsBridgeTest {
     bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
-    verify(ctx, connFactory, conn, sess, topic, prod);
+    verify(ctx, connFactory, conn, sess, topic, prod, clusterTrackingService);
 
     int namesCount = 0;
     Enumeration names = message.getPropertyNames();
@@ -119,7 +123,7 @@ public class OsgiJmsBridgeTest {
     }
 
     // there should be an entry for each property plus the name of the topics
-    assertEquals(props.size() + 1, namesCount);
+    assertEquals(props.size() + 2, namesCount);
   }
 
   /**
@@ -133,6 +137,8 @@ public class OsgiJmsBridgeTest {
     // setup to do full processing
     setUpFullProcess(false);
 
+    clusterTrackingService = createMock(ClusterTrackingService.class);
+    expect(clusterTrackingService.getCurrentServerId()).andReturn("CurrentServerID");
     // expect to have exceptions when closing the session and connection
     //sess.close();
     //expectLastCall().andThrow(new JMSException("can't close session"));
@@ -140,7 +146,7 @@ public class OsgiJmsBridgeTest {
     expectLastCall().andThrow(new JMSException("can't close connection"));
 
     // start the mocks
-    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod);
+    replay(ctx, connFactory, connFactoryService, conn, sess, topic, prod, clusterTrackingService);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
@@ -148,7 +154,7 @@ public class OsgiJmsBridgeTest {
     bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
-    verify(ctx, connFactory, conn, sess, topic, prod);
+    verify(ctx, connFactory, conn, sess, topic, prod, clusterTrackingService);
 
     int namesCount = 0;
     Enumeration names = message.getPropertyNames();
@@ -158,7 +164,7 @@ public class OsgiJmsBridgeTest {
     }
 
     // there should be an entry for each property plus the name of the topics
-    assertEquals(props.size() + 1, namesCount);
+    assertEquals(props.size() + 2, namesCount);
   }
 
   @Test
@@ -167,6 +173,8 @@ public class OsgiJmsBridgeTest {
     // earliest an exception can be thrown and causes extra checks in the
     // exception handling.
     connFactory = createMock(ConnectionFactory.class);
+    clusterTrackingService = createMock(ClusterTrackingService.class);
+    expect(clusterTrackingService.getCurrentServerId()).andReturn("CurrentServerID");
 
     connFactoryService = createMock(ConnectionFactoryService.class);
     expect(connFactoryService.getDefaultPooledConnectionFactory()).andReturn(connFactory).anyTimes();
@@ -174,19 +182,21 @@ public class OsgiJmsBridgeTest {
     expect(connFactory.createConnection()).andThrow(new JMSException("can't create connection"));
 
     // start the mocks
-    replay(ctx, connFactoryService, connFactory);
+    replay(ctx, connFactoryService, connFactory, clusterTrackingService);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
     sendMessage(props);
     // should log the message, but not fail
-    verify(ctx, connFactory);
+    verify(ctx, connFactory, clusterTrackingService);
   }
 
 
   @Test
   public void testJmsExceptionWhenCreatingTopic() throws JMSException {
     setUpConnection(true);
+    clusterTrackingService = createMock(ClusterTrackingService.class);
+    expect(clusterTrackingService.getCurrentServerId()).andReturn("CurrentServerID");
 
     // mock a session to be returned by the connection and expect it to throw an
     // exception. this causes extra checking to happen in the exception
@@ -202,7 +212,7 @@ public class OsgiJmsBridgeTest {
     expect(sess.createMessage()).andThrow(new JMSException("can't create topic"));
 
     // start the mocks
-    replay(ctx, connFactoryService, connFactory, conn, sess);
+    replay(ctx, connFactoryService, connFactory, conn, sess, clusterTrackingService);
 
     // construct and send the message
     Dictionary<Object, Object> props = buildEventProperties();
@@ -210,7 +220,7 @@ public class OsgiJmsBridgeTest {
     bridge.deactivate(ctx);
 
     // verify that all expected calls were made.
-    verify(ctx, conn, connFactory);
+    verify(ctx, conn, connFactory, clusterTrackingService);
   }
 
   /**
@@ -219,6 +229,7 @@ public class OsgiJmsBridgeTest {
    */
   private void sendMessage(Dictionary<Object, Object> dict) {
     bridge = new OsgiJmsBridge(connFactoryService);
+    bridge.clusterTrackingService = clusterTrackingService;
     bridge.activate(ctx);
 
     event = new Event("test-event", dict);
