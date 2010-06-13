@@ -122,11 +122,9 @@ public class GetRuleAclServlet extends SlingAllMethodsServlet {
         if (pmap == null) {
           Map<String, Object> properties = (Map<String, Object>) map.get("properties");
           if (properties == null) {
-            properties = new HashMap<String, Object>(pmap.size());
+            properties = new HashMap<String, Object>();
             map.put("properties", properties);
           }
-          properties.put("numproperties", "0");
-          System.err.println("No Properties found");
         } else {
           System.err.println("Got Properties "+pmap.size());
           Map<String, Object> properties = (Map<String, Object>) map.get("properties");
