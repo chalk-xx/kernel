@@ -283,7 +283,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   /**
    * Remove credentials so that subsequent request don't contain credentials.
-   * 
+   *
    * @param request
    * @param response
    */
@@ -298,11 +298,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
         session.setAttribute(SA_AUTHENTICATION_CREDENTIALS, null);
       }
     } else {
-      Cookie c = new Cookie(trustedAuthCookieName, "invalid");
-      c.setMaxAge(-1);
-      c.setPath("/");
-      c.setSecure(secureCookie);
-      response.addCookie(c);
+      clearCookie(response);
     }
   }
 
@@ -347,6 +343,17 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   void addCookie(HttpServletResponse response, String userId) {
     Cookie c = new Cookie(trustedAuthCookieName, encodeCookie(userId));
     c.setMaxAge(-1);
+    c.setPath("/");
+    c.setSecure(secureCookie);
+    response.addCookie(c);
+  }
+
+  /**
+   * @param response
+   */
+  void clearCookie(HttpServletResponse response) {
+    Cookie c = new Cookie(trustedAuthCookieName, "");
+    c.setMaxAge(0);
     c.setPath("/");
     c.setSecure(secureCookie);
     response.addCookie(c);
