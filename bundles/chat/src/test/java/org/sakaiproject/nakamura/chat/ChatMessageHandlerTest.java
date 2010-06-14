@@ -157,7 +157,7 @@ public class ChatMessageHandlerTest {
         messageNode.setProperty(
             JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
             MessageConstants.SAKAI_MESSAGE_RT)).andReturn(null);
-    messageNode.save();
+    adminSession.save();
 
     replay(messageNode, msgStore, adminSession);
 
