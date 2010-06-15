@@ -28,6 +28,13 @@ import org.apache.sling.commons.json.JSONObject;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RuleACLModifier;
 import org.apache.sling.jcr.jackrabbit.server.security.dynamic.RulesBasedAce;
+import org.sakaiproject.nakamura.api.doc.BindingType;
+import org.sakaiproject.nakamura.api.doc.ServiceBinding;
+import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
+import org.sakaiproject.nakamura.api.doc.ServiceResponse;
+import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +67,60 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
+@ServiceDocumentation(
+    description={"Gets a json feed of ACLS with rule information, and time range properties"},
+    name="Get Rule Acl Servlet",
+    shortDescription="Gets a json feed of the ACL on a node including Rule information",
+    bindings={
+       @ServiceBinding(bindings={"/sling/servlet/default"},type=BindingType.TYPE,
+           selectors={@ServiceSelector(
+               name="ruleacl",
+               description={"Outputs the ACL for resource"})})},
+    methods={
+        @ServiceMethod(name="GET",
+            description={
+            "gets the ACL for the resource in the following form, rule based ACLs " +
+            "have principal IDs of the form sakai-rules:&lt;principalid&gt;.uid, alowing multiple" +
+            "rule ace's to be present in a ACL for the same principal. The response will also include" +
+            "non rule based ACE's in the ACL ",
+            "<pre>\n" +
+            "{\n" +
+            "  sakai-rules:ieb.2344242423 : {\n" +
+            "     order : \"0\" \n" +
+            "     granted : [ \"jcr:read\" ],\n" +
+            "     denied : [ \"jcr:write\" ],\n" +
+            "     active : [  \n" +
+            "       \"2010-04-05T01:00:00Z/2010-04-05T02:00:00Z\",\n" +
+            "       \"2010-03-04/2010-04-04\"\n" +
+            "              ], \n" +
+            "     inactive : [  \n" +
+            "       \"2010-05-05T01:00:00Z/2010-05-05T02:00:00Z\",\n" +
+            "       \"2010-06-04/2010-06-04\"\n" +
+            "              ] \n" +
+            "  },\n" +
+            "  sakai-rules:ieb.1221213 : {\n" +
+            "     order : \"1\" \n" +
+            "     granted : [ \"jcr:write\" ],\n" +
+            "     active : [  \n" +
+            "       \"2010-02-05T01:00:00Z/2010-02-05T02:00:00Z\",\n" +
+            "              ] \n" +
+            "  },\n" +
+            "  everyone : {\n" +
+            "     order : \"2\" \n" +
+            "     granted : [ \"jcr:read\" ]\n" +
+            "  }\n" +
+            "}" +
+            "</pre"            
+            }, 
+            response={
+              @ServiceResponse(code=200,description="On success"),
+              @ServiceResponse(code=404,description="If the resource is not found"),
+              @ServiceResponse(code=402, description="The current user does not have permission to view the ACL ")
+              })
+        }
+       
+    )
+    
 @SlingServlet(resourceTypes = { "sling/servlet/default" }, methods = { "GET" }, selectors = { "ruleacl" }, extensions = { "json" })
 public class GetRuleAclServlet extends SlingAllMethodsServlet {
 
