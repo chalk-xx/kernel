@@ -53,6 +53,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
 import javax.jcr.lock.LockException;
+import javax.jcr.lock.LockManager;
 
 /**
  * Load Security related items. Much of this code is based on the ContentLoader in sling,
@@ -277,7 +278,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       try {
         final Node bcNode = parentNode.addNode(nodeName, "nt:unstructured");
         bcNode.addMixin("mix:lockable");
-        parentNode.save();
+        session.save();
       } catch (RepositoryException re) {
         // for concurrency issues (running in a cluster) we ignore exceptions
         LOGGER.warn("Unable to create node " + nodeName, re);
@@ -289,7 +290,9 @@ public class SecurityLoaderService implements SynchronousBundleListener {
       return null;
     }
     try {
-      bcNode.lock(false, true);
+      LockManager lockManager = session.getWorkspace().getLockManager();
+      lockManager
+          .lock(bcNode.getPath(), false, true, Long.MAX_VALUE, session.getUserID());
     } catch (LockException le) {
       return null;
     }
@@ -327,9 +330,10 @@ public class SecurityLoaderService implements SynchronousBundleListener {
         bcNode.setProperty(PROPERTY_SECURITY_PATHS, createdNodes
             .toArray(new String[createdNodes.size()]));
       }
-      bcNode.save();
+      session.save();
     }
-    bcNode.unlock();
+    LockManager lockManager = session.getWorkspace().getLockManager();
+    lockManager.unlock(bcNode.getPath());
   }
 
   public void contentIsUninstalled(final Session session, final Bundle bundle) {
@@ -341,7 +345,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
         bcNode.setProperty(PROPERTY_SECURITY_LOADED, false);
         bcNode.setProperty(PROPERTY_SECURITY_UNLOADED_AT, Calendar.getInstance());
         bcNode.setProperty(PROPERTY_SECURITY_UNLOADED_BY, this.slingId);
-        bcNode.save();
+        session.save();
       }
     } catch (RepositoryException re) {
       LOGGER.error("Unable to update bundle content info.", re);
@@ -435,7 +439,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
                   final String token = st.nextToken();
                   if ( !node.hasNode(token) ) {
                       node.addNode(token, "sling:Folder");
-                      node.save();
+            writerSession.save();
                   }
                   LOGGER.info("Gettign node "+token+" from "+node);
                   node = node.getNode(token);
@@ -444,7 +448,7 @@ public class SecurityLoaderService implements SynchronousBundleListener {
           }
           if ( !node.hasNode(path) ) {
               node.addNode(path, "sling:Folder");
-              node.save();
+        writerSession.save();
           }
       }
   }

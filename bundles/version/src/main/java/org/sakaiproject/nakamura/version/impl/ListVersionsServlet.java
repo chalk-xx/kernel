@@ -50,6 +50,7 @@ import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
+import javax.jcr.version.VersionManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -125,7 +126,9 @@ public class ListVersionsServlet extends SlingSafeMethodsServlet {
       int nitems = intRequestParameter(request, PARAMS_ITEMS_PER_PAGE, 25);
       int offset = intRequestParameter(request, PARAMS_PAGE, 0) * nitems;
       
-      VersionHistory versionHistory = node.getVersionHistory();
+      VersionManager versionManager = node.getSession().getWorkspace()
+          .getVersionManager();
+      VersionHistory versionHistory = versionManager.getVersionHistory(node.getPath());
       VersionIterator versionIterator = versionHistory.getAllVersions();
       
       long total = versionIterator.getSize();

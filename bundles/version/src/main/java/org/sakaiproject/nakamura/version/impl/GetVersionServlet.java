@@ -51,6 +51,7 @@ import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.version.Version;
+import javax.jcr.version.VersionManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -115,7 +116,10 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
     Node node = resource.adaptTo(Node.class);
     Version versionNode = null;
     try {
-      versionNode = node.getVersionHistory().getVersion(versionName);
+      VersionManager versionManager = node.getSession().getWorkspace()
+          .getVersionManager();
+      versionNode = versionManager.getVersionHistory(node.getPath()).getVersion(
+          versionName);
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       return;
@@ -292,5 +296,4 @@ public class GetVersionServlet extends SlingSafeMethodsServlet {
     }
     return null;
   }
-
 }

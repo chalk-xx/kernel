@@ -184,6 +184,7 @@ public class CalendarServiceImpl implements CalendarService {
       calendarNode.setProperty(SLING_RESOURCE_TYPE_PROPERTY, SAKAI_CALENDAR_RT);
 
       // Store all the properties of the calendar on the node.
+      @SuppressWarnings("unchecked")
       Iterator it = calendar.getProperties().iterator();
       while (it.hasNext()) {
         Property p = (Property) it.next();
@@ -195,6 +196,7 @@ public class CalendarServiceImpl implements CalendarService {
       // everything.
       // They can be filtered in the export method.
       ComponentList list = calendar.getComponents();
+      @SuppressWarnings("unchecked")
       Iterator<CalendarComponent> events = list.iterator();
       while (events.hasNext()) {
         CalendarComponent component = events.next();
@@ -231,6 +233,7 @@ public class CalendarServiceImpl implements CalendarService {
     eventNode.setProperty(JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY,
         SAKAI_CALENDAR_RT + "-" + producer.getType());
 
+    @SuppressWarnings("unchecked")
     Iterator<Property> it = component.getProperties().iterator();
     while (it.hasNext()) {
       Property p = it.next();
