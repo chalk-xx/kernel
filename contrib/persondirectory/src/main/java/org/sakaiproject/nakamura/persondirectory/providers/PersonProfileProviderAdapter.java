@@ -61,6 +61,7 @@ public class PersonProfileProviderAdapter implements ProfileProvider {
       } catch (PersonProviderException e) {
         Map<String, Object> profileError = new HashMap<String, Object>();
         profileError.put("error", e.getMessage());
+        resultMap.put(n, new ImmediateFuture<Map<String,Object>>(profileError));
       }
     }
     
