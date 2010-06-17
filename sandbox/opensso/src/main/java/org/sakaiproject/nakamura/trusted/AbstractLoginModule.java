@@ -20,6 +20,7 @@ package org.sakaiproject.nakamura.trusted;
 import org.apache.jackrabbit.api.security.principal.ItemBasedPrincipal;
 import org.apache.jackrabbit.api.security.principal.PrincipalManager;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,40 @@ import javax.security.auth.login.LoginException;
  */
 public abstract class AbstractLoginModule implements LoginModulePlugin {
 
+  final class InternalAuthenticationPlugin implements AuthenticationPlugin {
+    private final Principal principal;
+
+    public InternalAuthenticationPlugin(Principal principal, Credentials creds) {
+      if (canHandle(creds)) {
+        this.principal = principal;
+        return;
+      }
+      throw new IllegalArgumentException("Creadentials are not trusted ");
+    }
+
+    public boolean canHandle(Credentials cred) {
+      boolean hasAttribute = false;
+      if (cred != null && cred instanceof SimpleCredentials) {
+        Object attr = ((SimpleCredentials) cred)
+            .getAttribute(AbstractAuthenticationHandler.AUTHENTICATION_OBJECT);
+        hasAttribute = isAuthenticationValid(attr);
+      }
+      return hasAttribute;
+    }
+    
+    public boolean authenticate(Credentials credentials) throws RepositoryException {
+      boolean auth = false;
+      if (credentials instanceof SimpleCredentials) {
+        SimpleCredentials sc = (SimpleCredentials) credentials;
+        if (principal.getName().equals(sc.getUserID())) {
+          auth = true;
+        }
+      }
+      return auth;
+    }
+  }
+
+  
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLoginModule.class);
 
   
@@ -52,6 +87,20 @@ public abstract class AbstractLoginModule implements LoginModulePlugin {
    * performed, but *hopefully* it wont matter. (thats awful, but until the plugin is fixed there is nothing we can do)
    */
   private ThreadLocal<WeakReference<PrincipalManager>> principalManagerHolder = new ThreadLocal<WeakReference<PrincipalManager>>();
+
+  
+  /**
+   * {@inheritDoc}
+   * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#getAuthentication(java.security.Principal, javax.jcr.Credentials)
+   */
+  public AuthenticationPlugin getAuthentication(Principal principal, Credentials creds)
+      throws RepositoryException {
+    try {
+      return new InternalAuthenticationPlugin(principal, creds);
+    } catch ( IllegalArgumentException e ) {
+      return null;      
+    }  
+  }
 
   /**
    * {@inheritDoc}

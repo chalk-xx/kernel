@@ -88,10 +88,10 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
    * @see org.apache.sling.commons.auth.spi.AuthenticationHandler#extractCredentials(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
    */
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
-      HttpServletResponse arg1) {
+      HttpServletResponse response) {
     // no session authentication info, try the request
 
-    AbstractAuthentication authentication = createAuthenticationObject(request);
+    AbstractAuthentication authentication = createAuthenticationObject(request, response);
     if (authentication.isValid()) {
       // authenticate
       AuthenticationInfo authenticatioInfo = new AuthenticationInfo(getAuthType());
@@ -108,7 +108,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
    * @param request
    * @return
    */
-  protected  abstract AbstractAuthentication createAuthenticationObject(HttpServletRequest request);
+  protected  abstract AbstractAuthentication createAuthenticationObject(HttpServletRequest request, HttpServletResponse response);
 
   /**
    * @return the sling repository

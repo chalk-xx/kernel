@@ -17,29 +17,36 @@
  */
 package org.sakaiproject.nakamura.opensso;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
-import org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationHandler.OpenSsoAuthentication;
-import org.sakaiproject.nakamura.trusted.AbstractLoginModule;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  */
-@Component(immediate = true)
-@Service
-public class OpenSsoLoginModule extends AbstractLoginModule {
+public class OpenSsoHandler {
 
   /**
-   * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.trusted.AbstractLoginModule#isAuthenticationValid(java.lang.Object)
+   * @param request
+   * @param response
    */
-  @Override
-  protected boolean isAuthenticationValid(Object authObj) {
-    if (authObj instanceof OpenSsoAuthentication) {
-      OpenSsoAuthentication openSsoAuthentication = (OpenSsoAuthentication) authObj;
-      return openSsoAuthentication.isValid();
-    }
-    return false;
+  public OpenSsoHandler(HttpServletRequest request, HttpServletResponse response) {
+    // TODO Auto-generated constructor stub
+  }
+
+  /**
+   * 
+   */
+  public void sendAuthenticationFailed() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  /**
+   * @return
+   */
+  public String getUserName() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

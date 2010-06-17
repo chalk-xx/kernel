@@ -87,7 +87,8 @@ public class OpenSsoServlet extends AbstractAuthServlet {
    */
   protected void sendAuthenticationFailed(SlingHttpServletRequest request,
       SlingHttpServletResponse response) {
-    response.setStatus(401);
+    OpenSsoHandler openSsoHandler = new OpenSsoHandler(request, response);
+    openSsoHandler.sendAuthenticationFailed();
   }
 
   /**

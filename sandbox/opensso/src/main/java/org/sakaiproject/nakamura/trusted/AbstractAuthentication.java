@@ -23,6 +23,7 @@ import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -38,14 +39,15 @@ public abstract class AbstractAuthentication {
   
   /**
    * @param request
+   * @param response 
    */
-  protected AbstractAuthentication(HttpServletRequest request) {
+  protected AbstractAuthentication(HttpServletRequest request, HttpServletResponse response) {
     forceLogout = false;
     valid = false;
     if ("POST".equals(request.getMethod())) {
       if ("1".equals(request.getParameter(AbstractAuthServlet.TRY_LOGIN))) {
                  
-        String userName = getUserName(request);
+        String userName = getUserName(request, response);
         if ( userName != null ) {
           credentials = new SimpleCredentials(userName,
               new char[0]);
@@ -78,7 +80,7 @@ public abstract class AbstractAuthentication {
    * @param request
    * @return
    */
-  protected abstract String getUserName(HttpServletRequest request);
+  protected abstract String getUserName(HttpServletRequest request, HttpServletResponse response);
 
   
 
