@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.formauth;
+package org.sakaiproject.nakamura.opensso;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -23,13 +23,13 @@ import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 
 /**
- *
+ * A protected class to allow
  */
-class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
+class OpenSsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
   /**
    * @param delegate
    */
-  FormAuthenticationTokenServiceWrapper(FormLoginServlet servlet, TrustedTokenService delegate) {
+  OpenSsoAuthenticationTokenServiceWrapper(OpenSsoServlet servlet, TrustedTokenService delegate) {
     super(validate(servlet,delegate));
   }
 
@@ -37,9 +37,9 @@ class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
    * @param servlet
    * @return
    */
-  private static TrustedTokenService validate(FormLoginServlet servlet, TrustedTokenService delegate) {
-    if ( !FormLoginServlet.class.equals(servlet.getClass()) ) {
-      throw new IllegalArgumentException("Invalid use of FormAuthenticationTonkenService");
+  private static TrustedTokenService validate(OpenSsoServlet servlet, TrustedTokenService delegate) {
+    if ( !OpenSsoServlet.class.equals(servlet.getClass()) ) {
+      throw new IllegalArgumentException("Invalid use of OpenSsoAuthenticationTokenService");
     }
     return delegate;
   }
@@ -48,7 +48,7 @@ class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
    * @param request
    * @param response
    */
-  public final void addToken(SlingHttpServletRequest request,
+  public void addToken(SlingHttpServletRequest request,
       SlingHttpServletResponse response) {
     injectToken(request, response);
   }

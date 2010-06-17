@@ -1,0 +1,113 @@
+/*
+ * Licensed to the Sakai Foundation (SF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The SF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.sakaiproject.nakamura.trusted;
+
+import org.slf4j.LoggerFactory;
+
+import javax.jcr.Credentials;
+import javax.jcr.RepositoryException;
+import javax.jcr.SimpleCredentials;
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ *
+ */
+public abstract class AbstractAuthentication {
+  
+  protected boolean forceLogout;
+  protected boolean valid;
+  protected SimpleCredentials credentials;
+
+  
+
+  
+  /**
+   * @param request
+   */
+  protected AbstractAuthentication(HttpServletRequest request) {
+    forceLogout = false;
+    valid = false;
+    if ("POST".equals(request.getMethod())) {
+      if ("1".equals(request.getParameter(AbstractAuthServlet.TRY_LOGIN))) {
+                 
+        String userName = getUserName(request);
+        if ( userName != null ) {
+          credentials = new SimpleCredentials(userName,
+              new char[0]);
+          valid = true;
+          credentials.setAttribute(AbstractAuthenticationHandler.AUTHENTICATION_OBJECT, this);
+          
+          try {
+            createUser(userName);
+          } catch (RepositoryException e) {
+            LoggerFactory.getLogger(getClass()).debug("Failed to auto populate with a user ");
+          } 
+        }
+      } else {
+        LoggerFactory.getLogger(getClass()).debug("Login was not requested ");
+      }
+    }
+  }
+  
+  /**
+   * Create a user in the repository, this may be disabled if the Authentication Mechanism should
+   * not create a user in the respository and just fail to authenticate.
+   * @param userName
+   * @throws RepositoryException 
+   */
+  protected abstract void createUser(String userName) throws RepositoryException;
+  
+  /**
+   * Validate the request to authenticate and get the username from the request. This may
+   * involve validating any token that was supplied with the request (eg CAS, OpenSSO)
+   * @param request
+   * @return
+   */
+  protected abstract String getUserName(HttpServletRequest request);
+
+  
+
+  /**
+   * @return
+   */
+  public final boolean isValid() {
+    return valid;
+  }
+
+  /**
+   * @return
+   */
+  public final boolean isForceLogout() {
+    return forceLogout;
+  }
+
+  /**
+   * @return
+   */
+  public final Credentials getCredentials() {
+    return credentials;
+  }
+
+  /**
+   * @return
+   */
+  public final String getUserId() {
+    return credentials.getUserID();
+  }
+
+}

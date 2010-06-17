@@ -54,4 +54,10 @@ public abstract class TrustedTokenServiceWrapper {
     delagate.injectToken(request, response);
   }
 
+  /**
+   * @param request
+   * @param response
+   */
+  public abstract void addToken(SlingHttpServletRequest request, SlingHttpServletResponse response);
+  
 }
