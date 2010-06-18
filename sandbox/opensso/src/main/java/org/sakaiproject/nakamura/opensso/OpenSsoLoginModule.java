@@ -23,11 +23,11 @@ import org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationHandler.OpenSsoAut
 import org.sakaiproject.nakamura.trusted.AbstractLoginModule;
 
 /**
- *
+ * A login module only configured to operate on OpenSsoAuthentication login attempts.
  */
 @Component(immediate = true)
 @Service
-public class OpenSsoLoginModule extends AbstractLoginModule {
+public final class OpenSsoLoginModule extends AbstractLoginModule {
 
   /**
    * {@inheritDoc}

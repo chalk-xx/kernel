@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Component(immediate = true)
 @Service
-public class OpenSsoAuthenticationHandler extends AbstractAuthenticationHandler {
+public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHandler {
 
   /**
    * Internal protected final Authentication object, that is injected into the
@@ -125,7 +125,7 @@ public class OpenSsoAuthenticationHandler extends AbstractAuthenticationHandler 
 
   /**
    * {@inheritDoc}
-   * 
+   * Creates a new abstract authentication which my not be valid.
    * @see org.sakaiproject.nakamura.opensso.AbstractAuthenticationHandler#getAuthenticationObject(javax.servlet.http.HttpServletRequest)
    */
   @Override

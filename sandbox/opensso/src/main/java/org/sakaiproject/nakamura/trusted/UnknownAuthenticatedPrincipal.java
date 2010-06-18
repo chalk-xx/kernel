@@ -20,7 +20,8 @@ package org.sakaiproject.nakamura.trusted;
 import java.security.Principal;
 
 /**
- *
+ * Represents a user that was validated successfully but could not be found within the
+ * system.
  */
 public class UnknownAuthenticatedPrincipal implements Principal {
   private final AbstractAuthentication auth;

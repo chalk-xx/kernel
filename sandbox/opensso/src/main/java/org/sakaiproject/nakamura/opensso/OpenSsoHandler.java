@@ -21,7 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * A Handler class that encapsulates both extracting the userID from the request, and formulating a
+ * redirect url to the central service.
  */
 public class OpenSsoHandler {
 
