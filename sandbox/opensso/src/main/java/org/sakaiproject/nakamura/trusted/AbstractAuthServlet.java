@@ -152,9 +152,10 @@ public abstract class AbstractAuthServlet extends SlingAllMethodsServlet {
    * Send a authentication failed message to the client
    * @param request
    * @param response
+   * @throws IOException 
    */
   protected abstract void sendAuthenticationFailed(SlingHttpServletRequest request,
-      SlingHttpServletResponse response);
+      SlingHttpServletResponse response) throws IOException;
 
   /**
    * Get the TokenWrapper used to inject a new trusted token into the request.

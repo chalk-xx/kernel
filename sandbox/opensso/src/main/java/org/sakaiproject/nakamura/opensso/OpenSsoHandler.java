@@ -17,36 +17,67 @@
  */
 package org.sakaiproject.nakamura.opensso;
 
+import com.iplanet.sso.SSOException;
+import com.iplanet.sso.SSOToken;
+import com.iplanet.sso.SSOTokenManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * A Handler class that encapsulates both extracting the userID from the request, and formulating a
- * redirect url to the central service.
+ * A Handler class that encapsulates both extracting the userID from the request, and
+ * formulating a redirect url to the central service.
  */
 public class OpenSsoHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(OpenSsoHandler.class);
+  private HttpServletRequest request;
+  private HttpServletResponse response;
 
   /**
    * @param request
    * @param response
    */
   public OpenSsoHandler(HttpServletRequest request, HttpServletResponse response) {
-    // TODO Auto-generated constructor stub
+
+    this.request = request;
+    this.response = response;
+
   }
 
   /**
+   * @throws IOException
    * 
    */
-  public void sendAuthenticationFailed() {
-    // TODO Auto-generated method stub
-    
+  public void sendAuthenticationFailed(String ssoServerUrl, String destination)
+      throws IOException {
+    StringBuffer location = request.getRequestURL();
+    if (destination != null && destination.trim().length() > 0) {
+      location.append("?d=").append(URLEncoder.encode(destination, "UTF-8"));
+    }
+    String returnUrl = URLEncoder.encode(location.toString(), "UTF-8");
+    response.sendRedirect(ssoServerUrl + returnUrl);
   }
 
   /**
    * @return
    */
   public String getUserName() {
-    // TODO Auto-generated method stub
+    try {
+      SSOTokenManager manager = SSOTokenManager.getInstance();
+      SSOToken token = manager.createSSOToken(request);
+      if (manager.isValidToken(token)) {
+        return token.getPrincipal().getName();
+      }
+    } catch (SSOException e) {
+      LOGGER.warn(e.getMessage(),e);
+    }
     return null;
   }
 

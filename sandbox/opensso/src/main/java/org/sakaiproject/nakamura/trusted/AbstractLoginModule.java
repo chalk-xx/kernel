@@ -128,6 +128,7 @@ public abstract class AbstractLoginModule implements LoginModulePlugin {
    * 
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#addPrincipals(java.util.Set)
    */
+  @SuppressWarnings("unchecked")
   public void addPrincipals(Set arg0) {
     // Since this plugin is a service, how can principals be added. Login modules are not
     // normally services, perhaps this should not be one.
@@ -157,6 +158,7 @@ public abstract class AbstractLoginModule implements LoginModulePlugin {
    * @see org.apache.sling.jcr.jackrabbit.server.security.LoginModulePlugin#doInit(javax.security.auth.callback.CallbackHandler,
    *      javax.jcr.Session, java.util.Map)
    */
+  @SuppressWarnings("unchecked")
   public void doInit(CallbackHandler cbHandler, Session session, Map props)
       throws LoginException {
     try {

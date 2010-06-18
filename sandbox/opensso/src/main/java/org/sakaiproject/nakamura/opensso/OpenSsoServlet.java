@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.commons.auth.Authenticator;
+import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 import org.sakaiproject.nakamura.api.doc.BindingType;
@@ -35,6 +36,9 @@ import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.trusted.AbstractAuthServlet;
+
+import java.io.IOException;
+import java.util.Dictionary;
 
 /**
  * The <code>OpenSsoServlet</code> provides an end point to login against. On GET it
@@ -73,20 +77,32 @@ public final class OpenSsoServlet extends AbstractAuthServlet {
   @Reference(cardinality=ReferenceCardinality.OPTIONAL_UNARY, policy=ReferencePolicy.DYNAMIC)
   protected Authenticator authenticator;
 
+  private String serverUrl;
+
   /**
    *
    */
   private static final long serialVersionUID = -6303432993222973296L;
 
+  @Property(value="https://login.nyu.edu/sso/UI/Login?goto=", description="The stub url of the Open SSO server")
+  private static final String SSO_SERVER_STUB_URL = "opensso.serverurl";
+
+  @SuppressWarnings("unchecked")
+  public void activate(ComponentContext context) {
+    Dictionary<String, Object> properties = context.getProperties();
+    serverUrl = (String) properties.get(SSO_SERVER_STUB_URL);
+  }
+  
   /**
    * modify the response object to generate an authentication failed response. This will be a redirect to the OpenSso login location.
    * @param request
    * @param response
+   * @throws IOException 
    */
   protected void sendAuthenticationFailed(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) {
+      SlingHttpServletResponse response) throws IOException {
     OpenSsoHandler openSsoHandler = new OpenSsoHandler(request, response);
-    openSsoHandler.sendAuthenticationFailed();
+    openSsoHandler.sendAuthenticationFailed(serverUrl, request.getParameter(PARAM_DESTINATION));
   }
 
   /**
