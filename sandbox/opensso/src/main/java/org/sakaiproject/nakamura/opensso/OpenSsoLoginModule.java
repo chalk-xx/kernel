@@ -20,7 +20,7 @@ package org.sakaiproject.nakamura.opensso;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationHandler.OpenSsoAuthentication;
-import org.sakaiproject.nakamura.trusted.AbstractLoginModule;
+import org.sakaiproject.nakamura.opensso.trusted.AbstractLoginModule;
 
 /**
  * A login module only configured to operate on OpenSsoAuthentication login attempts.
@@ -31,7 +31,7 @@ public final class OpenSsoLoginModule extends AbstractLoginModule {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.trusted.AbstractLoginModule#isAuthenticationValid(java.lang.Object)
+   * @see org.sakaiproject.nakamura.opensso.trusted.AbstractLoginModule#isAuthenticationValid(java.lang.Object)
    */
   @Override
   protected boolean isAuthenticationValid(Object authObj) {

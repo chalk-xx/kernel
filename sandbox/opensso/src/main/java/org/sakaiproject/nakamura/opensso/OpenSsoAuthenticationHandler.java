@@ -21,8 +21,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
-import org.sakaiproject.nakamura.trusted.AbstractAuthentication;
-import org.sakaiproject.nakamura.trusted.AbstractAuthenticationHandler;
+import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthentication;
+import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthenticationHandler;
 
 import javax.jcr.RepositoryException;
 import javax.servlet.http.HttpServletRequest;

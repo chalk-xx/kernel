@@ -28,12 +28,16 @@
             <Export-Package> org.sakaiproject.nakamura.api.opnesso.* </Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Import-Package>
+             !com.iplanet.*,
+             !com.sun.identity.*,
+             !netscape.ldap.*,
              *
             </Import-Package>
             <Private-Package>
               org.sakaiproject.nakamura.opensso.*
             </Private-Package>
             <Embed-Dependency>
+               opensso-20070905-nightly
             </Embed-Dependency>
           </instructions>
         </configuration>

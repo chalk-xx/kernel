@@ -35,7 +35,7 @@ import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
-import org.sakaiproject.nakamura.trusted.AbstractAuthServlet;
+import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthServlet;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -107,7 +107,7 @@ public final class OpenSsoServlet extends AbstractAuthServlet {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.trusted.AbstractAuthServlet#getAuthenticator()
+   * @see org.sakaiproject.nakamura.opensso.trusted.AbstractAuthServlet#getAuthenticator()
    */
   @Override
   protected Authenticator getAuthenticator() {
@@ -116,7 +116,7 @@ public final class OpenSsoServlet extends AbstractAuthServlet {
 
   /**
    * {@inheritDoc}
-   * @see org.sakaiproject.nakamura.trusted.AbstractAuthServlet#getTokenWrapper(org.sakaiproject.nakamura.trusted.AbstractAuthServlet)
+   * @see org.sakaiproject.nakamura.opensso.trusted.AbstractAuthServlet#getTokenWrapper(org.sakaiproject.nakamura.opensso.trusted.AbstractAuthServlet)
    */
   @Override
   protected TrustedTokenServiceWrapper getTokenWrapper() {
