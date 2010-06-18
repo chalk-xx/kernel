@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,14 +16,16 @@
  * specific language governing permissions and limitations under
  * the License.
  */
-package org.sakaiproject.nakamura.site.servlet;
+package org.sakaiproject.nakamura.site.join.servlet;
 
-import java.io.IOException;
-import javax.servlet.ServletException;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
 
 /**
  *
@@ -31,15 +33,16 @@ import org.apache.sling.api.servlets.SlingAllMethodsServlet;
  */
 @SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "deny")
 public class SiteJoinDenyServlet extends SlingAllMethodsServlet {
+  private static final long serialVersionUID = -7146621369733216817L;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    // make sure the request isn't already 'approved' or 'denied'
+    // make sure there is a 'pending' request
 
     // verify user making request is a maintainer of the site
 
-    // mark status as 'denied'
+    // remove the pending request
   }
 
 }

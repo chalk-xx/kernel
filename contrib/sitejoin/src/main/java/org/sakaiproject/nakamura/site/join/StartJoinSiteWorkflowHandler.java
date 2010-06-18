@@ -29,6 +29,8 @@ import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
 
 import java.util.HashMap;
 
+import javax.jcr.Session;
+
 /**
  *
  * @author chall
@@ -41,9 +43,25 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
   private MessagingService messagingService;
 
   public void handleEvent(Event event) {
+    Session session;
+    // #1 add user to the join requests of a site
+    createPendingRequest(event);
+
+    // #2 send message to site owner
+    sendMessage(event);
+  }
+
+  private void createPendingRequest(Event event) {
+    // create a node under /sites/mysite/joinrequests/u/us/user
+  }
+
+  private void sendMessage(Event event) {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
     String user = (String) event.getProperty(SiteEvent.USER);
     String group = (String) event.getProperty(SiteEvent.GROUP);
+    String siteOwner = null;
+    String subject = null;
+    String body = null;
 
     HashMap<String, Object> props = new HashMap<String, Object>();
     props.put("sakai:type", "internal");
@@ -54,9 +72,9 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     props.put("sakai:subject", subject);
     props.put("sakai:body", body);
     props.put("_charset_", "utf-8");
-    props.put("sakai:category", "joinrequest");
+    props.put("sakai:category", "invitation");
 
-    Session session;
+    Session session = null;
     messagingService.create(session, props);
   }
 
