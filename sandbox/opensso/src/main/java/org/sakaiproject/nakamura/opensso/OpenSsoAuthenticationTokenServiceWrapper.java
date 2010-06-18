@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.formauth;
+package org.sakaiproject.nakamura.opensso;
 
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
@@ -23,35 +23,40 @@ import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenServiceWrapper;
 
 /**
- *
+ * A protected class to allow the OpenSso Implementation to inject a trusted token into
+ * the response. It requires that the FQ class name is added to the list of classes able
+ * to do this in the TrustedTokenServiceImpl.
  */
-class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
+final class OpenSsoAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
   /**
-   * @param delegate
+   * @param delegate must be a TrustedTokenServiceImpl
    */
-  FormAuthenticationTokenServiceWrapper(FormLoginServlet servlet, TrustedTokenService delegate) {
-    super(validate(servlet,delegate));
+  OpenSsoAuthenticationTokenServiceWrapper(OpenSsoServlet servlet,
+      TrustedTokenService delegate) {
+    super(validate(servlet, delegate));
   }
 
   /**
-   * @param servlet
-   * @return
+   * @param servlet this must be a OpenSsoServlet from this classloader.
+   * @param delegate the TrustedTokenServiceImpl
+   * @return the delegate
    */
-  private static TrustedTokenService validate(FormLoginServlet servlet, TrustedTokenService delegate) {
-    if ( !FormLoginServlet.class.equals(servlet.getClass()) ) {
-      throw new IllegalArgumentException("Invalid use of FormAuthenticationTonkenService");
+  private static TrustedTokenService validate(OpenSsoServlet servlet,
+      TrustedTokenService delegate) {
+    if (!OpenSsoServlet.class.equals(servlet.getClass())) {
+      throw new IllegalArgumentException(
+          "Invalid use of OpenSsoAuthenticationTokenService");
     }
     return delegate;
   }
 
   /**
+   * Inject a token into the request.
    * @param request
    * @param response
    */
-  public final void addToken(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) {
+  public void addToken(SlingHttpServletRequest request, SlingHttpServletResponse response) {
     injectToken(request, response);
   }
-  
 
 }

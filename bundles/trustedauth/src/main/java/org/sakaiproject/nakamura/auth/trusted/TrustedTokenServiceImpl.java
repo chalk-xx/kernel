@@ -92,6 +92,10 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   @Property(value ="localhost;127.0.0.1", description="A ; seperated list of hosts that this instance trusts to make server connections.")
   public static final String SERVER_TOKEN_SAFE_HOSTS = "sakai.auth.trusted.server.safe-hosts";
 
+  @Property(value ="org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper", description="A ; seperated list of fully qualified class names that are allowed to extend the Wrapper Class.")
+  public static final String SERVER_TOKEN_SAFE_WRAPPERS = "sakai.auth.trusted.wrapper.class.names";
+
+  private static final String DEFAULT_WRAPPERS = "org.sakaiproject.nakamura.formauth.FormAuthenticationTokenServiceWrapper;org.sakaiproject.nakamura.opensso.OpenSsoAuthenticationTokenServiceWrapper";
   /**
    * If True, sessions will be used, if false cookies.
    */
@@ -146,6 +150,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
 
   private String safeHosts;
 
+  private String[] safeWrappers;
+
   /**
    * @throws NoSuchAlgorithmException
    * @throws InvalidKeyException
@@ -169,6 +175,11 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     sharedSecret = (String) props.get(SERVER_TOKEN_SHARED_SECRET);
     trustedTokenEnabled = (Boolean) props.get(SERVER_TOKEN_ENABLED);
     safeHosts = (String) props.get(SERVER_TOKEN_SAFE_HOSTS);
+    String wrappers = (String)props.get(SERVER_TOKEN_SAFE_WRAPPERS);
+    if ( wrappers == null || wrappers.length() == 0 ) {
+      wrappers = DEFAULT_WRAPPERS;
+    }
+    safeWrappers = StringUtils.split(wrappers, ";");
     
     String tokenFile = (String) props.get(TOKEN_FILE_NAME);
     String serverId = clusterTrackingService.getCurrentServerId();
@@ -178,6 +189,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
   public void activateForTesting() {
     testing = true;
     calls = new ArrayList<Object[]>();
+    safeWrappers = StringUtils.split(DEFAULT_WRAPPERS,";");
   }
   
   /**
@@ -476,6 +488,13 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
     String getUser() {
       return user;
     }
+  }
+
+  /**
+   * @return
+   */
+  public String[] getAuthorizedWrappers() {
+    return safeWrappers;
   }
 
 }
