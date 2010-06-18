@@ -31,7 +31,6 @@ import java.security.Principal;
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
 
 public class CasAuthentication implements AuthenticationPlugin {
   private SlingRepository repository;
@@ -39,26 +38,44 @@ public class CasAuthentication implements AuthenticationPlugin {
   private static final Logger LOGGER = LoggerFactory.getLogger(CasAuthentication.class);
 
   private Principal principal;
+  private CasAuthenticationHandler casAuthenticationHandler;
 
-  public CasAuthentication(Principal principal, SlingRepository repository) {
+  public CasAuthentication(Principal principal, SlingRepository repository,
+      CasAuthenticationHandler casAuthenticationHandler) {
     this.principal = principal;
     this.repository = repository;
+    this.casAuthenticationHandler = casAuthenticationHandler;
   }
 
+  /**
+   * {@inheritDoc}
+   * @see org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin#authenticate(javax.jcr.Credentials)
+   *
+   * No actual authentication takes place here. By now, the CAS supplied credentials
+   * will have been extracted and verified, and a getPrincipal() implementation will
+   * have handled any necessary translation from the CAS principal name to a
+   * Sling-appropriate principal. This only validates that the credentials
+   * actually did come from the CAS handler.
+   * <p>
+   * As a side-effect, however, this method will check for an existing Authorizable
+   * that matches the principal. If not found, it creates a new Jackrabbit user
+   * with all properties blank except for the ID and a randomly generated password.
+   * TODO This really needs to be dropped to allow for user pull, person directory
+   * integrations, etc.
+   */
   public boolean authenticate(Credentials credentials) throws RepositoryException {
     final String principalName = principal.getName();
-    if (credentials instanceof SimpleCredentials) {
-
+    if (casAuthenticationHandler.canHandle(credentials)) {
+      // Check for a matching Authorizable. If one isn't found, create
+      // a new user.
       Session session = null;
       try {
         session = repository.loginAdministrative(null); // usage checked and ok KERN-577
-
         UserManager userManager = AccessControlUtil.getUserManager(session);
         Authorizable authorizable = userManager.getAuthorizable(principalName);
-
         if (authorizable == null) {
           // create user
-          LOGGER.debug("Createing user {}", principalName);
+          LOGGER.debug("Creating user {}", principalName);
           userManager.createUser(principalName, RandomStringUtils.random(32));
         }
       } catch (RepositoryException e) {
@@ -69,10 +86,9 @@ public class CasAuthentication implements AuthenticationPlugin {
           session.logout();
         }
       }
+      return true;
     } else {
-      throw new RepositoryException("Can't authenticate credentials of type: "
-          + credentials.getClass());
+      return false;
     }
-    return ((SimpleCredentials) credentials).getUserID().equals(principalName);
   }
 }

@@ -8,7 +8,7 @@
     <version>0.6-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.opnesso</artifactId>
+  <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
