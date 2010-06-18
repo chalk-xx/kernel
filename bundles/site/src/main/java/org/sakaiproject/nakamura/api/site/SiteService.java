@@ -114,26 +114,6 @@ public interface SiteService {
   }
 
   /**
-   * Status of a join request
-   */
-  public enum JoinRequest {
-    /**
-     * Request is pending
-     */
-    pending(),
-
-    /**
-     * Request has been approved
-     */
-    approved(),
-
-    /**
-     * Request has been denied
-     */
-    denied();
-  }
-
-  /**
    * An Event Enumeration for all the events that the Site Service might emit.
    */
   public enum SiteEvent {

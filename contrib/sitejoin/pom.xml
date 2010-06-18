@@ -74,6 +74,12 @@
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
       <version>0.5</version>
     </dependency>
+
+<!-- jcr -->
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+    </dependency>
     
 <!-- testing -->
     <dependency>
