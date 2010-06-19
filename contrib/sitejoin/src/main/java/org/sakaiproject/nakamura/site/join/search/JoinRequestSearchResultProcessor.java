@@ -15,7 +15,7 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.site.search;
+package org.sakaiproject.nakamura.site.join.search;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
