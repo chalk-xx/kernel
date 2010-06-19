@@ -33,6 +33,11 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * A Handler class that encapsulates both extracting the userID from the request, and
  * formulating a redirect url to the central service.
+ * 
+ * 
+ * The protocol is documented here
+ * http://developers.sun.com/identity/reference/techart/troubleshooting2.html
+ * 
  */
 public class OpenSsoHandler {
 
