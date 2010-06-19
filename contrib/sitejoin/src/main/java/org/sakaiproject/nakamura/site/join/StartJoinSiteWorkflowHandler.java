@@ -21,14 +21,20 @@ package org.sakaiproject.nakamura.site.join;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
+import org.sakaiproject.nakamura.util.JcrUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
@@ -36,29 +42,46 @@ import javax.jcr.Session;
  * @author chall
  */
 @Component
-@Property(name = EventConstants.EVENT_TOPIC, value = SiteEvent.TOPIC + "startJoinWorkflow")
+@Property(name = EventConstants.EVENT_TOPIC, value = SiteEvent.TOPIC
+    + "startJoinWorkflow")
 public class StartJoinSiteWorkflowHandler implements EventHandler {
+  private static final Logger logger = LoggerFactory
+      .getLogger(StartJoinSiteWorkflowHandler.class);
+
+  @Reference
+  private SlingRepository repository;
 
   @Reference
   private MessagingService messagingService;
 
   public void handleEvent(Event event) {
-    Session session;
-    // #1 add user to the join requests of a site
-    createPendingRequest(event);
-
-    // #2 send message to site owner
-    sendMessage(event);
-  }
-
-  private void createPendingRequest(Event event) {
-    // create a node under /sites/mysite/joinrequests/u/us/user
-  }
-
-  private void sendMessage(Event event) {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
-    String user = (String) event.getProperty(SiteEvent.USER);
+    String userId = (String) event.getProperty(SiteEvent.USER);
     String group = (String) event.getProperty(SiteEvent.GROUP);
+
+    try {
+      Session session = repository.loginAdministrative(null);
+
+      // #1 add user to the join requests of a site
+      createPendingRequest(userId, sitePath, session);
+
+      // #2 send message to site owner
+      sendMessage(userId, session);
+    } catch (RepositoryException e) {
+      logger.error(e.getMessage(), e);
+    }
+  }
+
+  private void createPendingRequest(String userId, String sitePath, Session session)
+      throws RepositoryException {
+    // create a node under /sites/mysite/joinrequests/u/us/user
+    String requestPath = JoinRequestUtil.getPath(userId, sitePath, session);
+    Node requestNode = JcrUtils.deepGetOrCreateNode(session, requestPath);
+    requestNode.setProperty("sakai:requeststate", "pending");
+    session.save();
+  }
+
+  private void sendMessage(String userId, Session session) {
     String siteOwner = null;
     String subject = null;
     String body = null;
@@ -68,14 +91,13 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     props.put("sakai:sendstate", "pending");
     props.put("sakai:messagebox", "outbox");
     props.put("sakai:to", siteOwner);
-    props.put("sakai:from", user);
+    props.put("sakai:from", userId);
     props.put("sakai:subject", subject);
     props.put("sakai:body", body);
     props.put("_charset_", "utf-8");
     props.put("sakai:category", "invitation");
+    props.put("sakai:subcategory", "joinrequest");
 
-    Session session = null;
     messagingService.create(session, props);
   }
-
 }
