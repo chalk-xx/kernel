@@ -95,7 +95,7 @@ public class CreateExternalDocumentProxyServletTest extends AbstractDocProxyServ
 
     expect(request.getRemoteUser()).andReturn("admin");
     expect(request.getRequestParameter(PARAM_FILENAME)).andReturn(null);
-    addFileUploadRequestParameter(request, PARAM_FILEBODY, null, 0, "foo");
+    expect(request.getRequestParameter(PARAM_FILEBODY)).andReturn(null);
 
     response.sendError(HttpServletResponse.SC_BAD_REQUEST,
         "Not all required parameters were supplied.");
@@ -119,7 +119,7 @@ public class CreateExternalDocumentProxyServletTest extends AbstractDocProxyServ
     expect(request.getRequestURI()).andReturn("/docproxy/disk/README.metadata.json");
     expect(request.getResourceResolver()).andReturn(resolver);
 
-    expect(request.getRemoteUser()).andReturn("anon");
+    expect(request.getRemoteUser()).andReturn("anonymous");
     response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
         "Anonymous users can't post anything.");
 

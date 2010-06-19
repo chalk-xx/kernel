@@ -49,6 +49,9 @@ public class XythosDocumentResult implements ExternalDocumentResult {
       }
       if (document.containsKey("properties")) {
         this.properties = (Map<String,Object>) document.get("properties");
+        if (this.properties.containsKey("thumbnailUri")) {
+          this.properties.put("thumbnailUri", "/xythos" + (String)this.properties.get("thumbnailUri"));
+        }
       }
       this.uri = (String)document.get("uri");
     } else {

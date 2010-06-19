@@ -146,7 +146,7 @@ public class ExternalDocumentMetadataServlet extends SlingAllMethodsServlet {
       }
 
       // Anonymous users can't do anything.
-      if (request.getRemoteUser().equals("anon")) {
+      if (request.getRemoteUser().equals("anonymous")) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
             "Anonymous users can't post anything.");
         return;
