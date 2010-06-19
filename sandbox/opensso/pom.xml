@@ -8,7 +8,7 @@
     <version>0.6-SNAPSHOT</version>
   </parent>
   <groupId>org.sakaiproject.nakamura</groupId>
-  <artifactId>org.sakaiproject.nakamura.opensso</artifactId>
+  <artifactId>org.sakaiproject.nakamura.opnesso</artifactId>
   <version>0.6-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: Open SSO Authenticator</name>
@@ -27,17 +27,31 @@
             <Bundle-Category> sakai-nakamura </Bundle-Category>
             <Export-Package> org.sakaiproject.nakamura.api.opnesso.* </Export-Package>
             <Embed-Transitive>true</Embed-Transitive>
+            <!--
+            The following items have been excluded,
+            although they may require libraries
+             !com.sun.xml.rpc.encoding.*,
+             !javax.xml.rpc.*,
+             !sun.security.util.*, 
+             !com.sun.xml.rpc.*,
+             !sun.security.x509.*,
+             -->
             <Import-Package>
              !com.iplanet.*,
              !com.sun.identity.*,
              !netscape.ldap.*,
+             !com.sun.xml.rpc.encoding.*,
+             !javax.xml.rpc.*,
+             !sun.security.util.*, 
+             !com.sun.xml.rpc.*,
+             !sun.security.x509.*,
              *
             </Import-Package>
             <Private-Package>
               org.sakaiproject.nakamura.opensso.*
             </Private-Package>
             <Embed-Dependency>
-               opensso-20070905-nightly
+               opensso
             </Embed-Dependency>
           </instructions>
         </configuration>

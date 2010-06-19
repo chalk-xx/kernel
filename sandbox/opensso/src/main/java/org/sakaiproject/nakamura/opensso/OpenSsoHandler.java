@@ -58,8 +58,9 @@ public class OpenSsoHandler {
   public void sendAuthenticationFailed(String ssoServerUrl, String destination)
       throws IOException {
     StringBuffer location = request.getRequestURL();
+    location.append("?sakaiauth:login=2");
     if (destination != null && destination.trim().length() > 0) {
-      location.append("?d=").append(URLEncoder.encode(destination, "UTF-8"));
+      location.append("&d=").append(URLEncoder.encode(destination, "UTF-8"));
     }
     String returnUrl = URLEncoder.encode(location.toString(), "UTF-8");
     response.sendRedirect(ssoServerUrl + returnUrl);
@@ -70,11 +71,16 @@ public class OpenSsoHandler {
    */
   public String getUserName() {
     try {
+      System.err.println("Trying to get User");
+      SSOTokenManager.debug.setDebug("ERROR");
       SSOTokenManager manager = SSOTokenManager.getInstance();
       SSOToken token = manager.createSSOToken(request);
+      System.err.println("Got Token ");
       if (manager.isValidToken(token)) {
+        System.err.println("Token  Valid ");
         return token.getPrincipal().getName();
       }
+      System.err.println("Token Not Valid ");
     } catch (SSOException e) {
       LOGGER.warn(e.getMessage(),e);
     }

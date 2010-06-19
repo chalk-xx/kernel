@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -56,10 +57,7 @@ public abstract class AbstractAuthServlet extends SlingAllMethodsServlet {
   @Override
   protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-
-    response.setContentType("text/plain");
-    response.setCharacterEncoding("UTF-8");
-
+    doPost(request, response);
   }
 
   
@@ -73,6 +71,7 @@ public abstract class AbstractAuthServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     try {
+      String tryLogin = request.getParameter(TRY_LOGIN);
       if ("1".equals(request.getParameter(FORCE_LOGOUT))) {
         LOGGER.debug("logout");
         
@@ -86,14 +85,13 @@ public abstract class AbstractAuthServlet extends SlingAllMethodsServlet {
                   request.setAttribute(Authenticator.LOGIN_RESOURCE, resourcePath);
                 }
                 authenticator.logout(request, response);
-                return;
             } catch (IllegalStateException ise) {
               LOGGER.error("service: Response already committed, cannot logout");
-              return;
             }
+        } else {
+          LOGGER.error("service: Authenticator service missing, cannot logout");
         }
-        LOGGER.error("service: Authenticator service missing, cannot logout");
-      } else {
+      } else if (tryLogin != null && tryLogin.trim().length() > 0) {
 
         // was the request just authenticated ?
         // If the Formauthentication object got to this point, a session was created and
@@ -115,30 +113,35 @@ public abstract class AbstractAuthServlet extends SlingAllMethodsServlet {
             if (userId.equals(authUser)) {
               TrustedTokenServiceWrapper trustedTokenServiceWrapper = getTokenWrapper();
               trustedTokenServiceWrapper.addToken(request, response);
-            } else {
-              LOGGER.warn("Authentication failed for {} session user was {}", authUser, userId);
-              sendAuthenticationFailed(request, response);
+              System.err.println("ADDED Token for "+authUser+" session user was "+userId);
+          
+              String destination = request.getParameter(PARAM_DESTINATION);
+
+              if (destination != null) {
+                // ensure that the redirect is safe and not susceptible to hacking
+                response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
+              }
+              response.setContentType("text/plain");
+              response.setCharacterEncoding("UTF-8");
+              response.getWriter().println("Ok");
               return;
             }
           }
-          
-          String destination = request.getParameter(PARAM_DESTINATION);
-
-          if (destination != null) {
-            // ensure that the redirect is safe and not susceptible to hacking
-            response.sendRedirect(destination.replace('\n', ' ').replace('\r', ' '));
-            return;
-          }
-
-        } else {
-          LOGGER.debug("No Authentication Provided ");
         }
+        LOGGER.debug("Authentication failed");
+        System.err.println("Authentication failed");
+        if ( "2".equals(tryLogin) ) {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
+        } else {
+          sendAuthenticationFailed(request, response);
+        }
+      } else {
+        response.setContentType("text/plain");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().println("User sakaiauth:login=1 to login and sakaiauth:logout = 1 to logout");
       }
-      doGet(request, response);
-      return;
-    } catch (IllegalStateException ise) {
-      LOGGER.error("doPOST: Response already committed, cannot login");
-      return;
+    } catch (IllegalStateException e) {
+      LOGGER.error(" cannot login "+e.getMessage(),e);
     }
   }
 

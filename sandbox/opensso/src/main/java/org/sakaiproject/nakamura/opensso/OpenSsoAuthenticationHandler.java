@@ -18,8 +18,10 @@
 package org.sakaiproject.nakamura.opensso;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.sling.commons.auth.spi.AuthenticationHandler;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthentication;
 import org.sakaiproject.nakamura.opensso.trusted.AbstractAuthenticationHandler;
@@ -37,6 +39,21 @@ import javax.servlet.http.HttpServletResponse;
 public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHandler {
 
   /**
+   * Path on which this authentication should be activated. Its active on all paths, as
+   * the authentication itself is performed by the TrustedAuthenticationServlet that
+   * places credentials in the session. Those credentials are then used to authenticate
+   * all subsequent requests.
+   */
+  @Property(value = "/")
+  static final String PATH_PROPERTY = AuthenticationHandler.PATH_PROPERTY;
+
+  @Property(value = "Open SSO Authentication Handler")
+  static final String DESCRIPTION_PROPERTY = "service.description";
+
+  @Property(value = "The Sakai Foundation")
+  static final String VENDOR_PROPERTY = "service.vendor";
+
+  /**
    * Internal protected final Authentication object, that is injected into the
    * creadentials (for use by the LoginModule) and the request for use by the
    * OpenSsoServlet as attributes. The class will be created with valid == false if the
@@ -52,6 +69,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
      */
     OpenSsoAuthentication(HttpServletRequest request, HttpServletResponse response) {
       super(request, response);
+      System.err.println(" Creating authentication valid:"+isValid());
     }
 
     /**
@@ -131,6 +149,7 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
   @Override
   protected final AbstractAuthentication createAuthenticationObject(
       HttpServletRequest request, HttpServletResponse response) {
+    System.err.println(" Creating authentication object ");
     return new OpenSsoAuthentication(request, response);
   }
 
@@ -143,5 +162,8 @@ public final class OpenSsoAuthenticationHandler extends AbstractAuthenticationHa
   protected SlingRepository getRespository() {
     return repository;
   }
+  
+  
+  
 
 }

@@ -19,6 +19,10 @@ package org.sakaiproject.nakamura.opensso.trusted;
 
 import org.slf4j.LoggerFactory;
 
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.jcr.Credentials;
 import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
@@ -44,28 +48,62 @@ public abstract class AbstractAuthentication {
   protected AbstractAuthentication(HttpServletRequest request, HttpServletResponse response) {
     forceLogout = false;
     valid = false;
-    if ("POST".equals(request.getMethod())) {
-      if ("1".equals(request.getParameter(AbstractAuthServlet.TRY_LOGIN))) {
-                 
-        String userName = getUserName(request, response);
-        if ( userName != null ) {
-          credentials = new SimpleCredentials(userName,
-              new char[0]);
-          valid = true;
-          credentials.setAttribute(AbstractAuthenticationHandler.AUTHENTICATION_OBJECT, this);
-          
-          try {
-            createUser(userName);
-          } catch (RepositoryException e) {
-            LoggerFactory.getLogger(getClass()).debug("Failed to auto populate with a user ");
-          } 
+    dumpRequest(request);
+    String tryLogin = request.getParameter(AbstractAuthServlet.TRY_LOGIN);
+    if ( tryLogin != null && tryLogin.trim().length() > 0 ) {
+
+      String userName = getUserName(request, response);
+      if (userName != null) {
+        credentials = new SimpleCredentials(userName, new char[0]);
+        valid = true;
+        credentials.setAttribute(AbstractAuthenticationHandler.AUTHENTICATION_OBJECT,
+            this);
+
+        try {
+          createUser(userName);
+        } catch (RepositoryException e) {
+          LoggerFactory.getLogger(getClass()).debug(
+              "Failed to auto populate with a user ");
         }
-      } else {
-        LoggerFactory.getLogger(getClass()).debug("Login was not requested ");
       }
+      System.err.println("Login was requested ");
+    } else {
+      LoggerFactory.getLogger(getClass()).debug("Login was not requested ");
+      System.err.println("Login was not requested ");
     }
+
   }
   
+  /**
+   * @param request
+   */
+  private void dumpRequest(HttpServletRequest request) {
+    System.err.println("Request is ["+request+"]");
+    for ( Enumeration<?> e = request.getParameterNames(); e.hasMoreElements(); ) {
+      String name = (String) e.nextElement();
+      System.err.println("Parameter Name ["+name+"]["+request.getParameter(name)+"]");
+    }
+    Map<String, Object> pmap = request.getParameterMap();
+    
+    System.err.println("Parameter Map ["+pmap+"]");
+    for ( Entry<String, Object> ev : pmap.entrySet()) {
+      System.err.println("Map Name ["+ev.getKey()+"] ["+ev.getValue()+"]");
+    }
+    
+    for ( Enumeration<?> e = request.getAttributeNames(); e.hasMoreElements(); ) {
+      String name = (String) e.nextElement();
+      System.err.println("Attribute Name ["+name+"]["+request.getAttribute(name)+"]");
+    }
+    
+    for ( Enumeration<?> e = request.getHeaderNames(); e.hasMoreElements(); ) {
+      String name = (String) e.nextElement();
+      System.err.println("Header Name ["+name+"]["+request.getHeader(name)+"]");
+    }
+    
+    System.err.println("The Query String IS ["+request.getQueryString()+"]");
+    System.err.println("Starting to get Authentication ["+request.getParameter(AbstractAuthServlet.TRY_LOGIN)+"]");
+  }
+
   /**
    * Create a user in the repository, this may be disabled if the Authentication Mechanism should
    * not create a user in the respository and just fail to authenticate.

@@ -90,6 +90,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
   public AuthenticationInfo extractCredentials(HttpServletRequest request,
       HttpServletResponse response) {
     // no session authentication info, try the request
+    System.err.println(" Extracting Credentials ");
 
     AbstractAuthentication authentication = createAuthenticationObject(request, response);
     if (authentication.isValid()) {
