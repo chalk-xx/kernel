@@ -18,14 +18,23 @@
  */
 package org.sakaiproject.nakamura.site.join.servlet;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestUtil;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -35,14 +44,43 @@ import javax.servlet.ServletException;
 public class SiteJoinDenyServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -7146621369733216817L;
 
+  @Reference
+  private SiteService siteService;
+
+  @Reference
+  private SlingRepository slingRepository;
+
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    // make sure there is a 'pending' request
+    String paramUser = request.getParameter(SiteService.SiteEvent.USER);
 
-    // verify user making request is a maintainer of the site
+    try {
+      Node site = request.getResource().adaptTo(Node.class);
+      Session session = slingRepository.loginAdministrative(null);
 
-    // remove the pending request
+      // get the join request
+      Node joinRequest = JoinRequestUtil.getRequest(site.getPath(), paramUser, session);
+      String requestState = null;
+      if (!joinRequest.hasProperty(JoinRequestConstants.PROP_REQUEST_STATE)) {
+        requestState = joinRequest.getProperty(JoinRequestConstants.PROP_REQUEST_STATE)
+            .getString();
+      }
+
+      // verify join request is 'pending'
+      // verify user making request is a maintainer of the site
+      if ("pending".equals(requestState) && siteService.isUserSiteMaintainer(site)) {
+
+        // remove the pending request
+        joinRequest.remove();
+      }
+
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    }
   }
 
 }

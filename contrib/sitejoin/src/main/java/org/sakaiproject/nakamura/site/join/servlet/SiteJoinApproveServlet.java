@@ -18,14 +18,33 @@
  */
 package org.sakaiproject.nakamura.site.join.servlet;
 
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
+import org.apache.jackrabbit.api.security.user.Authorizable;
+import org.apache.jackrabbit.api.security.user.Group;
+import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
+import org.apache.sling.jcr.api.SlingRepository;
+import org.apache.sling.jcr.base.util.AccessControlUtil;
+import org.osgi.service.event.EventAdmin;
+import org.sakaiproject.nakamura.api.site.SiteException;
+import org.sakaiproject.nakamura.api.site.SiteService;
+import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestUtil;
+import org.sakaiproject.nakamura.site.SiteEventUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -34,19 +53,76 @@ import javax.servlet.ServletException;
 @SlingServlet(resourceTypes = "sakai/site", methods = "POST", selectors = "approve")
 public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
   private static final long serialVersionUID = -522151562754810962L;
+  private static final Logger logger = LoggerFactory
+      .getLogger(SiteJoinApproveServlet.class);
+
+  @Reference
+  private EventAdmin eventAdmin;
+
+  @Reference
+  private SiteService siteService;
+
+  @Reference
+  private SlingRepository slingRepository;
 
   @Override
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
-    // make sure the user isn't already part of the site
+    String paramUser = request.getParameter(SiteService.SiteEvent.USER);
+    String paramGroup = request.getParameter(SiteService.SiteEvent.GROUP);
 
-    // make sure there is a 'pending' request
+    try {
+      Node site = request.getResource().adaptTo(Node.class);
+      Session session = slingRepository.loginAdministrative(null);
+      UserManager userManager = AccessControlUtil.getUserManager(session);
 
-    // verify user making request is a maintainer of the site
+      // default to 'viewer' group if none specified
+      if (paramGroup == null || paramGroup.length() == 0) {
+        paramGroup = "g-" + site.getIdentifier() + "-viewer";
+      }
+      Group groupAuth = (Group) userManager.getAuthorizable(paramGroup);
+      Authorizable userAuth = userManager.getAuthorizable(paramUser);
 
-    // add user to the site's group
+      // get the join request
+      Node joinRequest = JoinRequestUtil.getRequest(site.getPath(), paramUser, session);
+      String requestState = null;
+      if (!joinRequest.hasProperty(JoinRequestConstants.PROP_REQUEST_STATE)) {
+        requestState = joinRequest.getProperty(JoinRequestConstants.PROP_REQUEST_STATE)
+            .getString();
+      }
 
-    // remove the pending request
+      // verify join request is 'pending'
+      // verify the user isn't already part of the site
+      // verify user making request is a maintainer of the site
+      if ("pending".equals(requestState) && !siteService.isMember(site, userAuth)
+          && siteService.isUserSiteMaintainer(site)) {
+
+        // add user to the site's group
+        groupAuth.addMember(userAuth);
+        postEvent(SiteEvent.joinedSite, site, groupAuth);
+
+        // remove the pending request
+        joinRequest.remove();
+      }
+
+      if (session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } catch (SiteException e) {
+      response.sendError(e.getStatusCode(), e.getMessage());
+    }
   }
 
+  private void postEvent(SiteEvent event, Node site, Group targetGroup)
+      throws SiteException {
+    try {
+      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup));
+    } catch (RepositoryException ex) {
+      logger.warn(ex.getMessage(), ex);
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+          ex.getMessage());
+    }
+  }
 }

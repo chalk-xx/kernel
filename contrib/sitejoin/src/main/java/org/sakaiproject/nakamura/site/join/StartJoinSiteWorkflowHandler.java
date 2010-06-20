@@ -27,6 +27,8 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.api.site.SiteService.SiteEvent;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestConstants;
+import org.sakaiproject.nakamura.api.site.join.JoinRequestUtil;
 import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +65,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
       Session session = repository.loginAdministrative(null);
 
       // #1 add user to the join requests of a site
-      createPendingRequest(userId, sitePath, session);
+      createPendingRequest(userId, group, sitePath, session);
 
       // #2 send message to site owner
       sendMessage(userId, session);
@@ -72,12 +74,13 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     }
   }
 
-  private void createPendingRequest(String userId, String sitePath, Session session)
-      throws RepositoryException {
+  private void createPendingRequest(String userId, String group, String sitePath,
+      Session session) throws RepositoryException {
     // create a node under /sites/mysite/joinrequests/u/us/user
-    String requestPath = JoinRequestUtil.getPath(userId, sitePath, session);
+    String requestPath = JoinRequestUtil.getPath(sitePath, userId, session);
     Node requestNode = JcrUtils.deepGetOrCreateNode(session, requestPath);
-    requestNode.setProperty("sakai:requeststate", "pending");
+    requestNode.setProperty(JoinRequestConstants.PROP_REQUEST_STATE, "pending");
+    requestNode.setProperty(JoinRequestConstants.PROP_TARGET_GROUP, group);
     session.save();
   }
 
