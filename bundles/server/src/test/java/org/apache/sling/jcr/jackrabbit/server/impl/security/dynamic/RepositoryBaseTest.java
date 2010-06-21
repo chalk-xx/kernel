@@ -276,17 +276,22 @@ public class RepositoryBaseTest {
           vf.createValue(range[3]) };
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range[0]));
 
-      Property[] p = ruleAclModifier.setProperties(resourcePath, session, principal,
+      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
           ruleProperties);
-      Assert.assertEquals(1, p.length);
-      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p[0].getName());
-      Assert.assertEquals(range[0], p[0].getString());
+      Assert.assertEquals(1, propMap.size());
+      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
+      Property sp = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);
+      Assert.assertEquals(range[0], sp.getString());
 
+      LOGGER.info("Setting Active Range to an array ++++++++++++++++");
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, ranges);
-      p = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      propMap = ruleAclModifier.setProperties(resourcePath, session, principal, ruleProperties);
+      LOGGER.info("Setting Active Range to an array ----------------");
+      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
+      Property[] p = (Property[]) propMap.get(RulesBasedAce.P_ACTIVE_RANGE); 
       Assert.assertEquals(3, p.length);
       for (int i = 0; i < 3; i++) {
-        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE + i, p[i].getName());
+        Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE+i, p[i].getName());
         Assert.assertEquals(range[i + 1], p[i].getString());
       }
     } finally {
@@ -401,11 +406,12 @@ public class RepositoryBaseTest {
 
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
 
-      Property[] p = ruleAclModifier.setProperties(resourcePath, session, principal,
+      Map<String, Object> propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
           ruleProperties);
-      Assert.assertEquals(1, p.length);
-      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p[0].getName());
-      Assert.assertEquals(range, p[0].getString());
+      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
+      Property p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE); 
+      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
+      Assert.assertEquals(range, p.getString());
 
       if ( session.hasPendingChanges() ) {
         session.save();
@@ -449,11 +455,13 @@ public class RepositoryBaseTest {
 
       ruleProperties.put(RulesBasedAce.P_ACTIVE_RANGE, vf.createValue(range));
 
-      p = ruleAclModifier.setProperties(resourcePath, session, principal,
+      propMap = ruleAclModifier.setProperties(resourcePath, session, principal,
           ruleProperties);
-      Assert.assertEquals(1, p.length);
-      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p[0].getName());
-      Assert.assertEquals(range, p[0].getString());
+      Assert.assertEquals(1, propMap.size());
+      Assert.assertTrue(propMap.containsKey(RulesBasedAce.P_ACTIVE_RANGE));
+      p = (Property) propMap.get(RulesBasedAce.P_ACTIVE_RANGE);      
+      Assert.assertEquals(RulesBasedAce.P_ACTIVE_RANGE, p.getName());
+      Assert.assertEquals(range, p.getString());
 
       if ( session.hasPendingChanges() ) {
         session.save();

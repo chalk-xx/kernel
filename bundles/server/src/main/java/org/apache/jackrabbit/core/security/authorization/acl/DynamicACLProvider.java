@@ -56,7 +56,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.Value;
-import javax.jcr.ValueFormatException;
 import javax.jcr.security.AccessControlEntry;
 import javax.jcr.security.AccessControlManager;
 import javax.jcr.security.Privilege;
@@ -304,8 +303,8 @@ public class DynamicACLProvider extends ACLProvider {
       RulesPrincipal.checkValid(aceNode.getProperty(AccessControlConstants.P_PRINCIPAL_NAME).getString());
       long now = System.currentTimeMillis();
 
-      if ( aceNode.hasProperty(RulesBasedAce.P_ACTIVE_RANGE)) {
-        Value[] activeRanges = getValues(aceNode.getProperty(RulesBasedAce.P_ACTIVE_RANGE));
+      Value[] activeRanges = getValues(RulesBasedAce.P_ACTIVE_RANGE, aceNode);
+      if ( activeRanges != null ) {
         for ( Value r : activeRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);
@@ -317,9 +316,10 @@ public class DynamicACLProvider extends ACLProvider {
         }
         return false; // it had active times but none matched
       }
-      if ( aceNode.hasProperty(RulesBasedAce.P_INACTIVE_RANGE)) {
-        Value[] activeRanges = getValues(aceNode.getProperty(RulesBasedAce.P_INACTIVE_RANGE));
-        for ( Value r : activeRanges) {
+      
+      Value[] inactiveRanges = getValues(RulesBasedAce.P_INACTIVE_RANGE,aceNode);
+      if ( inactiveRanges != null ) {
+        for ( Value r : inactiveRanges) {
           String[] range = StringUtils.split(r.getString(),'/');
           ISO8601Date from = new ISO8601Date(range[0]);
           ISO8601Date to = new ISO8601Date(range[1]);
@@ -339,15 +339,31 @@ public class DynamicACLProvider extends ACLProvider {
   }
 
   /**
+   * Get the range of ACLs taking into account multiple property nameing, required by the ACL node schema. (it cant hold array properties)
    * @param property
    * @return
    * @throws RepositoryException
    */
+  private Value[] getValues(String propertyName, NodeImpl node) throws RepositoryException {
+    List<Value> values = new ArrayList<Value>();
+    if ( node.hasProperty(propertyName)) {
+      values.add(node.getProperty(propertyName).getValue());
+    }
+    for ( int i = 0; i < 100; i++ ) {
+      if ( node.hasProperty(propertyName+i)) {
+        values.add(node.getProperty(propertyName+i).getValue());
+      } else {
+        break;
+      }
+    }
+    return values.toArray(new Value[values.size()]);
+  }
+  
   private Value[] getValues(Property property) throws RepositoryException {
-    if ( property.isMultiple() ) {
+    if ( property.isMultiple()) {
       return property.getValues();
     } else {
-      return new Value[] {property.getValue() };
+      return new Value[] {property.getValue()};
     }
   }
 

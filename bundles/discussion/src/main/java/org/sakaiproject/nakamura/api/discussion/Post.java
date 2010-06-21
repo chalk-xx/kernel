@@ -27,6 +27,8 @@ import org.apache.sling.commons.json.io.JSONWriter;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.sakaiproject.nakamura.api.message.MessageConstants;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.sakaiproject.nakamura.util.StringUtils;
 import org.slf4j.Logger;
@@ -140,7 +142,7 @@ public class Post {
     return false;
   }
 
-  public void outputPostAsJSON(JSONWriter writer) throws JSONException,
+  public void outputPostAsJSON(JSONWriter writer, PresenceService presenceService) throws JSONException,
       RepositoryException {
     boolean canEdit = checkEdit();
     boolean canDelete = checkDelete();
@@ -155,7 +157,7 @@ public class Post {
     if (isDeleted && !canDelete) {
       // This post has been deleted and we dont have sufficient rights to edit, so we just
       // show the replies.
-      outputChildrenAsJSON(writer);
+      outputChildrenAsJSON(writer, presenceService);
     } else {
       writer.object();
 
@@ -181,7 +183,10 @@ public class Post {
         writer.key(DiscussionConstants.PROP_EDITEDBYPROFILES);
         writer.array();
         for (int i = 0; i < edittedBy.length; i++) {
-          PersonalUtils.writeCompactUserInfo(session, edittedBy[i], writer);
+          writer.object();
+          PersonalUtils.writeCompactUserInfoContent(session, edittedBy[i], writer);
+          PresenceUtils.makePresenceJSON(writer, edittedBy[i], presenceService, true);
+          writer.endObject();
         }
         writer.endArray();
       }
@@ -192,7 +197,10 @@ public class Post {
       String[] senders = StringUtils.split(fromVal, ',');
       writer.array();
       for (String sender : senders) {
-        PersonalUtils.writeCompactUserInfo(session, sender, writer);
+        writer.object();
+        PersonalUtils.writeCompactUserInfoContent(session, sender, writer);
+        PresenceUtils.makePresenceJSON(writer, sender, presenceService, true);
+        writer.endObject();
       }
       writer.endArray();
       writer.endObject();
@@ -200,18 +208,18 @@ public class Post {
       // All the replies on this post.
       writer.key("replies");
       writer.array();
-      outputChildrenAsJSON(writer);
+      outputChildrenAsJSON(writer, presenceService);
       writer.endArray();
 
       writer.endObject();
     }
   }
 
-  public void outputChildrenAsJSON(JSONWriter writer) throws JSONException,
+  public void outputChildrenAsJSON(JSONWriter writer, PresenceService presenceService) throws JSONException,
       RepositoryException {
     LOG.info("this post {} has {} children", getPostId(), getChildren().size());
     for (Post p : children) {
-      p.outputPostAsJSON(writer);
+      p.outputPostAsJSON(writer, presenceService);
     }
   }
 

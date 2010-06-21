@@ -38,7 +38,7 @@ module SlingFile
     end
     
     def myfiles(search)
-      return @sling.execute_get(@sling.url_for("/var/search/files/myfiles.json?search=#{search}"))
+      return @sling.execute_get(@sling.url_for("/var/search/files/myfiles.json?q=#{search}"))
     end
     
     

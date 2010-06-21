@@ -21,7 +21,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.sakaiproject.nakamura.api.message.MessageProfileWriter;
-import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +48,7 @@ public class MessageProfileWriterTracker extends ServiceTracker {
   @Override
   public Object addingService(ServiceReference reference) {
     Object service = super.addingService(reference);
-    if (service instanceof SearchResultProcessor) {
+    if (service instanceof MessageProfileWriter) {
       MessageProfileWriter writer = (MessageProfileWriter) context.getService(reference);
       putWriter(writer);
 

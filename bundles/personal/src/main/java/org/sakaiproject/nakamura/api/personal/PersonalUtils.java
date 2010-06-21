@@ -50,6 +50,36 @@ public class PersonalUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(PersonalUtils.class);
 
   /**
+   * A wrapper around writeUserInfoContent. It will put the output of that method in
+   * another object.
+   * 
+   * @param session
+   *          The JCR Session
+   * @param user
+   *          The user name
+   * @param write
+   *          The writer to write to.
+   * @param jsonName
+   *          The name that should be used for the json key.
+   * @throws ValueFormatException
+   * @throws PathNotFoundException
+   * @throws RepositoryException
+   * @throws JSONException
+   */
+  public static void writeUserInfo(Session session, String user, JSONWriter write,
+      String jsonName) {
+    try {
+      // We can't have anymore exceptions from now on.
+      write.key(jsonName);
+      write.object();
+      writeUserInfoContent(session, user, write);
+      write.endObject();
+    } catch (Exception ex) {
+      LOGGER.warn(ex.getMessage());
+    }
+  }
+
+  /**
    * Writes userinfo out for a property in a node. Make sure that the resultNode has a
    * property with propertyName that contains a userid.
    * 
@@ -59,29 +89,21 @@ public class PersonalUtils {
    *          The user name
    * @param write
    *          The writer to write to.
-   * @param jsonName
-   *          The json name that should be used.
    * @throws ValueFormatException
    * @throws PathNotFoundException
    * @throws RepositoryException
    * @throws JSONException
    */
-  public static void writeUserInfo(Session session, String user, JSONWriter write,
-      String jsonName) {
+  public static void writeUserInfoContent(Session session, String user, JSONWriter write) {
     try {
       Authorizable au = getAuthorizable(session, user);
       String path = PersonalUtils.getProfilePath(au);
-      LOGGER.info("Hashing {} as {} ",au.getID(),path);
       String hash = getUserHashedPath(au);
       Node userNode = (Node) session.getItem(path);
       // We can't have anymore exceptions from now on.
-      write.key(jsonName);
-      write.object();
       write.key("hash");
       write.value(hash);
       ExtendedJSONWriter.writeNodeContentsToWriter(write, userNode);
-      write.endObject();
-
     } catch (PathNotFoundException pnfe) {
       LOGGER.warn("Profile path not found for this user.");
     } catch (Exception ex) {
@@ -100,11 +122,34 @@ public class PersonalUtils {
     if (au.hasProperty("path")) {
       hash = au.getProperty("path")[0].getString();
     } else {
-      LOGGER.warn("Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!", au);
+      LOGGER
+          .warn(
+              "Authorizable {} has no path property set on it, grabbing hash from ItemBasedPrincipal!",
+              au);
       ItemBasedPrincipal principal = (ItemBasedPrincipal) au;
       hash = principal.getPath();
     }
     return hash;
+  }
+
+  /**
+   * Wrapper around writeCompactUserInfoContent that places the output in a JSON object.
+   * 
+   * @param session
+   *          The {@link Session session} to access the authprofile.
+   * @param user
+   *          The userid to look up
+   * @param write
+   *          The {@link JSONWriter writer} to write to.
+   */
+  public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
+    try {
+      write.object();
+      writeCompactUserInfoContent(session, user, write);
+      write.endObject();
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
+    }
   }
 
   /**
@@ -118,18 +163,22 @@ public class PersonalUtils {
    * @param write
    *          The {@link JSONWriter writer} to write to.
    */
-  public static void writeCompactUserInfo(Session session, String user, JSONWriter write) {
+  public static void writeCompactUserInfoContent(Session session, String user,
+      JSONWriter write) {
     try {
       Authorizable au = getAuthorizable(session, user);
       String profilePath = PersonalUtils.getProfilePath(au);
       String hash = getUserHashedPath(au);
-      write.object();
       write.key("userid");
       write.value(user);
       write.key("hash");
       write.value(hash);
       try {
         Node profileNode = (Node) session.getItem(profilePath);
+        write.key("jcr:path");
+        write.value(profileNode.getPath());
+        write.key("jcr:name");
+        write.value(profileNode.getName());
         writeValue("firstName", profileNode, write);
         writeValue("lastName", profileNode, write);
         writeValue("picture", profileNode, write);
@@ -137,7 +186,6 @@ public class PersonalUtils {
         // The provided user-string is probably not a user id.
         LOGGER.error(e.getMessage(), e);
       }
-      write.endObject();
     } catch (JSONException e) {
       LOGGER.error(e.getMessage(), e);
     } catch (RepositoryException e) {
@@ -187,7 +235,6 @@ public class PersonalUtils {
     String user = resultNode.getProperty(propertyName).getString();
     writeUserInfo(resultNode.getSession(), user, write, jsonName);
   }
-
 
   public static String getPrimaryEmailAddress(Node profileNode)
       throws RepositoryException {

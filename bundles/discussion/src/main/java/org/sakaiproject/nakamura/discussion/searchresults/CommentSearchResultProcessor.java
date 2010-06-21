@@ -20,11 +20,13 @@ package org.sakaiproject.nakamura.discussion.searchresults;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
 import org.sakaiproject.nakamura.api.discussion.Post;
+import org.sakaiproject.nakamura.api.presence.PresenceService;
 import org.sakaiproject.nakamura.api.search.Aggregator;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
@@ -51,6 +53,9 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
   @Property(value = "Comment")
   static final String SEARCH_PROCESSOR = "sakai.search.processor";
 
+  @Reference
+  protected transient PresenceService presenceService;
+
   public void writeNode(SlingHttpServletRequest request, JSONWriter write,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Session session = request.getResourceResolver().adaptTo(Session.class);
@@ -59,7 +64,7 @@ public class CommentSearchResultProcessor implements SearchResultProcessor {
       aggregator.add(node);
     }
     Post p = new Post(node);
-    p.outputPostAsJSON(write);
+    p.outputPostAsJSON(write, presenceService);
   }
   
   /**

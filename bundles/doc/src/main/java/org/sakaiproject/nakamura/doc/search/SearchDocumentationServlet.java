@@ -32,7 +32,6 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.doc.DocumentationWriter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.RepositoryException;
@@ -57,19 +56,19 @@ public class SearchDocumentationServlet extends SlingSafeMethodsServlet {
   private static final String PATH_PARAM = "p";
 
   @Override
-  protected void doGet(SlingHttpServletRequest request,
-      SlingHttpServletResponse response) throws ServletException, IOException {
+  protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
+      throws ServletException, IOException {
 
     RequestParameter path = request.getRequestParameter(PATH_PARAM);
     Session session = request.getResourceResolver().adaptTo(Session.class);
-    PrintWriter writer = response.getWriter();
+    DocumentationWriter docWriter = new DocumentationWriter("Search nodes", response
+        .getWriter());
     try {
       if (path != null) {
-        DocumentationWriter.writeSearchInfo(path.getString(), session, writer);
+        docWriter.writeSearchInfo(path.getString(), session);
       } else {
         String query = "//*[@sling:resourceType='sakai/search']";
-        DocumentationWriter.writeNodes(session, writer, query,
-            DocumentationConstants.PREFIX + "/proxy");
+        docWriter.writeNodes(session, query, DocumentationConstants.PREFIX + "/proxy");
       }
     } catch (ItemNotFoundException e) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);

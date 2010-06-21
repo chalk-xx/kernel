@@ -17,6 +17,8 @@
  */
 package org.sakaiproject.nakamura.files.servlets;
 
+import static org.sakaiproject.nakamura.api.search.SearchConstants.SAKAI_EXCLUDE_TREE;
+
 import static org.apache.sling.jcr.resource.JcrResourceConstants.SLING_RESOURCE_TYPE_PROPERTY;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -48,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -56,7 +57,6 @@ import javax.jcr.Session;
 import javax.jcr.Workspace;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
 import javax.jcr.query.RowIterator;
 import javax.servlet.ServletException;
 
@@ -194,6 +194,7 @@ public class TagServletTest {
       throws PathNotFoundException, RepositoryException {
     Node node = new MockNode(path);
     node.setProperty(JcrConstants.JCR_PRIMARYTYPE, "nt:file");
+    node.setProperty(SAKAI_EXCLUDE_TREE, false);
     when(session.getItem(path)).thenReturn(node);
     nodes.add(node);
     return node;

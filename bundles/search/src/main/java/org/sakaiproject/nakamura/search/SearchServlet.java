@@ -206,8 +206,8 @@ public class SearchServlet extends SlingSafeMethodsServlet {
   private List<ServiceReference> delayedPropertyReferences = new ArrayList<ServiceReference>();
   private List<ServiceReference> delayedBatchReferences = new ArrayList<ServiceReference>();
 
-  @Property(name="maximumResults", longValue=2500L  )
-  private long maximumResults;
+  @Property(name = "maximumResults", longValue = 2500L)
+  protected long maximumResults;
 
   // Default processors
   protected transient SearchBatchResultProcessor defaultSearchBatchProcessor;
@@ -319,7 +319,6 @@ public class SearchServlet extends SlingSafeMethodsServlet {
           response.sendError(e.getCode(), e.getMessage());
           return;
         }
-
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

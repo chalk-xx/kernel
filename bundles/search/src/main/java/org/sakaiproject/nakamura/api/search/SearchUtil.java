@@ -20,7 +20,6 @@ package org.sakaiproject.nakamura.api.search;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_ITEMS_PER_PAGE;
 import static org.sakaiproject.nakamura.api.search.SearchConstants.PARAMS_PAGE;
 
-import org.apache.jackrabbit.util.Text;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.jcr.jackrabbit.server.index.QueryHitsExtractor;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.RepositoryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryResult;
-import javax.jcr.query.RowIterator;
 
 /**
  *
@@ -58,7 +56,7 @@ public class SearchUtil {
       long hits = getHits(rs);
 
       // Do the paging on the iterator.
-      RowIterator iterator = rs.getRows();
+      SakaiSearchRowIterator iterator = new SakaiSearchRowIterator(rs.getRows());
       long start = getPaging(request, hits);
       iterator.skip(start);
 

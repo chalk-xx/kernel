@@ -85,7 +85,6 @@ public class ProfileServiceImpl implements ProfileService {
   private Map<String, List<ProviderSettings>> scanForProviders(String path, Node node,
       Map<String, List<ProviderSettings>> providerMap) throws RepositoryException {
     ProviderSettings settings = providerSettingsFactory.newProviderSettings(path, node);
-    System.err.println("Got "+settings+" for "+path);
     if (settings == null) {
       for (NodeIterator ni = node.getNodes(); ni.hasNext();) {
         Node newNode = ni.nextNode();

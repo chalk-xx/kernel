@@ -49,8 +49,8 @@ import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.api.doc.ServiceSelector;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.presence.PresenceService;
+import org.sakaiproject.nakamura.api.presence.PresenceUtils;
 import org.sakaiproject.nakamura.api.user.UserConstants;
-import org.sakaiproject.nakamura.presence.PresenceUtils;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +113,7 @@ import org.slf4j.LoggerFactory;
 public class PresenceUserServlet extends SlingSafeMethodsServlet {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(PresenceContactsServlet.class);
+      .getLogger(PresenceUserServlet.class);
 
   private static final long serialVersionUID = 11111111L;
 

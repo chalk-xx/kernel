@@ -125,7 +125,7 @@ public class FileSearchPropertyProvider implements SearchPropertyProvider {
   }
 
   protected String getSearchValue(SlingHttpServletRequest request) {
-    RequestParameter searchParam = request.getRequestParameter("search");
+    RequestParameter searchParam = request.getRequestParameter("q");
     String search = "*";
     if (searchParam != null) {
       search = escapeString(searchParam.getString(), Query.XPATH);

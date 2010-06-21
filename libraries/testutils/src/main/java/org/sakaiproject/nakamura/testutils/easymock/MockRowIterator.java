@@ -65,23 +65,19 @@ public class MockRowIterator implements RowIterator {
         }
 
         public Node getNode() throws RepositoryException {
-          // TODO Auto-generated method stub
-          return null;
+          return returnNode;
         }
 
         public Node getNode(String arg0) throws RepositoryException {
-          // TODO Auto-generated method stub
-          return null;
+          return returnNode;
         }
 
         public String getPath() throws RepositoryException {
-          // TODO Auto-generated method stub
-          return null;
+          return returnNode.getPath();
         }
 
         public String getPath(String arg0) throws RepositoryException {
-          // TODO Auto-generated method stub
-          return null;
+          return returnNode.getPath();
         }
 
         public double getScore() throws RepositoryException {

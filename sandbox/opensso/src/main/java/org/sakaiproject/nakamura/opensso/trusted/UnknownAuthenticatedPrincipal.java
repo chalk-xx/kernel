@@ -15,20 +15,22 @@
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.sakaiproject.nakamura.casauth;
+package org.sakaiproject.nakamura.opensso.trusted;
 
 import java.security.Principal;
 
-public class CasPrincipal implements Principal {
+/**
+ * Represents a user that was validated successfully but could not be found within the
+ * system.
+ */
+public class UnknownAuthenticatedPrincipal implements Principal {
+  private final AbstractAuthentication auth;
 
-  private String name;
-
-  public CasPrincipal(String name) {
-    this.name = name;
+  public UnknownAuthenticatedPrincipal(AbstractAuthentication auth) {
+    this.auth = auth;
   }
 
   public String getName() {
-    return name;
+    return auth.getUserId();
   }
-
 }
