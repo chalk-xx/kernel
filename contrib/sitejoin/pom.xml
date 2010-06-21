@@ -75,6 +75,11 @@
       <version>0.5</version>
     </dependency>
 
+	<dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
 <!-- jcr -->
     <dependency>
       <groupId>javax.jcr</groupId>

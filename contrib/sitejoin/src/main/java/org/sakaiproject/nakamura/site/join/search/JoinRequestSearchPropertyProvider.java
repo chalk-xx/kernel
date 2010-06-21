@@ -17,8 +17,6 @@
  */
 package org.sakaiproject.nakamura.site.join.search;
 
-import java.util.Map;
-import javax.jcr.Node;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
@@ -26,6 +24,8 @@ import org.apache.sling.api.SlingHttpServletRequest;
 import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
+
+import java.util.Map;
 
 /**
  *
