@@ -21,6 +21,7 @@ package org.sakaiproject.nakamura.site.join;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.sling.api.SlingConstants;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -78,6 +79,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     // create a node under /sites/mysite/joinrequests/u/us/user
     String requestPath = JoinRequestUtil.getPath(sitePath, userId, session);
     Node requestNode = JcrUtils.deepGetOrCreateNode(session, requestPath);
+    requestNode.setProperty(SlingConstants.PROPERTY_RESOURCE_TYPE, "sakai/joinrequest");
     requestNode.setProperty(JoinRequestConstants.PROP_REQUEST_STATE, "pending");
     requestNode.setProperty(JoinRequestConstants.PROP_TARGET_GROUP, group);
     session.save();
