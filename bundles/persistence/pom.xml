@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.persistence</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.6</version>
   <name>Sakai Nakamura :: Database Bundle</name>
   <description>Adds database support, JPA implementation clearance, JTA support and Datasources</description>
   <repositories>
@@ -132,19 +132,19 @@ xstream
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>    
     <dependency>

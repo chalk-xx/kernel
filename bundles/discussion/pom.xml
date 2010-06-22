@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.discussion</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.6</version>
   <name>Sakai Nakamura :: Discussion Management Bundle</name>
   <description>Discussion services to retrieve and create discussion or comment posts.</description>
   <build>
@@ -55,37 +55,37 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.site</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.search</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.user</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.personal</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <!--  sling and JCR -->
@@ -98,7 +98,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -151,7 +151,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -169,14 +169,14 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.7-0.6-SNAPSHOT</version>
+      <version>2.0.7-0.6</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
-      <version>2.0.7-0.6-SNAPSHOT</version>
+      <version>2.0.7-0.6</version>
       <scope>test</scope>
     </dependency>
    </dependencies>

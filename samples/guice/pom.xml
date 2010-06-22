@@ -22,11 +22,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.guice</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.6</version>
   <name>Sakai Nakamura :: Sakai Guice Bundle</name>
   <description>Support libraries for simple Guice1 usage within a bundle. Does not work for Guice based bundles that contain non listed concrete classes in the bundle (requires Guice2).</description>
   <build>
@@ -84,7 +84,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.configuration</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>

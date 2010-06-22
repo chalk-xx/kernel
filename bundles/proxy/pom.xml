@@ -2,14 +2,14 @@
   <parent>
     <artifactId>base</artifactId>
     <groupId>org.sakaiproject.nakamura</groupId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
   <packaging>bundle</packaging>
   <name>Sakai Nakamura :: proxy service</name>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.6</version>
   <description>This will proxy through to other websites and fetch data</description>
   <build>
     <plugins>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.utils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -142,7 +142,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -165,7 +165,7 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
-      <version>0.6-SNAPSHOT</version>
+      <version>0.6</version>
     </dependency>
 -->
     <!--  needed for http, now available as a bundle-->
@@ -213,7 +213,7 @@
 	<dependency>
 		<groupId>org.sakaiproject.nakamura</groupId>
 		<artifactId>org.sakaiproject.nakamura.doc</artifactId>
-		<version>0.6-SNAPSHOT</version>
+		<version>0.6</version>
 	</dependency>
 	<dependency>
 		<groupId>ical4j</groupId>

@@ -6,7 +6,7 @@
 
 export K2_TAG="13219fb61a1860c199ece9028692013a82464099"
 export S2_TAG="tags/sakai-2.7.0-rc01"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6-SNAPSHOT.jar"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6.jar"
 
 # Treat unset variables as an error when performing parameter expansion
 set -o nounset

@@ -2,7 +2,7 @@
 
 #Sakai 3 Demo
 export K2_TAG="HEAD"
-export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6-SNAPSHOT.jar"
+export K2_ARTIFACT="org.sakaiproject.nakamura.app-0.6.jar"
 export UX_TAG="v_0.3.0_release"
 
 # Treat unset variables as an error when performing parameter expansion
