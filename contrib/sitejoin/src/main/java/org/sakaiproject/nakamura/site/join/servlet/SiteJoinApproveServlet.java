@@ -76,9 +76,8 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
       Session session = slingRepository.loginAdministrative(null);
       UserManager userManager = AccessControlUtil.getUserManager(session);
 
-      // default to 'viewer' group if none specified
       if (paramGroup == null || paramGroup.length() == 0) {
-        paramGroup = "g-" + site.getIdentifier() + "-viewer";
+        throw new ServletException("Site group not provided.");
       }
       Group groupAuth = (Group) userManager.getAuthorizable(paramGroup);
       Authorizable userAuth = userManager.getAuthorizable(paramUser);

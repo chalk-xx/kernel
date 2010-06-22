@@ -74,8 +74,13 @@
       <artifactId>org.sakaiproject.nakamura.messaging</artifactId>
       <version>0.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.search</artifactId>
+      <version>0.5</version>
+    </dependency>
 
-	<dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -92,15 +97,6 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.3</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.sling</groupId>
-      <artifactId>org.apache.sling.commons.testing</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
     </dependency>
   </dependencies>
 </project>

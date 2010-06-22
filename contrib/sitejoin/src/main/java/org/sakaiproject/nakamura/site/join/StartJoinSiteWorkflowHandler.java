@@ -44,8 +44,7 @@ import javax.jcr.Session;
  * @author chall
  */
 @Component
-@Property(name = EventConstants.EVENT_TOPIC, value = SiteEvent.TOPIC
-    + "startJoinWorkflow")
+@Property(name = EventConstants.EVENT_TOPIC, value = "org/sakaiproject/nakamura/api/site/event/startJoinWorkflow")
 public class StartJoinSiteWorkflowHandler implements EventHandler {
   private static final Logger logger = LoggerFactory
       .getLogger(StartJoinSiteWorkflowHandler.class);

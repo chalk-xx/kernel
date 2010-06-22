@@ -17,10 +17,16 @@
  */
 package org.sakaiproject.nakamura.site.join.search;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Properties;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.io.JSONWriter;
+import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.search.Aggregator;
+import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchException;
 import org.sakaiproject.nakamura.api.search.SearchResultProcessor;
 import org.sakaiproject.nakamura.api.search.SearchResultSet;
@@ -36,13 +42,12 @@ import javax.jcr.query.Row;
  *
  * @author chall
  */
-// @Component
-// @Service
-// @Properties(value = {
-// @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
-// @Property(name = Constants.SERVICE_DESCRIPTION, value =
-// "Formats search results for join request nodes in sites."),
-// @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "JoinRequest") })
+@Component
+@Service
+@Properties(value = {
+    @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
+    @Property(name = Constants.SERVICE_DESCRIPTION, value = "Formats search results for join request nodes in sites."),
+    @Property(name = SearchConstants.REG_PROCESSOR_NAMES, value = "JoinRequest") })
 public class JoinRequestSearchResultProcessor implements SearchResultProcessor {
 
   public void writeNode(SlingHttpServletRequest request, JSONWriter writer,
