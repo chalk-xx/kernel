@@ -152,5 +152,12 @@
     	<version>1.8.2</version>
     	<scope>test</scope>
 	</dependency>
+    <!-- Needed to start up repository from other bundles. -->
+    <dependency>
+        <groupId>org.sakaiproject.nakamura</groupId>
+        <artifactId>org.sakaiproject.nakamura.tika</artifactId>
+        <version>0.6-0.6-SNAPSHOT</version>
+    </dependency>
+    
   </dependencies>
 </project>

@@ -86,6 +86,7 @@
         <module>bundles/authz</module>
         <module>bundles/basiclti</module>
         <module>bundles/profile</module>
+        <module>bundles/tika</module>
       </modules>
     </profile>
     <profile>
