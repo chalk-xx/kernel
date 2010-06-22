@@ -27,6 +27,7 @@ import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.api.cluster.ClusterTrackingService;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
+import org.sakaiproject.nakamura.api.servlet.HttpOnlyCookie;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookie;
 import org.sakaiproject.nakamura.auth.trusted.TokenStore.SecureCookieException;
 import org.sakaiproject.nakamura.util.Signature;
@@ -353,7 +354,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param response
    */
   void addCookie(HttpServletResponse response, String userId) {
-    Cookie c = new Cookie(trustedAuthCookieName, encodeCookie(userId));
+    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, encodeCookie(userId));
     c.setMaxAge(-1);
     c.setPath("/");
     c.setSecure(secureCookie);
@@ -364,7 +365,7 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
    * @param response
    */
   void clearCookie(HttpServletResponse response) {
-    Cookie c = new Cookie(trustedAuthCookieName, "");
+    Cookie c = new HttpOnlyCookie(trustedAuthCookieName, "");
     c.setMaxAge(0);
     c.setPath("/");
     c.setSecure(secureCookie);

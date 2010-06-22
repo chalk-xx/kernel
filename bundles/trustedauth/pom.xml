@@ -99,6 +99,11 @@
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
       <version>0.6-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </dependency>
     
     <dependency>
       <groupId>commons-codec</groupId>
