@@ -30,6 +30,7 @@ public class PersonProfileProviderAdapterTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   PersonProvider personProvider;
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testGetProvidedMap() throws InterruptedException, ExecutionException,
       PersonProviderException {
@@ -45,9 +46,7 @@ public class PersonProfileProviderAdapterTest {
     when(ps1.getNode()).thenReturn(node);
     when(personProvider.getProfileSection(node)).thenReturn(profileSection);
 
-    @SuppressWarnings("unchecked")
-    Map<Node, Future> result = (Map<Node, Future>) pppa.getProvidedMap(list);
-    @SuppressWarnings("unchecked")
+    Map<Node, Future<Map<String, Object>>> result = (Map<Node, Future<Map<String, Object>>>) pppa.getProvidedMap(list);
     Future<Map<String, Object>> fut = result.get(node);
     assertEquals(profileSection, fut.get());
   }
@@ -68,8 +67,7 @@ public class PersonProfileProviderAdapterTest {
 new PersonProviderException(errorMessage));
 
     @SuppressWarnings("unchecked")
-    Map<Node, Future> result = (Map<Node, Future>) pppa.getProvidedMap(list);
-    @SuppressWarnings("unchecked")
+    Map<Node, Future<Map<String,Object>>> result = (Map<Node, Future<Map<String,Object>>>) pppa.getProvidedMap(list);
     Future<Map<String, Object>> fut = result.get(node);
     assertEquals(errorMessage, fut.get().get("error"));
   }
