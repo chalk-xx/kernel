@@ -143,8 +143,11 @@ public class SiteGetServlet extends AbstractSiteServlet {
       try {
         SiteAuthz authzHelper = new SiteAuthz(node, postProcessService);
         boolean isMaintainer = authzHelper.isUserSiteMaintainer();
+        boolean isPendingApproval = authzHelper.isUserPendingApproval();
         writer.key(SiteAuthz.SITE_IS_USER_MAINTAINER_PROPERTY);
         writer.value(isMaintainer);
+        writer.key(SiteAuthz.SITE_IS_USER_PENDING_APPROVAL);
+        writer.value(isPendingApproval);
       } catch (RepositoryException e) {
         LOG.warn("Problem with authorization setup for site", e);
         // Continue without additional properties.

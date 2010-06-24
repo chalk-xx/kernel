@@ -21,6 +21,8 @@ package org.sakaiproject.nakamura.site.join;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.sling.api.SlingConstants;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
@@ -45,6 +47,7 @@ import javax.jcr.Session;
  * @author chall
  */
 @Component
+@Service(value = EventHandler.class)
 @Property(name = EventConstants.EVENT_TOPIC, value = "org/sakaiproject/nakamura/api/site/event/startJoinWorkflow")
 public class StartJoinSiteWorkflowHandler implements EventHandler {
   private static final Logger logger = LoggerFactory
@@ -60,6 +63,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
     String userId = (String) event.getProperty(SiteEvent.USER);
     String group = (String) event.getProperty(SiteEvent.GROUP);
+    String owner = (String) event.getProperty(SiteEvent.OWNER);
 
     try {
       Session session = repository.loginAdministrative(null);
@@ -68,7 +72,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
       createPendingRequest(userId, group, sitePath, session);
 
       // #2 send message to site owner
-      sendMessage(userId, session);
+      sendMessage(userId, owner, session, sitePath);
     } catch (RepositoryException e) {
       logger.error(e.getMessage(), e);
     }
@@ -79,23 +83,24 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     // create a node under /sites/mysite/joinrequests/u/us/user
     String requestPath = JoinRequestUtil.getPath(sitePath, userId, session);
     Node requestNode = JcrUtils.deepGetOrCreateNode(session, requestPath);
-    requestNode.setProperty(SlingConstants.PROPERTY_RESOURCE_TYPE, "sakai/joinrequest");
+    requestNode.setProperty(JoinRequestConstants.PROP_RESOURCE_TYPE, "sakai/joinrequest");
     requestNode.setProperty(JoinRequestConstants.PROP_REQUEST_STATE, "pending");
     requestNode.setProperty(JoinRequestConstants.PROP_TARGET_GROUP, group);
     session.save();
   }
 
-  private void sendMessage(String userId, Session session) {
-    String siteOwner = null;
-    String subject = null;
-    String body = null;
+  private void sendMessage(String sender, String recipient, Session session, String sitePath) {
+    String subject = "Site join request: " + sitePath;
+    String body = "Please approve my request to be a member of this site: " + sitePath;
 
     HashMap<String, Object> props = new HashMap<String, Object>();
+    props.put("sling:resourceType", "sakai/message");
     props.put("sakai:type", "internal");
     props.put("sakai:sendstate", "pending");
     props.put("sakai:messagebox", "outbox");
-    props.put("sakai:to", siteOwner);
-    props.put("sakai:from", userId);
+    props.put("sakai:to", "internal:" + recipient);
+    props.put("sakai:read", Boolean.TRUE);
+    props.put("sakai:from", sender);
     props.put("sakai:subject", subject);
     props.put("sakai:body", body);
     props.put("_charset_", "utf-8");

@@ -21,6 +21,7 @@ package org.sakaiproject.nakamura.api.site.join;
  *
  */
 public interface JoinRequestConstants {
+  String PROP_RESOURCE_TYPE = "sling:resourceType";
   String PROP_TARGET_GROUP = "sakai:targetGroup";
   String PROP_REQUEST_STATE = "sakai:requestState";
 }

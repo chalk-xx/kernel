@@ -117,7 +117,7 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
   private void postEvent(SiteEvent event, Node site, Group targetGroup)
       throws SiteException {
     try {
-      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup));
+      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup, null));
     } catch (RepositoryException ex) {
       logger.warn(ex.getMessage(), ex);
       throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,

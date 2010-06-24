@@ -33,6 +33,7 @@ import org.apache.sling.servlets.post.Modification;
 import org.sakaiproject.nakamura.api.site.SiteService;
 import org.sakaiproject.nakamura.api.user.AuthorizablePostProcessService;
 import org.sakaiproject.nakamura.api.user.UserConstants;
+import org.sakaiproject.nakamura.util.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +81,7 @@ public class SiteAuthz {
   public static final Collection<String> MONITORED_SITE_PROPERTIES = Arrays
       .asList(new String[] { SITE_STATUS_PROPERTY, SITE_ACCESS_TYPE_PROPERTY });
   public static final String SITE_IS_USER_MAINTAINER_PROPERTY = ":isMaintainer";
+  public static final String SITE_IS_USER_PENDING_APPROVAL = ":isPendingApproval";
 
   private static final String AUTHZ_CONFIG_PATH = "_authz.txt/jcr:content";
   private static final String[] SITE_MAINTENANCE_PRIVILEGES = new String[] {
@@ -440,6 +442,27 @@ public class SiteAuthz {
       LOGGER.warn("Problem checking site authz", e);
     }
     return isMaintainer;
+  }
+  
+  public boolean isUserPendingApproval() {
+    boolean isPending = false;
+    Session session;
+    try {
+      session = site.getSession();
+      String sitePath = PathUtils.normalizePath(site.getPath());
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      String userPath = PathUtils.normalizePath(PathUtils.getSubPath(userManager.getAuthorizable(session.getUserID())));
+      String requestPath = sitePath + "/joinrequests" + userPath;
+      if (session.nodeExists(requestPath)) {
+        Node joinRequestNode = session.getNode(requestPath);
+        if (joinRequestNode.hasProperty("sakai:requestState") && "pending".equals(joinRequestNode.getProperty("sakai:requestState").getString())) {
+          isPending = true;
+        }
+      }
+    } catch (RepositoryException e) {
+      LOGGER.warn("Problem checking for pending site-join approval", e);
+    }
+    return isPending;
   }
 
   /**

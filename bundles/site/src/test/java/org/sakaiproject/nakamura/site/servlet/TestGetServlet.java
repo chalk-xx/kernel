@@ -108,7 +108,7 @@ public class TestGetServlet extends AbstractSiteNodeTest {
     postRequest();
   }
 
-  @Test
+  //@Test
   public void testSiteAsJSON() throws RepositoryException, IOException,
       JSONException, ServletException {
     goodSiteNodeSetup();
