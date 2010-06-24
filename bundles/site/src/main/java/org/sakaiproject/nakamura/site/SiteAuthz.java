@@ -73,6 +73,8 @@ public class SiteAuthz {
    * Contains the associated role. Write-only at present.
    */
   public static final String GROUP_ROLE_PROPERTY = "name";
+  public static final String GROUP_JOINABLE_PROPERTY = "sakai:joinable";
+  public static final String JOINABLE_WITH_APPROVAL = "withauth";
 
   public static final String SITE_ROLES_PROPERTY = "sakai:roles";
   public static final String SITE_ROLE_MEMBERSHIPS_PROPERTY = "sakai:rolemembers";
@@ -386,6 +388,9 @@ public class SiteAuthz {
           // Add site-related properties to the group.
           group.setProperty(GROUP_SITE_PROPERTY, valueFactory.createValue(siteRef));
           group.setProperty(GROUP_ROLE_PROPERTY, valueFactory.createValue(role));
+          
+          // Make groups joinable
+          group.setProperty(GROUP_JOINABLE_PROPERTY, valueFactory.createValue(JOINABLE_WITH_APPROVAL));
 
           // Remember the mapping.
           roleToGroupMap.put(role, groupId);
