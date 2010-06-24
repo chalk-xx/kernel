@@ -552,6 +552,11 @@ org.sakaiproject.nakamura.jpaprovider
     </bundle>
     <bundle>
       <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.site.join</artifactId>
+      <version>0.5</version>
+    </bundle>
+    <bundle>
+      <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.postprocessors</artifactId>
       <version>0.4</version>
     </bundle>
