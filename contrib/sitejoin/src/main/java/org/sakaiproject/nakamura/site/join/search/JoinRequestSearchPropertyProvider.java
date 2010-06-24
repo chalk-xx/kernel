@@ -20,11 +20,11 @@ package org.sakaiproject.nakamura.site.join.search;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Properties;
 import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.osgi.framework.Constants;
 import org.sakaiproject.nakamura.api.search.SearchConstants;
 import org.sakaiproject.nakamura.api.search.SearchPropertyProvider;
-
 import java.util.Map;
 
 /**
@@ -35,7 +35,8 @@ import java.util.Map;
 @Properties(value = {
   @Property(name = Constants.SERVICE_VENDOR, value = "The Sakai Foundation"),
   @Property(name = SearchConstants.REG_PROVIDER_NAMES, value = "JoinRequest")
-})
+})	
+@Service(value = SearchPropertyProvider.class)
 public class JoinRequestSearchPropertyProvider implements SearchPropertyProvider {
 
   private static final String SITE_PARAM = "site";
