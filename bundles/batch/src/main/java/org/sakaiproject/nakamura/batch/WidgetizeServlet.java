@@ -335,7 +335,7 @@ public class WidgetizeServlet extends SlingSafeMethodsServlet {
     String widgetName = ResourceUtil.getName(resource);
 
     // Check for a configuration file with the same name.
-    String configPath = request.getResource().getPath() + "/" + widgetName + ".json";
+    String configPath = request.getResource().getPath() + "/config.json";
     Resource configResource = resolver.getResource(configPath);
 
     if (configResource == null || configResource instanceof NonExistingResource) {
