@@ -18,12 +18,18 @@
  */
 package org.sakaiproject.nakamura.site.join;
 
+import static org.sakaiproject.nakamura.api.message.MessageConstants.EVENT_LOCATION;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PENDINGMESSAGE_EVENT;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.PROP_SAKAI_SENDSTATE;
+import static org.sakaiproject.nakamura.api.message.MessageConstants.STATE_NOTIFIED;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.sakaiproject.nakamura.api.message.MessagingService;
@@ -34,7 +40,9 @@ import org.sakaiproject.nakamura.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -56,6 +64,9 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
 
   @Reference
   private MessagingService messagingService;
+  
+  @Reference
+  protected transient EventAdmin eventAdmin;
 
   public void handleEvent(Event event) {
     String sitePath = (String) event.getProperty(SiteEvent.SITE);
@@ -70,7 +81,18 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
       createPendingRequest(userId, group, sitePath, session);
 
       // #2 send message to site owner
-      sendMessage(userId, owner, session, sitePath);
+      Node n = sendMessage(userId, owner, session, sitePath);
+      n.setProperty(PROP_SAKAI_SENDSTATE, STATE_NOTIFIED);
+      Dictionary<String, Object> messageDict = new Hashtable<String, Object>();
+      // WARNING
+      // We can't pass in the node, because the session might expire before the event gets handled
+      // This does mean that the listener will have to get the node each time, and probably create a new session for each message
+      // This might be heavy on performance.
+      messageDict.put(EVENT_LOCATION, n.getPath());
+      messageDict.put("user", userId);
+      Event pendingMessageEvent = new Event(PENDINGMESSAGE_EVENT, messageDict);
+      // KERN-790: Initiate a synchronous event.
+      eventAdmin.sendEvent(pendingMessageEvent);
     } catch (RepositoryException e) {
       logger.error(e.getMessage(), e);
     }
@@ -87,7 +109,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     session.save();
   }
 
-  private void sendMessage(String sender, String recipient, Session session, String sitePath) {
+  private Node sendMessage(String sender, String recipient, Session session, String sitePath) {
     String subject = "Site join request: " + sitePath;
     String body = "Please approve my request to be a member of this site: " + sitePath;
 
@@ -105,6 +127,6 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     props.put("sakai:category", "invitation");
     props.put("sakai:subcategory", "joinrequest");
 
-    messagingService.create(session, props);
+    return messagingService.create(session, props);
   }
 }
