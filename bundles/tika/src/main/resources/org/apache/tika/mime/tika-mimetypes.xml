@@ -2653,7 +2653,7 @@
     <magic priority="50">
       <match value="&lt;?xml" type="string" offset="0"/>
       <match value="&lt;?XML" type="string" offset="0"/>
-      <match value="&lt;!--" type="string" offset="0"/>
+      <!-- <match value="&lt;!- -" type="string" offset="0"/> -->
       <match value="0xFFFE3C003F0078006D006C00" type="string" offset="0"/>
       <match value="0xFEFF003C003F0078006D006C" type="string" offset="0"/>
       <!-- TODO: Add matches for the other possible XML encoding schemes -->
@@ -3551,15 +3551,24 @@
           bad HTML, unfortunately.
      -->
     <root-XML localName="html"/>
+    <root-XML localName="HTML"/>
     <root-XML localName="link"/>
+    <root-XML localName="LINK"/>
+    <root-XML localName="body"/>
+    <root-XML localName="BODY"/>
+    <root-XML localName="p"/>
+    <root-XML localName="P"/>
     <root-XML localName="div"/>
+    <root-XML localName="DIV"/>
     <magic priority="50">
+      <match value="&lt;!--" type="string" offset="0:5"/>
       <match value="&lt;!DOCTYPE HTML" type="string" offset="0:64"/>
       <match value="&lt;!doctype html" type="string" offset="0:64"/>
       <match value="&lt;HEAD" type="string" offset="0:64"/>
       <match value="&lt;head" type="string" offset="0:64"/>
       <match value="&lt;TITLE" type="string" offset="0:64"/>
       <match value="&lt;title" type="string" offset="0:64"/>
+      <match value="&lt;link" type="string" offset="0:64"/>
       <!-- note on the offset value here: this can only be as big as
            MimeTypes#getMinLength(). If you set the offset value to larger
            than that size, the magic will only be compared to up to 

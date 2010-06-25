@@ -47,6 +47,24 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Expand Server</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>jackrabbit-core</includeArtifactIds>
+              <excludeTransitive>false</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+              <excludes>META-INF/MANIFEST.MF,org.apache.jackrabbit.core.query.lucene.NodeIndexer,org.apache.jackrabbit.core.query.lucene.LazyTextExtractorField</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>

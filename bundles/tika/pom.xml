@@ -45,7 +45,8 @@
               <includeArtifactIds>tika-core,tika-parsers</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF</excludes>
+              <excludes>META-INF/MANIFEST.MF,org/apache/tika/mime/tika-mimetypes.xml,org/apache/tika/tika-config.xml</excludes>
+<!--  To Debug Mimetypes use this one              <excludes>META-INF/MANIFEST.MF,org/apache/tika/mime/tika-mimetypes.xml,org/apache/tika/tika-config.xml,org/apache/tika/mime/MimeTypes.class</excludes> -->
             </configuration>
           </execution>
         </executions>
