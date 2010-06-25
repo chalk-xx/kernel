@@ -82,11 +82,11 @@ import javax.servlet.http.HttpServletResponse;
 public class WidgetizeServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -8498483459709451448L;
 
-  @Property(value = { "bundles" }, description = "The directorynames that should be ignored when outputting a widget.")
+  @Property(value = { "bundles" }, description = "The directorynames that should be ignored when outputting a widget.", cardinality = 2147483647)
   static final String BATCH_IGNORE_NAMES = "sakai.batch.widgetize.ignore_names";
 
   @Property(value = { "text/plain", "text/css", "text/html", "application/json",
-      "application/xml" }, description = "The mimetypes of files that should be outputted.")
+      "application/xml" }, description = "The mimetypes of files that should be outputted.", cardinality = 2147483647)
   static final String BATCH_VALID_MIMETYPES = "sakai.batch.widgetize.valid_mimetypes";
 
   @Reference
