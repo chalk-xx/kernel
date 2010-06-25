@@ -85,7 +85,7 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
       // get the join request
       Node joinRequest = JoinRequestUtil.getRequest(site.getPath(), paramUser, session);
       String requestState = null;
-      if (!joinRequest.hasProperty(JoinRequestConstants.PROP_REQUEST_STATE)) {
+      if (joinRequest.hasProperty(JoinRequestConstants.PROP_REQUEST_STATE)) {
         requestState = joinRequest.getProperty(JoinRequestConstants.PROP_REQUEST_STATE)
             .getString();
       }
