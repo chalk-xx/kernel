@@ -56,8 +56,8 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
   private static final Logger logger = LoggerFactory
       .getLogger(SiteJoinApproveServlet.class);
 
-  @Reference
-  private EventAdmin eventAdmin;
+//  @Reference
+//  private EventAdmin eventAdmin;
 
   @Reference
   private SiteService siteService;
@@ -98,7 +98,7 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
 
         // add user to the site's group
         groupAuth.addMember(userAuth);
-        postEvent(SiteEvent.joinedSite, site, groupAuth);
+//        postEvent(SiteEvent.joinedSite, site, groupAuth);
 
         // remove the pending request
         joinRequest.remove();
@@ -109,19 +109,17 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
       }
     } catch (RepositoryException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    } catch (SiteException e) {
-      response.sendError(e.getStatusCode(), e.getMessage());
     }
   }
 
-  private void postEvent(SiteEvent event, Node site, Group targetGroup)
-      throws SiteException {
-    try {
-      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup, null));
-    } catch (RepositoryException ex) {
-      logger.warn(ex.getMessage(), ex);
-      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-          ex.getMessage());
-    }
-  }
+//  private void postEvent(SiteEvent event, Node site, Group targetGroup)
+//      throws SiteException {
+//    try {
+//      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup, null));
+//    } catch (RepositoryException ex) {
+//      logger.warn(ex.getMessage(), ex);
+//      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+//          ex.getMessage());
+//    }
+//  }
 }
