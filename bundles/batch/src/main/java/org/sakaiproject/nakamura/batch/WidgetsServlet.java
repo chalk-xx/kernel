@@ -17,20 +17,16 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
-import org.apache.sling.api.resource.NonExistingResource;
-import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceUtil;
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
 import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.osgi.OsgiUtil;
+import org.sakaiproject.nakamura.api.batch.WidgetService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
@@ -41,11 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -65,27 +56,8 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
   private static final long serialVersionUID = -4113451154211163118L;
   private static final Logger LOGGER = LoggerFactory.getLogger(WidgetsServlet.class);
 
-  @Property(value = { "/devwidgets" }, cardinality = 2147483647, description = "The directorynames that contain widgets. These have to be absolute paths in JCR.")
-  static final String WIDGET_FOLDERS = "sakai.batch.widgets.widget_folders";
-  private List<String> widgetFolders;
-
-  @SuppressWarnings("unchecked")
-  @Activate
-  protected void activate(Map properties) {
-    modified(properties);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Modified
-  protected void modified(Map properties) {
-    init(properties);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void init(Map props) {
-    String[] folders = OsgiUtil.toStringArray(props.get(WIDGET_FOLDERS), new String[0]);
-    widgetFolders = Arrays.asList(folders);
-  }
+  @Reference
+  protected transient WidgetService widgetService;
 
   /**
    * {@inheritDoc}
@@ -102,10 +74,7 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
 
     // We will store all the found widgets in this map.
     // The key will be the name of widget.
-    Map<String, JsonValueMap> validWidgets = new HashMap<String, JsonValueMap>();
-    for (String folder : widgetFolders) {
-      processWidgetFolder(folder, resolver, validWidgets);
-    }
+    Map<String, ValueMap> validWidgets = widgetService.getWidgetConfigs(resolver);
 
     // Ensure that we're sending out proper json.
     response.setContentType("application/json");
@@ -115,7 +84,7 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
     ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
     try {
       writer.object();
-      for (Entry<String, JsonValueMap> entry : validWidgets.entrySet()) {
+      for (Entry<String, ValueMap> entry : validWidgets.entrySet()) {
         writer.key(entry.getKey());
         writer.valueMap(entry.getValue());
       }
@@ -125,44 +94,6 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
           "Failed to construct proper JSON.");
     }
 
-  }
-
-  /**
-   * Processes a widget folder. Every widget (with a valid json config) will be placed in
-   * the validWidgets map.
-   * 
-   * @param folder
-   *          The absolute path in JCR (or FsResource) to process.
-   * @param resolver
-   *          The {@link ResourceResolver} that can be used to resolve resources.
-   * @param validWidgets
-   *          The hashmap where the widgets should be placed in to.
-   */
-  protected void processWidgetFolder(String folder, ResourceResolver resolver,
-      Map<String, JsonValueMap> validWidgets) {
-    Resource folderResource = resolver.getResource(folder);
-
-    // List all the subfolders (these should all be widgets.)
-    Iterator<Resource> widgets = ResourceUtil.listChildren(folderResource);
-    while (widgets.hasNext()) {
-      Resource widget = widgets.next();
-      String widgetName = ResourceUtil.getName(widget);
-      // Get the config for this widget.
-      // If none is found or isn't valid JSON then it is ignored.
-      String configPath = widget.getPath() + "/config.json";
-      Resource config = resolver.getResource(configPath);
-      if (config != null && !(config instanceof NonExistingResource)) {
-        // Try to parse it to JSON.
-        try {
-          InputStream stream = config.adaptTo(InputStream.class);
-          JsonValueMap map = new JsonValueMap(stream);
-          validWidgets.put(widgetName, map);
-        } catch (Exception e) {
-          LOGGER.warn("Exception when trying to parse the 'config.json' for "
-              + widgetName, e);
-        }
-      }
-    }
   }
 
 }
