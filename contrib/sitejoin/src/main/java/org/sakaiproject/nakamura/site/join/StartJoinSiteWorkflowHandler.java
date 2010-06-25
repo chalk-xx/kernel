@@ -22,8 +22,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
-import org.apache.jackrabbit.api.security.user.Group;
-import org.apache.sling.api.SlingConstants;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
