@@ -69,21 +69,22 @@ public class SiteJoinApproveServlet extends SlingAllMethodsServlet {
   protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
       throws ServletException, IOException {
     String paramUser = request.getParameter(SiteService.SiteEvent.USER);
-    String paramGroup = request.getParameter(SiteService.SiteEvent.GROUP);
-
+    String paramGroup = "";
     try {
       Node site = request.getResource().adaptTo(Node.class);
       Session session = slingRepository.loginAdministrative(null);
       UserManager userManager = AccessControlUtil.getUserManager(session);
 
-      if (paramGroup == null || paramGroup.length() == 0) {
-        throw new ServletException("Site group not provided.");
-      }
-      Group groupAuth = (Group) userManager.getAuthorizable(paramGroup);
+      
       Authorizable userAuth = userManager.getAuthorizable(paramUser);
 
       // get the join request
       Node joinRequest = JoinRequestUtil.getRequest(site.getPath(), paramUser, session);
+      
+      if (joinRequest.hasProperty(JoinRequestConstants.PROP_TARGET_GROUP)) {
+        paramGroup = joinRequest.getProperty(JoinRequestConstants.PROP_TARGET_GROUP).getString();
+      }
+      Group groupAuth = (Group) userManager.getAuthorizable(paramGroup);
       String requestState = null;
       if (joinRequest.hasProperty(JoinRequestConstants.PROP_REQUEST_STATE)) {
         requestState = joinRequest.getProperty(JoinRequestConstants.PROP_REQUEST_STATE)
