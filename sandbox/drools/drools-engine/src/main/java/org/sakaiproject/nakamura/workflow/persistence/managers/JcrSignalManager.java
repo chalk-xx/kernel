@@ -35,6 +35,7 @@ public class JcrSignalManager extends DefaultSignalManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JcrSignalManager.class);
   private CommandService commandService;
+  @SuppressWarnings("unused")
   private Session session;
 
   public JcrSignalManager(WorkingMemory workingMemory) {

@@ -62,6 +62,7 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
    * @see org.sakaiproject.nakamura.api.rules.RuleExecutionService#executeRuleSet(java.lang.String,
    *      org.apache.sling.api.SlingHttpServletRequest)
    */
+  @SuppressWarnings("unchecked")
   public Map<String, Object> executeRuleSet(String pathToRuleSet,
       SlingHttpServletRequest request, RuleContext ruleContext) {
     ResourceResolver resourceResolver = request.getResourceResolver();
