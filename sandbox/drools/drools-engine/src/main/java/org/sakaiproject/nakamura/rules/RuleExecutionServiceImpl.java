@@ -44,7 +44,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- *
+ * A Drools implementation of the Rule Execution Service.
  */
 @Component(label = "Drools Rule Execution Service", description = "Provides Rule Execution using Drools Knowledgebases")
 @Service(value = RuleExecutionService.class)

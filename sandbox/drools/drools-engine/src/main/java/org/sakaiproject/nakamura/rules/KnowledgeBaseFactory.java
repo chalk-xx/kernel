@@ -28,7 +28,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 /**
- *
+ * A factory that created rule Knowledge bases from JCR nodes.
  */
 public class KnowledgeBaseFactory {
 

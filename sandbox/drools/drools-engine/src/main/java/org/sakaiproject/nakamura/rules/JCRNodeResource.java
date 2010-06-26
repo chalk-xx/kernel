@@ -42,7 +42,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeType;
 
 /**
- *
+ * Drools Resource stored in JCR as a node.
  */
 public class JCRNodeResource extends BaseResource {
 
