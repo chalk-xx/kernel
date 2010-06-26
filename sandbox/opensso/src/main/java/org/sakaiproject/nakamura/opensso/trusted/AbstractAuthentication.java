@@ -77,6 +77,7 @@ public abstract class AbstractAuthentication {
   /**
    * @param request
    */
+  @SuppressWarnings("unchecked")
   private void dumpRequest(HttpServletRequest request) {
     System.err.println("Request is ["+request+"]");
     for ( Enumeration<?> e = request.getParameterNames(); e.hasMoreElements(); ) {
