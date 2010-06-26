@@ -28,7 +28,6 @@ import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.Workspace;
 
 /**
  * Initializes the Drools area of the the repository.
