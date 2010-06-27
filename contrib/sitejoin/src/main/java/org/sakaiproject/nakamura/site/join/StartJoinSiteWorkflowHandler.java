@@ -126,6 +126,7 @@ public class StartJoinSiteWorkflowHandler implements EventHandler {
     props.put("_charset_", "utf-8");
     props.put("sakai:category", "invitation");
     props.put("sakai:subcategory", "joinrequest");
+    props.put("sakai:sitepath", sitePath);
 
     return messagingService.create(session, props);
   }
