@@ -53,7 +53,7 @@ public class JoinRequestSearchResultProcessor implements SearchResultProcessor {
   public void writeNode(SlingHttpServletRequest request, JSONWriter writer,
       Aggregator aggregator, Row row) throws JSONException, RepositoryException {
     Node resultNode = row.getNode();
-    if (resultNode != null) {
+    if (resultNode != null && aggregator != null) {
       aggregator.add(resultNode);
     }
     ExtendedJSONWriter.writeNodeToWriter(writer, resultNode);
