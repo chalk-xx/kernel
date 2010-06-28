@@ -92,6 +92,7 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to construct proper JSON.");
+      LOGGER.error("Failed to construct proper JSON.", e);
     }
 
   }
