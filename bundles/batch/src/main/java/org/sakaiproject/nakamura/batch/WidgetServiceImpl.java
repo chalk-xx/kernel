@@ -225,14 +225,14 @@ public class WidgetServiceImpl implements WidgetService {
    * @see org.sakaiproject.nakamura.api.batch.WidgetService#updateWidget(java.lang.String)
    */
   public void updateWidget(String path) {
-    LOGGER.info("Update widget at: " + path);
+    LOGGER.debug("Update widget at: " + path);
 
     // Invalidate the files cache.
     // Find the name of the widget.
     String widget = null;
     for (String folder : getWidgetFolders()) {
       if (path.startsWith(folder)) {
-        widget = path.substring(folder.length());
+        widget = path.substring(folder.length() + 1);
         int lastIndex = widget.indexOf("/");
         if (lastIndex != -1) {
           widget = widget.substring(0, lastIndex);
@@ -249,6 +249,9 @@ public class WidgetServiceImpl implements WidgetService {
         // Remove it from the cache.
         // When it get's hit the next time, the servlet will ask for it and it will be
         // placed back in the cache then.
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Invalidating cache for '" + widget + "'");
+        }
         cache.remove(widget);
       }
     }
