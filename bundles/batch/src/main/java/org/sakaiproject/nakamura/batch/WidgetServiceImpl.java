@@ -72,7 +72,17 @@ public class WidgetServiceImpl implements WidgetService {
   @Reference
   protected transient CacheManagerService cacheManagerService;
 
-  private static final String CACHE_NAME = WidgetServiceImpl.class.getName();
+  /**
+   * The name for the cache that holds all the HTML, CSS, .. files for widgets
+   */
+  static final String CACHE_NAME_WIDGET_FILES = WidgetServiceImpl.class.getName()
+      + "_files";
+
+  /**
+   * The name for the cache that holds all widget config files.
+   */
+  static final String CACHE_NAME_WIDGET_CONFIGS = WidgetServiceImpl.class.getName()
+      + "_configs";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WidgetServiceImpl.class);
 
@@ -138,8 +148,8 @@ public class WidgetServiceImpl implements WidgetService {
 
     // Check if we have something in the cache.
     String widgetName = ResourceUtil.getName(resource);
-    Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(CACHE_NAME,
-        CacheScope.INSTANCE);
+    Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(
+        CACHE_NAME_WIDGET_FILES, CacheScope.INSTANCE);
 
     Map<String, ValueMap> widgetCache = cache.get(widgetName);
     if (widgetCache == null) {
@@ -180,12 +190,23 @@ public class WidgetServiceImpl implements WidgetService {
    * @see org.sakaiproject.nakamura.api.batch.WidgetService#getWidgetConfigs(org.apache.sling.api.resource.ResourceResolver)
    */
   public Map<String, ValueMap> getWidgetConfigs(ResourceResolver resolver) {
+    // Check the cache to see if we have anything cached already.
+    Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(
+        CACHE_NAME_WIDGET_CONFIGS, CacheScope.INSTANCE);
+    Map<String, ValueMap> configs = cache.get("configs");
+    if (configs != null) {
+      // There is something in here, return it.
+      return configs;
+    }
+
     // We will store all the found widgets in this map.
     // The key will be the name of widget.
     Map<String, ValueMap> validWidgets = new HashMap<String, ValueMap>();
     for (String folder : widgetFolders) {
       processWidgetFolder(folder, resolver, validWidgets);
     }
+    // Stick the map in the cache so it can be retrieved later on.
+    cache.put("configs", validWidgets);
     return validWidgets;
   }
 
@@ -206,6 +227,7 @@ public class WidgetServiceImpl implements WidgetService {
   public void updateWidget(String path) {
     LOGGER.info("Update widget at: " + path);
 
+    // Invalidate the files cache.
     // Find the name of the widget.
     String widget = null;
     for (String folder : getWidgetFolders()) {
@@ -220,8 +242,8 @@ public class WidgetServiceImpl implements WidgetService {
     }
     if (widget != null) {
       // Get the cache for this widget.
-      Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(CACHE_NAME,
-          CacheScope.INSTANCE);
+      Cache<Map<String, ValueMap>> cache = cacheManagerService.getCache(
+          CACHE_NAME_WIDGET_FILES, CacheScope.INSTANCE);
 
       if (cache != null) {
         // Remove it from the cache.
@@ -229,9 +251,12 @@ public class WidgetServiceImpl implements WidgetService {
         // placed back in the cache then.
         cache.remove(widget);
       }
-
     }
 
+    // Invalidate the configs cache.
+    Cache<Map<String, ValueMap>> configCache = cacheManagerService.getCache(
+        CACHE_NAME_WIDGET_CONFIGS, CacheScope.INSTANCE);
+    configCache.clear();
   }
 
   // --- Implementation
@@ -441,24 +466,26 @@ public class WidgetServiceImpl implements WidgetService {
       Map<String, ValueMap> validWidgets) {
     Resource folderResource = resolver.getResource(folder);
 
-    // List all the subfolders (these should all be widgets.)
-    Iterator<Resource> widgets = ResourceUtil.listChildren(folderResource);
-    while (widgets.hasNext()) {
-      Resource widget = widgets.next();
-      String widgetName = ResourceUtil.getName(widget);
-      // Get the config for this widget.
-      // If none is found or isn't valid JSON then it is ignored.
-      String configPath = widget.getPath() + "/config.json";
-      Resource config = resolver.getResource(configPath);
-      if (config != null && !(config instanceof NonExistingResource)) {
-        // Try to parse it to JSON.
-        try {
-          InputStream stream = config.adaptTo(InputStream.class);
-          JsonValueMap map = new JsonValueMap(stream);
-          validWidgets.put(widgetName, map);
-        } catch (Exception e) {
-          LOGGER.warn("Exception when trying to parse the 'config.json' for "
-              + widgetName, e);
+    if (folderResource != null && !(folderResource instanceof NonExistingResource)) {
+      // List all the subfolders (these should all be widgets.)
+      Iterator<Resource> widgets = ResourceUtil.listChildren(folderResource);
+      while (widgets.hasNext()) {
+        Resource widget = widgets.next();
+        String widgetName = ResourceUtil.getName(widget);
+        // Get the config for this widget.
+        // If none is found or isn't valid JSON then it is ignored.
+        String configPath = widget.getPath() + "/config.json";
+        Resource config = resolver.getResource(configPath);
+        if (config != null && !(config instanceof NonExistingResource)) {
+          // Try to parse it to JSON.
+          try {
+            InputStream stream = config.adaptTo(InputStream.class);
+            JsonValueMap map = new JsonValueMap(stream);
+            validWidgets.put(widgetName, map);
+          } catch (Exception e) {
+            LOGGER.warn("Exception when trying to parse the 'config.json' for "
+                + widgetName, e);
+          }
         }
       }
     }

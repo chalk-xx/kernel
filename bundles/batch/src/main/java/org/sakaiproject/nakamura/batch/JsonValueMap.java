@@ -102,6 +102,9 @@ public class JsonValueMap implements ValueMap {
     Object o;
     try {
       o = (T) map.get(name);
+      if (o == null) {
+        return defaultValue;
+      }
     } catch (ClassCastException e) {
       o = defaultValue;
     }
@@ -132,7 +135,7 @@ public class JsonValueMap implements ValueMap {
    * @see java.util.Map#containsValue(java.lang.Object)
    */
   public boolean containsValue(Object value) {
-    return false;
+    return map.containsValue(value);
   }
 
   /**

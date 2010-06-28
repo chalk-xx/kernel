@@ -25,9 +25,10 @@ class TC_Kern857 < Test::Unit::TestCase
       "id" => "good",
       "name" => "A good widget"
     }
-    @s.create_file_node(widgetsPath + "/good-#{m}", "bad-#{m}", "config.json", JSON.dump(config), "application/json")
+    @s.create_file_node(widgetsPath + "/good-#{m}", "good-#{m}", "config.json", JSON.dump(config), "application/json")
     @s.create_file_node(widgetsPath + "/bad-#{m}", "bad-#{m}", "config.json", "This is not JSON", "application/json")
 
+    # Fetch aggregate
     res = @s.execute_get(@s.url_for("/var/widgets"))
     assert_equal(200, res.code.to_i)
     json = JSON.parse(res.body)
@@ -39,6 +40,18 @@ class TC_Kern857 < Test::Unit::TestCase
 
     # The bad widget cannot be in there.
     assert_equal(nil, json["bad-#{m}"])
+    
+    # Add a widget and make sure that the cache is updated.
+    @s.create_file_node(widgetsPath + "/second-#{m}", "second-#{m}", "config.json", JSON.dump(config), "application/json")
+    
+    # Fetch new aggregate
+    res = @s.execute_get(@s.url_for("/var/widgets"))
+    assert_equal(200, res.code.to_i)
+    json = JSON.parse(res.body)
+    
+    # Assert that the new widget is in there.
+    assert_not_nil(json["second-#{m}"])
+
   end
 
   def setWidgetServiceConfigurationPath(folders)
@@ -50,7 +63,6 @@ class TC_Kern857 < Test::Unit::TestCase
     }
 
     @s.execute_post("http://localhost:8080/system/console/configMgr/org.sakaiproject.nakamura.batch.WidgetServiceImpl", params)
-    
   end
 
   def getWidgetServiceConfiguration

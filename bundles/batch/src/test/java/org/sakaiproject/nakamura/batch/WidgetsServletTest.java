@@ -17,16 +17,26 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.sakaiproject.nakamura.api.memory.Cache;
+import org.sakaiproject.nakamura.api.memory.CacheScope;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 
@@ -36,24 +46,52 @@ import javax.servlet.ServletException;
 public class WidgetsServletTest extends AbstractWidgetServletTest {
 
   private WidgetsServlet servlet;
-  
+
   @Before
   public void setUp() throws IOException {
     super.setUp();
-    
+
     servlet = new WidgetsServlet();
     servlet.widgetService = widgetService;
   }
-  
+
+  @SuppressWarnings("unchecked")
   @Test
-  public void testList() throws ServletException, IOException, JSONException {
+  public void testListUncached() throws ServletException, IOException, JSONException {
+    Cache<Object> cache = mock(Cache.class);
+
+    when(
+        cacheManagerService
+            .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
+        cache);
+
     servlet.doGet(request, response);
     printWriter.flush();
     JSONObject json = new JSONObject(stringWriter.toString());
     assertNotNull(json.get("twitter"));
     assertNull(json.opt("badwidget"));
   }
-  
-  
-  
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testListCached() throws ServletException, IOException, JSONException {
+    Cache<Object> cache = mock(Cache.class);
+
+    when(
+        cacheManagerService
+            .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
+        cache);
+
+    Map<String, ValueMap> map = new HashMap<String, ValueMap>();
+    JsonValueMap jsonMap = new JsonValueMap("{'bar' : true}");
+    map.put("foo", jsonMap);
+    when(cache.get("configs")).thenReturn(map);
+
+    servlet.doGet(request, response);
+    printWriter.flush();
+    JSONObject json = new JSONObject(stringWriter.toString());
+    assertNotNull(json.get("foo"));
+    assertTrue(json.getJSONObject("foo").getBoolean("bar"));
+  }
+
 }
