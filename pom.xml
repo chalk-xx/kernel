@@ -10,7 +10,7 @@
   <url>http://groups.google.com/group/sakai-kernel</url>
   <inceptionYear>2008</inceptionYear>
   <prerequisites>
-    <maven>2.0.7</maven>
+    <maven>2.2.0</maven>
   </prerequisites>
   <scm>
     <connection>scm:git:git://github.com/ieb/open-experiments.git</connection>
