@@ -25,7 +25,6 @@ import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ResourceResolver;
-import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sakaiproject.nakamura.api.memory.CacheManagerService;
@@ -45,6 +44,7 @@ import java.util.Map;
  *
  */
 public class AbstractWidgetServletTest {
+
   @Mock
   protected ResourceResolver resolver;
   @Mock
@@ -59,7 +59,6 @@ public class AbstractWidgetServletTest {
   protected PrintWriter printWriter;
   protected WidgetServiceImpl widgetService;
 
-  @Before
   public void setUp() throws IOException {
     // Init mocks
     MockitoAnnotations.initMocks(this);
@@ -87,33 +86,15 @@ public class AbstractWidgetServletTest {
     when(response.getWriter()).thenReturn(printWriter);
 
     // Mock all the test resources as "Sling Resources".
-    File file = new File(getClass().getResource("/").getPath());
-    mockResource("/", file);
-  }
-
-  protected void setupGoodWidget() {
-    // Mock the resource
-    path = "/widgets/twitter";
-    File file = new File(getClass().getResource(path).getPath());
-    Resource resource = mockResource(path, file);
-
-    when(request.getResource()).thenReturn(resource);
-  }
-
-  protected void setupBadWidget() {
-    // Mock the resource
-    path = "/widgets/badwidget";
-    File file = new File(getClass().getResource(path).getPath());
-    Resource resource = mockResource(path, file);
-
-    when(request.getResource()).thenReturn(resource);
+    File file = new File(getClass().getResource("/widgets").getPath());
+    mockResource("/widgets", file);
   }
 
   /**
    * 
    */
   private Resource mockResource(String path, File file) {
-    System.out.println("Mocking " + path + " for file " +  file.getPath());
+    System.out.println("Mocking " + path + " for file " + file.getPath());
     // Get the inputstream for this file (null if directory.)
     InputStream in = getStream(file);
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.apache.sling.api.resource.Resource;
 import org.apache.sling.commons.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,16 +41,14 @@ import javax.servlet.http.HttpServletResponse;
 public class WidgetizeServletTest extends AbstractWidgetServletTest {
 
   private WidgetizeServlet servlet;
-  
+
   @Before
   public void setUp() throws IOException {
     super.setUp();
-    
-    servlet= new WidgetizeServlet();
+
+    servlet = new WidgetizeServlet();
     servlet.widgetService = widgetService;
   }
-  
- 
 
   @SuppressWarnings("unchecked")
   @Test
@@ -61,8 +60,11 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
             .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
         cache);
 
-    setupGoodWidget();
-
+    // Setup request to point to the correct twitter widget.
+    Resource twitterResource = resolver.getResource("/widgets/twitter");
+    when(request.getResource()).thenReturn(twitterResource);
+    
+    
     servlet.doGet(request, response);
 
     printWriter.flush();
@@ -111,8 +113,11 @@ public class WidgetizeServletTest extends AbstractWidgetServletTest {
             .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
         cache);
 
-    setupBadWidget();
 
+    // Setup request to point to the malformed badwidget.
+    Resource badwidget = resolver.getResource("/widgets/badwidget");
+    when(request.getResource()).thenReturn(badwidget);
+    
     servlet.doGet(request, response);
 
     verify(response).sendError(HttpServletResponse.SC_FORBIDDEN,
