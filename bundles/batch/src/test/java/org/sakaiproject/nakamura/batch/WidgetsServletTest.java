@@ -17,14 +17,13 @@
  */
 package org.sakaiproject.nakamura.batch;
 
-import static org.junit.Assert.assertEquals;
-
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.apache.sling.api.request.RequestPathInfo;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -53,6 +52,7 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
 
     servlet = new WidgetsServlet();
     servlet.widgetService = widgetService;
+
   }
 
   @SuppressWarnings("unchecked")
@@ -65,6 +65,7 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
             .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
         cache);
 
+    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("json"));
     servlet.doGet(request, response);
     printWriter.flush();
     JSONObject json = new JSONObject(stringWriter.toString());
@@ -87,6 +88,8 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
     map.put("foo", jsonMap);
     when(cache.get("configs")).thenReturn(map);
 
+    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("json"));
+
     servlet.doGet(request, response);
     printWriter.flush();
     JSONObject json = new JSONObject(stringWriter.toString());
@@ -94,4 +97,46 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
     assertTrue(json.getJSONObject("foo").getBoolean("bar"));
   }
 
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testJSONP() throws ServletException, IOException {
+    Cache<Object> cache = mock(Cache.class);
+
+    when(
+        cacheManagerService
+            .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
+        cache);
+
+    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("jsonp"));
+    servlet.doGet(request, response);
+    printWriter.flush();
+    String content = stringWriter.toString();
+    assertTrue(content.startsWith("var Widgets={"));
+    assertTrue(content.endsWith("};"));
+  }
+
+  public RequestPathInfo getRequestPathInfo(final String extension) {
+    return new RequestPathInfo() {
+
+      public String getSuffix() {
+        return null;
+      }
+
+      public String[] getSelectors() {
+        return null;
+      }
+
+      public String getSelectorString() {
+        return null;
+      }
+
+      public String getResourcePath() {
+        return null;
+      }
+
+      public String getExtension() {
+        return extension;
+      }
+    };
+  }
 }

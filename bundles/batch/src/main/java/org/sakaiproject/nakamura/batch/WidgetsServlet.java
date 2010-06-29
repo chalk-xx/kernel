@@ -30,6 +30,7 @@ import org.sakaiproject.nakamura.api.batch.WidgetService;
 import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
+import org.sakaiproject.nakamura.api.doc.ServiceExtension;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -48,8 +50,11 @@ import javax.servlet.http.HttpServletResponse;
         "Will output a JSON object with all the widgets in the system.",
         "This servlet will only check the preconfigured locations. These can be modified in the felix admin console panel. The folder should be the toplevel folder that contains the widgets. Each subfolder should represent a widget and should contain a 'config.json' file.",
         "In the JSON response, each key represents a widgetname and will have the content of the 'config.json' file outputted in it." }),
-    @ServiceResponse(code = 500, description = { "The servlet is unable to produce a proper JSON output." }) }) }, bindings = { @ServiceBinding(type = BindingType.PATH, bindings = { "/var/widgets" }) })
-@SlingServlet(methods = { "GET" }, paths = { "/var/widgets" }, generateComponent = false, generateService = true)
+    @ServiceResponse(code = 500, description = { "The servlet is unable to produce a proper JSON output." }) }) }, bindings = { @ServiceBinding(type = BindingType.PATH, bindings = { "/var/widgets" }, extensions = {
+    @ServiceExtension(name = "json", description = "Outputs normal JSON."),
+    @ServiceExtension(name = "jsonp", description = "Outputs JSON-P") }) })
+@SlingServlet(methods = { "GET" }, paths = { "/var/widgets" }, extensions = { "json",
+    "jsonp" }, generateComponent = false, generateService = true)
 @Component(metatype = true, immediate = true)
 public class WidgetsServlet extends SlingSafeMethodsServlet {
 
@@ -76,12 +81,22 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
     // The key will be the name of widget.
     Map<String, ValueMap> validWidgets = widgetService.getWidgetConfigs(resolver);
 
-    // Ensure that we're sending out proper json.
-    response.setContentType("application/json");
+    // Depending on the extension we send out json or json-p.
+    String extension = request.getRequestPathInfo().getExtension();
+    
     response.setCharacterEncoding("UTF-8");
+    PrintWriter printWriter = response.getWriter();
+    
+    if (extension.equals("jsonp")) {
+      response.setContentType("application/javascript");
+      printWriter.append("var Widgets=");
+    } else {
+      // Ensure that we're sending out proper json.
+      response.setContentType("application/json");
+    }
 
     // Write the whole map
-    ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+    ExtendedJSONWriter writer = new ExtendedJSONWriter(printWriter);
     try {
       writer.object();
       for (Entry<String, ValueMap> entry : validWidgets.entrySet()) {
@@ -89,6 +104,9 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
         writer.valueMap(entry.getValue());
       }
       writer.endObject();
+      if (request.getRequestPathInfo().getExtension().equals("jsonp")) {
+        printWriter.append(";");
+      }
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to construct proper JSON.");
