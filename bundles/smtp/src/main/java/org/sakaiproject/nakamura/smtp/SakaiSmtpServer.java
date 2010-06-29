@@ -53,6 +53,9 @@ public class SakaiSmtpServer implements SimpleMessageListener {
 
   @Property
   private static String LOCAL_DOMAINS = "smtp.localdomains";
+  
+  @Property(intValue=8025)
+  private static String SMTP_SERVER_PORT = "smtp.port";
 
   @Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
@@ -60,11 +63,13 @@ public class SakaiSmtpServer implements SimpleMessageListener {
   private Set<String> domains = new HashSet<String>();
 
   public void activate(ComponentContext context) throws Exception {
-    final String port = System.getProperty("org.sakaiproject.nakamura.SMTPServerPort",
-        "8025");
+    Integer port = (Integer) context.getProperties().get(SMTP_SERVER_PORT);
+    if ( port == null ) {
+      port = 8025;
+    }
     LOGGER.info("Starting SMTP server on port {}", port);
     server = new SMTPServer(new SimpleMessageListenerAdapter(this));
-    server.setPort(Integer.parseInt(port));
+    server.setPort(port);
     server.start();
     String localDomains = (String) context.getProperties().get(LOCAL_DOMAINS);
     if (localDomains == null) {

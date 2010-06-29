@@ -28,8 +28,12 @@ import org.junit.Test;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.api.message.MessagingService;
 import org.sakaiproject.nakamura.testutils.easymock.AbstractEasyMockTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -86,6 +90,7 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
   + " 3 environment detached from a Sakai 2 rendered site";
   private static final String MULTIPART_SUBJECT_TEST = "Breaking News Extra: Husband of Accused Huntsville Killer Says She Was Bitter Over Tenure";
   private static final String MULTIPART_SUBJECT_TEST2 = "TestBinary Mesage";
+  private static final Logger LOGGER = LoggerFactory.getLogger(SakaiSmtpServerTest.class);
 
 
   @Test
@@ -104,6 +109,8 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     EasyMock.expectLastCall().anyTimes();
 
     EasyMock.expect(componentContext.getProperties()).andReturn(properties).anyTimes();
+    int port = getSafePort(8025);
+    properties.put("smtp.port",new Integer(port));
     EasyMock.expect(slingRepository.loginAdministrative(null)).andReturn(session)
         .anyTimes();
     List<String> recipents = new ArrayList<String>();
@@ -157,6 +164,82 @@ public class SakaiSmtpServerTest extends AbstractEasyMockTest {
     sakaiSmtpServer.deactivate(componentContext);
 
     verify();
+  }
+  
+  @Test
+  public void testSafePort() throws IOException {
+    ServerSocket s1 = null;
+    try {
+      s1 = new ServerSocket(8025);
+    } catch (IOException e1) {
+    }
+    ServerSocket s2 = null;
+    try {
+      s2 = new ServerSocket(8026);
+    } catch (IOException e2) {
+    }
+    ServerSocket s3 = null;
+    try {
+      s3 = new ServerSocket(8027);
+    } catch (IOException e1) {
+    }
+    ServerSocket s4 = null;
+    try {
+      s4 = new ServerSocket(8028);
+    } catch (IOException e1) {
+    }
+    
+    int port = getSafePort(8025);
+    Assert.assertTrue(port>8028);
+    ServerSocket ss = new ServerSocket(port);
+    Assert.assertTrue(ss.isBound());
+    ss.close();
+     
+    try {
+      
+    } finally {
+      try {
+        s1.close();
+      } catch (Exception e) {
+      }
+      try {
+        s2.close();
+      } catch (Exception e) {
+      }
+      try {
+        s3.close();
+      } catch (Exception e) {
+      }
+      try {
+        s4.close();
+      } catch (Exception e) {
+      }
+    }
+    
+  }
+
+  /**
+   * @param i
+   * @return
+   */
+  private int getSafePort(int i) {
+    for ( int p = i; p < i+500; p++ ) {
+      ServerSocket serverSocket = null;
+      try {
+        serverSocket = new ServerSocket(p);
+        LOGGER.info("Got socket at {} ", p);
+        return p;
+      } catch (IOException e) {
+        LOGGER.info("Failed to get socket at {} ", p);
+      } finally {
+        try {
+          serverSocket.close();
+        } catch (Exception e) {
+          LOGGER.debug("Failed to close socket at {}, safe to ignore ", p);
+        }
+      }
+    }
+    return 0;
   }
 
   @Test
