@@ -5,7 +5,7 @@ require 'test/unit.rb'
 include SlingUsers
 
 
-class TC_Kern857 < Test::Unit::TestCase
+class TC_Kern854 < Test::Unit::TestCase
   include SlingTest
 
   def test_widgetlisting
@@ -20,37 +20,42 @@ class TC_Kern857 < Test::Unit::TestCase
     folders = [widgetsPath]
     setWidgetServiceConfigurationPath(folders)
 
-    # Create a couple of widgets in this directory.
+    # Create a widget in this directory.
     config = {
       "id" => "good",
       "name" => "A good widget"
     }
     @s.create_file_node(widgetsPath + "/good-#{m}", "good-#{m}", "config.json", JSON.dump(config), "application/json")
-    @s.create_file_node(widgetsPath + "/bad-#{m}", "bad-#{m}", "config.json", "This is not JSON", "application/json")
-
-    # Fetch aggregate
-    res = @s.execute_get(@s.url_for("/var/widgets"))
+    @s.create_file_node(widgetsPath + "/good-#{m}", "good-#{m}", "good-#{m}.html", "<html><body>Widget</body></html>", "text/html")
+    @s.create_file_node(widgetsPath + "/good-#{m}/javascript", "good-#{m}", "good-#{m}.js", "var foo = function() { alert('bla'); };", "text/plain")
+    
+    # Create some language bundles
+    @s.create_file_node(widgetsPath + "/good-#{m}/bundles", "good-#{m}", "en_UK.json", "{'WELCOME' : 'Welcome'}", "application/json")
+    @s.create_file_node(widgetsPath + "/good-#{m}/bundles", "good-#{m}", "nl_BE.json", "{'WELCOME' : 'Welkom'}", "application/json")
+    @s.create_file_node(widgetsPath + "/good-#{m}/bundles", "good-#{m}", "fr_BE.json", "{'WELCOME' : 'Bienvenue'}", "application/json")
+    
+    # Fetch bundled widget
+    res = @s.execute_get(@s.url_for(widgetsPath + "/good-#{m}.widgetize.json?locale=nl_BE"))
     assert_equal(200, res.code.to_i)
     json = JSON.parse(res.body)
 
-    # The good widget and all it's properties should be in there
-    assert_not_nil(json["good-#{m}"])
-    assert_equal("good", json["good-#{m}"]["id"])
-    assert_equal("A good widget", json["good-#{m}"]["name"])
-
-    # The bad widget cannot be in there.
-    assert_equal(nil, json["bad-#{m}"])
+    # All of the created things should be in there.
+    assert_equal("<html><body>Widget</body></html>", json["good-#{m}.html"]["content"])
+    assert_equal("var foo = function() { alert('bla'); };", json["javascript"]["good-#{m}.js"]["content"])
+    assert_equal("Welkom", json["bundles"]["nl_BE"]["WELCOME"])
     
-    # Add a widget and make sure that the cache is updated.
-    @s.create_file_node(widgetsPath + "/second-#{m}", "second-#{m}", "config.json", JSON.dump(config), "application/json")
+    # Add a file to the widget and make sure that the cache is updated.
+    @s.create_file_node(widgetsPath + "/good-#{m}", "good-#{m}", "foo.json", JSON.dump(config), "application/json")
     
-    # Fetch new aggregate
-    res = @s.execute_get(@s.url_for("/var/widgets"))
+    # Because the widget event listener is async we sleep for a bit
+    sleep(2)
+    # Fetch bundled widget
+    res = @s.execute_get(@s.url_for(widgetsPath + "/good-#{m}.widgetize.json?locale=nl_BE"))
     assert_equal(200, res.code.to_i)
     json = JSON.parse(res.body)
     
-    # Assert that the new widget is in there.
-    assert_not_nil(json["second-#{m}"])
+    # Assert that the new file is in there.
+    assert_not_nil(json["foo.json"])
 
   end
 

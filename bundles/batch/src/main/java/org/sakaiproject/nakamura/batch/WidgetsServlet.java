@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.sling.SlingServlet;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.servlets.SlingSafeMethodsServlet;
@@ -31,19 +32,21 @@ import org.sakaiproject.nakamura.api.doc.BindingType;
 import org.sakaiproject.nakamura.api.doc.ServiceBinding;
 import org.sakaiproject.nakamura.api.doc.ServiceDocumentation;
 import org.sakaiproject.nakamura.api.doc.ServiceMethod;
+import org.sakaiproject.nakamura.api.doc.ServiceParameter;
 import org.sakaiproject.nakamura.api.doc.ServiceResponse;
 import org.sakaiproject.nakamura.util.ExtendedJSONWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
-@ServiceDocumentation(name = "WidgetsServlet", description = "Gives a list of all the known widgets in the system.", shortDescription = "List all the widgets", methods = { @ServiceMethod(parameters = {}, response = {
+@ServiceDocumentation(name = "WidgetsServlet", description = "Gives a list of all the known widgets in the system.", shortDescription = "List all the widgets", methods = { @ServiceMethod(parameters = { @ServiceParameter(name = "callback", description = { "Optional parameter that determines the name of the callback function for the json-p output. If this parameter is not found, than normal json will be outputted." }) }, response = {
     @ServiceResponse(code = 200, description = {
         "Will output a JSON object with all the widgets in the system.",
         "This servlet will only check the preconfigured locations. These can be modified in the felix admin console panel. The folder should be the toplevel folder that contains the widgets. Each subfolder should represent a widget and should contain a 'config.json' file.",
@@ -76,12 +79,23 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
     // The key will be the name of widget.
     Map<String, ValueMap> validWidgets = widgetService.getWidgetConfigs(resolver);
 
-    // Ensure that we're sending out proper json.
-    response.setContentType("application/json");
+    // Depending on the parameter 'callback' we send out json or json-p.
+    RequestParameter callbackParam = request.getRequestParameter("callback");
+
     response.setCharacterEncoding("UTF-8");
+    PrintWriter printWriter = response.getWriter();
+
+    if (callbackParam != null) {
+      response.setContentType("application/javascript");
+      printWriter.append(callbackParam.getString("UTF-8"));
+      printWriter.append("(");
+    } else {
+      // Ensure that we're sending out proper json.
+      response.setContentType("application/json");
+    }
 
     // Write the whole map
-    ExtendedJSONWriter writer = new ExtendedJSONWriter(response.getWriter());
+    ExtendedJSONWriter writer = new ExtendedJSONWriter(printWriter);
     try {
       writer.object();
       for (Entry<String, ValueMap> entry : validWidgets.entrySet()) {
@@ -89,6 +103,9 @@ public class WidgetsServlet extends SlingSafeMethodsServlet {
         writer.valueMap(entry.getValue());
       }
       writer.endObject();
+      if (callbackParam != null) {
+        printWriter.append(");");
+      }
     } catch (JSONException e) {
       response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
           "Failed to construct proper JSON.");

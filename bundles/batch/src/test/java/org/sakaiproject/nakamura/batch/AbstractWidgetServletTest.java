@@ -94,7 +94,6 @@ public class AbstractWidgetServletTest {
    * 
    */
   private Resource mockResource(String path, File file) {
-    System.out.println("Mocking " + path + " for file " + file.getPath());
     // Get the inputstream for this file (null if directory.)
     InputStream in = getStream(file);
 
