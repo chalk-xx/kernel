@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.apache.sling.api.request.RequestPathInfo;
+import org.apache.sling.api.request.RequestParameter;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.commons.json.JSONException;
 import org.apache.sling.commons.json.JSONObject;
@@ -65,7 +65,6 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
             .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
         cache);
 
-    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("json"));
     servlet.doGet(request, response);
     printWriter.flush();
     JSONObject json = new JSONObject(stringWriter.toString());
@@ -88,8 +87,6 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
     map.put("foo", jsonMap);
     when(cache.get("configs")).thenReturn(map);
 
-    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("json"));
-
     servlet.doGet(request, response);
     printWriter.flush();
     JSONObject json = new JSONObject(stringWriter.toString());
@@ -107,36 +104,13 @@ public class WidgetsServletTest extends AbstractWidgetServletTest {
             .getCache(Mockito.anyString(), Mockito.eq(CacheScope.INSTANCE))).thenReturn(
         cache);
 
-    when(request.getRequestPathInfo()).thenReturn(getRequestPathInfo("jsonp"));
+    RequestParameter callbackParam = mock(RequestParameter.class);
+    when(callbackParam.getString("UTF-8")).thenReturn("parseWidgets");
+    when(request.getRequestParameter("callback")).thenReturn(callbackParam);
     servlet.doGet(request, response);
     printWriter.flush();
     String content = stringWriter.toString();
-    assertTrue(content.startsWith("var Widgets={"));
-    assertTrue(content.endsWith("};"));
-  }
-
-  public RequestPathInfo getRequestPathInfo(final String extension) {
-    return new RequestPathInfo() {
-
-      public String getSuffix() {
-        return null;
-      }
-
-      public String[] getSelectors() {
-        return null;
-      }
-
-      public String getSelectorString() {
-        return null;
-      }
-
-      public String getResourcePath() {
-        return null;
-      }
-
-      public String getExtension() {
-        return extension;
-      }
-    };
+    assertTrue(content.startsWith("parseWidgets("));
+    assertTrue(content.endsWith(");"));
   }
 }
