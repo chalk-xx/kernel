@@ -58,7 +58,7 @@
               <includeArtifactIds>jackrabbit-core</includeArtifactIds>
               <excludeTransitive>false</excludeTransitive>
               <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
-              <excludes>META-INF/MANIFEST.MF,org.apache.jackrabbit.core.query.lucene.NodeIndexer,org.apache.jackrabbit.core.query.lucene.LazyTextExtractorField</excludes>
+              <excludes>META-INF/MANIFEST.MF,org.apache.jackrabbit.core.query.lucene.LazyTextExtractorField</excludes>
             </configuration>
           </execution>
         </executions>
