@@ -117,6 +117,7 @@ public final class TrustedLoginModulePlugin implements LoginModulePlugin {
     try {
       return new TrustedAuthenticationPlugin(principal, creds);
     } catch ( IllegalArgumentException e ) {
+      LOGGER.debug("Didnt get authentication {}",e.getMessage(),e);
       return null;      
     }
   }

@@ -21,6 +21,8 @@ package org.sakaiproject.nakamura.auth.trusted;
 import org.apache.sling.jcr.jackrabbit.server.security.AuthenticationPlugin;
 import org.sakaiproject.nakamura.api.auth.trusted.TrustedTokenService;
 import org.sakaiproject.nakamura.auth.trusted.TrustedTokenServiceImpl.TrustedUser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Principal;
 
@@ -29,6 +31,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
 
 public final class TrustedAuthenticationPlugin implements AuthenticationPlugin {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedAuthenticationPlugin.class);
   private final Principal principal;
 
   public TrustedAuthenticationPlugin(Principal principal, Credentials creds) {
@@ -44,8 +47,10 @@ public final class TrustedAuthenticationPlugin implements AuthenticationPlugin {
     if (cred != null && cred instanceof SimpleCredentials) {
       Object attr = ((SimpleCredentials) cred)
           .getAttribute(TrustedTokenService.CA_AUTHENTICATION_USER);
+      LOGGER.debug("Truested User is  {} ", attr);
       hasAttribute = (attr instanceof TrustedUser);
     }
+    LOGGER.debug("Can Handle is {} {} ", hasAttribute, cred);
     return hasAttribute;
   }
   

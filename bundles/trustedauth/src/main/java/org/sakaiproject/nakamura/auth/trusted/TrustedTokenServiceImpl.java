@@ -235,6 +235,8 @@ public final class TrustedTokenServiceImpl implements TrustedTokenService {
               // the user is Ok, we will trust it.
               userId = user;
               cred = createCredentials(userId);
+            } else {
+              LOG.debug("HMAC Match Failed {} != {} ", hmac, hash );
             }
           } catch (SignatureException e) {
             LOG.warn("Failed to validate server token : {} {} ", sakaiTrustedHeader, e
