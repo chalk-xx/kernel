@@ -215,7 +215,7 @@ public class CreateRuleAclServlet extends AbstractRuleAccessPostServlet {
       }
     }
     if ( ruleProperties.size() == 0  && rule != null ) {
-      ruleProperties.put(RulesBasedAce.P_RULEPROCESSOR, rule);
+      ruleProperties.put(RulesBasedAce.P_RULEPROCESSOR, valueFactory.createValue(rule));
     }
     
     // Make the actual changes.

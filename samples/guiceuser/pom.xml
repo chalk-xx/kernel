@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.samples.guiceuser</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Guice User Bundle</name>
+  <name>Sakai Nakamura :: Sakai Guice User Bundle</name>
   <build>
     <plugins>
       <plugin>

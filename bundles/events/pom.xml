@@ -26,7 +26,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.sakaiproject.nakamura.events</artifactId>
 	<packaging>bundle</packaging>
-	<name>Sakai OSGi-to-JMS Events Bridge Bundle</name>
+	<name>Sakai Nakamura :: OSGi-to-JMS Events Bridge Bundle</name>
 	<version>0.6-SNAPSHOT</version>
 	<build>
     <plugins>
@@ -86,6 +86,12 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.activemq</artifactId>
       <version>5.3.0-0.6-SNAPSHOT</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
+      <version>0.6-SNAPSHOT</version>
     </dependency>
 
 <!-- testing -->

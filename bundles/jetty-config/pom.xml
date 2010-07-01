@@ -20,7 +20,7 @@
   <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
   <packaging>jar</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Jetty Configuration</name>
+  <name>Sakai Nakamura :: Jetty Configuration</name>
   <description>Adds configuration for Jetty.</description>
   <build>
     <plugins>

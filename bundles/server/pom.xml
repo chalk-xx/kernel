@@ -21,7 +21,7 @@
   <artifactId>org.apache.sling.jcr.jackrabbit.server</artifactId>
   <packaging>jar</packaging>
   <version>2.0.7-0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Server Extension Bundle</name>
+  <name>Sakai Nakamura :: Server Extension Bundle</name>
   <description>Extension bundle that provides additional functionality in the repository
     area as required by Sakai.</description>
     <repositories>
@@ -47,6 +47,24 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Expand Server</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>jackrabbit-core</includeArtifactIds>
+              <excludeTransitive>false</excludeTransitive>
+              <outputDirectory> ${project.build.outputDirectory} </outputDirectory>
+              <excludes>META-INF/MANIFEST.MF,org.apache.jackrabbit.core.query.lucene.LazyTextExtractorField</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <extensions>true</extensions>
         <configuration>
@@ -54,6 +72,13 @@
             <manifestFile> ${project.build.outputDirectory}/META-INF/MANIFEST.MF </manifestFile>
           </archive>
         </configuration>
+        <executions>
+         <execution>
+           <goals>
+             <goal>test-jar</goal>
+           </goals>
+         </execution>
+       </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -145,5 +170,12 @@
     	<version>1.8.2</version>
     	<scope>test</scope>
 	</dependency>
+    <!-- Needed to start up repository from other bundles. -->
+    <dependency>
+        <groupId>org.sakaiproject.nakamura</groupId>
+        <artifactId>org.sakaiproject.nakamura.tika</artifactId>
+        <version>0.6-0.6-SNAPSHOT</version>
+    </dependency>
+    
   </dependencies>
 </project>

@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Trusted Authentication Bundle</name>
+  <name>Sakai Nakamura :: Trusted Authentication Bundle</name>
   <build>
     <plugins>
       <plugin>
@@ -39,7 +39,7 @@
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.auth.trusted</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.auth.trusted</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.auth.trusted.*</Private-Package>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
@@ -97,6 +97,11 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.memory</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
       <version>0.6-SNAPSHOT</version>
     </dependency>
     

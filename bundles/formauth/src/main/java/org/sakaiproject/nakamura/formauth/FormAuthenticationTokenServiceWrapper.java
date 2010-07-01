@@ -48,7 +48,7 @@ class FormAuthenticationTokenServiceWrapper extends TrustedTokenServiceWrapper {
    * @param request
    * @param response
    */
-  void addToken(SlingHttpServletRequest request,
+  public final void addToken(SlingHttpServletRequest request,
       SlingHttpServletResponse response) {
     injectToken(request, response);
   }

@@ -1,6 +1,6 @@
 ~/timefields/open-experiments/testscripts/SlingRuby/kerns ~/timefields/open-experiments
 kern-254.rb 1 tests, 5 assertions, 0 failures, 0 errors
-kern-259.rb 1 tests, 0 assertions, 0 failures, 0 errors
+kern-259.rb 1 tests, 10 assertions, 0 failures, 0 errors
 kern-270.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-275.rb 3 tests, 12 assertions, 0 failures, 0 errors
 kern-277.rb 3 tests, 22 assertions, 0 failures, 0 errors
@@ -34,19 +34,20 @@ kern-552.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-563.rb 2 tests, 6 assertions, 0 failures, 0 errors
 kern-568.rb 3 tests, 11 assertions, 0 failures, 0 errors
 kern-577.rb 1 tests, 14 assertions, 0 failures, 0 errors
+kern-629.rb 3 tests, 35 assertions, 0 failures, 0 errors
 kern-637.rb 1 tests, 3 assertions, 0 failures, 0 errors
 kern-693.rb 5 tests, 25 assertions, 0 failures, 0 errors
 kern-702.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-723.rb 1 tests, 5 assertions, 0 failures, 0 errors
 kern-726.rb 1 tests, 7 assertions, 0 failures, 0 errors
 kern-734.rb 4 tests, 26 assertions, 0 failures, 0 errors
-kern-738.rb 1 tests, 10 assertions, 0 failures, 0 errors
 kern-740.rb 4 tests, 34 assertions, 0 failures, 0 errors
 kern-759.rb 1 tests, 12 assertions, 0 failures, 0 errors
 kern-763.rb 1 tests, 6 assertions, 0 failures, 0 errors
 ~/timefields/open-experiments
 ~/timefields/open-experiments/testscripts/SlingRuby/tests ~/timefields/open-experiments
 authz-test.rb 4 tests, 212 assertions, 0 failures, 0 errors
+basiclti-test.rb 1 tests, 87 assertions, 0 failures, 0 errors
 contact-test.rb 1 tests, 23 assertions, 0 failures, 0 errors
 form-auth-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
 message-test.rb 1 tests, 45 assertions, 0 failures, 0 errors
@@ -56,6 +57,6 @@ owner-principal-test.rb 1 tests, 6 assertions, 0 failures, 0 errors
 private-store-test.rb 1 tests, 8 assertions, 0 failures, 0 errors
 rss-test.rb 4 tests, 4 assertions, 0 failures, 0 errors
 sling-search-test.rb 2 tests, 8 assertions, 0 failures, 0 errors
-sling-site-test.rb 3 tests, 13 assertions, 0 failures, 0 errors
+sling-site-test.rb 7 tests, 43 assertions, 0 failures, 0 errors
 user-manager-test.rb 5 tests, 12 assertions, 0 failures, 0 errors
 ~/timefields/open-experiments

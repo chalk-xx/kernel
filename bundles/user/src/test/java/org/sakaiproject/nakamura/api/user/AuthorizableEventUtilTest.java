@@ -69,7 +69,7 @@ public class AuthorizableEventUtilTest extends AbstractEasyMockTest {
     EasyMock.expect(group.getID()).andReturn("g-ieb");
     replay();
     gm.setGroup(group);
-    Event e = AuthorizableEventUtil.newGroupEvent(gm);
+    Event e = AuthorizableEventUtil.newGroupEvent("ieb",gm);
     verify();
   }
   

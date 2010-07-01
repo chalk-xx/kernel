@@ -71,8 +71,9 @@ public class LdapLoginModulePlugin implements LoginModulePlugin {
     boolean canHandle = false;
     if (cred instanceof SimpleCredentials) {
       SimpleCredentials sc = (SimpleCredentials) cred;
-      if (sc.getUserID() != null && sc.getUserID().length() > 0
-          && sc.getPassword() != null && sc.getPassword().length > 0) {
+      if (!"admin".equals(sc.getUserID()) && sc.getUserID() != null
+          && sc.getUserID().length() > 0 && sc.getPassword() != null
+          && sc.getPassword().length > 0) {
         canHandle = true;
       }
     }

@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.jaxp-api</artifactId>
   <packaging>bundle</packaging>
   <version>1.3.0</version>
-  <name>JAXP API Bundle</name>
+  <name>Sakai Nakamura :: JAXP API Bundle</name>
   <description>Adds the JAXP support API's.</description>
   <build>
     <plugins>

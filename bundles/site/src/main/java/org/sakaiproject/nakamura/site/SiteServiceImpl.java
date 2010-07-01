@@ -28,8 +28,10 @@ import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.apache.sling.jcr.base.util.AccessControlUtil;
 import org.apache.sling.jcr.resource.JcrResourceConstants;
+import org.osgi.service.event.EventAdmin;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
 import org.sakaiproject.nakamura.api.site.SiteException;
 import org.sakaiproject.nakamura.api.site.SiteService;
@@ -69,6 +71,9 @@ public class SiteServiceImpl implements SiteService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
 
+  @Reference
+  private SlingRepository slingRepository;
+
   @org.apache.felix.scr.annotations.Property(value = "The Sakai Foundation")
   static final String SERVICE_VENDOR = "service.vendor";
 
@@ -85,6 +90,11 @@ public class SiteServiceImpl implements SiteService {
    */
   private static final int MAXLISTSIZE = 10000;
 
+  /**
+   * The OSGi Event Admin Service.
+   */
+  @Reference
+  private EventAdmin eventAdmin;
 
   @Reference
   private AuthorizablePostProcessService postProcessService;
@@ -131,6 +141,155 @@ public class SiteServiceImpl implements SiteService {
     return false;
   }
 
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.site.SiteService#joinSite(javax.jcr.Node,
+   *      java.lang.String, java.lang.String)
+   */
+  public void joinSite(Node site, String requestedGroup) throws SiteException {
+    Session session = null;
+    try {
+       session = slingRepository.loginAdministrative(null);
+      String user = site.getSession().getUserID();
+      UserManager userManager = AccessControlUtil.getUserManager(session);
+      Authorizable userAuthorizable = userManager.getAuthorizable(user);
+      if (isMember(site, userAuthorizable)) {
+        throw new SiteException(HttpServletResponse.SC_CONFLICT,
+            "The Current user is already a member of the site.");
+      }
+      /*
+       * Is the site joinable
+       */
+      Joinable siteJoin = getJoinable(site);
+
+      /*
+       * is the group associated ?
+       */
+      Authorizable authorizable = userManager.getAuthorizable(requestedGroup);
+      if (!(authorizable instanceof Group)) {
+        throw new SiteException(HttpServletResponse.SC_BAD_REQUEST,
+            "The target group must be specified in the " + SiteService.PARAM_GROUP
+                + " post parameter");
+      }
+
+      Group targetGroup = (Group) authorizable;
+      /*
+       * Is the group joinable.
+       */
+      Joinable groupJoin = getJoinable(targetGroup);
+
+      if (!isMember(site, targetGroup)) {
+        throw new SiteException(HttpServletResponse.SC_BAD_REQUEST, "The target group "
+            + targetGroup.getPrincipal().getName()
+            + " is not a member of the site, so we cant join the site in the target group.");
+      }
+      /*
+       * The target group is a member of the site, so we should be able to join that
+       * group.
+       */
+      if (Joinable.no.equals(groupJoin)) {
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, "The group is not joinable.");
+      } else if (Joinable.no.equals(siteJoin)) {
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, "The site is not joinable.");
+      }
+
+      if (Joinable.yes.equals(groupJoin) && Joinable.yes.equals(siteJoin)) {
+        targetGroup.addMember(userAuthorizable);
+        postEvent(SiteEvent.joinedSite, site, targetGroup);
+
+      } else {
+        startJoinWorkflow(site, targetGroup);
+      }
+      if ( session.hasPendingChanges()) {
+        session.save();
+      }
+    } catch (RepositoryException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    } finally {
+      try {
+        session.logout();
+      } catch ( Exception ex ) {
+        LOGGER.debug("Error cleaning up session ",ex.getMessage(),ex);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.sakaiproject.nakamura.api.site.SiteService#unjoinSite(javax.jcr.Node,
+   *      java.lang.String, java.lang.String)
+   */
+  public void unjoinSite(Node site, String requestedGroup) throws SiteException {
+    try {
+      if (!isSite(site)) {
+        throw new SiteException(HttpServletResponse.SC_BAD_REQUEST, site.getPath()
+            + " is not a site");
+      }
+      UserManager userManager = AccessControlUtil.getUserManager(site.getSession());
+      Authorizable authorizable = userManager.getAuthorizable(requestedGroup);
+      if (!(authorizable instanceof Group)) {
+        throw new SiteException(HttpServletResponse.SC_BAD_REQUEST,
+            "The target group must be specified in the " + SiteService.PARAM_GROUP
+                + " post parameter");
+      }
+      Group targetGroup = (Group) authorizable;
+      if (!isMember(site, targetGroup)) {
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, targetGroup
+            + " is not associated with " + site.getPath());
+      }
+
+      Session session = site.getSession();
+      String user = session.getUserID();
+      Authorizable userAuthorizable = userManager.getAuthorizable(user);
+      if (!(userAuthorizable instanceof User)) {
+
+        throw new SiteException(HttpServletResponse.SC_CONFLICT,
+            "Not a user that is known to the system: " + user);
+      }
+
+      if (!targetGroup.removeMember(userAuthorizable)) {
+        throw new SiteException(HttpServletResponse.SC_CONFLICT, "User " + user
+            + " was not a member of " + requestedGroup);
+      }
+      postEvent(SiteEvent.unjoinedSite, site, targetGroup);
+
+    } catch (RepositoryException e) {
+      LOGGER.warn(e.getMessage(), e);
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+
+  }
+
+  /**
+   * @param site
+   * @param targetGroup
+   * @param user
+   * @throws SiteException
+   * @throws RepositoryException
+   */
+  public void startJoinWorkflow(Node site, Group targetGroup) throws SiteException {
+    postEvent(SiteEvent.startJoinWorkflow, site, targetGroup);
+  }
+
+  /**
+   * @param startJoinWorkflow
+   * @param site
+   * @param targetGroup
+   * @throws SiteException
+   */
+  private void postEvent(SiteEvent event, Node site, Group targetGroup) throws SiteException {
+
+    try {
+      eventAdmin.postEvent(SiteEventUtil.newSiteEvent(event, site, targetGroup));
+    } catch (RepositoryException ex) {
+      LOGGER.warn(ex.getMessage(), ex);
+      throw new SiteException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+  }
 
   /**
    * @param site
@@ -235,6 +394,14 @@ public class SiteServiceImpl implements SiteService {
       LOGGER.warn(e.getMessage(), e);
     }
     return Joinable.no;
+  }
+
+  protected void bindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = eventAdmin;
+  }
+
+  protected void unbindEventAdmin(EventAdmin eventAdmin) {
+    this.eventAdmin = null;
   }
 
   /**
@@ -683,6 +850,14 @@ public class SiteServiceImpl implements SiteService {
 
     LOGGER.info("No site found for {}", siteName);
     return null;
+  }
+
+  protected void bindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = slingRepository;
+  }
+
+  protected void unbindSlingRepository(SlingRepository slingRepository) {
+    this.slingRepository = null;
   }
 
 }

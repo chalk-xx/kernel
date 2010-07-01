@@ -30,7 +30,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.service.component.ComponentContext;
 import org.sakaiproject.nakamura.util.Signature;
 
-import java.security.MessageDigest;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;

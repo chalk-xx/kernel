@@ -19,6 +19,21 @@ import javax.jcr.query.QueryResult;
 public class DocumentationWriter {
 
   /**
+   * The title that should be outputted as a h1 on the listing.
+   */
+  private String title;
+  private PrintWriter writer;
+
+  /**
+   * @param title The title that this writer should print.
+   * @param printWriter The actual writer where content should be written to.
+   */
+  public DocumentationWriter(String title, PrintWriter printWriter) {
+    this.title = title;
+    this.setWriter(printWriter);
+  }
+
+  /**
    * Write out a list of nodes.
    * 
    * @param session
@@ -30,13 +45,13 @@ public class DocumentationWriter {
    * @throws InvalidQueryException
    * @throws RepositoryException
    */
-  public static void writeNodes(Session session, PrintWriter writer,
-      String query, String servlet) throws InvalidQueryException, RepositoryException {
+  public void writeNodes(Session session, String query, String servlet)
+      throws InvalidQueryException, RepositoryException {
     // Write the HTML header.
     writer.append(DocumentationConstants.HTML_HEADER);
 
     // Begin list
-    writer.append("<h1>Search nodes</h1>");
+    writer.append("<h1>").append(getTitle()).append("</h1>");
     writer.append("<ul class=\"").append(
         DocumentationConstants.CSS_CLASS_DOCUMENTATION_LIST).append("\">");
 
@@ -60,8 +75,8 @@ public class DocumentationWriter {
       }
       writer.append("</a><span class=\"").append(CSS_CLASS_PATH).append("\">");
       writer.append(doc.getPath());
-      writer.append("</span><p class=\"").append(CSS_CLASS_SHORT_DESCRIPTION)
-          .append("\">");
+      writer.append("</span><p class=\"").append(CSS_CLASS_SHORT_DESCRIPTION).append(
+          "\">");
       writer.append(doc.getShortDescription());
       writer.append("</p></li>");
 
@@ -76,20 +91,53 @@ public class DocumentationWriter {
 
   /**
    * Write info for a specific node.
-   * @param path The path to the node.
-   * @param session The current JCR session.
-   * @param writer The writer to send the response to.
+   *
+   * @param path
+   *          The path to the node.
+   * @param session
+   *          The current JCR session.
+   * @param writer
+   *          The writer to send the response to.
    * @throws RepositoryException
    */
-  public static void writeSearchInfo(String path, Session session,
-      PrintWriter writer) throws RepositoryException {
+  public void writeSearchInfo(String path, Session session) throws RepositoryException {
     Node node = (Node) session.getItem(path);
     NodeDocumentation doc = new NodeDocumentation(node);
     writer.append(DocumentationConstants.HTML_HEADER);
-    writer.append("<h1>Search node: ");
+    writer.append("<h1>");
     writer.append(doc.getTitle());
     writer.append("</h1>");
     doc.send(writer);
     writer.append(DocumentationConstants.HTML_FOOTER);
+  }
+
+  /**
+   * @param title
+   *          The title that should be outputted as a h1 on the listing.
+   */
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  /**
+   * @return the The title that should be outputted as a h1 on the listing.
+   */
+  public String getTitle() {
+    return title;
+  }
+
+  /**
+   * @param writer
+   *          the writer to write the info to.
+   */
+  public void setWriter(PrintWriter writer) {
+    this.writer = writer;
+  }
+
+  /**
+   * @return the writer
+   */
+  public PrintWriter getWriter() {
+    return writer;
   }
 }

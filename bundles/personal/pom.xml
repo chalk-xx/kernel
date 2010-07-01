@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.personal</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Personal Space Bundle</name>
+  <name>Sakai Nakamura :: Personal Space Bundle</name>
   <description>Provides support for the personal storage area bound to the current user, and
     support for public user spaces addressable via a url containing the user id.</description>
   <build>
@@ -73,11 +73,6 @@
       <groupId>org.apache.sling</groupId>
       <artifactId>org.apache.sling.servlets.post</artifactId>
       <version>2.0.5-20100524</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sakaiproject.nakamura</groupId>
-      <artifactId>org.sakaiproject.nakamura.resource</artifactId>
-      <version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>

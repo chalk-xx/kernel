@@ -52,7 +52,7 @@ class TC_MySiteTest < Test::Unit::TestCase
    assert_equal("g-mysitegroup"+@m, groups[0], "Expected group to be added")
   end
 
-  def deprecated_test_join_unjoinable_site
+  def test_join_unjoinable_site
     @m = Time.now.to_i.to_s
     site_group = create_group("g-mysitegroup"+@m)
     site_user = create_user("mysiteuser"+@m)
@@ -82,12 +82,12 @@ class TC_MySiteTest < Test::Unit::TestCase
     return test_site
   end
 
-  def deprecated_test_join
+  def test_join
     @m = Time.now.to_i.to_s
     return do_join("someothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)    
   end
 
-  def deprecated_test_join_and_search
+  def test_join_and_search
     @m = Time.now.to_i.to_s
     do_join("anothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
     res = @s.update_node_props("sites/somesite/anothersite"+@m, "fish" => "dog")
@@ -95,12 +95,12 @@ class TC_MySiteTest < Test::Unit::TestCase
     result = @search.search_for_site("dog")
     assert_not_nil(result, "Expected results back")
     assert(result["results"].size >= 1, "Expected at least one site")
-    created_site = result["results"].select { |r| r["path"] == "/sites/somesite/anothersite"+@m }
+    created_site = result["results"].select { |r| r["jcr:path"] == "/sites/somesite/anothersite"+@m }
     assert_equal(1, created_site.size, "Expected to find site with matching path")
     assert_equal(1, created_site[0]["member-count"].to_i, "Expected single member")
   end
 
-  def deprecated_test_multi_group_join
+  def test_multi_group_join
     @m = Time.now.to_i.to_s
     site = do_join("anothersite"+@m, "g-mysitegroup"+@m, "mysiteuser"+@m)
     group2 = create_group("g-sitegroup2"+@m)

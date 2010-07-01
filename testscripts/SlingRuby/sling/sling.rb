@@ -311,9 +311,17 @@ module SlingInterface
     def get_node_acl_json(path)
       return execute_get(url_for("#{path}.acl.json")).body
     end
+
+    def get_node_ruleacl_json(path)
+      return execute_get(url_for("#{path}.ruleacl.json")).body
+    end
     
     def get_node_acl(path)
       return JSON.parse(get_node_acl_json(path))
+    end
+ 
+    def get_node_ruleacl(path)
+      return JSON.parse(get_node_ruleacl_json(path))
     end
     
     def set_node_acl_entries(path, principal, privs)
@@ -325,6 +333,17 @@ module SlingInterface
         end))
         return res
       end
+
+    def set_node_acl_rule_entries(path, principal, privs, props)
+      @log.info "Setting node acl for: #{principal} to #{privs.dump}"
+      props["principalId"] = principal.name
+      res = execute_post(url_for("#{path}.modifyRuleAce.html"), 
+        props.update(
+          privs.keys.inject(Hash.new) do |n,k| 
+            n.update("privilege@#{k}" => privs[k])
+          end))
+      return res
+    end
       
       def delete_node_acl_entries(path, principal)
         res = execute_post(url_for("#{path}.deleteAce.html"), {

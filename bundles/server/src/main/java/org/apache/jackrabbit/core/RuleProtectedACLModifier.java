@@ -50,6 +50,15 @@ public class RuleProtectedACLModifier {
     return parentImpl.internalSetProperty(name, intVs);
   }
 
+  /**
+   * Set a multiple property as a same name property array (ie append the index)
+   * We do this becuase the schema for the acl does not allow us to do array properties.
+   * @param parentImpl
+   * @param name
+   * @param values
+   * @return
+   * @throws RepositoryException
+   */
   protected Property[] setProperty(NodeImpl parentImpl, Name name, Value[] values)
       throws RepositoryException {
     String nameBase = name.getLocalName();

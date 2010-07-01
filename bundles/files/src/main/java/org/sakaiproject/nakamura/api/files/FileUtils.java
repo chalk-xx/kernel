@@ -161,13 +161,6 @@ public class FileUtils {
     // The permissions for this session.
     writePermissions(node, session, write);
 
-    // The download path to this file.
-    write.key("path");
-    write.value(node.getPath());
-
-    write.key("name");
-    write.value(node.getName());
-
     if (node.hasNode(JcrConstants.JCR_CONTENT)) {
       Node contentNode = node.getNode(JcrConstants.JCR_CONTENT);
       write.key(JcrConstants.JCR_LASTMODIFIED);
@@ -202,12 +195,6 @@ public class FileUtils {
     write.object();
     // Write all the properties.
     ExtendedJSONWriter.writeNodeContentsToWriter(write, node);
-    // The name of this file.
-    write.key("name");
-    write.value(node.getName());
-    // Download path.
-    write.key("path");
-    write.value(node.getPath());
     // permissions
     writePermissions(node, session, write);
 
@@ -331,8 +318,6 @@ public class FileUtils {
     write.object();
     write.key("member-count");
     write.value(String.valueOf(siteService.getMemberCount(siteNode)));
-    write.key("path");
-    write.value(siteNode.getPath());
     ExtendedJSONWriter.writeNodeContentsToWriter(write, siteNode);
     write.endObject();
   }

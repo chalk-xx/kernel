@@ -191,6 +191,9 @@ public class SiteVisitToolPlacementServlet extends HttpServlet {
 			// write siteJson to containing json
 			json.element("site", siteJson);
 			// dump json to response writer
+			resp.setContentType("application/json");
+			resp.setCharacterEncoding("UTF-8");
+			resp.setStatus(HttpServletResponse.SC_OK);
 			json.write(resp.getWriter());
 			// post events if requested
 			if (writeEvent) {

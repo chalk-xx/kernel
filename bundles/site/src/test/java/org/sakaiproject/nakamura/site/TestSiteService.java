@@ -11,6 +11,7 @@ import org.apache.jackrabbit.api.security.user.Group;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.api.security.user.UserManager;
 import org.apache.sling.commons.testing.jcr.MockValue;
+import org.apache.sling.jcr.api.SlingRepository;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.sakaiproject.nakamura.api.site.SiteService;
@@ -32,7 +33,9 @@ public class TestSiteService extends AbstractEasyMockTest {
   @Test
   public void testNoDuplicateMembers() throws RepositoryException {
     UserManager userManager = createMock(UserManager.class);
+    SlingRepository slingRepository = createMock(SlingRepository.class);
     SiteServiceImpl siteService = new SiteServiceImpl();
+    siteService.bindSlingRepository(slingRepository);
     Node siteNode = createMock(Node.class);
     JackrabbitSession session = createMock(JackrabbitSession.class);
     expect(siteNode.getSession()).andReturn(session).anyTimes();

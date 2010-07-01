@@ -21,7 +21,7 @@
   <artifactId>org.sakaiproject.nakamura.authz</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Authorization Bundle</name>
+  <name>Sakai Nakamura :: Authorization Bundle</name>
   <description>Extension bundle that provides additional authorization functionality.</description>
   <repositories>
     <repository>

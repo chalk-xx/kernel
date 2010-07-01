@@ -44,7 +44,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 /**
- *
+ * A Drools implementation of the Rule Execution Service.
  */
 @Component(label = "Drools Rule Execution Service", description = "Provides Rule Execution using Drools Knowledgebases")
 @Service(value = RuleExecutionService.class)
@@ -62,6 +62,7 @@ public class RuleExecutionServiceImpl implements RuleExecutionService {
    * @see org.sakaiproject.nakamura.api.rules.RuleExecutionService#executeRuleSet(java.lang.String,
    *      org.apache.sling.api.SlingHttpServletRequest)
    */
+  @SuppressWarnings("unchecked")
   public Map<String, Object> executeRuleSet(String pathToRuleSet,
       SlingHttpServletRequest request, RuleContext ruleContext) {
     ResourceResolver resourceResolver = request.getResourceResolver();

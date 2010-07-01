@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.lifecycle</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Nakamura Initialization Bundle</name>
+  <name>Sakai Nakamura :: Initialization Bundle</name>
   <description>Provides lifecycle support to Sakai Nakamura bundles outside OSGi.</description>
   <build>
     <plugins>

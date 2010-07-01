@@ -27,7 +27,7 @@
   <artifactId>org.sakaiproject.nakamura.version</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Sling Version Extension Bundle</name>
+  <name>Sakai Nakamura :: Version Extension Bundle</name>
   <description>Provides version management servlets</description>
   <build>
     <plugins>
@@ -115,6 +115,10 @@
       <artifactId>org.sakaiproject.nakamura.testutils</artifactId>
       <version>0.6-SNAPSHOT</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
     </dependency>
   </dependencies>
 </project>

@@ -8,7 +8,7 @@
   <groupId>org.sakaiproject.nakamura</groupId>
   <artifactId>org.sakaiproject.nakamura.persondirectory</artifactId>
   <packaging>bundle</packaging>
-  <name>Sakai Nakamura Person Directory Bundle</name>
+  <name>Sakai Nakamura :: Person Directory Bundle</name>
   <version>0.6-SNAPSHOT</version>
   <build>
     <plugins>
@@ -52,6 +52,12 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.ldap</artifactId>
+      <version>0.6-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.profile</artifactId>
       <version>0.6-SNAPSHOT</version>
     </dependency>
 

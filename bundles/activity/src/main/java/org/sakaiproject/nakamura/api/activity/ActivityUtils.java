@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.osgi.service.event.Event;
 import org.sakaiproject.nakamura.api.personal.PersonalUtils;
+import org.sakaiproject.nakamura.api.user.UserConstants;
 import org.sakaiproject.nakamura.util.PathUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -41,8 +42,9 @@ public class ActivityUtils {
   private static SecureRandom random = null;
 
   @SuppressWarnings("unchecked")
-  public static Event createEvent(String activityItemPath) {
+  public static Event createEvent(String user, String activityItemPath) {
     final Dictionary<String, String> map = new Hashtable(1);
+    map.put(UserConstants.EVENT_PROP_USERID, user);
     map.put(ActivityConstants.EVENT_PROP_PATH, activityItemPath);
     return new Event(EVENT_TOPIC, (Dictionary) map);
   }

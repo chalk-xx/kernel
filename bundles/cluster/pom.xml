@@ -24,7 +24,7 @@
   <artifactId>org.sakaiproject.nakamura.cluster</artifactId>
   <packaging>bundle</packaging>
   <version>0.6-SNAPSHOT</version>
-  <name>Sakai Cluster Tracking</name>
+  <name>Sakai Nakamura ::: Cluster Tracking</name>
   <description>Cluster Tracking support for app servers and users.</description>
   <build>
     <plugins>
@@ -71,6 +71,12 @@
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.proxy</artifactId>
+      <version>0.6-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.jetty-config</artifactId>
       <version>0.6-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

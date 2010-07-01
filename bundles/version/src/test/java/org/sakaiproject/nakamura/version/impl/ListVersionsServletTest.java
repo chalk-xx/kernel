@@ -38,12 +38,15 @@ import javax.jcr.InvalidItemStateException;
 import javax.jcr.Node;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
+import javax.jcr.Workspace;
 import javax.jcr.lock.LockException;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionException;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
+import javax.jcr.version.VersionManager;
 import javax.servlet.ServletException;
 
 /**
@@ -130,13 +133,20 @@ public class ListVersionsServletTest extends AbstractEasyMockTest {
     VersionHistory versionHistory = createNiceMock(VersionHistory.class);
     VersionIterator versionIterator = createNiceMock(VersionIterator.class);
     Node versionNode = createNiceMock(Node.class);
+    Session session = createNiceMock(Session.class);
+    Workspace workspace = createNiceMock(Workspace.class);
+    VersionManager versionManager = createNiceMock(VersionManager.class);
 
     EasyMock.expect(request.getResource()).andReturn(resource).anyTimes();
     EasyMock.expect(resource.adaptTo(Node.class)).andReturn(node).anyTimes();
     PrintWriter pw = new PrintWriter(new ByteArrayOutputStream());
     EasyMock.expect(response.getWriter()).andReturn(pw).anyTimes();
 
-    EasyMock.expect(node.getVersionHistory()).andReturn(versionHistory);
+    EasyMock.expect(node.getSession()).andReturn(session);
+    EasyMock.expect(session.getWorkspace()).andReturn(workspace);
+    EasyMock.expect(workspace.getVersionManager()).andReturn(versionManager);
+    EasyMock.expect(versionManager.getVersionHistory("/foo")).andReturn(versionHistory);
+    EasyMock.expect(node.getPath()).andReturn("/foo").anyTimes();
     EasyMock.expect(versionHistory.getAllVersions()).andReturn(versionIterator);
     EasyMock.expect(versionIterator.getSize()).andReturn(2L);
     EasyMock.expect(versionIterator.hasNext()).andReturn(true);

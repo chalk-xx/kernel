@@ -97,10 +97,10 @@ import javax.servlet.http.HttpServletResponse;
         selectors=@ServiceSelector(name="createsite", description="Create Site"),
         extensions=@ServiceExtension(name="html", description="A standard HTML response for creating a node.")),
     methods=@ServiceMethod(name="POST",
-        description={"Creates a site, with a name specified in " + PARAM_SITE_PATH + " from an optional template. In the process the servlet" +
+        description={"Creates a site, with a name specified in " + PARAM_SITE_PATH + " from an optional template. In the process the servlet " +
         		"will also create all related structures (message stores etc) and set up any groups associated with the site. " +
-        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed" +
-        		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then" +
+        		"Create permissions may be controlled by the sakai:sitegroupcreate property, containing a list of principals allowed " +
+        		"to create sites under that node. If the current user is not allowed to create a site in the chosen location, then " +
         		"a 403 is returned. " +
         		"Any parameters other than " + PARAM_SITE_PATH + " will be stored as properties on the new site node.",
             "Example<br>" +

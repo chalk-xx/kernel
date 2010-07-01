@@ -70,6 +70,8 @@ public interface UserConstants {
   public static final String USER_REPO_LOCATION = "/rep:security/rep:authorizables/rep:users";
   public static final String GROUP_REPO_LOCATION = "/rep:security/rep:authorizables/rep:groups";
 
+  
+  public static final String EVENT_PROP_USERID = "user";
 
   
 }
