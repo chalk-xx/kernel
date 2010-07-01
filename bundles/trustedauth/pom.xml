@@ -39,7 +39,7 @@
           <instructions>
             <Bundle-Category>sakai-nakamura</Bundle-Category>
             <Export-Package>org.sakaiproject.nakamura.api.auth.trusted</Export-Package>
-            <Private-Package>org.sakaiproject.nakamura.auth.trusted</Private-Package>
+            <Private-Package>org.sakaiproject.nakamura.auth.trusted.*</Private-Package>
             <Import-Package>*</Import-Package>
           </instructions>
         </configuration>
