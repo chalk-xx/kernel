@@ -19,11 +19,11 @@
   <parent>
     <groupId>org.sakaiproject.nakamura</groupId>
     <artifactId>base</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.7-SNAPSHOT</version>
   </parent>
   <artifactId>org.sakaiproject.nakamura.captcha</artifactId>
   <packaging>bundle</packaging>
-  <version>0.6-SNAPSHOT</version>
+  <version>0.7-SNAPSHOT</version>
   <name>Sakai Nakamura :: Captcha Bundle</name>
   <description>Provides a captcha service. The default implementation is reCAPTCHA.</description>
   <build>
@@ -88,13 +88,6 @@
       <artifactId>org.apache.felix.scr.annotations</artifactId>
     </dependency>
 
-    <!-- RECaptcha dependencies -->
-    <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
-    </dependency>
-
     <!--  SAKAI dependencies -->
     <dependency>
       <groupId>org.sakaiproject.nakamura</groupId>
@@ -106,6 +99,12 @@
       <groupId>org.sakaiproject.nakamura</groupId>
       <artifactId>org.sakaiproject.nakamura.auth.trusted</artifactId>
       <version>0.6-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.commons.commons-httpclient</artifactId>
+      <version>0.7-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
