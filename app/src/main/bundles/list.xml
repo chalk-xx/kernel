@@ -55,11 +55,6 @@
         </bundle>
         <bundle>
             <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.httpauth</artifactId>
-            <version>2.0.5-SNAPSHOT</version>
-        </bundle>
-        <bundle>
-            <groupId>org.apache.sling</groupId>
             <artifactId>org.apache.sling.openidauth</artifactId>
             <version>0.9.1-SNAPSHOT</version>
         </bundle>
